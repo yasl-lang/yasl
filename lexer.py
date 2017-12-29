@@ -91,6 +91,9 @@ class Lexer(object):
             return Token(EOF, None)
         while self.current_char is not None:
             # alphabetic RESERVED_KEYWORDS & ID
+            if self.current_char + (self.peek() or "") == "\\\n":
+                self.advance()
+                self.advance()
             if self.current_char.isdigit():
                 return self._num()
             if self.current_char.isalnum():
