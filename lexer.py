@@ -86,7 +86,7 @@ class Lexer(object):
     def get_next_token(self):
         # tokenizer
         text = self.text
-        while self.current_char == " " or self.current_char == "\n":
+        while self.current_char == " ":
             self.advance()
         if self.pos >= len(text):
             return Token(EOF, None)
@@ -95,9 +95,9 @@ class Lexer(object):
             if self.current_char + (self.peek() or "") == "\\\n":
                 self.advance()
                 self.advance()
-            if self.current_char.isdigit():
+            elif self.current_char.isdigit():
                 return self._num()
-            if self.current_char.isalnum():
+            elif self.current_char.isalnum():
                 return self._id()
             # STR
             elif self.current_char == '"':

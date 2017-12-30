@@ -72,11 +72,15 @@ class Assign(AST):
     def __init__(self, left, right):
         self.left = left  # ID
         self.right = right # val
+    def ret_type(self):
+        return self.right.ret_type()
 class Var(AST):
     # ID Token is used here
     def __init__(self, token):
         self.token = token
         self.value = token.value
+    def ret_type(self):
+        return INT #TODO: replace with proper value
 class Print(AST):
     def __init__(self, token, expr):
         self.token = token
