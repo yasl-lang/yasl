@@ -5,6 +5,7 @@ QMARK = "QMARK"
 PRINT = "PRINT"
 OP = "OP"
 INT, FLOAT, STR, BOOL = "INT", "FLOAT", "STR", "BOOL"
+VAR = "VAR"
 
 class Token(object):
     def __init__(self, token_type, token_value):
