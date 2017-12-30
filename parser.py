@@ -18,21 +18,22 @@ class Parser(object):
     def eat(self, token_type):
         #print(self.current_token, self.next_token)
         if self.current_token.type == token_type:
+            result = self.current_token
             self.current_token = self.next_token
             self.next_token = self.lexer.get_next_token()
+            return result
         else:
             self.error(token_type)
     def program(self):
         if self.current_token.type == PRINT:
-            self.eat(PRINT)
-            return Print(Token(PRINT, PRINT), self.expr())
+            token = self.eat(PRINT)
+            return Print(token, self.expr())
         elif self.current_token.type == VAR:
             self.eat(VAR)
             return self.vardecl()
         return self.expr()
     def vardecl(self):
-        name = self.current_token
-        self.eat(ID)
+        name = self.eat(ID)
         if self.current_token.value == "=":
             self.eat(OP)
         else:
@@ -75,21 +76,18 @@ class Parser(object):
     def fact3(self):
         curr = self.fact4()
         while self.current_token.value in ["+", "-", "||"]:
-            op = self.current_token
-            self.eat(OP)
+            op = self.eat(OP)
             curr = BinOp(op, curr, self.fact4())
         return curr
     def fact4(self):
         curr = self.const()
         while self.current_token.value in ["*", "/"]:
-            op = self.current_token
-            self.eat(OP)
+            op = self.eat(OP)
             curr = BinOp(op, curr, self.const())
         return curr
     def const(self):
         if self.current_token.type == OP and self.current_token.value in ["-", "+", "!"]:
-            op = self.current_token
-            self.eat(OP)
+            op = self.eat(OP)
             return UnOp(op, self.const())
         elif self.current_token.type == LPAREN:
             self.eat(LPAREN)
@@ -100,8 +98,7 @@ class Parser(object):
         elif self.next_token.type == LPAREN:
             return self.func_call()'''
         elif self.current_token.type == ID:
-            var = self.current_token
-            self.eat(ID)
+            var = self.eat(ID)
             return Var(var)
             '''
         elif self.current_token.type == STR:
@@ -109,12 +106,10 @@ class Parser(object):
             self.eat(STR)
             return String(string)'''
         elif self.current_token.type == INT:
-            integer = self.current_token
-            self.eat(INT)
+            integer = self.eat(INT)
             return Integer(integer)
         elif self.current_token.type == FLOAT:
-            double = self.current_token
-            self.eat(FLOAT)
+            double = self.eat(FLOAT)
             return Float(double)
             '''
         elif self.current_token.type == BOOL:
