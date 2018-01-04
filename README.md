@@ -1,2 +1,2 @@
 # YASL
-Bytecode Interpreter for YASL (Yet Another Scripting Language).
+Bytecode Interpreter for Yet Another Scripting Language (YASL).

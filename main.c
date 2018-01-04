@@ -174,32 +174,34 @@ void run(VM* vm){
             }
             DPUSH(vm, d);
             break;
+        case NEG:
+            a = POP(vm);
+            if (a.type == INT64) {
+                a.value = -a.value;
+                PUSH(vm, a);
+                break;
+            }
+            else if (a.type == FLOAT64) {
+                d = -DVAL(a);
+                DPUSH(vm, d);
+                break;
+            }
+            else {
+                printf("ERROR: unary - not supported for operand of type %x.\n", a.type);
+                return;
+            }
         //case I2D: TODO: implement
         //case D2I: TODO: implement
-        //case NEG: TODO: implement
-        //case DCONST: TODO: implement
-        //case ICONST: TODO: implement
-        /*
         case GLOAD:
-            addr = NCODE(vm);             // get pointer address from code ...
-            v = vm->locals[addr];         // ... load value from memory of the provided addres ...
-            PUSH(vm, v);                // ... and put that value on top of the stack
+            addr = NCODE(vm);             // get addr of var in locals
+            v = vm->locals[addr];         // load value from memory of the provided addr
+            PUSH(vm, v);                  // put that value on top of the stack
             break;
         case GSTORE:
-            v = POP(vm);                // get value from top of the stack ...
-            addr = NCODE(vm);           // ... get pointer address from code ...
-            vm->locals[addr] = v;         // ... and store value at address received
-            break; //
-        case GDLOAD:
-            addr = NCODE(vm);             // get pointer address from code ...
-            v = ((double*)vm->locals)[addr];         // ... load value from memory of the provided addres ...
-            DPUSH(vm, v);                // ... and put that value on top of the stack
+            v = POP(vm);                  // get value from top of the stack
+            addr = NCODE(vm);             // get addr of var in locals
+            vm->locals[addr] = v;         // store value at addr received
             break;
-        case GDSTORE:
-            v = DPOP(vm);                // get value from top of the stack ...
-            addr = NCODE(vm);           // ... get pointer address from code ...
-            ((double*)vm->locals)[addr] = v;         // ... and store value at address received
-            break; //*/
         case POP:
             --vm->sp;      // throw away value at top of the stack
             break;

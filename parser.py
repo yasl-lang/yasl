@@ -103,7 +103,7 @@ class Parser(object):
             '''
         elif self.current_token.type == STR:
             string = self.current_token
-            self.eat(STR)
+            self.eat(TokenTypes.STR)
             return String(string)'''
         elif self.current_token.type is TokenTypes.INT:
             integer = self.eat(TokenTypes.INT)
@@ -114,7 +114,7 @@ class Parser(object):
             '''
         elif self.current_token.type == BOOL:
             boolean = self.current_token
-            self.eat(BOOL)
+            self.eat(TokenTypes.BOOL)
             return Boolean(boolean)'''
     def parse(self):
         statements = []
@@ -122,7 +122,7 @@ class Parser(object):
             statements.append(self.program())
             if self.current_token.type is TokenTypes.SEMI:
                 self.eat(TokenTypes.SEMI)
-            elif self.current_token.type is notTokenTypes.EOF:
+            elif self.current_token.type is not TokenTypes.EOF:
                 self.error(TokenTypes.EOF)
         print(statements)
         return statements
