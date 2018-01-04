@@ -1,8 +1,7 @@
 from tokens import *
 
 class AST(object):
-    def ret_type(self):
-        return None
+    pass
 '''class TriOp(AST):
     def __init__(self, op, left, middle, right):
         self.left = left
@@ -14,19 +13,10 @@ class BinOp(AST):
         self.left = left
         self.right = right
         self.token = self.op = op
-    def ret_type(self):
-        if self.op.value == "/":
-            return FLOAT
-        if self.op.value in ["+", "-", "*"]:
-            if self.left.ret_type() == FLOAT or self.right.ret_type() == FLOAT:
-                return FLOAT
-            return INT
 class UnOp(AST):
     def __init__(self, op, expr):
         self.token = self.op = op
         self.expr = expr
-    def ret_type(self):
-        return self.expr.ret_type()
 '''class NulOp(AST):
     def __init__(self, op):
         self.token = self.op = op
@@ -42,14 +32,12 @@ class Integer(AST):
     def __init__(self, token):
         self.token = token
         self.value = token.value
-    def ret_type(self):
-        return INT
+        self.v_type = INT
 class Float(AST):
     def __init__(self, token):
         self.token = token
         self.value = token.value
-    def ret_type(self):
-        return FLOAT
+        self.v_type = FLOAT
 '''class Param(AST):
     def __init__(self, var_node):
         self.node = var_node
@@ -68,20 +56,18 @@ class Decl(AST):
     def __init__(self, left, right):
         self.left = left
         self.right = right
+        self.v_type = None
 class Assign(AST):
     def __init__(self, left, right):
         self.left = left  # ID
         self.right = right # val
-    def ret_type(self):
-        return self.right.ret_type()
 class Var(AST):
     # ID Token is used here
     def __init__(self, token):
         self.token = token
         self.value = token.value
-    def ret_type(self):
-        return INT #TODO: replace with proper value
 class Print(AST):
     def __init__(self, token, expr):
         self.token = token
         self.expr = expr
+        self.v_type = None

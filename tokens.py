@@ -1,3 +1,22 @@
+'''from enum import Enum #TODO: change to enum
+
+class TokenTypes(Enum):
+    INT = 0x00
+    FLOAT = 0x01
+    VAR = 0x10
+    ID = 0x20
+    LPAREN = 0x30
+    RPAREN = 0x31
+    QMARK = 0x36
+    COLON = 0x37
+    DOT = 0x38
+    COMMA = 0x39
+    ARROW = 0x3A
+    EOF = 0x3F
+    PRINT = 0x50 '''
+
+
+
 ID, LPAREN, RPAREN, SEMI, EOF = \
 "ID", "LPAREN", "RPAREN", "SEMI", "EOF"
 DEFUN, COLON, ARROW, COMMA = "DEFUN", "COLON", "ARROW", "COMMA"
@@ -6,6 +25,7 @@ PRINT = "PRINT"
 OP = "OP"
 INT, FLOAT, STR, BOOL = "INT", "FLOAT", "STR", "BOOL"
 VAR = "VAR"
+
 
 class Token(object):
     def __init__(self, token_type, token_value):
