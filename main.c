@@ -19,11 +19,14 @@
 #define IPUSH(vm, v) (PUSH(vm, ((Constant) {INT64, v})))  //push integer v onto stack
 #define DPUSH(vm, v) (((FloatConstant*)vm->stack)[++vm->sp] = (FloatConstant) {FLOAT64, v}) // push double v onto stack
 #define DPOP(vm)     (((double*)vm->stack)[vm->sp--])
+#define DVAL(v)      (*((double*)&v.value))
+#define IVAL(v)      (int64_t)
 
 void run(VM* vm){
     for (;;) {
         unsigned char opcode = NCODE(vm);        // fetch
         int addr, offset, argc, rval;
+        int i;
         Constant a, b, v;
         int64_t c;
         double d;
@@ -65,22 +68,38 @@ void run(VM* vm){
         case DCONST_2:
             DPUSH(vm, 2.0);
             break;
+        case DCONST:
+            c = 0;
+            for (i = 56; i >= 0; i -= 8) {
+              unsigned char next = NCODE(vm);
+              c += ((int64_t)next) << i;
+            }
+            PUSH(vm, ((Constant) {FLOAT64, c}));
+            break;
+        case ICONST: // constants are BIG endian
+            c = 0;
+            for (i = 56; i >= 0; i -= 8) {
+              unsigned char next = NCODE(vm);
+              c += ((int64_t)next) << i;
+            }
+            PUSH(vm, ((Constant) {INT64, c}));
+            break;
         case ADD:
             b = POP(vm);
             a = POP(vm);
             if (a.type == INT64 && b.type == INT64) {
-                a.value += b.value;
-                PUSH(vm, a);
+                c = a.value + b.value;
+                IPUSH(vm, c);
                 break;
             }
             else if (a.type == FLOAT64 && b.type == INT64) {
-                d = *((double*)&a.value) + (double)b.value;
+                d = DVAL(a) + (double)b.value;
             }
             else if (a.type == INT64 && b.type == FLOAT64) {
-                d = (double)a.value + *((double*)&b.value);
+                d = (double)a.value + DVAL(b);
             }
             else if (a.type == FLOAT64 && b.type == FLOAT64) {
-                d = *((double*)&a.value) + *((double*)&b.value);
+                d = DVAL(a) + DVAL(b);
             }
             else {
                 printf("ERROR: + not supported for operands of types %x and %x.\n", a.type, b.type);
@@ -92,18 +111,18 @@ void run(VM* vm){
             b = POP(vm);
             a = POP(vm);
             if (a.type == INT64 && b.type == INT64) {
-                a.value *= b.value;
-                PUSH(vm, a);
+                c = a.value * b.value;
+                IPUSH(vm, c);
                 break;
             }
             else if (a.type == FLOAT64 && b.type == INT64) {
-                d = *((double*)&a.value) * (double)b.value;
+                d = DVAL(a) * (double)b.value;
             }
             else if (a.type == INT64 && b.type == FLOAT64) {
-                d = (double)a.value * *((double*)&b.value);
+                d = (double)a.value * DVAL(b);
             }
             else if (a.type == FLOAT64 && b.type == FLOAT64) {
-                d = *((double*)&a.value) * *((double*)&b.value);
+                d = DVAL(a) * DVAL(b);
             }
             else {
                 printf("ERROR: * not supported for operands of types %x and %x.\n", a.type, b.type);
@@ -115,18 +134,18 @@ void run(VM* vm){
             b = POP(vm);
             a = POP(vm);
             if (a.type == INT64 && b.type == INT64) {
-                a.value -= b.value;
-                PUSH(vm, a);
+                c = a.value - b.value;
+                IPUSH(vm, c);
                 break;
             }
             else if (a.type == FLOAT64 && b.type == INT64) {
-                d = *((double*)&a.value) - (double)b.value;
+                d = DVAL(a) - (double)b.value;
             }
             else if (a.type == INT64 && b.type == FLOAT64) {
-                d = (double)a.value - *((double*)&b.value);
+                d = (double)a.value - DVAL(b);
             }
             else if (a.type == FLOAT64 && b.type == FLOAT64) {
-                d = *((double*)&a.value) - *((double*)&b.value);
+                d = DVAL(a) - DVAL(b);
             }
             else {
                 printf("ERROR: - not supported for operands of types %x and %x.\n", a.type, b.type);
@@ -141,13 +160,13 @@ void run(VM* vm){
                 d = (double)a.value / (double)b.value;
             }
             else if (a.type == FLOAT64 && b.type == INT64) {
-                d = *((double*)&a.value) / (double)b.value;
+                d = DVAL(a) / (double)b.value;
             }
             else if (a.type == INT64 && b.type == FLOAT64) {
-                d = (double)a.value / *((double*)&b.value);
+                d = (double)a.value / DVAL(b);
             }
             else if (a.type == FLOAT64 && b.type == FLOAT64) {
-                d = *((double*)&a.value) / *((double*)&b.value);
+                d = DVAL(a) / DVAL(b);
             }
             else {
                 printf("ERROR: / not supported for operands of types %x and %x.\n", a.type, b.type);
@@ -161,15 +180,6 @@ void run(VM* vm){
         //case DCONST: TODO: implement
         //case ICONST: TODO: implement
         /*
-        case DCONST:
-        case ICONST: // constants are BIG endian
-            b = 0;
-            for (a = 56; a >= 0; a -= 8) {
-              unsigned char next = NCODE(vm);
-              b += ((int64_t)next) << a;
-            }
-            PUSH(vm, b);
-            break;
         case GLOAD:
             addr = NCODE(vm);             // get pointer address from code ...
             v = vm->locals[addr];         // ... load value from memory of the provided addres ...

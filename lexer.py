@@ -1,4 +1,4 @@
-from tokens import *
+from tokens import TokenTypes, Token
 
 ###############################################################################
 #                                                                             #
@@ -9,12 +9,12 @@ from tokens import *
 RESERVED_KEYWORDS = {
     #":": Token("COLON", ":"),
     #"?": Token("QMARK", "?"),
-    "var": Token(VAR, VAR),
-    ";": Token(SEMI, ";"),
-    "\n": Token(SEMI, "\n"),
+    "var": Token(TokenTypes.VAR, "var"),
+    ";": Token(TokenTypes.SEMI, ";"),
+    "\n": Token(TokenTypes.SEMI, "\n"),
     #",": Token("COMMA", ","),
-    "(": Token(LPAREN, "("),
-    ")": Token(RPAREN, ")"),
+    "(": Token(TokenTypes.LPAREN, "("),
+    ")": Token(TokenTypes.RPAREN, ")"),
     #":=": Token(OP, ":="),
     #"||=": Token(OP, "||="),
     #"+=": Token(OP, "+="),
@@ -23,16 +23,16 @@ RESERVED_KEYWORDS = {
     #"&": Token("OP", "&"),
     #"|": Token("OP", "|"),
     #"<>": Token("OP", "<>"),
-    "=": Token(OP, "="),
+    "=": Token(TokenTypes.OP, "="),
     #"IN": Token(OP, "<"),
     #"<": Token(OP, "<"),
-    "print": Token(PRINT, PRINT),
+    "print": Token(TokenTypes.PRINT, "print"),
     #">": Token(OP, ">"),
-    "+": Token(OP, "+"),
-    "-": Token(OP, "-"),
+    "+": Token(TokenTypes.OP, "+"),
+    "-": Token(TokenTypes.OP, "-"),
     #"||": Token("OP", "||"),
-    "*": Token(OP, "*"),
-    "/": Token(OP, "/"),
+    "*": Token(TokenTypes.OP, "*"),
+    "/": Token(TokenTypes.OP, "/"),
     #"!": Token(OP, "!"),
 }
 
@@ -63,7 +63,7 @@ class Lexer(object):
         while self.current_char is not None and (self.current_char.isalnum() or self.current_char == "_"):
             result += self.current_char
             self.advance()
-        return RESERVED_KEYWORDS.get(result, Token(ID, result))
+        return RESERVED_KEYWORDS.get(result, Token(TokenTypes.ID, result))
     def _str(self):
         result = ""
         while self.current_char is not None and self.current_char != '"':
@@ -81,15 +81,15 @@ class Lexer(object):
             while self.current_char is not None and (self.current_char.isdigit() or self.current_char == "_"):
                 result += self.current_char
                 self.advance()
-            return Token(FLOAT, float(result.replace("_", "")))
-        return Token(INT, int(result.replace("_", "")))
+            return Token(TokenTypes.FLOAT, float(result.replace("_", "")))
+        return Token(TokenTypes.INT, int(result.replace("_", "")))
     def get_next_token(self):
         # tokenizer
         text = self.text
         while self.current_char == " ":
             self.advance()
         if self.pos >= len(text):
-            return Token(EOF, None)
+            return Token(TokenTypes.EOF, None)
         while self.current_char is not None:
             # alphabetic RESERVED_KEYWORDS & ID
             if self.current_char + (self.peek() or "") == "\\\n":

@@ -1,4 +1,4 @@
-from tokens import *
+
 
 class AST(object):
     pass
@@ -32,12 +32,10 @@ class Integer(AST):
     def __init__(self, token):
         self.token = token
         self.value = token.value
-        self.v_type = INT
 class Float(AST):
     def __init__(self, token):
         self.token = token
         self.value = token.value
-        self.v_type = FLOAT
 '''class Param(AST):
     def __init__(self, var_node):
         self.node = var_node
@@ -56,7 +54,6 @@ class Decl(AST):
     def __init__(self, left, right):
         self.left = left
         self.right = right
-        self.v_type = None
 class Assign(AST):
     def __init__(self, left, right):
         self.left = left  # ID
@@ -70,4 +67,3 @@ class Print(AST):
     def __init__(self, token, expr):
         self.token = token
         self.expr = expr
-        self.v_type = None
