@@ -44,13 +44,12 @@ class Parser(object):
             return self.asgn()
         """
         curr = self.fact0()
-        """if self.current_token.value == "?":
+        if self.current_token.value == "?":
             self.eat(TokenTypes.QMARK)
             first = self.expr()
             self.eat(TokenTypes.COLON)
             second = self.expr()
             return TriOp(Token(TokenTypes.OP, "?:"), curr, first, second)
-        """
         return curr
     def fact0(self):
         curr = self.fact1()
@@ -114,6 +113,11 @@ class Parser(object):
         elif self.current_token.type is TokenTypes.BOOL:
             boolean = self.eat(TokenTypes.BOOL)
             return Boolean(boolean)
+        elif self.current_token.type is TokenTypes.NIL:
+            nil = self.eat(TokenTypes.NIL)
+            return Nil(nil)
+        else:
+            assert False
     def parse(self):
         statements = []
         while self.current_token.type is not TokenTypes.EOF:

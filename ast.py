@@ -2,12 +2,12 @@
 
 class AST(object):
     pass
-'''class TriOp(AST):
-    def __init__(self, op, left, middle, right):
+class TriOp(AST):
+    def __init__(self, op, cond, left, right):
         self.left = left
-        self.middle = middle
+        self.cond = cond
         self.right = right
-        self.token = self.op = op'''
+        self.token = self.op = op
 class BinOp(AST):
     def __init__(self, op, left, right):
         self.left = left
@@ -24,6 +24,10 @@ class String(AST):
     def __init__(self, token):
         self.token = token
         self.value = token.value '''
+class Nil(AST):
+    def __init__(self, token):
+        self.token = token
+        self.value = token.value
 class Boolean(AST):
     def __init__(self, token):
         self.token = token

@@ -47,8 +47,14 @@ class Interpreter(NodeVisitor):
         for statement in statements:
             result += self.visit(statement)
         return result #TODO: fix return values once we have proper ones
-    '''def visit_TriOp(self, node):
-        pass'''
+    def visit_TriOp(self, node): #only 1 tri-op is possible
+        cond = self.visit(node.cond)
+        left = self.visit(node.left)
+        right = self.visit(node.right)
+        left += [ICONSTANTS.get(len(right),
+                              [ICONST] + [ int(b) for b in bytearray(struct.pack(">q", len(right))) ])] + [BR]
+        return cond + [ICONSTANTS.get(len(left),
+                              [ICONST] + [ int(b) for b in bytearray(struct.pack(">q", len(left))) ])] + [BRF] + left + right
     def visit_Print(self, node):
         expr = self.visit(node.expr)
         return expr + [PRINT]
@@ -84,9 +90,9 @@ class Interpreter(NodeVisitor):
         pass '''
     def visit_Boolean(self, node):
         if node.value == False:
-            return [FALSE]
+            return [BCONST_F]
         elif node.value == True:
-            return [TRUE]
+            return [BCONST_T]
         else:
             assert False
     def visit_Integer(self, node):
@@ -97,3 +103,5 @@ class Interpreter(NodeVisitor):
         if node.value in DCONSTANTS:
             return [DCONSTANTS[node.value]]
         return [DCONST] + [ int(b) for b in bytearray(struct.pack(">d", node.value)) ]
+    def visit_Nil(self, node):
+        return [NCONST]

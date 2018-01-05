@@ -4,6 +4,7 @@ class TokenTypes(Enum):
     INT    = 0x00
     FLOAT  = 0x01
     BOOL   = 0x02
+    NIL    = 0x03
     VAR    = 0x10
     OP     = 0x18
     ID     = 0x20

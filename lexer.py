@@ -7,8 +7,8 @@ from tokens import TokenTypes, Token
 ###############################################################################
 
 RESERVED_KEYWORDS = {
-    #":": Token("COLON", ":"),
-    #"?": Token("QMARK", "?"),
+    ":": Token(TokenTypes.COLON, ":"),
+    "?": Token(TokenTypes.QMARK, "?"),
     "var": Token(TokenTypes.VAR, "var"),
     ";": Token(TokenTypes.SEMI, ";"),
     "\n": Token(TokenTypes.SEMI, "\n"),
@@ -29,6 +29,7 @@ RESERVED_KEYWORDS = {
     "print": Token(TokenTypes.PRINT, "print"),
     "true": Token(TokenTypes.BOOL, True),
     "false": Token(TokenTypes.BOOL, False),
+    "nil": Token(TokenTypes.NIL, None),
     #">": Token(OP, ">"),
     "+": Token(TokenTypes.OP, "+"),
     "-": Token(TokenTypes.OP, "-"),

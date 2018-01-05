@@ -17,11 +17,14 @@
 #define POP(vm)      (vm->stack[vm->sp--])    // pop value from top of the stack as integer
 #define NCODE(vm)    (vm->code[vm->pc++])     // get next bytecode
 #define IPUSH(vm, v) (PUSH(vm, ((Constant) {INT64, v})))  //push integer v onto stack
+#define IPOP(vm)     (((vm->stack)[vm->sp--]).value)      // get int from top of stack
 #define IVAL(v)      (*((int64_t*)&v.value))
 #define DPUSH(vm, v) (((FloatConstant*)vm->stack)[++vm->sp] = (FloatConstant) {FLOAT64, v}) // push double v onto stack
-#define DPOP(vm)     (((double*)vm->stack)[vm->sp--])
 #define DVAL(v)      (*((double*)&v.value))
 #define BPUSH(vm, v) (PUSH(vm, ((Constant) {BOOL, v})))  //push boolean v onto stack
+#define NPUSH(vm)    (PUSH(vm, ((Constant) {NIL, 0})))   //push nil onto stack
+#define FALSEY(v)    (v.type == NIL || (v.type == BOOL && v.value == 0))  // returns true if v is a falsey value
+
 
 void run(VM* vm){
     for (;;) {
@@ -191,14 +194,26 @@ void run(VM* vm){
                 printf("ERROR: unary - not supported for operand of type %x.\n", a.type);
                 return;
             }
-        case FALSE:
+        case BCONST_F:
             BPUSH(vm, 0);   // represent false as 0
             break;
-        case TRUE:
+        case BCONST_T:
             BPUSH(vm, 1);   // represent true as 1
+            break;
+        case NCONST:
+            NPUSH(vm);
             break;
         //case I2D: TODO: implement
         //case D2I: TODO: implement
+        case BR:
+            c = IPOP(vm);
+            vm->pc += c;
+            break;
+        case BRF:
+            c = IPOP(vm);
+            v = POP(vm);
+            if (FALSEY(v)) vm->pc += c;
+            break;
         case GLOAD:
             addr = NCODE(vm);             // get addr of var in locals
             v = vm->locals[addr];         // load value from memory of the provided addr
@@ -225,6 +240,9 @@ void run(VM* vm){
             case BOOL:
                 if (v.value == 0) printf("\tbool: false\n");
                 else printf("\tbool: true\n");
+                break;
+            case NIL:
+                printf("\tnil: nil\n");
                 break;
             default:
                 printf("ERROR UNKNOWN TYPE: %x\n", v.type);
