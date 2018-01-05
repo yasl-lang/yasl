@@ -27,6 +27,8 @@ RESERVED_KEYWORDS = {
     #"IN": Token(OP, "<"),
     #"<": Token(OP, "<"),
     "print": Token(TokenTypes.PRINT, "print"),
+    "true": Token(TokenTypes.BOOL, True),
+    "false": Token(TokenTypes.BOOL, False),
     #">": Token(OP, ">"),
     "+": Token(TokenTypes.OP, "+"),
     "-": Token(TokenTypes.OP, "-"),

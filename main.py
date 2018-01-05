@@ -3,6 +3,7 @@ from parser import Parser
 from interpreter import Interpreter
 from resolver import Resolver
 import sys
+from opcode import HALT
 
 def main():
     interpreter = Interpreter()
@@ -37,6 +38,6 @@ if __name__ == "__main__":
         f = open("source.py", "w")
         f.write("from opcode import *\n\n")
         f.write("source = bytes(\n    ")
-        f.write(str(result))
+        f.write(str(result+[HALT]))
         f.write("\n)\n")
         f.close()

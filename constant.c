@@ -10,4 +10,3 @@ typedef struct {
     char type;
     double value;
 } FloatConstant;
-

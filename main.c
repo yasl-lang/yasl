@@ -10,17 +10,18 @@
 #include <inttypes.h>
 #include "VM.c"
 #include "opcode.c"
-#include "types.c"
+#include "constant_types.c"
 //#include "constant.c"
 #define BUFFER_SIZE 256
 #define PUSH(vm, v)  (vm->stack[++vm->sp] = v) // push value on top of the stack
 #define POP(vm)      (vm->stack[vm->sp--])    // pop value from top of the stack as integer
 #define NCODE(vm)    (vm->code[vm->pc++])     // get next bytecode
 #define IPUSH(vm, v) (PUSH(vm, ((Constant) {INT64, v})))  //push integer v onto stack
+#define IVAL(v)      (*((int64_t*)&v.value))
 #define DPUSH(vm, v) (((FloatConstant*)vm->stack)[++vm->sp] = (FloatConstant) {FLOAT64, v}) // push double v onto stack
 #define DPOP(vm)     (((double*)vm->stack)[vm->sp--])
 #define DVAL(v)      (*((double*)&v.value))
-#define IVAL(v)      (int64_t)
+#define BPUSH(vm, v) (PUSH(vm, ((Constant) {BOOL, v})))  //push boolean v onto stack
 
 void run(VM* vm){
     for (;;) {
@@ -190,6 +191,12 @@ void run(VM* vm){
                 printf("ERROR: unary - not supported for operand of type %x.\n", a.type);
                 return;
             }
+        case FALSE:
+            BPUSH(vm, 0);   // represent false as 0
+            break;
+        case TRUE:
+            BPUSH(vm, 1);   // represent true as 1
+            break;
         //case I2D: TODO: implement
         //case D2I: TODO: implement
         case GLOAD:
@@ -215,6 +222,10 @@ void run(VM* vm){
             case FLOAT64:
                 printf("\tfloat64: %f\n", *((double*)&v.value));
                 break;
+            case BOOL:
+                if (v.value == 0) printf("\tbool: false\n");
+                else printf("\tbool: true\n");
+                break;
             default:
                 printf("ERROR UNKNOWN TYPE: %x\n", v.type);
                 break;
@@ -222,7 +233,7 @@ void run(VM* vm){
             break;
         default:
             printf("ERROR UNKNOWN OPCODE: %x\n", opcode);
-            break;
+            return;
         }
 
     }

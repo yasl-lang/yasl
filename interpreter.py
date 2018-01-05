@@ -81,9 +81,14 @@ class Interpreter(NodeVisitor):
             assert False
         return [GLOAD, self.globals.get(node.value)]
     '''def visit_String(self, node):
-        pass 
-    def visit_Boolean(self, node):
         pass '''
+    def visit_Boolean(self, node):
+        if node.value == False:
+            return [FALSE]
+        elif node.value == True:
+            return [TRUE]
+        else:
+            assert False
     def visit_Integer(self, node):
         if node.value in ICONSTANTS:
             return [ICONSTANTS[node.value]]

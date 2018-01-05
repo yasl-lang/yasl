@@ -111,11 +111,9 @@ class Parser(object):
         elif self.current_token.type is TokenTypes.FLOAT:
             double = self.eat(TokenTypes.FLOAT)
             return Float(double)
-            '''
-        elif self.current_token.type == BOOL:
-            boolean = self.current_token
-            self.eat(TokenTypes.BOOL)
-            return Boolean(boolean)'''
+        elif self.current_token.type is TokenTypes.BOOL:
+            boolean = self.eat(TokenTypes.BOOL)
+            return Boolean(boolean)
     def parse(self):
         statements = []
         while self.current_token.type is not TokenTypes.EOF:
