@@ -18,6 +18,8 @@ BINRESERVED = {
         "<=": LE,
         ">": GT,
         ">=": GE,
+        "==": EQ,
+        "!=": NEQ,
         }
 UNRESERVED = {
         "-": NEG,

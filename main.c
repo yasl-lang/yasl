@@ -32,6 +32,8 @@
 #define LE(a, b)     (a <= b)
 #define GT(a, b)     (a > b)
 #define GE(a, b)     (a >= b)
+#define EQ(a, b)     (a == b)
+#define NEQ(a, b)    (a != b)
 #define BINOP(vm, a, b, f, str)  ({\
                             if (a.type == INT64 && b.type == INT64) {\
                                 c = f(a.value, b.value);\
@@ -80,7 +82,6 @@ void run(VM* vm){
         Constant a, b, v;
         int64_t c;
         double d;
-        //double c, d;
         unsigned char bytes[8];
         printf("opcode = %x\n", opcode);
         switch (opcode) {   // decode
@@ -118,7 +119,7 @@ void run(VM* vm){
         case DCONST_2:
             DPUSH(vm, 2.0);
             break;
-        case DCONST:
+        case DCONST:  // constants are BIG endian
             c = 0;
             for (i = 56; i >= 0; i -= 8) {
               unsigned char next = NCODE(vm);
@@ -126,7 +127,7 @@ void run(VM* vm){
             }
             PUSH(vm, ((Constant) {FLOAT64, c}));
             break;
-        case ICONST: // constants are BIG endian
+        case ICONST:  // constants are BIG endian
             c = 0;
             for (i = 56; i >= 0; i -= 8) {
               unsigned char next = NCODE(vm);
@@ -217,6 +218,60 @@ void run(VM* vm){
             a = POP(vm);
             COMP(vm, a, b, GE, ">=");
             break;
+        case EQ:
+            b = POP(vm);
+            a = POP(vm);
+            if (a.type == NIL || b.type == NIL) {
+                NPUSH(vm);
+                break;
+            }
+            switch(a.type) {
+            case BOOL:
+                if (b.type == BOOL) c = a.value == b.value;
+                else c = 0;
+                BPUSH(vm, c);
+                break;
+            default:
+                if (b.type == BOOL) {
+                    BPUSH(vm, 0);
+                    break;
+                }
+                COMP(vm, a, b, EQ, "==");
+                break;
+            }
+            break;
+        case NEQ:
+            b = POP(vm);
+            a = POP(vm);
+            if (a.type == NIL || b.type == NIL) {
+                NPUSH(vm);
+                break;
+            }
+            switch(a.type) {
+            case BOOL:
+                if (b.type == BOOL) c = a.value != b.value;
+                else c = 1;
+                BPUSH(vm, c);
+                break;
+            default:
+            if (b.type == BOOL) {
+                    BPUSH(vm, 1);
+                    break;
+                }
+                COMP(vm, a, b, NEQ, "!=");
+                break;
+            }
+            break;
+        /*case ID:
+            b = POP(vm);
+            a = POP(vm);
+            COMP(vm, a, b, ID, "===");
+            break;
+        case NID:
+            b = POP(vm);
+            a = POP(vm);
+            COMP(vm, a, b, NID, "!==");
+            break; */
         case BCONST_F:
             BPUSH(vm, 0);   // represent false as 0
             break;
