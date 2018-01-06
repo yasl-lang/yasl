@@ -39,9 +39,9 @@ void run(VM* vm){
         printf("opcode = %x\n", opcode);
         switch (opcode) {   // decode
         case HALT: return;  // stop the program
-        case JMP:
+        /*case JMP:
         	vm->pc = NCODE(vm);
-        	break;
+        	break; */
         case ICONST_M1:
             IPUSH(vm, -1);
             break;
@@ -152,7 +152,7 @@ void run(VM* vm){
                 d = DVAL(a) - DVAL(b);
             }
             else {
-                printf("ERROR: - not supported for operands of types %x and %x.\n", a.type, b.type);
+                printf("ERROR: binary - not supported for operands of types %x and %x.\n", a.type, b.type);
                 return;
             }
             DPUSH(vm, d);
@@ -194,6 +194,17 @@ void run(VM* vm){
                 printf("ERROR: unary - not supported for operand of type %x.\n", a.type);
                 return;
             }
+        case NOT:
+            a = POP(vm);
+            if (a.type == BOOL) {
+                a.value ^= 1;    // flip the last bit of a.value
+                PUSH(vm, a);
+                break;
+            }
+            else {
+                printf("ERROR: ! not supported for operand of type %x.\n", a.type);
+                return;
+            }
         case BCONST_F:
             BPUSH(vm, 0);   // represent false as 0
             break;
@@ -205,6 +216,10 @@ void run(VM* vm){
             break;
         //case I2D: TODO: implement
         //case D2I: TODO: implement
+        case DUP:
+            a = vm->stack[vm->sp];
+            PUSH(vm, a);
+            break;
         case BR:
             c = IPOP(vm);
             vm->pc += c;
@@ -213,6 +228,11 @@ void run(VM* vm){
             c = IPOP(vm);
             v = POP(vm);
             if (FALSEY(v)) vm->pc += c;
+            break;
+        case BRT:
+            c = IPOP(vm);
+            v = POP(vm);
+            if (!(FALSEY(v))) vm->pc += c;
             break;
         case GLOAD:
             addr = NCODE(vm);             // get addr of var in locals

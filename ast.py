@@ -13,6 +13,11 @@ class BinOp(AST):
         self.left = left
         self.right = right
         self.token = self.op = op
+class LogicOp(AST):
+    def __init__(self, op, left, right):
+        self.left = left
+        self.right = right
+        self.token = self.op = op
 class UnOp(AST):
     def __init__(self, op, expr):
         self.token = self.op = op

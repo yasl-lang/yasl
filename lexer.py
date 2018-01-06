@@ -29,6 +29,8 @@ RESERVED_KEYWORDS = {
     "print": Token(TokenTypes.PRINT, "print"),
     "true": Token(TokenTypes.BOOL, True),
     "false": Token(TokenTypes.BOOL, False),
+    "and": Token(TokenTypes.LOGIC, "and"),
+    "or": Token(TokenTypes.LOGIC, "or"),
     "nil": Token(TokenTypes.NIL, None),
     #">": Token(OP, ">"),
     "+": Token(TokenTypes.OP, "+"),
@@ -36,7 +38,7 @@ RESERVED_KEYWORDS = {
     #"||": Token("OP", "||"),
     "*": Token(TokenTypes.OP, "*"),
     "/": Token(TokenTypes.OP, "/"),
-    #"!": Token(OP, "!"),
+    "!": Token(TokenTypes.OP, "!"),
 }
 
 class Lexer(object):

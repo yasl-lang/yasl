@@ -17,6 +17,7 @@ BINRESERVED = {
         }
 UNRESERVED = {
         "-": NEG,
+        "!": NOT,
         }
 ICONSTANTS = {
         -1: ICONST_M1,
@@ -63,6 +64,17 @@ class Interpreter(NodeVisitor):
         right = self.visit(node.right)
         this = BINRESERVED.get(node.op.value)
         return left + right + [this]
+    def visit_LogicOp(self, node):
+        left = self.visit(node.left)
+        right = [POP] + self.visit(node.right)
+        left += [DUP, ICONSTANTS.get(len(right),
+                            [ICONST] + [int(b) for b in bytearray(struct.pack(">q", len(right)))])]
+        if node.op.value == "and":
+            return left + [BRF] + right
+        elif node.op.value == "or":
+            return left + [BRT] + right
+        else:
+            assert False
     def visit_UnOp(self, node):
         expr = self.visit(node.expr)
         this = UNRESERVED.get(node.op.value)
@@ -84,6 +96,7 @@ class Interpreter(NodeVisitor):
         return self.visit(node.right) + [GSTORE, self.globals.get(node.left.value)]'''
     def visit_Var(self, node):
         if node.value not in self.globals:
+            print(node.value)
             assert False
         return [GLOAD, self.globals.get(node.value)]
     '''def visit_String(self, node):

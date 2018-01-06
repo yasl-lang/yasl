@@ -7,6 +7,7 @@ class TokenTypes(Enum):
     NIL    = 0x03
     VAR    = 0x10
     OP     = 0x18
+    LOGIC  = 0x19
     ID     = 0x20
     LPAREN = 0x30
     RPAREN = 0x31

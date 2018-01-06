@@ -43,13 +43,25 @@ class Parser(object):
         """if self.next_token.value in [":=", "||=", "*=", "+=", "-="]:
             return self.asgn()
         """
-        curr = self.fact0()
+        curr = self.logic_or()
         if self.current_token.value == "?":
             self.eat(TokenTypes.QMARK)
             first = self.expr()
             self.eat(TokenTypes.COLON)
             second = self.expr()
             return TriOp(Token(TokenTypes.OP, "?:"), curr, first, second)
+        return curr
+    def logic_or(self):
+        curr = self.logic_and()
+        while self.current_token.value == "or":
+            op = self.eat(TokenTypes.LOGIC)
+            curr = LogicOp(op, curr, self.logic_and())
+        return curr
+    def logic_and(self):
+        curr = self.fact0()
+        while self.current_token.value == "and":
+            op = self.eat(TokenTypes.LOGIC)
+            curr = LogicOp(op, curr, self.fact0())
         return curr
     def fact0(self):
         curr = self.fact1()
