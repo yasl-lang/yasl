@@ -24,6 +24,30 @@
 #define BPUSH(vm, v) (PUSH(vm, ((Constant) {BOOL, v})))  //push boolean v onto stack
 #define NPUSH(vm)    (PUSH(vm, ((Constant) {NIL, 0})))   //push nil onto stack
 #define FALSEY(v)    (v.type == NIL || (v.type == BOOL && v.value == 0))  // returns true if v is a falsey value
+#define ADD(a, b)    (a + b)
+#define DIV(a, b)    (a / b)
+#define SUB(a, b)    (a - b)
+#define MUL(a, b)    (a * b)
+#define BINOP(vm, a, b, f, str)  ({\
+                            if (a.type == INT64 && b.type == INT64) {\
+                                c = f(a.value, b.value);\
+                                IPUSH(vm, c);\
+                                break;\
+                            }\
+                            else if (a.type == FLOAT64 && b.type == INT64) {\
+                                d = f(DVAL(a), (double)b.value);\
+                            }\
+                            else if (a.type == INT64 && b.type == FLOAT64) {\
+                                d = f((double)a.value, DVAL(b));\
+                            }\
+                            else if (a.type == FLOAT64 && b.type == FLOAT64) {\
+                                d = f(DVAL(a), DVAL(b));\
+                            }\
+                            else {\
+                                printf("ERROR: %s not supported for operands of types %x and %x.\n", str, a.type, b.type);\
+                                return;\
+                            }\
+                            DPUSH(vm, d);})
 
 
 void run(VM* vm){
@@ -91,73 +115,19 @@ void run(VM* vm){
         case ADD:
             b = POP(vm);
             a = POP(vm);
-            if (a.type == INT64 && b.type == INT64) {
-                c = a.value + b.value;
-                IPUSH(vm, c);
-                break;
-            }
-            else if (a.type == FLOAT64 && b.type == INT64) {
-                d = DVAL(a) + (double)b.value;
-            }
-            else if (a.type == INT64 && b.type == FLOAT64) {
-                d = (double)a.value + DVAL(b);
-            }
-            else if (a.type == FLOAT64 && b.type == FLOAT64) {
-                d = DVAL(a) + DVAL(b);
-            }
-            else {
-                printf("ERROR: + not supported for operands of types %x and %x.\n", a.type, b.type);
-                return;
-            }
-            DPUSH(vm, d);
+            BINOP(vm, a, b, ADD, "+");
             break;
         case MUL:
             b = POP(vm);
             a = POP(vm);
-            if (a.type == INT64 && b.type == INT64) {
-                c = a.value * b.value;
-                IPUSH(vm, c);
-                break;
-            }
-            else if (a.type == FLOAT64 && b.type == INT64) {
-                d = DVAL(a) * (double)b.value;
-            }
-            else if (a.type == INT64 && b.type == FLOAT64) {
-                d = (double)a.value * DVAL(b);
-            }
-            else if (a.type == FLOAT64 && b.type == FLOAT64) {
-                d = DVAL(a) * DVAL(b);
-            }
-            else {
-                printf("ERROR: * not supported for operands of types %x and %x.\n", a.type, b.type);
-                return;
-            }
-            DPUSH(vm, d);
+            BINOP(vm, a, b, MUL, "*");
             break;
         case SUB:
             b = POP(vm);
             a = POP(vm);
-            if (a.type == INT64 && b.type == INT64) {
-                c = a.value - b.value;
-                IPUSH(vm, c);
-                break;
-            }
-            else if (a.type == FLOAT64 && b.type == INT64) {
-                d = DVAL(a) - (double)b.value;
-            }
-            else if (a.type == INT64 && b.type == FLOAT64) {
-                d = (double)a.value - DVAL(b);
-            }
-            else if (a.type == FLOAT64 && b.type == FLOAT64) {
-                d = DVAL(a) - DVAL(b);
-            }
-            else {
-                printf("ERROR: binary - not supported for operands of types %x and %x.\n", a.type, b.type);
-                return;
-            }
-            DPUSH(vm, d);
+            BINOP(vm, a, b, SUB, "binary -");
             break;
-        case DIV:
+        case DIV:    // handled differently because we always convert to float
             b = POP(vm);
             a = POP(vm);
             if (a.type == INT64 && b.type == INT64) {
