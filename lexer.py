@@ -29,6 +29,7 @@ RESERVED_KEYWORDS = {
     ">": Token(TokenTypes.OP, ">"),
     ">=": Token(TokenTypes.OP, ">="),
     "==": Token(TokenTypes.OP, "=="),
+    "!=": Token(TokenTypes.OP, "!="),
     "print": Token(TokenTypes.PRINT, "print"),
     "true": Token(TokenTypes.BOOL, True),
     "false": Token(TokenTypes.BOOL, False),
