@@ -79,10 +79,9 @@ class Parser(object):
         return curr
     def fact2(self):
         curr = self.fact3()
-        """while self.current_token.value in ["<", ">"]:
-            op = self.current_token
-            self.eat(TokenTypes.OP)
-            curr = BinOp(op, curr, self.fact3())"""
+        while self.current_token.value in ["<", ">", ">=", "<="]:
+            op = self.eat(TokenTypes.OP)
+            curr = BinOp(op, curr, self.fact3())
         return curr
     def fact3(self):
         curr = self.fact4()

@@ -14,6 +14,10 @@ BINRESERVED = {
         "*": MUL,
         "-": SUB,
         "/": DIV,
+        "<": LT,
+        "<=": LE,
+        ">": GT,
+        ">=": GE,
         }
 UNRESERVED = {
         "-": NEG,

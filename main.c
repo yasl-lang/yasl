@@ -28,6 +28,10 @@
 #define DIV(a, b)    (a / b)
 #define SUB(a, b)    (a - b)
 #define MUL(a, b)    (a * b)
+#define LT(a, b)     (a < b)
+#define LE(a, b)     (a <= b)
+#define GT(a, b)     (a > b)
+#define GE(a, b)     (a >= b)
 #define BINOP(vm, a, b, f, str)  ({\
                             if (a.type == INT64 && b.type == INT64) {\
                                 c = f(a.value, b.value);\
@@ -48,6 +52,24 @@
                                 return;\
                             }\
                             DPUSH(vm, d);})
+#define COMP(vm, a, b, f, str)  ({\
+                            if (a.type == INT64 && b.type == INT64) {\
+                                c = f(a.value, b.value);\
+                            }\
+                            else if (a.type == FLOAT64 && b.type == INT64) {\
+                                c = f(DVAL(a), (double)b.value);\
+                            }\
+                            else if (a.type == INT64 && b.type == FLOAT64) {\
+                                c = f((double)a.value, DVAL(b));\
+                            }\
+                            else if (a.type == FLOAT64 && b.type == FLOAT64) {\
+                                c = f(DVAL(a), DVAL(b));\
+                            }\
+                            else {\
+                                printf("ERROR: %s not supported for operands of types %x and %x.\n", str, a.type, b.type);\
+                                return;\
+                            }\
+                            BPUSH(vm, c);})
 
 
 void run(VM* vm){
@@ -175,6 +197,26 @@ void run(VM* vm){
                 printf("ERROR: ! not supported for operand of type %x.\n", a.type);
                 return;
             }
+        case LT:
+            b = POP(vm);
+            a = POP(vm);
+            COMP(vm, a, b, LT, "<");
+            break;
+        case LE:
+            b = POP(vm);
+            a = POP(vm);
+            COMP(vm, a, b, LE, "<=");
+            break;
+        case GT:
+            b = POP(vm);
+            a = POP(vm);
+            COMP(vm, a, b, GT, ">");
+            break;
+        case GE:
+            b = POP(vm);
+            a = POP(vm);
+            COMP(vm, a, b, GE, ">=");
+            break;
         case BCONST_F:
             BPUSH(vm, 0);   // represent false as 0
             break;
