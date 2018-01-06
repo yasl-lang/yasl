@@ -58,10 +58,8 @@ class Interpreter(NodeVisitor):
         cond = self.visit(node.cond)
         left = self.visit(node.left)
         right = self.visit(node.right)
-        left += [ICONSTANTS.get(len(right),
-                              [ICONST] + [ int(b) for b in bytearray(struct.pack(">q", len(right))) ])] + [BR]
-        return cond + [ICONSTANTS.get(len(left),
-                              [ICONST] + [ int(b) for b in bytearray(struct.pack(">q", len(left))) ])] + [BRF] + left + right
+        left += [BR] + [ int(b) for b in bytearray(struct.pack(">q", len(right))) ]
+        return cond + [BRF] + [ int(b) for b in bytearray(struct.pack(">q", len(left))) ] + left + right
     def visit_Print(self, node):
         expr = self.visit(node.expr)
         return expr + [PRINT]
@@ -73,12 +71,11 @@ class Interpreter(NodeVisitor):
     def visit_LogicOp(self, node):
         left = self.visit(node.left)
         right = [POP] + self.visit(node.right)
-        left += [DUP, ICONSTANTS.get(len(right),
-                            [ICONST] + [int(b) for b in bytearray(struct.pack(">q", len(right)))])]
+        left += [DUP]
         if node.op.value == "and":
-            return left + [BRF] + right
+            return left + [BRF] + [int(b) for b in bytearray(struct.pack(">q", len(right)))] + right
         elif node.op.value == "or":
-            return left + [BRT] + right
+            return left + [BRT] + [int(b) for b in bytearray(struct.pack(">q", len(right)))] + right
         else:
             assert False
     def visit_UnOp(self, node):

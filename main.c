@@ -16,6 +16,14 @@
 #define PUSH(vm, v)  (vm->stack[++vm->sp] = v) // push value on top of the stack
 #define POP(vm)      (vm->stack[vm->sp--])    // pop value from top of the stack as integer
 #define NCODE(vm)    (vm->code[vm->pc++])     // get next bytecode
+#define NCODE_8(vm)  ({\
+                       int64_t c = 0;\
+                       for (i = 56; i >= 0; i -= 8) {\
+                           unsigned char next = NCODE(vm);\
+                           c += ((int64_t)next) << i;\
+                       }\
+                       c;\
+                      })                      // get next 8 bytes as a 64-bit int (requires gcc)
 #define IPUSH(vm, v) (PUSH(vm, ((Constant) {INT64, v})))  //push integer v onto stack
 #define IPOP(vm)     (((vm->stack)[vm->sp--]).value)      // get int from top of stack
 #define IVAL(v)      (*((int64_t*)&v.value))
@@ -120,19 +128,11 @@ void run(VM* vm){
             DPUSH(vm, 2.0);
             break;
         case DCONST:  // constants are BIG endian
-            c = 0;
-            for (i = 56; i >= 0; i -= 8) {
-              unsigned char next = NCODE(vm);
-              c += ((int64_t)next) << i;
-            }
+            c = NCODE_8(vm);
             PUSH(vm, ((Constant) {FLOAT64, c}));
             break;
         case ICONST:  // constants are BIG endian
-            c = 0;
-            for (i = 56; i >= 0; i -= 8) {
-              unsigned char next = NCODE(vm);
-              c += ((int64_t)next) << i;
-            }
+            c = NCODE_8(vm);
             PUSH(vm, ((Constant) {INT64, c}));
             break;
         case ADD:
@@ -288,16 +288,16 @@ void run(VM* vm){
             PUSH(vm, a);
             break;
         case BR:
-            c = IPOP(vm);
+            c = NCODE_8(vm);
             vm->pc += c;
             break;
         case BRF:
-            c = IPOP(vm);
+            c = NCODE_8(vm);
             v = POP(vm);
             if (FALSEY(v)) vm->pc += c;
             break;
         case BRT:
-            c = IPOP(vm);
+            c = NCODE_8(vm);
             v = POP(vm);
             if (!(FALSEY(v))) vm->pc += c;
             break;
