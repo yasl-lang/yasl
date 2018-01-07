@@ -6,11 +6,14 @@ class TokenTypes(Enum):
     BOOL   = 0x02
     NIL    = 0x03
     VAR    = 0x10
+    IF     = 0x12
     OP     = 0x18
     LOGIC  = 0x19
     ID     = 0x20
     LPAREN = 0x30
     RPAREN = 0x31
+    LBRACE = 0x32
+    RBRACE = 0x33
     QMARK  = 0x36
     COLON  = 0x37
     DOT    = 0x38

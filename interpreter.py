@@ -54,15 +54,26 @@ class Interpreter(NodeVisitor):
         for statement in statements:
             result += self.visit(statement)
         return result #TODO: fix return values once we have proper ones
+    def visit_Print(self, node):
+        expr = self.visit(node.expr)
+        return expr + [PRINT]
+    def visit_Block(self, node):
+        result = []
+        for statement in node.statements:
+            result += self.visit(statement)
+        return result
+    def visit_If(self, node):
+        cond = self.visit(node.cond)
+        self.env = Env(self.env)
+        body = self.visit(node.body)
+        self.env = self.env.parent
+        return cond + [BRF] + [ int(b) for b in bytearray(struct.pack(">q", len(body))) ] + body
     def visit_TriOp(self, node): #only 1 tri-op is possible
         cond = self.visit(node.cond)
         left = self.visit(node.left)
         right = self.visit(node.right)
         left += [BR] + [ int(b) for b in bytearray(struct.pack(">q", len(right))) ]
         return cond + [BRF] + [ int(b) for b in bytearray(struct.pack(">q", len(left))) ] + left + right
-    def visit_Print(self, node):
-        expr = self.visit(node.expr)
-        return expr + [PRINT]
     def visit_BinOp(self, node):
         left = self.visit(node.left)
         right = self.visit(node.right)
@@ -89,7 +100,7 @@ class Interpreter(NodeVisitor):
     def visit_FuncCall(self, node):
         pass '''
     def visit_Decl(self, node):
-        if node.left.value not in self.env:
+        if node.left.value not in self.env.vars:
             self.env.decl_var(node.left.value)
         return self.visit(node.right) + [GSTORE, self.env[node.left.value]]
     def visit_Assign(self, node):

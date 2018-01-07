@@ -76,3 +76,11 @@ class Print(AST):
     def __init__(self, token, expr):
         self.token = token
         self.expr = expr
+class If(AST):
+    def __init__(self, token, cond, body):
+        self.token = token
+        self.cond = cond
+        self.body = body
+class Block(AST):
+    def __init__(self, statements):
+        self.statements = statements  # list of ASTs to iterate over

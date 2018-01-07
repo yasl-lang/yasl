@@ -16,7 +16,7 @@ class Parser(object):
         raise Exception("Expected %s Token at pos %s, got %s" % \
             (token_type, self.lexer.pos, self.current_token))
     def eat(self, token_type):
-        #print(self.current_token, self.next_token)
+        print(self.current_token)
         if self.current_token.type is token_type:
             result = self.current_token
             self.current_token = self.next_token
@@ -28,10 +28,23 @@ class Parser(object):
         if self.current_token.type is  TokenTypes.PRINT:
             token = self.eat(TokenTypes.PRINT)
             return Print(token, self.expr())
+        elif self.current_token.type is TokenTypes.IF:
+            return self.if_stmt()
         elif self.current_token.type is TokenTypes.VAR:
             self.eat(TokenTypes.VAR)
             return self.vardecl()
         return self.expr()
+    def if_stmt(self):
+        token = self.eat(TokenTypes.IF)
+        cond = self.expr()
+        self.eat(TokenTypes.LBRACE)
+        self.eat(TokenTypes.SEMI)
+        body = []
+        while self.current_token.type is not TokenTypes.RBRACE:
+            body.append(self.program())
+            self.eat(TokenTypes.SEMI)
+        self.eat(TokenTypes.RBRACE)
+        return If(token, cond, Block(body))
     def vardecl(self):
         name = self.eat(TokenTypes.ID)
         if self.current_token.value == "=":
