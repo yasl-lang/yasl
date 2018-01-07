@@ -7,7 +7,7 @@ import pickle
 import struct
 import os
 from visitor import NodeVisitor
-from collections import OrderedDict
+from environment import Env
 
 BINRESERVED = {
         "+": ADD,
@@ -48,7 +48,7 @@ DCONSTANTS = {
 
 class Interpreter(NodeVisitor):
     def __init__(self):
-        self.globals = OrderedDict()
+        self.env = self.globals = Env()
     def interpret(self, statements):
         result = []
         for statement in statements:
@@ -89,19 +89,19 @@ class Interpreter(NodeVisitor):
     def visit_FuncCall(self, node):
         pass '''
     def visit_Decl(self, node):
-        if node.left.value not in self.globals:
-            self.globals[node.left.value] = len(self.globals)
-        return self.visit(node.right) + [GSTORE, self.globals.get(node.left.value)]
-    '''def visit_Assign(self, node):
-        if node.left.value not in self.globals:
+        if node.left.value not in self.env:
+            self.env.decl_var(node.left.value)
+        return self.visit(node.right) + [GSTORE, self.env[node.left.value]]
+    def visit_Assign(self, node):
+        if node.left.value not in self.env:
             print("undeclared variable: %s" % node.left.value)
             assert False
-        return self.visit(node.right) + [GSTORE, self.globals.get(node.left.value)]'''
+        return self.visit(node.right) + [GSTORE, self.env[node.left.value]]
     def visit_Var(self, node):
-        if node.value not in self.globals:
-            print(node.value)
+        if node.value not in self.env:
+            print("undefined variable: %s" % node.value)
             assert False
-        return [GLOAD, self.globals.get(node.value)]
+        return [GLOAD, self.env[node.value]]
     '''def visit_String(self, node):
         pass '''
     def visit_Boolean(self, node):
