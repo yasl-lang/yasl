@@ -38,11 +38,12 @@ VAR = "VAR" '''
 
 
 class Token(object):
-    def __init__(self, token_type, token_value):
+    def __init__(self, token_type, token_value, line):
         # token types listed at top of file
         self.type = token_type
-        # token values: e.g. MATH412
+        # token values: e.g. 1.0, 1, True, None, etc
         self.value = token_value
+        self.line = line
     def __str__(self):
         return "Token(%s, %s)" % (self.type, repr(self.value))
     __repr__ = __str__

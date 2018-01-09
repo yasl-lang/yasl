@@ -57,6 +57,7 @@ class Interpreter(NodeVisitor):
         result = []
         for statement in statements:
             result += self.visit(statement)
+        for opcode in result: print(hex(opcode))
         return result #TODO: fix return values once we have proper ones
     def visit_Print(self, node):
         expr = self.visit(node.expr)

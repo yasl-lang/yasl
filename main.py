@@ -15,12 +15,12 @@ def main():
         if not text:
             continue
         lexer = Lexer(text)
-        parser = Parser(lexer)
+        parser = Parser(lexer.lex())
         statements = parser.parse() # = Interpreter(parser)
         resolver = Resolver(interpreter)
         #resolver.resolve(statements)
         result = interpreter.interpret(statements)
-        print([hex(r) for r in result])
+        #print([hex(r) for r in result])
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
@@ -28,13 +28,13 @@ if __name__ == "__main__":
     else:
         assert(len(sys.argv) == 2)
         text = open(sys.argv[1]).read() #TODO: make more general, so file can be located anywhere
-        statements = Parser(Lexer(text)).parse()
+        statements = Parser(Lexer(text).lex()).parse()
         interpreter = Interpreter()
         resolver = Resolver(interpreter)
         #resolver.resolve(statements)
         result = interpreter.interpret(statements)
-        print(result)
-        print([hex(r) for r in result])
+        #print(result)
+        #print([hex(r) for r in result])
         f = open("source.py", "w")
         f.write("from opcode import *\n\n")
         f.write("source = bytes(\n    ")

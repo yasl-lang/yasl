@@ -8,19 +8,26 @@ from ast import *
 ###############################################################################
 
 class Parser(object):
-    def __init__(self, lexer):
-        self.lexer = lexer
-        self.current_token = self.lexer.get_next_token()
-        self.next_token = self.lexer.get_next_token()
+    def __init__(self, tokens):
+        self.tokens = tokens
+        self.pos = 0
+        self.current_token = self.tokens[0]
+        #self.next_token = self.self.tokens[1]
+    def advance(self):
+        self.pos += 1
+        if self.pos < len(self.tokens):
+            self.current_token = self.tokens[self.pos]
+        else:
+            self.current_token = Token(TokenTypes.EOF, None, self.tokens[-1].line)
+        #self.next_token = self.tokens[self.pos]
     def error(self,token_type=None):
-        raise Exception("Expected %s Token at pos %s, got %s" % \
-            (token_type, self.lexer.pos, self.current_token))
+        raise Exception("Expected %s Token in line %s, got %s" % \
+            (token_type, self.current_token.line, self.current_token.type))
     def eat(self, token_type):
-        #print(self.current_token)
+        print(self.current_token)
         if self.current_token.type is token_type:
             result = self.current_token
-            self.current_token = self.next_token
-            self.next_token = self.lexer.get_next_token()
+            self.advance()
             return result
         else:
             self.error(token_type)
@@ -35,10 +42,12 @@ class Parser(object):
             return self.vardecl()
         return self.expr()
     def if_stmt(self):
-        token = self.eat(TokenTypes.IF)
+        if self.current_token.type is TokenTypes.IF:
+            token = self.eat(TokenTypes.IF)
+        else:
+            token = self.eat(TokenTypes.ELSEIF)
         cond = self.expr()
         self.eat(TokenTypes.LBRACE)
-        self.eat(TokenTypes.SEMI)
         body = []
         while self.current_token.type is not TokenTypes.RBRACE:
             body.append(self.program())
@@ -48,19 +57,29 @@ class Parser(object):
             self.eat(TokenTypes.SEMI)
         if self.current_token.type is not TokenTypes.ELSE and self.current_token.type is not TokenTypes.ELSEIF:
             return If(token, cond, Block(body))
-        elif self.current_token.type is TokenTypes.ELSE:
+        if self.current_token.type is TokenTypes.ELSEIF:
+            return IfElse(token, cond, Block(body), self.if_stmt())
+        '''if self.current_token.type is TokenTypes.ELSEIF:
+            left = body
+            self.eat(TokenTypes.ELSEIF)
+            r_cond = self.expr()
+            right = []
+            self.eat(TokenTypes.LBRACE)
+            while self.current_token.type is not TokenTypes.RBRACE:
+                right.append(self.program())
+                self.eat(TokenTypes.SEMI)
+            self.eat(TokenTypes.RBRACE)'''
+        if self.current_token.type is TokenTypes.ELSE:
             left = body
             right = []
             self.eat(TokenTypes.ELSE)
             self.eat(TokenTypes.LBRACE)
-            self.eat(TokenTypes.SEMI)
             while self.current_token.type is not TokenTypes.RBRACE:
                 right.append(self.program())
                 self.eat(TokenTypes.SEMI)
             self.eat(TokenTypes.RBRACE)
             return IfElse(token, cond, Block(left), Block(right))
-        else:
-            assert False
+        assert False
     def vardecl(self):
         name = self.eat(TokenTypes.ID)
         if self.current_token.value == "=":
@@ -165,5 +184,5 @@ class Parser(object):
                 self.eat(TokenTypes.SEMI)
             elif self.current_token.type is not TokenTypes.EOF:
                 self.error(TokenTypes.EOF)
-        print(statements)
+        #for statement in statements: print(statement)
         return statements

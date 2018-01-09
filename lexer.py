@@ -7,46 +7,16 @@ from tokens import TokenTypes, Token
 ###############################################################################
 
 RESERVED_KEYWORDS = {
-    ":": Token(TokenTypes.COLON, ":"),
-    "?": Token(TokenTypes.QMARK, "?"),
-    "var": Token(TokenTypes.VAR, "var"),
-    ";": Token(TokenTypes.SEMI, ";"),
-    "\n": Token(TokenTypes.SEMI, "\n"),
-    #",": Token("COMMA", ","),
-    "(": Token(TokenTypes.LPAREN, "("),
-    ")": Token(TokenTypes.RPAREN, ")"),
-    "{": Token(TokenTypes.LBRACE, "{"),
-    "}": Token(TokenTypes.RBRACE, "}"),
-    #":=": Token(OP, ":="),
-    #"||=": Token(OP, "||="),
-    #"+=": Token(OP, "+="),
-    #"*=": Token(OP, "*="),
-    #"-=": Token(OP, "-="),
-    #"&": Token("OP", "&"),
-    #"|": Token("OP", "|"),
-    #"<>": Token("OP", "<>"),
-    "=": Token(TokenTypes.OP, "="),
-    "<": Token(TokenTypes.OP, "<"),
-    "<=": Token(TokenTypes.OP, "<="),
-    ">": Token(TokenTypes.OP, ">"),
-    ">=": Token(TokenTypes.OP, ">="),
-    "==": Token(TokenTypes.OP, "=="),
-    "!=": Token(TokenTypes.OP, "!="),
-    "print": Token(TokenTypes.PRINT, "print"),
-    "if": Token(TokenTypes.IF, "if"),
-    "else": Token(TokenTypes.ELSE, "else"),
-    "elseif": Token(TokenTypes.ELSEIF, "elseif"),
-    "true": Token(TokenTypes.BOOL, True),
-    "false": Token(TokenTypes.BOOL, False),
-    "and": Token(TokenTypes.LOGIC, "and"),
-    "or": Token(TokenTypes.LOGIC, "or"),
-    "nil": Token(TokenTypes.NIL, None),
-    "+": Token(TokenTypes.OP, "+"),
-    "-": Token(TokenTypes.OP, "-"),
-    #"||": Token("TokenTypes.OP", "||"),
-    "*": Token(TokenTypes.OP, "*"),
-    "/": Token(TokenTypes.OP, "/"),
-    "!": Token(TokenTypes.OP, "!"),
+            "var": lambda x: Token(TokenTypes.VAR, "var", x),
+            "print": lambda x: Token(TokenTypes.PRINT, "print", x),
+            "if": lambda x: Token(TokenTypes.IF, "if", x),
+            "else": lambda x: Token(TokenTypes.ELSE, "else", x),
+            "elseif": lambda x: Token(TokenTypes.ELSEIF, "elseif", x),
+            "true": lambda x: Token(TokenTypes.BOOL, True, x),
+            "false": lambda x: Token(TokenTypes.BOOL, False, x),
+            "and": lambda x: Token(TokenTypes.LOGIC, "and", x),
+            "or": lambda x: Token(TokenTypes.LOGIC, "or", x),
+            "nil": lambda x: Token(TokenTypes.NIL, None, x),
 }
 
 class Lexer(object):
@@ -55,10 +25,14 @@ class Lexer(object):
         self.text = text
         # self.pos is index into self.text
         self.pos = 0
+        # current line
+        self.line = 1
         # current char
         self.current_char = self.text[0]
+        # tokens so far
+        self.tokens = []
     def error(self):
-        raise Exception("LEXING ERROR: %s" % self.text[self.pos])
+        raise Exception("LEXING ERROR: line %s" % self.line)
     def peek(self, lookahead=1):
         peek_pos = self.pos + lookahead
         if peek_pos >= len(self.text):
@@ -69,20 +43,37 @@ class Lexer(object):
         self.pos += 1
         if self.pos < len(self.text):
             self.current_char = self.text[self.pos]
+            if self.current_char == "\n":
+                self.line += 1
         else:
             self.current_char = None
+    def _eat_white_space(self):
+        while self.current_char == " ": self.advance()
+    def _add_token(self, token_type):
+        self.tokens.append(Token(token_type, self.current_char, self.line))
+        self.advance()
     def _id(self):
         result = ""
         while self.current_char is not None and (self.current_char.isalnum() or self.current_char == "_"):
             result += self.current_char
             self.advance()
-        return RESERVED_KEYWORDS.get(result, Token(TokenTypes.ID, result))
-    def _str(self):
+        token = RESERVED_KEYWORDS.get(result, lambda x: Token(TokenTypes.ID, result, x))(self.line)
+        self.tokens.append(token)
+        self._eat_white_space()
+        if self.current_char == "\n" and self.tokens[-1].type is TokenTypes.VAR:
+            self._add_token(TokenTypes.SEMI)
+        elif self.current_char == "\n" and self.tokens[-1].type is TokenTypes.BOOL:
+            self._add_token(TokenTypes.SEMI)
+        elif self.current_char == "\n" and self.tokens[-1].type is TokenTypes.NIL:
+            self._add_token(TokenTypes.SEMI)
+        elif self.current_char == "\n" and self.tokens[-1].type is TokenTypes.ID:
+            self._add_token(TokenTypes.SEMI)
+    '''def _str(self):
         result = ""
         while self.current_char is not None and self.current_char != '"':
             result += self.current_char
             self.advance()
-        return result
+        return result'''
     def _num(self):
         result = ""
         while self.current_char is not None and (self.current_char.isdigit() or self.current_char == "_"):
@@ -94,45 +85,61 @@ class Lexer(object):
             while self.current_char is not None and (self.current_char.isdigit() or self.current_char == "_"):
                 result += self.current_char
                 self.advance()
-            return Token(TokenTypes.FLOAT, float(result.replace("_", "")))
-        return Token(TokenTypes.INT, int(result.replace("_", "")))
-    def get_next_token(self):
+            token = Token(TokenTypes.FLOAT, float(result.replace("_", "")), self.line)
+        else:
+            token =  Token(TokenTypes.INT, int(result.replace("_", "")), self.line)
+        self.tokens.append(token)
+        self._eat_white_space()
+        if self.current_char == "\n":
+            self._add_token(TokenTypes.SEMI)
+    def lex(self):
         # tokenizer
         text = self.text
-        while self.current_char == " ":
-            self.advance()
-        if self.pos >= len(text):
-            return Token(TokenTypes.EOF, None)
-        while self.current_char is not None:
-            # alphabetic RESERVED_KEYWORDS & ID
-            if self.current_char + (self.peek() or "") == "\\\n":
+        while self.pos < len(text):
+            while self.current_char in (" ", "\n"):
                 self.advance()
-                self.advance()
+            if self.pos >= len(text):
+                self.tokens.append(Token(TokenTypes.EOF, None, self.line))
+            elif self.current_char == "#":
+                while self.current_char != "\n":
+                    self.advance()
             elif self.current_char.isdigit():
-                return self._num()
+                self._num()
             elif self.current_char.isalnum():
-                return self._id()
-            # STR
-            elif self.current_char == '"':
+                self._id()
+            elif self.current_char == ":": self._add_token(TokenTypes.COLON)
+            elif self.current_char == "?": self._add_token(TokenTypes.QMARK)
+            elif self.current_char == ";": self._add_token(TokenTypes.SEMI)
+            elif self.current_char == "(": self._add_token(TokenTypes.LPAREN)
+            elif self.current_char == ")":
+                self._add_token(TokenTypes.RPAREN)
+                self._eat_white_space()
+                if self.current_char == "\n":
+                    self._add_token(TokenTypes.SEMI)
+            elif self.current_char == "{": self._add_token(TokenTypes.LBRACE)
+            elif self.current_char == "}":
+                self._add_token(TokenTypes.RBRACE)
+                self._eat_white_space()
+                if self.current_char == "\n":
+                    self._add_token(TokenTypes.SEMI)
+            elif self.current_char in ("=", "<", ">", "+", "-", "/", "*", "!"): self._add_token(TokenTypes.OP)
+            elif self.current_char == "<" and self.peek() == "=":
+                self.tokens.append(Token(TokenTypes.OP, "<=", self.line))
                 self.advance()
-                result = self._str()
                 self.advance()
-                return Token(STR, result)
-            # all other two character operators, see RESERVED_KEYWORDS
-            elif self.current_char + (self.peek() or "") + (self.peek(2) or "") in RESERVED_KEYWORDS:
-                cur = self.current_char + (self.peek() or "") + (self.peek(2) or "")
+            elif self.current_char == ">" and self.peek() == "=":
+                self.tokens.append(Token(TokenTypes.OP, ">=", self.line))
                 self.advance()
                 self.advance()
-                self.advance()
-                return RESERVED_KEYWORDS[cur]
-            elif self.current_char + (self.peek() or "") in RESERVED_KEYWORDS:
-                cur = self.current_char + (self.peek() or "")
+            elif self.current_char == "=" and self.peek() == "=":
+                self.tokens.append(Token(TokenTypes.OP, "==", self.line))
                 self.advance()
                 self.advance()
-                return RESERVED_KEYWORDS[cur]
-            # All other one character operators, see RESERVED_KEYWORDS
-            elif self.current_char in RESERVED_KEYWORDS:
-                cur = self.current_char
+            elif self.current_char == "!" and self.peek() == "=":
+                self.tokens.append(Token(TokenTypes.OP, "!=", self.line))
                 self.advance()
-                return RESERVED_KEYWORDS[cur]
-            self.error()
+                self.advance()
+            else:
+                self.error()
+        #for token in self.tokens: print(token)
+        return self.tokens
