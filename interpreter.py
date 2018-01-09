@@ -40,6 +40,10 @@ DCONSTANTS = {
         2.0: DCONST_2,
         }
 
+def intbytes_8(n:int):
+    return [int(b) for b in bytearray(struct.pack(">q", n))]
+def doublebytes(d:float):
+    return [int(b) for b in bytearray(struct.pack(">d", n))]
 ###############################################################################
 #                                                                             #
 #  INTERPRETER                                                                #
@@ -67,7 +71,7 @@ class Interpreter(NodeVisitor):
         self.env = Env(self.env)
         body = self.visit(node.body)
         self.env = self.env.parent
-        return cond + [BRF] + [ int(b) for b in bytearray(struct.pack(">q", len(body))) ] + body
+        return cond + [BRF_8] + intbytes_8(len(body)) + body
     def visit_IfElse(self, node):
         cond = self.visit(node.cond)
         self.env = Env(self.env)
@@ -76,14 +80,14 @@ class Interpreter(NodeVisitor):
         self.env = Env(self.env)
         right = self.visit(node.right)
         self.env = self.env.parent
-        return cond + [BRF] + [ int(b) for b in bytearray(struct.pack(">q", len(left)+9)) ] + left + \
-                [BR] + [ int(b) for b in bytearray(struct.pack(">q", len(right))) ] + right
+        left += [BR_8] + intbytes_8(len(right))
+        return cond + [BRF_8] + intbytes_8(len(left)) + left + right
     def visit_TriOp(self, node): #only 1 tri-op is possible
         cond = self.visit(node.cond)
         left = self.visit(node.left)
         right = self.visit(node.right)
-        left += [BR] + [ int(b) for b in bytearray(struct.pack(">q", len(right))) ]
-        return cond + [BRF] + [ int(b) for b in bytearray(struct.pack(">q", len(left))) ] + left + right
+        left += [BR_8] + intbytes_8(len(right))
+        return cond + [BRF_8] + intbytes_8(len(left)) + left + right
     def visit_BinOp(self, node):
         left = self.visit(node.left)
         right = self.visit(node.right)
@@ -94,9 +98,9 @@ class Interpreter(NodeVisitor):
         right = [POP] + self.visit(node.right)
         left += [DUP]
         if node.op.value == "and":
-            return left + [BRF] + [int(b) for b in bytearray(struct.pack(">q", len(right)))] + right
+            return left + [BRF_8] + intbytes_8(len(right)) + right
         elif node.op.value == "or":
-            return left + [BRT] + [int(b) for b in bytearray(struct.pack(">q", len(right)))] + right
+            return left + [BRT_8] + intbytes_8(len(right)) + right
         else:
             assert False
     def visit_UnOp(self, node):
@@ -135,10 +139,12 @@ class Interpreter(NodeVisitor):
     def visit_Integer(self, node):
         if node.value in ICONSTANTS:
             return [ICONSTANTS[node.value]]
-        return [ICONST] + [ int(b) for b in bytearray(struct.pack(">q", node.value)) ]
+        return [ICONST] + intbytes_8(node.value)
     def visit_Float(self, node):
         if node.value in DCONSTANTS:
             return [DCONSTANTS[node.value]]
-        return [DCONST] + [ int(b) for b in bytearray(struct.pack(">d", node.value)) ]
+        return [DCONST] + doublebytes(node.value)
+
+    # noinspection PyInterpreter
     def visit_Nil(self, node):
         return [NCONST]

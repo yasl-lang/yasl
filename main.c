@@ -287,16 +287,16 @@ void run(VM* vm){
             a = vm->stack[vm->sp];
             PUSH(vm, a);
             break;
-        case BR:
+        case BR_8:
             c = NCODE_8(vm);
             vm->pc += c;
             break;
-        case BRF:
+        case BRF_8:
             c = NCODE_8(vm);
             v = POP(vm);
             if (FALSEY(v)) vm->pc += c;
             break;
-        case BRT:
+        case BRT_8:
             c = NCODE_8(vm);
             v = POP(vm);
             if (!(FALSEY(v))) vm->pc += c;
