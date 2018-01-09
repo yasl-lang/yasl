@@ -7,6 +7,8 @@ class TokenTypes(Enum):
     NIL    = 0x03
     VAR    = 0x10
     IF     = 0x12
+    ELSE   = 0x13
+    ELSEIF = 0x14
     OP     = 0x18
     LOGIC  = 0x19
     ID     = 0x20

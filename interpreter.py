@@ -68,6 +68,16 @@ class Interpreter(NodeVisitor):
         body = self.visit(node.body)
         self.env = self.env.parent
         return cond + [BRF] + [ int(b) for b in bytearray(struct.pack(">q", len(body))) ] + body
+    def visit_IfElse(self, node):
+        cond = self.visit(node.cond)
+        self.env = Env(self.env)
+        left = self.visit(node.left)
+        self.env = self.env.parent
+        self.env = Env(self.env)
+        right = self.visit(node.right)
+        self.env = self.env.parent
+        return cond + [BRF] + [ int(b) for b in bytearray(struct.pack(">q", len(left)+9)) ] + left + \
+                [BR] + [ int(b) for b in bytearray(struct.pack(">q", len(right))) ] + right
     def visit_TriOp(self, node): #only 1 tri-op is possible
         cond = self.visit(node.cond)
         left = self.visit(node.left)
