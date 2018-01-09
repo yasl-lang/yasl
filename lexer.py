@@ -122,7 +122,6 @@ class Lexer(object):
                 self._eat_white_space()
                 if self.current_char == "\n":
                     self._add_token(TokenTypes.SEMI)
-            elif self.current_char in ("=", "<", ">", "+", "-", "/", "*", "!"): self._add_token(TokenTypes.OP)
             elif self.current_char == "<" and self.peek() == "=":
                 self.tokens.append(Token(TokenTypes.OP, "<=", self.line))
                 self.advance()
@@ -139,6 +138,8 @@ class Lexer(object):
                 self.tokens.append(Token(TokenTypes.OP, "!=", self.line))
                 self.advance()
                 self.advance()
+            elif self.current_char in ("=", "<", ">", "+", "-", "/", "*", "!"):
+                self._add_token(TokenTypes.OP)
             else:
                 self.error()
         #for token in self.tokens: print(token)
