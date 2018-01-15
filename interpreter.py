@@ -67,6 +67,9 @@ class Interpreter(NodeVisitor):
         for statement in node.statements:
             result += self.visit(statement)
         return result
+    def visit_ExprStmt(self, node):
+        expr = self.visit(node.expr)
+        return expr + [POP]
     def visit_If(self, node):
         cond = self.visit(node.cond)
         self.env = Env(self.env)
@@ -83,6 +86,14 @@ class Interpreter(NodeVisitor):
         self.env = self.env.parent
         left += [BR_8] + intbytes_8(len(right))
         return cond + [BRF_8] + intbytes_8(len(left)) + left + right
+    def visit_While(self, node):
+        cond = self.visit(node.cond)
+        self.env = Env(self.env)
+        body = self.visit(node.body)
+        self.env = self.env.parent
+        cond += [BRF_8] + intbytes_8(len(body)+9)
+        body += [BR_8] + intbytes_8(-(len(body)+9+len(cond)))
+        return cond + body
     def visit_TriOp(self, node): #only 1 tri-op is possible
         cond = self.visit(node.cond)
         left = self.visit(node.left)
@@ -120,13 +131,11 @@ class Interpreter(NodeVisitor):
         return self.visit(node.right) + [GSTORE, self.env[node.left.value]]
     def visit_Assign(self, node):
         if node.left.value not in self.env:
-            print("undeclared variable: %s" % node.left.value)
-            assert False
-        return self.visit(node.right) + [GSTORE, self.env[node.left.value]]
+            raise Exception("undeclared variable: %s" % node.left.value)
+        return self.visit(node.right) + [GSTORE, self.env[node.left.value], GLOAD, self.env[node.left.value]]
     def visit_Var(self, node):
         if node.value not in self.env:
-            print("undefined variable: %s" % node.value)
-            assert False
+            raise Exception("undefined variable: %s" % node.value)
         return [GLOAD, self.env[node.value]]
     '''def visit_String(self, node):
         pass '''
@@ -136,7 +145,7 @@ class Interpreter(NodeVisitor):
         elif node.value == True:
             return [BCONST_T]
         else:
-            assert False
+            raise Exception("invalid boolean")
     def visit_Integer(self, node):
         if node.value in ICONSTANTS:
             return [ICONSTANTS[node.value]]

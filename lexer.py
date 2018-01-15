@@ -12,6 +12,7 @@ RESERVED_KEYWORDS = {
             "if": lambda x: Token(TokenTypes.IF, "if", x),
             "else": lambda x: Token(TokenTypes.ELSE, "else", x),
             "elseif": lambda x: Token(TokenTypes.ELSEIF, "elseif", x),
+            "while": lambda x: Token(TokenTypes.WHILE, "while", x),
             "true": lambda x: Token(TokenTypes.BOOL, True, x),
             "false": lambda x: Token(TokenTypes.BOOL, False, x),
             "and": lambda x: Token(TokenTypes.LOGIC, "and", x),

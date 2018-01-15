@@ -87,6 +87,14 @@ class IfElse(AST):
         self.cond = cond
         self.left = left
         self.right = right
+class While(AST):
+    def __init__(self, token, cond, body):
+        self.token = token
+        self.cond = cond
+        self.body = body
 class Block(AST):
     def __init__(self, statements):
         self.statements = statements  # list of ASTs to iterate over
+class ExprStmt(AST):
+    def __init__(self, expr):
+        self.expr = expr

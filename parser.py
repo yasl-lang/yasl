@@ -24,7 +24,7 @@ class Parser(object):
         raise Exception("Expected %s Token in line %s, got %s" % \
             (token_type, self.current_token.line, self.current_token.type))
     def eat(self, token_type):
-        print(self.current_token)
+        #print(self.current_token)
         if self.current_token.type is token_type:
             result = self.current_token
             self.advance()
@@ -37,10 +37,12 @@ class Parser(object):
             return Print(token, self.expr())
         elif self.current_token.type is TokenTypes.IF:
             return self.if_stmt()
+        elif self.current_token.type is TokenTypes.WHILE:
+            return self.while_loop()
         elif self.current_token.type is TokenTypes.VAR:
             self.eat(TokenTypes.VAR)
             return self.vardecl()
-        return self.expr()
+        return ExprStmt(self.expr())
     def if_stmt(self):
         if self.current_token.type is TokenTypes.IF:
             token = self.eat(TokenTypes.IF)
@@ -53,22 +55,12 @@ class Parser(object):
             body.append(self.program())
             self.eat(TokenTypes.SEMI)
         self.eat(TokenTypes.RBRACE)
-        if self.current_token.type is TokenTypes.SEMI:
-            self.eat(TokenTypes.SEMI)
         if self.current_token.type is not TokenTypes.ELSE and self.current_token.type is not TokenTypes.ELSEIF:
             return If(token, cond, Block(body))
+        if self.current_token.type is TokenTypes.SEMI:
+            self.eat(TokenTypes.SEMI)
         if self.current_token.type is TokenTypes.ELSEIF:
             return IfElse(token, cond, Block(body), self.if_stmt())
-        '''if self.current_token.type is TokenTypes.ELSEIF:
-            left = body
-            self.eat(TokenTypes.ELSEIF)
-            r_cond = self.expr()
-            right = []
-            self.eat(TokenTypes.LBRACE)
-            while self.current_token.type is not TokenTypes.RBRACE:
-                right.append(self.program())
-                self.eat(TokenTypes.SEMI)
-            self.eat(TokenTypes.RBRACE)'''
         if self.current_token.type is TokenTypes.ELSE:
             left = body
             right = []
@@ -80,6 +72,16 @@ class Parser(object):
             self.eat(TokenTypes.RBRACE)
             return IfElse(token, cond, Block(left), Block(right))
         assert False
+    def while_loop(self):
+        token = self.eat(TokenTypes.WHILE)
+        cond = self.expr()
+        self.eat(TokenTypes.LBRACE)
+        body = []
+        while self.current_token.type is not TokenTypes.RBRACE:
+            body.append(self.program())
+            self.eat(TokenTypes.SEMI)
+        self.eat(TokenTypes.RBRACE)
+        return While(token, cond, Block(body))
     def vardecl(self):
         name = self.eat(TokenTypes.ID)
         if self.current_token.value == "=":
@@ -88,6 +90,21 @@ class Parser(object):
             assert False
         return Decl(name, self.expr())
     def expr(self):
+        return self.assign()
+    def assign(self):
+        name = self.ternary()
+        if self.current_token.value == "=":
+            self.eat(TokenTypes.OP)
+            if isinstance(name, Var):
+                left = name.token
+                right = self.expr()
+                return Assign(left, right)
+            else:
+                raise Exception("Invalid assignment target.")
+        else:
+            return name
+        return self.ternary()
+    def ternary(self):
         """if self.next_token.value in [":=", "||=", "*=", "+=", "-="]:
             return self.asgn()
         """
@@ -119,24 +136,24 @@ class Parser(object):
             curr = BinOp(op, curr, self.fact1())"""
         return curr
     def fact1(self):
-        curr = self.fact2()
+        curr = self.comparator()
         while self.current_token.value in ["==", "!="]:
             op = self.eat(TokenTypes.OP)
-            curr = BinOp(op, curr, self.fact2())
+            curr = BinOp(op, curr, self.comparator())
         return curr
-    def fact2(self):
-        curr = self.fact3()
+    def comparator(self):
+        curr = self.add()
         while self.current_token.value in ["<", ">", ">=", "<="]:
             op = self.eat(TokenTypes.OP)
-            curr = BinOp(op, curr, self.fact3())
+            curr = BinOp(op, curr, self.add())
         return curr
-    def fact3(self):
-        curr = self.fact4()
+    def add(self):
+        curr = self.multiply()
         while self.current_token.value in ["+", "-", "||"]:
             op = self.eat(TokenTypes.OP)
-            curr = BinOp(op, curr, self.fact4())
+            curr = BinOp(op, curr, self.multiply())
         return curr
-    def fact4(self):
+    def multiply(self):
         curr = self.const()
         while self.current_token.value in ["*", "/"]:
             op = self.eat(TokenTypes.OP)
