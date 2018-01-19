@@ -5,11 +5,11 @@ class TokenTypes(Enum):
     FLOAT  = 0x01
     BOOL   = 0x02
     NIL    = 0x03
-    VAR    = 0x10
-    IF     = 0x12
-    ELSE   = 0x13
-    ELSEIF = 0x14
-    WHILE  = 0x15
+    STR    = 0x04
+    IF     = 0x10
+    ELSEIF = 0x11
+    ELSE   = 0x12
+    WHILE  = 0x13
     OP     = 0x18
     LOGIC  = 0x19
     ID     = 0x20
@@ -24,7 +24,12 @@ class TokenTypes(Enum):
     ARROW  = 0x3A
     SEMI   = 0x3B
     EOF    = 0x3F
-    PRINT  = 0x50
+    VAR    = 0x40
+    DEFUN  = 0x41
+    RET    = 0x42
+    CLASS  = 0x43
+    PRINT  = 0x80
+
 
 
 '''

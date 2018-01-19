@@ -47,13 +47,14 @@ class Float(AST):
         self.value = token.value
 '''class Param(AST):
     def __init__(self, var_node):
-        self.node = var_node
+        self.node = var_node '''
 class FuncDecl(AST):
     def __init__(self, token, params, block):
         self.token = token
         self.value = token.value
         self.params = params # list of formal params
         self.block = block
+'''
 class FuncCall(AST):
     def __init__(self, token, params):
         self.token = token

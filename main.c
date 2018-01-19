@@ -36,12 +36,9 @@
 #define DIV(a, b)    (a / b)
 #define SUB(a, b)    (a - b)
 #define MUL(a, b)    (a * b)
-#define LT(a, b)     (a < b)
-#define LE(a, b)     (a <= b)
 #define GT(a, b)     (a > b)
 #define GE(a, b)     (a >= b)
 #define EQ(a, b)     (a == b)
-#define NEQ(a, b)    (a != b)
 #define BINOP(vm, a, b, f, str)  ({\
                             if (a.type == INT64 && b.type == INT64) {\
                                 c = f(a.value, b.value);\
@@ -85,13 +82,15 @@
 void run(VM* vm){
     for (;;) {
         unsigned char opcode = NCODE(vm);        // fetch
-        int addr, offset, argc, rval;
+        int offset, argc, rval;
+        int addr;
         int i;
         Constant a, b, v;
         int64_t c;
         double d;
         unsigned char bytes[8];
         printf("opcode = %x\n", opcode);
+        // printf("sp, fp, pc: %d, %d, %d\n", vm->sp, vm->fp, vm->pc);
         switch (opcode) {   // decode
         case HALT: return;  // stop the program
         /*case JMP:
@@ -194,29 +193,61 @@ void run(VM* vm){
                 PUSH(vm, a);
                 break;
             }
+            else if (a.type == NIL) {
+                NPUSH(vm);
+                break;
+            }
             else {
                 printf("ERROR: ! not supported for operand of type %x.\n", a.type);
                 return;
             }
-        case LT:
-            b = POP(vm);
-            a = POP(vm);
-            COMP(vm, a, b, LT, "<");
-            break;
-        case LE:
-            b = POP(vm);
-            a = POP(vm);
-            COMP(vm, a, b, LE, "<=");
-            break;
         case GT:
             b = POP(vm);
             a = POP(vm);
-            COMP(vm, a, b, GT, ">");
+            if (a.type == NIL || b.type == NIL) {
+                NPUSH(vm);
+                break;
+            }
+            switch(a.type) {
+            case BOOL:
+                if (b.type == BOOL) {
+                    if (a.value == b.value) BPUSH(vm, 0);
+                    else NPUSH(vm);
+                }
+                else NPUSH(vm);
+                break;
+            default:
+                if (b.type == BOOL) {
+                    NPUSH(vm);
+                    break;
+                }
+                COMP(vm, a, b, GT, ">");
+                break;
+            }
             break;
         case GE:
             b = POP(vm);
             a = POP(vm);
-            COMP(vm, a, b, GE, ">=");
+            if (a.type == NIL || b.type == NIL) {
+                NPUSH(vm);
+                break;
+            }
+            switch(a.type) {
+            case BOOL:
+                if (b.type == BOOL) {
+                    if (a.value == b.value) BPUSH(vm, 1);
+                    else NPUSH(vm);
+                }
+                else NPUSH(vm);
+                break;
+            default:
+                if (b.type == BOOL) {
+                    NPUSH(vm);
+                    break;
+                }
+                COMP(vm, a, b, GE, ">=");
+                break;
+            }
             break;
         case EQ:
             b = POP(vm);
@@ -227,38 +258,18 @@ void run(VM* vm){
             }
             switch(a.type) {
             case BOOL:
-                if (b.type == BOOL) c = a.value == b.value;
-                else c = 0;
-                BPUSH(vm, c);
+                if (b.type == BOOL) {
+                    c = a.value == b.value;
+                    BPUSH(vm, c);
+                }
+                else NPUSH(vm);
                 break;
             default:
                 if (b.type == BOOL) {
-                    BPUSH(vm, 0);
+                    NPUSH(vm);
                     break;
                 }
                 COMP(vm, a, b, EQ, "==");
-                break;
-            }
-            break;
-        case NEQ:
-            b = POP(vm);
-            a = POP(vm);
-            if (a.type == NIL || b.type == NIL) {
-                NPUSH(vm);
-                break;
-            }
-            switch(a.type) {
-            case BOOL:
-                if (b.type == BOOL) c = a.value != b.value;
-                else c = 1;
-                BPUSH(vm, c);
-                break;
-            default:
-            if (b.type == BOOL) {
-                    BPUSH(vm, 1);
-                    break;
-                }
-                COMP(vm, a, b, NEQ, "!=");
                 break;
             }
             break;
@@ -266,12 +277,7 @@ void run(VM* vm){
             b = POP(vm);
             a = POP(vm);
             COMP(vm, a, b, ID, "===");
-            break;
-        case NID:
-            b = POP(vm);
-            a = POP(vm);
-            COMP(vm, a, b, NID, "!==");
-            break; */
+            break; // */
         case BCONST_F:
             BPUSH(vm, 0);   // represent false as 0
             break;
@@ -283,6 +289,11 @@ void run(VM* vm){
             break;
         //case I2D: TODO: implement
         //case D2I: TODO: implement
+        case ISNIL:
+            v = POP(vm);
+            if (v.type == NIL) BPUSH(vm, 1);
+            else BPUSH(vm, 0);
+            break;
         case DUP:
             a = vm->stack[vm->sp];
             PUSH(vm, a);
@@ -301,16 +312,41 @@ void run(VM* vm){
             v = POP(vm);
             if (!(FALSEY(v))) vm->pc += c;
             break;
-        case GLOAD:
+        case GLOAD_1:
             addr = NCODE(vm);             // get addr of var in locals
             v = vm->locals[addr];         // load value from memory of the provided addr
             PUSH(vm, v);                  // put that value on top of the stack
             break;
-        case GSTORE:
+        case GSTORE_1:
             v = POP(vm);                  // get value from top of the stack
             addr = NCODE(vm);             // get addr of var in locals
             vm->locals[addr] = v;         // store value at addr received
             break;
+        case LLOAD_1:
+            offset = NCODE(vm);
+            v = vm->stack[vm->fp+offset];
+            PUSH(vm, v);
+            break;
+        case LSTORE_1:
+            offset = NCODE(vm);
+            v = POP(vm);
+            vm->stack[vm->fp+offset] = v;
+            break;
+        case CALL_8:
+            offset = NCODE(vm);
+            addr = NCODE_8(vm);
+            PUSH(vm, ((Constant) {INT64, vm->pc})); // add 9 to skip offset and addr;
+            vm->fp = vm->sp;
+            vm->sp += offset;
+            vm->pc = addr;
+            break;
+        case RET:
+            offset = NCODE(vm);
+            v = POP(vm);
+            vm->pc = ((vm->stack)[vm->fp--]).value;
+            vm->sp = vm->fp - offset;
+            PUSH(vm, v);
+            break; // */
         case POP:
             --vm->sp;      // throw away value at top of the stack
             break;

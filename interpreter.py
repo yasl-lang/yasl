@@ -10,34 +10,36 @@ from visitor import NodeVisitor
 from environment import Env
 
 BINRESERVED = {
-        "+": ADD,
-        "*": MUL,
-        "-": SUB,
-        "/": DIV,
-        "<": LT,
-        "<=": LE,
-        ">": GT,
-        ">=": GE,
-        "==": EQ,
-        "!=": NEQ,
+        "+":  [ADD],
+        "*":  [MUL],
+        "-":  [SUB],
+        "/":  [DIV],
+        "<":  [GE, NOT],
+        "<=": [GT, NOT],
+        ">":  [GT],
+        ">=": [GE],
+        "==": [EQ],
+        "!=": [EQ, NOT],
         }
 UNRESERVED = {
-        "-": NEG,
-        "!": NOT,
+        "-": [NEG],
+        "!": [NOT],
         }
 ICONSTANTS = {
-        -1: ICONST_M1,
-        0: ICONST_0,
-        1: ICONST_1,
-        2: ICONST_2,
-        3: ICONST_3,
-        4: ICONST_4,
-        5: ICONST_5,
+        #-2: [ICONST_M2],
+        -1: [ICONST_M1],
+        0: [ICONST_0],
+        1: [ICONST_1],
+        2: [ICONST_2],
+        3: [ICONST_3],
+        4: [ICONST_4],
+        5: [ICONST_5],
+        #6: [ICONST_6],
         }
 DCONSTANTS = {
-        0.0: DCONST_0,
-        1.0: DCONST_1,
-        2.0: DCONST_2,
+        0.0: [DCONST_0],
+        1.0: [DCONST_1],
+        2.0: [DCONST_2],
         }
 
 def intbytes_8(n:int):
@@ -69,6 +71,7 @@ class Interpreter(NodeVisitor):
         return result
     def visit_ExprStmt(self, node):
         expr = self.visit(node.expr)
+        print(expr)
         return expr + [POP]
     def visit_If(self, node):
         cond = self.visit(node.cond)
@@ -103,8 +106,12 @@ class Interpreter(NodeVisitor):
     def visit_BinOp(self, node):
         left = self.visit(node.left)
         right = self.visit(node.right)
+        if node.token.value == "??":
+            left += [DUP]
+            right = [POP] + right
+            return left + [ISNIL, BRF_8] + intbytes_8(len(right)) + right
         this = BINRESERVED.get(node.op.value)
-        return left + right + [this]
+        return left + right + this
     def visit_LogicOp(self, node):
         left = self.visit(node.left)
         right = [POP] + self.visit(node.right)
@@ -118,7 +125,7 @@ class Interpreter(NodeVisitor):
     def visit_UnOp(self, node):
         expr = self.visit(node.expr)
         this = UNRESERVED.get(node.op.value)
-        return expr + [this]
+        return expr + this
     '''def visit_NulOp(self, node):
         pass
     def visit_FuncDecl(self, node):
@@ -128,15 +135,15 @@ class Interpreter(NodeVisitor):
     def visit_Decl(self, node):
         if node.left.value not in self.env.vars:
             self.env.decl_var(node.left.value)
-        return self.visit(node.right) + [GSTORE, self.env[node.left.value]]
+        return self.visit(node.right) + [GSTORE_1, self.env[node.left.value]]
     def visit_Assign(self, node):
         if node.left.value not in self.env:
             raise Exception("undeclared variable: %s" % node.left.value)
-        return self.visit(node.right) + [GSTORE, self.env[node.left.value], GLOAD, self.env[node.left.value]]
+        return self.visit(node.right) + [GSTORE_1, self.env[node.left.value], GLOAD_1, self.env[node.left.value]]
     def visit_Var(self, node):
         if node.value not in self.env:
             raise Exception("undefined variable: %s" % node.value)
-        return [GLOAD, self.env[node.value]]
+        return [GLOAD_1, self.env[node.value]]
     '''def visit_String(self, node):
         pass '''
     def visit_Boolean(self, node):
@@ -148,13 +155,11 @@ class Interpreter(NodeVisitor):
             raise Exception("invalid boolean")
     def visit_Integer(self, node):
         if node.value in ICONSTANTS:
-            return [ICONSTANTS[node.value]]
+            return ICONSTANTS[node.value]
         return [ICONST] + intbytes_8(node.value)
     def visit_Float(self, node):
         if node.value in DCONSTANTS:
-            return [DCONSTANTS[node.value]]
+            return DCONSTANTS[node.value]
         return [DCONST] + doublebytes(node.value)
-
-    # noinspection PyInterpreter
     def visit_Nil(self, node):
         return [NCONST]

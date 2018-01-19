@@ -18,6 +18,9 @@ RESERVED_KEYWORDS = {
             "and": lambda x: Token(TokenTypes.LOGIC, "and", x),
             "or": lambda x: Token(TokenTypes.LOGIC, "or", x),
             "nil": lambda x: Token(TokenTypes.NIL, None, x),
+            "defun": lambda x: Token(TokenTypes.DEFUN, "defun", x),
+            "return": lambda x: Token(TokenTypes.RET, "return", x),
+            "class": lambda x: Token(TokenTypes.CLASS, "class", x),
 }
 
 class Lexer(object):
@@ -108,6 +111,14 @@ class Lexer(object):
                 self._num()
             elif self.current_char.isalnum():
                 self._id()
+            elif self.current_char == "?" and self.peek() == "?":
+                self.tokens.append(Token(TokenTypes.OP, "??", self.line))
+                self.advance()
+                self.advance()
+            elif self.current_char == "-" and self.peek() == ">":
+                self.tokens.append(Token(TokenTypes.ARROW, "->", self.line))
+                self.advance()
+                self.advance()
             elif self.current_char == ":": self._add_token(TokenTypes.COLON)
             elif self.current_char == "?": self._add_token(TokenTypes.QMARK)
             elif self.current_char == ";": self._add_token(TokenTypes.SEMI)
@@ -139,6 +150,8 @@ class Lexer(object):
                 self.tokens.append(Token(TokenTypes.OP, "!=", self.line))
                 self.advance()
                 self.advance()
+            elif self.current_char == ",":
+                self._add_token(TokenTypes.COMMA)
             elif self.current_char in ("=", "<", ">", "+", "-", "/", "*", "!"):
                 self._add_token(TokenTypes.OP)
             else:

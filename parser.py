@@ -42,6 +42,9 @@ class Parser(object):
         elif self.current_token.type is TokenTypes.VAR:
             self.eat(TokenTypes.VAR)
             return self.vardecl()
+        elif self.current_token is TokenTypes.DEFUN:
+            self.eat(TokenTypes.DEFUN)
+            return self.fndecl()
         return ExprStmt(self.expr())
     def if_stmt(self):
         if self.current_token.type is TokenTypes.IF:
@@ -86,9 +89,23 @@ class Parser(object):
         name = self.eat(TokenTypes.ID)
         if self.current_token.value == "=":
             self.eat(TokenTypes.OP)
+            return Decl(name, self.expr())
         else:
-            assert False
-        return Decl(name, self.expr())
+            return Decl(name, Nil(Token(TokenTypes.NIL, None, name.line)))
+    def fndecl(self):
+        name = self.eat(TokenTypes.ID)
+        self.eat(TokenTypes.COLON)
+        params = []
+        while self.current_token.type is TokenTypes.COMMA:
+            params.append(self.eat(TokenTypes.ID))
+            self.eat(TokenTypes.COMMA)
+        self.eat(TokenTypes.ARROW)
+        block = []
+        self.eat(TokenTypes.LBRACE)
+        while self.current_token.type is not TokenTypes.RBRACE:
+            block.append(self.statement)
+        self.eat(TokenTypes.RBRACE)
+        return FunctionDecl(name, params, Block(block))
     def expr(self):
         return self.assign()
     def assign(self):
@@ -110,11 +127,14 @@ class Parser(object):
         """
         curr = self.logic_or()
         if self.current_token.value == "?":
-            self.eat(TokenTypes.QMARK)
+            token = self.eat(TokenTypes.QMARK)
             first = self.expr()
             self.eat(TokenTypes.COLON)
             second = self.expr()
-            return TriOp(Token(TokenTypes.OP, "?:"), curr, first, second)
+            return TriOp(Token(TokenTypes.OP, "?:", token.line), curr, first, second)
+        elif self.current_token.value == "??":
+            token = self.eat(TokenTypes.OP)
+            return BinOp(token, curr, self.expr())
         return curr
     def logic_or(self):
         curr = self.logic_and()
