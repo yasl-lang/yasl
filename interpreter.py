@@ -43,9 +43,9 @@ DCONSTANTS = {
         }
 
 def intbytes_8(n:int):
-    return [int(b) for b in bytearray(struct.pack(">q", n))]
+    return [int(b) for b in bytearray(struct.pack("@q", n))]
 def doublebytes(d:float):
-    return [int(b) for b in bytearray(struct.pack(">d", n))]
+    return [int(b) for b in bytearray(struct.pack("@d", d))]
 ###############################################################################
 #                                                                             #
 #  INTERPRETER                                                                #
@@ -55,12 +55,19 @@ def doublebytes(d:float):
 class Interpreter(NodeVisitor):
     def __init__(self):
         self.env = self.globals = Env()
+        self.header = intbytes_8(8)
+        self.fns = {}
+        self.fn_lens = {}
+        self.fn_locals = {}
+        self.locals = Env(self.globals)
+        self.offset = 0
     def interpret(self, statements):
         result = []
         for statement in statements:
             result += self.visit(statement)
-        for opcode in result: print(hex(opcode))
-        return result #TODO: fix return values once we have proper ones
+        self.header[0:8] = intbytes_8(len(self.header))
+        for opcode in self.header + result + [HALT]: print(hex(opcode))
+        return self.header + result + [HALT] #TODO: fix return values once we have proper ones
     def visit_Print(self, node):
         expr = self.visit(node.expr)
         return expr + [PRINT]
@@ -71,7 +78,6 @@ class Interpreter(NodeVisitor):
         return result
     def visit_ExprStmt(self, node):
         expr = self.visit(node.expr)
-        print(expr)
         return expr + [POP]
     def visit_If(self, node):
         cond = self.visit(node.cond)
@@ -132,18 +138,50 @@ class Interpreter(NodeVisitor):
         pass
     def visit_FuncCall(self, node):
         pass '''
+    def visit_FunctionDecl(self, node):
+        if self.env is not self.globals:
+            raise Exception("cannot declare function outside of global scope. (line %s)" % node.token.line)
+        if node.token.value in self.fns:
+            raise Exception("invalid redefinition of function %s (line %s)" % (node.token.value, node.token.line))
+        self.fns[node.token.value] = len(self.header)
+        self.fn_lens[node.token.value] = node.params.__len__()
+        self.env = self.locals
+        self.offset = self.fn_lens[node.token.value]
+        for i in node.params:
+            self.env[i.value] = 255 -len(self.env.vars)
+        self.fn_locals[node.token.value] = len(self.env.vars)
+        for stmt in node.block.statements:
+            self.header += self.visit(stmt)
+        self.header += [NCONST, RET]
+        #print(self.env.vars)
+        #print(self.header)
+        self.env = self.globals
+        self.locals = Env(self.globals)
+        return []
+    def visit_FunctionCall(self, node):
+        result = []
+        for expr in node.params:
+            result += self.visit(expr)
+        return result + [CALL_8, self.fn_lens[node.token.value]] + \
+                         intbytes_8(self.fns[node.token.value]) + \
+                         [self.fn_locals[node.token.value]]
     def visit_Decl(self, node):
+        if self.env is self.locals:
+            if node.left.value not in self.env.vars:
+                self.env[node.left.value] = len(self.env.vars) + 1 - self.offset
+            return self.visit(node.right) + [LSTORE_1, self.env[node.left.value]]
         if node.left.value not in self.env.vars:
             self.env.decl_var(node.left.value)
-        return self.visit(node.right) + [GSTORE_1, self.env[node.left.value]]
+        return self.visit(node.right) + [GSTORE_1 if node.left.value not in self.locals else LSTORE_1, self.env[node.left.value]]
     def visit_Assign(self, node):
         if node.left.value not in self.env:
-            raise Exception("undeclared variable: %s" % node.left.value)
-        return self.visit(node.right) + [GSTORE_1, self.env[node.left.value], GLOAD_1, self.env[node.left.value]]
+            raise Exception("undeclared variable: %s in line %s" % (node.left.value, node.left.line))
+        return self.visit(node.right) + [GSTORE_1 if node.left.value not in self.locals else LSTORE_1, self.env[node.left.value],
+                                         GLOAD_1 if node.left.value not in self.locals else LLOAD_1, self.env[node.left.value]]
     def visit_Var(self, node):
         if node.value not in self.env:
-            raise Exception("undefined variable: %s" % node.value)
-        return [GLOAD_1, self.env[node.value]]
+            raise Exception("undefined variable: %s in line %s" % (node.value, node.token.line))
+        return [GLOAD_1 if node.value not in self.locals else LLOAD_1, self.env[node.value]]
     '''def visit_String(self, node):
         pass '''
     def visit_Boolean(self, node):

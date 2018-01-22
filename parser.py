@@ -24,7 +24,7 @@ class Parser(object):
         raise Exception("Expected %s Token in line %s, got %s" % \
             (token_type, self.current_token.line, self.current_token.type))
     def eat(self, token_type):
-        #print(self.current_token)
+        # print(self.current_token)
         if self.current_token.type is token_type:
             result = self.current_token
             self.advance()
@@ -39,12 +39,12 @@ class Parser(object):
             return self.if_stmt()
         elif self.current_token.type is TokenTypes.WHILE:
             return self.while_loop()
+        elif self.current_token.type is TokenTypes.DEFUN:
+            self.eat(TokenTypes.DEFUN)
+            return self.fndecl()
         elif self.current_token.type is TokenTypes.VAR:
             self.eat(TokenTypes.VAR)
             return self.vardecl()
-        elif self.current_token is TokenTypes.DEFUN:
-            self.eat(TokenTypes.DEFUN)
-            return self.fndecl()
         return ExprStmt(self.expr())
     def if_stmt(self):
         if self.current_token.type is TokenTypes.IF:
@@ -96,16 +96,29 @@ class Parser(object):
         name = self.eat(TokenTypes.ID)
         self.eat(TokenTypes.COLON)
         params = []
-        while self.current_token.type is TokenTypes.COMMA:
+        while self.current_token.type is TokenTypes.ID:
             params.append(self.eat(TokenTypes.ID))
-            self.eat(TokenTypes.COMMA)
-        self.eat(TokenTypes.ARROW)
+            if self.current_token.type is TokenTypes.COMMA:
+                self.eat(TokenTypes.COMMA)
+            else:
+                self.eat(TokenTypes.ARROW)
         block = []
         self.eat(TokenTypes.LBRACE)
         while self.current_token.type is not TokenTypes.RBRACE:
-            block.append(self.statement)
+            block.append(self.program())
+            self.eat(TokenTypes.SEMI)
         self.eat(TokenTypes.RBRACE)
         return FunctionDecl(name, params, Block(block))
+    def func_call(self):
+        self.eat(TokenTypes.LPAREN)
+        params = []
+        if self.current_token.type is not TokenTypes.RPAREN:
+            params.append(self.expr())
+        while self.current_token.type is TokenTypes.COMMA:
+            self.eat(TokenTypes.COMMA)
+            params.append(self.expr())
+        self.eat(TokenTypes.RPAREN)
+        return params
     def expr(self):
         return self.assign()
     def assign(self):
@@ -118,9 +131,15 @@ class Parser(object):
                 return Assign(left, right)
             else:
                 raise Exception("Invalid assignment target.")
+        elif self.current_token.value == "(":
+            if isinstance(name, Var):
+                left = name.token
+                right = self.func_call()
+                return FunctionCall(left, right)
+            else:
+                raise Exception("Uncallable target.")
         else:
             return name
-        return self.ternary()
     def ternary(self):
         """if self.next_token.value in [":=", "||=", "*=", "+=", "-="]:
             return self.asgn()
@@ -188,9 +207,6 @@ class Parser(object):
             expr = self.expr()
             self.eat(TokenTypes.RPAREN)
             return expr
-            '''
-        elif self.next_token.type == LPAREN:
-            return self.func_call()'''
         elif self.current_token.type is TokenTypes.ID:
             var = self.eat(TokenTypes.ID)
             return Var(var)
