@@ -77,13 +77,13 @@ void run(VM* vm){
         unsigned char opcode = NCODE(vm);        // fetch
         int argc, rval;
         signed char offset;
-        int addr;
+        int64_t addr;
         int i;
         Constant a, b, v;
         int64_t c;
         double d;
-        printf("opcode = %x\n", opcode);
-        // printf("sp, fp, pc: %d, %d, %d\n", vm->sp, vm->fp, vm->pc);
+        //printf("opcode = %x\n", opcode);
+        //printf("sp, fp, pc: %d, %d, %d\n", vm->sp, vm->fp, vm->pc);
         switch (opcode) {   // decode
         case HALT: return;  // stop the program
         /*case JMP:
@@ -346,16 +346,17 @@ void run(VM* vm){
             offset = NCODE(vm);
             memcpy(&addr, vm->code + vm->pc, sizeof addr);
             vm->pc += sizeof addr;
-            PUSH(vm, ((Constant) {INT64, vm->pc})); // add 9 to skip offset and addr;
+            PUSH(vm, ((Constant) {offset, vm->pc})); // add 9 to skip offset and addr;
             vm->fp = vm->sp;
+            offset = NCODE(vm);
             vm->sp += offset;
             vm->pc = addr;
             break;
         case RET:
             v = POP(vm);
             a = vm->stack[vm->fp];
-            vm->pc = ((vm->stack)[vm->fp]).value;
-            vm->sp = vm->fp - ((vm->stack)[vm->fp]).type;
+            vm->pc = (vm->stack[vm->fp]).value;
+            vm->sp = vm->fp - (vm->stack[vm->fp]).type;
             vm->sp--;
             PUSH(vm, v);
             break; // */
