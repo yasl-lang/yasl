@@ -42,6 +42,8 @@ class Parser(object):
         elif self.current_token.type is TokenTypes.DEFUN:
             self.eat(TokenTypes.DEFUN)
             return self.fndecl()
+        elif self.current_token.type is TokenTypes.RETURN:
+            return self.return_stmt()
         elif self.current_token.type is TokenTypes.VAR:
             self.eat(TokenTypes.VAR)
             return self.vardecl()
@@ -96,12 +98,12 @@ class Parser(object):
         name = self.eat(TokenTypes.ID)
         self.eat(TokenTypes.COLON)
         params = []
-        while self.current_token.type is TokenTypes.ID:
+        if self.current_token.type is not TokenTypes.ARROW:
             params.append(self.eat(TokenTypes.ID))
-            if self.current_token.type is TokenTypes.COMMA:
-                self.eat(TokenTypes.COMMA)
-            else:
-                self.eat(TokenTypes.ARROW)
+        while self.current_token.type is TokenTypes.COMMA:
+            self.eat(TokenTypes.COMMA)
+            params.append(self.eat(TokenTypes.ID))
+        self.eat(TokenTypes.ARROW)
         block = []
         self.eat(TokenTypes.LBRACE)
         while self.current_token.type is not TokenTypes.RBRACE:
@@ -119,6 +121,9 @@ class Parser(object):
             params.append(self.expr())
         self.eat(TokenTypes.RPAREN)
         return params
+    def return_stmt(self):
+        token = self.eat(TokenTypes.RETURN)
+        return Return(token, self.expr())
     def expr(self):
         return self.assign()
     def assign(self):

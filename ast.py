@@ -59,6 +59,10 @@ class FunctionCall(AST):
         self.token = token
         self.value = token.value
         self.params = params
+class Return(AST):
+    def __init__(self, token, expr):
+        self.token = token
+        self.expr = expr
 '''
 class FuncCall(AST):
     def __init__(self, token, params):

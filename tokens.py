@@ -26,7 +26,7 @@ class TokenTypes(Enum):
     EOF    = 0x3F
     VAR    = 0x40
     DEFUN  = 0x41
-    RET    = 0x42
+    RETURN = 0x42
     CLASS  = 0x43
     PRINT  = 0x80
 

@@ -355,9 +355,12 @@ void run(VM* vm){
         case RET:
             v = POP(vm);
             a = vm->stack[vm->fp];
-            vm->pc = (vm->stack[vm->fp]).value;
-            vm->sp = vm->fp - (vm->stack[vm->fp]).type;
+            vm->pc = a.value;
+            vm->pc++;
+            vm->sp = vm->fp - a.type;
             vm->sp--;
+            //printf("%" PRId64 "\n", v.value);
+            //printf("%d\n", v.type);
             PUSH(vm, v);
             break; // */
         case POP:
@@ -412,6 +415,7 @@ int main(void) {
 	                   entry_point,    // start address of main function
 	                   0);   // locals to be reserved, fib doesn't require them
 	run(vm);
+	delVM(vm);
     fclose(file_ptr);
 	return 0;
 };

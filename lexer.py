@@ -19,7 +19,7 @@ RESERVED_KEYWORDS = {
             "or": lambda x: Token(TokenTypes.LOGIC, "or", x),
             "nil": lambda x: Token(TokenTypes.NIL, None, x),
             "defun": lambda x: Token(TokenTypes.DEFUN, "defun", x),
-            "return": lambda x: Token(TokenTypes.RET, "return", x),
+            "return": lambda x: Token(TokenTypes.RETURN, "return", x),
             "class": lambda x: Token(TokenTypes.CLASS, "class", x),
 }
 

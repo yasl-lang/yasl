@@ -165,6 +165,9 @@ class Interpreter(NodeVisitor):
         return result + [CALL_8, self.fn_lens[node.token.value]] + \
                          intbytes_8(self.fns[node.token.value]) + \
                          [self.fn_locals[node.token.value]]
+    def visit_Return(self, node):
+        expr = self.visit(node.expr)
+        return expr + [RET]
     def visit_Decl(self, node):
         if self.env is self.locals:
             if node.left.value not in self.env.vars:
