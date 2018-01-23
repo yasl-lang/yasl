@@ -82,8 +82,10 @@ void run(VM* vm){
         Constant a, b, v;
         int64_t c;
         double d;
-        //printf("opcode = %x\n", opcode);
-        //printf("sp, fp, pc: %d, %d, %d\n", vm->sp, vm->fp, vm->pc);
+        printf("opcode = %x\n", opcode);
+        printf("sp, fp, pc: %d, %d, %d\n", vm->sp, vm->fp, vm->pc);
+        printf("locals: %" PRId64 ", %" PRId64 ", %" PRId64 "\n", vm->stack[vm->fp+1].value, vm->stack[vm->fp+2].value,
+             vm->stack[vm->fp+3].value);
         switch (opcode) {   // decode
         case HALT: return;  // stop the program
         /*case JMP:
@@ -332,14 +334,17 @@ void run(VM* vm){
             break;
         case LLOAD_1:
             offset = NCODE(vm);
+            //printf("offset = %d\n", offset);
             //printf("%d\n", offset);
             v = vm->stack[vm->fp+offset];
-            //printf("%" PRId64 "\n", v.value);
+            //printf("value loaded is: %" PRId64 "\n", v.value);
             PUSH(vm, v);
             break;
         case LSTORE_1:
             offset = NCODE(vm);
+            //printf("offset = %d\n", offset);
             v = POP(vm);
+            //printf("value to store is: %" PRId64 "\n", v.value);
             vm->stack[vm->fp+offset] = v;
             break;
         case CALL_8:
@@ -349,7 +354,7 @@ void run(VM* vm){
             PUSH(vm, ((Constant) {offset, vm->pc})); // add 9 to skip offset and addr;
             vm->fp = vm->sp;
             offset = NCODE(vm);
-            vm->sp += offset;
+            vm->sp += offset + 2;
             vm->pc = addr;
             break;
         case RET:
