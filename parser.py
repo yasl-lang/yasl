@@ -137,6 +137,7 @@ class Parser(object):
             else:
                 raise Exception("Invalid assignment target.")
         elif self.current_token.value == "(":
+            #print(name)
             if isinstance(name, Var):
                 left = name.token
                 right = self.func_call()

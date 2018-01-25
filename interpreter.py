@@ -62,11 +62,16 @@ class Interpreter(NodeVisitor):
         self.locals = Env(self.globals)
         self.offset = 0
     def interpret(self, statements):
+        #print(ICONSTANTS)
         result = []
         for statement in statements:
-            result += self.visit(statement)
+            #print(ICONSTANTS)
+            #print(statement)
+            result = result + self.visit(statement)
         self.header[0:8] = intbytes_8(len(self.header))
-        for opcode in self.header + result + [HALT]: print(hex(opcode))
+        for opcode in self.header: print(hex(opcode))
+        print("entry point:")
+        for opcode in result + [HALT]: print(hex(opcode))
         return self.header + result + [HALT] #TODO: fix return values once we have proper ones
     def visit_Print(self, node):
         expr = self.visit(node.expr)
@@ -74,7 +79,7 @@ class Interpreter(NodeVisitor):
     def visit_Block(self, node):
         result = []
         for statement in node.statements:
-            result += self.visit(statement)
+            result = result + self.visit(statement)
         return result
     def visit_ExprStmt(self, node):
         expr = self.visit(node.expr)
@@ -93,27 +98,27 @@ class Interpreter(NodeVisitor):
         self.env = Env(self.env)
         right = self.visit(node.right)
         self.env = self.env.parent
-        left += [BR_8] + intbytes_8(len(right))
+        left = left + [BR_8] + intbytes_8(len(right))
         return cond + [BRF_8] + intbytes_8(len(left)) + left + right
     def visit_While(self, node):
         cond = self.visit(node.cond)
         self.env = Env(self.env)
         body = self.visit(node.body)
         self.env = self.env.parent
-        cond += [BRF_8] + intbytes_8(len(body)+9)
-        body += [BR_8] + intbytes_8(-(len(body)+9+len(cond)))
+        cond = cond + [BRF_8] + intbytes_8(len(body)+9)
+        body = body + [BR_8] + intbytes_8(-(len(body)+9+len(cond)))
         return cond + body
     def visit_TriOp(self, node): #only 1 tri-op is possible
         cond = self.visit(node.cond)
         left = self.visit(node.left)
         right = self.visit(node.right)
-        left += [BR_8] + intbytes_8(len(right))
+        left = left + [BR_8] + intbytes_8(len(right))
         return cond + [BRF_8] + intbytes_8(len(left)) + left + right
     def visit_BinOp(self, node):
         left = self.visit(node.left)
         right = self.visit(node.right)
         if node.token.value == "??":
-            left += [DUP]
+            left = left + [DUP]
             right = [POP] + right
             return left + [ISNIL, BRF_8] + intbytes_8(len(right)) + right
         this = BINRESERVED.get(node.op.value)
@@ -121,7 +126,7 @@ class Interpreter(NodeVisitor):
     def visit_LogicOp(self, node):
         left = self.visit(node.left)
         right = [POP] + self.visit(node.right)
-        left += [DUP]
+        left = left + [DUP]
         if node.op.value == "and":
             return left + [BRF_8] + intbytes_8(len(right)) + right
         elif node.op.value == "or":
@@ -148,20 +153,18 @@ class Interpreter(NodeVisitor):
         self.env = self.locals
         self.offset = self.fn_lens[node.token.value]
         for i in node.params:
-            self.env[i.value] = 255 -len(self.env.vars)
+            self.env[i.value] = 255 - len(self.env.vars) - 1
         self.fn_locals[node.token.value] = len(self.env.vars)
         for stmt in node.block.statements:
-            self.header += self.visit(stmt)
-        self.header += [NCONST, RET]
-        #print(self.env.vars)
-        #print(self.header)
+            self.header = self.header + self.visit(stmt)
+        self.header = self.header + [NCONST, RET]
         self.env = self.globals
         self.locals = Env(self.globals)
         return []
     def visit_FunctionCall(self, node):
         result = []
         for expr in node.params:
-            result += self.visit(expr)
+            result = result + self.visit(expr)
         return result + [CALL_8, self.fn_lens[node.token.value]] + \
                          intbytes_8(self.fns[node.token.value]) + \
                          [self.fn_locals[node.token.value]]
@@ -169,22 +172,37 @@ class Interpreter(NodeVisitor):
         expr = self.visit(node.expr)
         return expr + [RET]
     def visit_Decl(self, node):
+        #print(self.env is self.locals)
         if self.env is self.locals:
             if node.left.value not in self.env.vars:
                 self.env[node.left.value] = len(self.env.vars) + 1 - self.offset
             return self.visit(node.right) + [LSTORE_1, self.env[node.left.value]]
         if node.left.value not in self.env.vars:
             self.env.decl_var(node.left.value)
-        return self.visit(node.right) + [GSTORE_1 if node.left.value not in self.locals else LSTORE_1, self.env[node.left.value]]
+        #print(node.right)
+        right = self.visit(node.right)
+        #print([hex(r) for r in right])
+        result = self.visit(node.right) + [GSTORE_1, self.env[node.left.value]]
+        #print([hex(r) for r in result])
+        return result
+        return self.visit(node.right) + [GSTORE_1, self.env[node.left.value]]
     def visit_Assign(self, node):
         if node.left.value not in self.env:
             raise Exception("undeclared variable: %s in line %s" % (node.left.value, node.left.line))
-        return self.visit(node.right) + [GSTORE_1 if node.left.value not in self.locals else LSTORE_1, self.env[node.left.value],
-                                         GLOAD_1 if node.left.value not in self.locals else LLOAD_1, self.env[node.left.value]]
+        #print(self.env is self.locals)
+        if self.env is self.locals:
+            return self.visit(node.right) + [LSTORE_1,
+                                             self.env[node.left.value],
+                                             LLOAD_1,
+                                             self.env[node.left.value]]
+        return self.visit(node.right) + [GSTORE_1, self.env[node.left.value],
+                                         GLOAD_1, self.env[node.left.value]]
     def visit_Var(self, node):
         if node.value not in self.env:
             raise Exception("undefined variable: %s in line %s" % (node.value, node.token.line))
-        return [GLOAD_1 if node.value not in self.locals else LLOAD_1, self.env[node.value]]
+        if self.env is self.locals:
+            return [LLOAD_1, self.env[node.value]]
+        return [GLOAD_1, self.env[node.value]]
     '''def visit_String(self, node):
         pass '''
     def visit_Boolean(self, node):

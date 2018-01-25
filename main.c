@@ -82,10 +82,10 @@ void run(VM* vm){
         Constant a, b, v;
         int64_t c;
         double d;
-        printf("opcode = %x\n", opcode);
-        printf("sp, fp, pc: %d, %d, %d\n", vm->sp, vm->fp, vm->pc);
-        printf("locals: %" PRId64 ", %" PRId64 ", %" PRId64 "\n", vm->stack[vm->fp+1].value, vm->stack[vm->fp+2].value,
-             vm->stack[vm->fp+3].value);
+        //printf("opcode = %x\n", opcode);
+        //printf("sp, fp, pc: %d, %d, %d\n", vm->sp, vm->fp, vm->pc);
+        //printf("locals: %" PRId64 ", %" PRId64 ", %" PRId64 "\n", vm->stack[vm->fp+1].value, vm->stack[vm->fp+2].value,
+        //     vm->stack[vm->fp+3].value);
         switch (opcode) {   // decode
         case HALT: return;  // stop the program
         /*case JMP:
@@ -348,24 +348,31 @@ void run(VM* vm){
             vm->stack[vm->fp+offset] = v;
             break;
         case CALL_8:
+            //printf("sp, fp, pc: %d, %d, %d\n", vm->sp, vm->fp, vm->pc);
             offset = NCODE(vm);
             memcpy(&addr, vm->code + vm->pc, sizeof addr);
             vm->pc += sizeof addr;
+            PUSH(vm, ((Constant) {offset, vm->fp}));  // store previous frame ptr;
             PUSH(vm, ((Constant) {offset, vm->pc})); // add 9 to skip offset and addr;
+            //printf("%" PRId64 "\n", (int64_t)offset);
+            //printf("%d\n", vm->pc);
             vm->fp = vm->sp;
             offset = NCODE(vm);
             vm->sp += offset + 2;
             vm->pc = addr;
             break;
         case RET:
+            //printf("sp, fp, pc: %d, %d, %d\n", vm->sp, vm->fp, vm->pc);
             v = POP(vm);
             a = vm->stack[vm->fp];
+            b = vm->stack[vm->fp-1];
             vm->pc = a.value;
             vm->pc++;
             vm->sp = vm->fp - a.type;
             vm->sp--;
-            //printf("%" PRId64 "\n", v.value);
-            //printf("%d\n", v.type);
+            vm->fp = b.value;
+            //printf("%" PRId64 "\n", a.value);
+            //printf("%d\n", a.type);
             PUSH(vm, v);
             break; // */
         case POP:
