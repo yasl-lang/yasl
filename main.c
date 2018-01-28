@@ -8,6 +8,7 @@
  ============================================================================
  */
 #include <inttypes.h>
+#include <string.h>
 #include "VM.c"
 #include "opcode.c"
 #include "constant_types.c"
@@ -16,14 +17,6 @@
 #define PUSH(vm, v)  (vm->stack[++vm->sp] = v) // push value on top of the stack
 #define POP(vm)      (vm->stack[vm->sp--])    // pop value from top of the stack as integer
 #define NCODE(vm)    (vm->code[vm->pc++])     // get next bytecode
-#define NCODE_8(vm)  ({\
-                       int64_t c = 0;\
-                       for (i = 56; i >= 0; i -= 8) {\
-                           unsigned char next = NCODE(vm);\
-                           c += ((int64_t)next) << i;\
-                       }\
-                       c;\
-                      })                      // get next 8 bytes as a 64-bit int (requires gcc)
 #define IPUSH(vm, v) (PUSH(vm, ((Constant) {INT64, v})))  //push integer v onto stack
 #define IPOP(vm)     (((vm->stack)[vm->sp--]).value)      // get int from top of stack
 #define IVAL(v)      (*((int64_t*)&v.value))
@@ -82,20 +75,25 @@
 void run(VM* vm){
     for (;;) {
         unsigned char opcode = NCODE(vm);        // fetch
-        int offset, argc, rval;
-        int addr;
+        int argc, rval;
+        signed char offset;
+        int64_t addr;
         int i;
         Constant a, b, v;
         int64_t c;
         double d;
-        unsigned char bytes[8];
-        printf("opcode = %x\n", opcode);
-        // printf("sp, fp, pc: %d, %d, %d\n", vm->sp, vm->fp, vm->pc);
+        //printf("opcode = %x\n", opcode);
+        //printf("sp, fp, pc: %d, %d, %d\n", vm->sp, vm->fp, vm->pc);
+        //printf("locals: %" PRId64 ", %" PRId64 ", %" PRId64 "\n", vm->stack[vm->fp+1].value, vm->stack[vm->fp+2].value,
+        //     vm->stack[vm->fp+3].value);
         switch (opcode) {   // decode
         case HALT: return;  // stop the program
         /*case JMP:
         	vm->pc = NCODE(vm);
         	break; */
+        case ICONST_M2:
+            IPUSH(vm, -2);
+            break;
         case ICONST_M1:
             IPUSH(vm, -1);
             break;
@@ -117,6 +115,12 @@ void run(VM* vm){
         case ICONST_5:
             IPUSH(vm, 5);
             break;
+        case ICONST_6:
+            IPUSH(vm, 5);
+            break;
+        case DCONST_M1:
+            DPUSH(vm, -1.0);
+            break;
         case DCONST_0:
             DPUSH(vm, 0.0);
             break;
@@ -127,11 +131,14 @@ void run(VM* vm){
             DPUSH(vm, 2.0);
             break;
         case DCONST:  // constants are BIG endian
-            c = NCODE_8(vm);
+            memcpy(&c, vm->code + vm->pc, sizeof c);
+            vm->pc += sizeof c;
             PUSH(vm, ((Constant) {FLOAT64, c}));
             break;
         case ICONST:  // constants are BIG endian
-            c = NCODE_8(vm);
+            memcpy(&c, vm->code + vm->pc, sizeof c);
+            vm->pc += sizeof c;
+            //printf("c = %" PRId64 "\n", c);
             PUSH(vm, ((Constant) {INT64, c}));
             break;
         case ADD:
@@ -299,16 +306,19 @@ void run(VM* vm){
             PUSH(vm, a);
             break;
         case BR_8:
-            c = NCODE_8(vm);
+            memcpy(&c, vm->code + vm->pc, sizeof c);
+            vm->pc += sizeof c;
             vm->pc += c;
             break;
         case BRF_8:
-            c = NCODE_8(vm);
+            memcpy(&c, vm->code + vm->pc, sizeof c);
+            vm->pc += sizeof c;
             v = POP(vm);
             if (FALSEY(v)) vm->pc += c;
             break;
         case BRT_8:
-            c = NCODE_8(vm);
+            memcpy(&c, vm->code + vm->pc, sizeof c);
+            vm->pc += sizeof c;
             v = POP(vm);
             if (!(FALSEY(v))) vm->pc += c;
             break;
@@ -324,48 +334,87 @@ void run(VM* vm){
             break;
         case LLOAD_1:
             offset = NCODE(vm);
+            //printf("offset = %d\n", offset);
+            //printf("%d\n", offset);
             v = vm->stack[vm->fp+offset];
+            //printf("value loaded is: %" PRId64 "\n", v.value);
             PUSH(vm, v);
             break;
         case LSTORE_1:
             offset = NCODE(vm);
+            //printf("offset = %d\n", offset);
             v = POP(vm);
+            //printf("value to store is: %" PRId64 "\n", v.value);
             vm->stack[vm->fp+offset] = v;
             break;
         case CALL_8:
+            //printf("sp, fp, pc: %d, %d, %d\n", vm->sp, vm->fp, vm->pc);
             offset = NCODE(vm);
-            addr = NCODE_8(vm);
-            PUSH(vm, ((Constant) {INT64, vm->pc})); // add 9 to skip offset and addr;
+            memcpy(&addr, vm->code + vm->pc, sizeof addr);
+            vm->pc += sizeof addr;
+            PUSH(vm, ((Constant) {offset, vm->fp}));  // store previous frame ptr;
+            PUSH(vm, ((Constant) {offset, vm->pc})); // add 9 to skip offset and addr;
+            //printf("%" PRId64 "\n", (int64_t)offset);
+            //printf("%d\n", vm->pc);
             vm->fp = vm->sp;
-            vm->sp += offset;
+            offset = NCODE(vm);
+            vm->sp += offset + 2;
             vm->pc = addr;
             break;
         case RET:
-            offset = NCODE(vm);
+            //printf("sp, fp, pc: %d, %d, %d\n", vm->sp, vm->fp, vm->pc);
             v = POP(vm);
-            vm->pc = ((vm->stack)[vm->fp--]).value;
-            vm->sp = vm->fp - offset;
+            a = vm->stack[vm->fp];
+            b = vm->stack[vm->fp-1];
+            vm->pc = a.value;
+            vm->pc++;
+            vm->sp = vm->fp - a.type;
+            vm->sp--;
+            vm->fp = b.value;
+            //printf("%" PRId64 "\n", a.value);
+            //printf("%d\n", a.type);
             PUSH(vm, v);
             break; // */
         case POP:
             --vm->sp;      // throw away value at top of the stack
+            break;
+        case MLC:
+            i = NCODE(vm);
+            memcpy(&addr, vm->code + vm->pc, sizeof addr);
+            vm->pc += sizeof addr;
+            PUSH(vm, ((Constant) {i, (int64_t)malloc(addr)}));
+            break;
+        case MCP_8:
+            offset = NCODE(vm);
+            memcpy(&addr, vm->code + vm->pc, sizeof addr);
+            //printf("addr = %" PRId64 "\n", addr);
+            v = vm->stack[vm->sp];
+            memcpy((char*)v.value, vm->code + vm->pc, addr);
+            vm->pc += addr;
             break;
         case PRINT:
             v = POP(vm);        // pop value from top of the stack ...
             //printf("%x\n", v.type); // print value
             switch (v.type) {
             case INT64:
-                printf("\tint64: %" PRId64 "\n", v.value);
+                printf("int64: %" PRId64 "\n", v.value);
                 break;
             case FLOAT64:
-                printf("\tfloat64: %f\n", *((double*)&v.value));
+                printf("float64: %f\n", *((double*)&v.value));
                 break;
             case BOOL:
-                if (v.value == 0) printf("\tbool: false\n");
-                else printf("\tbool: true\n");
+                if (v.value == 0) printf("bool: false\n");
+                else printf("bool: true\n");
                 break;
             case NIL:
-                printf("\tnil: nil\n");
+                printf("nil: nil\n");
+                break;
+            case STR:
+                printf("str: ");
+                for (i = sizeof(int64_t); i < *((int64_t*)v.value); i++) { // TODO: fix hardcoded 8
+                    printf("%c", *((char*)(v.value + i)));
+                }
+                printf("\n");
                 break;
             default:
                 printf("ERROR UNKNOWN TYPE: %x\n", v.type);
@@ -383,19 +432,23 @@ void run(VM* vm){
 char *buffer;
 FILE *file_ptr;
 long file_len;
+int64_t entry_point;
 
 int main(void) {
-    file_ptr = fopen("source.bc", "rb");
+    file_ptr = fopen("source.yb", "rb");
     fseek(file_ptr, 0, SEEK_END);
     file_len = ftell(file_ptr);
     rewind(file_ptr);
     buffer = (char *)malloc((file_len+1)*sizeof(char));
     fread(buffer, file_len, 1, file_ptr);
+    entry_point = *((int64_t*)buffer);
+    // printf("entry_point = %" PRId64 "\n", entry_point);
     //bytes_read = fread(buffer, sizeof(unsigned char), BUFFER_SIZE, file_ptr);
 	VM* vm = newVM(buffer,   // program to execute
-	                   0,    // start address of main function
+	                   entry_point,    // start address of main function
 	                   0);   // locals to be reserved, fib doesn't require them
 	run(vm);
+	delVM(vm);
     fclose(file_ptr);
 	return 0;
 };

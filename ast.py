@@ -48,12 +48,21 @@ class Float(AST):
 '''class Param(AST):
     def __init__(self, var_node):
         self.node = var_node '''
-class FuncDecl(AST):
+class FunctionDecl(AST):
     def __init__(self, token, params, block):
         self.token = token
         self.value = token.value
         self.params = params # list of formal params
         self.block = block
+class FunctionCall(AST):
+    def __init__(self, token, params):
+        self.token = token
+        self.value = token.value
+        self.params = params
+class Return(AST):
+    def __init__(self, token, expr):
+        self.token = token
+        self.expr = expr
 '''
 class FuncCall(AST):
     def __init__(self, token, params):

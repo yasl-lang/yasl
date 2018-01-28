@@ -20,5 +20,7 @@ class Env(object):
             return None
         else:
             return self.parent.__getitem__(var)
+    def __setitem__(self, key, value):
+        self.vars[key] = value
     def decl_var(self, var:str ):
         self.vars[var] = len(self)
