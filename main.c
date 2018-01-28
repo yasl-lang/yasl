@@ -378,6 +378,20 @@ void run(VM* vm){
         case POP:
             --vm->sp;      // throw away value at top of the stack
             break;
+        case MLC:
+            i = NCODE(vm);
+            memcpy(&addr, vm->code + vm->pc, sizeof addr);
+            vm->pc += sizeof addr;
+            PUSH(vm, ((Constant) {i, (int64_t)malloc(addr)}));
+            break;
+        case MCP_8:
+            offset = NCODE(vm);
+            memcpy(&addr, vm->code + vm->pc, sizeof addr);
+            //printf("addr = %" PRId64 "\n", addr);
+            v = vm->stack[vm->sp];
+            memcpy((char*)v.value, vm->code + vm->pc, addr);
+            vm->pc += addr;
+            break;
         case PRINT:
             v = POP(vm);        // pop value from top of the stack ...
             //printf("%x\n", v.type); // print value
@@ -394,6 +408,13 @@ void run(VM* vm){
                 break;
             case NIL:
                 printf("nil: nil\n");
+                break;
+            case STR:
+                printf("str: ");
+                for (i = sizeof(int64_t); i < *((int64_t*)v.value); i++) { // TODO: fix hardcoded 8
+                    printf("%c", *((char*)(v.value + i)));
+                }
+                printf("\n");
                 break;
             default:
                 printf("ERROR UNKNOWN TYPE: %x\n", v.type);
