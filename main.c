@@ -77,6 +77,7 @@ void run(VM* vm){
         unsigned char opcode = NCODE(vm);        // fetch
         int argc, rval;
         signed char offset;
+        uint64_t big_offset, size;
         int64_t addr;
         int i;
         Constant a, b, v;
@@ -380,17 +381,18 @@ void run(VM* vm){
             break;
         case MLC:
             i = NCODE(vm);
-            memcpy(&addr, vm->code + vm->pc, sizeof addr);
-            vm->pc += sizeof addr;
-            PUSH(vm, ((Constant) {i, (int64_t)malloc(addr)}));
+            memcpy(&size, vm->code + vm->pc, sizeof size);
+            vm->pc += sizeof size;
+            PUSH(vm, ((Constant) {i, (int64_t)malloc(size)}));
             break;
         case MCP_8:
-            offset = NCODE(vm);
-            memcpy(&addr, vm->code + vm->pc, sizeof addr);
-            //printf("addr = %" PRId64 "\n", addr);
+            memcpy(&big_offset, vm->code + vm->pc, sizeof big_offset);
+            vm->pc += sizeof big_offset;
+            memcpy(&size, vm->code + vm->pc, sizeof size);
+            vm->pc += sizeof size;
             v = vm->stack[vm->sp];
-            memcpy((char*)v.value, vm->code + vm->pc, addr);
-            vm->pc += addr;
+            memcpy((char*)v.value + big_offset, vm->code + vm->pc, size);
+            vm->pc += size;
             break;
         case PRINT:
             v = POP(vm);        // pop value from top of the stack ...

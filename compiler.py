@@ -206,7 +206,7 @@ class Compiler(NodeVisitor):
     def visit_String(self, node):
         string = [int(b) for b in str.encode(node.value)]
         length = intbytes_8(len(string)+8)
-        return [MLC, 0x30] + length + [MCP_8, 0x00] + length + string
+        return [MLC, 0x30] + length + [MCP_8] + intbytes_8(0) + length + length + string
         '''MLC,
         0x30,
         0x14,
