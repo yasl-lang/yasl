@@ -1,12 +1,12 @@
 from lexer import Lexer
 from parser import Parser
-from interpreter import Interpreter
+from compiler import Compiler
 from resolver import Resolver
 import sys
 from opcode import HALT
 
 def main():
-    interpreter = Interpreter()
+    compiler = Compiler()
     while True:
         try:
             text = input("YASL> ")
@@ -17,9 +17,9 @@ def main():
         lexer = Lexer(text)
         parser = Parser(lexer.lex())
         statements = parser.parse() # = Interpreter(parser)
-        resolver = Resolver(interpreter)
+        resolver = Resolver(compiler)
         #resolver.resolve(statements)
-        result = interpreter.interpret(statements)
+        result = compiler.interpret(statements)
         #print([hex(r) for r in result])
 
 if __name__ == "__main__":
@@ -29,7 +29,7 @@ if __name__ == "__main__":
         assert(len(sys.argv) == 2)
         text = open(sys.argv[1]).read() #TODO: make more general, so file can be located anywhere
         statements = Parser(Lexer(text).lex()).parse()
-        interpreter = Interpreter()
+        interpreter = Compiler()
         resolver = Resolver(interpreter)
         #resolver.resolve(statements)
         result = interpreter.interpret(statements)

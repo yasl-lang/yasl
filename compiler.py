@@ -52,7 +52,7 @@ def doublebytes(d:float):
 #                                                                             #
 ###############################################################################
 
-class Interpreter(NodeVisitor):
+class Compiler(NodeVisitor):
     def __init__(self):
         self.env = self.globals = Env()
         self.header = intbytes_8(8)

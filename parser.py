@@ -187,14 +187,20 @@ class Parser(object):
             curr = BinOp(op, curr, self.comparator())
         return curr
     def comparator(self):
-        curr = self.add()
+        curr = self.concat()
         while self.current_token.value in ["<", ">", ">=", "<="]:
             op = self.eat(TokenTypes.OP)
             curr = BinOp(op, curr, self.add())
         return curr
+    def concat(self):
+        curr = self.add()
+        if self.current_token.value == "||":
+            token = self.eat(TokenTypes.OP)
+            return BinOp(token, curr, self.concat())
+        return curr
     def add(self):
         curr = self.multiply()
-        while self.current_token.value in ["+", "-", "||"]:
+        while self.current_token.value in ["+", "-"]:
             op = self.eat(TokenTypes.OP)
             curr = BinOp(op, curr, self.multiply())
         return curr
@@ -216,11 +222,9 @@ class Parser(object):
         elif self.current_token.type is TokenTypes.ID:
             var = self.eat(TokenTypes.ID)
             return Var(var)
-            '''
-        elif self.current_token.type == STR:
-            string = self.current_token
-            self.eat(TokenTypes.STR)
-            return String(string)'''
+        elif self.current_token.type is TokenTypes.STR:
+            string = self.eat(TokenTypes.STR)
+            return String(string)
         elif self.current_token.type is TokenTypes.INT:
             integer = self.eat(TokenTypes.INT)
             return Integer(integer)

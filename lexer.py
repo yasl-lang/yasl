@@ -72,12 +72,16 @@ class Lexer(object):
             self._add_token(TokenTypes.SEMI)
         elif self.current_char == "\n" and self.tokens[-1].type is TokenTypes.ID:
             self._add_token(TokenTypes.SEMI)
-    '''def _str(self):
+    def _str(self):
         result = ""
         while self.current_char is not None and self.current_char != '"':
             result += self.current_char
             self.advance()
-        return result'''
+        token = Token(TokenTypes.STR, result, self.line)
+        self.tokens.append(token)
+        self._eat_white_space()
+        if self.current_char == "\n":
+            self._add_token(TokenTypes.SEMI)
     def _num(self):
         result = ""
         while self.current_char is not None and (self.current_char.isdigit() or self.current_char == "_"):
@@ -91,7 +95,7 @@ class Lexer(object):
                 self.advance()
             token = Token(TokenTypes.FLOAT, float(result.replace("_", "")), self.line)
         else:
-            token =  Token(TokenTypes.INT, int(result.replace("_", "")), self.line)
+            token = Token(TokenTypes.INT, int(result.replace("_", "")), self.line)
         self.tokens.append(token)
         self._eat_white_space()
         if self.current_char == "\n":
@@ -104,9 +108,11 @@ class Lexer(object):
                 self.advance()
             if self.pos >= len(text):
                 self.tokens.append(Token(TokenTypes.EOF, None, self.line))
-            elif self.current_char == "#":
+            elif self.current_char == "/" and self.peek() == "*":
                 while self.current_char != "\n":
                     self.advance()
+            elif self.current_char == '"':
+                self._str()
             elif self.current_char.isdigit():
                 self._num()
             elif self.current_char.isalnum():
