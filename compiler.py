@@ -61,7 +61,7 @@ class Compiler(NodeVisitor):
         self.fn_locals = {}
         self.locals = Env(self.globals)
         self.offset = 0
-    def interpret(self, statements):
+    def compile(self, statements):
         #print(ICONSTANTS)
         result = []
         for statement in statements:

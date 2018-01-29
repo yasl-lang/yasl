@@ -19,7 +19,7 @@ def main():
         statements = parser.parse() # = Interpreter(parser)
         resolver = Resolver(compiler)
         #resolver.resolve(statements)
-        result = compiler.interpret(statements)
+        result = compiler.compile(statements)
         #print([hex(r) for r in result])
 
 if __name__ == "__main__":
@@ -32,7 +32,7 @@ if __name__ == "__main__":
         interpreter = Compiler()
         resolver = Resolver(interpreter)
         #resolver.resolve(statements)
-        result = interpreter.interpret(statements)
+        result = interpreter.compile(statements)
         #print(result)
         #print([hex(r) for r in result])
         f = open("source.py", "w")
