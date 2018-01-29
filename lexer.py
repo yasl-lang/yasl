@@ -77,6 +77,7 @@ class Lexer(object):
         while self.current_char is not None and self.current_char != '"':
             result += self.current_char
             self.advance()
+        self.advance()
         token = Token(TokenTypes.STR, result, self.line)
         self.tokens.append(token)
         self._eat_white_space()
@@ -112,6 +113,7 @@ class Lexer(object):
                 while self.current_char != "\n":
                     self.advance()
             elif self.current_char == '"':
+                self.advance()
                 self._str()
             elif self.current_char.isdigit():
                 self._num()

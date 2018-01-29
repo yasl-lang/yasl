@@ -203,8 +203,42 @@ class Compiler(NodeVisitor):
         if self.env is self.locals:
             return [LLOAD_1, self.env[node.value]]
         return [GLOAD_1, self.env[node.value]]
-    '''def visit_String(self, node):
-        pass '''
+    def visit_String(self, node):
+        string = [int(b) for b in str.encode(node.value)]
+        length = intbytes_8(len(string)+8)
+        return [MLC, 0x30] + length + [MCP_8, 0x00] + length + string
+        '''MLC,
+        0x30,
+        0x14,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        MCP_8,
+        0x00,
+        0x14,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x48,
+        0x45,
+        0x4C,
+        0x4C,
+        0x4F,
+        0x20,
+        0x57,
+        0x4F,
+        0x52,
+        0x4C,
+        0x44,
+        0x2E,'''
     def visit_Boolean(self, node):
         if node.value == False:
             return [BCONST_F]
