@@ -89,9 +89,7 @@ void run(VM* vm){
         //     vm->stack[vm->fp+3].value);
         switch (opcode) {   // decode
         case HALT: return;  // stop the program
-        /*case JMP:
-        	vm->pc = NCODE(vm);
-        	break; */
+        case NOP: break;    // pass
         case ICONST_M2:
             IPUSH(vm, -2);
             break;
@@ -209,6 +207,10 @@ void run(VM* vm){
                 printf("ERROR: ! not supported for operand of type %x.\n", a.type);
                 return;
             }
+        case LEN:
+            v = POP(vm);
+            IPUSH(vm, *((int64_t*)v.value));
+            break;
         case GT:
             b = POP(vm);
             a = POP(vm);
@@ -302,9 +304,27 @@ void run(VM* vm){
             if (v.type == NIL) BPUSH(vm, 1);
             else BPUSH(vm, 0);
             break;
+        case V2S: // TODO: implement
+            break;
         case DUP:
+            v = vm->stack[vm->sp];
+            PUSH(vm, v);
+            break;
+        case DUP2:
+            v = vm->stack[vm->sp-1];
+            PUSH(vm, v);
+            break;
+        case SWAP:
             a = vm->stack[vm->sp];
-            PUSH(vm, a);
+            b = vm->stack[vm->sp-1];
+            vm->stack[vm->sp-1] = a;
+            vm->stack[vm->sp] = b;
+            break;
+        case SWAP_X1:
+            a = vm->stack[vm->sp-1];
+            b = vm->stack[vm->sp-2];
+            vm->stack[vm->sp-2] = a;
+            vm->stack[vm->sp-1] = b;
             break;
         case BR_8:
             memcpy(&c, vm->code + vm->pc, sizeof c);
@@ -379,10 +399,16 @@ void run(VM* vm){
         case POP:
             --vm->sp;      // throw away value at top of the stack
             break;
-        case MLC:
+        case MLC_8:
             i = NCODE(vm);
             memcpy(&size, vm->code + vm->pc, sizeof size);
             vm->pc += sizeof size;
+            PUSH(vm, ((Constant) {i, (int64_t)malloc(size)}));
+            break;
+        case MLC:
+            i = NCODE(vm);
+            size = IPOP(vm);
+            //printf("MLC: size = %" PRId64 "\n", size);
             PUSH(vm, ((Constant) {i, (int64_t)malloc(size)}));
             break;
         case MCP_8:
@@ -393,6 +419,24 @@ void run(VM* vm){
             v = vm->stack[vm->sp];
             memcpy((char*)v.value + big_offset, vm->code + vm->pc, size);
             vm->pc += size;
+            break;
+        case SCP:
+            v = POP(vm);
+            //printf("SCP: size = %" PRId64 "\n", *((int64_t*)v.value));
+            big_offset = IPOP(vm);
+            a = POP(vm);
+            memcpy((char*)(v.value + 8 + big_offset), (char*)(a.value+8), *((int64_t*)a.value));
+            PUSH(vm, v);
+            break;
+        case ICP:
+            v = POP(vm);
+            //printf("ICP: size = %" PRId64 "\n", *((int64_t*)v.value));
+            c = IPOP(vm);
+            //printf("c = %" PRId64 "\n", c);
+            *((int64_t*)v.value) = c;
+            //printf("ICP: size = %" PRId64 "\n", *((int64_t*)v.value));
+            //memcpy((int64_t*)(v.value), &c, sizeof(int64_t));
+            PUSH(vm, v);
             break;
         case PRINT:
             v = POP(vm);        // pop value from top of the stack ...
@@ -413,7 +457,7 @@ void run(VM* vm){
                 break;
             case STR:
                 printf("str: ");
-                for (i = sizeof(int64_t); i < *((int64_t*)v.value); i++) { // TODO: fix hardcoded 8
+                for (i = sizeof(int64_t); i < *((int64_t*)v.value) + sizeof(int64_t); i++) { // TODO: fix hardcoded 8
                     printf("%c", *((char*)(v.value + i)));
                 }
                 printf("\n");

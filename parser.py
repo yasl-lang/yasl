@@ -211,7 +211,7 @@ class Parser(object):
             curr = BinOp(op, curr, self.const())
         return curr
     def const(self):
-        if self.current_token.type is TokenTypes.OP and self.current_token.value in ["-", "+", "!"]:
+        if self.current_token.type is TokenTypes.OP and self.current_token.value in ("-", "+", "!", "#"):
             op = self.eat(TokenTypes.OP)
             return UnOp(op, self.const())
         elif self.current_token.type is TokenTypes.LPAREN:

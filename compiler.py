@@ -24,6 +24,8 @@ BINRESERVED = {
 UNRESERVED = {
         "-": [NEG],
         "!": [NOT],
+        "+": [NOP],
+        "#": [LEN],
         }
 ICONSTANTS = {
         #-2: [ICONST_M2],
@@ -121,6 +123,9 @@ class Compiler(NodeVisitor):
             left = left + [DUP]
             right = [POP] + right
             return left + [ISNIL, BRF_8] + intbytes_8(len(right)) + right
+        elif node.token.value == "||":
+            return left + [V2S, DUP, LEN, ICONST_0, SWAP] + right + [V2S, DUP, LEN, SWAP_X1, DUP2, ADD, DUP, ICONST] + \
+                   intbytes_8(8) + [ADD, MLC, 0x30, ICP, SCP, SCP]
         this = BINRESERVED.get(node.op.value)
         return left + right + this
     def visit_LogicOp(self, node):
@@ -185,7 +190,6 @@ class Compiler(NodeVisitor):
         result = self.visit(node.right) + [GSTORE_1, self.env[node.left.value]]
         #print([hex(r) for r in result])
         return result
-        return self.visit(node.right) + [GSTORE_1, self.env[node.left.value]]
     def visit_Assign(self, node):
         if node.left.value not in self.env:
             raise Exception("undeclared variable: %s in line %s" % (node.left.value, node.left.line))
@@ -205,8 +209,9 @@ class Compiler(NodeVisitor):
         return [GLOAD_1, self.env[node.value]]
     def visit_String(self, node):
         string = [int(b) for b in str.encode(node.value)]
-        length = intbytes_8(len(string)+8)
-        return [MLC, 0x30] + length + [MCP_8] + intbytes_8(0) + length + length + string
+        length = intbytes_8(len(string))
+        length8 = intbytes_8(len(string)+8)
+        return [MLC_8, 0x30] + length8 + [MCP_8] + intbytes_8(0) + length8 + length + string
         '''MLC,
         0x30,
         0x14,

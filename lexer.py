@@ -109,7 +109,12 @@ class Lexer(object):
                 self.advance()
             if self.pos >= len(text):
                 self.tokens.append(Token(TokenTypes.EOF, None, self.line))
-            elif self.current_char == "/" and self.peek() == "*":
+            elif self.current_char == "/" and self.peek() == "$":
+                while not (self.current_char == "$" and self.peek() == "/"):
+                    self.advance()
+                self.advance()
+                self.advance()
+            elif self.current_char == "$" and self.peek() == "$":
                 while self.current_char != "\n":
                     self.advance()
             elif self.current_char == '"':
@@ -158,9 +163,13 @@ class Lexer(object):
                 self.tokens.append(Token(TokenTypes.OP, "!=", self.line))
                 self.advance()
                 self.advance()
+            elif self.current_char == "|" and self.peek() == "|":
+                self.tokens.append(Token(TokenTypes.OP, "||", self.line))
+                self.advance()
+                self.advance()
             elif self.current_char == ",":
                 self._add_token(TokenTypes.COMMA)
-            elif self.current_char in ("=", "<", ">", "+", "-", "/", "*", "!"):
+            elif self.current_char in ("=", "<", ">", "+", "-", "/", "*", "!", "#"):
                 self._add_token(TokenTypes.OP)
             else:
                 self.error()
