@@ -29,7 +29,7 @@ class String(AST):
     def __init__(self, token):
         self.token = token
         self.value = token.value
-class Nil(AST):
+class Undef(AST):
     def __init__(self, token):
         self.token = token
         self.value = token.value

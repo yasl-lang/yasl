@@ -1,11 +1,6 @@
 from opcode import *
-from tokens import *
-from ast import *
-from parser import Parser
-from lexer import Lexer
-import pickle
+from constant_types import *
 import struct
-import os
 from visitor import NodeVisitor
 from environment import Env
 
@@ -125,7 +120,7 @@ class Compiler(NodeVisitor):
             return left + [ISNIL, BRF_8] + intbytes_8(len(right)) + right
         elif node.token.value == "||":
             return left + [V2S, DUP, LEN, ICONST_0, SWAP] + right + [V2S, DUP, LEN, SWAP_X1, DUP2, ADD, DUP, ICONST] + \
-                   intbytes_8(8) + [ADD, MLC, 0x30, ICP, SCP, SCP]
+                   intbytes_8(8) + [ADD, MLC, STR, ICP, SCP, SCP]
         this = BINRESERVED.get(node.op.value)
         return left + right + this
     def visit_LogicOp(self, node):
@@ -211,7 +206,7 @@ class Compiler(NodeVisitor):
         string = [int(b) for b in str.encode(node.value)]
         length = intbytes_8(len(string))
         length8 = intbytes_8(len(string)+8)
-        return [MLC_8, 0x30] + length8 + [MCP_8] + intbytes_8(0) + length8 + length + string
+        return [MLC_8, STR] + length8 + [MCP_8] + intbytes_8(0) + length8 + length + string
         '''MLC,
         0x30,
         0x14,
@@ -259,5 +254,5 @@ class Compiler(NodeVisitor):
         if node.value in DCONSTANTS:
             return DCONSTANTS[node.value]
         return [DCONST] + doublebytes(node.value)
-    def visit_Nil(self, node):
+    def visit_Undef(self, node):
         return [NCONST]

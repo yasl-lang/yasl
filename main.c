@@ -23,8 +23,8 @@
 #define DPUSH(vm, v) (((FloatConstant*)vm->stack)[++vm->sp] = (FloatConstant) {FLOAT64, v}) // push double v onto stack
 #define DVAL(v)      (*((double*)&v.value))
 #define BPUSH(vm, v) (PUSH(vm, ((Constant) {BOOL, v})))  //push boolean v onto stack
-#define NPUSH(vm)    (PUSH(vm, ((Constant) {NIL, 0})))   //push nil onto stack
-#define FALSEY(v)    (v.type == NIL || (v.type == BOOL && v.value == 0))  // returns true if v is a falsey value
+#define NPUSH(vm)    (PUSH(vm, ((Constant) {UNDEF, 0})))   //push nil onto stack
+#define FALSEY(v)    (v.type == UNDEF || (v.type == BOOL && v.value == 0))  // returns true if v is a falsey value
 #define ADD(a, b)    (a + b)
 #define DIV(a, b)    (a / b)
 #define SUB(a, b)    (a - b)
@@ -199,7 +199,7 @@ void run(VM* vm){
                 PUSH(vm, a);
                 break;
             }
-            else if (a.type == NIL) {
+            else if (a.type == UNDEF) {
                 NPUSH(vm);
                 break;
             }
@@ -214,7 +214,7 @@ void run(VM* vm){
         case GT:
             b = POP(vm);
             a = POP(vm);
-            if (a.type == NIL || b.type == NIL) {
+            if (a.type == UNDEF || b.type == UNDEF) {
                 NPUSH(vm);
                 break;
             }
@@ -238,7 +238,7 @@ void run(VM* vm){
         case GE:
             b = POP(vm);
             a = POP(vm);
-            if (a.type == NIL || b.type == NIL) {
+            if (a.type == UNDEF || b.type == UNDEF) {
                 NPUSH(vm);
                 break;
             }
@@ -262,7 +262,7 @@ void run(VM* vm){
         case EQ:
             b = POP(vm);
             a = POP(vm);
-            if (a.type == NIL || b.type == NIL) {
+            if (a.type == UNDEF || b.type == UNDEF) {
                 NPUSH(vm);
                 break;
             }
@@ -301,7 +301,7 @@ void run(VM* vm){
         //case D2I: TODO: implement
         case ISNIL:
             v = POP(vm);
-            if (v.type == NIL) BPUSH(vm, 1);
+            if (v.type == UNDEF) BPUSH(vm, 1);
             else BPUSH(vm, 0);
             break;
         case V2S: // TODO: implement
@@ -452,8 +452,8 @@ void run(VM* vm){
                 if (v.value == 0) printf("bool: false\n");
                 else printf("bool: true\n");
                 break;
-            case NIL:
-                printf("nil: nil\n");
+            case UNDEF:
+                printf("undef: undef\n");
                 break;
             case STR:
                 printf("str: ");

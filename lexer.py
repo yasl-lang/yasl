@@ -7,7 +7,7 @@ from tokens import TokenTypes, Token
 ###############################################################################
 
 RESERVED_KEYWORDS = {
-            "var": lambda x: Token(TokenTypes.VAR, "var", x),
+            "let": lambda x: Token(TokenTypes.LET, "let", x),
             "print": lambda x: Token(TokenTypes.PRINT, "print", x),
             "if": lambda x: Token(TokenTypes.IF, "if", x),
             "else": lambda x: Token(TokenTypes.ELSE, "else", x),
@@ -17,7 +17,7 @@ RESERVED_KEYWORDS = {
             "false": lambda x: Token(TokenTypes.BOOL, False, x),
             "and": lambda x: Token(TokenTypes.LOGIC, "and", x),
             "or": lambda x: Token(TokenTypes.LOGIC, "or", x),
-            "nil": lambda x: Token(TokenTypes.NIL, None, x),
+            "undef": lambda x: Token(TokenTypes.UNDEF, None, x),
             "defun": lambda x: Token(TokenTypes.DEFUN, "defun", x),
             "return": lambda x: Token(TokenTypes.RETURN, "return", x),
             "class": lambda x: Token(TokenTypes.CLASS, "class", x),
@@ -64,11 +64,11 @@ class Lexer(object):
         token = RESERVED_KEYWORDS.get(result, lambda x: Token(TokenTypes.ID, result, x))(self.line)
         self.tokens.append(token)
         self._eat_white_space()
-        if self.current_char == "\n" and self.tokens[-1].type is TokenTypes.VAR:
+        if self.current_char == "\n" and self.tokens[-1].type is TokenTypes.LET:
             self._add_token(TokenTypes.SEMI)
         elif self.current_char == "\n" and self.tokens[-1].type is TokenTypes.BOOL:
             self._add_token(TokenTypes.SEMI)
-        elif self.current_char == "\n" and self.tokens[-1].type is TokenTypes.NIL:
+        elif self.current_char == "\n" and self.tokens[-1].type is TokenTypes.UNDEF:
             self._add_token(TokenTypes.SEMI)
         elif self.current_char == "\n" and self.tokens[-1].type is TokenTypes.ID:
             self._add_token(TokenTypes.SEMI)

@@ -44,8 +44,8 @@ class Parser(object):
             return self.fndecl()
         elif self.current_token.type is TokenTypes.RETURN:
             return self.return_stmt()
-        elif self.current_token.type is TokenTypes.VAR:
-            self.eat(TokenTypes.VAR)
+        elif self.current_token.type is TokenTypes.LET:
+            self.eat(TokenTypes.LET)
             return self.vardecl()
         return ExprStmt(self.expr())
     def if_stmt(self):
@@ -93,7 +93,7 @@ class Parser(object):
             self.eat(TokenTypes.OP)
             return Decl(name, self.expr())
         else:
-            return Decl(name, Nil(Token(TokenTypes.NIL, None, name.line)))
+            return Decl(name, Undef(Token(TokenTypes.UNDEF, None, name.line)))
     def fndecl(self):
         name = self.eat(TokenTypes.ID)
         self.eat(TokenTypes.COLON)
@@ -234,9 +234,9 @@ class Parser(object):
         elif self.current_token.type is TokenTypes.BOOL:
             boolean = self.eat(TokenTypes.BOOL)
             return Boolean(boolean)
-        elif self.current_token.type is TokenTypes.NIL:
-            nil = self.eat(TokenTypes.NIL)
-            return Nil(nil)
+        elif self.current_token.type is TokenTypes.UNDEF:
+            nil = self.eat(TokenTypes.UNDEF)
+            return Undef(nil)
         else:
             assert False
     def parse(self):

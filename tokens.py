@@ -4,7 +4,7 @@ class TokenTypes(Enum):
     INT    = 0x00
     FLOAT  = 0x01
     BOOL   = 0x02
-    NIL    = 0x03
+    UNDEF  = 0x03
     STR    = 0x04
     IF     = 0x10
     ELSEIF = 0x11
@@ -24,7 +24,7 @@ class TokenTypes(Enum):
     ARROW  = 0x3A
     SEMI   = 0x3B
     EOF    = 0x3F
-    VAR    = 0x40
+    LET    = 0x40
     DEFUN  = 0x41
     RETURN = 0x42
     CLASS  = 0x43
