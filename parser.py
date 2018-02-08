@@ -136,14 +136,6 @@ class Parser(object):
                 return Assign(left, right)
             else:
                 raise Exception("Invalid assignment target.")
-        elif self.current_token.value == "(":
-            #print(name)
-            if isinstance(name, Var):
-                left = name.token
-                right = self.func_call()
-                return FunctionCall(left, right)
-            else:
-                raise Exception("Uncallable target.")
         else:
             return name
     def ternary(self):
@@ -210,6 +202,8 @@ class Parser(object):
             op = self.eat(TokenTypes.OP)
             curr = BinOp(op, curr, self.const())
         return curr
+    def finish_call(self, var):
+        return None
     def const(self):
         if self.current_token.type is TokenTypes.OP and self.current_token.value in ("-", "+", "!", "#"):
             op = self.eat(TokenTypes.OP)
@@ -221,7 +215,12 @@ class Parser(object):
             return expr
         elif self.current_token.type is TokenTypes.ID:
             var = self.eat(TokenTypes.ID)
-            return Var(var)
+            if self.current_token.type is TokenTypes.LPAREN:
+                    left = var
+                    right = self.func_call()
+                    return FunctionCall(left, right)
+            else:
+                return Var(var)
         elif self.current_token.type is TokenTypes.STR:
             string = self.eat(TokenTypes.STR)
             return String(string)
