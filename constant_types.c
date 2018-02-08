@@ -1,3 +1,5 @@
+#pragma once
+
 enum types {
 UNDEF   = 0x00,
 INT64   = 0x10,

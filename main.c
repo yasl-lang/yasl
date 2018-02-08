@@ -12,10 +12,8 @@
 #include "VM.c"
 #include "opcode.c"
 #include "constant_types.c"
-//#include "constant.c"
+#include "builtins.c"
 #define BUFFER_SIZE 256
-#define PUSH(vm, v)  (vm->stack[++vm->sp] = v) // push value on top of the stack
-#define POP(vm)      (vm->stack[vm->sp--])    // pop value from top of the stack as integer
 #define NCODE(vm)    (vm->code[vm->pc++])     // get next bytecode
 #define IPUSH(vm, v) (PUSH(vm, ((Constant) {INT64, v})))  //push integer v onto stack
 #define IPOP(vm)     (((vm->stack)[vm->sp--]).value)      // get int from top of stack
@@ -83,7 +81,6 @@ void run(VM* vm){
         Constant a, b, v;
         int64_t c;
         double d;
-        //printf("opcode = %x\n", opcode);
         //printf("sp, fp, pc: %d, %d, %d\n", vm->sp, vm->fp, vm->pc);
         //printf("locals: %" PRId64 ", %" PRId64 ", %" PRId64 "\n", vm->stack[vm->fp+1].value, vm->stack[vm->fp+2].value,
         //     vm->stack[vm->fp+3].value);
@@ -374,7 +371,7 @@ void run(VM* vm){
             memcpy(&addr, vm->code + vm->pc, sizeof addr);
             vm->pc += sizeof addr;
             PUSH(vm, ((Constant) {offset, vm->fp}));  // store previous frame ptr;
-            PUSH(vm, ((Constant) {offset, vm->pc})); // add 9 to skip offset and addr;
+            PUSH(vm, ((Constant) {offset, vm->pc}));  // store pc addr
             //printf("%" PRId64 "\n", (int64_t)offset);
             //printf("%d\n", vm->pc);
             vm->fp = vm->sp;
@@ -382,6 +379,20 @@ void run(VM* vm){
             vm->sp += offset + 2;
             vm->pc = addr;
             break;
+        case BCALL_8:
+            memcpy(&addr, vm->code + vm->pc, sizeof addr);
+            vm->pc += sizeof addr;
+            builtins[addr](vm);
+            break;
+        /* case RCALL_8:
+            offset = NCODE(vm);
+            memcpy(&addr, vm->code + vm->pc, sizeof addr);
+            vm->pc += sizeof addr;
+            int i;
+            for (i = 0; i < offset; i++) {
+                vm->stack[vm->fp - 2 - i] = vm->stack[vm->sp - i];
+            }
+        */
         case RET:
             //printf("sp, fp, pc: %d, %d, %d\n", vm->sp, vm->fp, vm->pc);
             v = POP(vm);

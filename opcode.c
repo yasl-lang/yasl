@@ -1,3 +1,5 @@
+#pragma once
+
 enum opcodes {
 NOP       = 0x00, // pass
 ICONST_M2 = 0x01, // puss -2 onto stack

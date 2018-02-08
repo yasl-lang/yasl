@@ -1,7 +1,11 @@
+#pragma once
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "constant.c"
 #define STACK_SIZE 256
+#define PUSH(vm, v)  (vm->stack[++vm->sp] = v) // push value on top of the stack
+#define POP(vm)      (vm->stack[vm->sp--])     // pop value from top of the stack as integer
 
 typedef struct {
 	Constant* locals; 

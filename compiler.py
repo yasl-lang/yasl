@@ -38,6 +38,10 @@ DCONSTANTS = {
         1.0: [DCONST_1],
         2.0: [DCONST_2],
         }
+BUILTINS = {
+        "upcase": 0,
+        "downcase": 1,
+}
 
 def intbytes_8(n:int):
     return [int(b) for b in bytearray(struct.pack("@q", n))]
@@ -165,6 +169,8 @@ class Compiler(NodeVisitor):
         result = []
         for expr in node.params:
             result = result + self.visit(expr)
+        if node.value in BUILTINS:
+            return result + [BCALL_8] + intbytes_8(BUILTINS[node.value])
         return result + [CALL_8, self.fn_lens[node.token.value]] + \
                          intbytes_8(self.fns[node.token.value]) + \
                          [self.fn_locals[node.token.value]]
