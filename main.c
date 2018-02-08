@@ -20,7 +20,6 @@
 #define IVAL(v)      (*((int64_t*)&v.value))
 #define DPUSH(vm, v) (((FloatConstant*)vm->stack)[++vm->sp] = (FloatConstant) {FLOAT64, v}) // push double v onto stack
 #define DVAL(v)      (*((double*)&v.value))
-#define BPUSH(vm, v) (PUSH(vm, ((Constant) {BOOL, v})))  //push boolean v onto stack
 #define NPUSH(vm)    (PUSH(vm, ((Constant) {UNDEF, 0})))   //push nil onto stack
 #define FALSEY(v)    (v.type == UNDEF || (v.type == BOOL && v.value == 0))  // returns true if v is a falsey value
 #define ADD(a, b)    (a + b)

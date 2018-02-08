@@ -41,6 +41,10 @@ DCONSTANTS = {
 BUILTINS = {
         "upcase": 0,
         "downcase": 1,
+        "isalnum": 2,
+        "isal": 3,
+        "isnum": 4,
+        "isspace": 5,
 }
 
 def intbytes_8(n:int):
