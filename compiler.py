@@ -62,6 +62,7 @@ class Compiler(NodeVisitor):
         self.env = self.globals = Env()
         self.header = intbytes_8(8)
         self.fns = {}
+        self.current_fn = None
         self.fn_lens = {}
         self.fn_locals = {}
         self.locals = Env(self.globals)
@@ -152,6 +153,7 @@ class Compiler(NodeVisitor):
     def visit_FuncCall(self, node):
         pass '''
     def visit_FunctionDecl(self, node):
+        self.current_fn = node.token.value
         if self.env is not self.globals:
             raise Exception("cannot declare function outside of global scope. (line %s)" % node.token.line)
         if node.token.value in self.fns:
@@ -168,6 +170,7 @@ class Compiler(NodeVisitor):
         self.header = self.header + [NCONST, RET]
         self.env = self.globals
         self.locals = Env(self.globals)
+        self.current_fn = None # TODO: allow nested function definitions
         return []
     def visit_FunctionCall(self, node):
         result = []
@@ -199,7 +202,7 @@ class Compiler(NodeVisitor):
         if node.left.value not in self.env:
             raise Exception("undeclared variable: %s in line %s" % (node.left.value, node.left.line))
         #print(self.env is self.locals)
-        if self.env is self.locals:
+        if self.env is not None:
             return self.visit(node.right) + [LSTORE_1,
                                              self.env[node.left.value],
                                              LLOAD_1,
@@ -209,7 +212,7 @@ class Compiler(NodeVisitor):
     def visit_Var(self, node):
         if node.value not in self.env:
             raise Exception("undefined variable: %s in line %s" % (node.value, node.token.line))
-        if self.env is self.locals:
+        if self.current_fn is not None:
             return [LLOAD_1, self.env[node.value]]
         return [GLOAD_1, self.env[node.value]]
     def visit_String(self, node):

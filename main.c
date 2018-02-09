@@ -80,6 +80,7 @@ void run(VM* vm){
         Constant a, b, v;
         int64_t c;
         double d;
+        //printf("opcode: %x\n", opcode);
         //printf("sp, fp, pc: %d, %d, %d\n", vm->sp, vm->fp, vm->pc);
         //printf("locals: %" PRId64 ", %" PRId64 ", %" PRId64 "\n", vm->stack[vm->fp+1].value, vm->stack[vm->fp+2].value,
         //     vm->stack[vm->fp+3].value);
@@ -381,7 +382,9 @@ void run(VM* vm){
         case BCALL_8:
             memcpy(&addr, vm->code + vm->pc, sizeof addr);
             vm->pc += sizeof addr;
-            builtins[addr](vm);
+            if (!(builtins[addr](vm))) {
+                printf("ERROR: invalid argument type(s) to builtin function.");
+            };
             break;
         /* case RCALL_8:
             offset = NCODE(vm);
