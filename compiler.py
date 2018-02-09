@@ -63,8 +63,6 @@ class Compiler(NodeVisitor):
         self.header = intbytes_8(8)
         self.fns = {}
         self.current_fn = None
-        self.fn_lens = {}
-        self.fn_locals = {}
         self.locals = Env(self.globals)
         self.offset = 0
     def compile(self, statements):
@@ -158,19 +156,20 @@ class Compiler(NodeVisitor):
             raise Exception("cannot declare function outside of global scope. (line %s)" % node.token.line)
         if node.token.value in self.fns:
             raise Exception("invalid redefinition of function %s (line %s)" % (node.token.value, node.token.line))
-        self.fns[node.token.value] = len(self.header)
-        self.fn_lens[node.token.value] = node.params.__len__()
+        self.fns[node.token.value] = {}
+        self.fns[node.token.value]["addr"] = len(self.header)
+        self.fns[node.token.value]["params"] = node.params.__len__()
         self.env = self.locals
-        self.offset = self.fn_lens[node.token.value]
+        self.offset = self.fns[node.token.value]["params"]
         for i in node.params:
             self.env[i.value] = 255 - len(self.env.vars) - 1
-        self.fn_locals[node.token.value] = len(self.env.vars)
+        self.fns[node.token.value]["locals"] = len(self.env.vars)
         for stmt in node.block.statements:
             self.header = self.header + self.visit(stmt)
         self.header = self.header + [NCONST, RET]
         self.env = self.globals
         self.locals = Env(self.globals)
-        self.current_fn = None # TODO: allow nested function definitions
+        self.current_fn = None  # TODO: allow nested function definitions
         return []
     def visit_FunctionCall(self, node):
         result = []
@@ -178,9 +177,9 @@ class Compiler(NodeVisitor):
             result = result + self.visit(expr)
         if node.value in BUILTINS:
             return result + [BCALL_8] + intbytes_8(BUILTINS[node.value])
-        return result + [CALL_8, self.fn_lens[node.token.value]] + \
-                         intbytes_8(self.fns[node.token.value]) + \
-                         [self.fn_locals[node.token.value]]
+        return result + [CALL_8, self.fns[node.token.value]["params"]] + \
+                         intbytes_8(self.fns[node.token.value]["addr"]) + \
+                         [self.fns[node.token.value]["locals"]]
     def visit_Return(self, node):
         expr = self.visit(node.expr)
         return expr + [RET]
