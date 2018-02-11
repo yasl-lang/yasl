@@ -15,6 +15,8 @@ BINRESERVED = {
         ">=": [GE],
         "==": [EQ],
         "!=": [EQ, NOT],
+        "===": [ID],
+        "!==": [ID, NOT]
         }
 UNRESERVED = {
         "-": [NEG],
@@ -121,6 +123,7 @@ class Compiler(NodeVisitor):
     def visit_BinOp(self, node):
         left = self.visit(node.left)
         right = self.visit(node.right)
+        print(left, right)
         if node.token.value == "??":
             left = left + [DUP]
             right = [POP] + right

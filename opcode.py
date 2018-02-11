@@ -37,6 +37,7 @@ NOT       = 0x71 # negate a boolean
 GT        = 0x74 # greater than
 GE        = 0x75 # greater than or equal
 EQ        = 0x76 # equality
+ID        = 0x77 # identity
 V2S       = 0x84 # variable to string
 LEN       = 0x88 # length of string
 BR_4      = 0x92 # branch unconditionally (takes next 4 bytes as jump length)

@@ -31,7 +31,7 @@ VM* newVM(char* code,    // pointer to bytecode
 }
 
 void delVM(VM* vm){
-        free(vm->locals);
-        free(vm->stack);
+        free(vm->locals);    // TODO: free these properly
+        free(vm->stack);     // TODO: free these properly
         free(vm);
 }

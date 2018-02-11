@@ -174,7 +174,7 @@ class Parser(object):
         return curr
     def fact1(self):
         curr = self.comparator()
-        while self.current_token.value in ["==", "!="]:
+        while self.current_token.value in ["==", "!=", "===", "!=="]:
             op = self.eat(TokenTypes.OP)
             curr = BinOp(op, curr, self.comparator())
         return curr

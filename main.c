@@ -20,6 +20,7 @@
 #define IVAL(v)      (*((int64_t*)&v.value))
 #define DPUSH(vm, v) (((FloatConstant*)vm->stack)[++vm->sp] = (FloatConstant) {FLOAT64, v}) // push double v onto stack
 #define DVAL(v)      (*((double*)&v.value))
+#define LEN(v)       (*((int64_t*)v.value))
 #define NPUSH(vm)    (PUSH(vm, ((Constant) {UNDEF, 0})))   //push nil onto stack
 #define FALSEY(v)    (v.type == UNDEF || (v.type == BOOL && v.value == 0))  // returns true if v is a falsey value
 #define ADD(a, b)    (a + b)
@@ -87,55 +88,32 @@ void run(VM* vm){
         switch (opcode) {   // decode
         case HALT: return;  // stop the program
         case NOP: break;    // pass
-        case ICONST_M2:
-            IPUSH(vm, -2);
-            break;
+        case ICONST_M2:     // TODO: make sure no changes to opcodes ruin this
         case ICONST_M1:
-            IPUSH(vm, -1);
-            break;
         case ICONST_0:
-            IPUSH(vm, 0);
-            break;
         case ICONST_1:
-            IPUSH(vm, 1);
-            break;
         case ICONST_2:
-            IPUSH(vm, 2);
-            break;
         case ICONST_3:
-            IPUSH(vm, 3);
-            break;
         case ICONST_4:
-            IPUSH(vm, 4);
-            break;
         case ICONST_5:
-            IPUSH(vm, 5);
-            break;
         case ICONST_6:
-            IPUSH(vm, 5);
+            IPUSH(vm, (int64_t)(opcode - 0x03));
             break;
-        case DCONST_M1:
-            DPUSH(vm, -1.0);
-            break;
+        case DCONST_M1:     // TODO: make sure no changes to opcodes ruin this
         case DCONST_0:
-            DPUSH(vm, 0.0);
-            break;
         case DCONST_1:
-            DPUSH(vm, 1.0);
-            break;
         case DCONST_2:
-            DPUSH(vm, 2.0);
+            DPUSH(vm, (double)(opcode - 0x0B));
             break;
-        case DCONST:  // constants are BIG endian
-            memcpy(&c, vm->code + vm->pc, sizeof c);
-            vm->pc += sizeof c;
-            PUSH(vm, ((Constant) {FLOAT64, c}));
+        case DCONST:        // constants have native endianness
+            memcpy(&d, vm->code + vm->pc, sizeof(d));
+            vm->pc += sizeof(d);
+            DPUSH(vm, d);
             break;
-        case ICONST:  // constants are BIG endian
-            memcpy(&c, vm->code + vm->pc, sizeof c);
-            vm->pc += sizeof c;
-            //printf("c = %" PRId64 "\n", c);
-            PUSH(vm, ((Constant) {INT64, c}));
+        case ICONST:        // constants have native endianness
+            memcpy(&c, vm->code + vm->pc, sizeof(c));
+            vm->pc += sizeof(c);
+            IPUSH(vm, c);
             break;
         case ADD:
             b = POP(vm);
@@ -206,55 +184,27 @@ void run(VM* vm){
             }
         case LEN:
             v = POP(vm);
-            IPUSH(vm, *((int64_t*)v.value));
+            IPUSH(vm, LEN(v));
             break;
         case GT:
             b = POP(vm);
             a = POP(vm);
-            if (a.type == UNDEF || b.type == UNDEF) {
-                NPUSH(vm);
-                break;
+            if (a.type == UNDEF || a.type == BOOL || a.type == STR ||
+                b.type == UNDEF || b.type == BOOL || b.type == STR)   {
+                printf("ERROR: < and > not supported for operand of types %x and %x.\n", a.type, b.type);
+                return;
             }
-            switch(a.type) {
-            case BOOL:
-                if (b.type == BOOL) {
-                    if (a.value == b.value) BPUSH(vm, 0);
-                    else NPUSH(vm);
-                }
-                else NPUSH(vm);
-                break;
-            default:
-                if (b.type == BOOL) {
-                    NPUSH(vm);
-                    break;
-                }
-                COMP(vm, a, b, GT, ">");
-                break;
-            }
+            COMP(vm, a, b, GT, ">");
             break;
         case GE:
             b = POP(vm);
             a = POP(vm);
-            if (a.type == UNDEF || b.type == UNDEF) {
-                NPUSH(vm);
-                break;
+            if (a.type == UNDEF || a.type == BOOL || a.type == STR ||
+                b.type == UNDEF || b.type == BOOL || b.type == STR)   {
+                printf("ERROR: <= and >= not supported for operand of types %x and %x.\n", a.type, b.type);
+                return;
             }
-            switch(a.type) {
-            case BOOL:
-                if (b.type == BOOL) {
-                    if (a.value == b.value) BPUSH(vm, 1);
-                    else NPUSH(vm);
-                }
-                else NPUSH(vm);
-                break;
-            default:
-                if (b.type == BOOL) {
-                    NPUSH(vm);
-                    break;
-                }
-                COMP(vm, a, b, GE, ">=");
-                break;
-            }
+            COMP(vm, a, b, GE, ">=");
             break;
         case EQ:
             b = POP(vm);
@@ -269,21 +219,43 @@ void run(VM* vm){
                     c = a.value == b.value;
                     BPUSH(vm, c);
                 }
-                else NPUSH(vm);
+                else BPUSH(vm, 0);
+                break;
+            case STR:
+                if (b.type == STR) {
+                    if (LEN(a) != LEN(b)) {
+                        BPUSH(vm, 0);
+                        break;
+                    } else {
+                        for (i = sizeof(int64_t); i < LEN(a) + sizeof(int64_t); i++) { // TODO: fix hardcoded 8
+                            if (*((char*)(v.value + i)) != *((char*)(v.value + i))) {
+                                BPUSH(vm, 0);
+                                break;
+                            }
+                        }
+                        BPUSH(vm, 1);
+                        break;
+                    }
+                }
+                BPUSH(vm, 0);
                 break;
             default:
                 if (b.type == BOOL) {
-                    NPUSH(vm);
+                    BPUSH(vm, 0);
                     break;
                 }
                 COMP(vm, a, b, EQ, "==");
                 break;
             }
             break;
-        /*case ID:
+        case ID:
             b = POP(vm);
             a = POP(vm);
-            COMP(vm, a, b, ID, "===");
+            if (a.type == b.type && a.value == b.value) {
+                BPUSH(vm, 1);
+            } else {
+                BPUSH(vm, 0);
+            }
             break; // */
         case BCONST_F:
             BPUSH(vm, 0);   // represent false as 0

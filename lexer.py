@@ -155,6 +155,16 @@ class Lexer(object):
                 self.tokens.append(Token(TokenTypes.OP, ">=", self.line))
                 self.advance()
                 self.advance()
+            elif self.current_char == "=" and self.peek(1) == "=" and self.peek(2) == "=":
+                self.tokens.append(Token(TokenTypes.OP, "===", self.line))
+                self.advance()
+                self.advance()
+                self.advance()
+            elif self.current_char == "!" and self.peek(1) == "=" and self.peek(2) == "=":
+                self.tokens.append(Token(TokenTypes.OP, "!==", self.line))
+                self.advance()
+                self.advance()
+                self.advance()
             elif self.current_char == "=" and self.peek() == "=":
                 self.tokens.append(Token(TokenTypes.OP, "==", self.line))
                 self.advance()
