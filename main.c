@@ -82,10 +82,11 @@ void run(VM* vm){
         Constant a, b, v;
         int64_t c;
         double d;
-        //printf("opcode = %x\n", opcode);
-        //printf("sp, fp, pc: %d, %d, %d\n", vm->sp, vm->fp, vm->pc);
-        //printf("locals: %" PRId64 ", %" PRId64 ", %" PRId64 "\n", vm->stack[vm->fp+1].value, vm->stack[vm->fp+2].value,
-        //     vm->stack[vm->fp+3].value);
+        printf("\nopcode: %x\n", opcode);
+        printf("vm->sp: %d\n", vm->sp);
+        printf("0, 1, 2, 3: %d, %d, %d, %d\n", (int)vm->stack[0].value, (int)vm->stack[1].value, (int)vm->stack[2].value, (int)vm->stack[3].value);
+        printf("0, 1, 2, 3: %d, %d, %d, %d\n", (int)vm->locals[0].value, (int)vm->locals[1].value, (int)vm->locals[2].value, (int)vm->locals[3].value);
+
         switch (opcode) {   // decode
         case HALT: return;  // stop the program
         /*case JMP:
@@ -446,7 +447,7 @@ int main(void) {
     //bytes_read = fread(buffer, sizeof(unsigned char), BUFFER_SIZE, file_ptr);
 	VM* vm = newVM(buffer,   // program to execute
 	                   entry_point,    // start address of main function
-	                   0);   // locals to be reserved, fib doesn't require them
+	                   1000000);   // locals to be reserved, fib doesn't require them
 	run(vm);
 	delVM(vm);
     fclose(file_ptr);
