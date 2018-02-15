@@ -21,6 +21,7 @@ RESERVED_KEYWORDS = {
             "defun": lambda x: Token(TokenTypes.DEFUN, "defun", x),
             "return": lambda x: Token(TokenTypes.RETURN, "return", x),
             "class": lambda x: Token(TokenTypes.CLASS, "class", x),
+            "hash": lambda x: Token(TokenTypes.HASH, "hash", x),
 }
 
 class Lexer(object):

@@ -6,6 +6,7 @@ class TokenTypes(Enum):
     BOOL   = 0x02
     UNDEF  = 0x03
     STR    = 0x04
+    HASH   = 0x05
     IF     = 0x10
     ELSEIF = 0x11
     ELSE   = 0x12

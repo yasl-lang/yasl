@@ -236,6 +236,11 @@ class Parser(object):
         elif self.current_token.type is TokenTypes.UNDEF:
             nil = self.eat(TokenTypes.UNDEF)
             return Undef(nil)
+        elif self.current_token.type is TokenTypes.HASH:
+            hash = self.eat(TokenTypes.HASH)
+            self.eat(TokenTypes.LPAREN)
+            self.eat(TokenTypes.RPAREN)
+            return Hash(hash)
         else:
             assert False
     def parse(self):

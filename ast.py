@@ -25,6 +25,10 @@ class UnOp(AST):
 '''class NulOp(AST):
     def __init__(self, op):
         self.token = self.op = op'''
+class Hash(AST):
+    def __init__(self, token):
+        self.token = token
+        self.value = token.value
 class String(AST):
     def __init__(self, token):
         self.token = token

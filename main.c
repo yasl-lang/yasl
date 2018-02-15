@@ -11,18 +11,17 @@
 #include <string.h>
 #include "VM.c"
 #include "opcode.c"
-#include "constant_types.c"
-#include "builtins.c"
+#include "constant.c"
+//#include "builtins.c"
+//#include "hashtable/hashtable.c"
 #define BUFFER_SIZE 256
 #define NCODE(vm)    (vm->code[vm->pc++])     // get next bytecode
 #define IPUSH(vm, v) (PUSH(vm, ((Constant) {INT64, v})))  //push integer v onto stack
-#define IPOP(vm)     (((vm->stack)[vm->sp--]).value)      // get int from top of stack
-#define IVAL(v)      (*((int64_t*)&v.value))
+#define IPOP(vm)     (((vm->stack)[vm->sp--])->value)      // get int from top of stack
+#define IVAL(v)      (*((int64_t*)&v->value))
 #define DPUSH(vm, v) (((FloatConstant*)vm->stack)[++vm->sp] = (FloatConstant) {FLOAT64, v}) // push double v onto stack
-#define DVAL(v)      (*((double*)&v.value))
-#define LEN(v)       (*((int64_t*)v.value))
+#define LEN_C(v)     (*((int64_t*)v->value))
 #define NPUSH(vm)    (PUSH(vm, ((Constant) {UNDEF, 0})))   //push nil onto stack
-#define FALSEY(v)    (v.type == UNDEF || (v.type == BOOL && v.value == 0))  // returns true if v is a falsey value
 #define ADD(a, b)    (a + b)
 #define DIV(a, b)    (a / b)
 #define SUB(a, b)    (a - b)
@@ -31,47 +30,47 @@
 #define GE(a, b)     (a >= b)
 #define EQ(a, b)     (a == b)
 #define BINOP(vm, a, b, f, str)  ({\
-                            if (a.type == INT64 && b.type == INT64) {\
-                                c = f(a.value, b.value);\
+                            if (a->type == INT64 && b->type == INT64) {\
+                                c = f(a->value, b->value);\
                                 IPUSH(vm, c);\
                                 break;\
                             }\
-                            else if (a.type == FLOAT64 && b.type == INT64) {\
-                                d = f(DVAL(a), (double)b.value);\
+                            else if (a->type == FLOAT64 && b.type == INT64) {\
+                                d = f(DVAL(a), (double)b->value);\
                             }\
-                            else if (a.type == INT64 && b.type == FLOAT64) {\
-                                d = f((double)a.value, DVAL(b));\
+                            else if (a->type == INT64 && b->type == FLOAT64) {\
+                                d = f((double)a->value, DVAL(b));\
                             }\
                             else if (a.type == FLOAT64 && b.type == FLOAT64) {\
                                 d = f(DVAL(a), DVAL(b));\
                             }\
                             else {\
-                                printf("ERROR: %s not supported for operands of types %x and %x.\n", str, a.type, b.type);\
+                                printf("ERROR: %s not supported for operands of types %x and %x.\n", str, a->type, b->type);\
                                 return;\
                             }\
                             DPUSH(vm, d);})
 #define COMP(vm, a, b, f, str)  ({\
-                            if (a.type == INT64 && b.type == INT64) {\
-                                c = f(a.value, b.value);\
+                            if (a->type == INT64 && b->type == INT64) {\
+                                c = f(a->value, b->value);\
                             }\
-                            else if (a.type == FLOAT64 && b.type == INT64) {\
-                                c = f(DVAL(a), (double)b.value);\
+                            else if (a->type == FLOAT64 && b->type == INT64) {\
+                                c = f(DVAL(a), (double)b->value);\
                             }\
-                            else if (a.type == INT64 && b.type == FLOAT64) {\
-                                c = f((double)a.value, DVAL(b));\
+                            else if (a->type == INT64 && b->type == FLOAT64) {\
+                                c = f((double)a->value, DVAL(b));\
                             }\
-                            else if (a.type == FLOAT64 && b.type == FLOAT64) {\
+                            else if (a->type == FLOAT64 && b->type == FLOAT64) {\
                                 c = f(DVAL(a), DVAL(b));\
                             }\
                             else {\
-                                printf("ERROR: %s not supported for operands of types %x and %x.\n", str, a.type, b.type);\
+                                printf("ERROR: %s not supported for operands of types %x and %x.\n", str, a->type, b->type);\
                                 return;\
                             }\
                             BPUSH(vm, c);})
 
 
 void run(VM* vm){
-    for (;;) {
+    while (1) {
         unsigned char opcode = NCODE(vm);        // fetch
         int argc, rval;
         signed char offset;
@@ -81,10 +80,12 @@ void run(VM* vm){
         Constant a, b, v;
         int64_t c;
         double d;
-        //printf("opcode: %x\n", opcode);
-        //printf("sp, fp, pc: %d, %d, %d\n", vm->sp, vm->fp, vm->pc);
-        //printf("locals: %" PRId64 ", %" PRId64 ", %" PRId64 "\n", vm->stack[vm->fp+1].value, vm->stack[vm->fp+2].value,
-        //     vm->stack[vm->fp+3].value);
+        void* ptr;
+        printf("\nopcode: %x\n", opcode);
+        printf("vm->sp: %d\n", vm->sp);
+        printf("0, 1, 2, 3: %d, %d, %d, %d\n", (int)vm->stack[0].value, (int)vm->stack[1].value, (int)vm->stack[2].value, (int)vm->stack[3].value);
+        printf("0, 1, 2, 3: %d, %d, %d, %d\n", (int)vm->globals[0].value, (int)vm->globals[1].value, (int)vm->globals[2].value, (int)vm->globals[3].value);
+
         switch (opcode) {   // decode
         case HALT: return;  // stop the program
         case NOP: break;    // pass
@@ -97,25 +98,33 @@ void run(VM* vm){
         case ICONST_4:
         case ICONST_5:
         case ICONST_6:
-            IPUSH(vm, (int64_t)(opcode - 0x03));
+            //c = opcode - 0x03;
+            //PUSH(vm, ((Constant) {INT64, c}));
+            vm->stack[++vm->sp].type = INT64;
+            vm->stack[vm->sp].value  = opcode - 0x03;
+            printf("0, 1, 2, 3: %d, %d, %d, %d\n", (int)vm->stack[0].value, (int)vm->stack[1].value, (int)vm->stack[2].value, (int)vm->stack[3].value);
+            printf("0, 1, 2, 3: %d, %d, %d, %d\n", (int)vm->globals[0].value, (int)vm->globals[1].value, (int)vm->globals[2].value, (int)vm->globals[3].value);
             break;
         case DCONST_M1:     // TODO: make sure no changes to opcodes ruin this
         case DCONST_0:
         case DCONST_1:
         case DCONST_2:
-            DPUSH(vm, (double)(opcode - 0x0B));
+            vm->stack[++vm->sp].type = FLOAT64;
+            d = opcode - 0x0B;
+            memcpy(&vm->stack[vm->sp].value, &d, sizeof(double));
             break;
         case DCONST:        // constants have native endianness
-            memcpy(&d, vm->code + vm->pc, sizeof(d));
-            vm->pc += sizeof(d);
-            DPUSH(vm, d);
+            memcpy(&c, vm->code + vm->pc, sizeof c);
+            vm->pc += sizeof c;
+            PUSH(vm, ((Constant) {FLOAT64, c}));
             break;
         case ICONST:        // constants have native endianness
-            memcpy(&c, vm->code + vm->pc, sizeof(c));
-            vm->pc += sizeof(c);
-            IPUSH(vm, c);
+            memcpy(&c, vm->code + vm->pc, sizeof c);
+            vm->pc += sizeof c;
+            //printf("c = %" PRId64 "\n", c);
+            PUSH(vm, ((Constant) {INT64, c}));
             break;
-        case ADD:
+        /* case ADD:
             b = POP(vm);
             a = POP(vm);
             BINOP(vm, a, b, ADD, "+");
@@ -133,65 +142,66 @@ void run(VM* vm){
         case DIV:    // handled differently because we always convert to float
             b = POP(vm);
             a = POP(vm);
-            if (a.type == INT64 && b.type == INT64) {
-                d = (double)a.value / (double)b.value;
+            if (a->type == INT64 && b->type == INT64) {
+                d = (double)a->value / (double)b->value;
             }
             else if (a.type == FLOAT64 && b.type == INT64) {
-                d = DVAL(a) / (double)b.value;
+                d = DVAL(a) / (double)b->value;
             }
             else if (a.type == INT64 && b.type == FLOAT64) {
-                d = (double)a.value / DVAL(b);
+                d = (double)a->value / DVAL(b);
             }
-            else if (a.type == FLOAT64 && b.type == FLOAT64) {
+            else if (a.type == FLOAT64 && b->type == FLOAT64) {
                 d = DVAL(a) / DVAL(b);
             }
             else {
-                printf("ERROR: / not supported for operands of types %x and %x.\n", a.type, b.type);
+                printf("ERROR: / not supported for operands of types %x and %x.\n", a->type, b->type);
                 return;
             }
             DPUSH(vm, d);
             break;
         case NEG:
             a = POP(vm);
-            if (a.type == INT64) {
-                a.value = -a.value;
+            if (a->type == INT64) {
+                a->value = -a->value;
                 PUSH(vm, a);
                 break;
             }
-            else if (a.type == FLOAT64) {
+            else if (a->type == FLOAT64) {
                 d = -DVAL(a);
                 DPUSH(vm, d);
                 break;
             }
             else {
-                printf("ERROR: unary - not supported for operand of type %x.\n", a.type);
+                printf("ERROR: unary - not supported for operand of type %x.\n", a->type);
                 return;
             }
         case NOT:
             a = POP(vm);
-            if (a.type == BOOL) {
-                a.value ^= 1;    // flip the last bit of a.value
+            if (a->type == BOOL) {
+                a->value ^= 1;    // flip the last bit of a.value
                 PUSH(vm, a);
                 break;
             }
-            else if (a.type == UNDEF) {
+            else if (a->type == UNDEF) {
                 NPUSH(vm);
                 break;
             }
             else {
-                printf("ERROR: ! not supported for operand of type %x.\n", a.type);
+                printf("ERROR: ! not supported for operand of type %x.\n", a->type);
                 return;
             }
+
         case LEN:
             v = POP(vm);
-            IPUSH(vm, LEN(v));
+            IPUSH(vm, LEN_C(v));
             break;
         case GT:
             b = POP(vm);
             a = POP(vm);
-            if (a.type == UNDEF || a.type == BOOL || a.type == STR ||
-                b.type == UNDEF || b.type == BOOL || b.type == STR)   {
-                printf("ERROR: < and > not supported for operand of types %x and %x.\n", a.type, b.type);
+            if ((a->type != INT64 && a->type != FLOAT64) ||
+                (b->type != INT64 && b->type != FLOAT64)) {
+                printf("ERROR: < and > not supported for operand of types %x and %x.\n", a->type, b->type);
                 return;
             }
             COMP(vm, a, b, GT, ">");
@@ -199,9 +209,9 @@ void run(VM* vm){
         case GE:
             b = POP(vm);
             a = POP(vm);
-            if (a.type == UNDEF || a.type == BOOL || a.type == STR ||
-                b.type == UNDEF || b.type == BOOL || b.type == STR)   {
-                printf("ERROR: <= and >= not supported for operand of types %x and %x.\n", a.type, b.type);
+            if ((a->type != INT64 && a->type != FLOAT64) ||
+                (b->type != INT64 && b->type != FLOAT64)) {
+                printf("ERROR: <= and >= not supported for operand of types %x and %x.\n", a->type, b->type);
                 return;
             }
             COMP(vm, a, b, GE, ">=");
@@ -209,44 +219,7 @@ void run(VM* vm){
         case EQ:
             b = POP(vm);
             a = POP(vm);
-            if (a.type == UNDEF || b.type == UNDEF) {
-                NPUSH(vm);
-                break;
-            }
-            switch(a.type) {
-            case BOOL:
-                if (b.type == BOOL) {
-                    c = a.value == b.value;
-                    BPUSH(vm, c);
-                }
-                else BPUSH(vm, 0);
-                break;
-            case STR:
-                if (b.type == STR) {
-                    if (LEN(a) != LEN(b)) {
-                        BPUSH(vm, 0);
-                        break;
-                    } else {
-                        for (i = sizeof(int64_t); i < LEN(a) + sizeof(int64_t); i++) { // TODO: fix hardcoded 8
-                            if (*((char*)(v.value + i)) != *((char*)(v.value + i))) {
-                                BPUSH(vm, 0);
-                                break;
-                            }
-                        }
-                        BPUSH(vm, 1);
-                        break;
-                    }
-                }
-                BPUSH(vm, 0);
-                break;
-            default:
-                if (b.type == BOOL) {
-                    BPUSH(vm, 0);
-                    break;
-                }
-                COMP(vm, a, b, EQ, "==");
-                break;
-            }
+            PUSH(vm, isequal(&a, &b));
             break;
         case ID:
             b = POP(vm);
@@ -256,7 +229,7 @@ void run(VM* vm){
             } else {
                 BPUSH(vm, 0);
             }
-            break; // */
+            break;
         case BCONST_F:
             BPUSH(vm, 0);   // represent false as 0
             break;
@@ -266,14 +239,18 @@ void run(VM* vm){
         case NCONST:
             NPUSH(vm);
             break;
-        //case I2D: TODO: implement
-        //case D2I: TODO: implement
         case ISNIL:
             v = POP(vm);
-            if (v.type == UNDEF) BPUSH(vm, 1);
+            if (v->type == UNDEF) BPUSH(vm, 1);
             else BPUSH(vm, 0);
             break;
-        case V2S: // TODO: implement
+        */
+        /*case NEWHASH:
+            vm->stack[++vm->sp].type = HASH;
+            vm->stack[vm->sp].value  = (int64_t)new_hash();
+            break;
+        /*
+        case V2S:   // TODO: implement
             break;
         case DUP:
             v = vm->stack[vm->sp];
@@ -312,16 +289,18 @@ void run(VM* vm){
             v = POP(vm);
             if (!(FALSEY(v))) vm->pc += c;
             break;
+        */
         case GLOAD_1:
-            addr = NCODE(vm);             // get addr of var in locals
-            v = vm->locals[addr];         // load value from memory of the provided addr
-            PUSH(vm, v);                  // put that value on top of the stack
+            addr = vm->code[vm->pc++];               // get addr of var in locals
+            printf("addr: %d\n", addr);
+            vm->stack[++vm->sp] = vm->globals[addr];  // load value from memory of the provided addr
             break;
         case GSTORE_1:
-            v = POP(vm);                  // get value from top of the stack
-            addr = NCODE(vm);             // get addr of var in locals
-            vm->locals[addr] = v;         // store value at addr received
+            addr = vm->code[vm->pc++];
+            printf("addr: %d\n", addr);
+            vm->globals[addr] = vm->stack[vm->sp--];
             break;
+        /*
         case LLOAD_1:
             offset = NCODE(vm);
             //printf("offset = %d\n", offset);
@@ -351,11 +330,12 @@ void run(VM* vm){
             vm->sp += offset + 2;
             vm->pc = addr;
             break;
-        case BCALL_8:
-            memcpy(&addr, vm->code + vm->pc, sizeof addr);
-            vm->pc += sizeof addr;
+        */
+        /*case BCALL_8:
+            memcpy(&addr, vm->code + vm->pc, sizeof(addr));
+            vm->pc += sizeof(addr);
             if (!(builtins[addr](vm))) {
-                printf("ERROR: invalid argument type(s) to builtin function.");
+                printf("ERROR: invalid argument type(s) to builtin function.\n");
             };
             break;
         /* case RCALL_8:
@@ -366,51 +346,56 @@ void run(VM* vm){
             for (i = 0; i < offset; i++) {
                 vm->stack[vm->fp - 2 - i] = vm->stack[vm->sp - i];
             }
-        */
+
         case RET:
             //printf("sp, fp, pc: %d, %d, %d\n", vm->sp, vm->fp, vm->pc);
             v = POP(vm);
             a = vm->stack[vm->fp];
             b = vm->stack[vm->fp-1];
-            vm->pc = a.value;
+            vm->pc = a->value;
             vm->pc++;
-            vm->sp = vm->fp - a.type;
+            vm->sp = vm->fp - a->type;
             vm->sp--;
-            vm->fp = b.value;
+            vm->fp = b->value;
             //printf("%" PRId64 "\n", a.value);
             //printf("%d\n", a.type);
             PUSH(vm, v);
-            break; // */
+            break; //
+            */
         case POP:
             --vm->sp;      // throw away value at top of the stack
             break;
         case MLC_8:
-            i = NCODE(vm);
-            memcpy(&size, vm->code + vm->pc, sizeof size);
-            vm->pc += sizeof size;
-            PUSH(vm, ((Constant) {i, (int64_t)malloc(size)}));
+            vm->stack[++vm->sp].type = vm->code[vm->pc++];
+            memcpy(&size, vm->code + vm->pc, sizeof(size));
+            vm->pc += sizeof(size);
+            ptr = malloc(size);
+            //memcpy(&vm->stack[vm->sp].value, ptr, sizeof(ptr));
+            vm->stack[vm->sp].value = (int64_t)ptr; //malloc(size);
             break;
+        /*
         case MLC:
             i = NCODE(vm);
             size = IPOP(vm);
             //printf("MLC: size = %" PRId64 "\n", size);
             PUSH(vm, ((Constant) {i, (int64_t)malloc(size)}));
             break;
+        */
         case MCP_8:
-            memcpy(&big_offset, vm->code + vm->pc, sizeof big_offset);
-            vm->pc += sizeof big_offset;
-            memcpy(&size, vm->code + vm->pc, sizeof size);
-            vm->pc += sizeof size;
-            v = vm->stack[vm->sp];
-            memcpy((char*)v.value + big_offset, vm->code + vm->pc, size);
+            memcpy(&big_offset, vm->code + vm->pc, sizeof(big_offset));
+            vm->pc += sizeof(big_offset);
+            memcpy(&size, vm->code + vm->pc, sizeof(size));
+            vm->pc += sizeof(size);
+            memcpy((char*)vm->stack[vm->sp].value + big_offset, vm->code + vm->pc, size);
             vm->pc += size;
             break;
+        /*
         case SCP:
             v = POP(vm);
             //printf("SCP: size = %" PRId64 "\n", *((int64_t*)v.value));
             big_offset = IPOP(vm);
             a = POP(vm);
-            memcpy((char*)(v.value + 8 + big_offset), (char*)(a.value+8), *((int64_t*)a.value));
+            memcpy((char*)(v->value + 8 + big_offset), (char*)(a->value+8), *((int64_t*)a->value));
             PUSH(vm, v);
             break;
         case ICP:
@@ -422,10 +407,9 @@ void run(VM* vm){
             //printf("ICP: size = %" PRId64 "\n", *((int64_t*)v.value));
             //memcpy((int64_t*)(v.value), &c, sizeof(int64_t));
             PUSH(vm, v);
-            break;
+            break; //*/
         case PRINT:
-            v = POP(vm);        // pop value from top of the stack ...
-            //printf("%x\n", v.type); // print value
+            v = vm->stack[vm->sp--];    // pop value from top of the stack ...
             switch (v.type) {
             case INT64:
                 printf("int64: %" PRId64 "\n", v.value);
@@ -446,6 +430,9 @@ void run(VM* vm){
                     printf("%c", *((char*)(v.value + i)));
                 }
                 printf("\n");
+                break;
+            case HASH:
+                printf("hash: <%" PRIx64 ">\n", v.value);
                 break;
             default:
                 printf("ERROR UNKNOWN TYPE: %x\n", v.type);

@@ -47,15 +47,18 @@ BUILTINS = {
         "isal": 3,
         "isnum": 4,
         "isspace": 5,
+        "insert": 6,
+        "find": 7
 }
 
 def intbytes_8(n:int):
     return [int(b) for b in bytearray(struct.pack("@q", n))]
 def doublebytes(d:float):
     return [int(b) for b in bytearray(struct.pack("@d", d))]
+
 ###############################################################################
 #                                                                             #
-#  INTERPRETER                                                                #
+#  COMPILER                                                                   #
 #                                                                             #
 ###############################################################################
 
@@ -178,6 +181,7 @@ class Compiler(NodeVisitor):
         result = []
         for expr in node.params:
             result = result + self.visit(expr)
+        # print([hex(r) for r in result])
         if node.value in BUILTINS:
             return result + [BCALL_8] + intbytes_8(BUILTINS[node.value])
         return result + [CALL_8, self.fns[node.token.value]["params"]] + \
@@ -217,6 +221,8 @@ class Compiler(NodeVisitor):
         if self.current_fn is not None:
             return [LLOAD_1, self.env[node.value]]
         return [GLOAD_1, self.env[node.value]]
+    def visit_Hash(self, node):
+        return [NEWHASH]  # TODO: allow declaration with a bunch of values in it
     def visit_String(self, node):
         string = [int(b) for b in str.encode(node.value)]
         length = intbytes_8(len(string))
