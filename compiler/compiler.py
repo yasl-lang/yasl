@@ -1,8 +1,8 @@
-from opcode import *
-from constant_types import *
+from .opcode import *
+from .constant import *
 import struct
-from visitor import NodeVisitor
-from environment import Env
+from .visitor import NodeVisitor
+from .environment import Env
 
 BINRESERVED = {
         "+":  [ADD],
@@ -48,7 +48,8 @@ BUILTINS = {
         "isnum": 4,
         "isspace": 5,
         "insert": 6,
-        "find": 7
+        "find": 7,
+        "append": 8,
 }
 
 def intbytes_8(n:int):
@@ -65,7 +66,7 @@ def doublebytes(d:float):
 class Compiler(NodeVisitor):
     def __init__(self):
         self.env = self.globals = Env()
-        self.header = intbytes_8(8)
+        self.header = intbytes_8(8) + intbytes_8(0)
         self.fns = {}
         self.current_fn = None
         self.locals = Env(self.globals)
@@ -78,6 +79,7 @@ class Compiler(NodeVisitor):
             #print(statement)
             result = result + self.visit(statement)
         self.header[0:8] = intbytes_8(len(self.header))
+        self.header[8:16] = intbytes_8(len(self.globals))  # TODO: fix so this works with locals as well
         for opcode in self.header: print(hex(opcode))
         print("entry point:")
         for opcode in result + [HALT]: print(hex(opcode))
@@ -223,6 +225,8 @@ class Compiler(NodeVisitor):
         return [GLOAD_1, self.env[node.value]]
     def visit_Hash(self, node):
         return [NEWHASH]  # TODO: allow declaration with a bunch of values in it
+    def visit_List(self, node):
+        return [NEWLIST]
     def visit_String(self, node):
         string = [int(b) for b in str.encode(node.value)]
         length = intbytes_8(len(string))

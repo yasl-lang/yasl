@@ -7,6 +7,7 @@ class TokenTypes(Enum):
     UNDEF  = 0x03
     STR    = 0x04
     HASH   = 0x05
+    LIST   = 0x06
     IF     = 0x10
     ELSEIF = 0x11
     ELSE   = 0x12

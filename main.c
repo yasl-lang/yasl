@@ -12,8 +12,8 @@
 #include "VM.c"
 #include "opcode.c"
 #include "constant.c"
-//#include "builtins.c"
-//#include "hashtable/hashtable.c"
+#include "builtins.c"
+#include "hashtable/hashtable.c"
 #define BUFFER_SIZE 256
 #define NCODE(vm)    (vm->code[vm->pc++])     // get next bytecode
 #define IPUSH(vm, v) (PUSH(vm, ((Constant) {INT64, v})))  //push integer v onto stack
@@ -81,32 +81,25 @@ void run(VM* vm){
         int64_t c;
         double d;
         void* ptr;
-        printf("\nopcode: %x\n", opcode);
-        printf("vm->sp: %d\n", vm->sp);
-        printf("0, 1, 2, 3: %d, %d, %d, %d\n", (int)vm->stack[0].value, (int)vm->stack[1].value, (int)vm->stack[2].value, (int)vm->stack[3].value);
-        printf("0, 1, 2, 3: %d, %d, %d, %d\n", (int)vm->globals[0].value, (int)vm->globals[1].value, (int)vm->globals[2].value, (int)vm->globals[3].value);
+        //printf("\nopcode: %x\n", opcode);
+        //printf("vm->sp: %d\n", vm->sp);
+        //printf("0, 1, 2, 3: %d, %d, %d, %d\n", (int)vm->stack[0].value, (int)vm->stack[1].value, (int)vm->stack[2].value, (int)vm->stack[3].value);
+        //printf("0, 1, 2, 3: %d, %d, %d, %d\n", (int)vm->globals[0].value, (int)vm->globals[1].value, (int)vm->globals[2].value, (int)vm->globals[3].value);
 
         switch (opcode) {   // decode
         case HALT: return;  // stop the program
         case NOP: break;    // pass
-        case ICONST_M2:     // TODO: make sure no changes to opcodes ruin this
-        case ICONST_M1:
+        case ICONST_M1:     // TODO: make sure no changes to opcodes ruin this
         case ICONST_0:
         case ICONST_1:
         case ICONST_2:
         case ICONST_3:
         case ICONST_4:
         case ICONST_5:
-        case ICONST_6:
-            //c = opcode - 0x03;
-            //PUSH(vm, ((Constant) {INT64, c}));
             vm->stack[++vm->sp].type = INT64;
-            vm->stack[vm->sp].value  = opcode - 0x03;
-            printf("0, 1, 2, 3: %d, %d, %d, %d\n", (int)vm->stack[0].value, (int)vm->stack[1].value, (int)vm->stack[2].value, (int)vm->stack[3].value);
-            printf("0, 1, 2, 3: %d, %d, %d, %d\n", (int)vm->globals[0].value, (int)vm->globals[1].value, (int)vm->globals[2].value, (int)vm->globals[3].value);
+            vm->stack[vm->sp].value  = opcode - 0x04;
             break;
-        case DCONST_M1:     // TODO: make sure no changes to opcodes ruin this
-        case DCONST_0:
+        case DCONST_0:    // TODO: make sure no changes to opcodes ruin this
         case DCONST_1:
         case DCONST_2:
             vm->stack[++vm->sp].type = FLOAT64;
@@ -121,8 +114,16 @@ void run(VM* vm){
         case ICONST:        // constants have native endianness
             memcpy(&c, vm->code + vm->pc, sizeof c);
             vm->pc += sizeof c;
-            //printf("c = %" PRId64 "\n", c);
             PUSH(vm, ((Constant) {INT64, c}));
+            break;
+        case BCONST_F:
+        case BCONST_T:
+            vm->stack[++vm->sp].type = BOOL;
+            vm->stack[vm->sp].value  = opcode & 0x01;
+            break;
+        case NCONST:
+            vm->stack[++vm->sp].type = UNDEF;
+            vm->stack[vm->sp].value  = 0x00;
             break;
         /* case ADD:
             b = POP(vm);
@@ -191,11 +192,20 @@ void run(VM* vm){
                 printf("ERROR: ! not supported for operand of type %x.\n", a->type);
                 return;
             }
-
+        */
         case LEN:
-            v = POP(vm);
-            IPUSH(vm, LEN_C(v));
+            v = vm->stack[vm->sp];
+            if (v.type == STR) {
+                vm->stack[vm->sp].value = *(int64_t*)v.value;
+            } else if (v.type == HASH) {
+                vm->stack[vm->sp].value = ((Hash_t*)v.value)->count;
+            } else {
+                printf("ERROR: # not supported for operand of type %x.\n", v.type);
+                return;
+            }
+            vm->stack[vm->sp].type = INT64;
             break;
+        /*
         case GT:
             b = POP(vm);
             a = POP(vm);
@@ -216,38 +226,32 @@ void run(VM* vm){
             }
             COMP(vm, a, b, GE, ">=");
             break;
+        */
         case EQ:
             b = POP(vm);
-            a = POP(vm);
-            PUSH(vm, isequal(&a, &b));
+            a = PEEK(vm);
+            vm->stack[vm->sp] = (vm, isequal(a, b));
             break;
         case ID:
             b = POP(vm);
-            a = POP(vm);
-            if (a.type == b.type && a.value == b.value) {
-                BPUSH(vm, 1);
-            } else {
-                BPUSH(vm, 0);
-            }
+            a = PEEK(vm);
+            vm->stack[vm->sp].value = a.type == b.type && a.value == b.value;
+            vm->stack[vm->sp].type = BOOL;
             break;
-        case BCONST_F:
-            BPUSH(vm, 0);   // represent false as 0
-            break;
-        case BCONST_T:
-            BPUSH(vm, 1);   // represent true as 1
-            break;
-        case NCONST:
-            NPUSH(vm);
-            break;
+        /*
         case ISNIL:
             v = POP(vm);
             if (v->type == UNDEF) BPUSH(vm, 1);
             else BPUSH(vm, 0);
             break;
         */
-        /*case NEWHASH:
+        case NEWHASH:
             vm->stack[++vm->sp].type = HASH;
             vm->stack[vm->sp].value  = (int64_t)new_hash();
+            break;
+        case NEWLIST:
+            vm->stack[++vm->sp].type = LIST;
+            vm->stack[vm->sp].value  = (int64_t)new_list();
             break;
         /*
         case V2S:   // TODO: implement
@@ -292,12 +296,12 @@ void run(VM* vm){
         */
         case GLOAD_1:
             addr = vm->code[vm->pc++];               // get addr of var in locals
-            printf("addr: %d\n", addr);
+            //printf("addr: %d\n", addr);
             vm->stack[++vm->sp] = vm->globals[addr];  // load value from memory of the provided addr
             break;
         case GSTORE_1:
             addr = vm->code[vm->pc++];
-            printf("addr: %d\n", addr);
+            //printf("addr: %d\n", addr);
             vm->globals[addr] = vm->stack[vm->sp--];
             break;
         /*
@@ -331,7 +335,7 @@ void run(VM* vm){
             vm->pc = addr;
             break;
         */
-        /*case BCALL_8:
+        case BCALL_8:
             memcpy(&addr, vm->code + vm->pc, sizeof(addr));
             vm->pc += sizeof(addr);
             if (!(builtins[addr](vm))) {
@@ -434,6 +438,9 @@ void run(VM* vm){
             case HASH:
                 printf("hash: <%" PRIx64 ">\n", v.value);
                 break;
+            case LIST:
+                printf("list: <%" PRIx64 ">\n", v.value);
+                break;
             default:
                 printf("ERROR UNKNOWN TYPE: %x\n", v.type);
                 break;
@@ -450,7 +457,7 @@ void run(VM* vm){
 char *buffer;
 FILE *file_ptr;
 long file_len;
-int64_t entry_point;
+int64_t entry_point, num_globals;
 
 int main(void) {
     file_ptr = fopen("source.yb", "rb");
@@ -460,11 +467,13 @@ int main(void) {
     buffer = (char *)malloc((file_len+1)*sizeof(char));
     fread(buffer, file_len, 1, file_ptr);
     entry_point = *((int64_t*)buffer);
+    num_globals = *((int64_t*)buffer+1);
+    //printf("num_globals = %" PRId64 "\n", num_globals);
     // printf("entry_point = %" PRId64 "\n", entry_point);
     //bytes_read = fread(buffer, sizeof(unsigned char), BUFFER_SIZE, file_ptr);
 	VM* vm = newVM(buffer,   // program to execute
 	                   entry_point,    // start address of main function
-	                   0);   // locals to be reserved, fib doesn't require them
+	                   num_globals);   // locals to be reserved, fib doesn't require them
 	run(vm);
 	delVM(vm);
     fclose(file_ptr);

@@ -1,5 +1,3 @@
-
-
 class AST(object):
     pass
 class TriOp(AST):
@@ -29,6 +27,14 @@ class Hash(AST):
     def __init__(self, token):
         self.token = token
         self.value = token.value
+class List(AST):
+    def __init__(self, token):
+        self.token = token
+        self.value = token.value
+class Index(AST):
+    def __init__(self, left, right):
+        self.left = left
+        self.right = right
 class String(AST):
     def __init__(self, token):
         self.token = token

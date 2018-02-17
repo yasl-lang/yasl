@@ -4,10 +4,11 @@
 
 enum types {
     UNDEF   = 0x00,
-    INT64   = 0x13,
-    FLOAT64 = 0x1B,
+    FLOAT64 = 0x13,
+    INT64   = 0x1B,
     BOOL    = 0x20,
     STR     = 0x30,
+    LIST    = 0x44,
     HASH    = 0x48,
 };
 

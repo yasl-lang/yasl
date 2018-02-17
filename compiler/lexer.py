@@ -1,4 +1,4 @@
-from tokens import TokenTypes, Token
+from .tokens import TokenTypes, Token
 
 ###############################################################################
 #                                                                             #
@@ -22,6 +22,7 @@ RESERVED_KEYWORDS = {
             "return": lambda x: Token(TokenTypes.RETURN, "return", x),
             "class": lambda x: Token(TokenTypes.CLASS, "class", x),
             "hash": lambda x: Token(TokenTypes.HASH, "hash", x),
+            "list": lambda x: Token(TokenTypes.LIST, "list", x),
 }
 
 class Lexer(object):

@@ -10,7 +10,6 @@
 
 
 Constant isequal(Constant a, Constant b) {
-        printf("a, b are types: %x, %x\n", a.type, b.type);
         if (a.type == UNDEF || b.type == UNDEF) {
             return UNDEF_C;
         }
@@ -28,6 +27,29 @@ Constant isequal(Constant a, Constant b) {
         case HASH:
             if (b.type == HASH) {
                 puts("comparison of hashes currently is not implemented.");
+                return UNDEF_C;
+            }
+            return FALSE_C;
+        case LIST:
+            /*if (b.type == LIST) {
+                if (((List_t*)a.value)->count != ((List_t*)b.value)->count) {
+                    return FALSE_C;
+                } else {
+                    int i = sizeof(int64_t);
+
+                    while (i < *((int64_t*)a.value) + sizeof(int64_t)) {
+                        if (a.type == b.type && a.value == b.value) {}
+                        else if (FALSEY(isequal(((List_t*)a.value)->items[i], (List_t*)b.value)->items[i])) {
+                            return FALSE_C;
+                        }
+                        i++;
+                    }
+                    return TRUE_C;
+                }
+            }
+            return FALSE_C; */
+            if (b.type == LIST) {
+                puts("comparison of lists currently is not implemented.");
                 return UNDEF_C;
             }
             return FALSE_C;

@@ -1,9 +1,9 @@
-from lexer import Lexer
-from parser import Parser
-from compiler import Compiler
-from resolver import Resolver
+from .lexer import Lexer
+from .parser import Parser
+from .compiler import Compiler
+from .resolver import Resolver
 import sys
-from opcode import HALT
+from .opcode import HALT
 
 def main():
     compiler = Compiler()
@@ -35,9 +35,9 @@ if __name__ == "__main__":
         result = interpreter.compile(statements)
         #print(result)
         #print([hex(r) for r in result])
-        f = open("source.py", "w")
-        f.write("from opcode import *\n\n")
-        f.write("source = bytes(\n    ")
-        f.write(str(result+[HALT]))
-        f.write("\n)\n")
+        #sys.stdout = open("source.yb", "wb")
+        # for h in [hex(r) for r in result+[HALT]:
+        #    print r
+        f = open("source.yb", "wb")
+        f.write(bytes(result+[HALT]))
         f.close()

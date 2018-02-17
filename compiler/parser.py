@@ -1,5 +1,5 @@
-from tokens import TokenTypes, Token
-from ast import *
+from .tokens import TokenTypes, Token
+from .ast import *
 
 ###############################################################################
 #                                                                             #
@@ -241,6 +241,11 @@ class Parser(object):
             self.eat(TokenTypes.LPAREN)
             self.eat(TokenTypes.RPAREN)
             return Hash(hash)
+        elif self.current_token.type is TokenTypes.LIST:
+            ls = self.eat(TokenTypes.LIST)
+            self.eat(TokenTypes.LPAREN)
+            self.eat(TokenTypes.RPAREN)
+            return List(ls)
         else:
             assert False
     def parse(self):
