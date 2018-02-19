@@ -54,8 +54,8 @@ Constant isequal(Constant a, Constant b) {
             }
             return FALSE_C;
             // #define LEN_C(v)     (*((int64_t*)v.value))
-        case STR:
-            if (b.type == STR) {
+        case STR8:
+            if (b.type == STR8) {
                 if (*((int64_t*)a.value) != *((int64_t*)b.value)) {
                     return FALSE_C;
                 } else {

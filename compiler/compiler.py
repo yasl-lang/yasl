@@ -73,11 +73,8 @@ class Compiler(NodeVisitor):
         self.locals = Env(self.globals)
         self.offset = 0
     def compile(self, statements):
-        #print(ICONSTANTS)
         result = []
         for statement in statements:
-            #print(ICONSTANTS)
-            #print(statement)
             result = result + self.visit(statement)
         self.header[0:8] = intbytes_8(len(self.header))
         self.header[8:16] = intbytes_8(len(self.globals))  # TODO: fix so this works with locals as well
@@ -129,14 +126,12 @@ class Compiler(NodeVisitor):
     def visit_BinOp(self, node):
         left = self.visit(node.left)
         right = self.visit(node.right)
-        print(left, right)
+        #print(left, right)
         if node.token.value == "??":
-            left = left + [DUP]
-            right = [POP] + right
-            return left + [ISNIL, BRF_8] + intbytes_8(len(right)) + right
+            return left + [DUP, BRN_8] + intbytes_8(len(right)+1) + [POP] + right
         elif node.token.value == "||":
             return left + [V2S, DUP, LEN, ICONST_0, SWAP] + right + [V2S, DUP, LEN, SWAP_X1, DUP2, ADD, DUP, ICONST] + \
-                   intbytes_8(8) + [ADD, MLC, STR, ICP, SCP, SCP]
+                   intbytes_8(8) + [ADD, MLC, STR8, ICP, SCP, SCP]
         this = BINRESERVED.get(node.op.value)
         return left + right + this
     def visit_LogicOp(self, node):
@@ -153,12 +148,6 @@ class Compiler(NodeVisitor):
         expr = self.visit(node.expr)
         this = UNRESERVED.get(node.op.value)
         return expr + this
-    '''def visit_NulOp(self, node):
-        pass
-    def visit_FuncDecl(self, node):
-        pass
-    def visit_FuncCall(self, node):
-        pass '''
     def visit_FunctionDecl(self, node):
         self.current_fn = node.token.value
         if self.env is not self.globals:
@@ -170,6 +159,7 @@ class Compiler(NodeVisitor):
         self.fns[node.token.value]["params"] = node.params.__len__()
         self.env = self.locals
         self.offset = self.fns[node.token.value]["params"]
+        node.params.reverse()
         for i in node.params:
             self.env[i.value] = 255 - len(self.env.vars) - 1
         self.fns[node.token.value]["locals"] = len(self.env.vars)
@@ -184,33 +174,36 @@ class Compiler(NodeVisitor):
         result = []
         for expr in node.params:
             result = result + self.visit(expr)
-        # print([hex(r) for r in result])
         if node.value in BUILTINS:
             return result + [BCALL_8] + intbytes_8(BUILTINS[node.value])
         return result + [CALL_8, self.fns[node.token.value]["params"]] + \
                          intbytes_8(self.fns[node.token.value]["addr"]) + \
                          [self.fns[node.token.value]["locals"]]
     def visit_Return(self, node):
-        expr = self.visit(node.expr)
-        return expr + [RET]
+        #expr = self.visit(node.expr)
+        print(type(node.expr), self.current_fn)
+        if isinstance(node.expr, FunctionCall) and node.expr.value == self.current_fn:
+            result = []
+            for param in node.expr.params:
+                result = result + self.visit(param)
+            return result + [RCALL_8, self.fns[node.expr.value]["params"]] + \
+                        intbytes_8(self.fns[node.expr.value]["addr"]) + \
+                        [self.fns[node.expr.value]["locals"]]
+                         #intbytes_8(self.fns[node.token.value]["addr"]) +
+        return self.visit(node.expr) + [RET]
     def visit_Decl(self, node):
-        #print(self.env is self.locals)
         if self.env is self.locals:
             if node.left.value not in self.env.vars:
                 self.env[node.left.value] = len(self.env.vars) + 1 - self.offset
             return self.visit(node.right) + [LSTORE_1, self.env[node.left.value]]
         if node.left.value not in self.env.vars:
             self.env.decl_var(node.left.value)
-        #print(node.right)
         right = self.visit(node.right)
-        #print([hex(r) for r in right])
-        result = self.visit(node.right) + [GSTORE_1, self.env[node.left.value]]
-        #print([hex(r) for r in result])
+        result = right + [GSTORE_1, self.env[node.left.value]]
         return result
     def visit_Assign(self, node):
         if node.left.value not in self.env:
             raise Exception("undeclared variable: %s in line %s" % (node.left.value, node.left.line))
-        #print(self.env is self.locals)
         if isinstance(node.left, Var):
             if self.current_fn is not None:
                 return self.visit(node.right) + [LSTORE_1,
@@ -241,7 +234,7 @@ class Compiler(NodeVisitor):
         string = [int(b) for b in str.encode(node.value)]
         length = intbytes_8(len(string))
         length8 = intbytes_8(len(string)+8)
-        return [MLC_8, STR] + length8 + [MCP_8] + intbytes_8(0) + length8 + length + string
+        return [MLC_8, STR8] + length8 + [MCP_8] + intbytes_8(0) + length8 + length + string
         '''MLC,
         0x30,
         0x14,
