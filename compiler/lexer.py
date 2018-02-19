@@ -143,6 +143,12 @@ class Lexer(object):
                 self._eat_white_space()
                 if self.current_char == "\n":
                     self._add_token(TokenTypes.SEMI)
+            elif self.current_char == "[": self._add_token(TokenTypes.LBRACK)
+            elif self.current_char == "]":
+                self._add_token(TokenTypes.RBRACK)
+                self._eat_white_space()
+                if self.current_char == "\n":
+                    self._add_token(TokenTypes.SEMI)
             elif self.current_char == "{": self._add_token(TokenTypes.LBRACE)
             elif self.current_char == "}":
                 self._add_token(TokenTypes.RBRACE)

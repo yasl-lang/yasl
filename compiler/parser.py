@@ -130,10 +130,9 @@ class Parser(object):
         name = self.ternary()
         if self.current_token.value == "=":
             self.eat(TokenTypes.OP)
-            if isinstance(name, Var):
-                left = name.token
+            if isinstance(name, Var) or isinstance(name, Index):
                 right = self.expr()
-                return Assign(left, right)
+                return Assign(name, right)
             else:
                 raise Exception("Invalid assignment target.")
         else:
@@ -219,6 +218,12 @@ class Parser(object):
                     left = var
                     right = self.func_call()
                     return FunctionCall(left, right)
+            elif self.current_token.type is TokenTypes.LBRACK:
+                left = Var(var)
+                self.eat(TokenTypes.LBRACK)
+                right = self.expr()
+                self.eat(TokenTypes.RBRACK)
+                return Index(left, right)
             else:
                 return Var(var)
         elif self.current_token.type is TokenTypes.STR:

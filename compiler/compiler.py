@@ -3,6 +3,7 @@ from .constant import *
 import struct
 from .visitor import NodeVisitor
 from .environment import Env
+from .ast import *
 
 BINRESERVED = {
         "+":  [ADD],
@@ -210,19 +211,28 @@ class Compiler(NodeVisitor):
         if node.left.value not in self.env:
             raise Exception("undeclared variable: %s in line %s" % (node.left.value, node.left.line))
         #print(self.env is self.locals)
-        if self.env is not None:
-            return self.visit(node.right) + [LSTORE_1,
-                                             self.env[node.left.value],
-                                             LLOAD_1,
-                                             self.env[node.left.value]]
-        return self.visit(node.right) + [GSTORE_1, self.env[node.left.value],
-                                         GLOAD_1, self.env[node.left.value]]
+        if isinstance(node.left, Var):
+            if self.current_fn is not None:
+                return self.visit(node.right) + [LSTORE_1,
+                                                 self.env[node.left.value],
+                                                 LLOAD_1,
+                                                 self.env[node.left.value]]
+            return self.visit(node.right) + [GSTORE_1, self.env[node.left.value],
+                                             GLOAD_1, self.env[node.left.value]]
+        elif isinstance(node.left, Index):
+            index = node.left
+            return self.visit(index.left) + self.visit(index.right) + self.visit(node.right) + \
+                   [BCALL_8] + intbytes_8(BUILTINS["insert"])
     def visit_Var(self, node):
         if node.value not in self.env:
             raise Exception("undefined variable: %s in line %s" % (node.value, node.token.line))
         if self.current_fn is not None:
             return [LLOAD_1, self.env[node.value]]
         return [GLOAD_1, self.env[node.value]]
+    def visit_Index(self, node):
+        left = self.visit(node.left)
+        right = self.visit(node.right)
+        return left + right + [BCALL_8] + intbytes_8(BUILTINS["find"])
     def visit_Hash(self, node):
         return [NEWHASH]  # TODO: allow declaration with a bunch of values in it
     def visit_List(self, node):

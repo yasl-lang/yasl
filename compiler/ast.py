@@ -35,6 +35,7 @@ class Index(AST):
     def __init__(self, left, right):
         self.left = left
         self.right = right
+        self.value = left.value
 class String(AST):
     def __init__(self, token):
         self.token = token

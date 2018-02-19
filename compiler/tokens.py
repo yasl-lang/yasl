@@ -17,8 +17,10 @@ class TokenTypes(Enum):
     ID     = 0x20
     LPAREN = 0x30
     RPAREN = 0x31
-    LBRACE = 0x32
-    RBRACE = 0x33
+    LBRACK = 0x32
+    RBRACK = 0x33
+    LBRACE = 0x34
+    RBRACE = 0x35
     QMARK  = 0x36
     COLON  = 0x37
     DOT    = 0x38
