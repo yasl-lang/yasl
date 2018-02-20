@@ -193,23 +193,19 @@ void run(VM* vm){
                 printf("ERROR: unary - not supported for operand of type %x.\n", a.type);
                 return;
             }
-        /*
         case NOT:
-            a = POP(vm);
-            if (a->type == BOOL) {
-                a->value ^= 1;    // flip the last bit of a.value
-                PUSH(vm, a);
+            a = vm->stack[vm->sp];
+            if (a.type == BOOL) {
+                vm->stack[vm->sp].value ^= 1;    // flip the last bit
                 break;
             }
-            else if (a->type == UNDEF) {
-                NPUSH(vm);
+            else if (a.type == UNDEF) {
                 break;
             }
             else {
-                printf("ERROR: ! not supported for operand of type %x.\n", a->type);
+                printf("ERROR: ! not supported for operand of type %x.\n", a.type);
                 return;
             }
-        */
         case LEN:
             v = vm->stack[vm->sp];
             if (v.type == STR8) {
@@ -339,7 +335,7 @@ void run(VM* vm){
             //printf("%d\n", vm->pc);
             vm->fp = vm->sp;
             offset = NCODE(vm);
-            vm->sp += offset + 2;
+            vm->sp += offset;// + 2;
             vm->pc = addr;
             break;
         case BCALL_8:
@@ -368,7 +364,7 @@ void run(VM* vm){
             vm->pc += sizeof addr;
             //vm->stack[vm->fp].value = vm->pc;
             offset = NCODE(vm);
-            vm->sp = vm->fp + offset + 2;
+            vm->sp = vm->fp + offset;// + 2;
             vm->pc = addr;
             //printf("vm->sp: %d\n", vm->sp);
             break;
