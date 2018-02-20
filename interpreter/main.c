@@ -26,6 +26,7 @@
 #define DIV(a, b)    (a / b)
 #define SUB(a, b)    (a - b)
 #define MUL(a, b)    (a * b)
+#define MOD(a, b)    (a % b)
 #define GT(a, b)     (a > b)
 #define GE(a, b)     (a >= b)
 #define EQ(a, b)     (a == b)
@@ -167,23 +168,32 @@ void run(VM* vm){
             vm->stack[++vm->sp].type = FLOAT64;
             memcpy(&vm->stack[vm->sp].value, &d, sizeof(d));
             break;
-        /*
+        case MOD:
+            b = vm->stack[vm->sp--];
+            a = vm->stack[vm->sp];
+            if (a.type != INT64 || b.type != INT64) {
+               printf("ERROR: %% not supported for operands of types %x and %x.\n", a.type, b.type);
+               return;
+            }
+            vm->stack[vm->sp].value = a.value % b.value;
+            break;
         case NEG:
-            a = POP(vm);
-            if (a->type == INT64) {
-                a->value = -a->value;
-                PUSH(vm, a);
+            a = vm->stack[vm->sp];
+            if (a.type == INT64) {
+                vm->stack[vm->sp].value = -a.value;
                 break;
             }
-            else if (a->type == FLOAT64) {
-                d = -DVAL(a);
-                DPUSH(vm, d);
+            else if (a.type == FLOAT64) {
+                memcpy(&d, &vm->stack[vm->sp].value, sizeof(double));
+                d = -d;
+                memcpy(&vm->stack[vm->sp].value, &d, sizeof(double));
                 break;
             }
             else {
-                printf("ERROR: unary - not supported for operand of type %x.\n", a->type);
+                printf("ERROR: unary - not supported for operand of type %x.\n", a.type);
                 return;
             }
+        /*
         case NOT:
             a = POP(vm);
             if (a->type == BOOL) {
@@ -245,13 +255,6 @@ void run(VM* vm){
             vm->stack[vm->sp].value = a.type == b.type && a.value == b.value;
             vm->stack[vm->sp].type = BOOL;
             break;
-        /*
-        case ISNIL:
-            v = POP(vm);
-            if (v->type == UNDEF) BPUSH(vm, 1);
-            else BPUSH(vm, 0);
-            break;
-        */
         case NEWHASH:
             vm->stack[++vm->sp].type = HASH;
             vm->stack[vm->sp].value  = (int64_t)new_hash();

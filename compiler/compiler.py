@@ -6,16 +6,17 @@ from .environment import Env
 from .ast import *
 
 BINRESERVED = {
-        "+":  [ADD],
-        "*":  [MUL],
-        "-":  [SUB],
-        "/":  [DIV],
-        "<":  [GE, NOT],
-        "<=": [GT, NOT],
-        ">":  [GT],
-        ">=": [GE],
-        "==": [EQ],
-        "!=": [EQ, NOT],
+        "+":   [ADD],
+        "*":   [MUL],
+        "-":   [SUB],
+        "/":   [DIV],
+        "%":   [MOD],
+        "<":   [GE, NOT],
+        "<=":  [GT, NOT],
+        ">":   [GT],
+        ">=":  [GE],
+        "==":  [EQ],
+        "!=":  [EQ, NOT],
         "===": [ID],
         "!==": [ID, NOT]
         }
@@ -26,7 +27,6 @@ UNRESERVED = {
         "#": [LEN],
         }
 ICONSTANTS = {
-        #-2: [ICONST_M2],
         -1: [ICONST_M1],
         0: [ICONST_0],
         1: [ICONST_1],
@@ -34,7 +34,6 @@ ICONSTANTS = {
         3: [ICONST_3],
         4: [ICONST_4],
         5: [ICONST_5],
-        #6: [ICONST_6],
         }
 DCONSTANTS = {
         0.0: [DCONST_0],

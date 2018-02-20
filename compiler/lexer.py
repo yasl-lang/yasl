@@ -117,7 +117,7 @@ class Lexer(object):
                 self.advance()
                 self.advance()
             elif self.current_char == "$" and self.peek() == "$":
-                while self.current_char != "\n":
+                while self.current_char != "\n" and self.current_char != None:
                     self.advance()
             elif self.current_char == '"':
                 self.advance()
@@ -187,7 +187,7 @@ class Lexer(object):
                 self.advance()
             elif self.current_char == ",":
                 self._add_token(TokenTypes.COMMA)
-            elif self.current_char in ("=", "<", ">", "+", "-", "/", "*", "!", "#"):
+            elif self.current_char in ("=", "<", ">", "+", "-", "/", "*", "!", "#", "%"):
                 self._add_token(TokenTypes.OP)
             else:
                 self.error()

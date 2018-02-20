@@ -32,6 +32,7 @@ ADD       = 0x60, // add two integers
 SUB       = 0x61, // subtract two integers
 MUL       = 0x62, // multiply two integers
 DIV       = 0x64, // divide two integers
+MOD       = 0x65, // modulo two numbers
 NEG       = 0x67, // negate an integer
 NOT       = 0x69, // negate a boolean
 LEN       = 0x6A, // get length
