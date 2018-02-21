@@ -243,8 +243,19 @@ class Parser(object):
         elif self.current_token.type is TokenTypes.HASH:
             hash = self.eat(TokenTypes.HASH)
             self.eat(TokenTypes.LPAREN)
+            keys = []
+            vals = []
+            if self.current_token.type is not TokenTypes.RPAREN:
+                keys.append(self.expr())
+                self.eat(TokenTypes.ARROW)
+                vals.append(self.expr())
+            while self.current_token.type is TokenTypes.COMMA and self.current_token.type is not TokenTypes.EOF:
+                self.eat(TokenTypes.COMMA)
+                keys.append(self.expr())
+                self.eat(TokenTypes.ARROW)
+                vals.append(self.expr())
             self.eat(TokenTypes.RPAREN)
-            return Hash(hash, [])
+            return Hash(hash, keys, vals)
         elif self.current_token.type is TokenTypes.LIST:
             ls = self.eat(TokenTypes.LIST)
             self.eat(TokenTypes.LPAREN)

@@ -94,7 +94,7 @@ void run(VM* vm){
                (int)vm->globals[0].value, (int)vm->globals[0].type,
                (int)vm->globals[1].value, (int)vm->globals[1].type,
                (int)vm->globals[2].value, (int)vm->globals[2].type,
-               (int)vm->globals[3].value, (int)vm->globals[3].type); */
+               (int)vm->globals[3].value, (int)vm->globals[3].type); //*/
         switch (opcode) {   // decode
         case HALT: return;  // stop the program
         case NOP: break;    // pass
