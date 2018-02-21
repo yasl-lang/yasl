@@ -212,6 +212,8 @@ void run(VM* vm){
                 vm->stack[vm->sp].value = *(int64_t*)v.value;
             } else if (v.type == HASH) {
                 vm->stack[vm->sp].value = ((Hash_t*)v.value)->count;
+            } else if (v.type == LIST) {
+                vm->stack[vm->sp].value = ((List_t*)v.value)->count;
             } else {
                 printf("ERROR: # not supported for operand of type %x.\n", v.type);
                 return;
@@ -415,7 +417,7 @@ void run(VM* vm){
             //memcpy((int64_t*)(v.value), &c, sizeof(int64_t));
             PUSH(vm, v);
             break; //*/
-        case PRINT:
+        /*case PRINT:
             v = vm->stack[vm->sp--];    // pop value from top of the stack ...
             switch (v.type) {
             case INT64:
@@ -448,7 +450,7 @@ void run(VM* vm){
                 printf("ERROR UNKNOWN TYPE: %x\n", v.type);
                 break;
             }
-            break;
+            break; //*/
         default:
             printf("ERROR UNKNOWN OPCODE: %x\n", opcode);
             return;

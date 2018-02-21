@@ -6,6 +6,13 @@ from .tokens import TokenTypes, Token
 #                                                                             #
 ###############################################################################
 
+ESCCHARS = {
+    "n":  "\n",
+    "t":  "\t",
+    "\\": "\\",
+    "\"": "\"",
+    "r":  "\r",
+}
 RESERVED_KEYWORDS = {
             "let": lambda x: Token(TokenTypes.LET, "let", x),
             "print": lambda x: Token(TokenTypes.PRINT, "print", x),
@@ -27,18 +34,13 @@ RESERVED_KEYWORDS = {
 
 class Lexer(object):
     def __init__(self, text):
-        # string input
-        self.text = text
-        # self.pos is index into self.text
-        self.pos = 0
-        # current line
-        self.line = 1
-        # current char
-        self.current_char = self.text[0]
-        # tokens so far
-        self.tokens = []
-    def error(self):
-        raise Exception("LEXING ERROR: line %s" % self.line)
+        self.text = text         # string input
+        self.pos = 0             # self.pos is index into self.text
+        self.line = 1            # current line
+        self.current_char = self.text[0] # current char
+        self.tokens = []         # tokens so far
+    def error(self, msg=""):
+        raise Exception("LexingError, line %s: " + msg + "." % self.line)
     def peek(self, lookahead=1):
         peek_pos = self.pos + lookahead
         if peek_pos >= len(self.text):
@@ -77,8 +79,16 @@ class Lexer(object):
     def _str(self):
         result = ""
         while self.current_char is not None and self.current_char != '"':
-            result += self.current_char
-            self.advance()
+            if self.current_char == "\\":
+                escape_char = ESCCHARS.get(self.peek(), None)
+                if escape_char is None:
+                    self.error("invalid escape sequence")
+                result += escape_char
+                self.advance()
+                self.advance()
+            else:
+                result += self.current_char
+                self.advance()
         self.advance()
         token = Token(TokenTypes.STR, result, self.line)
         self.tokens.append(token)

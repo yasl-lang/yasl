@@ -17,7 +17,6 @@ DCONST_1  = 0x0C, // push 1.0 onto stack
 DCONST_2  = 0x0D, // push 2.0 onto stack
 BCONST_F  = 0x0E, // push literal false onto stack
 BCONST_T  = 0x0F, // push literal true onto stack
-ISNIL     = 0x21, // check that top of stack is nil, returns true or false
 MLC_8     = 0x50, // allocate memory (takes next 1 byte as type, next 8 bytes as length)
 MLC       = 0x51, // allocate memory (takes 1 byte as type, top of stack as length)
 MCP_8     = 0x52, // copy from memory (takes next byte as offset, next 8 bytes as length, next <length> bytes as data.
