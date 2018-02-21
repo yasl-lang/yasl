@@ -66,11 +66,11 @@ def doublebytes(d:float):
 
 class Compiler(NodeVisitor):
     def __init__(self):
-        self.env = self.globals = Env()
+        self.globals = Env()
+        self.locals = Env()
         self.header = intbytes_8(8) + intbytes_8(0)
         self.fns = {}
         self.current_fn = None
-        self.locals = Env(self.globals)
         self.offset = 0
     def compile(self, statements):
         result = []
@@ -78,10 +78,20 @@ class Compiler(NodeVisitor):
             result = result + self.visit(statement)
         self.header[0:8] = intbytes_8(len(self.header))
         self.header[8:16] = intbytes_8(len(self.globals))  # TODO: fix so this works with locals as well
-        for opcode in self.header: print(hex(opcode))
-        print("entry point:")
-        for opcode in result + [HALT]: print(hex(opcode))
+        #for opcode in self.header: print(hex(opcode))
+        #print("entry point:")
+        #for opcode in result + [HALT]: print(hex(opcode))
         return self.header + result + [HALT] #TODO: fix return values once we have proper ones
+    def enter_scope(self):
+        if self.current_fn is None:
+            self.locals = Env(self.locals)
+        else:
+            self.globals = Env(self.globals)
+    def exit_scope(self):
+        if self.current_fn is None:
+            self.locals = self.locals.parent
+        else:
+            self.globals = self.globals.parent
     def visit_Print(self, node):
         expr = self.visit(node.expr)
         return expr + [BCALL_8] + intbytes_8(BUILTINS["print"])
@@ -95,25 +105,25 @@ class Compiler(NodeVisitor):
         return expr + [POP]
     def visit_If(self, node):
         cond = self.visit(node.cond)
-        self.env = Env(self.env)
+        self.enter_scope()
         body = self.visit(node.body)
-        self.env = self.env.parent
+        self.exit_scope()
         return cond + [BRF_8] + intbytes_8(len(body)) + body
     def visit_IfElse(self, node):
         cond = self.visit(node.cond)
-        self.env = Env(self.env)
+        self.enter_scope()
         left = self.visit(node.left)
-        self.env = self.env.parent
-        self.env = Env(self.env)
+        self.exit_scope()
+        self.enter_scope()
         right = self.visit(node.right)
-        self.env = self.env.parent
+        self.exit_scope()
         left = left + [BR_8] + intbytes_8(len(right))
         return cond + [BRF_8] + intbytes_8(len(left)) + left + right
     def visit_While(self, node):
         cond = self.visit(node.cond)
-        self.env = Env(self.env)
+        self.enter_scope()
         body = self.visit(node.body)
-        self.env = self.env.parent
+        self.exit_scope()
         cond = cond + [BRF_8] + intbytes_8(len(body)+9)
         body = body + [BR_8] + intbytes_8(-(len(body)+9+len(cond)))
         return cond + body
@@ -148,25 +158,24 @@ class Compiler(NodeVisitor):
         this = UNRESERVED.get(node.op.value)
         return expr + this
     def visit_FunctionDecl(self, node):
-        self.current_fn = node.token.value
-        if self.env is not self.globals:
+        if self.current_fn is not None:
             raise Exception("cannot declare function outside of global scope. (line %s)" % node.token.line)
+        self.current_fn = node.token.value
         if node.token.value in self.fns:
             raise Exception("invalid redefinition of function %s (line %s)" % (node.token.value, node.token.line))
         self.fns[node.token.value] = {}
         self.fns[node.token.value]["addr"] = len(self.header)
         self.fns[node.token.value]["params"] = node.params.__len__()
-        self.env = self.locals
+        self.locals = Env()
         self.offset = self.fns[node.token.value]["params"]
         node.params.reverse()
         for i in node.params:
-            self.env[i.value] = 255 - len(self.env.vars) - 1
-        self.fns[node.token.value]["locals"] = len(self.env.vars)
+            self.locals[i.value] = 255 - len(self.locals.vars) - 1
+        self.fns[node.token.value]["locals"] = len(self.locals.vars)
         for stmt in node.block.statements:
             self.header = self.header + self.visit(stmt)
         self.header = self.header + [NCONST, RET]
-        self.env = self.globals
-        self.locals = Env(self.globals)
+        self.locals = Env()
         self.current_fn = None  # TODO: allow nested function definitions
         return []
     def visit_FunctionCall(self, node):
@@ -188,36 +197,37 @@ class Compiler(NodeVisitor):
                         [self.fns[node.expr.value]["locals"]]
         return self.visit(node.expr) + [RET]
     def visit_Decl(self, node):
-        if self.env is self.locals:
-            if node.left.value not in self.env.vars:
-                self.env[node.left.value] = len(self.env.vars) + 1 - self.offset
-            return self.visit(node.right) + [LSTORE_1, self.env[node.left.value]]
-        if node.left.value not in self.env.vars:
-            self.env.decl_var(node.left.value)
+        if self.current_fn is not None:
+            if node.left.value not in self.locals.vars:
+                self.locals[node.left.value] = len(self.locals.vars) + 1 - self.offset
+            return self.visit(node.right) + [LSTORE_1, self.locals[node.left.value]]
+        if node.left.value not in self.globals.vars:
+            self.globals.decl_var(node.left.value)
         right = self.visit(node.right)
-        result = right + [GSTORE_1, self.env[node.left.value]]
+        result = right + [GSTORE_1, self.globals[node.left.value]]
         return result
     def visit_Assign(self, node):
-        if node.left.value not in self.env:
-            raise Exception("undeclared variable: %s in line %s" % (node.left.value, node.left.line))
+        if node.left.value not in self.locals and node.left.value not in self.globals:
+            raise Exception("undeclared variable: %s in line %s" % (node.left.value, node.left.token.line))
         if isinstance(node.left, Var):
             if self.current_fn is not None:
-                return self.visit(node.right) + [LSTORE_1,
-                                                 self.env[node.left.value],
-                                                 LLOAD_1,
-                                                 self.env[node.left.value]]
-            return self.visit(node.right) + [GSTORE_1, self.env[node.left.value],
-                                             GLOAD_1, self.env[node.left.value]]
+                if node.left.value in self.locals:
+                    return self.visit(node.right) + [LSTORE_1,
+                           self.locals[node.left.value],
+                           LLOAD_1,
+                           self.locals[node.left.value]]
+            return self.visit(node.right) + [GSTORE_1, self.globals[node.left.value],
+                                             GLOAD_1, self.globals[node.left.value]]
         elif isinstance(node.left, Index):
             index = node.left
             return self.visit(index.left) + self.visit(index.right) + self.visit(node.right) + \
                    [BCALL_8] + intbytes_8(BUILTINS["insert"])
     def visit_Var(self, node):
-        if node.value not in self.env:
+        if node.value not in self.locals and node.value not in self.globals:
             raise Exception("undefined variable: %s in line %s" % (node.value, node.token.line))
-        if self.current_fn is not None:
-            return [LLOAD_1, self.env[node.value]]
-        return [GLOAD_1, self.env[node.value]]
+        if (self.current_fn is not None) and (node.value in self.locals):
+            return [LLOAD_1, self.locals[node.value]]
+        return [GLOAD_1, self.globals[node.value]]
     def visit_Index(self, node):
         left = self.visit(node.left)
         right = self.visit(node.right)
@@ -225,7 +235,10 @@ class Compiler(NodeVisitor):
     def visit_Hash(self, node):
         return [NEWHASH]  # TODO: allow declaration with a bunch of values in it
     def visit_List(self, node):
-        return [NEWLIST]
+        result = [NEWLIST]
+        for expr in node.params:
+            result = result + [DUP] + self.visit(expr) + [BCALL_8] + intbytes_8(BUILTINS["append"]) + [POP]
+        return result
     def visit_String(self, node):
         string = [int(b) for b in str.encode(node.value)]
         length = intbytes_8(len(string))

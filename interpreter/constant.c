@@ -90,3 +90,4 @@ Constant isequal(Constant a, Constant b) {
             return (Constant) {BOOL, c};
         }
 }
+

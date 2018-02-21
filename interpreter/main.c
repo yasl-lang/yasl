@@ -51,20 +51,20 @@
                             }\
                             DPUSH(vm, d);})
 #define COMP(vm, a, b, f, str)  ({\
-                            if (a->type == INT64 && b->type == INT64) {\
-                                c = f(a->value, b->value);\
+                            if (a.type == INT64 && b.type == INT64) {\
+                                c = f(a.value, b.value);\
                             }\
-                            else if (a->type == FLOAT64 && b->type == INT64) {\
-                                c = f(DVAL(a), (double)b->value);\
+                            else if (a.type == FLOAT64 && b.type == INT64) {\
+                                c = f(DVAL(a), (double)b.value);\
                             }\
-                            else if (a->type == INT64 && b->type == FLOAT64) {\
-                                c = f((double)a->value, DVAL(b));\
+                            else if (a.type == INT64 && b.type == FLOAT64) {\
+                                c = f((double)a.value, DVAL(b));\
                             }\
-                            else if (a->type == FLOAT64 && b->type == FLOAT64) {\
+                            else if (a.type == FLOAT64 && b.type == FLOAT64) {\
                                 c = f(DVAL(a), DVAL(b));\
                             }\
                             else {\
-                                printf("ERROR: %s not supported for operands of types %x and %x.\n", str, a->type, b->type);\
+                                printf("ERROR: %s not supported for operands of types %x and %x.\n", str, a.type, b.type);\
                                 return;\
                             }\
                             BPUSH(vm, c);})
@@ -85,13 +85,16 @@ void run(VM* vm){
         //printf("\nopcode: %x\n", opcode);
         //printf("pc: %d\n", vm->pc);
         //printf("vm->sp: %d, vm->pc: %d\n", vm->sp, vm->pc);
-        //printf("0, 1, 2, 3 are %d:%x, %d:%x, %d:%x, %d:%x\n",
-        //       (int)vm->stack[vm->sp].value, (int)vm->stack[vm->sp].type,
-        //       (int)vm->stack[vm->sp - 1].value, (int)vm->stack[vm->sp - 1].type,
-        //       (int)vm->stack[vm->sp - 2].value, (int)vm->stack[vm->sp - 2].type,
-        //       (int)vm->stack[vm->sp - 3].value, (int)vm->stack[vm->sp - 3].type); //*/
-        //printf("0, 1, 2, 3: %d, %d, %d, %d\n", (int)vm->globals[0].value, (int)vm->globals[1].value, (int)vm->globals[2].value, (int)vm->globals[3].value);
-
+        /*printf("stack[0, 1, 2, 3] are %d:%x, %d:%x, %d:%x, %d:%x\n",
+               (int)vm->stack[vm->sp].value,     (int)vm->stack[vm->sp].type,
+               (int)vm->stack[vm->sp - 1].value, (int)vm->stack[vm->sp - 1].type,
+               (int)vm->stack[vm->sp - 2].value, (int)vm->stack[vm->sp - 2].type,
+               (int)vm->stack[vm->sp - 3].value, (int)vm->stack[vm->sp - 3].type); //
+        printf("globals[0, 1, 2, 3] are %d:%x, %d:%x, %d:%x, %d:%x\n",
+               (int)vm->globals[0].value, (int)vm->globals[0].type,
+               (int)vm->globals[1].value, (int)vm->globals[1].type,
+               (int)vm->globals[2].value, (int)vm->globals[2].type,
+               (int)vm->globals[3].value, (int)vm->globals[3].type); */
         switch (opcode) {   // decode
         case HALT: return;  // stop the program
         case NOP: break;    // pass
@@ -220,13 +223,12 @@ void run(VM* vm){
             }
             vm->stack[vm->sp].type = INT64;
             break;
-        /*
         case GT:
             b = POP(vm);
             a = POP(vm);
-            if ((a->type != INT64 && a->type != FLOAT64) ||
-                (b->type != INT64 && b->type != FLOAT64)) {
-                printf("ERROR: < and > not supported for operand of types %x and %x.\n", a->type, b->type);
+            if ((a.type != INT64 && a.type != FLOAT64) ||
+                (b.type != INT64 && b.type != FLOAT64)) {
+                printf("ERROR: < and > not supported for operand of types %x and %x.\n", a.type, b.type);
                 return;
             }
             COMP(vm, a, b, GT, ">");
@@ -234,14 +236,13 @@ void run(VM* vm){
         case GE:
             b = POP(vm);
             a = POP(vm);
-            if ((a->type != INT64 && a->type != FLOAT64) ||
-                (b->type != INT64 && b->type != FLOAT64)) {
-                printf("ERROR: <= and >= not supported for operand of types %x and %x.\n", a->type, b->type);
+            if ((a.type != INT64 && a.type != FLOAT64) ||
+                (b.type != INT64 && b.type != FLOAT64)) {
+                printf("ERROR: <= and >= not supported for operand of types %x and %x.\n", a.type, b.type);
                 return;
             }
             COMP(vm, a, b, GE, ">=");
             break;
-        */
         case EQ:
             b = POP(vm);
             a = PEEK(vm);
@@ -478,7 +479,7 @@ int main(void) {
     //bytes_read = fread(buffer, sizeof(unsigned char), BUFFER_SIZE, file_ptr);
 	VM* vm = newVM(buffer,   // program to execute
 	                   entry_point,    // start address of main function
-	                   num_globals);   // locals to be reserved, fib doesn't require them
+	                   256);   // locals to be reserved, should be num_globals
 	run(vm);
 	delVM(vm);
     fclose(file_ptr);

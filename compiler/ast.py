@@ -24,13 +24,15 @@ class UnOp(AST):
     def __init__(self, op):
         self.token = self.op = op'''
 class Hash(AST):
-    def __init__(self, token):
+    def __init__(self, token, params):
         self.token = token
         self.value = token.value
+        self.params = params
 class List(AST):
-    def __init__(self, token):
+    def __init__(self, token, params):
         self.token = token
         self.value = token.value
+        self.params = params
 class Index(AST):
     def __init__(self, left, right):
         self.left = left

@@ -24,7 +24,7 @@ class Parser(object):
         raise Exception("Expected %s Token in line %s, got %s" % \
             (token_type, self.current_token.line, self.current_token.type))
     def eat(self, token_type):
-        print(self.current_token)
+        #print(self.current_token)
         if self.current_token.type is token_type:
             result = self.current_token
             self.advance()
@@ -201,8 +201,6 @@ class Parser(object):
             op = self.eat(TokenTypes.OP)
             curr = BinOp(op, curr, self.const())
         return curr
-    def finish_call(self, var):
-        return None
     def const(self):
         if self.current_token.type is TokenTypes.OP and self.current_token.value in ("-", "+", "!", "#"):
             op = self.eat(TokenTypes.OP)
@@ -219,11 +217,12 @@ class Parser(object):
                     right = self.func_call()
                     return FunctionCall(left, right)
             elif self.current_token.type is TokenTypes.LBRACK:
-                left = Var(var)
-                self.eat(TokenTypes.LBRACK)
-                right = self.expr()
-                self.eat(TokenTypes.RBRACK)
-                return Index(left, right)
+                result = Var(var)
+                while self.current_token.type is TokenTypes.LBRACK:
+                    self.eat(TokenTypes.LBRACK)
+                    result = Index(result, self.expr())
+                    self.eat(TokenTypes.RBRACK)
+                return result
             else:
                 return Var(var)
         elif self.current_token.type is TokenTypes.STR:
@@ -245,12 +244,18 @@ class Parser(object):
             hash = self.eat(TokenTypes.HASH)
             self.eat(TokenTypes.LPAREN)
             self.eat(TokenTypes.RPAREN)
-            return Hash(hash)
+            return Hash(hash, [])
         elif self.current_token.type is TokenTypes.LIST:
             ls = self.eat(TokenTypes.LIST)
             self.eat(TokenTypes.LPAREN)
+            params = []
+            if self.current_token.type is not TokenTypes.RPAREN:
+                params.append(self.expr())
+            while self.current_token.type is TokenTypes.COMMA and self.current_token.type is not TokenTypes.EOF:
+                self.eat(TokenTypes.COMMA)
+                params.append(self.expr())
             self.eat(TokenTypes.RPAREN)
-            return List(ls)
+            return List(ls, params)
         else:
             assert False
     def parse(self):
