@@ -23,3 +23,4 @@ typedef struct {
 } FloatConstant;
 
 Constant isequal(Constant a, Constant b);
+int print(Constant a);

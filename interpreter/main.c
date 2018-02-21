@@ -341,35 +341,24 @@ void run(VM* vm){
         case BCALL_8:
             memcpy(&addr, vm->code + vm->pc, sizeof(addr));
             vm->pc += sizeof(addr);
-            if (!(builtins[addr](vm))) {
+            if (builtins[addr](vm)) {
                 printf("ERROR: invalid argument type(s) to builtin function.\n");
+                return;
             };
             break;
         case RCALL_8:
             offset = NCODE(vm);
-            //memcpy(&addr, vm->code + vm->pc, sizeof addr);
-            //vm->pc += sizeof addr;
-            /*puts("recursive call");
-            printf("vm->fp: %d\n", vm->fp);
-            printf("vm->sp: %d\n", vm->sp);
-            printf("0, 1, 2, 3: %d, %d, %d, %d\n", (int)vm->stack[vm->sp].value,
-                                               (int)vm->stack[vm->sp - 1].value,
-                                               (int)vm->stack[vm->sp - 2].value,
-                                               (int)vm->stack[vm->sp - 3].value); //*/
             int i;
             for (i = 0; i < offset; i++) {
                 vm->stack[vm->fp - 2 - i] = vm->stack[vm->sp - i];
             }
             memcpy(&addr, vm->code + vm->pc, sizeof addr);
             vm->pc += sizeof addr;
-            //vm->stack[vm->fp].value = vm->pc;
             offset = NCODE(vm);
-            vm->sp = vm->fp + offset;// + 2;
+            vm->sp = vm->fp + offset;
             vm->pc = addr;
-            //printf("vm->sp: %d\n", vm->sp);
             break;
         case RET:
-            //printf("sp, fp, pc: %d, %d, %d\n", vm->sp, vm->fp, vm->pc);
             v = POP(vm);
             a = vm->stack[vm->fp];
             b = vm->stack[vm->fp-1];
@@ -378,10 +367,8 @@ void run(VM* vm){
             vm->sp = vm->fp - a.type;
             vm->sp--;
             vm->fp = b.value;
-            //printf("%" PRId64 "\n", a.value);
-            //printf("%d\n", a.type);
             PUSH(vm, v);
-            break; //
+            break;
         case POP:
             --vm->sp;      // throw away value at top of the stack
             break;

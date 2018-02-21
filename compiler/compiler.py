@@ -28,12 +28,12 @@ UNRESERVED = {
         }
 ICONSTANTS = {
         -1: [ICONST_M1],
-        0: [ICONST_0],
-        1: [ICONST_1],
-        2: [ICONST_2],
-        3: [ICONST_3],
-        4: [ICONST_4],
-        5: [ICONST_5],
+        0:  [ICONST_0],
+        1:  [ICONST_1],
+        2:  [ICONST_2],
+        3:  [ICONST_3],
+        4:  [ICONST_4],
+        5:  [ICONST_5],
         }
 DCONSTANTS = {
         0.0: [DCONST_0],
@@ -41,15 +41,16 @@ DCONSTANTS = {
         2.0: [DCONST_2],
         }
 BUILTINS = {
-        "upcase": 0,
-        "downcase": 1,
-        "isalnum": 2,
-        "isal": 3,
-        "isnum": 4,
-        "isspace": 5,
-        "insert": 6,
-        "find": 7,
-        "append": 8,
+        "print":    0,
+        "upcase":   1,
+        "downcase": 2,
+        "isalnum":  3,
+        "isal":     4,
+        "isnum":    5,
+        "isspace":  6,
+        "insert":   7,
+        "find":     8,
+        "append":   9,
 }
 
 def intbytes_8(n:int):
@@ -83,7 +84,7 @@ class Compiler(NodeVisitor):
         return self.header + result + [HALT] #TODO: fix return values once we have proper ones
     def visit_Print(self, node):
         expr = self.visit(node.expr)
-        return expr + [PRINT]
+        return expr + [BCALL_8] + intbytes_8(BUILTINS["print"])
     def visit_Block(self, node):
         result = []
         for statement in node.statements:
@@ -125,7 +126,6 @@ class Compiler(NodeVisitor):
     def visit_BinOp(self, node):
         left = self.visit(node.left)
         right = self.visit(node.right)
-        #print(left, right)
         if node.token.value == "??":
             return left + [DUP, BRN_8] + intbytes_8(len(right)+1) + [POP] + right
         elif node.token.value == "||":
@@ -179,8 +179,6 @@ class Compiler(NodeVisitor):
                          intbytes_8(self.fns[node.token.value]["addr"]) + \
                          [self.fns[node.token.value]["locals"]]
     def visit_Return(self, node):
-        #expr = self.visit(node.expr)
-        print(type(node.expr), self.current_fn)
         if isinstance(node.expr, FunctionCall) and node.expr.value == self.current_fn:
             result = []
             for param in node.expr.params:
@@ -188,7 +186,6 @@ class Compiler(NodeVisitor):
             return result + [RCALL_8, self.fns[node.expr.value]["params"]] + \
                         intbytes_8(self.fns[node.expr.value]["addr"]) + \
                         [self.fns[node.expr.value]["locals"]]
-                         #intbytes_8(self.fns[node.token.value]["addr"]) +
         return self.visit(node.expr) + [RET]
     def visit_Decl(self, node):
         if self.env is self.locals:
