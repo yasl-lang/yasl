@@ -139,9 +139,9 @@ class Compiler(NodeVisitor):
         right = self.visit(node.right)
         if node.token.value == "??":
             return left + [DUP, BRN_8] + intbytes_8(len(right)+1) + [POP] + right
-        elif node.token.value == "||":
+        '''elif node.token.value == "||":
             return left + [V2S, DUP, LEN, ICONST_0, SWAP] + right + [V2S, DUP, LEN, SWAP_X1, DUP2, ADD, DUP, ICONST] + \
-                   intbytes_8(8) + [ADD, MLC, STR8, ICP, SCP, SCP]
+                   intbytes_8(8) + [ADD, MLC, STR8, ICP, SCP, SCP]'''
         this = BINRESERVED.get(node.op.value)
         return left + right + this
     def visit_LogicOp(self, node):

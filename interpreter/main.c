@@ -223,6 +223,20 @@ void run(VM* vm){
             }
             vm->stack[vm->sp].type = INT64;
             break;
+        case CONCAT:
+            b = vm->stack[vm->sp--];
+            a = vm->stack[vm->sp];
+            if (a.type == STR8 && b.type == STR8) {
+                size = *(int64_t*)a.value + *(int64_t*)b.value;
+                ptr = malloc(size);
+                vm->stack[vm->sp].value = (int64_t)ptr;
+                *(int64_t*)vm->stack[vm->sp].value = size;
+                memcpy((char*)(ptr + 8), (char*)(a.value + 8), *(int64_t*)a.value);
+                memcpy((char*)(ptr + 8 + *(int64_t*)a.value), (char*)(b.value + 8), *(int64_t*)b.value);
+                break;
+            }
+            printf("ERROR: %% not supported for operands of types %x and %x.\n", a.type, b.type);
+            return;
         case GT:
             b = POP(vm);
             a = POP(vm);
@@ -269,12 +283,6 @@ void run(VM* vm){
         case DUP:
             vm->stack[vm->sp+1] = vm->stack[vm->sp];
             vm->sp++;
-            //PUSH(vm, v);
-            break;
-        /*
-        case DUP2:
-            v = vm->stack[vm->sp-1];
-            PUSH(vm, v);
             break;
         case SWAP:
             a = vm->stack[vm->sp];
@@ -282,13 +290,6 @@ void run(VM* vm){
             vm->stack[vm->sp-1] = a;
             vm->stack[vm->sp] = b;
             break;
-        case SWAP_X1:
-            a = vm->stack[vm->sp-1];
-            b = vm->stack[vm->sp-2];
-            vm->stack[vm->sp-2] = a;
-            vm->stack[vm->sp-1] = b;
-            break;
-        */
         case BR_8:
             memcpy(&c, vm->code + vm->pc, sizeof c);
             vm->pc += sizeof c;
@@ -380,17 +381,8 @@ void run(VM* vm){
             memcpy(&size, vm->code + vm->pc, sizeof(size));
             vm->pc += sizeof(size);
             ptr = malloc(size);
-            //memcpy(&vm->stack[vm->sp].value, ptr, sizeof(ptr));
-            vm->stack[vm->sp].value = (int64_t)ptr; //malloc(size);
+            vm->stack[vm->sp].value = (int64_t)ptr;
             break;
-        /*
-        case MLC:
-            i = NCODE(vm);
-            size = IPOP(vm);
-            //printf("MLC: size = %" PRId64 "\n", size);
-            PUSH(vm, ((Constant) {i, (int64_t)malloc(size)}));
-            break;
-        */
         case MCP_8:
             memcpy(&big_offset, vm->code + vm->pc, sizeof(big_offset));
             vm->pc += sizeof(big_offset);
@@ -399,25 +391,6 @@ void run(VM* vm){
             memcpy((char*)vm->stack[vm->sp].value + big_offset, vm->code + vm->pc, size);
             vm->pc += size;
             break;
-        /*
-        case SCP:
-            v = POP(vm);
-            //printf("SCP: size = %" PRId64 "\n", *((int64_t*)v.value));
-            big_offset = IPOP(vm);
-            a = POP(vm);
-            memcpy((char*)(v->value + 8 + big_offset), (char*)(a->value+8), *((int64_t*)a->value));
-            PUSH(vm, v);
-            break;
-        case ICP:
-            v = POP(vm);
-            //printf("ICP: size = %" PRId64 "\n", *((int64_t*)v.value));
-            c = IPOP(vm);
-            //printf("c = %" PRId64 "\n", c);
-            *((int64_t*)v.value) = c;
-            //printf("ICP: size = %" PRId64 "\n", *((int64_t*)v.value));
-            //memcpy((int64_t*)(v.value), &c, sizeof(int64_t));
-            PUSH(vm, v);
-            break; //*/
         /*case PRINT:
             v = vm->stack[vm->sp--];    // pop value from top of the stack ...
             switch (v.type) {
