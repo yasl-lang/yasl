@@ -11,6 +11,7 @@ BINRESERVED = {
         "-":   [SUB],
         "/":   [DIV],
         "%":   [MOD],
+        "||":  [CONCAT],
         "<":   [GE, NOT],
         "<=":  [GT, NOT],
         ">":   [GT],
