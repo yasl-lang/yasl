@@ -1,4 +1,5 @@
 from .tokens import TokenTypes, Token
+from string import hexdigits
 
 ###############################################################################
 #                                                                             #
@@ -95,6 +96,20 @@ class Lexer(object):
         self._eat_white_space()
         if self.current_char == "\n":
             self._add_token(TokenTypes.SEMI)
+    def _hex(self):
+        result = "0x"
+        self.advance()
+        self.advance()
+        while self.current_char is not None and (self.current_char in hexdigits or self.current_char == "_"):
+            result += self.current_char
+            self.advance()
+        if result.__len__() < 3:
+            self.error("invalid hex literal.")
+        token = Token(TokenTypes.INT, int(result.replace("_", ""), 16), self.line)
+        self.tokens.append(token)
+        self._eat_white_space()
+        if self.current_char == "\n":
+            self._add_token(TokenTypes.SEMI)
     def _num(self):
         result = ""
         while self.current_char is not None and (self.current_char.isdigit() or self.current_char == "_"):
@@ -133,7 +148,10 @@ class Lexer(object):
                 self.advance()
                 self._str()
             elif self.current_char.isdigit():
-                self._num()
+                if self.current_char == "0" and self.peek() == "x":
+                    self._hex()
+                else:
+                    self._num()
             elif self.current_char.isalnum():
                 self._id()
             elif self.current_char == "?" and self.peek() == "?":
@@ -200,6 +218,6 @@ class Lexer(object):
             elif self.current_char in ("=", "<", ">", "+", "-", "/", "*", "!", "#", "%"):
                 self._add_token(TokenTypes.OP)
             else:
-                self.error()
+                self.error("unknown sequence.")
         #for token in self.tokens: print(token)
         return self.tokens

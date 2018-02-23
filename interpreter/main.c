@@ -429,7 +429,6 @@ void run(VM* vm){
             printf("ERROR UNKNOWN OPCODE: %x\n", opcode);
             return;
         }
-
     }
 }
 
