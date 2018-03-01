@@ -1,5 +1,5 @@
-from tokens import TokenTypes, Token
-from ast import *
+from .tokens import TokenTypes, Token
+from .ast import *
 
 ###############################################################################
 #                                                                             #
@@ -24,7 +24,7 @@ class Parser(object):
         raise Exception("Expected %s Token in line %s, got %s" % \
             (token_type, self.current_token.line, self.current_token.type))
     def eat(self, token_type):
-        # print(self.current_token)
+        #print(self.current_token)
         if self.current_token.type is token_type:
             result = self.current_token
             self.advance()
@@ -44,8 +44,8 @@ class Parser(object):
             return self.fndecl()
         elif self.current_token.type is TokenTypes.RETURN:
             return self.return_stmt()
-        elif self.current_token.type is TokenTypes.VAR:
-            self.eat(TokenTypes.VAR)
+        elif self.current_token.type is TokenTypes.LET:
+            self.eat(TokenTypes.LET)
             return self.vardecl()
         return ExprStmt(self.expr())
     def if_stmt(self):
@@ -93,7 +93,7 @@ class Parser(object):
             self.eat(TokenTypes.OP)
             return Decl(name, self.expr())
         else:
-            return Decl(name, Nil(Token(TokenTypes.NIL, None, name.line)))
+            return Decl(name, Undef(Token(TokenTypes.UNDEF, None, name.line)))
     def fndecl(self):
         name = self.eat(TokenTypes.ID)
         self.eat(TokenTypes.COLON)
@@ -130,20 +130,11 @@ class Parser(object):
         name = self.ternary()
         if self.current_token.value == "=":
             self.eat(TokenTypes.OP)
-            if isinstance(name, Var):
-                left = name.token
+            if isinstance(name, Var) or isinstance(name, Index):
                 right = self.expr()
-                return Assign(left, right)
+                return Assign(name, right)
             else:
                 raise Exception("Invalid assignment target.")
-        elif self.current_token.value == "(":
-            #print(name)
-            if isinstance(name, Var):
-                left = name.token
-                right = self.func_call()
-                return FunctionCall(left, right)
-            else:
-                raise Exception("Uncallable target.")
         else:
             return name
     def ternary(self):
@@ -182,30 +173,36 @@ class Parser(object):
         return curr
     def fact1(self):
         curr = self.comparator()
-        while self.current_token.value in ["==", "!="]:
+        while self.current_token.value in ["==", "!=", "===", "!=="]:
             op = self.eat(TokenTypes.OP)
             curr = BinOp(op, curr, self.comparator())
         return curr
     def comparator(self):
-        curr = self.add()
+        curr = self.concat()
         while self.current_token.value in ["<", ">", ">=", "<="]:
             op = self.eat(TokenTypes.OP)
             curr = BinOp(op, curr, self.add())
         return curr
+    def concat(self):
+        curr = self.add()
+        if self.current_token.value == "||":
+            token = self.eat(TokenTypes.OP)
+            return BinOp(token, curr, self.concat())
+        return curr
     def add(self):
         curr = self.multiply()
-        while self.current_token.value in ["+", "-", "||"]:
+        while self.current_token.value in ["+", "-"]:
             op = self.eat(TokenTypes.OP)
             curr = BinOp(op, curr, self.multiply())
         return curr
     def multiply(self):
         curr = self.const()
-        while self.current_token.value in ["*", "/"]:
+        while self.current_token.value in ["*", "/", "%"]:
             op = self.eat(TokenTypes.OP)
             curr = BinOp(op, curr, self.const())
         return curr
     def const(self):
-        if self.current_token.type is TokenTypes.OP and self.current_token.value in ["-", "+", "!"]:
+        if self.current_token.type is TokenTypes.OP and self.current_token.value in ("-", "+", "!", "#"):
             op = self.eat(TokenTypes.OP)
             return UnOp(op, self.const())
         elif self.current_token.type is TokenTypes.LPAREN:
@@ -215,12 +212,22 @@ class Parser(object):
             return expr
         elif self.current_token.type is TokenTypes.ID:
             var = self.eat(TokenTypes.ID)
-            return Var(var)
-            '''
-        elif self.current_token.type == STR:
-            string = self.current_token
-            self.eat(TokenTypes.STR)
-            return String(string)'''
+            if self.current_token.type is TokenTypes.LPAREN:
+                    left = var
+                    right = self.func_call()
+                    return FunctionCall(left, right)
+            elif self.current_token.type is TokenTypes.LBRACK:
+                result = Var(var)
+                while self.current_token.type is TokenTypes.LBRACK:
+                    self.eat(TokenTypes.LBRACK)
+                    result = Index(result, self.expr())
+                    self.eat(TokenTypes.RBRACK)
+                return result
+            else:
+                return Var(var)
+        elif self.current_token.type is TokenTypes.STR:
+            string = self.eat(TokenTypes.STR)
+            return String(string)
         elif self.current_token.type is TokenTypes.INT:
             integer = self.eat(TokenTypes.INT)
             return Integer(integer)
@@ -230,9 +237,36 @@ class Parser(object):
         elif self.current_token.type is TokenTypes.BOOL:
             boolean = self.eat(TokenTypes.BOOL)
             return Boolean(boolean)
-        elif self.current_token.type is TokenTypes.NIL:
-            nil = self.eat(TokenTypes.NIL)
-            return Nil(nil)
+        elif self.current_token.type is TokenTypes.UNDEF:
+            nil = self.eat(TokenTypes.UNDEF)
+            return Undef(nil)
+        elif self.current_token.type is TokenTypes.HASH:
+            hash = self.eat(TokenTypes.HASH)
+            self.eat(TokenTypes.LPAREN)
+            keys = []
+            vals = []
+            if self.current_token.type is not TokenTypes.RPAREN:
+                keys.append(self.expr())
+                self.eat(TokenTypes.ARROW)
+                vals.append(self.expr())
+            while self.current_token.type is TokenTypes.COMMA and self.current_token.type is not TokenTypes.EOF:
+                self.eat(TokenTypes.COMMA)
+                keys.append(self.expr())
+                self.eat(TokenTypes.ARROW)
+                vals.append(self.expr())
+            self.eat(TokenTypes.RPAREN)
+            return Hash(hash, keys, vals)
+        elif self.current_token.type is TokenTypes.LIST:
+            ls = self.eat(TokenTypes.LIST)
+            self.eat(TokenTypes.LPAREN)
+            params = []
+            if self.current_token.type is not TokenTypes.RPAREN:
+                params.append(self.expr())
+            while self.current_token.type is TokenTypes.COMMA and self.current_token.type is not TokenTypes.EOF:
+                self.eat(TokenTypes.COMMA)
+                params.append(self.expr())
+            self.eat(TokenTypes.RPAREN)
+            return List(ls, params)
         else:
             assert False
     def parse(self):

@@ -1,4 +1,5 @@
-from tokens import TokenTypes, Token
+from .tokens import TokenTypes, Token
+from string import hexdigits
 
 ###############################################################################
 #                                                                             #
@@ -6,8 +7,15 @@ from tokens import TokenTypes, Token
 #                                                                             #
 ###############################################################################
 
+ESCCHARS = {
+    "n":  "\n",
+    "t":  "\t",
+    "\\": "\\",
+    "\"": "\"",
+    "r":  "\r",
+}
 RESERVED_KEYWORDS = {
-            "var": lambda x: Token(TokenTypes.VAR, "var", x),
+            "let": lambda x: Token(TokenTypes.LET, "let", x),
             "print": lambda x: Token(TokenTypes.PRINT, "print", x),
             "if": lambda x: Token(TokenTypes.IF, "if", x),
             "else": lambda x: Token(TokenTypes.ELSE, "else", x),
@@ -17,26 +25,23 @@ RESERVED_KEYWORDS = {
             "false": lambda x: Token(TokenTypes.BOOL, False, x),
             "and": lambda x: Token(TokenTypes.LOGIC, "and", x),
             "or": lambda x: Token(TokenTypes.LOGIC, "or", x),
-            "nil": lambda x: Token(TokenTypes.NIL, None, x),
+            "undef": lambda x: Token(TokenTypes.UNDEF, None, x),
             "defun": lambda x: Token(TokenTypes.DEFUN, "defun", x),
             "return": lambda x: Token(TokenTypes.RETURN, "return", x),
             "class": lambda x: Token(TokenTypes.CLASS, "class", x),
+            "hash": lambda x: Token(TokenTypes.HASH, "hash", x),
+            "list": lambda x: Token(TokenTypes.LIST, "list", x),
 }
 
 class Lexer(object):
     def __init__(self, text):
-        # string input
-        self.text = text
-        # self.pos is index into self.text
-        self.pos = 0
-        # current line
-        self.line = 1
-        # current char
-        self.current_char = self.text[0]
-        # tokens so far
-        self.tokens = []
-    def error(self):
-        raise Exception("LEXING ERROR: line %s" % self.line)
+        self.text = text         # string input
+        self.pos = 0             # self.pos is index into self.text
+        self.line = 1            # current line
+        self.current_char = self.text[0] # current char
+        self.tokens = []         # tokens so far
+    def error(self, msg=""):
+        raise Exception("LexingError, line %s: " + msg + "." % self.line)
     def peek(self, lookahead=1):
         peek_pos = self.pos + lookahead
         if peek_pos >= len(self.text):
@@ -64,20 +69,47 @@ class Lexer(object):
         token = RESERVED_KEYWORDS.get(result, lambda x: Token(TokenTypes.ID, result, x))(self.line)
         self.tokens.append(token)
         self._eat_white_space()
-        if self.current_char == "\n" and self.tokens[-1].type is TokenTypes.VAR:
+        if self.current_char == "\n" and self.tokens[-1].type is TokenTypes.LET:
             self._add_token(TokenTypes.SEMI)
         elif self.current_char == "\n" and self.tokens[-1].type is TokenTypes.BOOL:
             self._add_token(TokenTypes.SEMI)
-        elif self.current_char == "\n" and self.tokens[-1].type is TokenTypes.NIL:
+        elif self.current_char == "\n" and self.tokens[-1].type is TokenTypes.UNDEF:
             self._add_token(TokenTypes.SEMI)
         elif self.current_char == "\n" and self.tokens[-1].type is TokenTypes.ID:
             self._add_token(TokenTypes.SEMI)
-    '''def _str(self):
+    def _str(self):
         result = ""
         while self.current_char is not None and self.current_char != '"':
+            if self.current_char == "\\":
+                escape_char = ESCCHARS.get(self.peek(), None)
+                if escape_char is None:
+                    self.error("invalid escape sequence")
+                result += escape_char
+                self.advance()
+                self.advance()
+            else:
+                result += self.current_char
+                self.advance()
+        self.advance()
+        token = Token(TokenTypes.STR, result, self.line)
+        self.tokens.append(token)
+        self._eat_white_space()
+        if self.current_char == "\n":
+            self._add_token(TokenTypes.SEMI)
+    def _hex(self):
+        result = "0x"
+        self.advance()
+        self.advance()
+        while self.current_char is not None and (self.current_char in hexdigits or self.current_char == "_"):
             result += self.current_char
             self.advance()
-        return result'''
+        if result.__len__() < 3:
+            self.error("invalid hex literal.")
+        token = Token(TokenTypes.INT, int(result.replace("_", ""), 16), self.line)
+        self.tokens.append(token)
+        self._eat_white_space()
+        if self.current_char == "\n":
+            self._add_token(TokenTypes.SEMI)
     def _num(self):
         result = ""
         while self.current_char is not None and (self.current_char.isdigit() or self.current_char == "_"):
@@ -91,7 +123,7 @@ class Lexer(object):
                 self.advance()
             token = Token(TokenTypes.FLOAT, float(result.replace("_", "")), self.line)
         else:
-            token =  Token(TokenTypes.INT, int(result.replace("_", "")), self.line)
+            token = Token(TokenTypes.INT, int(result.replace("_", "")), self.line)
         self.tokens.append(token)
         self._eat_white_space()
         if self.current_char == "\n":
@@ -104,11 +136,22 @@ class Lexer(object):
                 self.advance()
             if self.pos >= len(text):
                 self.tokens.append(Token(TokenTypes.EOF, None, self.line))
-            elif self.current_char == "#":
-                while self.current_char != "\n":
+            elif self.current_char == "/" and self.peek() == "$":
+                while not (self.current_char == "$" and self.peek() == "/"):
                     self.advance()
+                self.advance()
+                self.advance()
+            elif self.current_char == "$" and self.peek() == "$":
+                while self.current_char != "\n" and self.current_char != None:
+                    self.advance()
+            elif self.current_char == '"':
+                self.advance()
+                self._str()
             elif self.current_char.isdigit():
-                self._num()
+                if self.current_char == "0" and self.peek() == "x":
+                    self._hex()
+                else:
+                    self._num()
             elif self.current_char.isalnum():
                 self._id()
             elif self.current_char == "?" and self.peek() == "?":
@@ -128,6 +171,12 @@ class Lexer(object):
                 self._eat_white_space()
                 if self.current_char == "\n":
                     self._add_token(TokenTypes.SEMI)
+            elif self.current_char == "[": self._add_token(TokenTypes.LBRACK)
+            elif self.current_char == "]":
+                self._add_token(TokenTypes.RBRACK)
+                self._eat_white_space()
+                if self.current_char == "\n":
+                    self._add_token(TokenTypes.SEMI)
             elif self.current_char == "{": self._add_token(TokenTypes.LBRACE)
             elif self.current_char == "}":
                 self._add_token(TokenTypes.RBRACE)
@@ -142,6 +191,16 @@ class Lexer(object):
                 self.tokens.append(Token(TokenTypes.OP, ">=", self.line))
                 self.advance()
                 self.advance()
+            elif self.current_char == "=" and self.peek(1) == "=" and self.peek(2) == "=":
+                self.tokens.append(Token(TokenTypes.OP, "===", self.line))
+                self.advance()
+                self.advance()
+                self.advance()
+            elif self.current_char == "!" and self.peek(1) == "=" and self.peek(2) == "=":
+                self.tokens.append(Token(TokenTypes.OP, "!==", self.line))
+                self.advance()
+                self.advance()
+                self.advance()
             elif self.current_char == "=" and self.peek() == "=":
                 self.tokens.append(Token(TokenTypes.OP, "==", self.line))
                 self.advance()
@@ -150,11 +209,14 @@ class Lexer(object):
                 self.tokens.append(Token(TokenTypes.OP, "!=", self.line))
                 self.advance()
                 self.advance()
+            elif self.current_char == "|" and self.peek() == "|":
+                self.tokens.append(Token(TokenTypes.OP, "||", self.line))
+                self.advance()
+                self.advance()
             elif self.current_char == ",":
                 self._add_token(TokenTypes.COMMA)
-            elif self.current_char in ("=", "<", ">", "+", "-", "/", "*", "!"):
+            elif self.current_char in ("=", "<", ">", "+", "-", "/", "*", "!", "#", "%"): #, "&", "|", "^"):
                 self._add_token(TokenTypes.OP)
             else:
-                self.error()
-        #for token in self.tokens: print(token)
+                self.error("unknown sequence.")
         return self.tokens
