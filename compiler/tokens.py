@@ -4,8 +4,10 @@ class TokenTypes(Enum):
     INT    = 0x00
     FLOAT  = 0x01
     BOOL   = 0x02
-    NIL    = 0x03
+    UNDEF  = 0x03
     STR    = 0x04
+    HASH   = 0x05
+    LIST   = 0x06
     IF     = 0x10
     ELSEIF = 0x11
     ELSE   = 0x12
@@ -15,8 +17,10 @@ class TokenTypes(Enum):
     ID     = 0x20
     LPAREN = 0x30
     RPAREN = 0x31
-    LBRACE = 0x32
-    RBRACE = 0x33
+    LBRACK = 0x32
+    RBRACK = 0x33
+    LBRACE = 0x34
+    RBRACE = 0x35
     QMARK  = 0x36
     COLON  = 0x37
     DOT    = 0x38
@@ -24,7 +28,7 @@ class TokenTypes(Enum):
     ARROW  = 0x3A
     SEMI   = 0x3B
     EOF    = 0x3F
-    VAR    = 0x40
+    LET    = 0x40
     DEFUN  = 0x41
     RETURN = 0x42
     CLASS  = 0x43

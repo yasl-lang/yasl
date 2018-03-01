@@ -1,5 +1,3 @@
-
-
 class Env(object):
     def __init__(self, parent=None):
         self.vars = {}
