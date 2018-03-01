@@ -41,17 +41,40 @@ DCONSTANTS = {
         1.0: [DCONST_1],
         2.0: [DCONST_2],
         }
+STDIO = {
+    "print": 0x00,
+    #"input": 0x01,
+    # "open": 0x02,
+    # "close": 0x03,
+
+}
+STDSTR = {
+    "upcase":   0x00,
+    "downcase": 0x01,
+    "isalnum":  0x02,
+    "isal":     0x03,
+    "isnum":    0x04,
+    "isspace":  0x05,
+    "split":    0x06,
+}
+STDOBJ = {
+    "insert": 0x00,
+    "find":   0x01,
+    "append": 0x02,
+
+}
 BUILTINS = {
-        "print":    0,
-        "upcase":   1,
-        "downcase": 2,
-        "isalnum":  3,
-        "isal":     4,
-        "isnum":    5,
-        "isspace":  6,
-        "insert":   7,
-        "find":     8,
-        "append":   9,
+        "print":    0x00,
+        "upcase":   0x01,
+        "downcase": 0x02,
+        "isalnum":  0x03,
+        "isal":     0x04,
+        "isnum":    0x05,
+        "isspace":  0x06,
+        "split":    0x07,
+        "insert":   0x08,
+        "find":     0x09,
+        "append":   0x0A,
 }
 
 def intbytes_8(n:int):
@@ -79,9 +102,9 @@ class Compiler(NodeVisitor):
             result = result + self.visit(statement)
         self.header[0:8] = intbytes_8(len(self.header))
         self.header[8:16] = intbytes_8(len(self.globals))  # TODO: fix so this works with locals as well
-        #for opcode in self.header: print(hex(opcode))
-        #print("entry point:")
-        #for opcode in result + [HALT]: print(hex(opcode))
+        for opcode in self.header: print(hex(opcode))
+        print("entry point:")
+        for opcode in result + [HALT]: print(hex(opcode))
         return self.header + result + [HALT] #TODO: fix return values once we have proper ones
     def enter_scope(self):
         if self.current_fn is None:
@@ -246,8 +269,9 @@ class Compiler(NodeVisitor):
     def visit_String(self, node):
         string = [int(b) for b in str.encode(node.value)]
         length = intbytes_8(len(string))
-        length8 = intbytes_8(len(string)+8)
-        return [MLC_8, STR8] + length8 + [MCP_8] + intbytes_8(0) + length8 + length + string
+        return [NEWSTR8] + length + string
+        #length8 = intbytes_8(len(string)+8)
+        #return [MLC_8, STR8] + length8 + [MCP_8] + intbytes_8(0) + length8 + length + string
         '''MLC,
         0x30,
         0x14,

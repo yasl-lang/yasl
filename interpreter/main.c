@@ -14,6 +14,7 @@
 #include "constant.c"
 #include "builtins.c"
 #include "hashtable/hashtable.c"
+#include "string8/string8.c"
 #define BUFFER_SIZE 256
 #define NCODE(vm)    (vm->code[vm->pc++])     // get next bytecode
 #define IPUSH(vm, v) (PUSH(vm, ((Constant) {INT64, v})))  //push integer v onto stack
@@ -212,7 +213,7 @@ void run(VM* vm){
         case LEN:
             v = vm->stack[vm->sp];
             if (v.type == STR8) {
-                vm->stack[vm->sp].value = *(int64_t*)v.value;
+                vm->stack[vm->sp].value = ((String_t*)v.value)->length; // (int64_t*)v.value;
             } else if (v.type == HASH) {
                 vm->stack[vm->sp].value = ((Hash_t*)v.value)->count;
             } else if (v.type == LIST) {
@@ -227,12 +228,12 @@ void run(VM* vm){
             b = vm->stack[vm->sp--];
             a = vm->stack[vm->sp];
             if (a.type == STR8 && b.type == STR8) {
-                size = *(int64_t*)a.value + *(int64_t*)b.value;
-                ptr = malloc(size);
+                size = ((String_t*)a.value)->length + ((String_t*)b.value)->length;
+                ptr = new_sized_string8(size);
                 vm->stack[vm->sp].value = (int64_t)ptr;
-                *(int64_t*)vm->stack[vm->sp].value = size;
-                memcpy((char*)(ptr + 8), (char*)(a.value + 8), *(int64_t*)a.value);
-                memcpy((char*)(ptr + 8 + *(int64_t*)a.value), (char*)(b.value + 8), *(int64_t*)b.value);
+                ((String_t*)vm->stack[vm->sp].value)->length = size;
+                memcpy(((String_t*)ptr)->str, ((String_t*)a.value)->str, ((String_t*)a.value)->length);
+                memcpy(((String_t*)ptr)->str + ((String_t*)a.value)->length, ((String_t*)b.value)->str, ((String_t*)b.value)->length);
                 break;
             }
             printf("ERROR: %% not supported for operands of types %x and %x.\n", a.type, b.type);
@@ -267,6 +268,15 @@ void run(VM* vm){
             a = PEEK(vm);
             vm->stack[vm->sp].value = a.type == b.type && a.value == b.value;
             vm->stack[vm->sp].type = BOOL;
+            break;
+        case NEWSTR8:
+            vm->stack[++vm->sp].type = STR8;
+            memcpy(&size, vm->code+vm->pc, sizeof(int64_t));
+            vm->pc += sizeof(int64_t);
+            vm->stack[vm->sp].value  = (int64_t)new_sized_string8(size);
+            ((String_t*)(vm->stack[vm->sp].value))->length = size;
+            memcpy(((String_t*)vm->stack[vm->sp].value)->str, vm->code+vm->pc, size);
+            vm->pc += size;
             break;
         case NEWHASH:
             vm->stack[++vm->sp].type = HASH;

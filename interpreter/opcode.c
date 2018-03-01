@@ -45,6 +45,7 @@ BRT_4     = 0x94, // branch if condition is truthy (takes next 4 bytes as jump l
 BRT_8     = 0x95, // branch if condition is truthy (takes next 8 bytes as jump length)
 BRN_4     = 0x96, // branch if condition is not undef (takes next 4 bytes as jump length)
 BRN_8     = 0x97, // branch if condition is not undef (takes next 8 bytes as jump length)
+NEWSTR8   = 0xBB, // make new String and push it ontot stack (length (8 bytes), string (length bytes))
 NEWHASH   = 0xBC, // make new HashTable and push it onto stack
 NEWLIST   = 0xBD, // make new List and push it onto stack
 HALT      = 0xF0, // halt
@@ -54,7 +55,7 @@ LSTORE_1  = 0xF5, // store top of stack as local at addr
 GLOAD_1   = 0xF6, // load global from addr
 LLOAD_1   = 0xF7, // load local from addr
 RET       = 0xF8, // return from function
-CALL_8    = 0xF9, // function call (, // of parameters (1 byte), addr (8 bytes),, // of locals (1 byte))
+CALL_8    = 0xF9, // function call (# of parameters (1 byte), addr (8 bytes), # of locals (1 byte))
 RCALL_8   = 0xFA, // tail recursive function call
 BCALL_8   = 0xFB, // built-in function call
 };
