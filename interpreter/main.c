@@ -82,13 +82,6 @@ void run(VM* vm){
         Constant a, b, v;
         int64_t c;
         double d;
-<<<<<<< HEAD:main.c
-        printf("\nopcode: %x\n", opcode);
-        printf("vm->sp: %d\n", vm->sp);
-        printf("0, 1, 2, 3: %d, %d, %d, %d\n", (int)vm->stack[0].value, (int)vm->stack[1].value, (int)vm->stack[2].value, (int)vm->stack[3].value);
-        printf("0, 1, 2, 3: %d, %d, %d, %d\n", (int)vm->locals[0].value, (int)vm->locals[1].value, (int)vm->locals[2].value, (int)vm->locals[3].value);
-
-=======
         void* ptr;
         //printf("\nopcode: %x\n", opcode);
         //printf("pc: %d\n", vm->pc);
@@ -103,7 +96,6 @@ void run(VM* vm){
                (int)vm->globals[1].value, (int)vm->globals[1].type,
                (int)vm->globals[2].value, (int)vm->globals[2].type,
                (int)vm->globals[3].value, (int)vm->globals[3].type); //*/
->>>>>>> a431787293fa5ec8b9670f8462572d0a36aa2229:interpreter/main.c
         switch (opcode) {   // decode
         case HALT: return;  // stop the program
         case NOP: break;    // pass
@@ -460,7 +452,7 @@ int main(void) {
     fseek(file_ptr, 0, SEEK_END);
     file_len = ftell(file_ptr);
     rewind(file_ptr);
-    buffer = (char *)malloc((file_len+1)*sizeof(char));
+    buffer = malloc((file_len+1)*sizeof(char));
     fread(buffer, file_len, 1, file_ptr);
     entry_point = *((int64_t*)buffer);
     num_globals = *((int64_t*)buffer+1);
@@ -468,12 +460,8 @@ int main(void) {
     // printf("entry_point = %" PRId64 "\n", entry_point);
     //bytes_read = fread(buffer, sizeof(unsigned char), BUFFER_SIZE, file_ptr);
 	VM* vm = newVM(buffer,   // program to execute
-	                   entry_point,    // start address of main function
-<<<<<<< HEAD:main.c
-	                   1000000);   // locals to be reserved, fib doesn't require them
-=======
-	                   256);   // locals to be reserved, should be num_globals
->>>>>>> a431787293fa5ec8b9670f8462572d0a36aa2229:interpreter/main.c
+	               entry_point,    // start address of main function
+                   256);   // locals to be reserved, should be num_globals
 	run(vm);
 	delVM(vm);
     fclose(file_ptr);

@@ -220,7 +220,51 @@ int yasl_isspace(VM* vm) {
     return 0;
 }
 
+int yasl_startswith(VM* vm) {
+    Constant needle = POP(vm);
+    Constant haystack = POP(vm);
+    if (haystack.type != STR8) {
+        printf("Error: startswith(...) expected type %x as first argument, got type %x\n", STR8, haystack.type);
+        return -1;
+    } else if (needle.type != STR8) {
+        printf("Error: startswith(...) expected type %x as second argument, got type %x\n", STR8, needle.type);
+        return -1;
+    }
+    if ((((String_t*)haystack.value)->length < ((String_t*)needle.value)->length)) {
+        vm->stack[++vm->sp] = FALSE_C;
+        return 0;
+    }
+    int64_t i = 0;
+    while (i < ((String_t*)needle.value)->length) {
+        if (((String_t*)haystack.value)->str[i] != ((String_t*)needle.value)->str[i]) {
+            vm->stack[++vm->sp] = FALSE_C;
+            return 0;
+        }
+        i++;
+    }
+    vm->stack[++vm->sp] = TRUE_C;
+    return 0;
+}
+
 int yasl_split(VM* vm) {
+    Constant needle = POP(vm);
+    Constant haystack = POP(vm);
+    if (haystack.type != STR8) {
+        printf("Error: split(...) expected type %x as first argument, got type %x\n", STR8, haystack.type);
+        return -1;
+    } else if (needle.type != STR8) {
+        printf("Error: split(...) expected type %x as second argument, got type %x\n", STR8, needle.type);
+        return -1;
+    } else if (((String_t*)needle.value)->length == 0) {
+        printf("Error: split(...) requires type %x of length > 0 as second argument\n", STR8);
+        return -1;
+    }
+    int64_t i = 0;
+    int64_t j = 0;
+    while (i + ((String_t*)needle.value)->length <= ((String_t*)haystack.value)->length) {
+        if (((String_t*)haystack.value)->str[i] == ((String_t*)needle.value)->str[j]);
+    }
+    // " b", "a b c d e"
     puts("split(...) not yet implemented.");
     return -1;
 }
@@ -301,7 +345,7 @@ int yasl_append(VM* vm) {
 
 
 const Handler builtins[] = {
-    yasl_print, yasl_upcase, yasl_downcase, yasl_isalnum, yasl_isal, yasl_isnum, yasl_isspace, yasl_split,
+    yasl_print, yasl_upcase, yasl_downcase, yasl_isalnum, yasl_isal, yasl_isnum, yasl_isspace, yasl_startswith,
     yasl_insert, yasl_find, yasl_append,
 };
 
@@ -310,7 +354,7 @@ const Handler stdio_builtins[] = {
 };
 
 const Handler stdstr_builtins[] = {
-    yasl_upcase, yasl_downcase, yasl_isalnum, yasl_isal, yasl_isnum, yasl_isspace, yasl_split,
+    yasl_upcase, yasl_downcase, yasl_isalnum, yasl_isal, yasl_isnum, yasl_isspace, yasl_startswith,
 };
 
 const Handler stdobj_builtins[] = {
