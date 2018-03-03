@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "constant.c"
+#include "constant/constant.c"
 #define STACK_SIZE 256
 #define PUSH(vm, v)  (vm->stack[++vm->sp] = v)           // push value onto stack
 #define POP(vm)      (vm->stack[vm->sp--])               // pop value from top of stack

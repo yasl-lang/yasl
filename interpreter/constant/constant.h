@@ -1,6 +1,6 @@
 #pragma once
 
-#include "string8/string8.c"
+#include "../string8/string8.c"
 #define FALSEY(v)  (v.type == UNDEF || (v.type == BOOL && v.value == 0) || (v.type == STR8 && ((String_t*)v.value)->length == 0))  // returns true iff v is a falsey value
 
 enum types {

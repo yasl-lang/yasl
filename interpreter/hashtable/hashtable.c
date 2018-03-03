@@ -5,7 +5,7 @@
 #include <string.h>
 #include <math.h>
 #include "hashtable.h"
-#include "../constant.c"
+#include "../constant/constant.c"
 #include "../prime.c"
 #define HT_BASESIZE 60
 #define PRIME_A 37

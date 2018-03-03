@@ -5,7 +5,7 @@
 #include <string.h>
 #include <math.h>
 #include "list.h"
-#include "../constant.c"
+#include "../constant/constant.c"
 #define LS_BASESIZE 4
 
 

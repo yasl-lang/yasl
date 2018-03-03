@@ -1,7 +1,7 @@
 #pragma once
 
 #include "constant.h"
-#include "string8/string8.c"
+#include "../string8/string8.c"
 #include <stdio.h>
 #include <stdlib.h>
 #define DVAL(v)  (*((double*)&v.value))
