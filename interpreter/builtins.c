@@ -273,6 +273,33 @@ int yasl_endswith(VM* vm) {
     return 0;
 }
 
+int yasl_search(VM* vm) {
+    // TODO: implement non-naive algorithm for string search.
+    Constant needle = POP(vm);
+    Constant haystack = POP(vm);
+    if (haystack.type != STR8) {
+        printf("Error: search(...) expected type %x as first argument, got type %x\n", STR8, haystack.type);
+        return -1;
+    } else if (needle.type != STR8) {
+        printf("Error: search(...) expected type %x as second argument, got type %x\n", STR8, needle.type);
+        return -1;
+    }
+    if ((((String_t*)haystack.value)->length < ((String_t*)needle.value)->length)) {
+        vm->stack[++vm->sp] = (Constant) {INT64, -1};
+        return 0;
+    }
+    int64_t i = 0;
+    while (i < ((String_t*)haystack.value)->length) {
+        if (!memcmp(((String_t*)haystack.value)->str+i, ((String_t*)needle.value)->str, ((String_t*)needle.value)->length)) {
+            vm->stack[++vm->sp] = (Constant) {INT64, i};
+            return 0;
+        }
+        i++;
+    }
+    vm->stack[++vm->sp] = (Constant) {INT64, -1};
+    return 0;
+}
+
 int yasl_split(VM* vm) {
     Constant needle = POP(vm);
     Constant haystack = POP(vm);
@@ -372,8 +399,8 @@ int yasl_append(VM* vm) {
 
 
 const Handler builtins[] = {
-    yasl_print, yasl_upcase, yasl_downcase, yasl_isalnum, yasl_isal, yasl_isnum, yasl_isspace, yasl_startswith,
-    yasl_endswith, yasl_insert, yasl_find, yasl_append,
+    yasl_print,    yasl_upcase, yasl_downcase, yasl_isalnum, yasl_isal,   yasl_isnum, yasl_isspace, yasl_startswith,
+    yasl_endswith, yasl_search, yasl_insert,   yasl_find,    yasl_append,
 };
 
 const Handler stdio_builtins[] = {

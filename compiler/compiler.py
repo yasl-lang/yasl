@@ -73,9 +73,10 @@ BUILTINS = {
         "isspace":    0x06,
         "startswith": 0x07,
         "endswith":   0x08,
-        "insert":     0x09,
-        "find":       0x0A,
-        "append":     0x0B,
+        "search":     0x09,
+        "insert":     0x0A,
+        "find":       0x0B,
+        "append":     0x0C,
 }
 
 def intbytes_8(n:int):
