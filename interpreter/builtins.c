@@ -397,10 +397,29 @@ int yasl_append(VM* vm) {
     return 0;
 }
 
+int yasl_keys(VM* vm) {
+    Constant ht = POP(vm);
+    if (ht.type != HASH) {
+        printf("Error: expected type %x as first argument, got type %x\n", HASH, ht.type);
+        return -1;
+    }
+    List_t* ls = new_list();
+    int64_t i;
+    Item_t* item;
+    for (i = 0; i < ((Hash_t*)ht.value)->size; i++) {
+        item = ((Hash_t*)ht.value)->items[i];
+        if (item != NULL && item != &TOMBSTONE) {
+            ls_append(ls, *(item->key));
+        }
+    }
+    vm->stack[++vm->sp] = (Constant) {LIST, (int64_t)ls};
+    return 0;
+}
+
 
 const Handler builtins[] = {
     yasl_print,    yasl_upcase, yasl_downcase, yasl_isalnum, yasl_isal,   yasl_isnum, yasl_isspace, yasl_startswith,
-    yasl_endswith, yasl_search, yasl_insert,   yasl_find,    yasl_append,
+    yasl_endswith, yasl_search, yasl_insert,   yasl_find,    yasl_keys,   yasl_append,
 };
 
 const Handler stdio_builtins[] = {
