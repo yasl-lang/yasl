@@ -77,7 +77,8 @@ BUILTINS = {
         "insert":     0x0A,
         "find":       0x0B,
         "keys":       0x0C,
-        "append":     0x0D,
+        "values":     0x0D,
+        "append":     0x0E,
 }
 
 def intbytes_8(n:int):
