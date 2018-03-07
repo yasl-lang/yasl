@@ -368,6 +368,8 @@ int yasl_insert(VM* vm) {
 int yasl_find(VM* vm) {
     Constant key = POP(vm);
     Constant ht  = POP(vm);
+    //print(key);
+    //print(ht);
     if (ht.type == HASH) {
         //Constant v = *ht_search((Hash_t*)ht.value, key);
         PUSH(vm, *ht_search((Hash_t*)ht.value, key));

@@ -83,7 +83,8 @@ void run(VM* vm){
         int64_t c;
         double d;
         void* ptr;
-        //printf("\nopcode: %x\n", opcode);
+        //printf("opcode: %x\n", opcode);
+        //print(PEEK(vm));
         //printf("pc: %d\n", vm->pc);
         //printf("vm->sp: %d, vm->pc: %d\n", vm->sp, vm->pc);
         /*printf("stack[0, 1, 2, 3] are %d:%x, %d:%x, %d:%x, %d:%x\n",
@@ -333,14 +334,33 @@ void run(VM* vm){
             break;
         case LLOAD_1:
             offset = NCODE(vm);
+            //printf("load from offset=%d\n", offset);
+            //puts("before");
+            //print(vm->stack[vm->fp+offset]);
+            //print(vm->stack[vm->fp+1]);
+            //print(vm->stack[vm->fp+2]);
             vm->stack[++vm->sp] = vm->stack[vm->fp+offset];
+            //puts("after");
+            //print(vm->stack[vm->fp+offset]);
+            //print(vm->stack[vm->fp+1]);
+            //print(vm->stack[vm->fp+2]);
             break;
         case LSTORE_1:
             offset = NCODE(vm);
+            //printf("store into offset=%d\n", offset);
+            //puts("before");
+            //print(vm->stack[vm->fp+offset]);
+            //print(vm->stack[vm->fp+1]);
+            //print(vm->stack[vm->fp+2]);
             vm->stack[vm->fp+offset] = vm->stack[vm->sp--];
+            //puts("after");
+            // print(vm->stack[vm->fp+offset]);
+            //print(vm->stack[vm->fp+1]);
+            //print(vm->stack[vm->fp+2]);
             break;
         case CALL_8:
             offset = NCODE(vm);
+            //printf("offset=%d\n", offset);
             memcpy(&addr, vm->code + vm->pc, sizeof addr);
             vm->pc += sizeof addr;
             PUSH(vm, ((Constant) {offset, vm->fp}));  // store previous frame ptr;
@@ -349,7 +369,7 @@ void run(VM* vm){
             //printf("%d\n", vm->pc);
             vm->fp = vm->sp;
             offset = NCODE(vm);
-            vm->sp += offset;// + 2;
+            vm->sp += offset + 1;// + 2;
             vm->pc = addr;
             break;
         case BCALL_8:
