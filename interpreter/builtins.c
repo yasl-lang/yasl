@@ -1,14 +1,4 @@
-#include <stdio.h>
-#include <inttypes.h>
-#include <string.h>
-#include "VM.c"
-#include "opcode.c"
-#include "constant/constant.c"
-#include "hashtable/hashtable.c"
-#include "list/list.c"
-#include "string8/string8.c"
-
-typedef int (*Handler)(VM*);
+#include "builtins.h"
 
 int yasl_print(VM* vm) {
     Constant v = vm->stack[vm->sp--];    // pop value from top of the stack ...
@@ -442,6 +432,7 @@ const Handler builtins[] = {
     yasl_endswith, yasl_search, yasl_insert,   yasl_find,    yasl_keys,   yasl_values, yasl_append,
 };
 
+/*
 const Handler stdio_builtins[] = {
     yasl_print,
 };
@@ -453,3 +444,4 @@ const Handler stdstr_builtins[] = {
 const Handler stdobj_builtins[] = {
     yasl_insert, yasl_find, yasl_append,
 };
+*/
