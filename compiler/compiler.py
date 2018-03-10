@@ -93,6 +93,7 @@ class Compiler(NodeVisitor):
         self.fns = {}
         self.current_fn = None
         self.offset = 0
+        self.strs = {}
     def compile(self, statements):
         result = []
         for statement in statements:
@@ -264,9 +265,16 @@ class Compiler(NodeVisitor):
             result = result + [DUP] + self.visit(expr) + [BCALL_8] + intbytes_8(BUILTINS["append"]) + [POP]
         return result
     def visit_String(self, node):
-        string = [int(b) for b in str.encode(node.value)]
-        length = intbytes_8(len(string))
-        return [NEWSTR8] + length + string
+        if node.value not in self.strs:
+            string = [int(b) for b in str.encode(node.value)]
+            length = intbytes_8(len(string))
+            self.strs[node.value] = {}
+            self.strs[node.value]["length"] = length
+            self.strs[node.value]["addr"] = intbytes_8(len(self.header))
+            self.header = self.header + string
+        return [NEWSTR8] + self.strs[node.value]["length"] + self.strs[node.value]["addr"]
+
+        #intbytes_8(self.strs[node.value])
         #length8 = intbytes_8(len(string)+8)
         #return [MLC_8, STR8] + length8 + [MCP_8] + intbytes_8(0) + length8 + length + string
         '''MLC,

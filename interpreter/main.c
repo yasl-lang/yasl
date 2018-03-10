@@ -272,12 +272,20 @@ void run(VM* vm){
             break;
         case NEWSTR8:
             vm->stack[++vm->sp].type = STR8;
+
             memcpy(&size, vm->code+vm->pc, sizeof(int64_t));
             vm->pc += sizeof(int64_t);
+
+            memcpy(&addr, vm->code+vm->pc, sizeof(int64_t));
+            vm->pc += sizeof(int64_t);
+
             vm->stack[vm->sp].value  = (int64_t)new_sized_string8(size);
+
+
             ((String_t*)(vm->stack[vm->sp].value))->length = size;
-            memcpy(((String_t*)vm->stack[vm->sp].value)->str, vm->code+vm->pc, size);
-            vm->pc += size;
+
+            memcpy(((String_t*)vm->stack[vm->sp].value)->str, vm->code+addr, size);
+            //vm->pc += size;
             break;
         case NEWHASH:
             vm->stack[++vm->sp].type = HASH;
