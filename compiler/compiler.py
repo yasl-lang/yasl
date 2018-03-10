@@ -1,7 +1,5 @@
 from .opcode import *
-from .constant import *
-import struct
-from .visitor import NodeVisitor
+from .visitor import *
 from .environment import Env
 from .ast import *
 
@@ -80,11 +78,6 @@ BUILTINS = {
         "values":     0x0D,
         "append":     0x0E,
 }
-
-def intbytes_8(n:int):
-    return [int(b) for b in bytearray(struct.pack("@q", n))]
-def doublebytes(d:float):
-    return [int(b) for b in bytearray(struct.pack("@d", d))]
 
 ###############################################################################
 #                                                                             #

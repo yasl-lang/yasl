@@ -1,3 +1,11 @@
+import struct
+
+def intbytes_8(n:int):
+    return [int(b) for b in bytearray(struct.pack("@q", n))]
+def doublebytes(d:float):
+    return [int(b) for b in bytearray(struct.pack("@d", d))]
+
+
 class NodeVisitor(object):
     def visit(self, node):
         method_name = "visit_" + type(node).__name__
