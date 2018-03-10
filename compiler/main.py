@@ -29,10 +29,10 @@ if __name__ == "__main__":
         assert(len(sys.argv) == 2)
         text = open(sys.argv[1]).read() #TODO: make more general, so file can be located anywhere
         statements = Parser(Lexer(text).lex()).parse()
-        interpreter = Compiler()
-        resolver = Resolver(interpreter)
+        compiler = Compiler()
+        #resolver = Resolver(compiler)
         #resolver.resolve(statements)
-        result = interpreter.compile(statements)
+        result = compiler.compile(statements)
         #print(result)
         #print([hex(r) for r in result])
         #sys.stdout = open("source.yb", "wb")
