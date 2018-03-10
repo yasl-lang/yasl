@@ -3,7 +3,7 @@
 
 
 // returns 1 -- prime, 0 -- not prime, -1 -- undefined
-int is_prime(const int x) {
+int is_prime(const int64_t x) {
     if (x < 2) return -1;
     if (x < 4) return 1;
     if ((x % 2) == 0) return 0;
@@ -16,7 +16,7 @@ int is_prime(const int x) {
     return 1;
 }
 
-int next_prime(int x) {
+int next_prime(int64_t x) {
     while (is_prime(x++) != 1) {}
     return x;
 }
