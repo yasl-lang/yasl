@@ -196,16 +196,22 @@ class Parser(object):
             curr = BinOp(op, curr, self.multiply())
         return curr
     def multiply(self):
-        curr = self.const()
+        curr = self.unop()
         while self.current_token.value in ["*", "/", "%"]:
             op = self.eat(TokenTypes.OP)
             curr = BinOp(op, curr, self.const())
         return curr
-    def const(self):
+    def unop(self):
         if self.current_token.type is TokenTypes.OP and self.current_token.value in ("-", "+", "!", "#"):
             op = self.eat(TokenTypes.OP)
-            return UnOp(op, self.const())
-        elif self.current_token.type is TokenTypes.LPAREN:
+            return UnOp(op, self.unop())
+        else:
+            return self.const()
+    def const(self):
+        #if self.current_token.type is TokenTypes.OP and self.current_token.value in ("-", "+", "!", "#"):
+        #    op = self.eat(TokenTypes.OP)
+        #    return UnOp(op, self.const())
+        if self.current_token.type is TokenTypes.LPAREN:
             self.eat(TokenTypes.LPAREN)
             expr = self.expr()
             self.eat(TokenTypes.RPAREN)
