@@ -34,6 +34,10 @@ class List(AST):
         self.token = token
         self.value = token.value
         self.params = params
+class MemberAccess(AST):
+    def __init__(self, left, right):
+        self.left = left
+        self.right = right
 class Index(AST):
     def __init__(self, left, right):
         self.left = left
