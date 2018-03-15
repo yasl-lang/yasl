@@ -211,6 +211,13 @@ class Parser(object):
         #if self.current_token.type is TokenTypes.OP and self.current_token.value in ("-", "+", "!", "#"):
         #    op = self.eat(TokenTypes.OP)
         #    return UnOp(op, self.const())
+        result = self.literal()
+        while self.current_token.type is TokenTypes.LBRACK:
+            self.eat(TokenTypes.LBRACK)
+            result = Index(result, self.expr())
+            self.eat(TokenTypes.RBRACK)
+        return result
+    def literal(self):
         if self.current_token.type is TokenTypes.LPAREN:
             self.eat(TokenTypes.LPAREN)
             expr = self.expr()
@@ -222,13 +229,13 @@ class Parser(object):
                     left = var
                     right = self.func_call()
                     return FunctionCall(left, right)
-            elif self.current_token.type is TokenTypes.LBRACK:
+                    '''elif self.current_token.type is TokenTypes.LBRACK:
                 result = Var(var)
                 while self.current_token.type is TokenTypes.LBRACK:
                     self.eat(TokenTypes.LBRACK)
                     result = Index(result, self.expr())
                     self.eat(TokenTypes.RBRACK)
-                return result
+                return result'''
             elif self.current_token.type is TokenTypes.DOT:
                 result = Var(var)
                 while self.current_token.type is TokenTypes.DOT:
