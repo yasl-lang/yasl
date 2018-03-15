@@ -482,6 +482,7 @@ int main(void) {
     str8_vtable = (VTable_t*)(str8_builtins());
 	run(vm);
 	delVM(vm);
+    del_vtable(str8_vtable);
     fclose(file_ptr);
 	return 0;
 };

@@ -62,26 +62,43 @@ STDOBJ = {
 
 }
 BUILTINS = {
-        "print":      0x00,
-        "insert":     0x0A,
-        "find":       0x0B,
-        "keys":       0x0C,
-        "values":     0x0D,
-        "append":     0x0E,
+        "print":        0x00,
+        "insert":       0x01,
+        "find":         0x02,
+        "keys":         0x03,
+        "values":       0x04,
+        "append":       0x05,
 }
 
 METHODS = {
-        "upcase":     0x01,
-        "downcase":   0x02,
-        "isalnum":    0x03,
-        "isal":       0x04,
-        "isnum":      0x05,
-        "isspace":    0x06,
-        "startswith": 0x07,
-        "endswith":   0x08,
-        "search":     0x09,
-
+        "upcase":       0x01,
+        "downcase":     0x02,
+        "isalnum":      0x03,
+        "isal":         0x04,
+        "isnum":        0x05,
+        "isspace":      0x06,
+        "startswith":   0x07,
+        "endswith":     0x08,
+        "search":       0x09,
+        "tofloat64":    0x0A,
+        "toint64":      0x0B,
+        "tobool":       0x0C,
+        "tostr8":       0x0D,
+        "tolist":       0x0E,
+        "tohash":       0x0F,
 }
+
+'''
+    UNDEF   = 0x00,
+    FUNC    = 0x08,
+    FLOAT64 = 0x13,
+    INT64   = 0x1B,
+    BOOL    = 0x20,
+    STR8    = 0x32,
+    LIST    = 0x44,
+    HASH    = 0x48,
+    FILEH   = 0x50,
+'''
 
 ###############################################################################
 #                                                                             #

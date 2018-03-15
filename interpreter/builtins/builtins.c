@@ -87,6 +87,37 @@ int yasl_input(VM* vm) {
     return 0; */
 }
 
+/*
+ * "tofloat64":    0x0A,
+ * "toint64":      0x0B,
+ * "tobool":       0x0C,
+ * "tostr8":       0x0D,
+ * "tolist":       0x0E,
+ * "tohash":       0x0F,
+*/
+
+int yasl_tofloat64(VM* vm);
+int yasl_toint64(VM* vm);
+
+int yasl_tobool(VM* vm) {
+    Constant a = POP(vm);
+    if (a.type == STR8) {
+        if (((String_t *) a.value)->length == 0) {
+            vm->stack[++vm->sp] = FALSE_C;
+        }
+        else {
+            vm->stack[++vm->sp] = TRUE_C;
+        }
+        return 0;
+    }
+    printf("tobool(...) is not implemented (yet) for arguments of type %x\n", a.type);
+    return -1;
+}
+
+int yasl_tostr8(VM* vm);
+int yasl_tolist(VM* vm);
+int yasl_tohash(VM* vm);
+
 int yasl_upcase(VM* vm) {
     Constant a = PEEK(vm);
     if (a.type != STR8) {
@@ -430,8 +461,7 @@ int yasl_values(VM* vm) {
 }
 
 const Handler builtins[] = {
-    yasl_print,    yasl_upcase, yasl_downcase, yasl_isalnum, yasl_isal,   yasl_isnum,  yasl_isspace, yasl_startswith,
-    yasl_endswith, yasl_search, yasl_insert,   yasl_find,    yasl_keys,   yasl_values, yasl_append,
+    yasl_print, yasl_insert,    yasl_find,  yasl_keys,  yasl_values,    yasl_append,
 };
 
 VTable_t* str8_builtins() {
@@ -445,6 +475,7 @@ VTable_t* str8_builtins() {
     vt_insert(vt, 0x07, (int64_t)&yasl_startswith);
     vt_insert(vt, 0x08, (int64_t)&yasl_endswith);
     vt_insert(vt, 0x09, (int64_t)&yasl_search);
+    vt_insert(vt, 0x0C, (int64_t)&yasl_tobool);
     return vt;
 }
 
