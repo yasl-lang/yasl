@@ -63,9 +63,6 @@ STDOBJ = {
 }
 BUILTINS = {
         "print":      0x00,
-        "startswith": 0x07,
-        "endswith":   0x08,
-        "search":     0x09,
         "insert":     0x0A,
         "find":       0x0B,
         "keys":       0x0C,
@@ -80,6 +77,9 @@ METHODS = {
         "isal":       0x04,
         "isnum":      0x05,
         "isspace":    0x06,
+        "startswith": 0x07,
+        "endswith":   0x08,
+        "search":     0x09,
 
 }
 

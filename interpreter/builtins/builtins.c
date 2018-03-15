@@ -442,6 +442,9 @@ VTable_t* str8_builtins() {
     vt_insert(vt, 0x04, (int64_t)&yasl_isal);
     vt_insert(vt, 0x05, (int64_t)&yasl_isnum);
     vt_insert(vt, 0x06, (int64_t)&yasl_isspace);
+    vt_insert(vt, 0x07, (int64_t)&yasl_startswith);
+    vt_insert(vt, 0x08, (int64_t)&yasl_endswith);
+    vt_insert(vt, 0x09, (int64_t)&yasl_search);
     return vt;
 }
 
