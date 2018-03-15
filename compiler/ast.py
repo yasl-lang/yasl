@@ -20,9 +20,6 @@ class UnOp(AST):
     def __init__(self, op, expr):
         self.token = self.op = op
         self.expr = expr
-'''class NulOp(AST):
-    def __init__(self, op):
-        self.token = self.op = op'''
 class Hash(AST):
     def __init__(self, token, keys, vals):
         self.token = token
@@ -38,6 +35,11 @@ class MemberAccess(AST):
     def __init__(self, left, right):
         self.left = left
         self.right = right
+class MethodCall(AST):
+    def __init__(self, left, right, params):
+        self.left = left
+        self.right = right
+        self.params = params
 class Index(AST):
     def __init__(self, left, right):
         self.left = left
@@ -63,9 +65,6 @@ class Float(AST):
     def __init__(self, token):
         self.token = token
         self.value = token.value
-'''class Param(AST):
-    def __init__(self, var_node):
-        self.node = var_node '''
 class FunctionDecl(AST):
     def __init__(self, token, params, block):
         self.token = token
