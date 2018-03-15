@@ -1,3 +1,5 @@
+#pragma once
+
 #include "builtins.h"
 
 int yasl_print(VM* vm) {
@@ -431,6 +433,13 @@ const Handler builtins[] = {
     yasl_print,    yasl_upcase, yasl_downcase, yasl_isalnum, yasl_isal,   yasl_isnum,  yasl_isspace, yasl_startswith,
     yasl_endswith, yasl_search, yasl_insert,   yasl_find,    yasl_keys,   yasl_values, yasl_append,
 };
+
+VTable_t* str8_vtable() {
+    VTable_t* vt = new_vtable();
+    vt_insert(vt, 0x01, (int64_t)&yasl_upcase);
+    vt_insert(vt, 0x02, (int64_t)&yasl_downcase);
+    return vt;
+}
 
 /*
 const Handler stdio_builtins[] = {

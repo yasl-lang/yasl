@@ -5,6 +5,7 @@
 #include "../opcode.c"
 #include "../constant/constant.c"
 #include "../hashtable/hashtable.c"
+#include "../vtable/vtable.c"
 #include "../list/list.c"
 #include "../string8/string8.c"
 
