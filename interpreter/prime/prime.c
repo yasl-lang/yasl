@@ -1,6 +1,7 @@
 #include <math.h>
 #include "prime.h"
-
+#define PRIME_A 37
+#define PRIME_B 67
 
 // returns 1 -- prime, 0 -- not prime, -1 -- undefined
 int is_prime(const int64_t x) {

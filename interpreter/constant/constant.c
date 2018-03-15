@@ -92,7 +92,7 @@ Constant isequal(Constant a, Constant b) {
                 c = (*((double*)&a.value)) == (*((double*)&b.value));
             } else {
                 printf("== and != not supported for operands of types %x and %x.\n", a.type, b.type);
-                return;
+                return UNDEF_C;
             }
             return (Constant) {BOOL, c};
         }

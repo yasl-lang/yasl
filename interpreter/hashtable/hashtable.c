@@ -7,8 +7,6 @@
 #include "../constant/constant.c"
 #include "../prime/prime.c"
 #define HT_BASESIZE 60
-#define PRIME_A 37
-#define PRIME_B 67
 
 static Item_t TOMBSTONE = {NULL, NULL};
 

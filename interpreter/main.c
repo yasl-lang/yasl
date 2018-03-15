@@ -12,7 +12,7 @@
 #include "VM.c"
 #include "opcode.c"
 #include "constant/constant.c"
-#include "builtins.c"
+#include "builtins/builtins.c"
 #include "hashtable/hashtable.c"
 #include "string8/string8.c"
 #define BUFFER_SIZE 256
