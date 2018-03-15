@@ -243,12 +243,12 @@ class Parser(object):
                     result = Index(result, self.expr())
                     self.eat(TokenTypes.RBRACK)
                 return result'''
-            elif self.current_token.type is TokenTypes.DOT:
+                    '''elif self.current_token.type is TokenTypes.DOT:
                 result = Var(var)
                 while self.current_token.type is TokenTypes.DOT:
                     self.eat(TokenTypes.DOT)
                     result = MemberAccess(result, self.const())
-                return result
+                return result'''
             else:
                 return Var(var)
         elif self.current_token.type is TokenTypes.STR:

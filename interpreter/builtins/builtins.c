@@ -411,8 +411,8 @@ int yasl_find(VM* vm) {
 }
 
 int yasl_append(VM* vm) {
-    Constant val = POP(vm);
     Constant ls  = POP(vm);
+    Constant val = POP(vm);
     if (ls.type != LIST) {
         printf("Error: expected type %x as first argument, got type %x\n", LIST, ls.type);
         return -1;
@@ -466,17 +466,22 @@ const Handler builtins[] = {
 
 VTable_t* str8_builtins() {
     VTable_t* vt = new_vtable();
-    vt_insert(vt, 0x01, (int64_t)&yasl_upcase);
-    vt_insert(vt, 0x02, (int64_t)&yasl_downcase);
-    vt_insert(vt, 0x03, (int64_t)&yasl_isalnum);
-    vt_insert(vt, 0x04, (int64_t)&yasl_isal);
-    vt_insert(vt, 0x05, (int64_t)&yasl_isnum);
-    vt_insert(vt, 0x06, (int64_t)&yasl_isspace);
-    vt_insert(vt, 0x07, (int64_t)&yasl_startswith);
-    vt_insert(vt, 0x08, (int64_t)&yasl_endswith);
-    vt_insert(vt, 0x09, (int64_t)&yasl_search);
+    vt_insert(vt, 0x10, (int64_t)&yasl_upcase);
+    vt_insert(vt, 0x11, (int64_t)&yasl_downcase);
+    vt_insert(vt, 0x12, (int64_t)&yasl_isalnum);
+    vt_insert(vt, 0x13, (int64_t)&yasl_isal);
+    vt_insert(vt, 0x14, (int64_t)&yasl_isnum);
+    vt_insert(vt, 0x15, (int64_t)&yasl_isspace);
+    vt_insert(vt, 0x16, (int64_t)&yasl_startswith);
+    vt_insert(vt, 0x17, (int64_t)&yasl_endswith);
+    vt_insert(vt, 0x18, (int64_t)&yasl_search);
     vt_insert(vt, 0x0C, (int64_t)&yasl_tobool);
     return vt;
+}
+
+VTable_t* list_builtins() {
+    VTable_t* vt = new_vtable();
+    vt_insert(vt, 0x20, (int64_t)&yasl_append);
 }
 
 /*

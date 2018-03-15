@@ -71,7 +71,7 @@
                             }\
                             BPUSH(vm, c);})
 
-VTable_t* str8_vtable;
+VTable_t *str8_vtable, *list_vtable;
 
 
 void run(VM* vm){
@@ -396,18 +396,20 @@ void run(VM* vm){
             vm->pc += sizeof(addr);
             if (PEEK(vm).type == STR8) {
                 addr = vt_search(str8_vtable, addr);
-                if (addr != -1) {
-                    if (((int (*)(VM*))addr)(vm)) {
-                        printf("ERROR: invalid argument type(s) to builtin function.\n");
-                        return;
-                    }
-                }
-                else {
+            } else if (PEEK(vm).type == LIST) {
+                addr = vt_search(list_vtable, addr);
+            } else {
+                printf("ERROR: No methods implemented for this type.\n");
+                return;
+            }
+            if (addr != -1) {
+                if (((int (*)(VM*))addr)(vm)) {
+                    printf("ERROR: invalid argument type(s) to builtin function.\n");
                     return;
                 }
             }
             else {
-                printf("ERROR: No methods implemented for this type.\n");
+                printf("ERROR: No method implemented by this name.\n");
                 return;
             }
             break;
@@ -479,10 +481,12 @@ int main(void) {
 	VM* vm = newVM(buffer,   // program to execute
 	               entry_point,    // start address of main function
                    256);   // locals to be reserved, should be num_globals
-    str8_vtable = (VTable_t*)(str8_builtins());
+    str8_vtable = str8_builtins();
+    list_vtable = list_builtins();
 	run(vm);
 	delVM(vm);
     del_vtable(str8_vtable);
+    del_vtable(list_vtable);
     fclose(file_ptr);
 	return 0;
 };

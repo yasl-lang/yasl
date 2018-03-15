@@ -71,21 +71,25 @@ BUILTINS = {
 }
 
 METHODS = {
-        "upcase":       0x01,
-        "downcase":     0x02,
-        "isalnum":      0x03,
-        "isal":         0x04,
-        "isnum":        0x05,
-        "isspace":      0x06,
-        "startswith":   0x07,
-        "endswith":     0x08,
-        "search":       0x09,
         "tofloat64":    0x0A,
         "toint64":      0x0B,
         "tobool":       0x0C,
         "tostr8":       0x0D,
         "tolist":       0x0E,
         "tohash":       0x0F,
+
+        "upcase":       0x10,
+        "downcase":     0x11,
+        "isalnum":      0x12,
+        "isal":         0x13,
+        "isnum":        0x14,
+        "isspace":      0x15,
+        "startswith":   0x16,
+        "endswith":     0x17,
+        "search":       0x18,
+
+        "append":       0x20,
+
 }
 
 '''
