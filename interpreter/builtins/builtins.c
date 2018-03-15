@@ -438,6 +438,10 @@ VTable_t* str8_builtins() {
     VTable_t* vt = new_vtable();
     vt_insert(vt, 0x01, (int64_t)&yasl_upcase);
     vt_insert(vt, 0x02, (int64_t)&yasl_downcase);
+    vt_insert(vt, 0x03, (int64_t)&yasl_isalnum);
+    vt_insert(vt, 0x04, (int64_t)&yasl_isal);
+    vt_insert(vt, 0x05, (int64_t)&yasl_isnum);
+    vt_insert(vt, 0x06, (int64_t)&yasl_isspace);
     return vt;
 }
 

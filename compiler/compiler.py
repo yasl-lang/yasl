@@ -63,12 +63,6 @@ STDOBJ = {
 }
 BUILTINS = {
         "print":      0x00,
-        "upcase":     0x01,
-        "downcase":   0x02,
-        "isalnum":    0x03,
-        "isal":       0x04,
-        "isnum":      0x05,
-        "isspace":    0x06,
         "startswith": 0x07,
         "endswith":   0x08,
         "search":     0x09,
@@ -80,8 +74,12 @@ BUILTINS = {
 }
 
 METHODS = {
-    "upcase": 0x01,
-    "downcase": 0x02,
+        "upcase":     0x01,
+        "downcase":   0x02,
+        "isalnum":    0x03,
+        "isal":       0x04,
+        "isnum":      0x05,
+        "isspace":    0x06,
 
 }
 
