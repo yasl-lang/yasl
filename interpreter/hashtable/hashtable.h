@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../constant/constant.c"
+#include <inttypes.h>
 #define LEN(v) (*((int64_t*)v.value))
 
 typedef struct {
@@ -9,9 +10,9 @@ typedef struct {
 } Item_t;
 
 typedef struct {
-    int size;
-    int base_size;
-    int count;
+    int64_t size;
+    int64_t base_size;
+    int64_t count;
     Item_t** items;
 } Hash_t;
 
