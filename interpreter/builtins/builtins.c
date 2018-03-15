@@ -213,8 +213,8 @@ int yasl_isspace(VM* vm) {
 }
 
 int yasl_startswith(VM* vm) {
-    Constant needle = POP(vm);
     Constant haystack = POP(vm);
+    Constant needle = POP(vm);
     if (haystack.type != STR8) {
         printf("Error: startswith(...) expected type %x as first argument, got type %x\n", STR8, haystack.type);
         return -1;
@@ -239,8 +239,8 @@ int yasl_startswith(VM* vm) {
 }
 
 int yasl_endswith(VM* vm) {
-    Constant needle = POP(vm);
     Constant haystack = POP(vm);
+    Constant needle = POP(vm);
     if (haystack.type != STR8) {
         printf("Error: startswith(...) expected type %x as first argument, got type %x\n", STR8, haystack.type);
         return -1;
@@ -267,8 +267,8 @@ int yasl_endswith(VM* vm) {
 
 int yasl_search(VM* vm) {
     // TODO: implement non-naive algorithm for string search.
-    Constant needle = POP(vm);
     Constant haystack = POP(vm);
+    Constant needle = POP(vm);
     if (haystack.type != STR8) {
         printf("Error: search(...) expected type %x as first argument, got type %x\n", STR8, haystack.type);
         return -1;
