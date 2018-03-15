@@ -434,7 +434,7 @@ const Handler builtins[] = {
     yasl_endswith, yasl_search, yasl_insert,   yasl_find,    yasl_keys,   yasl_values, yasl_append,
 };
 
-VTable_t* str8_vtable() {
+VTable_t* str8_builtins() {
     VTable_t* vt = new_vtable();
     vt_insert(vt, 0x01, (int64_t)&yasl_upcase);
     vt_insert(vt, 0x02, (int64_t)&yasl_downcase);

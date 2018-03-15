@@ -39,6 +39,7 @@ class MethodCall(AST):
     def __init__(self, left, right, params):
         self.left = left
         self.right = right
+        self.value = right.value
         self.params = params
 class Index(AST):
     def __init__(self, left, right):

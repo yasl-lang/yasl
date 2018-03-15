@@ -212,6 +212,13 @@ class Parser(object):
         #    op = self.eat(TokenTypes.OP)
         #    return UnOp(op, self.const())
         result = self.literal()
+        while self.current_token.type is TokenTypes.DOT:
+            self.eat(TokenTypes.DOT)
+            right = self.literal()
+            if isinstance(right, FunctionCall):
+                return MethodCall(result, right.token, right.params)
+            else:
+                assert False
         while self.current_token.type is TokenTypes.LBRACK:
             self.eat(TokenTypes.LBRACK)
             result = Index(result, self.expr())

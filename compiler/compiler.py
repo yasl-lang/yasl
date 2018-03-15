@@ -224,6 +224,13 @@ class Compiler(NodeVisitor):
                         intbytes_8(self.fns[node.expr.value]["addr"]) + \
                         [self.fns[node.expr.value]["locals"]]
         return self.visit(node.expr) + [RET]
+    def visit_MethodCall(self, node):
+        result = []
+        for expr in node.params:
+            result = result + self.visit(expr)
+        if node.value in METHODS:
+            return result + self.visit(node.left) + [MCALL_8] + intbytes_8(METHODS[node.value])
+        assert False
     def visit_Decl(self, node):
         if self.current_fn is not None:
             if node.left.value not in self.locals.vars:

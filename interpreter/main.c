@@ -71,6 +71,8 @@
                             }\
                             BPUSH(vm, c);})
 
+VTable_t* str8_vtable;
+
 
 void run(VM* vm){
     while (1) {
@@ -389,6 +391,26 @@ void run(VM* vm){
                 return;
             };
             break;
+        case MCALL_8:
+            memcpy(&addr, vm->code + vm->pc, sizeof(addr));
+            vm->pc += sizeof(addr);
+            if (PEEK(vm).type == STR8) {
+                addr = vt_search(str8_vtable, addr);
+                if (addr != -1) {
+                    if (((int (*)(VM*))addr)(vm)) {
+                        printf("ERROR: invalid argument type(s) to builtin function.\n");
+                        return;
+                    }
+                }
+                else {
+                    return;
+                }
+            }
+            else {
+                printf("ERROR: No methods implemented for this type.\n");
+                return;
+            }
+            break;
         case RCALL_8:
             offset = NCODE(vm);
             int i;
@@ -441,7 +463,6 @@ char *buffer;
 FILE *file_ptr;
 long file_len;
 int64_t entry_point, num_globals;
-VTable_t* str8_builtins;
 
 int main(void) {
     file_ptr = fopen("source.yb", "rb");
@@ -458,7 +479,7 @@ int main(void) {
 	VM* vm = newVM(buffer,   // program to execute
 	               entry_point,    // start address of main function
                    256);   // locals to be reserved, should be num_globals
-    str8_builtins = new_vtable();
+    str8_vtable = (VTable_t*)(str8_builtins());
 	run(vm);
 	delVM(vm);
     fclose(file_ptr);

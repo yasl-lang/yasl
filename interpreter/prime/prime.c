@@ -1,3 +1,5 @@
+#pragma once
+
 #include <math.h>
 #include "prime.h"
 #define PRIME_A 37
