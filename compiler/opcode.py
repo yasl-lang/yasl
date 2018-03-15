@@ -55,3 +55,4 @@ RET       = 0xF8 # return from function
 CALL_8    = 0xF9 # function call (# of parameters (1 byte), addr (8 bytes), # of locals (1 byte))
 RCALL_8   = 0xFA # tail recursive function call (# of parameters (1 byte), addr (8 bytes), # of locals (1 byte))
 BCALL_8   = 0xFB # built-in function call
+MCALL_8   = 0xFC # method call

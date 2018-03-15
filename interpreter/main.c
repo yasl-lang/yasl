@@ -14,6 +14,7 @@
 #include "constant/constant.c"
 #include "builtins/builtins.c"
 #include "hashtable/hashtable.c"
+#include "vtable/vtable.c"
 #include "string8/string8.c"
 #define BUFFER_SIZE 256
 #define NCODE(vm)    (vm->code[vm->pc++])     // get next bytecode
@@ -429,40 +430,6 @@ void run(VM* vm){
             memcpy((char*)vm->stack[vm->sp].value + big_offset, vm->code + vm->pc, size);
             vm->pc += size;
             break;
-        /*case PRINT:
-            v = vm->stack[vm->sp--];    // pop value from top of the stack ...
-            switch (v.type) {
-            case INT64:
-                printf("int64: %" PRId64 "\n", v.value);
-                break;
-            case FLOAT64:
-                printf("float64: %f\n", *((double*)&v.value));
-                break;
-            case BOOL:
-                if (v.value == 0) printf("bool: false\n");
-                else printf("bool: true\n");
-                break;
-            case UNDEF:
-                printf("undef: undef\n");
-                break;
-            case STR8:
-                printf("str: ");
-                for (i = sizeof(int64_t); i < *((int64_t*)v.value) + sizeof(int64_t); i++) { // TODO: fix hardcoded 8
-                    printf("%c", *((char*)(v.value + i)));
-                }
-                printf("\n");
-                break;
-            case HASH:
-                printf("hash: <%" PRIx64 ">\n", v.value);
-                break;
-            case LIST:
-                printf("list: <%" PRIx64 ">\n", v.value);
-                break;
-            default:
-                printf("ERROR UNKNOWN TYPE: %x\n", v.type);
-                break;
-            }
-            break; //*/
         default:
             printf("ERROR UNKNOWN OPCODE: %x\n", opcode);
             return;
@@ -474,6 +441,7 @@ char *buffer;
 FILE *file_ptr;
 long file_len;
 int64_t entry_point, num_globals;
+VTable_t* str8_builtins;
 
 int main(void) {
     file_ptr = fopen("source.yb", "rb");
@@ -490,6 +458,7 @@ int main(void) {
 	VM* vm = newVM(buffer,   // program to execute
 	               entry_point,    // start address of main function
                    256);   // locals to be reserved, should be num_globals
+    str8_builtins = new_vtable();
 	run(vm);
 	delVM(vm);
     fclose(file_ptr);
