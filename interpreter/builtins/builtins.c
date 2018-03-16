@@ -297,7 +297,6 @@ int yasl_endswith(VM* vm) {
 }
 
 int yasl_search(VM* vm) {
-    // TODO: implement non-naive algorithm for string search.
     Constant haystack = POP(vm);
     Constant needle = POP(vm);
     if (haystack.type != STR8) {
@@ -319,7 +318,7 @@ int yasl_search(VM* vm) {
         }
         i++;
     }
-    vm->stack[++vm->sp] = (Constant) {INT64, -1};
+    vm->stack[++vm->sp] = (Constant) {INT64, string8_search((String_t*)haystack.value, (String_t*)needle.value)};
     return 0;
 }
 
