@@ -71,7 +71,7 @@
                             }\
                             BPUSH(vm, c);})
 
-VTable_t *str8_vtable, *list_vtable;
+VTable_t *str8_vtable, *list_vtable, *hash_vtable;
 
 
 void run(VM* vm){
@@ -398,6 +398,8 @@ void run(VM* vm){
                 addr = vt_search(str8_vtable, addr);
             } else if (PEEK(vm).type == LIST) {
                 addr = vt_search(list_vtable, addr);
+            } else if (PEEK(vm).type == HASH) {
+                addr = vt_search(hash_vtable, addr);
             } else {
                 printf("ERROR: No methods implemented for this type.\n");
                 return;
@@ -483,10 +485,12 @@ int main(void) {
                    256);   // locals to be reserved, should be num_globals
     str8_vtable = str8_builtins();
     list_vtable = list_builtins();
+    hash_vtable = hash_builtins();
 	run(vm);
 	delVM(vm);
     del_vtable(str8_vtable);
     del_vtable(list_vtable);
+    del_vtable(hash_vtable);
     fclose(file_ptr);
 	return 0;
 };

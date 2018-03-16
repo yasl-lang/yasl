@@ -65,9 +65,6 @@ BUILTINS = {
         "print":        0x00,
         "insert":       0x01,
         "find":         0x02,
-        "keys":         0x03,
-        "values":       0x04,
-        "append":       0x05,
 }
 
 METHODS = {
@@ -89,6 +86,9 @@ METHODS = {
         "search":       0x18,
 
         "append":       0x20,
+
+        "keys":         0x30,
+        "values":       0x31,
 
 }
 

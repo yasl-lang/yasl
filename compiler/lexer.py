@@ -116,12 +116,20 @@ class Lexer(object):
             result += self.current_char
             self.advance()
         if self.current_char == ".":
-            result += self.current_char
-            self.advance()
-            while self.current_char is not None and (self.current_char.isdigit() or self.current_char == "_"):
+            if self.peek().isdigit():
                 result += self.current_char
                 self.advance()
-            token = Token(TokenTypes.FLOAT, float(result.replace("_", "")), self.line)
+                while self.current_char is not None and (self.current_char.isdigit() or self.current_char == "_"):
+                    result += self.current_char
+                    self.advance()
+                token = Token(TokenTypes.FLOAT, float(result.replace("_", "")), self.line)
+            else:
+                self.advance()
+                token = Token(TokenTypes.INT, int(result.replace("_", "")), self.line)
+                self.tokens.append(token)
+                self.tokens.append(Token(TokenTypes.DOT, ".", self.line))
+                self._eat_white_space()
+                return
         else:
             token = Token(TokenTypes.INT, int(result.replace("_", "")), self.line)
         self.tokens.append(token)
