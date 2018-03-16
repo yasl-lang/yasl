@@ -84,6 +84,10 @@ METHODS = {
         "startswith":   0x16,
         "endswith":     0x17,
         "search":       0x18,
+        "split":        0x19,
+        "ltrim":        0x1A,
+        "rtrim":        0x1B,
+        "trim":         0x1C,
 
         "append":       0x20,
 

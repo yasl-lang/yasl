@@ -2,12 +2,21 @@
 
 #include "string8.h"
 //#define STRLEN(s)
-static String_t* new_sized_string8(const int64_t base_size) {
+String_t* new_sized_string8(const int64_t base_size) {
     String_t* str = malloc(sizeof(String_t));
     str->length = base_size;
     str->str = malloc(sizeof(char)*str->length);
     return str;
 }
+
+String_t* new_sized_string8_from_mem(const int64_t base_size, char* str_mem) {
+    String_t* str = malloc(sizeof(String_t));
+    str->length = base_size;
+    str->str = str_mem;
+    return str;
+}
+
+//TODO: add new string constructor that takes address of string as second param.
 
 void del_string8(String_t* str8) {
     free(str8->str);

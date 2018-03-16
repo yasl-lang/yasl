@@ -310,21 +310,21 @@ int yasl_search(VM* vm) {
         vm->stack[++vm->sp] = (Constant) {INT64, -1};
         return 0;
     }
-    int64_t i = 0;
-    while (i < ((String_t*)haystack.value)->length) {
+    //int64_t i = 0;
+    /*while (i < ((String_t*)haystack.value)->length) {
         if (!memcmp(((String_t*)haystack.value)->str+i, ((String_t*)needle.value)->str, ((String_t*)needle.value)->length)) {
             vm->stack[++vm->sp] = (Constant) {INT64, i};
             return 0;
         }
         i++;
-    }
+    } */
     vm->stack[++vm->sp] = (Constant) {INT64, string8_search((String_t*)haystack.value, (String_t*)needle.value)};
     return 0;
 }
 
 int yasl_split(VM* vm) {
-    Constant needle = POP(vm);
     Constant haystack = POP(vm);
+    Constant needle = POP(vm);
     if (haystack.type != STR8) {
         printf("Error: split(...) expected type %x as first argument, got type %x\n", STR8, haystack.type);
         return -1;
@@ -335,14 +335,29 @@ int yasl_split(VM* vm) {
         printf("Error: split(...) requires type %x of length > 0 as second argument\n", STR8);
         return -1;
     }
-    int64_t i = 0;
-    int64_t j = 0;
-    while (i + ((String_t*)needle.value)->length <= ((String_t*)haystack.value)->length) {
-        if (((String_t*)haystack.value)->str[i] == ((String_t*)needle.value)->str[j]);
+    int64_t end = 0;
+    int64_t start = 0;
+    List_t* result = new_list();
+    while (end + ((String_t*)needle.value)->length <= ((String_t*)haystack.value)->length) {
+        //printf("end = %d, start = %d\n", (int)end, (int)start);
+        if (!memcmp(((String_t*)haystack.value)->str+end,
+                    ((String_t*)needle.value)->str,
+                    ((String_t*)needle.value)->length)) {
+            ls_append(result, (Constant) {STR8, (int64_t)new_sized_string8_from_mem(end - start,
+                                                                           ((String_t*)haystack.value)->str+start)});
+            end += ((String_t*)needle.value)->length;
+            start = end;
+        } else {
+            end++;
+        }
     }
     // " b", "a b c d e"
-    puts("split(...) not yet implemented.");
-    return -1;
+    ls_append(result, (Constant)
+            {STR8, (int64_t)new_sized_string8_from_mem(((String_t*)haystack.value)->length - start,
+                                     ((String_t*)haystack.value)->str+start)});
+    //puts("split(...) not yet implemented.");
+    vm->stack[++vm->sp] = (Constant) {LIST, (int64_t)result};
+    return 0;
 }
 
 /*
@@ -474,6 +489,7 @@ VTable_t* str8_builtins() {
     vt_insert(vt, 0x16, (int64_t)&yasl_startswith);
     vt_insert(vt, 0x17, (int64_t)&yasl_endswith);
     vt_insert(vt, 0x18, (int64_t)&yasl_search);
+    vt_insert(vt, 0x19, (int64_t)&yasl_split);
     vt_insert(vt, 0x0C, (int64_t)&yasl_tobool);
     return vt;
 }
