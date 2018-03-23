@@ -39,8 +39,8 @@ class Parser(object):
             return self.if_stmt()
         elif self.current_token.type is TokenTypes.WHILE:
             return self.while_loop()
-        elif self.current_token.type is TokenTypes.DEFUN:
-            self.eat(TokenTypes.DEFUN)
+        elif self.current_token.type is TokenTypes.FUNC:
+            self.eat(TokenTypes.FUNC)
             return self.fndecl()
         elif self.current_token.type is TokenTypes.RETURN:
             return self.return_stmt()
@@ -266,8 +266,8 @@ class Parser(object):
         elif self.current_token.type is TokenTypes.UNDEF:
             nil = self.eat(TokenTypes.UNDEF)
             return Undef(nil)
-        elif self.current_token.type is TokenTypes.HASH:
-            hash = self.eat(TokenTypes.HASH)
+        elif self.current_token.type is TokenTypes.MAP:
+            hash = self.eat(TokenTypes.MAP)
             self.eat(TokenTypes.LPAREN)
             keys = []
             vals = []

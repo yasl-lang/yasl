@@ -1,4 +1,4 @@
-from enum import Enum #TODO: change to enum
+from enum import Enum
 
 class TokenTypes(Enum):
     INT    = 0x00
@@ -6,7 +6,7 @@ class TokenTypes(Enum):
     BOOL   = 0x02
     UNDEF  = 0x03
     STR    = 0x04
-    HASH   = 0x05
+    MAP    = 0x05
     LIST   = 0x06
     IF     = 0x10
     ELSEIF = 0x11
@@ -29,23 +29,10 @@ class TokenTypes(Enum):
     SEMI   = 0x3B
     EOF    = 0x3F
     LET    = 0x40
-    DEFUN  = 0x41
+    FUNC   = 0x41
     RETURN = 0x42
-    CLASS  = 0x43
+    STRUCT = 0x43
     PRINT  = 0x80
-
-
-
-'''
-ID, LPAREN, RPAREN, SEMI, EOF = \
-"ID", "LPAREN", "RPAREN", "SEMI", "EOF"
-DEFUN, COLON, ARROW, COMMA = "DEFUN", "COLON", "ARROW", "COMMA"
-QMARK = "QMARK"
-PRINT = "PRINT"
-OP = "OP"
-INT, FLOAT, STR, BOOL = "INT", "FLOAT", "STR", "BOOL"
-VAR = "VAR" '''
-
 
 class Token(object):
     def __init__(self, token_type, token_value, line):
