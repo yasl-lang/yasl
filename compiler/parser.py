@@ -98,12 +98,12 @@ class Parser(object):
         name = self.eat(TokenTypes.ID)
         self.eat(TokenTypes.COLON)
         params = []
-        if self.current_token.type is not TokenTypes.ARROW:
+        if self.current_token.type is not TokenTypes.RARROW:
             params.append(self.eat(TokenTypes.ID))
         while self.current_token.type is TokenTypes.COMMA:
             self.eat(TokenTypes.COMMA)
             params.append(self.eat(TokenTypes.ID))
-        self.eat(TokenTypes.ARROW)
+        self.eat(TokenTypes.RARROW)
         block = []
         self.eat(TokenTypes.LBRACE)
         while self.current_token.type is not TokenTypes.RBRACE:
@@ -179,8 +179,13 @@ class Parser(object):
         return curr
     def comparator(self):
         curr = self.concat()
-        while self.current_token.value in ["<", ">", ">=", "<="]:
-            op = self.eat(TokenTypes.OP)
+        while self.current_token.value in ["<", ">", ">=", "<=", "<-"]:
+            if self.current_token.value == "<-":    #prevents parser from treating <- as left arrow.
+                op = Token(TokenTypes.OP, "<", self.current_token.line)
+                self.current_token.value = "-"
+                self.current_token.type = TokenTypes.OP
+            else:
+                op = self.eat(TokenTypes.OP)
             curr = BinOp(op, curr, self.add())
         return curr
     def concat(self):
@@ -273,12 +278,12 @@ class Parser(object):
             vals = []
             if self.current_token.type is not TokenTypes.RPAREN:
                 keys.append(self.expr())
-                self.eat(TokenTypes.ARROW)
+                self.eat(TokenTypes.RARROW)
                 vals.append(self.expr())
             while self.current_token.type is TokenTypes.COMMA and self.current_token.type is not TokenTypes.EOF:
                 self.eat(TokenTypes.COMMA)
                 keys.append(self.expr())
-                self.eat(TokenTypes.ARROW)
+                self.eat(TokenTypes.RARROW)
                 vals.append(self.expr())
             self.eat(TokenTypes.RPAREN)
             return Hash(hash, keys, vals)
@@ -286,19 +291,19 @@ class Parser(object):
             ls = self.eat(TokenTypes.LBRACK)
             keys = []
             vals = []
-            if self.current_token.type is TokenTypes.ARROW:
-                self.eat(TokenTypes.ARROW)
+            if self.current_token.type is TokenTypes.RARROW:
+                self.eat(TokenTypes.RARROW)
                 self.eat(TokenTypes.RBRACK)
                 return Hash(ls, keys, vals)
             if self.current_token.type is not TokenTypes.RBRACK:
                 keys.append(self.expr())
-                if self.current_token.type is TokenTypes.ARROW:
-                    self.eat(TokenTypes.ARROW)
+                if self.current_token.type is TokenTypes.RARROW:
+                    self.eat(TokenTypes.RARROW)
                     vals.append(self.expr())
                     while self.current_token.type is TokenTypes.COMMA and self.current_token.type is not TokenTypes.EOF:
                         self.eat(TokenTypes.COMMA)
                         keys.append(self.expr())
-                        self.eat(TokenTypes.ARROW)
+                        self.eat(TokenTypes.RARROW)
                         vals.append(self.expr())
                     self.eat(TokenTypes.RBRACK)
                     return Hash(ls, keys, vals)

@@ -25,8 +25,9 @@ class TokenTypes(Enum):
     COLON  = 0x37
     DOT    = 0x38
     COMMA  = 0x39
-    ARROW  = 0x3A
-    SEMI   = 0x3B
+    LARROW = 0x3A
+    RARROW = 0x3B
+    SEMI   = 0x3C
     EOF    = 0x3F
     LET    = 0x40
     FUNC   = 0x41

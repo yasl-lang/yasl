@@ -168,7 +168,11 @@ class Lexer(object):
                 self.advance()
                 self.advance()
             elif self.current_char == "-" and self.peek() == ">":
-                self.tokens.append(Token(TokenTypes.ARROW, "->", self.line))
+                self.tokens.append(Token(TokenTypes.RARROW, "->", self.line))
+                self.advance()
+                self.advance()
+            elif self.current_char == "<" and self.peek() == "-":
+                self.tokens.append(Token(TokenTypes.LARROW, "<-", self.line))
                 self.advance()
                 self.advance()
             elif self.current_char == ":": self._add_token(TokenTypes.COLON)
