@@ -82,11 +82,23 @@ class Parser(object):
         cond = self.expr()
         self.eat(TokenTypes.LBRACE)
         body = []
-        while self.current_token.type is not TokenTypes.RBRACE:
+        while self.current_token.type is not TokenTypes.RBRACE and self.current_token.type is not TokenTypes.EOF:
             body.append(self.program())
             self.eat(TokenTypes.SEMI)
         self.eat(TokenTypes.RBRACE)
         return While(token, cond, Block(body))
+    def for_loop(self):
+        token = self.eat(TokenTypes.FOR)
+        var = self.eat(TokenTypes.ID)
+        self.eat(TokenTypes.LARROW)
+        ls = self.expr()
+        self.eat(TokenTypes.LBRACE)
+        body = []
+        while self.current_token.type is not TokenTypes.RBRACE and self.current_token.type is not TokenTypes.EOF:
+            body.append(self.program())
+            self.eat(TokenTypes.SEMI)
+        self.eat(TokenTypes.RBRACE)
+        return For(token, var, ls, Block(body))
     def vardecl(self):
         name = self.eat(TokenTypes.ID)
         if self.current_token.value == "=":

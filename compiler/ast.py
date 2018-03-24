@@ -120,6 +120,12 @@ class While(AST):
         self.token = token
         self.cond = cond
         self.body = body
+class For(AST):
+    def __init__(self, token, var, ls, body):
+        self.token = token
+        self.var = var
+        self.ls = ls
+        self.body = body
 class Block(AST):
     def __init__(self, statements):
         self.statements = statements  # list of ASTs to iterate over
