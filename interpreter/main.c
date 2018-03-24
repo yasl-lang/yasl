@@ -401,7 +401,7 @@ void run(VM* vm){
             } else if (PEEK(vm).type == HASH) {
                 addr = vt_search(hash_vtable, addr);
             } else {
-                printf("ERROR: No methods implemented for this type.\n");
+                printf("ERROR: No methods implemented for this type: %d.\n", PEEK(vm).type);
                 return;
             }
             if (addr != -1) {

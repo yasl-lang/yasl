@@ -282,7 +282,30 @@ class Parser(object):
                 vals.append(self.expr())
             self.eat(TokenTypes.RPAREN)
             return Hash(hash, keys, vals)
-        elif self.current_token.type is TokenTypes.LIST:
+        elif self.current_token.type is TokenTypes.LBRACK:
+            ls = self.eat(TokenTypes.LBRACK)
+            keys = []
+            vals = []
+            if self.current_token.type is not TokenTypes.RBRACK:
+                keys.append(self.expr())
+                if self.current_token.type is TokenTypes.ARROW:
+                    self.eat(TokenTypes.ARROW)
+                    vals.append(self.expr())
+                    while self.current_token.type is TokenTypes.COMMA and self.current_token.type is not TokenTypes.EOF:
+                        self.eat(TokenTypes.COMMA)
+                        keys.append(self.expr())
+                        self.eat(TokenTypes.ARROW)
+                        vals.append(self.expr())
+                    self.eat(TokenTypes.RBRACK)
+                    return Hash(ls, keys, vals)
+                else:
+                    while self.current_token.type is TokenTypes.COMMA and self.current_token.type is not TokenTypes.EOF:
+                        self.eat(TokenTypes.COMMA)
+                        keys.append(self.expr())
+                    self.eat(TokenTypes.RBRACK)
+                    return List(ls, keys)
+            return List(ls, keys) #TODO: decide way to make empty map
+            '''elif self.current_token.type is TokenTypes.LIST:
             ls = self.eat(TokenTypes.LIST)
             self.eat(TokenTypes.LPAREN)
             params = []
@@ -292,7 +315,7 @@ class Parser(object):
                 self.eat(TokenTypes.COMMA)
                 params.append(self.expr())
             self.eat(TokenTypes.RPAREN)
-            return List(ls, params)
+            return List(ls, params)'''
         else:
             assert False
     def parse(self):

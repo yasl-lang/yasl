@@ -65,6 +65,7 @@ BUILTINS = {
         "print":        0x00,
         "insert":       0x01,
         "find":         0x02,
+        "append":       0x03,
 }
 
 METHODS = {
@@ -298,7 +299,10 @@ class Compiler(NodeVisitor):
     def visit_List(self, node):
         result = [NEWLIST]
         for expr in node.params:
-            result = result + [DUP] + self.visit(expr) + [BCALL_8] + intbytes_8(BUILTINS["append"]) + [POP]
+            #[MCALL_8] + intbytes_8(METHODS[node.value])
+            result = result + [DUP] + self.visit(expr) + [SWAP] + [MCALL_8] + intbytes_8(METHODS["append"]) + [POP]
+            # TODO: fix order of arguments here
+            #result = result + [DUP] + self.visit(expr) + [BCALL_8] + intbytes_8(BUILTINS["append"]) + [POP]
         return result
     def visit_String(self, node):
         if node.value not in self.strs:
