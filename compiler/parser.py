@@ -39,6 +39,8 @@ class Parser(object):
             return self.if_stmt()
         elif self.current_token.type is TokenTypes.WHILE:
             return self.while_loop()
+        elif self.current_token.type is TokenTypes.FOR:
+            return self.for_loop()
         elif self.current_token.type is TokenTypes.FUNC:
             self.eat(TokenTypes.FUNC)
             return self.fndecl()

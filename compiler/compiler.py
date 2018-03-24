@@ -179,6 +179,23 @@ class Compiler(NodeVisitor):
         cond = cond + [BRF_8] + intbytes_8(len(body)+9)
         body = body + [BR_8] + intbytes_8(-(len(body)+9+len(cond)))
         return cond + body
+    def visit_For(self, node):
+        #assert False
+        self.enter_scope()
+        self.globals.decl_var("for")
+        result = [ICONST_0, GSTORE_1, self.globals["for"]]
+        self.enter_scope()
+        right = self.visit(node.ls)
+        self.globals.decl_var(node.var.value)
+        body = right + [GLOAD_1, self.globals["for"]] + \
+                [BCALL_8] + intbytes_8(BUILTINS["find"]) + [ GSTORE_1, self.globals[node.var.value]] + \
+               self.visit(node.body) + [GLOAD_1, self.globals["for"], ICONST_1, ADD, GSTORE_1, self.globals["for"]]
+        self.exit_scope()
+        cond = [GLOAD_1, self.globals["for"]] + right + [LEN, GE, NOT, BRF_8] + \
+            intbytes_8(len(body)+9)
+        body = cond + body + [BR_8] + intbytes_8(-len(body)-len(cond)-9)
+        self.exit_scope()
+        return result + body
     def visit_TriOp(self, node): #only 1 tri-op is possible
         cond = self.visit(node.cond)
         left = self.visit(node.left)
