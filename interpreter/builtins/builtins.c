@@ -93,7 +93,7 @@ int yasl_input(VM* vm) {
  * "tobool":       0x0C,
  * "tostr8":       0x0D,
  * "tolist":       0x0E,
- * "tohash":       0x0F,
+ * "tomap":        0x0F,
 */
 
 int yasl_tofloat64(VM* vm);
@@ -116,7 +116,7 @@ int yasl_tobool(VM* vm) {
 
 int yasl_tostr8(VM* vm);
 int yasl_tolist(VM* vm);
-int yasl_tohash(VM* vm);
+int yasl_tomap(VM* vm);
 
 int yasl_upcase(VM* vm) {
     Constant a = PEEK(vm);
