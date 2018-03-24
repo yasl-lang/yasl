@@ -86,8 +86,18 @@ void run(VM* vm){
         int64_t c;
         double d;
         void* ptr;
-        //printf("opcode: %x\n", opcode);
-        //print(PEEK(vm));
+        /*printf("\nopcode: %x\n", opcode);
+        print(PEEK(vm));
+        print(vm->stack[vm->sp-1]);
+        //print(vm->stack[vm->sp-2]);
+        //print(vm->stack[vm->sp-3]);
+        print(vm->globals[0]);
+        print(vm->globals[1]);
+        print(vm->globals[2]);
+        print(vm->globals[3]);
+        print(vm->globals[4]);
+        print(vm->globals[5]); //*/
+
         //printf("pc: %d\n", vm->pc);
         //printf("vm->sp: %d, vm->pc: %d\n", vm->sp, vm->pc);
         /*printf("stack[0, 1, 2, 3] are %d:%x, %d:%x, %d:%x, %d:%x\n",

@@ -135,12 +135,12 @@ class Compiler(NodeVisitor):
         for opcode in result + [HALT]: print(hex(opcode))
         return self.header + result + [HALT] #TODO: fix return values once we have proper ones
     def enter_scope(self):
-        if self.current_fn is None:
+        if self.current_fn is not None:
             self.locals = Env(self.locals)
         else:
             self.globals = Env(self.globals)
     def exit_scope(self):
-        if self.current_fn is None:
+        if self.current_fn is not None:
             self.locals = self.locals.parent
         else:
             self.globals = self.globals.parent
@@ -195,6 +195,7 @@ class Compiler(NodeVisitor):
             intbytes_8(len(body)+9)
         body = cond + body + [BR_8] + intbytes_8(-len(body)-len(cond)-9)
         self.exit_scope()
+        print(self.globals.vars)
         return result + body
     def visit_TriOp(self, node): #only 1 tri-op is possible
         cond = self.visit(node.cond)
