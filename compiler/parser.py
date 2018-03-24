@@ -286,6 +286,10 @@ class Parser(object):
             ls = self.eat(TokenTypes.LBRACK)
             keys = []
             vals = []
+            if self.current_token.type is TokenTypes.ARROW:
+                self.eat(TokenTypes.ARROW)
+                self.eat(TokenTypes.RBRACK)
+                return Hash(ls, keys, vals)
             if self.current_token.type is not TokenTypes.RBRACK:
                 keys.append(self.expr())
                 if self.current_token.type is TokenTypes.ARROW:
@@ -304,6 +308,7 @@ class Parser(object):
                         keys.append(self.expr())
                     self.eat(TokenTypes.RBRACK)
                     return List(ls, keys)
+            self.eat(TokenTypes.RBRACK)
             return List(ls, keys) #TODO: decide way to make empty map
             '''elif self.current_token.type is TokenTypes.LIST:
             ls = self.eat(TokenTypes.LIST)
