@@ -1,15 +1,12 @@
-#pragma once
-
 #include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include "list.h"
-#include "../constant/constant.c"
+#include "../constant/constant.h"
 #define LS_BASESIZE 4
 
-
-//Constant TOMBSTONE = (Constant) {0xF0, 0};
+Constant TOMBSTONE = (Constant) {0xF0, 0};
 
 static List_t* new_sized_list(const int base_size) {
     List_t* ls = malloc(sizeof(List_t));

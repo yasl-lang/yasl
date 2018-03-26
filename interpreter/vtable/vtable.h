@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../constant/constant.c"
+#include "../constant/constant.h"
 #include <inttypes.h>
 
 typedef struct {

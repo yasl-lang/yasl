@@ -1,4 +1,5 @@
-#pragma once
+#include <inttypes.h>
+#include <string.h>
 
 #include "builtins.h"
 
@@ -473,10 +474,6 @@ int yasl_values(VM* vm) {
     vm->stack[++vm->sp] = (Constant) {LIST, (int64_t)ls};
     return 0;
 }
-
-const Handler builtins[] = {
-    yasl_print, yasl_insert,    yasl_find,  yasl_keys,  yasl_values,    yasl_append,
-};
 
 VTable_t* str8_builtins() {
     VTable_t* vt = new_vtable();
