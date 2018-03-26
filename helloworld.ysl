@@ -1,0 +1,2 @@
+$$ show "hello world" on stdout
+print "hello world"

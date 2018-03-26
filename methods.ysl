@@ -1,0 +1,5 @@
+$$ for loop
+$$ .split: str -> list
+for x <- "the quick brown fox jumps over the lazy dog".split(" ") {
+    print x
+}
