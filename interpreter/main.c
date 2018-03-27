@@ -478,8 +478,23 @@ FILE *file_ptr;
 long file_len;
 int64_t entry_point, num_globals;
 
-int main(void) {
-    file_ptr = fopen("source.yb", "rb");
+int main(int argc, char** argv) {
+    if (argc > 2) {
+        printf("ERROR: Too many arguments passed.\nUsage is: YASL [path/to/byte-code.yb]\nDefault path is \"source.yb\"\n");
+		return -1;
+    } else if (argc == 2) {
+        file_ptr = fopen(argv[1], "rb");
+		if(file_ptr == NULL) {
+			printf("ERROR: Could not open source file \"%s\".\n", argv[1]);
+			return -2;
+		}
+    } else {
+        file_ptr = fopen("source.yb", "rb");
+		if(file_ptr == NULL) {
+			printf("ERROR: Could not default open source file \"source.yb\".\n");
+			return -3;
+		}
+    }
     fseek(file_ptr, 0, SEEK_END);
     file_len = ftell(file_ptr);
     rewind(file_ptr);
