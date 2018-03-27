@@ -7,15 +7,19 @@
  Description : Bytecode VM. Must be compiled with GCC
  ============================================================================
  */
+
+#include "VM.h"
+#include "opcode.h"
+#include "constant/constant.h"
+#include "builtins/builtins.h"
+#include "hashtable/hashtable.h"
+#include "vtable/vtable.h"
+#include "string8/string8.h"
+
 #include <inttypes.h>
+#include <stdio.h>
 #include <string.h>
-#include "VM.c"
-#include "opcode.c"
-#include "constant/constant.c"
-#include "builtins/builtins.c"
-#include "hashtable/hashtable.c"
-#include "vtable/vtable.c"
-#include "string8/string8.c"
+
 #define BUFFER_SIZE 256
 #define NCODE(vm)    (vm->code[vm->pc++])     // get next bytecode
 #define IPUSH(vm, v) (PUSH(vm, ((Constant) {INT64, v})))  //push integer v onto stack

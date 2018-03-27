@@ -1,4 +1,5 @@
-#pragma once
+#include <inttypes.h>
+#include <string.h>
 
 #include "builtins.h"
 
@@ -513,7 +514,6 @@ VTable_t* int64_builtins() {
     vt_insert(vt, 0x0A, (int64_t)&yasl_tofloat64);
     return vt;
 }
-
 VTable_t* str8_builtins() {
     VTable_t* vt = new_vtable();
     vt_insert(vt, 0x10, (int64_t)&yasl_upcase);

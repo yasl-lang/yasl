@@ -1,14 +1,10 @@
-#pragma once
-
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include "hashtable.h"
-#include "../constant/constant.c"
-#include "../prime/prime.c"
+#include "../constant/constant.h"
+#include "../prime/prime.h"
 #define HT_BASESIZE 60
-
-static Item_t TOMBSTONE = {NULL, NULL};
 
 static int hash_function(const Constant s, const int a, const int m) {
     long hash = 0;

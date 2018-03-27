@@ -1,13 +1,16 @@
 #pragma once
 
-#include "../constant/constant.c"
+#include "../constant/constant.h"
 #include <inttypes.h>
+
 #define LEN(v) (*((int64_t*)v.value))
 
 typedef struct {
     Constant* key;
     Constant* value;
 } Item_t;
+
+static Item_t TOMBSTONE = {0, 0};
 
 typedef struct {
     int64_t size;

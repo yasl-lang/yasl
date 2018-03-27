@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../constant/constant.c"
+#include "../constant/constant.h"
 #define LEN(v) (*((int64_t*)v.value))
 
 typedef struct {
