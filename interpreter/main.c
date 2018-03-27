@@ -75,7 +75,7 @@
                             }\
                             BPUSH(vm, c);})
 
-VTable_t *str8_vtable, *list_vtable, *hash_vtable;
+VTable_t *float64_vtable, *int64_vtable, *str8_vtable, *list_vtable, *hash_vtable;
 
 
 void run(VM* vm){
@@ -419,7 +419,11 @@ void run(VM* vm){
         case MCALL_8:
             memcpy(&addr, vm->code + vm->pc, sizeof(addr));
             vm->pc += sizeof(addr);
-            if (PEEK(vm).type == STR8) {
+            if (PEEK(vm).type == FLOAT64) {
+                addr = vt_search(float64_vtable, addr);
+            } else if (PEEK(vm).type == INT64) {
+                addr = vt_search(int64_vtable, addr);
+            } else if (PEEK(vm).type == STR8) {
                 addr = vt_search(str8_vtable, addr);
             } else if (PEEK(vm).type == LIST) {
                 addr = vt_search(list_vtable, addr);
@@ -508,11 +512,15 @@ int main(void) {
 	VM* vm = newVM(buffer,   // program to execute
 	               entry_point,    // start address of main function
                    256);   // locals to be reserved, should be num_globals
+    float64_vtable = float64_builtins();
+    int64_vtable = int64_builtins();
     str8_vtable = str8_builtins();
     list_vtable = list_builtins();
     hash_vtable = hash_builtins();
 	run(vm);
 	delVM(vm);
+	del_vtable(float64_vtable);
+	del_vtable(int64_vtable);
     del_vtable(str8_vtable);
     del_vtable(list_vtable);
     del_vtable(hash_vtable);
