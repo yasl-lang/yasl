@@ -226,6 +226,10 @@ class Lexer(object):
                 self.tokens.append(Token(TokenTypes.OP, "||", self.line))
                 self.advance()
                 self.advance()
+            elif self.current_char == "/" and self.peek() == "/":
+                self.tokens.append(Token(TokenTypes.OP, "//", self.line))
+                self.advance()
+                self.advance()
             elif self.current_char == ",":
                 self._add_token(TokenTypes.COMMA)
             elif self.current_char == ".":
