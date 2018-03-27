@@ -1,7 +1,6 @@
 from .lexer import Lexer
 from .parser import Parser
 from .compiler import Compiler
-from .resolver import Resolver
 import sys
 from .opcode import HALT
 
@@ -17,7 +16,7 @@ def main():
         lexer = Lexer(text)
         parser = Parser(lexer.lex())
         statements = parser.parse() # = Interpreter(parser)
-        resolver = Resolver(compiler)
+        #resolver = Resolver(compiler)
         #resolver.resolve(statements)
         result = compiler.compile(statements)
         #print([hex(r) for r in result])
