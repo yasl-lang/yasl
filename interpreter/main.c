@@ -186,6 +186,17 @@ void run(VM* vm){
             vm->stack[++vm->sp].type = FLOAT64;
             memcpy(&vm->stack[vm->sp].value, &d, sizeof(d));
             break;
+        case IDIV:
+            b = POP(vm);
+            a = PEEK(vm);
+            if (a.type == INT64 && b.type == INT64) {
+                //printf("a = %d, b = %d, a/b = %d\n", a.value, b.value, a.value / b.value);
+                PEEK(vm).value = a.value / b.value;
+                break;
+            } else {
+                printf("ERROR: // not supported for operands of types %x and %x.\n", a.type, b.type);
+                return;
+            }
         case MOD:
             b = vm->stack[vm->sp--];
             a = vm->stack[vm->sp];
