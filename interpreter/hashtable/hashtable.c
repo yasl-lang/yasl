@@ -1,9 +1,12 @@
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
 #include "hashtable.h"
 #include "../constant/constant.h"
 #include "../prime/prime.h"
+
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include <stdio.h>
+
 #define HT_BASESIZE 60
 
 static int hash_function(const Constant s, const int a, const int m) {
