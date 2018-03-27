@@ -218,7 +218,7 @@ class Parser(object):
         return curr
     def multiply(self):
         curr = self.unop()
-        while self.current_token.value in ["*", "/", "%"]:
+        while self.current_token.value in ["*", "/", "//", "%"]:
             op = self.eat(TokenTypes.OP)
             curr = BinOp(op, curr, self.const())
         return curr
