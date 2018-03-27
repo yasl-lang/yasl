@@ -4,7 +4,7 @@ OUT=YASL
 OBJECTS=interpreter/VM.o interpreter/builtins/builtins.o interpreter/constant/constant.o interpreter/hashtable/hashtable.o interpreter/list/list.o interpreter/prime/prime.o interpreter/string8/string8.o interpreter/vtable/vtable.o
 
 YASL: $(OBJECTS)
-	$(CC) interpreter/main.c $(OBJECTS) $(CFLAGS) -o $(OUT)
+	$(CC) $(OBJECTS) interpreter/main.c $(CFLAGS) -o $(OUT)
 
 clean:
 	rm $(OUT) $(OBJECTS)

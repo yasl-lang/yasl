@@ -19,6 +19,7 @@ typedef struct {
     Item_t** items;
 } Hash_t;
 
+Hash_t* new_hash();
 void ht_insert(Hash_t* hashtable, Constant key, Constant value);
 Constant* ht_search(Hash_t* hashtable, Constant key);
 void ht_delete(Hash_t* hashtable, Constant key);

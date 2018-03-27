@@ -1,8 +1,11 @@
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
 #include "vtable.h"
 #include "../prime/prime.h"
+
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <math.h>
+
 #define VT_BASESIZE 60
 
 static VItem_t VTOMBSTONE = {-1, 0};

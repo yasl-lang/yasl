@@ -1,4 +1,5 @@
 #include "string8.h"
+#include <string.h>
 
 //#define STRLEN(s)
 String_t* new_sized_string8(const int64_t base_size) {
