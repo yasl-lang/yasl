@@ -9,6 +9,7 @@ typedef struct {
     Constant* items;
 } List_t;
 
+List_t* new_list(void);
 void ls_insert(List_t* ls, int64_t index, Constant value);
 void ls_append(List_t* ls, Constant value);
 Constant ls_search(List_t* ls, int64_t index);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <inttypes.h>
+#include <stdlib.h>
 
 typedef struct {
     int64_t length;

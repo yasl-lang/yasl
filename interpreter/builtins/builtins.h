@@ -1,4 +1,6 @@
 #pragma once
+
+#include <stdio.h>
 #include "../VM.h"
 #include "../opcode.h"
 #include "../constant/constant.h"
@@ -56,8 +58,12 @@ static const Handler builtins[] = {
     yasl_print, yasl_insert,    yasl_find,  yasl_keys,  yasl_values,    yasl_append,
 };
 
-VTable_t* str8_builtins();
+VTable_t* float64_builtins(void);
 
-VTable_t* list_builtins();
+VTable_t* int64_builtins(void);
 
-VTable_t* hash_builtins();
+VTable_t* str8_builtins(void);
+
+VTable_t* list_builtins(void);
+
+VTable_t* hash_builtins(void);

@@ -18,6 +18,7 @@ struct VTable_s {
 
 typedef struct VTable_s VTable_t;
 
+VTable_t* new_vtable(void);
 void vt_insert(VTable_t* vtable, int64_t key, int64_t value);
 int64_t vt_search(VTable_t* vtable, int64_t key);
 void vt_delete(VTable_t* vtable, int64_t key);

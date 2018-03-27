@@ -499,9 +499,9 @@ int yasl_values(VM* vm) {
     return 0;
 }
 
-const Handler builtins[] = {
+/* const Handler builtins[] = {
     yasl_print, yasl_insert,    yasl_find,  yasl_keys,  yasl_values,    yasl_append,
-};
+}; */
 
 VTable_t* float64_builtins() {
     VTable_t* vt = new_vtable();
