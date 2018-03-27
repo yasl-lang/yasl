@@ -1,4 +1,5 @@
-#pragma once
+#include <inttypes.h>
+#include <string.h>
 
 #include "builtins.h"
 
@@ -96,8 +97,32 @@ int yasl_input(VM* vm) {
  * "tomap":        0x0F,
 */
 
-int yasl_tofloat64(VM* vm);
-int yasl_toint64(VM* vm);
+int yasl_tofloat64(VM* vm) {
+    Constant a = POP(vm);
+    if (a.type == INT64) {
+        double d = (double)a.value;
+        //printf("d = %f\n", d);
+        vm->stack[++vm->sp].type = FLOAT64;
+        memcpy(&vm->stack[vm->sp].value, &d, sizeof(d));
+        return 0;
+    }
+    printf("tofloat64(...) is not implemented (yet) for arguments of type %x\n", a.type);
+    return -1;
+};
+
+int yasl_toint64(VM* vm) {
+    Constant a = POP(vm);
+    if (a.type == FLOAT64) {
+        double d;
+        memcpy(&d, &a.value, sizeof(d));
+        //printf("d = %f\n", d);
+        vm->stack[++vm->sp].type = INT64;
+        PEEK(vm).value = (int64_t)d;
+        return 0;
+    }
+    printf("toint64(...) is not implemented (yet) for arguments of type %x\n", a.type);
+    return -1;
+}
 
 int yasl_tobool(VM* vm) {
     Constant a = POP(vm);
@@ -478,6 +503,17 @@ const Handler builtins[] = {
     yasl_print, yasl_insert,    yasl_find,  yasl_keys,  yasl_values,    yasl_append,
 };
 
+VTable_t* float64_builtins() {
+    VTable_t* vt = new_vtable();
+    vt_insert(vt, 0x0B, (int64_t)&yasl_toint64);
+    return vt;
+}
+
+VTable_t* int64_builtins() {
+    VTable_t* vt = new_vtable();
+    vt_insert(vt, 0x0A, (int64_t)&yasl_tofloat64);
+    return vt;
+}
 VTable_t* str8_builtins() {
     VTable_t* vt = new_vtable();
     vt_insert(vt, 0x10, (int64_t)&yasl_upcase);
