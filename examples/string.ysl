@@ -1,0 +1,13 @@
+print "yasl".upcase()
+print "yasl".downcase()
+
+print "yasl".isalnum()
+print "yasl".isal()
+print "yasl".isnum()
+print "yasl".isspace()
+
+print "yasl".startswith("y")
+print "yasl".endswith("y")
+
+print "yasl".search("l")
+print "yasl".split("a")
