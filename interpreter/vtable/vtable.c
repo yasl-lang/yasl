@@ -15,7 +15,7 @@ static int vhash_function(const int64_t s, const int64_t a, const int64_t m) {
 }
 
 static int get_vhash(const int64_t s, const int64_t num_buckets, const int64_t attempt) {
-    const int hash_a = vhash_function(s, PRIME_A, num_buckets);
+	const int hash_a = vhash_function(s, PRIME_A, num_buckets);
     const int hash_b = vhash_function(s, PRIME_B, num_buckets);
     return (hash_a + (attempt * (hash_b + 1))) % num_buckets;
 }
