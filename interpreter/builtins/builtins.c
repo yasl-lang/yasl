@@ -360,8 +360,7 @@ int yasl_split(VM* vm) {
         printf("Error: split(...) requires type %x of length > 0 as second argument\n", STR8);
         return -1;
     }
-    int64_t end = 0;
-    int64_t start = 0;
+    int64_t end=0, start=0;
     List_t* result = new_list();
     while (end + ((String_t*)needle.value)->length <= ((String_t*)haystack.value)->length) {
         //printf("end = %d, start = %d\n", (int)end, (int)start);

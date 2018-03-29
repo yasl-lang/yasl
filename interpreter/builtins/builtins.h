@@ -59,11 +59,7 @@ static const Handler builtins[] = {
 };
 
 VTable_t* float64_builtins(void);
-
 VTable_t* int64_builtins(void);
-
 VTable_t* str8_builtins(void);
-
 VTable_t* list_builtins(void);
-
 VTable_t* hash_builtins(void);
