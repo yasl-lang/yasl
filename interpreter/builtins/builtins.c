@@ -529,7 +529,7 @@ VTable_t* str8_builtins() {
 VTable_t* list_builtins() {
     VTable_t* vt = new_vtable();
     vt_insert(vt, 0x20, (int64_t)&yasl_append);
-    //return vt;
+    return vt;
 }
 
 VTable_t* hash_builtins() {

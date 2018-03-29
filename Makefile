@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-lm
+CFLAGS=-lm -O3
 OUT=YASL
 OBJECTS=interpreter/VM.o interpreter/builtins/builtins.o interpreter/constant/constant.o interpreter/hashtable/hashtable.o interpreter/list/list.o interpreter/prime/prime.o interpreter/string8/string8.o interpreter/vtable/vtable.o
 
@@ -8,6 +8,8 @@ YASL: $(OBJECTS)
 
 clean:
 	rm $(OUT) $(OBJECTS)
+
+remake: clean YASL
 
 interpreter/VM.o:
 	$(CC) interpreter/VM.c -c -o interpreter/VM.o
