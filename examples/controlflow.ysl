@@ -1,0 +1,48 @@
+/$ for all control flow, the following values are falsey (all others are truthy):
+ * false
+ * undef
+ * "" (empty string)
+ $/
+
+let x = undef
+let i = 0
+
+$$ if statements:
+if x === true {
+    print "x is true"
+} elseif x === false {
+    print "x is false"
+} else {
+    print "x is not a boolean"
+}
+
+
+$$ `and` and `or` short circuit, and return either the left or right value:
+print x and true
+print x or true
+
+
+$$ `?:` works as expected:
+let name = "YASL"
+print name.startswith("A") ? "starts with A" :
+      name.startswith("T") ? "starts with T" :
+      name.startswith("Y") ? "starts with Y" :
+      "i don't recognise that letter"
+
+
+$$ `??` returns the right value iff the left is undef, else returns the left value.
+$$ used to set default values for variables.
+print undef ?? "default"
+print "YASL" ?? "default"
+
+
+$$ while loops:
+while i < 10 {
+    print i
+    i = i + 1
+}
+
+$$ for loops:
+for letter <- ["Y", "A", "S", "L"] {
+    print letter
+}
