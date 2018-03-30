@@ -287,22 +287,6 @@ class Parser(object):
         elif self.current_token.type is TokenTypes.UNDEF:
             nil = self.eat(TokenTypes.UNDEF)
             return Undef(nil)
-        elif self.current_token.type is TokenTypes.MAP:
-            hash = self.eat(TokenTypes.MAP)
-            self.eat(TokenTypes.LPAREN)
-            keys = []
-            vals = []
-            if self.current_token.type is not TokenTypes.RPAREN:
-                keys.append(self.expr())
-                self.eat(TokenTypes.RARROW)
-                vals.append(self.expr())
-            while self.current_token.type is TokenTypes.COMMA and self.current_token.type is not TokenTypes.EOF:
-                self.eat(TokenTypes.COMMA)
-                keys.append(self.expr())
-                self.eat(TokenTypes.RARROW)
-                vals.append(self.expr())
-            self.eat(TokenTypes.RPAREN)
-            return Hash(hash, keys, vals)
         elif self.current_token.type is TokenTypes.LBRACK:
             ls = self.eat(TokenTypes.LBRACK)
             keys = []
@@ -330,18 +314,7 @@ class Parser(object):
                     self.eat(TokenTypes.RBRACK)
                     return List(ls, keys)
             self.eat(TokenTypes.RBRACK)
-            return List(ls, keys) #TODO: decide way to make empty map
-            '''elif self.current_token.type is TokenTypes.LIST:
-            ls = self.eat(TokenTypes.LIST)
-            self.eat(TokenTypes.LPAREN)
-            params = []
-            if self.current_token.type is not TokenTypes.RPAREN:
-                params.append(self.expr())
-            while self.current_token.type is TokenTypes.COMMA and self.current_token.type is not TokenTypes.EOF:
-                self.eat(TokenTypes.COMMA)
-                params.append(self.expr())
-            self.eat(TokenTypes.RPAREN)
-            return List(ls, params)'''
+            return List(ls, keys)
         else:
             assert False
     def parse(self):

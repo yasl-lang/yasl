@@ -14,6 +14,7 @@ ESCCHARS = {
     "\"": "\"",
     "r":  "\r",
 }
+
 RESERVED_KEYWORDS = {
             "let": lambda x: Token(TokenTypes.LET, "let", x),
             "print": lambda x: Token(TokenTypes.PRINT, "print", x),
@@ -30,8 +31,12 @@ RESERVED_KEYWORDS = {
             "func": lambda x: Token(TokenTypes.FUNC, "func", x),
             "return": lambda x: Token(TokenTypes.RETURN, "return", x),
             "struct": lambda x: Token(TokenTypes.STRUCT, "struct", x),
-            "map": lambda x: Token(TokenTypes.MAP, "map", x),
-            "list": lambda x: Token(TokenTypes.LIST, "list", x),
+            "int64": lambda x: Token(TokenTypes.TYPE, "int64", x),
+            "float64": lambda x: Token(TokenTypes.TYPE, "float64", x),
+            "bool": lambda x: Token(TokenTypes.TYPE, "bool", x),
+            "str8": lambda x: Token(TokenTypes.TYPE, "str8", x),
+            "map": lambda x: Token(TokenTypes.TYPE, "map", x),
+            "list": lambda x: Token(TokenTypes.TYPE, "list", x),
 }
 
 class Lexer(object):
