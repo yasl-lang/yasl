@@ -18,6 +18,7 @@ ESCCHARS = {
 RESERVED_KEYWORDS = {
             "let": lambda x: Token(TokenTypes.LET, "let", x),
             "print": lambda x: Token(TokenTypes.PRINT, "print", x),
+            "input": lambda x: Token(TokenTypes.INPUT, "input", x),
             "if": lambda x: Token(TokenTypes.IF, "if", x),
             "else": lambda x: Token(TokenTypes.ELSE, "else", x),
             "elseif": lambda x: Token(TokenTypes.ELSEIF, "elseif", x),

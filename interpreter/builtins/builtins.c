@@ -75,7 +75,28 @@ int main(void){
 */
 
 int yasl_input(VM* vm) {
-    puts("input(...) not yet implemented.");
+    int ch;
+    size_t len = 0;
+    size_t size = 10;
+    char *str = realloc(NULL, sizeof(char)*size);
+
+    if (!str) return -1; // ERROR
+    while(EOF!=(ch=fgetc(stdin)) && ch != '\n'){
+        str[len++]=ch;
+        if(len==size){
+            str = realloc(str, sizeof(char)*(size+=16));
+            if(!str)return -1; // ERROR
+        }
+    }
+    String_t* y_str = new_sized_string8(len);
+    str = realloc(str, sizeof(char)*len);
+    y_str->str = str;
+    vm->stack[++vm->sp].value = (int64_t)y_str;
+    vm->stack[vm->sp].type = STR8;
+    return 0;
+}
+
+    /*puts("input(...) not yet implemented.");
     return -1;
     /*
     Constant v = vm->stack[vm->sp];
@@ -86,7 +107,7 @@ int yasl_input(VM* vm) {
     yasl_print(vm);
     // TODO: get user input
     return 0; */
-}
+
 
 /*
  * "tofloat64":    0x0A,

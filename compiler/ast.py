@@ -104,6 +104,10 @@ class Print(AST):
     def __init__(self, token, expr):
         self.token = token
         self.expr = expr
+class Input(AST):
+    def __init__(self, token, expr):
+        self.token = token
+        self.expr = expr
 class If(AST):
     def __init__(self, token, cond, body):
         self.token = token

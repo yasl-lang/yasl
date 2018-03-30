@@ -40,33 +40,13 @@ DCONSTANTS = {
         1.0: [DCONST_1],
         2.0: [DCONST_2],
         }
-STDIO = {
-    "print": 0x00,
-    #"input": 0x01,
-    # "open": 0x02,
-    # "close": 0x03,
 
-}
-STDSTR = {
-    "upcase":   0x00,
-    "downcase": 0x01,
-    "isalnum":  0x02,
-    "isal":     0x03,
-    "isnum":    0x04,
-    "isspace":  0x05,
-    "split":    0x06,
-}
-STDOBJ = {
-    "insert": 0x00,
-    "find":   0x01,
-    "append": 0x02,
-
-}
 BUILTINS = {
         "print":        0x00,
         "insert":       0x01,
         "find":         0x02,
         "append":       0x03,
+        "input":        0x04,
 }
 
 METHODS = {
@@ -97,18 +77,6 @@ METHODS = {
         "values":       0x31,
 
 }
-
-'''
-    UNDEF   = 0x00,
-    FUNC    = 0x08,
-    FLOAT64 = 0x13,
-    INT64   = 0x1B,
-    BOOL    = 0x20,
-    STR8    = 0x32,
-    LIST    = 0x44,
-    HASH    = 0x48,
-    FILEH   = 0x50,
-'''
 
 ###############################################################################
 #                                                                             #
@@ -148,6 +116,9 @@ class Compiler(NodeVisitor):
     def visit_Print(self, node):
         expr = self.visit(node.expr)
         return expr + [BCALL_8] + intbytes_8(BUILTINS["print"])
+    def visit_Input(self, node):
+        expr = self.visit(node.expr)
+        return expr + [BCALL_8] + intbytes_8(BUILTINS["print"]) + [BCALL_8] + intbytes_8(BUILTINS["input"])
     def visit_Block(self, node):
         result = []
         for statement in node.statements:
