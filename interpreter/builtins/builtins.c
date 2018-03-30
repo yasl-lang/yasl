@@ -88,10 +88,8 @@ int yasl_input(VM* vm) {
             if(!str)return -1; // ERROR
         }
     }
-    String_t* y_str = new_sized_string8(len);
     str = realloc(str, sizeof(char)*len);
-    y_str->str = str;
-    vm->stack[++vm->sp].value = (int64_t)y_str;
+    vm->stack[++vm->sp].value = (int64_t)new_sized_string8_from_mem(len, str);
     vm->stack[vm->sp].type = STR8;
     return 0;
 }
