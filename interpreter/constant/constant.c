@@ -127,6 +127,17 @@ int print(Constant v) {
         case LIST:
             printf("list: <%" PRIx64 ">\n", v.value);
             break;
+        case FILEH:
+            if ((FILE*)v.value == stdin) {
+                puts("file: stdin");
+            } else if ((FILE*)v.value == stdout) {
+                puts("file: stdout");
+            } else if ((FILE*)v.value == stderr) {
+                puts("file: stderr");
+            } else {
+                printf("file: <%" PRIx64 ">\n", v.value);
+            }
+            break;
         default:
             printf("Error, unknown type: %x\n", v.type);
             return -1;
