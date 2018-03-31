@@ -11,6 +11,9 @@ VM* newVM(char* code,    // pointer to bytecode
     vm->fp = 0;
     vm->sp = -1;
     vm->globals = malloc(sizeof(Constant) * datasize);
+    vm->globals[0] = (Constant) {FILEH, (int64_t)stdin};
+    vm->globals[1] = (Constant) {FILEH, (int64_t)stdout};
+    vm->globals[2] = (Constant) {FILEH, (int64_t)stderr};
     vm->stack = malloc(sizeof(Constant) * STACK_SIZE);
     vm->builtins_vtable = malloc(sizeof(VTable_t*) * 5);
     vm->builtins_vtable[0] = float64_builtins();

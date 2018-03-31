@@ -87,6 +87,9 @@ METHODS = {
 class Compiler(NodeVisitor):
     def __init__(self):
         self.globals = Env()
+        self.globals.decl_var("stdin")
+        self.globals.decl_var("stdout")
+        self.globals.decl_var("stderr")
         self.locals = Env()
         self.header = intbytes_8(8) + intbytes_8(0)
         self.fns = {}
