@@ -5,7 +5,8 @@
 
 int yasl_print(VM* vm) {
     Constant v = vm->stack[vm->sp--];    // pop value from top of the stack ...
-    int i;
+    return print(v);
+    /*int i;
     switch (v.type) {
         case INT64:
             printf("int64: %" PRId64 "\n", v.value);
@@ -47,10 +48,10 @@ int yasl_print(VM* vm) {
             }
             break;
         default:
-            printf("Error, unknown type: %x\n", v.type);
+            printf("Error, unknown type : %x\n", v.type);
             return -1;
     }
-    return 0;
+    return 0; */
 }
 
 /*
@@ -105,20 +106,7 @@ int yasl_input(VM* vm) {
     return 0;
 }
 
-    /*puts("input(...) not yet implemented.");
-    return -1;
-    /*
-    Constant v = vm->stack[vm->sp];
-    if (v.type != STR8) {
-        printf("Error: input(...) expected type %x as first argument, got type %x\n", STR8, v.type);
-        return -1;
-    }
-    yasl_print(vm);
-    // TODO: get user input
-    return 0; */
-
-
-/*
+/* TODO: implement for all types
  * "tofloat64":    0x0A,
  * "toint64":      0x0B,
  * "tobool":       0x0C,
@@ -393,7 +381,6 @@ int yasl_split(VM* vm) {
     int64_t end=0, start=0;
     List_t* result = new_list();
     while (end + ((String_t*)needle.value)->length <= ((String_t*)haystack.value)->length) {
-        //printf("end = %d, start = %d\n", (int)end, (int)start);
         if (!memcmp(((String_t*)haystack.value)->str+end,
                     ((String_t*)needle.value)->str,
                     ((String_t*)needle.value)->length)) {
@@ -405,40 +392,12 @@ int yasl_split(VM* vm) {
             end++;
         }
     }
-    // " b", "a b c d e"
     ls_append(result, (Constant)
             {STR8, (int64_t)new_sized_string8_from_mem(((String_t*)haystack.value)->length - start,
                                      ((String_t*)haystack.value)->str+start)});
-    //puts("split(...) not yet implemented.");
     vm->stack[++vm->sp] = (Constant) {LIST, (int64_t)result};
     return 0;
 }
-
-/*
-    Constant a = POP(vm);
-    Constant b = POP(vm);
-    if (a.type != STR8) {
-        printf("Error: split(...) expected type %x as first argument, got type %x\n", STR8, a.type);
-        return -1;
-    }
-    if (b.type != STR8) {
-        printf("Error: split(...) expected type %x as second argument, got type %x\n", STR8, b.type);
-        return -1;
-    }
-    int64_t length = *((int64_t*)a.value);
-    int64_t i = sizeof(int64_t);
-    char curr;
-    while (i < length + sizeof(int64_t)) {
-        curr = *((char*)(a.value + i++));
-        if (curr <= 0x08 || (0x0D < curr && curr != 0x20 && curr != 0x85 && curr != 0xA0)) {
-            vm->stack[++vm->sp] = FALSE_C;
-            return 0;
-        }
-    }
-    vm->stack[++vm->sp] = TRUE_C;
-    return 0;
-} */
-
 
 int yasl_insert(VM* vm) {
     Constant val = POP(vm);
@@ -459,10 +418,7 @@ int yasl_insert(VM* vm) {
 int yasl_find(VM* vm) {
     Constant key = POP(vm);
     Constant ht  = POP(vm);
-    //print(key);
-    //print(ht);
     if (ht.type == HASH) {
-        //Constant v = *ht_search((Hash_t*)ht.value, key);
         PUSH(vm, *ht_search((Hash_t*)ht.value, key));
         return 0;
     } else if (ht.type == LIST) {
@@ -528,6 +484,33 @@ int yasl_values(VM* vm) {
     return 0;
 }
 
+
+int yasl_write(VM* vm) {
+    Constant fileh = POP(vm);
+    Constant str = POP(vm);
+    if (fileh.type != FILEH) {
+        printf("Error: write expected type %x as first argument, got type %x\n", FILEH, fileh.type);
+        return -1;
+    }
+    if (str.type != STR8) {
+        printf("Error: write expected type %x as first argument, got type %x\n", STR8, str.type);
+        return -1;
+    }
+    char *buffer = malloc(((String_t*)str.value)->length + 1);
+    memcpy(buffer, ((String_t*)str.value)->str, ((String_t*)str.value)->length);
+    buffer[((String_t*)str.value)->length] = '\0';
+    fprintf((FILE*)fileh.value, "%s", ((String_t*)str.value)->str);
+    return 0;
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                                                                                                   *
+ *                                                                                                                   *
+ *                                                 VTABLES                                                           *
+ *                                                                                                                   *
+ *                                                                                                                   *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 VTable_t* float64_builtins() {
     VTable_t* vt = new_vtable();
     vt_insert(vt, 0x0B, (int64_t)&yasl_toint64);
@@ -539,6 +522,7 @@ VTable_t* int64_builtins() {
     vt_insert(vt, 0x0A, (int64_t)&yasl_tofloat64);
     return vt;
 }
+
 VTable_t* str8_builtins() {
     VTable_t* vt = new_vtable();
     vt_insert(vt, 0x10, (int64_t)&yasl_upcase);
@@ -568,16 +552,8 @@ VTable_t* hash_builtins() {
     return vt;
 }
 
-/*
-const Handler stdio_builtins[] = {
-    yasl_print,
-};
-
-const Handler stdstr_builtins[] = {
-    yasl_upcase, yasl_downcase, yasl_isalnum, yasl_isal, yasl_isnum, yasl_isspace, yasl_startswith,
-};
-
-const Handler stdobj_builtins[] = {
-    yasl_insert, yasl_find, yasl_append,
-};
-*/
+VTable_t* file_builtins() {
+    VTable_t* vt = new_vtable();
+    vt_insert(vt, 0x42, (int64_t)&yasl_write);
+    return vt;
+}
