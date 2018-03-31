@@ -423,6 +423,7 @@ void run(VM* vm){
              * 2 -> str8_builtins();
              * 3 -> list_builtins();
              * 4 -> hash_builtins();
+             * 5 -> file_builtins();
              */
             memcpy(&addr, vm->code + vm->pc, sizeof(addr));
             vm->pc += sizeof(addr);
@@ -436,8 +437,10 @@ void run(VM* vm){
                 addr = vt_search(vm->builtins_vtable[3], addr);
             } else if (PEEK(vm).type == HASH) {
                 addr = vt_search(vm->builtins_vtable[4], addr);
+            } else if (PEEK(vm).type == FILEH) {
+                addr = vt_search(vm->builtins_vtable[5], addr);
             } else {
-                printf("ERROR: No methods implemented for this type: %d.\n", PEEK(vm).type);
+                printf("ERROR: No methods implemented for this type: %x.\n", PEEK(vm).type);
                 return;
             }
             if (addr != -1) {
@@ -534,18 +537,8 @@ int main(int argc, char** argv) {
 	VM* vm = newVM(buffer,   // program to execute
 	               entry_point,    // start address of main function
                    256);   // locals to be reserved, should be num_globals
-    /*float64_vtable = float64_builtins();
-    int64_vtable = int64_builtins();
-    str8_vtable = str8_builtins();
-    list_vtable = list_builtins();
-    hash_vtable = hash_builtins(); */
 	run(vm);
 	delVM(vm);
-	/*del_vtable(float64_vtable);
-	del_vtable(int64_vtable);
-    del_vtable(str8_vtable);
-    del_vtable(list_vtable);
-    del_vtable(hash_vtable); */
     fclose(file_ptr);
 	return 0;
 };
