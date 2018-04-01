@@ -54,8 +54,14 @@ int yasl_keys(VM* vm);
 
 int yasl_values(VM* vm);
 
+int yasl_open(VM* vm);
+
+int yasl_write(VM* vm);
+
+int yasl_readline(VM* vm);
+
 static const Handler builtins[] = {
-    yasl_print,     yasl_insert,    yasl_find,    yasl_append,  yasl_input
+    yasl_print,     yasl_insert,    yasl_find,    yasl_append,  yasl_input,     yasl_open
 };
 
 VTable_t* float64_builtins(void);

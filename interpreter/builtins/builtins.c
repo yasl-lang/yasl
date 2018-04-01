@@ -484,6 +484,20 @@ int yasl_values(VM* vm) {
     return 0;
 }
 
+int yasl_open(VM* vm) {
+    Constant str = POP(vm);
+    if (str.type != STR8) {
+        printf("Error: open expected type %x as first argument, got type %x\n", STR8, str.type);
+        return -1;
+    }
+    char *buffer = malloc(((String_t*)str.value)->length + 1);
+    memcpy(buffer, ((String_t*)str.value)->str, ((String_t*)str.value)->length);
+    buffer[((String_t*)str.value)->length] = '\0';
+    FILE* f = fopen(buffer, "r");
+    vm->stack[++vm->sp].value = (int64_t)f;
+    vm->stack[vm->sp].type = FILEH;
+    return 0;
+}
 
 int yasl_write(VM* vm) {
     Constant fileh = POP(vm);
@@ -500,6 +514,27 @@ int yasl_write(VM* vm) {
     memcpy(buffer, ((String_t*)str.value)->str, ((String_t*)str.value)->length);
     buffer[((String_t*)str.value)->length] = '\0';
     fprintf((FILE*)fileh.value, "%s", ((String_t*)str.value)->str);
+    return 0;
+}
+
+int yasl_readline(VM* vm) {
+    FILE* f = (FILE*)(POP(vm).value);  //TODO: fix error if wrong type
+    int ch;
+    size_t len = 0;
+    size_t size = 10;
+    char *str = realloc(NULL, sizeof(char)*size);
+
+    if (!str) return -1; // ERROR
+    while(EOF!=(ch=fgetc(f)) && ch != '\n'){
+        str[len++]=ch;
+        if(len==size){
+            str = realloc(str, sizeof(char)*(size+=16));
+            if(!str)return -1; // ERROR
+        }
+    }
+    str = realloc(str, sizeof(char)*len);
+    vm->stack[++vm->sp].value = (int64_t)new_sized_string8_from_mem(len, str);
+    vm->stack[vm->sp].type = STR8;
     return 0;
 }
 
@@ -555,5 +590,6 @@ VTable_t* hash_builtins() {
 VTable_t* file_builtins() {
     VTable_t* vt = new_vtable();
     vt_insert(vt, 0x42, (int64_t)&yasl_write);
+    vt_insert(vt, 0x43, (int64_t)&yasl_readline);
     return vt;
 }

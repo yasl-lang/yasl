@@ -47,6 +47,7 @@ BUILTINS = {
         "find":         0x02,
         "append":       0x03,
         "input":        0x04,
+        "open":         0x05,
 }
 
 METHODS = {
@@ -79,6 +80,7 @@ METHODS = {
         "close":        0x40,
         "read":         0x41,
         "write":        0x42,
+        "readline":     0x43,
 
 
 }
