@@ -484,7 +484,7 @@ int yasl_values(VM* vm) {
     return 0;
 }
 
-int yasl_open(VM* vm) {
+int yasl_open(VM* vm) {     //TODO: fix bug relating to file pointer
     Constant mode_str = POP(vm);
     Constant str = POP(vm);
     if (mode_str.type != STR8) {
@@ -515,23 +515,30 @@ int yasl_open(VM* vm) {
         f = fopen(buffer, "w+");
     } else if (!strcmp(mode, "a+")) {
         f = fopen(buffer, "a+");
+    } else if (!strcmp(mode, "rb")) {
+        f = fopen(buffer, "rb");
+    } else if (!strcmp(mode, "wb")) {
+        f = fopen(buffer, "wb");
+    } else if (!strcmp(mode, "ab")) {
+        f = fopen(buffer, "ab");
     } else {
         printf("Error: invalid second argument: %s\n", mode);
         return -1;
     }
     vm->stack[++vm->sp].value = (int64_t)f;
     vm->stack[vm->sp].type = FILEH;
+    f = NULL;
     return 0;
 }
 
 int yasl_close(VM* vm) {
-    puts("trying to close file");
+    //puts("trying to close file");
     FILE *f = (FILE*)(POP(vm).value);
     if (fclose(f)) {
-        puts("Error closing file");
+        puts("Error: unable closing file");
         return -1;
     }
-    puts("closed successfully");
+    //puts("closed successfully");
     return 0;
 }
 
@@ -549,7 +556,10 @@ int yasl_write(VM* vm) {
     char *buffer = malloc(((String_t*)str.value)->length + 1);
     memcpy(buffer, ((String_t*)str.value)->str, ((String_t*)str.value)->length);
     buffer[((String_t*)str.value)->length] = '\0';
-    fprintf((FILE*)fileh.value, "%s", ((String_t*)str.value)->str);
+    if (fprintf((FILE*)fileh.value, "%s", ((String_t*)str.value)->str) < 0) {
+        printf("Error: failed to write to file\n");
+        return -1;
+    }
     return 0;
 }
 
