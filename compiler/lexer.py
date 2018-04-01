@@ -39,6 +39,7 @@ RESERVED_KEYWORDS = {
             "list": lambda x: Token(TokenTypes.TYPE, "list", x),
             "map": lambda x: Token(TokenTypes.TYPE, "map", x),
             "file": lambda x: Token(TokenTypes.TYPE, "file", x),
+            "type": lambda x: Token(TokenTypes.TYPE, "type", x),
 }
 
 class Lexer(object):
