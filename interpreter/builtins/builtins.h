@@ -16,12 +16,15 @@ int yasl_print(VM* vm);
 int yasl_input(VM* vm);
 
 int yasl_tofloat64(VM* vm);
+
 int yasl_toint64(VM* vm);
 
 int yasl_tobool(VM* vm);
 
 int yasl_tostr8(VM* vm);
+
 int yasl_tolist(VM* vm);
+
 int yasl_tomap(VM* vm);
 
 int yasl_upcase(VM* vm);
@@ -56,7 +59,11 @@ int yasl_values(VM* vm);
 
 int yasl_open(VM* vm);
 
+int yasl_close(VM* vm);
+
 int yasl_write(VM* vm);
+
+int yasl_read(VM* vm);
 
 int yasl_readline(VM* vm);
 

@@ -106,6 +106,11 @@ int yasl_input(VM* vm) {
     return 0;
 }
 
+/* int yasl_typeof(VM *vm) {
+
+    return 0;
+} */
+
 /* TODO: implement for all types
  * "tofloat64":    0x0A,
  * "toint64":      0x0B,
@@ -563,6 +568,27 @@ int yasl_write(VM* vm) {
     return 0;
 }
 
+
+int yasl_read(VM* vm) {
+    FILE* f = (FILE*)(POP(vm).value);
+    int ch;
+    size_t len = 0;
+    size_t size = 10;
+    char *str = realloc(NULL, sizeof(char)*size);
+    if (!str) return -1; // ERROR
+    while(EOF!=(ch=fgetc(f))){
+        str[len++]=ch;
+        if(len==size){
+            str = realloc(str, sizeof(char)*(size+=16));
+            if(!str)return -1; // ERROR
+        }
+    }
+    str = realloc(str, sizeof(char)*len);
+    vm->stack[++vm->sp].value = (int64_t)new_sized_string8_from_mem(len, str);
+    vm->stack[vm->sp].type = STR8;
+    return 0;
+}
+
 int yasl_readline(VM* vm) {
     FILE* f = (FILE*)(POP(vm).value);
     int ch;
@@ -636,6 +662,7 @@ VTable_t* hash_builtins() {
 VTable_t* file_builtins() {
     VTable_t* vt = new_vtable();
     vt_insert(vt, 0x40, (int64_t)&yasl_close);
+    vt_insert(vt, 0x41, (int64_t)&yasl_read);
     vt_insert(vt, 0x42, (int64_t)&yasl_write);
     vt_insert(vt, 0x43, (int64_t)&yasl_readline);
     return vt;

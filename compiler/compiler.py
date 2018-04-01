@@ -48,6 +48,7 @@ BUILTINS = {
         "append":       0x03,
         "input":        0x04,
         "open":         0x05,
+        #"typeof":       0x06,
 }
 
 METHODS = {

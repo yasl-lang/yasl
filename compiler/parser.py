@@ -24,7 +24,7 @@ class Parser(object):
         raise Exception("Expected %s Token in line %s, got %s" % \
             (token_type, self.current_token.line, self.current_token.type))
     def eat(self, token_type):
-        #print(self.current_token)
+        print(self.current_token)
         if self.current_token.type is token_type:
             result = self.current_token
             self.advance()
@@ -236,17 +236,21 @@ class Parser(object):
         #    op = self.eat(TokenTypes.OP)
         #    return UnOp(op, self.const())
         result = self.literal()
-        while self.current_token.type is TokenTypes.DOT:
-            self.eat(TokenTypes.DOT)
-            right = self.literal()
-            if isinstance(right, FunctionCall):
-                return MethodCall(result, right.token, right.params)
+        while self.current_token.type is TokenTypes.DOT or self.current_token.type is TokenTypes.LBRACK:
+            print("current token is " + str(self.current_token))
+            if self.current_token.type is TokenTypes.DOT:
+                self.eat(TokenTypes.DOT)
+                right = self.literal()
+                if isinstance(right, FunctionCall):
+                    result = MethodCall(result, right.token, right.params)
+                else:
+                    assert False
             else:
-                assert False
-        while self.current_token.type is TokenTypes.LBRACK:
-            self.eat(TokenTypes.LBRACK)
-            result = Index(result, self.expr())
-            self.eat(TokenTypes.RBRACK)
+            #while self.current_token.type is TokenTypes.LBRACK:
+                self.eat(TokenTypes.LBRACK)
+                result = Index(result, self.expr())
+                self.eat(TokenTypes.RBRACK)
+        print("current toke is" + str(self.current_token))
         return result
     def literal(self):
         if self.current_token.type is TokenTypes.LPAREN:
