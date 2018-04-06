@@ -536,10 +536,55 @@ int yasl_open(VM* vm) {     //TODO: fix bug relating to file pointer
     return 0;
 }
 
+
+int yasl_popen(VM* vm) {     //TODO: fix bug relating to file pointer
+    Constant mode_str = POP(vm);
+    Constant str = POP(vm);
+    if (mode_str.type != STR8) {
+        printf("Error: popen(...) expected type %x as second argument, got type %x\n", STR8, str.type);
+        return -1;
+    }
+    if (str.type != STR8) {
+        printf("Error: popen(...) expected type %x as first argument, got type %x\n", STR8, str.type);
+        return -1;
+    }
+    char *buffer = malloc(((String_t*)str.value)->length + 1);
+    memcpy(buffer, ((String_t*)str.value)->str, ((String_t*)str.value)->length);
+    buffer[((String_t*)str.value)->length] = '\0';
+    char *mode = malloc(((String_t*)mode_str.value)->length + 1);
+    memcpy(mode, ((String_t*)mode_str.value)->str, ((String_t*)mode_str.value)->length);
+    mode[((String_t*)mode_str.value)->length] = '\0';
+
+    FILE *f;  // r, w, a, r+, w+, a+
+    if (!strcmp(mode, "r")) {
+        f = popen(buffer, "r");
+    } else if (!strcmp(mode, "w")) {
+        f = popen(buffer, "w");
+    } else {
+        printf("Error: invalid second argument: %s\n", mode);
+        return -1;
+    }
+    vm->stack[++vm->sp].value = (int64_t)f;
+    vm->stack[vm->sp].type = FILEH;
+    f = NULL;
+    return 0;
+}
+
 int yasl_close(VM* vm) {
     //puts("trying to close file");
     FILE *f = (FILE*)(POP(vm).value);
     if (fclose(f)) {
+        puts("Error: unable closing file");
+        return -1;
+    }
+    //puts("closed successfully");
+    return 0;
+}
+
+int yasl_pclose(VM* vm) {
+    //puts("trying to close file");
+    FILE *f = (FILE*)(POP(vm).value);
+    if (pclose(f)) {
         puts("Error: unable closing file");
         return -1;
     }
@@ -662,8 +707,9 @@ VTable_t* hash_builtins() {
 VTable_t* file_builtins() {
     VTable_t* vt = new_vtable();
     vt_insert(vt, 0x40, (int64_t)&yasl_close);
-    vt_insert(vt, 0x41, (int64_t)&yasl_read);
-    vt_insert(vt, 0x42, (int64_t)&yasl_write);
-    vt_insert(vt, 0x43, (int64_t)&yasl_readline);
+    vt_insert(vt, 0x41, (int64_t)&yasl_pclose);
+    vt_insert(vt, 0x42, (int64_t)&yasl_read);
+    vt_insert(vt, 0x43, (int64_t)&yasl_write);
+    vt_insert(vt, 0x44, (int64_t)&yasl_readline);
     return vt;
 }

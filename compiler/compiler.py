@@ -48,7 +48,8 @@ BUILTINS = {
         "append":       0x03,
         "input":        0x04,
         "open":         0x05,
-        #"typeof":       0x06,
+        "popen":        0x06,
+        #"typeof":       0x07,
 }
 
 METHODS = {
@@ -79,9 +80,10 @@ METHODS = {
         "values":       0x31,
 
         "close":        0x40,
-        "read":         0x41,
-        "write":        0x42,
-        "readline":     0x43,
+        "pclose":       0x41,
+        "read":         0x42,
+        "write":        0x43,
+        "readline":     0x44,
 
 
 }

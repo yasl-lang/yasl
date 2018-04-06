@@ -323,10 +323,6 @@ void run(VM* vm){
             vm->stack[++vm->sp].type = LIST;
             vm->stack[vm->sp].value  = (int64_t)new_list();
             break;
-        /*
-        case V2S:   // TODO: implement
-            break;
-        */
         case DUP:
             vm->stack[vm->sp+1] = vm->stack[vm->sp];
             vm->sp++;
@@ -370,42 +366,21 @@ void run(VM* vm){
             break;
         case LLOAD_1:
             offset = NCODE(vm);
-            //printf("load from offset=%d\n", offset);
-            //puts("before");
-            //print(vm->stack[vm->fp+offset]);
-            //print(vm->stack[vm->fp+1]);
-            //print(vm->stack[vm->fp+2]);
             vm->stack[++vm->sp] = vm->stack[vm->fp+offset];
-            //puts("after");
-            //print(vm->stack[vm->fp+offset]);
-            //print(vm->stack[vm->fp+1]);
-            //print(vm->stack[vm->fp+2]);
             break;
         case LSTORE_1:
             offset = NCODE(vm);
-            //printf("store into offset=%d\n", offset);
-            //puts("before");
-            //print(vm->stack[vm->fp+offset]);
-            //print(vm->stack[vm->fp+1]);
-            //print(vm->stack[vm->fp+2]);
             vm->stack[vm->fp+offset] = vm->stack[vm->sp--];
-            //puts("after");
-            // print(vm->stack[vm->fp+offset]);
-            //print(vm->stack[vm->fp+1]);
-            //print(vm->stack[vm->fp+2]);
             break;
         case CALL_8:
             offset = NCODE(vm);
-            //printf("offset=%d\n", offset);
             memcpy(&addr, vm->code + vm->pc, sizeof addr);
             vm->pc += sizeof addr;
             PUSH(vm, ((Constant) {offset, vm->fp}));  // store previous frame ptr;
             PUSH(vm, ((Constant) {offset, vm->pc}));  // store pc addr
-            //printf("%" PRId64 "\n", (int64_t)offset);
-            //printf("%d\n", vm->pc);
             vm->fp = vm->sp;
             offset = NCODE(vm);
-            vm->sp += offset + 1;// + 2;
+            vm->sp += offset + 1; // + 2
             vm->pc = addr;
             break;
         case BCALL_8:
