@@ -333,6 +333,10 @@ void run(VM* vm){
             vm->stack[vm->sp-1] = a;
             vm->stack[vm->sp] = b;
             break;
+        case GOTO:
+            memcpy(&c, vm->code + vm->pc, sizeof c);
+            vm->pc = c + vm->pc0;
+            break;
         case BR_8:
             memcpy(&c, vm->code + vm->pc, sizeof c);
             vm->pc += sizeof c;

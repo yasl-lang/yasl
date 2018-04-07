@@ -24,7 +24,7 @@ class Parser(object):
         raise Exception("Expected %s Token in line %s, got %s" % \
             (token_type, self.current_token.line, self.current_token.type))
     def eat(self, token_type):
-        print(self.current_token)
+        #print(self.current_token)
         if self.current_token.type is token_type:
             result = self.current_token
             self.advance()
@@ -32,9 +32,11 @@ class Parser(object):
         else:
             self.error(token_type)
     def program(self):
-        if self.current_token.type is  TokenTypes.PRINT:
+        if self.current_token.type is TokenTypes.PRINT:
             token = self.eat(TokenTypes.PRINT)
             return Print(token, self.expr())
+        elif self.current_token.type is TokenTypes.BREAK:
+            return Break(self.eat(TokenTypes.BREAK))
         elif self.current_token.type is TokenTypes.IF:
             return self.if_stmt()
         elif self.current_token.type is TokenTypes.ELSE or self.current_token.type is TokenTypes.ELSEIF:
@@ -90,7 +92,7 @@ class Parser(object):
             body.append(self.program())
             self.eat(TokenTypes.SEMI)
         self.eat(TokenTypes.RBRACE)
-        return While(token, cond, Block(body))
+        return While(token, cond, body)
     def for_loop(self):
         token = self.eat(TokenTypes.FOR)
         var = self.eat(TokenTypes.ID)
@@ -237,7 +239,6 @@ class Parser(object):
         #    return UnOp(op, self.const())
         result = self.literal()
         while self.current_token.type is TokenTypes.DOT or self.current_token.type is TokenTypes.LBRACK:
-            print("current token is " + str(self.current_token))
             if self.current_token.type is TokenTypes.DOT:
                 self.eat(TokenTypes.DOT)
                 right = self.literal()
@@ -250,7 +251,6 @@ class Parser(object):
                 self.eat(TokenTypes.LBRACK)
                 result = Index(result, self.expr())
                 self.eat(TokenTypes.RBRACK)
-        print("current toke is" + str(self.current_token))
         return result
     def literal(self):
         if self.current_token.type is TokenTypes.LPAREN:
