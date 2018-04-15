@@ -11,6 +11,8 @@
 #include "../string8/str_methods.h"
 #include "../integer/int64_methods.h"
 #include "../hashtable/hash_methods.h"
+#include "../file/file_methods.h"
+
 
 typedef int (*Handler)(VM*);
 
@@ -31,16 +33,6 @@ int yasl_values(VM* vm);
 int yasl_open(VM* vm);
 
 int yasl_popen(VM *vm);
-
-int yasl_close(VM* vm);
-
-int yasl_pclose(VM *vm);
-
-int yasl_write(VM* vm);
-
-int yasl_read(VM* vm);
-
-int yasl_readline(VM* vm);
 
 static const Handler builtins[] = {
     yasl_print,     yasl_insert,    yasl_find,    yasl_append,  yasl_input,     yasl_open,  yasl_popen

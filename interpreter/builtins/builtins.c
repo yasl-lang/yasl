@@ -183,91 +183,6 @@ int yasl_popen(VM* vm) {     //TODO: fix bug relating to file pointer
     return 0;
 }
 
-int yasl_close(VM* vm) {
-    //puts("trying to close file");
-    FILE *f = (FILE*)(POP(vm).value);
-    if (fclose(f)) {
-        puts("Error: unable closing file");
-        return -1;
-    }
-    //puts("closed successfully");
-    return 0;
-}
-
-int yasl_pclose(VM* vm) {
-    //puts("trying to close file");
-    FILE *f = (FILE*)(POP(vm).value);
-    if (pclose(f)) {
-        puts("Error: unable closing file");
-        return -1;
-    }
-    //puts("closed successfully");
-    return 0;
-}
-
-int yasl_write(VM* vm) {
-    Constant fileh = POP(vm);
-    Constant str = POP(vm);
-    if (fileh.type != FILEH) {
-        printf("Error: write expected type %x as first argument, got type %x\n", FILEH, fileh.type);
-        return -1;
-    }
-    if (str.type != STR8) {
-        printf("Error: write expected type %x as first argument, got type %x\n", STR8, str.type);
-        return -1;
-    }
-    char *buffer = malloc(((String_t*)str.value)->length + 1);
-    memcpy(buffer, ((String_t*)str.value)->str, ((String_t*)str.value)->length);
-    buffer[((String_t*)str.value)->length] = '\0';
-    if (fprintf((FILE*)fileh.value, "%s", ((String_t*)str.value)->str) < 0) {
-        printf("Error: failed to write to file\n");
-        return -1;
-    }
-    return 0;
-}
-
-
-int yasl_read(VM* vm) {
-    FILE* f = (FILE*)(POP(vm).value);
-    int ch;
-    size_t len = 0;
-    size_t size = 10;
-    char *str = realloc(NULL, sizeof(char)*size);
-    if (!str) return -1; // ERROR
-    while(EOF!=(ch=fgetc(f))){
-        str[len++]=ch;
-        if(len==size){
-            str = realloc(str, sizeof(char)*(size+=16));
-            if(!str)return -1; // ERROR
-        }
-    }
-    str = realloc(str, sizeof(char)*len);
-    vm->stack[++vm->sp].value = (int64_t)new_sized_string8_from_mem(len, str);
-    vm->stack[vm->sp].type = STR8;
-    return 0;
-}
-
-int yasl_readline(VM* vm) {
-    FILE* f = (FILE*)(POP(vm).value);
-    int ch;
-    size_t len = 0;
-    size_t size = 10;
-    char *str = realloc(NULL, sizeof(char)*size);
-
-    if (!str) return -1; // ERROR
-    while(EOF!=(ch=fgetc(f)) && ch != '\n'){
-        str[len++]=ch;
-        if(len==size){
-            str = realloc(str, sizeof(char)*(size+=16));
-            if(!str)return -1; // ERROR
-        }
-    }
-    str = realloc(str, sizeof(char)*len);
-    vm->stack[++vm->sp].value = (int64_t)new_sized_string8_from_mem(len, str);
-    vm->stack[vm->sp].type = STR8;
-    return 0;
-}
-
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *                                                                                                                   *
  *                                                                                                                   *
@@ -319,10 +234,10 @@ VTable_t* hash_builtins() {
 
 VTable_t* file_builtins() {
     VTable_t* vt = new_vtable();
-    vt_insert(vt, 0x40, (int64_t)&yasl_close);
-    vt_insert(vt, 0x41, (int64_t)&yasl_pclose);
-    vt_insert(vt, 0x42, (int64_t)&yasl_read);
-    vt_insert(vt, 0x43, (int64_t)&yasl_write);
-    vt_insert(vt, 0x44, (int64_t)&yasl_readline);
+    vt_insert(vt, 0x40, (int64_t)&file_close);
+    vt_insert(vt, 0x41, (int64_t)&file_pclose);
+    vt_insert(vt, 0x42, (int64_t)&file_read);
+    vt_insert(vt, 0x43, (int64_t)&file_write);
+    vt_insert(vt, 0x44, (int64_t)&file_readline);
     return vt;
 }
