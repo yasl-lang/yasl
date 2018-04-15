@@ -9,6 +9,7 @@
 #include "../list/list.h"
 #include "../string8/string8.h"
 #include "../string8/str_methods.h"
+#include "../integer/int64_methods.h"
 
 typedef int (*Handler)(VM*);
 

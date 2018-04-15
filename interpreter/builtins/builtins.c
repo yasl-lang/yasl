@@ -41,19 +41,6 @@ int yasl_input(VM* vm) {
  * "tomap":        0x0F,
 */
 
-int yasl_tofloat64(VM* vm) {
-    Constant a = POP(vm);
-    if (a.type == INT64) {
-        double d = (double)a.value;
-        //printf("d = %f\n", d);
-        vm->stack[++vm->sp].type = FLOAT64;
-        memcpy(&vm->stack[vm->sp].value, &d, sizeof(d));
-        return 0;
-    }
-    printf("tofloat64(...) is not implemented (yet) for arguments of type %x\n", a.type);
-    return -1;
-};
-
 int yasl_toint64(VM* vm) {
     Constant a = POP(vm);
     if (a.type == FLOAT64) {
@@ -339,7 +326,7 @@ VTable_t* float64_builtins() {
 
 VTable_t* int64_builtins() {
     VTable_t* vt = new_vtable();
-    vt_insert(vt, 0x0A, (int64_t)&yasl_tofloat64);
+    vt_insert(vt, 0x0A, (int64_t)&int64_tofloat64);
     return vt;
 }
 
