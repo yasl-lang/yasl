@@ -90,18 +90,6 @@ int yasl_find(VM* vm) {
 
 }
 
-int yasl_append(VM* vm) {
-    Constant ls  = POP(vm);
-    Constant val = POP(vm);
-    if (ls.type != LIST) {
-        printf("Error: expected type %x as first argument, got type %x\n", LIST, ls.type);
-        return -1;
-    }
-    ls_append((List_t*)ls.value, val);
-    PUSH(vm, UNDEF_C);
-    return 0;
-}
-
 int yasl_open(VM* vm) {     //TODO: fix bug relating to file pointer
     Constant mode_str = POP(vm);
     Constant str = POP(vm);
@@ -221,7 +209,7 @@ VTable_t* str8_builtins() {
 
 VTable_t* list_builtins() {
     VTable_t* vt = new_vtable();
-    vt_insert(vt, 0x20, (int64_t)&yasl_append);
+    vt_insert(vt, 0x20, (int64_t)&list_append);
     return vt;
 }
 
