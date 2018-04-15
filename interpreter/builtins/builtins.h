@@ -8,6 +8,7 @@
 #include "../vtable/vtable.h"
 #include "../list/list.h"
 #include "../string8/string8.h"
+#include "../string8/str_methods.h"
 
 typedef int (*Handler)(VM*);
 
@@ -26,26 +27,6 @@ int yasl_tostr8(VM* vm);
 int yasl_tolist(VM* vm);
 
 int yasl_tomap(VM* vm);
-
-int yasl_upcase(VM* vm);
-
-int yasl_downcase(VM* vm);
-
-int yasl_isalnum(VM* vm);
-
-int yasl_isal(VM* vm);
-
-int yasl_isnum(VM* vm);
-
-int yasl_isspace(VM* vm);
-
-int yasl_startswith(VM* vm);
-
-int yasl_endswith(VM* vm);
-
-int yasl_search(VM* vm);
-
-int yasl_split(VM* vm);
 
 int yasl_insert(VM* vm);
 
