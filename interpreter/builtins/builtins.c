@@ -55,10 +55,6 @@ int yasl_toint64(VM* vm) {
     return -1;
 }
 
-int yasl_tostr8(VM* vm);
-int yasl_tolist(VM* vm);
-int yasl_tomap(VM* vm);
-
 int yasl_insert(VM* vm) {
     Constant val = POP(vm);
     Constant key = POP(vm);
@@ -103,44 +99,6 @@ int yasl_append(VM* vm) {
     }
     ls_append((List_t*)ls.value, val);
     PUSH(vm, UNDEF_C);
-    return 0;
-}
-
-int yasl_keys(VM* vm) {
-    Constant ht = POP(vm);
-    if (ht.type != HASH) {
-        printf("Error: keys(...) expected type %x as first argument, got type %x\n", HASH, ht.type);
-        return -1;
-    }
-    List_t* ls = new_list();
-    int64_t i;
-    Item_t* item;
-    for (i = 0; i < ((Hash_t*)ht.value)->size; i++) {
-        item = ((Hash_t*)ht.value)->items[i];
-        if (item != NULL && item != &TOMBSTONE) {
-            ls_append(ls, *(item->key));
-        }
-    }
-    vm->stack[++vm->sp] = (Constant) {LIST, (int64_t)ls};
-    return 0;
-}
-
-int yasl_values(VM* vm) {
-    Constant ht = POP(vm);
-    if (ht.type != HASH) {
-        printf("Error: values(...) expected type %x as first argument, got type %x\n", HASH, ht.type);
-        return -1;
-    }
-    List_t* ls = new_list();
-    int64_t i;
-    Item_t* item;
-    for (i = 0; i < ((Hash_t*)ht.value)->size; i++) {
-        item = ((Hash_t*)ht.value)->items[i];
-        if (item != NULL && item != &TOMBSTONE) {
-            ls_append(ls, *(item->value));
-        }
-    }
-    vm->stack[++vm->sp] = (Constant) {LIST, (int64_t)ls};
     return 0;
 }
 
@@ -354,8 +312,8 @@ VTable_t* list_builtins() {
 
 VTable_t* hash_builtins() {
     VTable_t* vt = new_vtable();
-    vt_insert(vt, 0x30, (int64_t)&yasl_keys);
-    vt_insert(vt, 0x31, (int64_t)&yasl_values);
+    vt_insert(vt, 0x30, (int64_t)&hash_keys);
+    vt_insert(vt, 0x31, (int64_t)&hash_values);
     return vt;
 }
 

@@ -10,24 +10,13 @@
 #include "../string8/string8.h"
 #include "../string8/str_methods.h"
 #include "../integer/int64_methods.h"
+#include "../hashtable/hash_methods.h"
 
 typedef int (*Handler)(VM*);
 
 int yasl_print(VM* vm);
 
 int yasl_input(VM* vm);
-
-int yasl_tofloat64(VM* vm);
-
-int yasl_toint64(VM* vm);
-
-int yasl_tobool(VM* vm);
-
-int yasl_tostr8(VM* vm);
-
-int yasl_tolist(VM* vm);
-
-int yasl_tomap(VM* vm);
 
 int yasl_insert(VM* vm);
 
