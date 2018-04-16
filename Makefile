@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-lm -O3
 OUT=YASL
-OBJECTS=interpreter/VM.o interpreter/builtins/builtins.o interpreter/integer/int64_methods.o interpreter/string8/str_methods.o interpreter/list/list_methods.o interpreter/hashtable/hash_methods.o interpreter/file/file_methods.o interpreter/constant/constant.o interpreter/hashtable/hashtable.o interpreter/list/list.o interpreter/prime/prime.o interpreter/string8/string8.o interpreter/vtable/vtable.o
+OBJECTS=interpreter/VM.o interpreter/builtins/builtins.o interpreter/float/float64_methods.o interpreter/integer/int64_methods.o interpreter/string8/str_methods.o interpreter/list/list_methods.o interpreter/hashtable/hash_methods.o interpreter/file/file_methods.o interpreter/constant/constant.o interpreter/hashtable/hashtable.o interpreter/list/list.o interpreter/prime/prime.o interpreter/string8/string8.o interpreter/vtable/vtable.o
 
 YASL: $(OBJECTS)
 	$(CC) $(OBJECTS) interpreter/main.c $(CFLAGS) -o $(OUT)
@@ -16,6 +16,9 @@ interpreter/VM.o:
 
 interpreter/builtins/builtins.o:
 	$(CC) interpreter/builtins/builtins.c $(CFLAGS) -c -o interpreter/builtins/builtins.o
+
+interpreter/float/float64_methods.o:
+	$(CC) interpreter/float/float64_methods.c $(CFLAGS) -c -o interpreter/float/float64_methods.o
 
 interpreter/integer/int64_methods.o:
 	$(CC) interpreter/integer/int64_methods.c $(CFLAGS) -c -o interpreter/integer/int64_methods.o

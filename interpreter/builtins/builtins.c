@@ -41,20 +41,6 @@ int yasl_input(VM* vm) {
  * "tomap":        0x0F,
 */
 
-int yasl_toint64(VM* vm) {
-    Constant a = POP(vm);
-    if (a.type == FLOAT64) {
-        double d;
-        memcpy(&d, &a.value, sizeof(d));
-        //printf("d = %f\n", d);
-        vm->stack[++vm->sp].type = INT64;
-        PEEK(vm).value = (int64_t)d;
-        return 0;
-    }
-    printf("toint64(...) is not implemented (yet) for arguments of type %x\n", a.type);
-    return -1;
-}
-
 int yasl_insert(VM* vm) {
     Constant val = POP(vm);
     Constant key = POP(vm);
@@ -181,7 +167,7 @@ int yasl_popen(VM* vm) {     //TODO: fix bug relating to file pointer
 
 VTable_t* float64_builtins() {
     VTable_t* vt = new_vtable();
-    vt_insert(vt, 0x0B, (int64_t)&yasl_toint64);
+    vt_insert(vt, 0x0B, (int64_t)&float64_toint64);
     return vt;
 }
 
