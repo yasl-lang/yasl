@@ -200,10 +200,28 @@ class Parser(object):
             curr = LogicOp(op, curr, self.logic_and())
         return curr
     def logic_and(self):
-        curr = self.fact0()
+        curr = self.bit_or()
         while self.current_token.value == "and":
             op = self.eat(TokenTypes.LOGIC)
-            curr = LogicOp(op, curr, self.fact0())
+            curr = LogicOp(op, curr, self.bit_or())
+        return curr
+    def bit_or(self):
+        curr = self.bit_xor()
+        while self.current_token.value == "|":
+            op = self.eat(TokenTypes.OP)
+            curr = BinOp(op, curr, self.bit_xor())
+        return curr
+    def bit_xor(self):
+        curr = self.bit_and()
+        while self.current_token.value == "~":
+            op = self.eat(TokenTypes.OP)
+            curr = BinOp(op, curr, self.bit_and())
+        return curr
+    def bit_and(self):
+        curr = self.comparator()
+        while self.current_token.value == "&":
+            op = self.eat(TokenTypes.OP)
+            curr = BinOp(op, curr, self.comparator())
         return curr
     def fact0(self):
         curr = self.fact1()
@@ -248,11 +266,17 @@ class Parser(object):
             curr = BinOp(op, curr, self.const())
         return curr
     def unop(self):
-        if self.current_token.type is TokenTypes.OP and self.current_token.value in ("-", "+", "!", "#"):
+        if self.current_token.type is TokenTypes.OP and self.current_token.value in ("-", "+", "!", "#", "~"):
             op = self.eat(TokenTypes.OP)
             return UnOp(op, self.unop())
         else:
-            return self.const()
+            return self.exponentiation()
+    def exponentiation(self):
+        curr = self.const()
+        if self.current_token.value == "^":
+            token = self.eat(TokenTypes.OP)
+            return BinOp(token, curr, self.exponentiation())
+        return curr
     def const(self):
         #if self.current_token.type is TokenTypes.OP and self.current_token.value in ("-", "+", "!", "#"):
         #    op = self.eat(TokenTypes.OP)
