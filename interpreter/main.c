@@ -153,6 +153,45 @@ void run(VM* vm){
             vm->stack[++vm->sp].type = UNDEF;
             vm->stack[vm->sp].value  = 0x00;
             break;
+        case BOR:
+            b = POP(vm);
+            a = PEEK(vm);
+            if (a.type == INT64 && b.type == INT64) {
+                PEEK(vm).value = a.value | b.value;
+                break;
+            } else {
+                printf("ERROR: | not supported for operands of types %x and %x.\n", a.type, b.type);
+                return;
+            }
+        case BXOR:
+            b = POP(vm);
+            a = PEEK(vm);
+            if (a.type == INT64 && b.type == INT64) {
+                PEEK(vm).value = a.value ^ b.value;
+                break;
+            } else {
+                printf("ERROR: binary ~ not supported for operands of types %x and %x.\n", a.type, b.type);
+                return;
+            }
+        case BAND:
+            b = POP(vm);
+            a = PEEK(vm);
+            if (a.type == INT64 && b.type == INT64) {
+                PEEK(vm).value = a.value & b.value;
+                break;
+            } else {
+                printf("ERROR: & not supported for operands of types %x and %x.\n", a.type, b.type);
+                return;
+            }
+        case BNOT:
+            a = PEEK(vm);
+            if (a.type == INT64) {
+                PEEK(vm).value = ~a.value;
+                break;
+            } else {
+                printf("ERROR: unary ~ not supported for operand of type %x.\n", a.type);
+                return;
+            }
         case ADD:
             b = vm->stack[vm->sp--];
             a = vm->stack[vm->sp--];
@@ -475,7 +514,7 @@ void run(VM* vm){
             vm->pc += size;
             break;
         default:
-            printf("ERROR UNKNOWN OPCODE: %x\n", opcode);
+            printf("ERROR UNKNOWN OPCODE:       %x\n", opcode);
             return;
         }
     }
