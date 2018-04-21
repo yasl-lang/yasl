@@ -104,12 +104,32 @@ class Parser(object):
         self.eat(TokenTypes.RBRACE)
         return For(token, var, ls, Block(body))
     def vardecl(self):
+        vars = []
+        vals = []
+        name = self.eat(TokenTypes.ID)
+        vars.append(name)
+        if self.current_token.value == "=":
+            self.eat(TokenTypes.OP)
+            vals.append(self.expr())
+        else:
+            vals.append(Undef(Token(TokenTypes.UNDEF, None, name.line)))
+        while self.current_token.type is TokenTypes.COMMA:
+            self.eat(TokenTypes.COMMA)
+            name = self.eat(TokenTypes.ID)
+            vars.append(name)
+            if self.current_token.value == "=":
+                self.eat(TokenTypes.OP)
+                vals.append(self.expr())
+            else:
+                vals.append(Undef(Token(TokenTypes.UNDEF, None, name.line)))
+        return Decl(vars, vals)
+        '''
         name = self.eat(TokenTypes.ID)
         if self.current_token.value == "=":
             self.eat(TokenTypes.OP)
             return Decl(name, self.expr())
         else:
-            return Decl(name, Undef(Token(TokenTypes.UNDEF, None, name.line)))
+            return Decl(name, Undef(Token(TokenTypes.UNDEF, None, name.line)))'''
     def fndecl(self):
         name = self.eat(TokenTypes.ID)
         self.eat(TokenTypes.COLON)

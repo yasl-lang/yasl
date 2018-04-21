@@ -92,7 +92,7 @@ void run(VM* vm){
         void* ptr;
         /*printf("\nopcode: %x\n", opcode);
         print(PEEK(vm));
-        print(vm->stack[vm->sp-1]);
+        //print(vm->stack[vm->sp-1]);
         //print(vm->stack[vm->sp-2]);
         //print(vm->stack[vm->sp-3]);
         print(vm->globals[0]);

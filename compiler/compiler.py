@@ -259,14 +259,19 @@ class Compiler(NodeVisitor):
             return result + self.visit(node.left) + [MCALL_8] + intbytes_8(METHODS[node.value])
         assert False
     def visit_Decl(self, node):
-        if self.current_fn is not None:
-            if node.left.value not in self.locals.vars:
-                self.locals[node.left.value] = len(self.locals.vars) + 1 - self.offset
-            return self.visit(node.right) + [LSTORE_1, self.locals[node.left.value]]
-        if node.left.value not in self.globals.vars:
-            self.globals.decl_var(node.left.value)
-        right = self.visit(node.right)
-        result = right + [GSTORE_1, self.globals[node.left.value]]
+        result = []
+        for i in range(len(node.left)):
+            var = node.left[i]
+            val = node.right[i]
+            if self.current_fn is not None:
+                if var.value not in self.locals.vars:
+                    self.locals[var.value] = len(self.locals.vars) + 1 - self.offset
+                result = result + self.visit(val) + [LSTORE_1, self.locals[var.value]]
+                continue
+            if var.value not in self.globals.vars:
+                self.globals.decl_var(var.value)
+            right = self.visit(val)
+            result = result + right + [GSTORE_1, self.globals[var.value]]
         return result
     def visit_Assign(self, node):
         if node.left.value not in self.locals and node.left.value not in self.globals:
