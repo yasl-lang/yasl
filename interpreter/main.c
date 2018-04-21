@@ -265,7 +265,7 @@ void run(VM* vm){
                 memcpy(((String_t*)ptr)->str + ((String_t*)a.value)->length, ((String_t*)b.value)->str, ((String_t*)b.value)->length);
                 break;
             }
-            printf("ERROR: %% not supported for operands of types %x and %x.\n", a.type, b.type);
+            printf("ERROR: || not supported for operands of types %x and %x.\n", a.type, b.type);
             return;
         case GT:
             b = POP(vm);
@@ -332,6 +332,10 @@ void run(VM* vm){
             b = vm->stack[vm->sp-1];
             vm->stack[vm->sp-1] = a;
             vm->stack[vm->sp] = b;
+            break;
+        case GOTO:
+            memcpy(&c, vm->code + vm->pc, sizeof c);
+            vm->pc = c + vm->pc0;
             break;
         case BR_8:
             memcpy(&c, vm->code + vm->pc, sizeof c);

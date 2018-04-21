@@ -18,6 +18,7 @@ class TokenTypes(Enum):
     ELSEIF = auto()
     ELSE   = auto()
     WHILE  = auto()
+    BREAK  = auto()
     FOR    = auto()
     OP     = auto()
     LOGIC  = auto()

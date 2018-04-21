@@ -100,20 +100,23 @@ int print(Constant v) {
     int i;
     switch (v.type) {
         case INT64:
-            printf("int64: %" PRId64 "\n", v.value);
+            printf("%" PRId64 "\n", v.value);
+            //printf("int64: %" PRId64 "\n", v.value);
             break;
         case FLOAT64:
-            printf("float64: %f\n", *((double*)&v.value));
+            printf("%f\n", *((double*)&v.value));
+            //printf("float64: %f\n", *((double*)&v.value));
             break;
         case BOOL:
-            if (v.value == 0) printf("bool: false\n");
-            else printf("bool: true\n");
+            if (v.value == 0) puts("false");
+            else puts("true");
             break;
         case UNDEF:
-            printf("undef: undef\n");
+            printf("undef\n");
             break;
         case STR8:
-            printf("str: ");
+            //printf("str: ");
+            ;
             int64_t i;
             for (i = 0; i < ((String_t*)v.value)->length; i++) { // TODO: fix hardcoded 8
                 //printf("%.*s\n", ((String_t*)v.value)->length, ((String_t*)v.value)->str);
@@ -122,20 +125,20 @@ int print(Constant v) {
             printf("\n");
             break;
         case HASH:
-            printf("hash: <%" PRIx64 ">\n", v.value);
+            printf("<hash %" PRIx64 ">\n", v.value);
             break;;
         case LIST:
-            printf("list: <%" PRIx64 ">\n", v.value);
+            printf("<list %" PRIx64 ">\n", v.value);
             break;
         case FILEH:
             if ((FILE*)v.value == stdin) {
-                puts("file: stdin");
+                puts("stdin");
             } else if ((FILE*)v.value == stdout) {
-                puts("file: stdout");
+                puts("stdout");
             } else if ((FILE*)v.value == stderr) {
-                puts("file: stderr");
+                puts("stderr");
             } else {
-                printf("file: <%" PRIx64 ">\n", v.value);
+                printf("<file %" PRIx64 ">\n", v.value);
             }
             break;
         default:

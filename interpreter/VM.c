@@ -3,11 +3,12 @@
 #include "VM.h"
 
 VM* newVM(char* code,    // pointer to bytecode
-    int pc,              // address of instruction to be executed first -- entrypoint
+    int pc0,             // address of instruction to be executed first -- entrypoint
     int datasize) {      // total locals size required to perform a program operations
     VM* vm = malloc(sizeof(VM));
     vm->code = code;
-    vm->pc = pc;
+    vm->pc = pc0;
+    vm->pc0 = vm->pc;
     vm->fp = 0;
     vm->sp = -1;
     vm->globals = malloc(sizeof(Constant) * datasize);

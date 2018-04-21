@@ -11,17 +11,18 @@
 #define BPUSH(vm, v) (PUSH(vm, ((Constant) {BOOL, v})))  //push boolean v onto stack
 
 typedef struct {
-	Constant* globals;
+	Constant* globals;          // variables, see "constant.c" for details on Constant.
+	Constant* stack;            // stack
 	char* code;                 // bytecode
-	Constant* stack;            // stack, see "constant.c" for details on Constant.
 	int pc;                     // program counter
+    int pc0;                    // initial value for pc
 	int sp;                     // stack pointer
 	int fp;                     // frame pointer
 	VTable_t** builtins_vtable;   // vtable of builtin methods
 } VM;
 
 VM* newVM(char* code,    // pointer to bytecode
-    int pc,              // address of instruction to be executed first -- entrypoint
+    int pc0,             // address of instruction to be executed first -- entrypoint
     int datasize);       // total locals size required to perform a program operations
 
 void delVM(VM* vm);

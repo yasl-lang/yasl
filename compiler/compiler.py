@@ -101,21 +101,21 @@ class Compiler(NodeVisitor):
         self.globals.decl_var("stdout")
         self.globals.decl_var("stderr")
         self.locals = Env()
+        self.code = []
         self.header = intbytes_8(8) + intbytes_8(0)
         self.fns = {}
         self.current_fn = None
         self.offset = 0
         self.strs = {}
     def compile(self, statements):
-        result = []
         for statement in statements:
-            result = result + self.visit(statement)
+            self.code.extend(self.visit(statement))
         self.header[0:8] = intbytes_8(len(self.header))
         self.header[8:16] = intbytes_8(len(self.globals))  # TODO: fix so this works with locals as well
         for opcode in self.header: print(hex(opcode))
         print("entry point:")
-        for opcode in result + [HALT]: print(hex(opcode))
-        return self.header + result + [HALT] #TODO: fix return values once we have proper ones
+        for opcode in self.code + [HALT]: print(hex(opcode))
+        return self.header + self.code + [HALT] #TODO: fix return values once we have proper ones
     def enter_scope(self):
         if self.current_fn is not None:
             self.locals = Env(self.locals)
@@ -154,15 +154,17 @@ class Compiler(NodeVisitor):
         self.enter_scope()
         right = self.visit(node.right)
         self.exit_scope()
-        left = left + [BR_8] + intbytes_8(len(right))
+        left.extend([BR_8] + intbytes_8(len(right)))
         return cond + [BRF_8] + intbytes_8(len(left)) + left + right
     def visit_While(self, node):
         cond = self.visit(node.cond)
         self.enter_scope()
-        body = self.visit(node.body)
+        body = []
+        for stmt in node.body:
+            body.extend(self.visit(stmt))
         self.exit_scope()
-        cond = cond + [BRF_8] + intbytes_8(len(body)+9)
-        body = body + [BR_8] + intbytes_8(-(len(body)+9+len(cond)))
+        cond.extend([BRF_8] + intbytes_8(len(body)+9))
+        body.extend([BR_8] + intbytes_8(-(len(body)+9+len(cond))))
         return cond + body
     def visit_For(self, node):
         #assert False
@@ -228,8 +230,8 @@ class Compiler(NodeVisitor):
             self.locals[i.value] = 255 - len(self.locals.vars) - 1
         self.fns[node.token.value]["locals"] = len(self.locals.vars)
         for stmt in node.block.statements:
-            self.header = self.header + self.visit(stmt)
-        self.header = self.header + [NCONST, RET]
+            self.header.extend(self.visit(stmt))
+        self.header.extend([NCONST, RET])
         self.locals = Env()
         self.current_fn = None  # TODO: allow nested function definitions
         return []
@@ -308,7 +310,7 @@ class Compiler(NodeVisitor):
         result = [NEWLIST]
         for expr in node.params:
             #[MCALL_8] + intbytes_8(METHODS[node.value])
-            result = result + [DUP] + self.visit(expr) + [SWAP] + [MCALL_8] + intbytes_8(METHODS["append"]) + [POP]
+            result.extend([DUP] + self.visit(expr) + [SWAP] + [MCALL_8] + intbytes_8(METHODS["append"]) + [POP])
             # TODO: fix order of arguments here
             #result = result + [DUP] + self.visit(expr) + [BCALL_8] + intbytes_8(BUILTINS["append"]) + [POP]
         return result
