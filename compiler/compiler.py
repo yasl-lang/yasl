@@ -4,6 +4,7 @@ from .environment import Env
 from .ast import *
 
 BINRESERVED = {
+        "^":   [EXP],
         "+":   [ADD],
         "*":   [MUL],
         "-":   [SUB],
@@ -18,13 +19,17 @@ BINRESERVED = {
         "==":  [EQ],
         "!=":  [EQ, NOT],
         "===": [ID],
-        "!==": [ID, NOT]
+        "!==": [ID, NOT],
+        "&":   [BAND],
+        "~":   [BXOR],
+        "|":   [BOR],
         }
 UNRESERVED = {
         "-": [NEG],
         "!": [NOT],
         "+": [NOP],
         "#": [LEN],
+        "~": [BNOT],
         }
 ICONSTANTS = {
         -1: [ICONST_M1],
