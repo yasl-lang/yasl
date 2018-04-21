@@ -92,7 +92,7 @@ void run(VM* vm){
         int64_t c;
         double d;
         void* ptr;
-        /*printf("\nopcode: %x\n", opcode);
+        printf("\nopcode: %x\n", opcode);
         print(PEEK(vm));
         //print(vm->stack[vm->sp-1]);
         //print(vm->stack[vm->sp-2]);
@@ -192,6 +192,26 @@ void run(VM* vm){
                 break;
             } else {
                 printf("ERROR: unary ~ not supported for operand of type %x.\n", a.type);
+                return;
+            }
+        case BLSHIFT:
+            b = POP(vm);
+            a = PEEK(vm);
+            if (a.type == INT64 && b.type == INT64) {
+                PEEK(vm).value = a.value << b.value;
+                break;
+            } else {
+                printf("ERROR: << not supported for operands of types %x and %x.\n", a.type, b.type);
+                return;
+            }
+        case BRSHIFT:
+            b = POP(vm);
+            a = PEEK(vm);
+            if (a.type == INT64 && b.type == INT64) {
+                PEEK(vm).value = (uint64_t)a.value >> (uint64_t)b.value;
+                break;
+            } else {
+                printf("ERROR: >> not supported for operands of types %x and %x.\n", a.type, b.type);
                 return;
             }
         case ADD:
