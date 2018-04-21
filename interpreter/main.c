@@ -19,6 +19,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 #define BUFFER_SIZE 256
 #define NCODE(vm)    (vm->code[vm->pc++])     // get next bytecode
@@ -33,6 +34,7 @@
 #define SUB(a, b)    (a - b)
 #define MUL(a, b)    (a * b)
 #define MOD(a, b)    (a % b)
+#define EXP(a, b)    (pow(a, b))
 #define GT(a, b)     (a > b)
 #define GE(a, b)     (a >= b)
 #define EQ(a, b)     (a == b)
@@ -248,6 +250,11 @@ void run(VM* vm){
                return;
             }
             vm->stack[vm->sp].value = a.value % b.value;
+            break;
+        case EXP:
+            b = POP(vm);
+            a = POP(vm);
+            BINOP(vm, a, b, EXP, "^");
             break;
         case NEG:
             a = vm->stack[vm->sp];
