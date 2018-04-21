@@ -243,7 +243,7 @@ class Lexer(object):
                 self._add_token(TokenTypes.COMMA)
             elif self.current_char == ".":
                 self._add_token(TokenTypes.DOT)
-            elif self.current_char in ("=", "<", ">", "+", "-", "/", "*", "!", "#", "%"): #, "&", "|", "^"):
+            elif self.current_char in ("=", "<", ">", "+", "-", "/", "*", "!", "#", "%", "&", "|", "^", "~"):
                 self._add_token(TokenTypes.OP)
             else:
                 self.error("unknown sequence.")
