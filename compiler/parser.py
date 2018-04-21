@@ -24,7 +24,7 @@ class Parser(object):
         raise Exception("Expected %s Token in line %s, got %s" % \
             (token_type, self.current_token.line, self.current_token.type))
     def eat(self, token_type):
-        #print(self.current_token)
+        print(self.current_token)
         if self.current_token.type is token_type:
             result = self.current_token
             self.advance()
@@ -218,25 +218,18 @@ class Parser(object):
             curr = BinOp(op, curr, self.bit_and())
         return curr
     def bit_and(self):
-        curr = self.comparator()
+        curr = self.comparator2()
         while self.current_token.value == "&":
             op = self.eat(TokenTypes.OP)
-            curr = BinOp(op, curr, self.comparator())
+            curr = BinOp(op, curr, self.comparator2())
         return curr
-    def fact0(self):
-        curr = self.fact1()
-        """while self.current_token.value in ["&", "|"]:
-            op = self.current_token
-            self.eat(TokenTypes.OP)
-            curr = BinOp(op, curr, self.fact1())"""
-        return curr
-    def fact1(self):
-        curr = self.comparator()
+    def comparator2(self):
+        curr = self.comparator1()
         while self.current_token.value in ["==", "!=", "===", "!=="]:
             op = self.eat(TokenTypes.OP)
-            curr = BinOp(op, curr, self.comparator())
+            curr = BinOp(op, curr, self.comparator1())
         return curr
-    def comparator(self):
+    def comparator1(self):
         curr = self.concat()
         while self.current_token.value in ["<", ">", ">=", "<=", "<-"]:
             if self.current_token.value == "<-":    #prevents parser from treating <- as left arrow.
@@ -248,10 +241,16 @@ class Parser(object):
             curr = BinOp(op, curr, self.add())
         return curr
     def concat(self):
-        curr = self.add()
+        curr = self.bit_shift()
         if self.current_token.value == "||":
             token = self.eat(TokenTypes.OP)
             return BinOp(token, curr, self.concat())
+        return curr
+    def bit_shift(self):
+        curr = self.add()
+        while self.current_token.value in [">>", "<<"]:
+            op = self.eat(TokenTypes.OP)
+            curr = BinOp(op, curr, self.add())
         return curr
     def add(self):
         curr = self.multiply()

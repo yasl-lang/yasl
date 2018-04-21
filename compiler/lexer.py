@@ -30,7 +30,7 @@ RESERVED_KEYWORDS = {
             "and": lambda x: Token(TokenTypes.LOGIC, "and", x),
             "or": lambda x: Token(TokenTypes.LOGIC, "or", x),
             "undef": lambda x: Token(TokenTypes.UNDEF, None, x),
-            "func": lambda x: Token(TokenTypes.FUNC, "func", x),
+            "fn": lambda x: Token(TokenTypes.FUNC, "fn", x),
             "return": lambda x: Token(TokenTypes.RETURN, "return", x),
             "struct": lambda x: Token(TokenTypes.STRUCT, "struct", x),
             "int64": lambda x: Token(TokenTypes.TYPE, "int64", x),
@@ -211,6 +211,14 @@ class Lexer(object):
                 self.advance()
             elif self.current_char == ">" and self.peek() == "=":
                 self.tokens.append(Token(TokenTypes.OP, ">=", self.line))
+                self.advance()
+                self.advance()
+            elif self.current_char == ">" and self.peek() == ">":
+                self.tokens.append(Token(TokenTypes.OP, ">>", self.line))
+                self.advance()
+                self.advance()
+            elif self.current_char == "<" and self.peek() == "<":
+                self.tokens.append(Token(TokenTypes.OP, "<<", self.line))
                 self.advance()
                 self.advance()
             elif self.current_char == "=" and self.peek(1) == "=" and self.peek(2) == "=":
