@@ -4,12 +4,15 @@ from .environment import Env
 from .ast import *
 
 BINRESERVED = {
-        "+":   [ADD],
+        "^":   [EXP],
         "*":   [MUL],
-        "-":   [SUB],
         "/":   [FDIV],
         "//":  [IDIV],
         "%":   [MOD],
+        "+":   [ADD],
+        "-":   [SUB],
+        "<<":  [BLSHIFT],
+        ">>":  [BRSHIFT],
         "||":  [CONCAT],
         "<":   [GE, NOT],
         "<=":  [GT, NOT],
@@ -18,13 +21,17 @@ BINRESERVED = {
         "==":  [EQ],
         "!=":  [EQ, NOT],
         "===": [ID],
-        "!==": [ID, NOT]
+        "!==": [ID, NOT],
+        "&":   [BAND],
+        "~":   [BXOR],
+        "|":   [BOR],
         }
 UNRESERVED = {
         "-": [NEG],
         "!": [NOT],
         "+": [NOP],
         "#": [LEN],
+        "~": [BNOT],
         }
 ICONSTANTS = {
         -1: [ICONST_M1],
@@ -40,33 +47,16 @@ DCONSTANTS = {
         1.0: [DCONST_1],
         2.0: [DCONST_2],
         }
-STDIO = {
-    "print": 0x00,
-    #"input": 0x01,
-    # "open": 0x02,
-    # "close": 0x03,
 
-}
-STDSTR = {
-    "upcase":   0x00,
-    "downcase": 0x01,
-    "isalnum":  0x02,
-    "isal":     0x03,
-    "isnum":    0x04,
-    "isspace":  0x05,
-    "split":    0x06,
-}
-STDOBJ = {
-    "insert": 0x00,
-    "find":   0x01,
-    "append": 0x02,
-
-}
 BUILTINS = {
         "print":        0x00,
         "insert":       0x01,
         "find":         0x02,
         "append":       0x03,
+        "input":        0x04,
+        "open":         0x05,
+        "popen":        0x06,
+        #"typeof":       0x07,
 }
 
 METHODS = {
@@ -96,19 +86,14 @@ METHODS = {
         "keys":         0x30,
         "values":       0x31,
 
-}
+        "close":        0x40,
+        "pclose":       0x41,
+        "read":         0x42,
+        "write":        0x43,
+        "readline":     0x44,
 
-'''
-    UNDEF   = 0x00,
-    FUNC    = 0x08,
-    FLOAT64 = 0x13,
-    INT64   = 0x1B,
-    BOOL    = 0x20,
-    STR8    = 0x32,
-    LIST    = 0x44,
-    HASH    = 0x48,
-    FILEH   = 0x50,
-'''
+
+}
 
 ###############################################################################
 #                                                                             #
@@ -119,22 +104,25 @@ METHODS = {
 class Compiler(NodeVisitor):
     def __init__(self):
         self.globals = Env()
+        self.globals.decl_var("stdin")
+        self.globals.decl_var("stdout")
+        self.globals.decl_var("stderr")
         self.locals = Env()
+        self.code = []
         self.header = intbytes_8(8) + intbytes_8(0)
         self.fns = {}
         self.current_fn = None
         self.offset = 0
         self.strs = {}
     def compile(self, statements):
-        result = []
         for statement in statements:
-            result = result + self.visit(statement)
+            self.code.extend(self.visit(statement))
         self.header[0:8] = intbytes_8(len(self.header))
         self.header[8:16] = intbytes_8(len(self.globals))  # TODO: fix so this works with locals as well
         for opcode in self.header: print(hex(opcode))
         print("entry point:")
-        for opcode in result + [HALT]: print(hex(opcode))
-        return self.header + result + [HALT] #TODO: fix return values once we have proper ones
+        for opcode in self.code + [HALT]: print(hex(opcode))
+        return self.header + self.code + [HALT] #TODO: fix return values once we have proper ones
     def enter_scope(self):
         if self.current_fn is not None:
             self.locals = Env(self.locals)
@@ -148,6 +136,9 @@ class Compiler(NodeVisitor):
     def visit_Print(self, node):
         expr = self.visit(node.expr)
         return expr + [BCALL_8] + intbytes_8(BUILTINS["print"])
+    def visit_Input(self, node):
+        expr = self.visit(node.expr)
+        return expr + [BCALL_8] + intbytes_8(BUILTINS["print"]) + [BCALL_8] + intbytes_8(BUILTINS["input"])
     def visit_Block(self, node):
         result = []
         for statement in node.statements:
@@ -170,15 +161,17 @@ class Compiler(NodeVisitor):
         self.enter_scope()
         right = self.visit(node.right)
         self.exit_scope()
-        left = left + [BR_8] + intbytes_8(len(right))
+        left.extend([BR_8] + intbytes_8(len(right)))
         return cond + [BRF_8] + intbytes_8(len(left)) + left + right
     def visit_While(self, node):
         cond = self.visit(node.cond)
         self.enter_scope()
-        body = self.visit(node.body)
+        body = []
+        for stmt in node.body:
+            body.extend(self.visit(stmt))
         self.exit_scope()
-        cond = cond + [BRF_8] + intbytes_8(len(body)+9)
-        body = body + [BR_8] + intbytes_8(-(len(body)+9+len(cond)))
+        cond.extend([BRF_8] + intbytes_8(len(body)+9))
+        body.extend([BR_8] + intbytes_8(-(len(body)+9+len(cond))))
         return cond + body
     def visit_For(self, node):
         #assert False
@@ -244,8 +237,8 @@ class Compiler(NodeVisitor):
             self.locals[i.value] = 255 - len(self.locals.vars) - 1
         self.fns[node.token.value]["locals"] = len(self.locals.vars)
         for stmt in node.block.statements:
-            self.header = self.header + self.visit(stmt)
-        self.header = self.header + [NCONST, RET]
+            self.header.extend(self.visit(stmt))
+        self.header.extend([NCONST, RET])
         self.locals = Env()
         self.current_fn = None  # TODO: allow nested function definitions
         return []
@@ -275,14 +268,19 @@ class Compiler(NodeVisitor):
             return result + self.visit(node.left) + [MCALL_8] + intbytes_8(METHODS[node.value])
         assert False
     def visit_Decl(self, node):
-        if self.current_fn is not None:
-            if node.left.value not in self.locals.vars:
-                self.locals[node.left.value] = len(self.locals.vars) + 1 - self.offset
-            return self.visit(node.right) + [LSTORE_1, self.locals[node.left.value]]
-        if node.left.value not in self.globals.vars:
-            self.globals.decl_var(node.left.value)
-        right = self.visit(node.right)
-        result = right + [GSTORE_1, self.globals[node.left.value]]
+        result = []
+        for i in range(len(node.left)):
+            var = node.left[i]
+            val = node.right[i]
+            if self.current_fn is not None:
+                if var.value not in self.locals.vars:
+                    self.locals[var.value] = len(self.locals.vars) + 1 - self.offset
+                result = result + self.visit(val) + [LSTORE_1, self.locals[var.value]]
+                continue
+            if var.value not in self.globals.vars:
+                self.globals.decl_var(var.value)
+            right = self.visit(val)
+            result = result + right + [GSTORE_1, self.globals[var.value]]
         return result
     def visit_Assign(self, node):
         if node.left.value not in self.locals and node.left.value not in self.globals:
@@ -319,7 +317,7 @@ class Compiler(NodeVisitor):
         result = [NEWLIST]
         for expr in node.params:
             #[MCALL_8] + intbytes_8(METHODS[node.value])
-            result = result + [DUP] + self.visit(expr) + [SWAP] + [MCALL_8] + intbytes_8(METHODS["append"]) + [POP]
+            result.extend([DUP] + self.visit(expr) + [SWAP] + [MCALL_8] + intbytes_8(METHODS["append"]) + [POP])
             # TODO: fix order of arguments here
             #result = result + [DUP] + self.visit(expr) + [BCALL_8] + intbytes_8(BUILTINS["append"]) + [POP]
         return result

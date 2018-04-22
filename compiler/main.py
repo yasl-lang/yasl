@@ -37,6 +37,7 @@ if __name__ == "__main__":
         #sys.stdout = open("source.yb", "wb")
         # for h in [hex(r) for r in result+[HALT]:
         #    print r
+        # f = open(sys.argv[1].rstrip("ysl") + "yb", "wb")
         f = open("source.yb", "wb")
         f.write(bytes(result+[HALT]))
         f.close()

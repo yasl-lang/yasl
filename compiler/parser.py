@@ -24,7 +24,7 @@ class Parser(object):
         raise Exception("Expected %s Token in line %s, got %s" % \
             (token_type, self.current_token.line, self.current_token.type))
     def eat(self, token_type):
-        #print(self.current_token)
+        print(self.current_token)
         if self.current_token.type is token_type:
             result = self.current_token
             self.advance()
@@ -32,9 +32,11 @@ class Parser(object):
         else:
             self.error(token_type)
     def program(self):
-        if self.current_token.type is  TokenTypes.PRINT:
+        if self.current_token.type is TokenTypes.PRINT:
             token = self.eat(TokenTypes.PRINT)
             return Print(token, self.expr())
+        elif self.current_token.type is TokenTypes.BREAK:
+            return Break(self.eat(TokenTypes.BREAK))
         elif self.current_token.type is TokenTypes.IF:
             return self.if_stmt()
         elif self.current_token.type is TokenTypes.ELSE or self.current_token.type is TokenTypes.ELSEIF:
@@ -90,7 +92,7 @@ class Parser(object):
             body.append(self.program())
             self.eat(TokenTypes.SEMI)
         self.eat(TokenTypes.RBRACE)
-        return While(token, cond, Block(body))
+        return While(token, cond, body)
     def for_loop(self):
         token = self.eat(TokenTypes.FOR)
         var = self.eat(TokenTypes.ID)
@@ -104,12 +106,32 @@ class Parser(object):
         self.eat(TokenTypes.RBRACE)
         return For(token, var, ls, Block(body))
     def vardecl(self):
+        vars = []
+        vals = []
+        name = self.eat(TokenTypes.ID)
+        vars.append(name)
+        if self.current_token.value == "=":
+            self.eat(TokenTypes.OP)
+            vals.append(self.expr())
+        else:
+            vals.append(Undef(Token(TokenTypes.UNDEF, None, name.line)))
+        while self.current_token.type is TokenTypes.COMMA:
+            self.eat(TokenTypes.COMMA)
+            name = self.eat(TokenTypes.ID)
+            vars.append(name)
+            if self.current_token.value == "=":
+                self.eat(TokenTypes.OP)
+                vals.append(self.expr())
+            else:
+                vals.append(Undef(Token(TokenTypes.UNDEF, None, name.line)))
+        return Decl(vars, vals)
+        '''
         name = self.eat(TokenTypes.ID)
         if self.current_token.value == "=":
             self.eat(TokenTypes.OP)
             return Decl(name, self.expr())
         else:
-            return Decl(name, Undef(Token(TokenTypes.UNDEF, None, name.line)))
+            return Decl(name, Undef(Token(TokenTypes.UNDEF, None, name.line)))'''
     def fndecl(self):
         name = self.eat(TokenTypes.ID)
         self.eat(TokenTypes.COLON)
@@ -141,6 +163,9 @@ class Parser(object):
         token = self.eat(TokenTypes.RETURN)
         return Return(token, self.expr())
     def expr(self):
+        if self.current_token.type is TokenTypes.INPUT:
+            token = self.eat(TokenTypes.INPUT)
+            return Input(token, self.expr())
         return self.assign()
     def assign(self):
         name = self.ternary()
@@ -175,25 +200,36 @@ class Parser(object):
             curr = LogicOp(op, curr, self.logic_and())
         return curr
     def logic_and(self):
-        curr = self.fact0()
+        curr = self.bit_or()
         while self.current_token.value == "and":
             op = self.eat(TokenTypes.LOGIC)
-            curr = LogicOp(op, curr, self.fact0())
+            curr = LogicOp(op, curr, self.bit_or())
         return curr
-    def fact0(self):
-        curr = self.fact1()
-        """while self.current_token.value in ["&", "|"]:
-            op = self.current_token
-            self.eat(TokenTypes.OP)
-            curr = BinOp(op, curr, self.fact1())"""
+    def bit_or(self):
+        curr = self.bit_xor()
+        while self.current_token.value == "|":
+            op = self.eat(TokenTypes.OP)
+            curr = BinOp(op, curr, self.bit_xor())
         return curr
-    def fact1(self):
-        curr = self.comparator()
+    def bit_xor(self):
+        curr = self.bit_and()
+        while self.current_token.value == "~":
+            op = self.eat(TokenTypes.OP)
+            curr = BinOp(op, curr, self.bit_and())
+        return curr
+    def bit_and(self):
+        curr = self.comparator2()
+        while self.current_token.value == "&":
+            op = self.eat(TokenTypes.OP)
+            curr = BinOp(op, curr, self.comparator2())
+        return curr
+    def comparator2(self):
+        curr = self.comparator1()
         while self.current_token.value in ["==", "!=", "===", "!=="]:
             op = self.eat(TokenTypes.OP)
-            curr = BinOp(op, curr, self.comparator())
+            curr = BinOp(op, curr, self.comparator1())
         return curr
-    def comparator(self):
+    def comparator1(self):
         curr = self.concat()
         while self.current_token.value in ["<", ">", ">=", "<=", "<-"]:
             if self.current_token.value == "<-":    #prevents parser from treating <- as left arrow.
@@ -205,10 +241,16 @@ class Parser(object):
             curr = BinOp(op, curr, self.add())
         return curr
     def concat(self):
-        curr = self.add()
+        curr = self.bit_shift()
         if self.current_token.value == "||":
             token = self.eat(TokenTypes.OP)
             return BinOp(token, curr, self.concat())
+        return curr
+    def bit_shift(self):
+        curr = self.add()
+        while self.current_token.value in [">>", "<<"]:
+            op = self.eat(TokenTypes.OP)
+            curr = BinOp(op, curr, self.add())
         return curr
     def add(self):
         curr = self.multiply()
@@ -223,27 +265,35 @@ class Parser(object):
             curr = BinOp(op, curr, self.const())
         return curr
     def unop(self):
-        if self.current_token.type is TokenTypes.OP and self.current_token.value in ("-", "+", "!", "#"):
+        if self.current_token.type is TokenTypes.OP and self.current_token.value in ("-", "+", "!", "#", "~"):
             op = self.eat(TokenTypes.OP)
             return UnOp(op, self.unop())
         else:
-            return self.const()
+            return self.exponentiation()
+    def exponentiation(self):
+        curr = self.const()
+        if self.current_token.value == "^":
+            token = self.eat(TokenTypes.OP)
+            return BinOp(token, curr, self.exponentiation())
+        return curr
     def const(self):
         #if self.current_token.type is TokenTypes.OP and self.current_token.value in ("-", "+", "!", "#"):
         #    op = self.eat(TokenTypes.OP)
         #    return UnOp(op, self.const())
         result = self.literal()
-        while self.current_token.type is TokenTypes.DOT:
-            self.eat(TokenTypes.DOT)
-            right = self.literal()
-            if isinstance(right, FunctionCall):
-                return MethodCall(result, right.token, right.params)
+        while self.current_token.type is TokenTypes.DOT or self.current_token.type is TokenTypes.LBRACK:
+            if self.current_token.type is TokenTypes.DOT:
+                self.eat(TokenTypes.DOT)
+                right = self.literal()
+                if isinstance(right, FunctionCall):
+                    result = MethodCall(result, right.token, right.params)
+                else:
+                    assert False
             else:
-                assert False
-        while self.current_token.type is TokenTypes.LBRACK:
-            self.eat(TokenTypes.LBRACK)
-            result = Index(result, self.expr())
-            self.eat(TokenTypes.RBRACK)
+            #while self.current_token.type is TokenTypes.LBRACK:
+                self.eat(TokenTypes.LBRACK)
+                result = Index(result, self.expr())
+                self.eat(TokenTypes.RBRACK)
         return result
     def literal(self):
         if self.current_token.type is TokenTypes.LPAREN:
@@ -287,22 +337,9 @@ class Parser(object):
         elif self.current_token.type is TokenTypes.UNDEF:
             nil = self.eat(TokenTypes.UNDEF)
             return Undef(nil)
-        elif self.current_token.type is TokenTypes.MAP:
-            hash = self.eat(TokenTypes.MAP)
-            self.eat(TokenTypes.LPAREN)
-            keys = []
-            vals = []
-            if self.current_token.type is not TokenTypes.RPAREN:
-                keys.append(self.expr())
-                self.eat(TokenTypes.RARROW)
-                vals.append(self.expr())
-            while self.current_token.type is TokenTypes.COMMA and self.current_token.type is not TokenTypes.EOF:
-                self.eat(TokenTypes.COMMA)
-                keys.append(self.expr())
-                self.eat(TokenTypes.RARROW)
-                vals.append(self.expr())
-            self.eat(TokenTypes.RPAREN)
-            return Hash(hash, keys, vals)
+        #elif self.current_token.type is TokenTypes.TYPE:
+        #    y_type = self.eat(TokenTypes.TYPE)
+        #    return Type(y_type)
         elif self.current_token.type is TokenTypes.LBRACK:
             ls = self.eat(TokenTypes.LBRACK)
             keys = []
@@ -330,18 +367,7 @@ class Parser(object):
                     self.eat(TokenTypes.RBRACK)
                     return List(ls, keys)
             self.eat(TokenTypes.RBRACK)
-            return List(ls, keys) #TODO: decide way to make empty map
-            '''elif self.current_token.type is TokenTypes.LIST:
-            ls = self.eat(TokenTypes.LIST)
-            self.eat(TokenTypes.LPAREN)
-            params = []
-            if self.current_token.type is not TokenTypes.RPAREN:
-                params.append(self.expr())
-            while self.current_token.type is TokenTypes.COMMA and self.current_token.type is not TokenTypes.EOF:
-                self.eat(TokenTypes.COMMA)
-                params.append(self.expr())
-            self.eat(TokenTypes.RPAREN)
-            return List(ls, params)'''
+            return List(ls, keys)
         else:
             assert False
     def parse(self):

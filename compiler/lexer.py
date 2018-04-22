@@ -14,24 +14,33 @@ ESCCHARS = {
     "\"": "\"",
     "r":  "\r",
 }
+
 RESERVED_KEYWORDS = {
             "let": lambda x: Token(TokenTypes.LET, "let", x),
             "print": lambda x: Token(TokenTypes.PRINT, "print", x),
+            "input": lambda x: Token(TokenTypes.INPUT, "input", x),
             "if": lambda x: Token(TokenTypes.IF, "if", x),
             "else": lambda x: Token(TokenTypes.ELSE, "else", x),
             "elseif": lambda x: Token(TokenTypes.ELSEIF, "elseif", x),
             "while": lambda x: Token(TokenTypes.WHILE, "while", x),
             "for": lambda x: Token(TokenTypes.FOR, "for", x),
+            "break": lambda x: Token(TokenTypes.BREAK, "break", x),
             "true": lambda x: Token(TokenTypes.BOOL, True, x),
             "false": lambda x: Token(TokenTypes.BOOL, False, x),
             "and": lambda x: Token(TokenTypes.LOGIC, "and", x),
             "or": lambda x: Token(TokenTypes.LOGIC, "or", x),
             "undef": lambda x: Token(TokenTypes.UNDEF, None, x),
-            "func": lambda x: Token(TokenTypes.FUNC, "func", x),
+            "fn": lambda x: Token(TokenTypes.FUNC, "fn", x),
             "return": lambda x: Token(TokenTypes.RETURN, "return", x),
             "struct": lambda x: Token(TokenTypes.STRUCT, "struct", x),
-            "map": lambda x: Token(TokenTypes.MAP, "map", x),
-            "list": lambda x: Token(TokenTypes.LIST, "list", x),
+            "int64": lambda x: Token(TokenTypes.TYPE, "int64", x),
+            "float64": lambda x: Token(TokenTypes.TYPE, "float64", x),
+            "bool": lambda x: Token(TokenTypes.TYPE, "bool", x),
+            "str8": lambda x: Token(TokenTypes.TYPE, "str8", x),
+            "list": lambda x: Token(TokenTypes.TYPE, "list", x),
+            "map": lambda x: Token(TokenTypes.TYPE, "map", x),
+            "file": lambda x: Token(TokenTypes.TYPE, "file", x),
+            "type": lambda x: Token(TokenTypes.TYPE, "type", x),
 }
 
 class Lexer(object):
@@ -204,6 +213,14 @@ class Lexer(object):
                 self.tokens.append(Token(TokenTypes.OP, ">=", self.line))
                 self.advance()
                 self.advance()
+            elif self.current_char == ">" and self.peek() == ">":
+                self.tokens.append(Token(TokenTypes.OP, ">>", self.line))
+                self.advance()
+                self.advance()
+            elif self.current_char == "<" and self.peek() == "<":
+                self.tokens.append(Token(TokenTypes.OP, "<<", self.line))
+                self.advance()
+                self.advance()
             elif self.current_char == "=" and self.peek(1) == "=" and self.peek(2) == "=":
                 self.tokens.append(Token(TokenTypes.OP, "===", self.line))
                 self.advance()
@@ -234,7 +251,7 @@ class Lexer(object):
                 self._add_token(TokenTypes.COMMA)
             elif self.current_char == ".":
                 self._add_token(TokenTypes.DOT)
-            elif self.current_char in ("=", "<", ">", "+", "-", "/", "*", "!", "#", "%"): #, "&", "|", "^"):
+            elif self.current_char in ("=", "<", ">", "+", "-", "/", "*", "!", "#", "%", "&", "|", "^", "~"):
                 self._add_token(TokenTypes.OP)
             else:
                 self.error("unknown sequence.")

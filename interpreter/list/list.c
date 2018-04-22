@@ -70,7 +70,7 @@ void ls_append(List_t* ls, const Constant value) {
 }
 
 Constant ls_search(List_t* ls, int64_t index) {
-    if (index < 0 || index >= ls->size) return;
+    if (index < 0 || index >= ls->size) return (Constant) {0, 0}; // TODO: proper error value
     return ls->items[index];
 }
 

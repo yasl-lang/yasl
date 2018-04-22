@@ -19,6 +19,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 #define BUFFER_SIZE 256
 #define NCODE(vm)    (vm->code[vm->pc++])     // get next bytecode
@@ -33,6 +34,7 @@
 #define SUB(a, b)    (a - b)
 #define MUL(a, b)    (a * b)
 #define MOD(a, b)    (a % b)
+#define EXP(a, b)    (pow(a, b))
 #define GT(a, b)     (a > b)
 #define GE(a, b)     (a >= b)
 #define EQ(a, b)     (a == b)
@@ -90,9 +92,9 @@ void run(VM* vm){
         int64_t c;
         double d;
         void* ptr;
-        /*printf("\nopcode: %x\n", opcode);
+        printf("\nopcode: %x\n", opcode);
         print(PEEK(vm));
-        print(vm->stack[vm->sp-1]);
+        //print(vm->stack[vm->sp-1]);
         //print(vm->stack[vm->sp-2]);
         //print(vm->stack[vm->sp-3]);
         print(vm->globals[0]);
@@ -153,6 +155,65 @@ void run(VM* vm){
             vm->stack[++vm->sp].type = UNDEF;
             vm->stack[vm->sp].value  = 0x00;
             break;
+        case BOR:
+            b = POP(vm);
+            a = PEEK(vm);
+            if (a.type == INT64 && b.type == INT64) {
+                PEEK(vm).value = a.value | b.value;
+                break;
+            } else {
+                printf("ERROR: | not supported for operands of types %x and %x.\n", a.type, b.type);
+                return;
+            }
+        case BXOR:
+            b = POP(vm);
+            a = PEEK(vm);
+            if (a.type == INT64 && b.type == INT64) {
+                PEEK(vm).value = a.value ^ b.value;
+                break;
+            } else {
+                printf("ERROR: binary ~ not supported for operands of types %x and %x.\n", a.type, b.type);
+                return;
+            }
+        case BAND:
+            b = POP(vm);
+            a = PEEK(vm);
+            if (a.type == INT64 && b.type == INT64) {
+                PEEK(vm).value = a.value & b.value;
+                break;
+            } else {
+                printf("ERROR: & not supported for operands of types %x and %x.\n", a.type, b.type);
+                return;
+            }
+        case BNOT:
+            a = PEEK(vm);
+            if (a.type == INT64) {
+                PEEK(vm).value = ~a.value;
+                break;
+            } else {
+                printf("ERROR: unary ~ not supported for operand of type %x.\n", a.type);
+                return;
+            }
+        case BLSHIFT:
+            b = POP(vm);
+            a = PEEK(vm);
+            if (a.type == INT64 && b.type == INT64) {
+                PEEK(vm).value = a.value << b.value;
+                break;
+            } else {
+                printf("ERROR: << not supported for operands of types %x and %x.\n", a.type, b.type);
+                return;
+            }
+        case BRSHIFT:
+            b = POP(vm);
+            a = PEEK(vm);
+            if (a.type == INT64 && b.type == INT64) {
+                PEEK(vm).value = (uint64_t)a.value >> (uint64_t)b.value;
+                break;
+            } else {
+                printf("ERROR: >> not supported for operands of types %x and %x.\n", a.type, b.type);
+                return;
+            }
         case ADD:
             b = vm->stack[vm->sp--];
             a = vm->stack[vm->sp--];
@@ -210,6 +271,11 @@ void run(VM* vm){
             }
             vm->stack[vm->sp].value = a.value % b.value;
             break;
+        case EXP:
+            b = POP(vm);
+            a = POP(vm);
+            BINOP(vm, a, b, EXP, "^");
+            break;
         case NEG:
             a = vm->stack[vm->sp];
             if (a.type == INT64) {
@@ -265,7 +331,7 @@ void run(VM* vm){
                 memcpy(((String_t*)ptr)->str + ((String_t*)a.value)->length, ((String_t*)b.value)->str, ((String_t*)b.value)->length);
                 break;
             }
-            printf("ERROR: %% not supported for operands of types %x and %x.\n", a.type, b.type);
+            printf("ERROR: || not supported for operands of types %x and %x.\n", a.type, b.type);
             return;
         case GT:
             b = POP(vm);
@@ -323,10 +389,6 @@ void run(VM* vm){
             vm->stack[++vm->sp].type = LIST;
             vm->stack[vm->sp].value  = (int64_t)new_list();
             break;
-        /*
-        case V2S:   // TODO: implement
-            break;
-        */
         case DUP:
             vm->stack[vm->sp+1] = vm->stack[vm->sp];
             vm->sp++;
@@ -336,6 +398,10 @@ void run(VM* vm){
             b = vm->stack[vm->sp-1];
             vm->stack[vm->sp-1] = a;
             vm->stack[vm->sp] = b;
+            break;
+        case GOTO:
+            memcpy(&c, vm->code + vm->pc, sizeof c);
+            vm->pc = c + vm->pc0;
             break;
         case BR_8:
             memcpy(&c, vm->code + vm->pc, sizeof c);
@@ -370,42 +436,21 @@ void run(VM* vm){
             break;
         case LLOAD_1:
             offset = NCODE(vm);
-            //printf("load from offset=%d\n", offset);
-            //puts("before");
-            //print(vm->stack[vm->fp+offset]);
-            //print(vm->stack[vm->fp+1]);
-            //print(vm->stack[vm->fp+2]);
             vm->stack[++vm->sp] = vm->stack[vm->fp+offset];
-            //puts("after");
-            //print(vm->stack[vm->fp+offset]);
-            //print(vm->stack[vm->fp+1]);
-            //print(vm->stack[vm->fp+2]);
             break;
         case LSTORE_1:
             offset = NCODE(vm);
-            //printf("store into offset=%d\n", offset);
-            //puts("before");
-            //print(vm->stack[vm->fp+offset]);
-            //print(vm->stack[vm->fp+1]);
-            //print(vm->stack[vm->fp+2]);
             vm->stack[vm->fp+offset] = vm->stack[vm->sp--];
-            //puts("after");
-            // print(vm->stack[vm->fp+offset]);
-            //print(vm->stack[vm->fp+1]);
-            //print(vm->stack[vm->fp+2]);
             break;
         case CALL_8:
             offset = NCODE(vm);
-            //printf("offset=%d\n", offset);
             memcpy(&addr, vm->code + vm->pc, sizeof addr);
             vm->pc += sizeof addr;
             PUSH(vm, ((Constant) {offset, vm->fp}));  // store previous frame ptr;
             PUSH(vm, ((Constant) {offset, vm->pc}));  // store pc addr
-            //printf("%" PRId64 "\n", (int64_t)offset);
-            //printf("%d\n", vm->pc);
             vm->fp = vm->sp;
             offset = NCODE(vm);
-            vm->sp += offset + 1;// + 2;
+            vm->sp += offset + 1; // + 2
             vm->pc = addr;
             break;
         case BCALL_8:
@@ -423,6 +468,7 @@ void run(VM* vm){
              * 2 -> str8_builtins();
              * 3 -> list_builtins();
              * 4 -> hash_builtins();
+             * 5 -> file_builtins();
              */
             memcpy(&addr, vm->code + vm->pc, sizeof(addr));
             vm->pc += sizeof(addr);
@@ -436,8 +482,10 @@ void run(VM* vm){
                 addr = vt_search(vm->builtins_vtable[3], addr);
             } else if (PEEK(vm).type == HASH) {
                 addr = vt_search(vm->builtins_vtable[4], addr);
+            } else if (PEEK(vm).type == FILEH) {
+                addr = vt_search(vm->builtins_vtable[5], addr);
             } else {
-                printf("ERROR: No methods implemented for this type: %d.\n", PEEK(vm).type);
+                printf("ERROR: No methods implemented for this type: %x.\n", PEEK(vm).type);
                 return;
             }
             if (addr != -1) {
@@ -493,7 +541,7 @@ void run(VM* vm){
             vm->pc += size;
             break;
         default:
-            printf("ERROR UNKNOWN OPCODE: %x\n", opcode);
+            printf("ERROR UNKNOWN OPCODE:       %x\n", opcode);
             return;
         }
     }
@@ -534,18 +582,8 @@ int main(int argc, char** argv) {
 	VM* vm = newVM(buffer,   // program to execute
 	               entry_point,    // start address of main function
                    256);   // locals to be reserved, should be num_globals
-    /*float64_vtable = float64_builtins();
-    int64_vtable = int64_builtins();
-    str8_vtable = str8_builtins();
-    list_vtable = list_builtins();
-    hash_vtable = hash_builtins(); */
 	run(vm);
 	delVM(vm);
-	/*del_vtable(float64_vtable);
-	del_vtable(int64_vtable);
-    del_vtable(str8_vtable);
-    del_vtable(list_vtable);
-    del_vtable(hash_vtable); */
     fclose(file_ptr);
 	return 0;
 };

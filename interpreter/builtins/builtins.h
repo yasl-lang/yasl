@@ -8,6 +8,13 @@
 #include "../vtable/vtable.h"
 #include "../list/list.h"
 #include "../string8/string8.h"
+#include "../string8/str_methods.h"
+#include "../float/float64_methods.h"
+#include "../integer/int64_methods.h"
+#include "../hashtable/hash_methods.h"
+#include "../file/file_methods.h"
+#include "../list/list_methods.h"
+
 
 typedef int (*Handler)(VM*);
 
@@ -15,47 +22,20 @@ int yasl_print(VM* vm);
 
 int yasl_input(VM* vm);
 
-int yasl_tofloat64(VM* vm);
-int yasl_toint64(VM* vm);
-
-int yasl_tobool(VM* vm);
-
-int yasl_tostr8(VM* vm);
-int yasl_tolist(VM* vm);
-int yasl_tomap(VM* vm);
-
-int yasl_upcase(VM* vm);
-
-int yasl_downcase(VM* vm);
-
-int yasl_isalnum(VM* vm);
-
-int yasl_isal(VM* vm);
-
-int yasl_isnum(VM* vm);
-
-int yasl_isspace(VM* vm);
-
-int yasl_startswith(VM* vm);
-
-int yasl_endswith(VM* vm);
-
-int yasl_search(VM* vm);
-
-int yasl_split(VM* vm);
-
 int yasl_insert(VM* vm);
 
 int yasl_find(VM* vm);
-
-int yasl_append(VM* vm);
 
 int yasl_keys(VM* vm);
 
 int yasl_values(VM* vm);
 
+int yasl_open(VM* vm);
+
+int yasl_popen(VM *vm);
+
 static const Handler builtins[] = {
-    yasl_print, yasl_insert,    yasl_find,  yasl_keys,  yasl_values,    yasl_append,
+    yasl_print,     yasl_insert,    yasl_find,    list_append,  yasl_input,     yasl_open,  yasl_popen
 };
 
 VTable_t* float64_builtins(void);
