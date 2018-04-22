@@ -68,8 +68,17 @@ class Lexer(object):
             self.current_char = None
     def _eat_white_space(self):
         while self.current_char == " ": self.advance()
-    def _add_token(self, token_type):
+    def _add_token1(self, token_type):
         self.tokens.append(Token(token_type, self.current_char, self.line))
+        self.advance()
+    def _add_token2(self, token_type):
+        self.tokens.append(Token(token_type, self.current_char + self.peek(), self.line))
+        self.advance()
+        self.advance()
+    def _add_token3(self, token_type):
+        self.tokens.append(Token(token_type, self.current_char + self.peek(1) + self.peek(2) , self.line))
+        self.advance()
+        self.advance()
         self.advance()
     def _id(self):
         result = ""
@@ -80,13 +89,13 @@ class Lexer(object):
         self.tokens.append(token)
         self._eat_white_space()
         if self.current_char == "\n" and self.tokens[-1].type is TokenTypes.LET:
-            self._add_token(TokenTypes.SEMI)
+            self._add_token1(TokenTypes.SEMI)
         elif self.current_char == "\n" and self.tokens[-1].type is TokenTypes.BOOL:
-            self._add_token(TokenTypes.SEMI)
+            self._add_token1(TokenTypes.SEMI)
         elif self.current_char == "\n" and self.tokens[-1].type is TokenTypes.UNDEF:
-            self._add_token(TokenTypes.SEMI)
+            self._add_token1(TokenTypes.SEMI)
         elif self.current_char == "\n" and self.tokens[-1].type is TokenTypes.ID:
-            self._add_token(TokenTypes.SEMI)
+            self._add_token1(TokenTypes.SEMI)
     def _str(self):
         result = ""
         while self.current_char is not None and self.current_char != '"':
@@ -105,7 +114,7 @@ class Lexer(object):
         self.tokens.append(token)
         self._eat_white_space()
         if self.current_char == "\n":
-            self._add_token(TokenTypes.SEMI)
+            self._add_token1(TokenTypes.SEMI)
     def _hex(self):
         result = "0x"
         self.advance()
@@ -119,7 +128,7 @@ class Lexer(object):
         self.tokens.append(token)
         self._eat_white_space()
         if self.current_char == "\n":
-            self._add_token(TokenTypes.SEMI)
+            self._add_token1(TokenTypes.SEMI)
     def _num(self):
         result = ""
         while self.current_char is not None and (self.current_char.isdigit() or self.current_char == "_"):
@@ -145,7 +154,7 @@ class Lexer(object):
         self.tokens.append(token)
         self._eat_white_space()
         if self.current_char == "\n":
-            self._add_token(TokenTypes.SEMI)
+            self._add_token1(TokenTypes.SEMI)
     def lex(self):
         # tokenizer
         text = self.text
@@ -154,105 +163,54 @@ class Lexer(object):
                 self.advance()
             if self.pos >= len(text):
                 self.tokens.append(Token(TokenTypes.EOF, None, self.line))
-            elif self.current_char == "/" and self.peek() == "$":
+            elif self.current_char == "/" and self.peek() == "$":   # block comments
                 while not (self.current_char == "$" and self.peek() == "/"):
                     self.advance()
                 self.advance()
                 self.advance()
-            elif self.current_char == "$" and self.peek() == "$":
+            elif self.current_char == "$" and self.peek() == "$":   # inline comments
                 while self.current_char != "\n" and self.current_char != None:
                     self.advance()
             elif self.current_char == '"':
                 self.advance()
                 self._str()
             elif self.current_char.isdigit():
-                if self.current_char == "0" and self.peek() == "x":
-                    self._hex()
-                else:
-                    self._num()
-            elif self.current_char.isalnum():
-                self._id()
-            elif self.current_char == "?" and self.peek() == "?":
-                self.tokens.append(Token(TokenTypes.OP, "??", self.line))
-                self.advance()
-                self.advance()
-            elif self.current_char == "-" and self.peek() == ">":
-                self.tokens.append(Token(TokenTypes.RARROW, "->", self.line))
-                self.advance()
-                self.advance()
-            elif self.current_char == "<" and self.peek() == "-":
-                self.tokens.append(Token(TokenTypes.LARROW, "<-", self.line))
-                self.advance()
-                self.advance()
-            elif self.current_char == ":": self._add_token(TokenTypes.COLON)
-            elif self.current_char == "?": self._add_token(TokenTypes.QMARK)
-            elif self.current_char == ";": self._add_token(TokenTypes.SEMI)
-            elif self.current_char == "(": self._add_token(TokenTypes.LPAREN)
+                if self.current_char == "0" and self.peek() == "x": self._hex()
+                else: self._num()
+            elif self.current_char.isalnum():self._id()
+            elif self.current_char == "-" and self.peek() == ">": self._add_token2(TokenTypes.RARROW)
+            elif self.current_char == "<" and self.peek() == "-": self._add_token2(TokenTypes.LARROW)
+            elif self.current_char == ";": self._add_token1(TokenTypes.SEMI)
+            elif self.current_char == "(": self._add_token1(TokenTypes.LPAREN)
             elif self.current_char == ")":
-                self._add_token(TokenTypes.RPAREN)
+                self._add_token1(TokenTypes.RPAREN)
                 self._eat_white_space()
                 if self.current_char == "\n":
-                    self._add_token(TokenTypes.SEMI)
-            elif self.current_char == "[": self._add_token(TokenTypes.LBRACK)
+                    self._add_token1(TokenTypes.SEMI)
+            elif self.current_char == "[": self._add_token1(TokenTypes.LBRACK)
             elif self.current_char == "]":
-                self._add_token(TokenTypes.RBRACK)
+                self._add_token1(TokenTypes.RBRACK)
                 self._eat_white_space()
                 if self.current_char == "\n":
-                    self._add_token(TokenTypes.SEMI)
-            elif self.current_char == "{": self._add_token(TokenTypes.LBRACE)
+                    self._add_token1(TokenTypes.SEMI)
+            elif self.current_char == "{": self._add_token1(TokenTypes.LBRACE)
             elif self.current_char == "}":
-                self._add_token(TokenTypes.RBRACE)
+                self._add_token1(TokenTypes.RBRACE)
                 self._eat_white_space()
                 if self.current_char == "\n":
-                    self._add_token(TokenTypes.SEMI)
-            elif self.current_char == "<" and self.peek() == "=":
-                self.tokens.append(Token(TokenTypes.OP, "<=", self.line))
-                self.advance()
-                self.advance()
-            elif self.current_char == ">" and self.peek() == "=":
-                self.tokens.append(Token(TokenTypes.OP, ">=", self.line))
-                self.advance()
-                self.advance()
-            elif self.current_char == ">" and self.peek() == ">":
-                self.tokens.append(Token(TokenTypes.OP, ">>", self.line))
-                self.advance()
-                self.advance()
-            elif self.current_char == "<" and self.peek() == "<":
-                self.tokens.append(Token(TokenTypes.OP, "<<", self.line))
-                self.advance()
-                self.advance()
-            elif self.current_char == "=" and self.peek(1) == "=" and self.peek(2) == "=":
-                self.tokens.append(Token(TokenTypes.OP, "===", self.line))
-                self.advance()
-                self.advance()
-                self.advance()
-            elif self.current_char == "!" and self.peek(1) == "=" and self.peek(2) == "=":
-                self.tokens.append(Token(TokenTypes.OP, "!==", self.line))
-                self.advance()
-                self.advance()
-                self.advance()
-            elif self.current_char == "=" and self.peek() == "=":
-                self.tokens.append(Token(TokenTypes.OP, "==", self.line))
-                self.advance()
-                self.advance()
-            elif self.current_char == "!" and self.peek() == "=":
-                self.tokens.append(Token(TokenTypes.OP, "!=", self.line))
-                self.advance()
-                self.advance()
-            elif self.current_char == "|" and self.peek() == "|":
-                self.tokens.append(Token(TokenTypes.OP, "||", self.line))
-                self.advance()
-                self.advance()
-            elif self.current_char == "/" and self.peek() == "/":
-                self.tokens.append(Token(TokenTypes.OP, "//", self.line))
-                self.advance()
-                self.advance()
-            elif self.current_char == ",":
-                self._add_token(TokenTypes.COMMA)
-            elif self.current_char == ".":
-                self._add_token(TokenTypes.DOT)
+                    self._add_token1(TokenTypes.SEMI)
+            elif self.peek(2) is not None and self.current_char + self.peek(1) + self.peek(2) in \
+                    ("|||", "===", "!=="):
+                self._add_token3(TokenTypes.OP)
+            elif self.peek() is not None and self.current_char + self.peek() in \
+                    ("<=", ">=", ">>", "<<", "==", "!=", "||", "//", "??"):
+                self._add_token2(TokenTypes.OP)
+            elif self.current_char == ":": self._add_token1(TokenTypes.COLON)
+            elif self.current_char == "?": self._add_token1(TokenTypes.QMARK)
+            elif self.current_char == ",": self._add_token1(TokenTypes.COMMA)
+            elif self.current_char == ".": self._add_token1(TokenTypes.DOT)
             elif self.current_char in ("=", "<", ">", "+", "-", "/", "*", "!", "#", "%", "&", "|", "^", "~"):
-                self._add_token(TokenTypes.OP)
+                self._add_token1(TokenTypes.OP)
             else:
                 self.error("unknown sequence.")
         return self.tokens
