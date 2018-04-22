@@ -14,7 +14,6 @@ BINRESERVED = {
         "<<":  [BLSHIFT],
         ">>":  [BRSHIFT],
         "||":  [CNCT],
-        # "|||": [HARD_CNCT],
         "<":   [GE, NOT],
         "<=":  [GT, NOT],
         ">":   [GT],

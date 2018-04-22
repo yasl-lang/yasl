@@ -80,6 +80,12 @@ class Lexer(object):
         self.advance()
         self.advance()
         self.advance()
+    def _add_token4(self, token_type):
+        self.tokens.append(Token(token_type, self.current_char + self.peek(1) + self.peek(2) + self.peek(3), self.line))
+        self.advance()
+        self.advance()
+        self.advance()
+        self.advance()
     def _id(self):
         result = ""
         while self.current_char is not None and (self.current_char.isalnum() or self.current_char == "_"):
@@ -199,11 +205,15 @@ class Lexer(object):
                 self._eat_white_space()
                 if self.current_char == "\n":
                     self._add_token1(TokenTypes.SEMI)
+            elif self.peek(3) is not None and self.current_char + self.peek(1) + self.peek(2) + self.peek(3) == "|||=":
+                self._add_token4(TokenTypes.OP)
             elif self.peek(2) is not None and self.current_char + self.peek(1) + self.peek(2) in \
-                    ("|||", "===", "!=="):
+                    ("|||", "===", "!==", \
+                     "//=", ">>=", "<<=", "||=", "??="):
                 self._add_token3(TokenTypes.OP)
             elif self.peek() is not None and self.current_char + self.peek() in \
-                    ("<=", ">=", ">>", "<<", "==", "!=", "||", "//", "??"):
+                    ("<=", ">=", ">>", "<<", "==", "!=", "||", "//", "??", \
+                     "^=", "*=", "/=", "%=", "+=", "-=", "&=", "~=", "|="):
                 self._add_token2(TokenTypes.OP)
             elif self.current_char == ":": self._add_token1(TokenTypes.COLON)
             elif self.current_char == "?": self._add_token1(TokenTypes.QMARK)

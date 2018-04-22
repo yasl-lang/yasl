@@ -24,7 +24,7 @@ class Parser(object):
         raise Exception("Expected %s Token in line %s, got %s" % \
             (token_type, self.current_token.line, self.current_token.type))
     def eat(self, token_type):
-        print(self.current_token)
+        # print(self.current_token)
         if self.current_token.type is token_type:
             result = self.current_token
             self.advance()
@@ -125,13 +125,6 @@ class Parser(object):
             else:
                 vals.append(Undef(Token(TokenTypes.UNDEF, None, name.line)))
         return Decl(vars, vals)
-        '''
-        name = self.eat(TokenTypes.ID)
-        if self.current_token.value == "=":
-            self.eat(TokenTypes.OP)
-            return Decl(name, self.expr())
-        else:
-            return Decl(name, Undef(Token(TokenTypes.UNDEF, None, name.line)))'''
     def fndecl(self):
         name = self.eat(TokenTypes.ID)
         self.eat(TokenTypes.COLON)
@@ -176,12 +169,17 @@ class Parser(object):
                 return Assign(name, right)
             else:
                 raise Exception("Invalid assignment target.")
+        elif self.current_token.value in ("^=", "*=", "/=", "//=", "%=", "+=", "-=", ">>=", "<<=", \
+                                          "||=", "|||=", "&=", "~=", "|=", "??="):
+            token = self.eat(TokenTypes.OP)
+            if isinstance(name, Var) or isinstance(name, Index):
+                right = self.expr()
+                return Assign(name, BinOp(Token(TokenTypes.OP, token.value.rstrip("="), token.line), name, right))
+            else:
+                raise Exception("Invalid assignment target.")
         else:
             return name
     def ternary(self):
-        """if self.next_token.value in [":=", "||=", "*=", "+=", "-="]:
-            return self.asgn()
-        """
         curr = self.logic_or()
         if self.current_token.value == "?":
             token = self.eat(TokenTypes.QMARK)
