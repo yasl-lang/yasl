@@ -179,6 +179,8 @@ VTable_t* int64_builtins() {
 
 VTable_t* str8_builtins() {
     VTable_t* vt = new_vtable();
+    vt_insert(vt, 0x0C, (int64_t)&str_tobool);
+    vt_insert(vt, 0x0D, (int64_t)&str_tostr);
     vt_insert(vt, 0x10, (int64_t)&str_upcase);
     vt_insert(vt, 0x11, (int64_t)&str_downcase);
     vt_insert(vt, 0x12, (int64_t)&str_isalnum);
@@ -189,7 +191,6 @@ VTable_t* str8_builtins() {
     vt_insert(vt, 0x17, (int64_t)&str_endswith);
     vt_insert(vt, 0x18, (int64_t)&str_search);
     vt_insert(vt, 0x19, (int64_t)&str_split);
-    vt_insert(vt, 0x0C, (int64_t)&str_tobool);
     return vt;
 }
 

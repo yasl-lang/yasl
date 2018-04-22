@@ -8,6 +8,8 @@
 
 int str_tobool(VM *vm);
 
+int str_tostr(VM *vm);
+
 int str_upcase(VM* vm);
 
 int str_downcase(VM* vm);

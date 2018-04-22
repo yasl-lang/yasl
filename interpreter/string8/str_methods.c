@@ -10,6 +10,10 @@ int str_tobool(VM* vm) {
     return 0;
 }
 
+int str_tostr(VM *vm) {
+    return 0;
+}
+
 int str_upcase(VM* vm) {
     Constant a = PEEK(vm);
     int64_t length = ((String_t*)a.value)->length;
