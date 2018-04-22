@@ -342,7 +342,7 @@ void run(VM* vm){
              * 5 -> list_builtins();
              * 6 -> map_builtins();
              * 7 -> file_builtins();
-             */
+
             if (PEEK(vm).type == FLOAT64) {
                 addr = vt_search(vm->builtins_vtable[1], 0x0D);
             } else if (PEEK(vm).type == INT64) {
@@ -371,12 +371,13 @@ void run(VM* vm){
                 return;
             }
             //print(PEEK(vm));
-            //printf("b has type %x\n", PEEK(vm).type);
+            //printf("b has type %x\n", PEEK(vm).type); */
 
             b = POP(vm);
             // call .tostr() on top of stack
             //print(PEEK(vm));
             //printf("a has type %x\n", PEEK(vm).type);
+            /*
             if (PEEK(vm).type == FLOAT64) {
                 addr = vt_search(vm->builtins_vtable[1], 0x0D);
             } else if (PEEK(vm).type == INT64) {
@@ -406,8 +407,12 @@ void run(VM* vm){
             }
             //print(PEEK(vm));
             //printf("a has type %x\n", PEEK(vm).type);
-
+            */
             a = PEEK(vm);
+            if (a.type != STR8 || b.type != STR8) {
+                puts("||| should have coerced to strings, aborting.");
+                return;
+            }
             if (((String_t*)b.value)->length == 0) break;
             if (((String_t*)a.value)->length == 0) {
                 PEEK(vm) = b;
