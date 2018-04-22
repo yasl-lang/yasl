@@ -1,6 +1,6 @@
 #include "hash_methods.h"
 
-int hash_keys(VM* vm) {
+int map_keys(VM* vm) {
     Constant ht = POP(vm);
     List_t* ls = new_list();
     int64_t i;
@@ -15,7 +15,7 @@ int hash_keys(VM* vm) {
     return 0;
 }
 
-int hash_values(VM* vm) {
+int map_values(VM* vm) {
     Constant ht = POP(vm);
     List_t* ls = new_list();
     int64_t i;

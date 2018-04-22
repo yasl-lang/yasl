@@ -17,24 +17,27 @@ VM* newVM(char* code,    // pointer to bytecode
     vm->globals[2] = (Constant) {FILEH, (int64_t)stderr};
     vm->stack = malloc(sizeof(Constant) * STACK_SIZE);
     vm->builtins_vtable = malloc(sizeof(VTable_t*) * NUM_TYPES);
-    vm->builtins_vtable[0] = float64_builtins();
-    vm->builtins_vtable[1] = int64_builtins();
-    vm->builtins_vtable[2] = str8_builtins();
-    vm->builtins_vtable[3] = list_builtins();
-    vm->builtins_vtable[4] = hash_builtins();
-    vm->builtins_vtable[5] = file_builtins();
+    vm->builtins_vtable[1] = float64_builtins();
+    vm->builtins_vtable[2] = int64_builtins();
+    vm->builtins_vtable[3] = bool_builtins();
+    vm->builtins_vtable[4] = str8_builtins();
+    vm->builtins_vtable[5] = list_builtins();
+    vm->builtins_vtable[6] = map_builtins();
+    vm->builtins_vtable[7] = file_builtins();
     return vm;
 }
 
 void delVM(VM* vm){
-        free(vm->globals);                   // TODO: free these properly
-        free(vm->stack);                     // TODO: free these properly
-        del_vtable(vm->builtins_vtable[0]);
-        del_vtable(vm->builtins_vtable[1]);
-        del_vtable(vm->builtins_vtable[2]);
-        del_vtable(vm->builtins_vtable[3]);
-        del_vtable(vm->builtins_vtable[4]);
-        del_vtable(vm->builtins_vtable[5]);
-        free(vm->builtins_vtable);
+    free(vm->globals);                   // TODO: free these properly
+    free(vm->stack);                     // TODO: free these properly
+    //del_vtable(vm->builtins_vtable[0]);
+    del_vtable(vm->builtins_vtable[1]);
+    del_vtable(vm->builtins_vtable[2]);
+    del_vtable(vm->builtins_vtable[3]);
+    del_vtable(vm->builtins_vtable[4]);
+    del_vtable(vm->builtins_vtable[5]);
+    del_vtable(vm->builtins_vtable[6]);
+    del_vtable(vm->builtins_vtable[7]);
+    free(vm->builtins_vtable);
         free(vm);
 }

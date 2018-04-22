@@ -1,4 +1,4 @@
-#include "string8.h"
+#include "YASL_string.h"
 #include <string.h>
 
 //#define STRLEN(s)

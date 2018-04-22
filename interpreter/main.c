@@ -14,7 +14,7 @@
 #include "builtins/builtins.h"
 #include "hashtable/hashtable.h"
 #include "vtable/vtable.h"
-#include "string8/string8.h"
+#include "YASL_string/YASL_string.h"
 
 #include <inttypes.h>
 #include <stdio.h>
@@ -309,7 +309,7 @@ void run(VM* vm){
             v = vm->stack[vm->sp];
             if (v.type == STR8) {
                 vm->stack[vm->sp].value = ((String_t*)v.value)->length; // (int64_t*)v.value;
-            } else if (v.type == HASH) {
+            } else if (v.type == MAP) {
                 vm->stack[vm->sp].value = ((Hash_t*)v.value)->count;
             } else if (v.type == LIST) {
                 vm->stack[vm->sp].value = ((List_t*)v.value)->count;
@@ -335,28 +335,28 @@ void run(VM* vm){
             return;
         case HARD_CNCT:
             /*
-             * 0 -> float64_builtins();
-             * 1 -> int64_builtins();
-             * 2 -> str8_builtins();
-             * 3 -> list_builtins();
-             * 4 -> hash_builtins();
-             * 5 -> file_builtins();
+             * 1 -> float64_builtins();
+             * 2 -> int64_builtins();
+             * 3 -> bool_builtins();
+             * 4 -> str8_builtins();
+             * 5 -> list_builtins();
+             * 6 -> map_builtins();
+             * 7 -> file_builtins();
              */
-            // call .tostr() on top of stack
-            //print(PEEK(vm));
-            //printf("b has type %x\n", PEEK(vm).type);
             if (PEEK(vm).type == FLOAT64) {
-                addr = vt_search(vm->builtins_vtable[0], 0x0D);
-            } else if (PEEK(vm).type == INT64) {
                 addr = vt_search(vm->builtins_vtable[1], 0x0D);
-            } else if (PEEK(vm).type == STR8) {
+            } else if (PEEK(vm).type == INT64) {
                 addr = vt_search(vm->builtins_vtable[2], 0x0D);
-            } else if (PEEK(vm).type == LIST) {
+            } else if (PEEK(vm).type == BOOL) {
                 addr = vt_search(vm->builtins_vtable[3], 0x0D);
-            } else if (PEEK(vm).type == HASH) {
+            } else if (PEEK(vm).type == STR8) {
                 addr = vt_search(vm->builtins_vtable[4], 0x0D);
-            } else if (PEEK(vm).type == FILEH) {
+            } else if (PEEK(vm).type == LIST) {
                 addr = vt_search(vm->builtins_vtable[5], 0x0D);
+            } else if (PEEK(vm).type == MAP) {
+                addr = vt_search(vm->builtins_vtable[6], 0x0D);
+            } else if (PEEK(vm).type == FILEH) {
+                addr = vt_search(vm->builtins_vtable[7], 0x0D);
             } else {
                 printf("ERROR: No methods implemented for this type: %x.\n", PEEK(vm).type);
                 return;
@@ -378,17 +378,19 @@ void run(VM* vm){
             //print(PEEK(vm));
             //printf("a has type %x\n", PEEK(vm).type);
             if (PEEK(vm).type == FLOAT64) {
-                addr = vt_search(vm->builtins_vtable[0], 0x0D);
-            } else if (PEEK(vm).type == INT64) {
                 addr = vt_search(vm->builtins_vtable[1], 0x0D);
-            } else if (PEEK(vm).type == STR8) {
+            } else if (PEEK(vm).type == INT64) {
                 addr = vt_search(vm->builtins_vtable[2], 0x0D);
-            } else if (PEEK(vm).type == LIST) {
+            } else if (PEEK(vm).type == BOOL) {
                 addr = vt_search(vm->builtins_vtable[3], 0x0D);
-            } else if (PEEK(vm).type == HASH) {
+            } else if (PEEK(vm).type == STR8) {
                 addr = vt_search(vm->builtins_vtable[4], 0x0D);
-            } else if (PEEK(vm).type == FILEH) {
+            } else if (PEEK(vm).type == LIST) {
                 addr = vt_search(vm->builtins_vtable[5], 0x0D);
+            } else if (PEEK(vm).type == MAP) {
+                addr = vt_search(vm->builtins_vtable[6], 0x0D);
+            } else if (PEEK(vm).type == FILEH) {
+                addr = vt_search(vm->builtins_vtable[7], 0x0D);
             } else {
                 printf("ERROR: No methods implemented for this type: %x.\n", PEEK(vm).type);
                 return;
@@ -467,8 +469,8 @@ void run(VM* vm){
             memcpy(((String_t*)vm->stack[vm->sp].value)->str, vm->code+addr, size);
             //vm->pc += size;
             break;
-        case NEWHASH:
-            vm->stack[++vm->sp].type = HASH;
+        case NEWMAP:
+            vm->stack[++vm->sp].type = MAP;
             vm->stack[vm->sp].value  = (int64_t)new_hash();
             break;
         case NEWLIST:
@@ -549,27 +551,30 @@ void run(VM* vm){
             break;
         case MCALL_8:
             /*
-             * 0 -> float64_builtins();
-             * 1 -> int64_builtins();
-             * 2 -> str8_builtins();
-             * 3 -> list_builtins();
-             * 4 -> hash_builtins();
-             * 5 -> file_builtins();
+             * 1 -> float64_builtins();
+             * 2 -> int64_builtins();
+             * 3 -> bool_builtins();
+             * 4 -> str8_builtins();
+             * 5 -> list_builtins();
+             * 6 -> map_builtins();
+             * 7 -> file_builtins();
              */
             memcpy(&addr, vm->code + vm->pc, sizeof(addr));
             vm->pc += sizeof(addr);
             if (PEEK(vm).type == FLOAT64) {
-                addr = vt_search(vm->builtins_vtable[0], addr);
-            } else if (PEEK(vm).type == INT64) {
                 addr = vt_search(vm->builtins_vtable[1], addr);
-            } else if (PEEK(vm).type == STR8) {
+            } else if (PEEK(vm).type == INT64) {
                 addr = vt_search(vm->builtins_vtable[2], addr);
-            } else if (PEEK(vm).type == LIST) {
+            } else if (PEEK(vm).type == BOOL) {
                 addr = vt_search(vm->builtins_vtable[3], addr);
-            } else if (PEEK(vm).type == HASH) {
+            } else if (PEEK(vm).type == STR8) {
                 addr = vt_search(vm->builtins_vtable[4], addr);
-            } else if (PEEK(vm).type == FILEH) {
+            } else if (PEEK(vm).type == LIST) {
                 addr = vt_search(vm->builtins_vtable[5], addr);
+            } else if (PEEK(vm).type == MAP) {
+                addr = vt_search(vm->builtins_vtable[6], addr);
+            } else if (PEEK(vm).type == FILEH) {
+                addr = vt_search(vm->builtins_vtable[7], addr);
             } else {
                 printf("ERROR: No methods implemented for this type: %x.\n", PEEK(vm).type);
                 return;

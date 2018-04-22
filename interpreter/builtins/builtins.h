@@ -7,14 +7,14 @@
 #include "../hashtable/hashtable.h"
 #include "../vtable/vtable.h"
 #include "../list/list.h"
-#include "../string8/string8.h"
-#include "../string8/str_methods.h"
+#include "../YASL_string/YASL_string.h"
+#include "../YASL_string/str_methods.h"
 #include "../float/float64_methods.h"
 #include "../integer/int64_methods.h"
+#include "../boolean/bool_methods.h"
 #include "../hashtable/hash_methods.h"
 #include "../file/file_methods.h"
 #include "../list/list_methods.h"
-
 
 typedef int (*Handler)(VM*);
 

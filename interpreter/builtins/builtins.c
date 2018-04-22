@@ -45,10 +45,10 @@ int yasl_insert(VM* vm) {
     Constant val = POP(vm);
     Constant key = POP(vm);
     Constant ht  = POP(vm);
-    if (ht.type != HASH) {
-        printf("Error: insert(...) expected type %x as first argument, got type %x\n", HASH, ht.type);
+    if (ht.type != MAP) {
+        printf("Error: insert(...) expected type %x as first argument, got type %x\n", MAP, ht.type);
         return -1;
-    } else if (key.type == LIST || key.type == HASH) {
+    } else if (key.type == LIST || key.type == MAP) {
         printf("Error: unable to use mutable object of type %x as key.\n", key.type);
         return -1;
     }
@@ -60,7 +60,7 @@ int yasl_insert(VM* vm) {
 int yasl_find(VM* vm) {
     Constant key = POP(vm);
     Constant ht  = POP(vm);
-    if (ht.type == HASH) {
+    if (ht.type == MAP) {
         PUSH(vm, *ht_search((Hash_t*)ht.value, key));
         return 0;
     } else if (ht.type == LIST) {
@@ -71,7 +71,7 @@ int yasl_find(VM* vm) {
         PUSH(vm, ls_search((List_t*)ht.value, key.value));
         return 0;
     }
-    printf("Error: find(...) expected type %x or %x as first argument, got type %x\n", HASH, LIST, ht.type);
+    printf("Error: find(...) expected type %x or %x as first argument, got type %x\n", MAP, LIST, ht.type);
     return -1;
 
 }
@@ -179,6 +179,12 @@ VTable_t* int64_builtins() {
     return vt;
 }
 
+VTable_t* bool_builtins() {
+    VTable_t* vt = new_vtable();
+    vt_insert(vt, 0x0D, (int64_t)&bool_tostr);
+    return vt;
+}
+
 VTable_t* str8_builtins() {
     VTable_t* vt = new_vtable();
     vt_insert(vt, 0x0C, (int64_t)&str_tobool);
@@ -202,10 +208,10 @@ VTable_t* list_builtins() {
     return vt;
 }
 
-VTable_t* hash_builtins() {
+VTable_t* map_builtins() {
     VTable_t* vt = new_vtable();
-    vt_insert(vt, 0x30, (int64_t)&hash_keys);
-    vt_insert(vt, 0x31, (int64_t)&hash_values);
+    vt_insert(vt, 0x30, (int64_t)&map_keys);
+    vt_insert(vt, 0x31, (int64_t)&map_values);
     return vt;
 }
 

@@ -56,7 +56,7 @@ enum opcodes {
     BRN_8     = 0x97, // branch if condition is not undef (takes next 8 bytes as jump length)
     GOTO      = 0x9F, // jump to addr (next 8 bytes), indexing from after header.
     NEWSTR8   = 0xBB, // make new String and push it onto stack (length (8 bytes), string (length bytes))
-    NEWHASH   = 0xBC, // make new HashTable and push it onto stack
+    NEWMAP    = 0xBC, // make new HashTable and push it onto stack
     NEWLIST   = 0xBD, // make new List and push it onto stack
     HALT      = 0xF0, // halt
     PRINT     = 0xF2, // print top of stack (temporary to allow debugging)

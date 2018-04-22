@@ -1,12 +1,8 @@
 #include "constant.h"
-#include "../string8/string8.h"
-#include <stdio.h>
-#include <stdlib.h>
 #define DVAL(v)  (*((double*)&v.value))
 #define TRUE_C   ((Constant) {BOOL, 1})
 #define FALSE_C  ((Constant) {BOOL, 0})
 #define UNDEF_C  ((Constant) {UNDEF, 0})
-
 
 Constant isequal(Constant a, Constant b) {
         if (a.type == UNDEF || b.type == UNDEF) {
@@ -23,8 +19,8 @@ Constant isequal(Constant a, Constant b) {
             } else {
                 return FALSE_C;
             }
-        case HASH:
-            if (b.type == HASH) {
+        case MAP:
+            if (b.type == MAP) {
                 puts("Warning: comparison of hashes currently is not implemented.");
                 return UNDEF_C;
             }
@@ -76,7 +72,7 @@ Constant isequal(Constant a, Constant b) {
             //puts("b has wrong type");
             return FALSE_C;
         default:
-            if (b.type == BOOL || b.type == HASH) {
+            if (b.type == BOOL || b.type == MAP) {
                 return FALSE_C;
             }
             int c;
@@ -124,7 +120,7 @@ int print(Constant v) {
             }
             printf("\n");
             break;
-        case HASH:
+        case MAP:
             printf("<hash %" PRIx64 ">\n", v.value);
             break;;
         case LIST:
