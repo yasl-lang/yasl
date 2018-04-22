@@ -6,3 +6,5 @@
 #include "../constant/constant.h"
 
 int int64_tofloat64(VM *vm);
+
+int int64_tostr(VM *vm);

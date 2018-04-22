@@ -174,6 +174,7 @@ VTable_t* float64_builtins() {
 VTable_t* int64_builtins() {
     VTable_t* vt = new_vtable();
     vt_insert(vt, 0x0A, (int64_t)&int64_tofloat64);
+    vt_insert(vt, 0x0D, (int64_t)&int64_tostr);
     return vt;
 }
 
