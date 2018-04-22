@@ -396,6 +396,11 @@ void run(VM* vm){
                 return;
             }
             a = PEEK(vm);
+            if (((String_t*)b.value)->length == 0) break;
+            if (((String_t*)a.value)->length == 0) {
+                PEEK(vm) = b;
+                break;
+            }
             size = ((String_t*)a.value)->length + ((String_t*)b.value)->length + 1;
             ptr = new_sized_string8(size);
             vm->stack[vm->sp].value = (int64_t)ptr;
