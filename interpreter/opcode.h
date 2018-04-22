@@ -38,8 +38,9 @@ enum opcodes {
     NEG       = 0x67, // negate an integer
     NOT       = 0x69, // negate a boolean
     LEN       = 0x6A, // get length
-    CONCAT    = 0x6B, // concat two strings or lists
-    COPY      = 0x6C, // get a deep copy
+    CNCT      = 0x6B, // concat two strings or lists
+    HARD_CNCT = 0x6C, // hard concat
+    COPY      = 0x6D, // get a deep copy
     GT        = 0x72, // greater than
     GE        = 0x73, // greater than or equal
     EQ        = 0x74, // equality
