@@ -97,12 +97,12 @@ void run(VM* vm){
         //print(vm->stack[vm->sp-1]);
         //print(vm->stack[vm->sp-2]);
         //print(vm->stack[vm->sp-3]);
-        print(vm->globals[0]);
-        print(vm->globals[1]);
-        print(vm->globals[2]);
-        print(vm->globals[3]);
-        print(vm->globals[4]);
-        print(vm->globals[5]); //*/
+        //print(vm->globals[0]);
+        //print(vm->globals[1]);
+        //print(vm->globals[2]);
+        //print(vm->globals[3]);
+        //print(vm->globals[4]);
+        //print(vm->globals[5]); //*/
 
         //printf("pc: %d\n", vm->pc);
         //printf("vm->sp: %d, vm->pc: %d\n", vm->sp, vm->pc);
@@ -111,7 +111,7 @@ void run(VM* vm){
                (int)vm->stack[vm->sp - 1].value, (int)vm->stack[vm->sp - 1].type,
                (int)vm->stack[vm->sp - 2].value, (int)vm->stack[vm->sp - 2].type,
                (int)vm->stack[vm->sp - 3].value, (int)vm->stack[vm->sp - 3].type); //
-        printf("globals[0, 1, 2, 3] are %d:%x, %d:%x, %d:%x, %d:%x\n",
+        /*printf("globals[0, 1, 2, 3] are %d:%x, %d:%x, %d:%x, %d:%x\n",
                (int)vm->globals[0].value, (int)vm->globals[0].type,
                (int)vm->globals[1].value, (int)vm->globals[1].type,
                (int)vm->globals[2].value, (int)vm->globals[2].type,
@@ -343,6 +343,8 @@ void run(VM* vm){
              * 5 -> file_builtins();
              */
             // call .tostr() on top of stack
+            //print(PEEK(vm));
+            //printf("b has type %x\n", PEEK(vm).type);
             if (PEEK(vm).type == FLOAT64) {
                 addr = vt_search(vm->builtins_vtable[0], 0x0D);
             } else if (PEEK(vm).type == INT64) {
@@ -368,8 +370,13 @@ void run(VM* vm){
                 printf("ERROR: No method implemented by this name.\n");
                 return;
             }
+            //print(PEEK(vm));
+            //printf("b has type %x\n", PEEK(vm).type);
+
             b = POP(vm);
             // call .tostr() on top of stack
+            //print(PEEK(vm));
+            //printf("a has type %x\n", PEEK(vm).type);
             if (PEEK(vm).type == FLOAT64) {
                 addr = vt_search(vm->builtins_vtable[0], 0x0D);
             } else if (PEEK(vm).type == INT64) {
@@ -395,6 +402,9 @@ void run(VM* vm){
                 printf("ERROR: No method implemented by this name.\n");
                 return;
             }
+            //print(PEEK(vm));
+            //printf("a has type %x\n", PEEK(vm).type);
+
             a = PEEK(vm);
             if (((String_t*)b.value)->length == 0) break;
             if (((String_t*)a.value)->length == 0) {
