@@ -5,12 +5,14 @@ from .ast import *
 
 BINRESERVED = {
         "^":   [EXP],
-        "+":   [ADD],
         "*":   [MUL],
-        "-":   [SUB],
         "/":   [FDIV],
         "//":  [IDIV],
         "%":   [MOD],
+        "+":   [ADD],
+        "-":   [SUB],
+        "<<":  [BLSHIFT],
+        ">>":  [BRSHIFT],
         "||":  [CONCAT],
         "<":   [GE, NOT],
         "<=":  [GT, NOT],
