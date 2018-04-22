@@ -242,7 +242,7 @@ class Parser(object):
         return curr
     def concat(self):
         curr = self.bit_shift()
-        if self.current_token.value == "||":
+        if self.current_token.value in ("||", "|||"):
             token = self.eat(TokenTypes.OP)
             return BinOp(token, curr, self.concat())
         return curr

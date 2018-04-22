@@ -92,7 +92,7 @@ void run(VM* vm){
         int64_t c;
         double d;
         void* ptr;
-        printf("\nopcode: %x\n", opcode);
+        /*printf("\nopcode: %x\n", opcode);
         print(PEEK(vm));
         //print(vm->stack[vm->sp-1]);
         //print(vm->stack[vm->sp-2]);
@@ -319,7 +319,7 @@ void run(VM* vm){
             }
             vm->stack[vm->sp].type = INT64;
             break;
-        case CONCAT:
+        case CNCT:
             b = vm->stack[vm->sp--];
             a = vm->stack[vm->sp];
             if (a.type == STR8 && b.type == STR8) {
@@ -333,6 +333,77 @@ void run(VM* vm){
             }
             printf("ERROR: || not supported for operands of types %x and %x.\n", a.type, b.type);
             return;
+        case HARD_CNCT:
+            /*
+             * 0 -> float64_builtins();
+             * 1 -> int64_builtins();
+             * 2 -> str8_builtins();
+             * 3 -> list_builtins();
+             * 4 -> hash_builtins();
+             * 5 -> file_builtins();
+             */
+            // call .tostr() on top of stack
+            if (PEEK(vm).type == FLOAT64) {
+                addr = vt_search(vm->builtins_vtable[0], 0x0D);
+            } else if (PEEK(vm).type == INT64) {
+                addr = vt_search(vm->builtins_vtable[1], 0x0D);
+            } else if (PEEK(vm).type == STR8) {
+                addr = vt_search(vm->builtins_vtable[2], 0x0D);
+            } else if (PEEK(vm).type == LIST) {
+                addr = vt_search(vm->builtins_vtable[3], 0x0D);
+            } else if (PEEK(vm).type == HASH) {
+                addr = vt_search(vm->builtins_vtable[4], 0x0D);
+            } else if (PEEK(vm).type == FILEH) {
+                addr = vt_search(vm->builtins_vtable[5], 0x0D);
+            } else {
+                printf("ERROR: No methods implemented for this type: %x.\n", PEEK(vm).type);
+                return;
+            }
+            if (addr != -1) {
+                if (((int (*)(VM*))addr)(vm)) {
+                    printf("ERROR: invalid argument type(s) to builtin function.\n");
+                    return;
+                }
+            } else {
+                printf("ERROR: No method implemented by this name.\n");
+                return;
+            }
+            b = POP(vm);
+            // call .tostr() on top of stack
+            if (PEEK(vm).type == FLOAT64) {
+                addr = vt_search(vm->builtins_vtable[0], 0x0D);
+            } else if (PEEK(vm).type == INT64) {
+                addr = vt_search(vm->builtins_vtable[1], 0x0D);
+            } else if (PEEK(vm).type == STR8) {
+                addr = vt_search(vm->builtins_vtable[2], 0x0D);
+            } else if (PEEK(vm).type == LIST) {
+                addr = vt_search(vm->builtins_vtable[3], 0x0D);
+            } else if (PEEK(vm).type == HASH) {
+                addr = vt_search(vm->builtins_vtable[4], 0x0D);
+            } else if (PEEK(vm).type == FILEH) {
+                addr = vt_search(vm->builtins_vtable[5], 0x0D);
+            } else {
+                printf("ERROR: No methods implemented for this type: %x.\n", PEEK(vm).type);
+                return;
+            }
+            if (addr != -1) {
+                if (((int (*)(VM*))addr)(vm)) {
+                    printf("ERROR: invalid argument type(s) to builtin function.\n");
+                    return;
+                }
+            } else {
+                printf("ERROR: No method implemented by this name.\n");
+                return;
+            }
+            a = PEEK(vm);
+            size = ((String_t*)a.value)->length + ((String_t*)b.value)->length + 1;
+            ptr = new_sized_string8(size);
+            vm->stack[vm->sp].value = (int64_t)ptr;
+            ((String_t*)vm->stack[vm->sp].value)->length = size;
+            memcpy(((String_t*)ptr)->str, ((String_t*)a.value)->str, ((String_t*)a.value)->length);
+            ((String_t*)PEEK(vm).value)->str[((String_t*)a.value)->length] = ' ';
+            memcpy(((String_t*)ptr)->str + ((String_t*)a.value)->length + 1, ((String_t*)b.value)->str, ((String_t*)b.value)->length);
+            break;
         case GT:
             b = POP(vm);
             a = POP(vm);
