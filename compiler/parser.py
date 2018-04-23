@@ -24,7 +24,7 @@ class Parser(object):
         raise Exception("Expected %s Token in line %s, got %s" % \
             (token_type, self.current_token.line, self.current_token.type))
     def eat(self, token_type):
-        # print(self.current_token)
+        print(self.current_token)
         if self.current_token.type is token_type:
             result = self.current_token
             self.advance()
@@ -37,6 +37,8 @@ class Parser(object):
             return Print(token, self.expr())
         elif self.current_token.type is TokenTypes.BREAK:
             return Break(self.eat(TokenTypes.BREAK))
+        elif self.current_token.type is TokenTypes.CONT:
+            return Continue(self.eat(TokenTypes.CONT))
         elif self.current_token.type is TokenTypes.IF:
             return self.if_stmt()
         elif self.current_token.type is TokenTypes.ELSE or self.current_token.type is TokenTypes.ELSEIF:

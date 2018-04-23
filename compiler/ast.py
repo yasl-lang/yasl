@@ -133,6 +133,9 @@ class For(AST):
 class Break(AST):
     def __init__(self, token):
         self.token = token
+class Continue(AST):
+    def __init__(self, token):
+        self.token = token
 class Block(AST):
     def __init__(self, statements):
         self.statements = statements  # list of ASTs to iterate over

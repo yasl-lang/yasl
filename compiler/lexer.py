@@ -24,6 +24,7 @@ RESERVED_KEYWORDS = {
             "while": lambda x: Token(TokenTypes.WHILE, "while", x),
             "for": lambda x: Token(TokenTypes.FOR, "for", x),
             "break": lambda x: Token(TokenTypes.BREAK, "break", x),
+            "continue": lambda x: Token(TokenTypes.CONT, "continue", x),
             "true": lambda x: Token(TokenTypes.BOOL, True, x),
             "false": lambda x: Token(TokenTypes.BOOL, False, x),
             "and": lambda x: Token(TokenTypes.LOGIC, "and", x),
@@ -100,6 +101,10 @@ class Lexer(object):
         elif self.current_char == "\n" and self.tokens[-1].type is TokenTypes.UNDEF:
             self._add_token1(TokenTypes.SEMI)
         elif self.current_char == "\n" and self.tokens[-1].type is TokenTypes.ID:
+            self._add_token1(TokenTypes.SEMI)
+        elif self.current_char == "\n" and self.tokens[-1].type is TokenTypes.BREAK:
+            self._add_token1(TokenTypes.SEMI)
+        elif self.current_char == "\n" and self.tokens[-1].type is TokenTypes.CONT:
             self._add_token1(TokenTypes.SEMI)
     def _str(self):
         result = ""

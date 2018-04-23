@@ -107,6 +107,7 @@ class Compiler(NodeVisitor):
         self.globals.decl_var("stderr")
         self.locals = Env()
         self.code = []
+        self.checkpoints = []
         self.header = intbytes_8(8) + intbytes_8(0)
         self.fns = {}
         self.current_fn = None
@@ -158,13 +159,27 @@ class Compiler(NodeVisitor):
         self.exit_scope()
         left.extend([BR_8] + intbytes_8(len(right)))
         return cond + [BRF_8] + intbytes_8(len(left)) + left + right
+    def visit_Break(self, node):
+        if len(self.checkpoints) == 0:
+            raise Exception("invalid break outside of loop")
+        else:
+            return [BCONST_F, GOTO] + intbytes_8(self.checkpoints[-1])
+    def visit_Continue(self, node):
+        if len(self.checkpoints) == 0:
+            raise Exception("invalid continue outside of loop")
+        else:
+            return [GOTO] + intbytes_8(self.checkpoints[-2])
     def visit_While(self, node):
         cond = self.visit(node.cond)
+        self.checkpoints.append(len(self.code))
+        self.checkpoints.append(len(self.code)+len(cond))
         self.enter_scope()
         body = []
         for stmt in node.body:
             body.extend(self.visit(stmt))
         self.exit_scope()
+        self.checkpoints.pop()
+        self.checkpoints.pop()
         cond.extend([BRF_8] + intbytes_8(len(body)+9))
         body.extend([BR_8] + intbytes_8(-(len(body)+9+len(cond))))
         return cond + body
