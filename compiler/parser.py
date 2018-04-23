@@ -156,9 +156,6 @@ class Parser(object):
         token = self.eat(TokenTypes.RETURN)
         return Return(token, self.expr())
     def expr(self):
-        if self.current_token.type is TokenTypes.INPUT:
-            token = self.eat(TokenTypes.INPUT)
-            return Input(token, self.expr())
         return self.assign()
     def assign(self):
         name = self.ternary()

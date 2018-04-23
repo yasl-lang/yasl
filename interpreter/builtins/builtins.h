@@ -35,7 +35,7 @@ int yasl_open(VM* vm);
 int yasl_popen(VM *vm);
 
 static const Handler builtins[] = {
-    yasl_print,     yasl_print,    yasl_print,    list_append,  yasl_input,     yasl_open,  yasl_popen
+    yasl_print,     yasl_input,     yasl_open,      yasl_popen
 };
 
 VTable_t* float64_builtins(void);

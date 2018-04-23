@@ -50,13 +50,10 @@ DCONSTANTS = {
 
 BUILTINS = {
         "print":        0x00,
-        "insert":       0x01,
-        "find":         0x02,
-        "append":       0x03,
-        "input":        0x04,
-        "open":         0x05,
-        "popen":        0x06,
-        #"typeof":       0x07,
+        "input":        0x01,
+        "open":         0x02,
+        "popen":        0x03,
+        #"typeof":       0x04,
 }
 
 METHODS = {
@@ -137,9 +134,6 @@ class Compiler(NodeVisitor):
     def visit_Print(self, node):
         expr = self.visit(node.expr)
         return expr + [BCALL_8] + intbytes_8(BUILTINS["print"])
-    def visit_Input(self, node):
-        expr = self.visit(node.expr)
-        return expr + [BCALL_8] + intbytes_8(BUILTINS["print"]) + [BCALL_8] + intbytes_8(BUILTINS["input"])
     def visit_Block(self, node):
         result = []
         for statement in node.statements:
