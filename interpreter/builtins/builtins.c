@@ -41,41 +41,6 @@ int yasl_input(VM* vm) {
  * "tomap":        0x0F,
 */
 
-int yasl_insert(VM* vm) {
-    Constant val = POP(vm);
-    Constant key = POP(vm);
-    Constant ht  = POP(vm);
-    if (ht.type != MAP) {
-        printf("Error: insert(...) expected type %x as first argument, got type %x\n", MAP, ht.type);
-        return -1;
-    } else if (key.type == LIST || key.type == MAP) {
-        printf("Error: unable to use mutable object of type %x as key.\n", key.type);
-        return -1;
-    }
-    ht_insert((Hash_t*)ht.value, key, val);
-    PUSH(vm, UNDEF_C);
-    return 0;
-}
-
-int yasl_find(VM* vm) {
-    Constant key = POP(vm);
-    Constant ht  = POP(vm);
-    if (ht.type == MAP) {
-        PUSH(vm, *ht_search((Hash_t*)ht.value, key));
-        return 0;
-    } else if (ht.type == LIST) {
-        if (key.type != INT64) {
-            printf("Error: find(...) expected type %x as key, got type %x\n", INT64, key.type);
-            return -1;
-        }
-        PUSH(vm, ls_search((List_t*)ht.value, key.value));
-        return 0;
-    }
-    printf("Error: find(...) expected type %x or %x as first argument, got type %x\n", MAP, LIST, ht.type);
-    return -1;
-
-}
-
 int yasl_open(VM* vm) {     //TODO: fix bug relating to file pointer
     Constant mode_str = POP(vm);
     Constant str = POP(vm);
@@ -205,6 +170,8 @@ VTable_t* str8_builtins() {
 VTable_t* list_builtins() {
     VTable_t* vt = new_vtable();
     vt_insert(vt, 0x20, (int64_t)&list_append);
+    vt_insert(vt, 0xF0, (int64_t)&list___get);
+    vt_insert(vt, 0xF1, (int64_t)&list___set);
     return vt;
 }
 
@@ -212,6 +179,8 @@ VTable_t* map_builtins() {
     VTable_t* vt = new_vtable();
     vt_insert(vt, 0x30, (int64_t)&map_keys);
     vt_insert(vt, 0x31, (int64_t)&map_values);
+    vt_insert(vt, 0xF0, (int64_t)&map___get);
+    vt_insert(vt, 0xF1, (int64_t)&map___set);
     return vt;
 }
 

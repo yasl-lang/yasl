@@ -164,9 +164,12 @@ class Parser(object):
         name = self.ternary()
         if self.current_token.value == "=":
             self.eat(TokenTypes.OP)
-            if isinstance(name, Var) or isinstance(name, Index):
+            if isinstance(name, Var): # or isinstance(name, Index):
                 right = self.expr()
                 return Assign(name, right)
+            elif isinstance(name, Index):
+                right = self.expr()
+                return MethodCall(name.left, Token(TokenTypes.ID, "__set", name.left.token.line), [name.right, right])
             else:
                 raise Exception("Invalid assignment target.")
         elif self.current_token.value in ("^=", "*=", "/=", "//=", "%=", "+=", "-=", ">>=", "<<=", \
@@ -288,7 +291,6 @@ class Parser(object):
                 else:
                     assert False
             else:
-            #while self.current_token.type is TokenTypes.LBRACK:
                 self.eat(TokenTypes.LBRACK)
                 result = Index(result, self.expr())
                 self.eat(TokenTypes.RBRACK)

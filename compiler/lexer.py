@@ -177,13 +177,13 @@ class Lexer(object):
             elif self.current_char == "$" and self.peek() == "$":   # inline comments
                 while self.current_char != "\n" and self.current_char != None:
                     self.advance()
-            elif self.current_char == '"':
+            elif self.current_char == '"':                          # strings
                 self.advance()
                 self._str()
-            elif self.current_char.isdigit():
+            elif self.current_char.isdigit():                       # numbers
                 if self.current_char == "0" and self.peek() == "x": self._hex()
                 else: self._num()
-            elif self.current_char.isalnum():self._id()
+            elif self.current_char.isalnum() or self.current_char == "_": self._id()
             elif self.current_char == "-" and self.peek() == ">": self._add_token2(TokenTypes.RARROW)
             elif self.current_char == "<" and self.peek() == "-": self._add_token2(TokenTypes.LARROW)
             elif self.current_char == ";": self._add_token1(TokenTypes.SEMI)

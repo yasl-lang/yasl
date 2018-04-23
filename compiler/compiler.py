@@ -92,7 +92,8 @@ METHODS = {
         "write":        0x43,
         "readline":     0x44,
 
-
+        "__get":        0xF0,
+        "__set":        0xF1,
 }
 
 ###############################################################################
@@ -305,9 +306,8 @@ class Compiler(NodeVisitor):
             return [LLOAD_1, self.locals[node.value]]
         return [GLOAD_1, self.globals[node.value]]
     def visit_Index(self, node):
-        left = self.visit(node.left)
         right = self.visit(node.right)
-        return left + right + [BCALL_8] + intbytes_8(BUILTINS["find"])
+        return right + self.visit(node.left) + [MCALL_8] + intbytes_8(METHODS["__get"])
     def visit_Hash(self, node):
         result = [NEWHASH]
         for i in range(len(node.keys)):

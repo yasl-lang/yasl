@@ -1,5 +1,25 @@
 #include "hash_methods.h"
 
+int map___get(VM *vm) {
+    Hash_t* ht = (Hash_t*)POP(vm).value;
+    Constant key = POP(vm);
+    PUSH(vm, *ht_search(ht, key));
+    return 0;
+}
+
+int map___set(VM *vm) {
+    Hash_t* ht = (Hash_t*)POP(vm).value;
+    Constant val = POP(vm);
+    Constant key = POP(vm);
+    if (key.type == LIST || key.type == MAP) {
+        printf("Error: unable to use mutable object of type %x as key.\n", key.type);
+        return -1;
+    }
+    ht_insert(ht, key, val);
+    PUSH(vm, val);
+    return 0;
+}
+
 int map_keys(VM* vm) {
     Constant ht = POP(vm);
     List_t* ls = new_list();
