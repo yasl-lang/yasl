@@ -88,9 +88,13 @@ void ls_print(List_t* ls) {
 
 void ls_print_h(List_t* ls, int64_t* seen, int seen_size) {
     int i = 0;
+    if (ls->count == 0) {
+        printf("[]");
+        return;
+    }
     int64_t *new_seen;
     printf("[");
-    while (i < ls->count - 1) {
+    while (i < ls->count) {
         if (ls->items[i].type == LIST) {
             if (isvalueinarray(ls->items[i].value, seen, seen_size)) {
                 printf("[...]");
@@ -123,7 +127,7 @@ void ls_print_h(List_t* ls, int64_t* seen, int seen_size) {
         }
         i++;
     }
-    if (ls->items[i].type == LIST) {
+    /*if (ls->items[i].type == LIST) {
         if (isvalueinarray(ls->items[i].value, seen, seen_size)) {
             printf("[...]");
         } else {
@@ -147,6 +151,6 @@ void ls_print_h(List_t* ls, int64_t* seen, int seen_size) {
         }
     } else {
         print(ls->items[i]);
-    }
-    printf("]");
+    } */
+    printf("\b\b]");
 }
