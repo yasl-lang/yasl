@@ -320,7 +320,7 @@ class Compiler(NodeVisitor):
     def visit_Hash(self, node):
         result = [NEWHASH]
         for i in range(len(node.keys)):
-            result = result + [DUP] + self.visit(node.keys[i]) + self.visit(node.vals[i]) + [BCALL_8] + intbytes_8(BUILTINS["insert"]) + [POP]
+            result = result + [DUP] + self.visit(node.keys[i]) + [SWAP] + self.visit(node.vals[i]) + [SWAP] + [MCALL_8] + intbytes_8(METHODS["__set"]) + [POP]
         return result  # TODO: allow declaration with a bunch of values in it
     def visit_List(self, node):
         result = [NEWLIST]
