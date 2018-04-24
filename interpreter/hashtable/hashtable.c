@@ -192,7 +192,7 @@ void ht_print_h(Hash_t* ht, int64_t* seen, int seen_size) {
     }
     printf("[");
     Item_t* item = NULL;
-    while (i < ht->size - 1) {
+    while (i < ht->size) {
         item = ht->items[i];
         if (item == &TOMBSTONE || item == NULL) {
             i++;
@@ -232,38 +232,5 @@ void ht_print_h(Hash_t* ht, int64_t* seen, int seen_size) {
         }
         i++;
     }
-    item = ht->items[i];
-    if (item == &TOMBSTONE || item == NULL) {
-        printf("\b\b]");
-        return;
-    }
-    print(*item->key);
-    printf("->");
-    if (item->value->type == LIST) {
-        if (isvalueinarray(item->value->value, seen, seen_size)) {
-            printf("[...]");
-        } else {
-            new_seen = malloc(sizeof(int64_t) * (seen_size + 2));
-            memcpy(new_seen, seen, seen_size);
-            new_seen[seen_size] = (int64_t)ht;
-            new_seen[seen_size + 1] = item->value->value;
-            ls_print_h((List_t*) item->value->value, new_seen, seen_size + 2);
-            free(new_seen);
-        }
-    } else if (item->value->type == MAP) {
-        if (isvalueinarray(item->value->value, seen, seen_size)) {
-            printf("[...->...]");
-        } else {
-            new_seen = malloc(sizeof(int64_t) * (seen_size + 2));
-            memcpy(new_seen, seen, seen_size);
-            new_seen[seen_size] = (int64_t)ht;
-            new_seen[seen_size + 1] = item->value->value;
-            ht_print_h((Hash_t *) item->value->value, new_seen, seen_size + 2);
-            printf(", ");
-            free(new_seen);
-        }
-    } else {
-        print(*item->value);
-    }
-    printf("]");
+    printf("\b\b]");
 }
