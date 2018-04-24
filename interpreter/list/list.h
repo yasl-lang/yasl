@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../constant/constant.h"
+#include "../hashtable/hashtable.h"
 #define LEN(v) (*((int64_t*)v.value))
 
 typedef struct {
@@ -9,6 +10,7 @@ typedef struct {
     Constant* items;
 } List_t;
 
+int isvalueinarray(int64_t val, int64_t *arr, int size);
 List_t* new_list(void);
 void ls_insert(List_t* ls, int64_t index, Constant value);
 void ls_append(List_t* ls, Constant value);

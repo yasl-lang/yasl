@@ -16,8 +16,6 @@ int isvalueinarray(int64_t val, int64_t *arr, int size){
     return 0;
 }
 
-Constant TOMBSTONE = (Constant) {0xF0, 0};
-
 static List_t* new_sized_list(const int base_size) {
     List_t* ls = malloc(sizeof(List_t));
     ls->size = base_size;
@@ -98,10 +96,24 @@ void ls_print_h(List_t* ls, int64_t* seen, int seen_size) {
                 printf("[...]");
                 printf(", ");
             } else {
-                new_seen = realloc(seen, seen_size + 1);
+                new_seen = malloc(sizeof(int64_t) * (seen_size + 2));
                 memcpy(new_seen, seen, seen_size);
-                new_seen[seen_size] = ls->items[i].value;
-                ls_print_h((List_t *) ls->items[i].value, new_seen, seen_size + 1);
+                new_seen[seen_size] = (int64_t)ls;
+                new_seen[seen_size + 1] = ls->items[i].value;
+                ls_print_h((List_t *) ls->items[i].value, new_seen, seen_size + 2);
+                printf(", ");
+                free(new_seen);
+            }
+        } else if (ls->items[i].type == MAP) {
+            if (isvalueinarray(ls->items[i].value, seen, seen_size)) {
+                printf("[...->...]");
+                printf(", ");
+            } else {
+                new_seen = malloc(sizeof(int64_t) * (seen_size + 2));
+                memcpy(new_seen, seen, seen_size);
+                new_seen[seen_size] = (int64_t)ls;
+                new_seen[seen_size + 1] = ls->items[i].value;
+                ht_print_h((Hash_t *) ls->items[i].value, new_seen, seen_size + 2);
                 printf(", ");
                 free(new_seen);
             }
@@ -115,10 +127,22 @@ void ls_print_h(List_t* ls, int64_t* seen, int seen_size) {
         if (isvalueinarray(ls->items[i].value, seen, seen_size)) {
             printf("[...]");
         } else {
-            new_seen = realloc(seen, seen_size + 1);
+            new_seen = malloc(sizeof(int64_t) * (seen_size + 2));
             memcpy(new_seen, seen, seen_size);
-            new_seen[seen_size] = ls->items[i].value;
-            ls_print_h((List_t *) ls->items[i].value, new_seen, seen_size + 1);
+            new_seen[seen_size] = (int64_t)ls;
+            new_seen[seen_size + 1] = ls->items[i].value;
+            ls_print_h((List_t *) ls->items[i].value, new_seen, seen_size + 2);
+            free(new_seen);
+        }
+    } else if (ls->items[i].type == MAP) {
+        if (isvalueinarray(ls->items[i].value, seen, seen_size)) {
+            printf("[...->...]");
+        } else {
+            new_seen = malloc(sizeof(int64_t) * (seen_size + 2));
+            memcpy(new_seen, seen, seen_size);
+            new_seen[seen_size] = (int64_t)ls;
+            new_seen[seen_size + 1] = ls->items[i].value;
+            ht_print_h((Hash_t *) ls->items[i].value, new_seen, seen_size + 2);
             free(new_seen);
         }
     } else {

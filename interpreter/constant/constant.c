@@ -120,12 +120,13 @@ int print(Constant v) {
             }
             printf("");
             break;
-        case MAP:
+        /* case MAP:
             printf("<hash %" PRIx64 ">", v.value);
-            break;;
-        case LIST:
-            printf("<list %" PRIx64 ">", v.value);
-            break;
+            break; */
+        /* case LIST:
+            //ls_print((List_t*)v.value);
+            // printf("<list %" PRIx64 ">", v.value);
+            break; */
         case FILEH:
             if ((FILE*)v.value == stdin) {
                 puts("stdin");

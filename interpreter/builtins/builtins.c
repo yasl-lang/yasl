@@ -9,6 +9,10 @@ int yasl_print(VM* vm) {
         ls_print((List_t*)v.value);
         printf("\n");
         return 0;
+    } else if (v.type == MAP) {
+        ht_print((Hash_t*)v.value);
+        printf("\n");
+        return 0;
     }
     int return_value = print(v);
     printf("\n");
