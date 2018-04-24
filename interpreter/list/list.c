@@ -1,10 +1,20 @@
 #include <inttypes.h>
+#include  <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include "list.h"
 #include "../constant/constant.h"
 #define LS_BASESIZE 4
+
+int isvalueinarray(int64_t val, int64_t *arr, int size){
+    int i;
+    for (i=0; i < size; i++) {
+        if (arr[i] == val)
+            return 1;
+    }
+    return 0;
+}
 
 Constant TOMBSTONE = (Constant) {0xF0, 0};
 
@@ -74,22 +84,45 @@ Constant ls_search(List_t* ls, int64_t index) {
     return ls->items[index];
 }
 
-void ls_delete(List_t* hashtable, int64_t index) {
-    /*const int load = hashtable->count * 100 / hashtable->size;
-    if (load < 10) ht_resize_down(hashtable);
-    int index = get_hash(key, hashtable->size, 0);
-    Item_t* item = hashtable->items[index];
-    int i = 1;
-    while (item != NULL) {
-        if (item != &TOMBSTONE) {
-            if (!FALSEY(isequal(*item->key, key))) {
-                del_item(item);
-                hashtable->items[index] = &TOMBSTONE;
+void ls_print(List_t* ls) {
+    ls_print_h(ls, NULL,  0);
+}
+
+void ls_print_h(List_t* ls, int64_t* seen, int seen_size) {
+    int i = 0;
+    int64_t *new_seen;
+    printf("[");
+    while (i < ls->count - 1) {
+        if (ls->items[i].type == LIST) {
+            if (isvalueinarray(ls->items[i].value, seen, seen_size)) {
+                printf("[...]");
+                printf(", ");
+            } else {
+                new_seen = realloc(seen, seen_size + 1);
+                memcpy(new_seen, seen, seen_size);
+                new_seen[seen_size] = ls->items[i].value;
+                ls_print_h((List_t *) ls->items[i].value, new_seen, seen_size + 1);
+                printf(", ");
+                free(new_seen);
             }
+        } else {
+            print(ls->items[i]);
+            printf(", ");
         }
-        index = get_hash(key, hashtable->size, i++);
-        item = hashtable->items[index];
+        i++;
     }
-    hashtable->count--;
-    */
+    if (ls->items[i].type == LIST) {
+        if (isvalueinarray(ls->items[i].value, seen, seen_size)) {
+            printf("[...]");
+        } else {
+            new_seen = realloc(seen, seen_size + 1);
+            memcpy(new_seen, seen, seen_size);
+            new_seen[seen_size] = ls->items[i].value;
+            ls_print_h((List_t *) ls->items[i].value, new_seen, seen_size + 1);
+            free(new_seen);
+        }
+    } else {
+        print(ls->items[i]);
+    }
+    printf("]");
 }

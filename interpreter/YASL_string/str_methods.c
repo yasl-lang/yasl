@@ -1,5 +1,20 @@
 #include "str_methods.h"
 
+int str___get(VM *vm) {
+    String_t *str = (String_t *)POP(vm).value;
+    Constant index = POP(vm);
+    if (index.type != INT64) {
+        return -1;
+        PUSH(vm, UNDEF_C);
+    } else if (index.value < 0 || index.value >= str->length) {
+        return -1;
+        PUSH(vm, UNDEF_C);
+    } else {
+        PUSH(vm, ((Constant){STR8, (int64_t)new_sized_string8_from_mem(1, str->str + index.value)}));
+    }
+    return 0;
+}
+
 int str_tobool(VM* vm) {
     Constant a = POP(vm);
     if (((String_t *) a.value)->length == 0) {

@@ -5,7 +5,14 @@
 
 int yasl_print(VM* vm) {
     Constant v = vm->stack[vm->sp--];    // pop value from top of the stack ...
-    return print(v);
+    if (v.type == LIST) {
+        ls_print((List_t*)v.value);
+        printf("\n");
+        return 0;
+    }
+    int return_value = print(v);
+    printf("\n");
+    return return_value;
 }
 
 int yasl_input(VM* vm) {
@@ -164,6 +171,7 @@ VTable_t* str8_builtins() {
     vt_insert(vt, 0x17, (int64_t)&str_endswith);
     vt_insert(vt, 0x18, (int64_t)&str_search);
     vt_insert(vt, 0x19, (int64_t)&str_split);
+    vt_insert(vt, 0xF0, (int64_t)&str___get);
     return vt;
 }
 

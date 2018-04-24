@@ -7,6 +7,8 @@
 #include "../constant/constant.h"
 #include "../list/list.h"
 
+int str___get(VM *vm);
+
 int str_tobool(VM *vm);
 
 int str_tostr(VM *vm);

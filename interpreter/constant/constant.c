@@ -96,11 +96,11 @@ int print(Constant v) {
     int i;
     switch (v.type) {
         case INT64:
-            printf("%" PRId64 "\n", v.value);
+            printf("%" PRId64 "", v.value);
             //printf("int64: %" PRId64 "\n", v.value);
             break;
         case FLOAT64:
-            printf("%f\n", *((double*)&v.value));
+            printf("%f", *((double*)&v.value));
             //printf("float64: %f\n", *((double*)&v.value));
             break;
         case BOOL:
@@ -108,7 +108,7 @@ int print(Constant v) {
             else puts("true");
             break;
         case UNDEF:
-            printf("undef\n");
+            printf("undef");
             break;
         case STR8:
             //printf("str: ");
@@ -118,13 +118,13 @@ int print(Constant v) {
                 //printf("%.*s\n", ((String_t*)v.value)->length, ((String_t*)v.value)->str);
                 printf("%c", ((String_t*)v.value)->str[i]);
             }
-            printf("\n");
+            printf("");
             break;
         case MAP:
-            printf("<hash %" PRIx64 ">\n", v.value);
+            printf("<hash %" PRIx64 ">", v.value);
             break;;
         case LIST:
-            printf("<list %" PRIx64 ">\n", v.value);
+            printf("<list %" PRIx64 ">", v.value);
             break;
         case FILEH:
             if ((FILE*)v.value == stdin) {
@@ -134,11 +134,11 @@ int print(Constant v) {
             } else if ((FILE*)v.value == stderr) {
                 puts("stderr");
             } else {
-                printf("<file %" PRIx64 ">\n", v.value);
+                printf("<file %" PRIx64 ">", v.value);
             }
             break;
         default:
-            printf("Error, unknown type: %x\n", v.type);
+            printf("Error, unknown type: %x", v.type);
             return -1;
     }
     return 0;
