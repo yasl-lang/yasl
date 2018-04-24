@@ -104,8 +104,8 @@ int print(Constant v) {
             //printf("float64: %f\n", *((double*)&v.value));
             break;
         case BOOL:
-            if (v.value == 0) puts("false");
-            else puts("true");
+            if (v.value == 0) printf("false");
+            else printf("true");
             break;
         case UNDEF:
             printf("undef");
@@ -129,11 +129,11 @@ int print(Constant v) {
             break; */
         case FILEH:
             if ((FILE*)v.value == stdin) {
-                puts("stdin");
+                printf("stdin");
             } else if ((FILE*)v.value == stdout) {
-                puts("stdout");
+                printf("stdout");
             } else if ((FILE*)v.value == stderr) {
-                puts("stderr");
+                printf("stderr");
             } else {
                 printf("<file %" PRIx64 ">", v.value);
             }
