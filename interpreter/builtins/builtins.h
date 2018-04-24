@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdio.h>
+#include "methods.h"
 #include "../VM.h"
 #include "../opcode.h"
 #include "../constant/constant.h"

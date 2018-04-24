@@ -1,6 +1,6 @@
 #pragma once
 
-enum opcodes {
+enum Opcodes {
     NOP       = 0x00, // pass
     NCONST    = 0x01, // push literal undef onto stack
     ICONST    = 0x02, // push next 8 bytes onto stack as integer constant
