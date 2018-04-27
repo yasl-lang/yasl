@@ -1,5 +1,5 @@
 #include "lexer.h"
-#include "token.h"
+#include "../token.h"
 
 void gettok(Lexer *lex) {
     //puts("getting next");
@@ -8,6 +8,39 @@ void gettok(Lexer *lex) {
     int last;
     //printf("last char is %c\n", lastchar);
     c1 = fgetc(lex->file);
+
+    while (!feof(lex->file) && (c1 == ' ' || c1 == '\n' || c1 == '\t')) {
+        if (c1 == '\n') lex->line++;
+        c1 = fgetc(lex->file);
+    }
+
+    if (feof(lex->file)) {
+        lex->type = TOK_EOF;
+        lex->value = NULL;
+        return;
+    }
+
+    if (c1 == '$') {
+        c1 = fgetc(lex->file);
+        if (c1 == '$') {
+            while (!feof(lex->file) && fgetc(lex->file) != '\n') {}
+        } else if (c1 == '*') {
+            c1 = fgetc(lex->file);
+            c2 = fgetc(lex->file);
+            while (!feof(lex->file) && (c1 != '*' || c2 != '$')) {
+                c1 = c2;
+                c2 = fgetc(lex->file);
+            }
+            if (feof(lex->file)) {
+                puts("LexingError: unclosed block comment.");
+                exit(EXIT_FAILURE);
+            }
+        } else {
+            fseek(lex->file, -2, SEEK_CUR);
+        }
+        c1 = fgetc(lex->file);
+    }
+
     while (!feof(lex->file) && (c1 == ' ' || c1 == '\n' || c1 == '\t')) {
         if (c1 == '\n') lex->line++;
         c1 = fgetc(lex->file);
@@ -47,73 +80,8 @@ void gettok(Lexer *lex) {
         } while (!feof(lex->file) && isalnum(c1));
         if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
         lex->value = realloc(lex->value, lex->val_len = i);
-        /* keywords:
-         *  let
-         *  print
-         *  if
-         *  elseif
-         *  else
-         *  while
-         *  for
-         *  break
-         *  continue
-         *  true
-         *  false
-         *  or
-         *  and
-         *  undef
-         *  fn
-         *  return
-         */
-        if (!memcmp(lex->value, "let", lex->val_len)) {
-            lex->type = TOK_LET;
-            lex->value = realloc(lex->value, 0);
-        } else if (!memcmp(lex->value, "print", lex->val_len)) {
-            lex->type = TOK_PRINT;
-            lex->value = realloc(lex->value, 0);
-        } else if (!memcmp(lex->value, "else", lex->val_len)) {
-            lex->type = TOK_ELSE;
-            lex->value = realloc(lex->value, 0);
-        } else if (!memcmp(lex->value, "if", lex->val_len)) {
-            lex->type = TOK_IF;
-            lex->value = realloc(lex->value, 0);
-        } else if (!memcmp(lex->value, "elseif", lex->val_len)) {
-            lex->type = TOK_ELSEIF;
-            lex->value = realloc(lex->value, 0);
-        } else if (!memcmp(lex->value, "while", lex->val_len)) {
-            lex->type = TOK_WHILE;
-            lex->value = realloc(lex->value, 0);
-        } else if (!memcmp(lex->value, "for", lex->val_len)) {
-            lex->type = TOK_FOR;
-            lex->value = realloc(lex->value, 0);
-        } else if (!memcmp(lex->value, "break", lex->val_len)) {
-            lex->type = TOK_BREAK;
-            lex->value = realloc(lex->value, 0);
-        } else if (!memcmp(lex->value, "continue", lex->val_len)) {
-            lex->type = TOK_CONT;
-            lex->value = realloc(lex->value, 0);
-        } else if (!memcmp(lex->value, "true", lex->val_len)) {
-            lex->type = TOK_BOOL;
-        } else if (!memcmp(lex->value, "false", lex->val_len)) {
-            lex->type = TOK_BOOL;
-        } else if (!memcmp(lex->value, "or", lex->val_len)) {
-            lex->type = TOK_OR;
-            lex->value = realloc(lex->value, 0);
-        } else if (!memcmp(lex->value, "and", lex->val_len)) {
-            lex->type = TOK_AND;
-            lex->value = realloc(lex->value, 0);
-        } else if (!memcmp(lex->value, "undef", lex->val_len)) {
-            lex->type = TOK_UNDEF;
-            lex->value = realloc(lex->value, 0);
-        } else if (!memcmp(lex->value, "fn", lex->val_len)) {
-            lex->type = TOK_FN;
-            lex->value = realloc(lex->value, 0);
-        } else if (!memcmp(lex->value, "return", lex->val_len)) {
-            lex->type = TOK_RET;
-            lex->value = realloc(lex->value, 0);
-        } else { //*/
-            lex->type = TOK_ID;
-        }
+        lex->type = TOK_ID;
+        YASLKeywords(lex);
         return;
     }
 
@@ -171,13 +139,8 @@ void gettok(Lexer *lex) {
         return;
     }
 
-    /* if (isalpha(lastchar)) {
-        int max_size = 6;
-        lex->value = realloc(lex->value, max_size);
-        lex->value
-    } */
-
-
+    puts("LexingError: unknown lexeme.");
+    exit(EXIT_FAILURE);
 }
 
 int YASLToken_FourChars(char c1, char c2, char c3, char c4) {
@@ -270,6 +233,74 @@ int YASLToken_OneChar(char c1) {
         case '?': return QMARK;
         case ':': return COLON;
         default: return OP;
+    }
+}
+
+void YASLKeywords(Lexer *lex) {
+    /* keywords:
+     *  let
+     *  print
+     *  if
+     *  elseif
+     *  else
+     *  while
+     *  for
+     *  break
+     *  continue
+     *  true
+     *  false
+     *  or
+     *  and
+     *  undef
+     *  fn
+     *  return
+     */
+    if (!memcmp(lex->value, "let", lex->val_len)) {
+        lex->type = TOK_LET;
+        lex->value = realloc(lex->value, 0);
+    } else if (!memcmp(lex->value, "print", lex->val_len)) {
+        lex->type = TOK_PRINT;
+        lex->value = realloc(lex->value, 0);
+    } else if (!memcmp(lex->value, "else", lex->val_len)) {
+        lex->type = TOK_ELSE;
+        lex->value = realloc(lex->value, 0);
+    } else if (!memcmp(lex->value, "if", lex->val_len)) {
+        lex->type = TOK_IF;
+        lex->value = realloc(lex->value, 0);
+    } else if (!memcmp(lex->value, "elseif", lex->val_len)) {
+        lex->type = TOK_ELSEIF;
+        lex->value = realloc(lex->value, 0);
+    } else if (!memcmp(lex->value, "while", lex->val_len)) {
+        lex->type = TOK_WHILE;
+        lex->value = realloc(lex->value, 0);
+    } else if (!memcmp(lex->value, "for", lex->val_len)) {
+        lex->type = TOK_FOR;
+        lex->value = realloc(lex->value, 0);
+    } else if (!memcmp(lex->value, "break", lex->val_len)) {
+        lex->type = TOK_BREAK;
+        lex->value = realloc(lex->value, 0);
+    } else if (!memcmp(lex->value, "continue", lex->val_len)) {
+        lex->type = TOK_CONT;
+        lex->value = realloc(lex->value, 0);
+    } else if (!memcmp(lex->value, "true", lex->val_len)) {
+        lex->type = TOK_BOOL;
+    } else if (!memcmp(lex->value, "false", lex->val_len)) {
+        lex->type = TOK_BOOL;
+    } else if (!memcmp(lex->value, "or", lex->val_len)) {
+        lex->type = TOK_OR;
+        lex->value = realloc(lex->value, 0);
+    } else if (!memcmp(lex->value, "and", lex->val_len)) {
+        lex->type = TOK_AND;
+        lex->value = realloc(lex->value, 0);
+    } else if (!memcmp(lex->value, "undef", lex->val_len)) {
+        lex->type = TOK_UNDEF;
+        lex->value = realloc(lex->value, 0);
+    } else if (!memcmp(lex->value, "fn", lex->val_len)) {
+        lex->type = TOK_FN;
+        lex->value = realloc(lex->value, 0);
+    } else if (!memcmp(lex->value, "return", lex->val_len)) {
+        lex->type = TOK_RET;
+        lex->value = realloc(lex->value, 0);
     }
 }
 
