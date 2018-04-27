@@ -339,42 +339,6 @@ class Compiler(NodeVisitor):
             self.strs[node.value]["addr"] = intbytes_8(len(self.header))
             self.header = self.header + string
         return [NEWSTR8] + self.strs[node.value]["length"] + self.strs[node.value]["addr"]
-
-        #intbytes_8(self.strs[node.value])
-        #length8 = intbytes_8(len(string)+8)
-        #return [MLC_8, STR8] + length8 + [MCP_8] + intbytes_8(0) + length8 + length + string
-        '''MLC,
-        0x30,
-        0x14,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        MCP_8,
-        0x00,
-        0x14,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x48,
-        0x45,
-        0x4C,
-        0x4C,
-        0x4F,
-        0x20,
-        0x57,
-        0x4F,
-        0x52,
-        0x4C,
-        0x44,
-        0x2E,'''
     def visit_Boolean(self, node):
         if node.value == False:
             return [BCONST_F]
