@@ -169,7 +169,7 @@ class Lexer(object):
         # tokenizer
         text = self.text
         while self.pos < len(text):
-            while self.current_char in (" ", "\n"):
+            while self.current_char in (" ", "\t", "\n"):
                 self.advance()
             if self.pos >= len(text):
                 self.tokens.append(Token(TokenTypes.EOF, None, self.line))
