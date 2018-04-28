@@ -5,8 +5,8 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
-
-#define EATWHITESPACE() while (lastchar == ' ' || lastchar == '\t') { lastchar = getchar(); }
+#define  isbdigit(x) (x == '0' || x == '1')
+// #define EATWHITESPACE() while (lastchar == ' ' || lastchar == '\t') { lastchar = getchar(); }
 
 typedef struct {
     FILE *file;
