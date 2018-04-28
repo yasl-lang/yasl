@@ -65,6 +65,29 @@ void gettok(Lexer *lex) {
             }
         } while (!feof(lex->file) && isalnum(c1));
         lex->type = TOK_INT64;
+        // c1 = fgetc(lex->file);
+        if (c1 == '.') {
+            c2 = fgetc(lex->file);
+            if (feof(lex->file)) {
+                fseek(lex->file, -1, SEEK_CUR);
+                return;
+            }
+            if (!isdigit(c2)) {
+                fseek(lex->file, -2, SEEK_CUR);
+                return;
+            }
+            fseek(lex->file, -1, SEEK_CUR);
+            do {
+                lex->value[i++] = c1;
+                c1 = fgetc(lex->file);
+                if (i == lex->val_len) {
+                    lex->val_len *= 2;
+                    lex->value = realloc(lex->value, lex->val_len);
+                }
+            } while (!feof(lex->file) && isalnum(c1));
+            lex->type = TOK_FLOAT64;
+            return;
+        }
         return;
     } else if (isalpha(c1)) {
         lex->val_len = 6;
