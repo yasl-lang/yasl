@@ -36,11 +36,11 @@ RESERVED_KEYWORDS = {
             "int64": lambda x: Token(TokenTypes.TYPE, "int64", x),
             "float64": lambda x: Token(TokenTypes.TYPE, "float64", x),
             "bool": lambda x: Token(TokenTypes.TYPE, "bool", x),
-            "str8": lambda x: Token(TokenTypes.TYPE, "str8", x),
+            "str": lambda x: Token(TokenTypes.TYPE, "str", x),
             "list": lambda x: Token(TokenTypes.TYPE, "list", x),
             "map": lambda x: Token(TokenTypes.TYPE, "map", x),
             "file": lambda x: Token(TokenTypes.TYPE, "file", x),
-            "type": lambda x: Token(TokenTypes.TYPE, "type", x),
+            #"type": lambda x: Token(TokenTypes.TYPE, "type", x),
 }
 
 class Lexer(object):
