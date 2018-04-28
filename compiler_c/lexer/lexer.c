@@ -20,7 +20,7 @@ void gettok(Lexer *lex) {
         return;
     }
 
-    if (c1 == '$') {
+    if (c1 == '$') {                            // comments
         c1 = fgetc(lex->file);
         if (c1 == '$') {
             while (!feof(lex->file) && fgetc(lex->file) != '\n') {}
@@ -52,12 +52,12 @@ void gettok(Lexer *lex) {
         return;
     }
 
-    if (isdigit(c1)) {
+    if (isdigit(c1)) {                          // numbers
         lex->val_len = 6;
         lex->value = realloc(lex->value, lex->val_len);
         int i = 0;
         c2 = fgetc(lex->file);
-        if (c1 == '0' && c2 == 'x'){
+        if (c1 == '0' && c2 == 'x'){            // hexadecimal literal
             lex->value[i++] = '0';
             lex->value[i++] = 'x';
             c1 = fgetc(lex->file);
@@ -72,7 +72,7 @@ void gettok(Lexer *lex) {
             lex->type = TOK_INT64;
             if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
             return;
-        } else if (c1 == '0' && c2 == 'b'){
+        } else if (c1 == '0' && c2 == 'b'){         // binary literal
             lex->value[i++] = '0';
             lex->value[i++] = 'b';
             c1 = fgetc(lex->file);
@@ -101,7 +101,7 @@ void gettok(Lexer *lex) {
         } while (!feof(lex->file) && isdigit(c1));
         lex->type = TOK_INT64;
 
-        if (c1 == '.') {
+        if (c1 == '.') {                    // floats
             c2 = fgetc(lex->file);
             if (feof(lex->file)) {
                 fseek(lex->file, -1, SEEK_CUR);
@@ -128,7 +128,7 @@ void gettok(Lexer *lex) {
 
         if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
         return;
-    } else if (isalpha(c1)) {
+    } else if (isalpha(c1)) {                           // identifiers and keywords
         lex->val_len = 6;
         lex->value = realloc(lex->value, lex->val_len);
         int i = 0;
@@ -143,10 +143,32 @@ void gettok(Lexer *lex) {
         if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
         lex->value = realloc(lex->value, lex->val_len = i);
         lex->type = TOK_ID;
-        YASLKeywords(lex);
+        YASLKeywords(lex);          // keywords
+        return;
+    } else if (c1 == '"') {                             // strings
+        lex->val_len = 6;
+        lex->value = realloc(lex->value, lex->val_len);
+        int i = 0;
+        c1 = fgetc(lex->file);
+        while (c1 != '"' && !feof(lex->file)) {
+            lex->value[i++] = c1;
+            c1 = fgetc(lex->file);
+            if (i == lex->val_len) {
+                lex->val_len *= 2;
+                lex->value = realloc(lex->value, lex->val_len);
+            }
+        }
+        lex->value = realloc(lex->value, lex->val_len = i);
+
+        if (feof(lex->file)) {
+            puts("LexingError: unclosed string literal.");
+            exit(EXIT_FAILURE);
+        }
+        lex->type = TOK_STR;
         return;
     }
 
+    // operators
     c2 = fgetc(lex->file);
     if (feof(lex->file)) {
         goto one;
@@ -205,70 +227,66 @@ void gettok(Lexer *lex) {
     exit(EXIT_FAILURE);
 }
 
-int YASLToken_FourChars(char c1, char c2, char c3, char c4) {
-    int OP = -1;
-    switch(c1) { case '|': switch(c2) { case '|': switch(c3) { case '|':  switch(c4) { case '=': return TBAREQ; default: return OP;} } } }
-    return OP;
+Token YASLToken_FourChars(char c1, char c2, char c3, char c4) {
+    switch(c1) { case '|': switch(c2) { case '|': switch(c3) { case '|':  switch(c4) { case '=': return TBAREQ; default: return UNKNOWN;} } } }
+    return UNKNOWN;
 }
 
-int YASLToken_ThreeChars(char c1, char c2, char c3) {
-    int OP = -1;
+Token YASLToken_ThreeChars(char c1, char c2, char c3) {
     switch(c1) {
-        case '<': switch(c2) { case '<': switch(c3) { case '=': return DLTEQ; default: return OP;} }
-        case '>': switch(c2) { case '>': switch(c3) { case '=': return DGTEQ; default: return OP;} }
-        case '=': switch(c2) { case '=': switch(c3) { case '=': return TEQ; default: return OP;} }
-        case '!': switch(c2) { case '=': switch(c3) { case '=': return BANGDEQ; default: return OP;} }
-        case '/': switch(c2) { case '/': switch(c3) { case '=': return DSLASHEQ; default: return OP;} }
+        case '<': switch(c2) { case '<': switch(c3) { case '=': return DLTEQ; default: return UNKNOWN;} }
+        case '>': switch(c2) { case '>': switch(c3) { case '=': return DGTEQ; default: return UNKNOWN;} }
+        case '=': switch(c2) { case '=': switch(c3) { case '=': return TEQ; default: return UNKNOWN;} }
+        case '!': switch(c2) { case '=': switch(c3) { case '=': return BANGDEQ; default: return UNKNOWN;} }
+        case '/': switch(c2) { case '/': switch(c3) { case '=': return DSLASHEQ; default: return UNKNOWN;} }
         case '|': switch(c2) { case '|': switch(c3) {
                         case '=': return DBAREQ;
                         case '|': return TBAR;
-                        default: return OP;
+                        default: return UNKNOWN;
         } }
-        case '?': switch(c2) { case '?': switch(c3) { case '=': return DQMARKEQ; default: return OP;} }
+        case '?': switch(c2) { case '?': switch(c3) { case '=': return DQMARKEQ; default: return UNKNOWN;} }
     }
-    return OP;
+    return UNKNOWN;
 }
 
-int YASLToken_TwoChars(char c1, char c2) {
-    int OP = -1;
+Token YASLToken_TwoChars(char c1, char c2) {
     switch(c1) {
-        case '^': switch(c2) { case '=': return CARETEQ; default: return OP; };
-        case '+': switch(c2) { case '=': return PLUSEQ; default: return OP; };
+        case '^': switch(c2) { case '=': return CARETEQ; default: return UNKNOWN; };
+        case '+': switch(c2) { case '=': return PLUSEQ; default: return UNKNOWN; };
         case '-': switch(c2) {
                 case '=': return MINUSEQ;
                 case '>': return RARR;
-                default: return OP;
+                default: return UNKNOWN;
         }
-        case '=': switch(c2) { case '=': return DEQ; default: return OP;}
-        case '!': switch(c2) { case '=': return BANGEQ; default: return OP;}
-        case '~': switch(c2) { case '=': return TILDEEQ; default: return OP;}
-        case '*': switch(c2) { case '=': return STAREQ; default: return OP;}
-        case '/': switch(c2) { case '=': return SLASHEQ; default: return OP; }
-        case '%': switch(c2) { case '=': return MODEQ; default: return OP;}
+        case '=': switch(c2) { case '=': return DEQ; default: return UNKNOWN;}
+        case '!': switch(c2) { case '=': return BANGEQ; default: return UNKNOWN;}
+        case '~': switch(c2) { case '=': return TILDEEQ; default: return UNKNOWN;}
+        case '*': switch(c2) { case '=': return STAREQ; default: return UNKNOWN;}
+        case '/': switch(c2) { case '=': return SLASHEQ; default: return UNKNOWN; }
+        case '%': switch(c2) { case '=': return MODEQ; default: return UNKNOWN;}
         case '<': switch(c2) {
                 case '=': return LTEQ;
                 case '<': return DLT;
                 case '-': return LARR;
-                default: return OP;
+                default: return UNKNOWN;
         }
         case '>': switch(c2) {
                 case '=': return GTEQ;
                 case '>': return DGT;
-                default:  return OP;
+                default:  return UNKNOWN;
         }
-        case '&': switch(c2) { case '=': return AMPEQ; default: return OP; }
+        case '&': switch(c2) { case '=': return AMPEQ; default: return UNKNOWN; }
         case '|': switch(c2) {
                 case '=': return BAREQ;
                 case '|': return DBAR;
-                default: return OP;
+                default: return UNKNOWN;
         }
-        case '?': switch(c2) { case '?': return DQMARK; default: return OP;}
+        case '?': switch(c2) { case '?': return DQMARK; default: return UNKNOWN;}
     }
-    return OP;
+    return UNKNOWN;
 }
 
-int YASLToken_OneChar(char c1) {
-    int OP = -1;
+Token YASLToken_OneChar(char c1) {
     switch(c1) {
         case '(': return LPAR;
         case ')': return RPAR;
@@ -294,7 +312,7 @@ int YASLToken_OneChar(char c1) {
         case '|': return BAR;
         case '?': return QMARK;
         case ':': return COLON;
-        default: return OP;
+        default: return UNKNOWN;
     }
 }
 

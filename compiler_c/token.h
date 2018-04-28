@@ -64,11 +64,12 @@
  */
 
 /* FourCharTokens:
- * TBAREQ |||=
+ * TBAREQ   |||=
  */
 
 
-enum Tokens {
+typedef enum {
+    UNKNOWN = -1,
     TOK_EOF,
     TOK_SEMI,
     TOK_UNDEF,
@@ -143,4 +144,4 @@ enum Tokens {
     TBAR,
     DQMARKEQ,
     TBAREQ,
-};
+} Token;
