@@ -1,11 +1,10 @@
-/$ for all control flow, the following values are falsey (all others are truthy):
+$* for all control flow, the following values are falsey (all others are truthy):
  * false
  * undef
  * "" (empty string)
- $/
+ *$
 
-let x = undef
-let i = 0
+let x = undef, i = 0
 
 $$ if statements:
 if x === true {
