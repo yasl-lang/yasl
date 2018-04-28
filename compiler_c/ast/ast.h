@@ -4,7 +4,7 @@
 
 struct Node_s {
     AST nodetype;
-    Tokens type;
+    Token type;
     Node_s *children;
     char* name;
     int len;
@@ -12,9 +12,8 @@ struct Node_s {
 
 typedef struct Node_s Node;
 
-Node *new_TriOp(Token op, left, middle, right) {
+Node *new_TriOp(Token op, left, middle, right);
 
-}
 /*
  * class AST(object):
     pass
@@ -165,13 +164,14 @@ class ExprStmt(AST):
 
 
 
-/* typedef enum {
+ypedef enum {
     TRIOP,
     BINOP,
     UNOP,
+    CONST,
 } AST;
 
-
+/*
 
 
 typedef struct {
