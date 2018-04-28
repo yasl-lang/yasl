@@ -56,6 +56,26 @@ void gettok(Lexer *lex) {
         lex->val_len = 6;
         lex->value = realloc(lex->value, lex->val_len);
         int i = 0;
+        c2 = fgetc(lex->file);
+        if (c1 == '0' && c2 == 'x'){
+            lex->value[i++] = '0';
+            lex->value[i++] = 'x';
+            c1 = fgetc(lex->file);
+            do {
+                lex->value[i++] = c1;
+                c1 = fgetc(lex->file);
+                if (i == lex->val_len) {
+                    lex->val_len *= 2;
+                    lex->value = realloc(lex->value, lex->val_len);
+                }
+            } while (!feof(lex->file) && isxdigit(c1));    // isxdigit checks if a hex digit
+            lex->type = TOK_INT64;
+            if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
+            return;
+        } else {
+            fseek(lex->file, -1, SEEK_CUR);
+        }
+
         do {
             lex->value[i++] = c1;
             c1 = fgetc(lex->file);
@@ -63,9 +83,9 @@ void gettok(Lexer *lex) {
                 lex->val_len *= 2;
                 lex->value = realloc(lex->value, lex->val_len);
             }
-        } while (!feof(lex->file) && isalnum(c1));
+        } while (!feof(lex->file) && isdigit(c1));
         lex->type = TOK_INT64;
-        // c1 = fgetc(lex->file);
+
         if (c1 == '.') {
             c2 = fgetc(lex->file);
             if (feof(lex->file)) {
@@ -84,10 +104,14 @@ void gettok(Lexer *lex) {
                     lex->val_len *= 2;
                     lex->value = realloc(lex->value, lex->val_len);
                 }
-            } while (!feof(lex->file) && isalnum(c1));
+            } while (!feof(lex->file) && isdigit(c1));
+
+            if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
             lex->type = TOK_FLOAT64;
             return;
         }
+
+        if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
         return;
     } else if (isalpha(c1)) {
         lex->val_len = 6;
