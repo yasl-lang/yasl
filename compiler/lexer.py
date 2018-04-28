@@ -173,8 +173,8 @@ class Lexer(object):
                 self.advance()
             if self.pos >= len(text):
                 self.tokens.append(Token(TokenTypes.EOF, None, self.line))
-            elif self.current_char == "/" and self.peek() == "$":   # block comments
-                while not (self.current_char == "$" and self.peek() == "/"):
+            elif self.current_char == "$" and self.peek() == "*":   # block comments
+                while not (self.current_char == "*" and self.peek() == "$"):
                     self.advance()
                 self.advance()
                 self.advance()

@@ -109,6 +109,7 @@ class Compiler(NodeVisitor):
         self.code = []
         self.checkpoints = []
         self.header = intbytes_8(8) + intbytes_8(0)
+        self.buffer = []
         self.fns = {}
         self.current_fn = None
         self.offset = 0
@@ -116,12 +117,12 @@ class Compiler(NodeVisitor):
     def compile(self, statements):
         for statement in statements:
             self.code.extend(self.visit(statement))
-        self.header[0:8] = intbytes_8(len(self.header))
+        self.header[0:8] = intbytes_8(len(self.header) + len(self.buffer))
         self.header[8:16] = intbytes_8(len(self.globals))  # TODO: fix so this works with locals as well
         for opcode in self.header: print(hex(opcode))
         print("entry point:")
         for opcode in self.code + [HALT]: print(hex(opcode))
-        return self.header + self.code + [HALT] #TODO: fix return values once we have proper ones
+        return self.header + self.buffer + self.code + [HALT] #TODO: fix return values once we have proper ones
     def enter_scope(self):
         if self.current_fn is not None:
             self.locals = Env(self.locals)
@@ -145,6 +146,7 @@ class Compiler(NodeVisitor):
         return expr + [POP]
     def visit_If(self, node):
         cond = self.visit(node.cond)
+        # print([hex(r) for r in cond])
         self.enter_scope()
         body = self.visit(node.body)
         self.exit_scope()
@@ -238,7 +240,6 @@ class Compiler(NodeVisitor):
         if node.token.value in self.fns:
             raise Exception("invalid redefinition of function %s (line %s)" % (node.token.value, node.token.line))
         self.fns[node.token.value] = {}
-        self.fns[node.token.value]["addr"] = len(self.header)
         self.fns[node.token.value]["params"] = node.params.__len__()
         self.locals = Env()
         self.offset = self.fns[node.token.value]["params"]
@@ -246,8 +247,12 @@ class Compiler(NodeVisitor):
         for i in node.params:
             self.locals[i.value] = 255 - len(self.locals.vars) - 1
         self.fns[node.token.value]["locals"] = len(self.locals.vars)
+        buffer = []
         for stmt in node.block.statements:
-            self.header.extend(self.visit(stmt))
+            print([hex(r) for r in self.visit(stmt)])
+            buffer.extend(self.visit(stmt))
+        self.fns[node.token.value]["addr"] = len(self.header)
+        self.header.extend(buffer)
         self.header.extend([NCONST, RET])
         self.locals = Env()
         self.current_fn = None  # TODO: allow nested function definitions
@@ -337,7 +342,7 @@ class Compiler(NodeVisitor):
             self.strs[node.value] = {}
             self.strs[node.value]["length"] = length
             self.strs[node.value]["addr"] = intbytes_8(len(self.header))
-            self.header = self.header + string
+            self.header.extend(string)
         return [NEWSTR8] + self.strs[node.value]["length"] + self.strs[node.value]["addr"]
     def visit_Boolean(self, node):
         if node.value == False:
