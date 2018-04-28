@@ -477,6 +477,7 @@ void lex_del(Lexer *lex) {
     free(lex);
 }
 
+/*
 int main(void) {
     FILE *fp = fopen("sample.yasl", "r");
     if (fp == NULL) return 1;
@@ -488,3 +489,4 @@ int main(void) {
     }
     lex_del(lex);
 }
+ */

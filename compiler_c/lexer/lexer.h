@@ -26,4 +26,4 @@ Lexer *lex_new(FILE *file);
 void lex_del(Lexer *lex);
 void gettok(Lexer *lex);
 
-const char *YASL_TOKEN_NAMES[];
+const char *YASL_TOKEN_NAMES[592/8];
