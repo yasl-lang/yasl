@@ -72,9 +72,24 @@ void visit_Print(Compiler* compiler, Node *node) {
 void visit_String(Compiler* compiler, Node *node) {
     // TODO: store string we've already seen.
     bb_add_byte(compiler->buffer, NEWSTR8);
-    bb_append(compiler->buffer, (char*)&node->name_len, sizeof(int64_t));    // TODO: get intbytes8 function
-    bb_append(compiler->buffer, (char*)&compiler->header->count, sizeof(int64_t));
+    bb_intbytes8(compiler->buffer, node->name_len);
+    bb_intbytes8(compiler->buffer, compiler->header->count);
     bb_append(compiler->header, node->name, node->name_len);
+}
+
+void visit_Integer(Compiler *compiler, Node *node) {
+    bb_add_byte(compiler->buffer, ICONST);
+    switch(node->name[1]) {
+        case 'x':
+            bb_intbytes8(compiler->buffer, (int64_t)strtoll(node->name+2, (char**)NULL, 16));
+            break;
+        case 'b':
+            bb_intbytes8(compiler->buffer, (int64_t)strtoll(node->name+2, (char**)NULL, 2));
+            break;
+        default:
+            bb_intbytes8(compiler->buffer, (int64_t)strtoll(node->name, (char**)NULL, 10));
+            break;
+    }
 }
 
 void visit(Compiler* compiler, Node* node) {
@@ -82,10 +97,14 @@ void visit(Compiler* compiler, Node* node) {
     case NODE_PRINT:
         visit_Print(compiler, node);
         break;
+    case NODE_INT64:
+        visit_Integer(compiler, node);
+        break;
     case NODE_STR:
         visit_String(compiler, node);
         break;
     default:
+        puts("unknown node type");
         exit(1);
     }
 }

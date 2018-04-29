@@ -26,8 +26,13 @@ Node *program(Parser *parser) {
 
 Node *expr(Parser *parser) {
     if (parser->lex->type == TOK_STR) return string(parser);
+    else if (parser->lex->type == TOK_INT64) return integer(parser);
     puts("ParsingError: Invalid exdpresion.");
     exit(EXIT_FAILURE);
+}
+
+Node *integer(Parser *parser) {
+    return new_Integer(parser->lex->value, parser->lex->val_len);
 }
 
 Node *string(Parser *parser) {

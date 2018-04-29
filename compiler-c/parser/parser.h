@@ -14,4 +14,5 @@ void parser_del(Parser *parser);
 Node *parse(Parser *parser);
 Node *program(Parser *parser);
 Node *expr(Parser *parser);
+Node *integer(Parser *parser);
 Node *string(Parser *parser);

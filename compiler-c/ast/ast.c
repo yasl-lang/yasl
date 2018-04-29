@@ -82,6 +82,11 @@ void del_Print(Node *node) {
 }
 
 // void del_TriOp(Node *node);
+void del_Integer(Node *node) {
+    free(node->name);
+    free(node);
+}
+
 void del_String(Node *node) {
     free(node->name);
     free(node);
@@ -92,11 +97,14 @@ void node_del(Node *node) {
     case NODE_PRINT:
         del_Print(node);
         break;
+    case NODE_INT64:
+        del_Integer(node);
+        break;
     case NODE_STR:
         del_String(node);
         break;
     default:
-        puts("Unknown type");
+        puts("Error in node_del: Unknown type");
         exit(1);
     }
 }
