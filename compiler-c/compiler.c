@@ -60,43 +60,24 @@ void compile(Compiler *compiler) {
     fwrite(compiler->code->bytes, 1, compiler->code->count, fp);
     fputc(HALT, fp);
     fclose(fp);
-    /*   FILE *fp;
-   char str[] = "This is tutorialspoint.com";
-
-   fp = fopen( "file.txt" , "w" );
-   fwrite(str , 1 , sizeof(str) , fp );
-
-   fclose(fp);
-
-   return(0); */
 }
 
 void visit_Print(Compiler* compiler, Node *node) {
     visit(compiler, node->children[0]);
-    printf("print\n");
-    char print_bytes[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    char print_bytes[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};      // TODO: lookup in table
     bb_add_byte(compiler->buffer, BCALL_8);
     bb_append(compiler->buffer, print_bytes, 8);
-    //free(print_bytes);
 }
 
 void visit_String(Compiler* compiler, Node *node) {
-    puts("visit string");
-    //printf("%s", node->name);
-    // [NEWSTR8] + self.strs[node.value]["length"] + self.strs[node.value]["addr"]
+    // TODO: store string we've already seen.
     bb_add_byte(compiler->buffer, NEWSTR8);
-    bb_append(compiler->buffer, (char*)&node->name_len, sizeof(int64_t));
+    bb_append(compiler->buffer, (char*)&node->name_len, sizeof(int64_t));    // TODO: get intbytes8 function
     bb_append(compiler->buffer, (char*)&compiler->header->count, sizeof(int64_t));
     bb_append(compiler->header, node->name, node->name_len);
-    //bb_add_byte()
-    //printf("%s", compiler->header->bytes + 16);
-    //char string_bytes[] = {};
-    //bb_append(compiler->buffer, )
-    printf("string\n");
 }
 
 void visit(Compiler* compiler, Node* node) {
-    // puts("visit");
     switch(node->nodetype) {
     case NODE_PRINT:
         visit_Print(compiler, node);
