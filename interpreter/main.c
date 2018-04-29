@@ -4,7 +4,7 @@
  Author      : Thiabaud Engelbrecht
  Version     : 0.0
  Copyright   :
- Description : Bytecode VM. Must be compiled with GCC
+ Description : Bytecode VM. Compiles with GCC
  ============================================================================
  */
 

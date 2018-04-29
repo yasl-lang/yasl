@@ -20,6 +20,8 @@ int yasl_print(VM* vm) {
 }
 
 int yasl_input(VM* vm) {
+    print(POP(vm));
+    printf("\n");
     int ch;
     size_t len = 0;
     size_t size = 10;

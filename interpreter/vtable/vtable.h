@@ -9,16 +9,16 @@ typedef struct {
 } VItem_t;
 
 struct VTable_s {
-    struct VTable_s* parent;
+    struct VTable_s *parent;
     int64_t size;
     int64_t base_size;
     int64_t count;
-    VItem_t** items;
+    VItem_t **items;
 };
 
 typedef struct VTable_s VTable_t;
 
-VTable_t* new_vtable(void);
+VTable_t *new_vtable(void);
 void del_vtable(VTable_t* vtable);
 
 void vt_insert(VTable_t* vtable, int64_t key, int64_t value);

@@ -16,7 +16,7 @@ void gettok(Lexer *lex) {
 
     if (feof(lex->file)) {
         lex->type = TOK_EOF;
-        lex->value = NULL;
+        lex->value = realloc(lex->value, 0);
         return;
     }
 
@@ -228,90 +228,90 @@ void gettok(Lexer *lex) {
 }
 
 Token YASLToken_FourChars(char c1, char c2, char c3, char c4) {
-    switch(c1) { case '|': switch(c2) { case '|': switch(c3) { case '|':  switch(c4) { case '=': return TBAREQ; default: return UNKNOWN;} } } }
+    switch(c1) { case '|': switch(c2) { case '|': switch(c3) { case '|':  switch(c4) { case '=': return TOK_TBAREQ; default: return UNKNOWN;} } } }
     return UNKNOWN;
 }
 
 Token YASLToken_ThreeChars(char c1, char c2, char c3) {
     switch(c1) {
-        case '<': switch(c2) { case '<': switch(c3) { case '=': return DLTEQ; default: return UNKNOWN;} }
-        case '>': switch(c2) { case '>': switch(c3) { case '=': return DGTEQ; default: return UNKNOWN;} }
-        case '=': switch(c2) { case '=': switch(c3) { case '=': return TEQ; default: return UNKNOWN;} }
-        case '!': switch(c2) { case '=': switch(c3) { case '=': return BANGDEQ; default: return UNKNOWN;} }
-        case '/': switch(c2) { case '/': switch(c3) { case '=': return DSLASHEQ; default: return UNKNOWN;} }
+        case '<': switch(c2) { case '<': switch(c3) { case '=': return TOK_DLTEQ; default: return UNKNOWN;} }
+        case '>': switch(c2) { case '>': switch(c3) { case '=': return TOK_DGTEQ; default: return UNKNOWN;} }
+        case '=': switch(c2) { case '=': switch(c3) { case '=': return TOK_TEQ; default: return UNKNOWN;} }
+        case '!': switch(c2) { case '=': switch(c3) { case '=': return TOK_BANGDEQ; default: return UNKNOWN;} }
+        case '/': switch(c2) { case '/': switch(c3) { case '=': return TOK_DSLASHEQ; default: return UNKNOWN;} }
         case '|': switch(c2) { case '|': switch(c3) {
-                        case '=': return DBAREQ;
-                        case '|': return TBAR;
+                        case '=': return TOK_DBAREQ;
+                        case '|': return TOK_TBAR;
                         default: return UNKNOWN;
         } }
-        case '?': switch(c2) { case '?': switch(c3) { case '=': return DQMARKEQ; default: return UNKNOWN;} }
+        case '?': switch(c2) { case '?': switch(c3) { case '=': return TOK_DQMARKEQ; default: return UNKNOWN;} }
     }
     return UNKNOWN;
 }
 
 Token YASLToken_TwoChars(char c1, char c2) {
     switch(c1) {
-        case '^': switch(c2) { case '=': return CARETEQ; default: return UNKNOWN; };
-        case '+': switch(c2) { case '=': return PLUSEQ; default: return UNKNOWN; };
+        case '^': switch(c2) { case '=': return TOK_CARETEQ; default: return UNKNOWN; };
+        case '+': switch(c2) { case '=': return TOK_PLUSEQ; default: return UNKNOWN; };
         case '-': switch(c2) {
-                case '=': return MINUSEQ;
-                case '>': return RARR;
+                case '=': return TOK_MINUSEQ;
+                case '>': return TOK_RARR;
                 default: return UNKNOWN;
         }
-        case '=': switch(c2) { case '=': return DEQ; default: return UNKNOWN;}
-        case '!': switch(c2) { case '=': return BANGEQ; default: return UNKNOWN;}
-        case '~': switch(c2) { case '=': return TILDEEQ; default: return UNKNOWN;}
-        case '*': switch(c2) { case '=': return STAREQ; default: return UNKNOWN;}
-        case '/': switch(c2) { case '=': return SLASHEQ; default: return UNKNOWN; }
-        case '%': switch(c2) { case '=': return MODEQ; default: return UNKNOWN;}
+        case '=': switch(c2) { case '=': return TOK_DEQ; default: return UNKNOWN;}
+        case '!': switch(c2) { case '=': return TOK_BANGEQ; default: return UNKNOWN;}
+        case '~': switch(c2) { case '=': return TOK_TILDEEQ; default: return UNKNOWN;}
+        case '*': switch(c2) { case '=': return TOK_STAREQ; default: return UNKNOWN;}
+        case '/': switch(c2) { case '=': return TOK_SLASHEQ; default: return UNKNOWN; }
+        case '%': switch(c2) { case '=': return TOK_MODEQ; default: return UNKNOWN;}
         case '<': switch(c2) {
-                case '=': return LTEQ;
-                case '<': return DLT;
-                case '-': return LARR;
+                case '=': return TOK_LTEQ;
+                case '<': return TOK_DLT;
+                case '-': return TOK_LARR;
                 default: return UNKNOWN;
         }
         case '>': switch(c2) {
-                case '=': return GTEQ;
-                case '>': return DGT;
+                case '=': return TOK_GTEQ;
+                case '>': return TOK_DGT;
                 default:  return UNKNOWN;
         }
-        case '&': switch(c2) { case '=': return AMPEQ; default: return UNKNOWN; }
+        case '&': switch(c2) { case '=': return TOK_AMPEQ; default: return UNKNOWN; }
         case '|': switch(c2) {
-                case '=': return BAREQ;
-                case '|': return DBAR;
+                case '=': return TOK_BAREQ;
+                case '|': return TOK_DBAR;
                 default: return UNKNOWN;
         }
-        case '?': switch(c2) { case '?': return DQMARK; default: return UNKNOWN;}
+        case '?': switch(c2) { case '?': return TOK_DQMARK; default: return UNKNOWN;}
     }
     return UNKNOWN;
 }
 
 Token YASLToken_OneChar(char c1) {
     switch(c1) {
-        case '(': return LPAR;
-        case ')': return RPAR;
-        case '[': return LSQB;
-        case ']': return RSQB;
-        case '{': return LBRC;
-        case '}': return RBRC;
-        case '.': return DOT;
-        case ',': return COMMA;
-        case '^': return CARET;
-        case '+': return PLUS;
-        case '-': return MINUS;
-        case '#': return HASH;
-        case '!': return BANG;
-        case '~': return TILDE;
-        case '*': return STAR;
-        case '/': return SLASH;
-        case '%': return MOD;
-        case '<': return LT;
-        case '>': return GT;
-        case '=': return EQ;
-        case '&': return AMP;
-        case '|': return BAR;
-        case '?': return QMARK;
-        case ':': return COLON;
+        case '(': return TOK_LPAR;
+        case ')': return TOK_RPAR;
+        case '[': return TOK_LSQB;
+        case ']': return TOK_RSQB;
+        case '{': return TOK_LBRC;
+        case '}': return TOK_RBRC;
+        case '.': return TOK_DOT;
+        case ',': return TOK_COMMA;
+        case '^': return TOK_CARET;
+        case '+': return TOK_PLUS;
+        case '-': return TOK_MINUS;
+        case '#': return TOK_HASH;
+        case '!': return TOK_BANG;
+        case '~': return TOK_TILDE;
+        case '*': return TOK_STAR;
+        case '/': return TOK_SLASH;
+        case '%': return TOK_MOD;
+        case '<': return TOK_LT;
+        case '>': return TOK_GT;
+        case '=': return TOK_EQ;
+        case '&': return TOK_AMP;
+        case '|': return TOK_BAR;
+        case '?': return TOK_QMARK;
+        case ':': return TOK_COLON;
         default: return UNKNOWN;
     }
 }
@@ -463,11 +463,11 @@ const char *YASL_TOKEN_NAMES[] = {
 
 Lexer *lex_new(FILE *file) {
     Lexer *lex = malloc(sizeof(Lexer));
-    lex->line = 0;
+    lex->line = -1;
     lex->value = NULL;
-    lex->val_len = -1;
+    lex->val_len = 0;
     lex->file = file;
-    lex->type = -1;
+    lex->type = UNKNOWN;
     return lex;
 }
 
@@ -489,4 +489,4 @@ int main(void) {
     }
     lex_del(lex);
 }
- */
+*/

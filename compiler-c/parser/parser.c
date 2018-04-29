@@ -16,13 +16,21 @@ Node *parse(Parser *parser) {
 }
 
 Node *program(Parser *parser) {
-    gettok(parser->lex);
     if (parser->lex->type == TOK_PRINT) {
         gettok(parser->lex);
-        return(new_Print(expr(parser)));
+        return new_Print(expr(parser));
     }
+    puts("ParsingError: Unknown sequence.");
+    exit(EXIT_FAILURE);
 }
 
 Node *expr(Parser *parser) {
+    if (parser->lex->type == TOK_STR) return string(parser);
+    puts("ParsingError: Invalid exdpresion.");
+    exit(EXIT_FAILURE);
+}
 
+Node *string(Parser *parser) {
+    //gettok(parser->lex);
+    return new_String(parser->lex->value, parser->lex->val_len);
 }

@@ -1,42 +1,52 @@
+#pragma once
+
+#include "../token.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
+typedef enum {
+    NODE_PRINT,
+    NODE_TRIOP,
+    NODE_BINOP,
+    NODE_UNOP,
+    NODE_INT64,
+    NODE_STR,
+} AST;
 
 struct Node_s {
     AST nodetype;
     Token type;
-    Node_s *children;
+    struct Node_s **children;
+    int64_t children_len;
     char* name;
-    int len;
+    int64_t name_len;
 };
 
 typedef struct Node_s Node;
 
-Node *new_TriOp(Token op, left, middle, right);
+Node *new_Print(Node *child);
+Node *new_TriOp(Token op, Node *left, Node *middle, Node *right);
+Node *new_Undef();
+Node *new_Float(char *value, int len);
+Node *new_Integer(char *value, int len);
+Node *new_Boolean(char *value, int len);
+Node *new_String(char *value, int len);
+
+void del_Print(Node *node);
+void del_TriOp(Node *node);
+void del_String(Node *node);
+void node_del(Node *node);
+
 
 /*
  * class AST(object):
     pass
-class TriOp(AST):
-    def __init__(self, op, cond, left, right):
-        self.left = left
-        self.cond = cond
-        self.right = right
-        self.token = self.op = op
-class BinOp(AST):
-    def __init__(self, op, left, right):
-        self.left = left
-        self.right = right
-        self.token = self.op = op
 class LogicOp(AST):
     def __init__(self, op, left, right):
         self.left = left
         self.right = right
         self.token = self.op = op
-class UnOp(AST):
-    def __init__(self, op, expr):
-        self.token = self.op = op
-        self.expr = expr
 class Hash(AST):
     def __init__(self, token, keys, vals):
         self.token = token
@@ -63,19 +73,11 @@ class Index(AST):
         self.left = left
         self.right = right
         self.value = left.value
-class String(AST):
-    def __init__(self, token):
-        self.token = token
-        self.value = token.value
 class Undef(AST):
     def __init__(self, token):
         self.token = token
         self.value = token.value
 class Boolean(AST):
-    def __init__(self, token):
-        self.token = token
-        self.value = token.value
-class Integer(AST):
     def __init__(self, token):
         self.token = token
         self.value = token.value
@@ -161,15 +163,6 @@ class ExprStmt(AST):
         self.expr = expr
  */
 
-
-
-
-ypedef enum {
-    TRIOP,
-    BINOP,
-    UNOP,
-    CONST,
-} AST;
 
 /*
 
