@@ -180,8 +180,15 @@ Node *parse_constant(Parser *parser) {
     //printf("comparator. type: %s, value: %s\n", YASL_TOKEN_NAMES[parser->lex->type], parser->lex->value);
     if (parser->lex->type == TOK_STR) return parse_string(parser);
     else if (parser->lex->type == TOK_INT64) return parse_integer(parser);
+    else if (parser->lex->type == TOK_FLOAT64) return parse_float(parser);
     puts("ParsingError: Invalid exdpresion.");
     exit(EXIT_FAILURE);
+}
+
+Node *parse_float(Parser *parser) {
+    Node* cur_node = new_Float(parser->lex->value, parser->lex->val_len);
+    gettok(parser->lex);
+    return cur_node;
 }
 
 Node *parse_integer(Parser *parser) {

@@ -196,6 +196,11 @@ void visit_String(Compiler* compiler, Node *node) {
     //printf("compiler->header->count is %d\n", compiler->header->count);
 }
 
+void visit_Float(Compiler *compiler, Node *node) {
+    bb_add_byte(compiler->buffer, DCONST);
+    bb_floatbytes8(compiler->buffer, strtod(node->name, (char**)NULL));
+}
+
 void visit_Integer(Compiler *compiler, Node *node) {
     //printf("compiler->header->count is %d\n", compiler->header->count);
     bb_add_byte(compiler->buffer, ICONST);
@@ -231,6 +236,9 @@ void visit(Compiler* compiler, Node* node) {
         break;
     case NODE_UNOP:
         visit_UnOp(compiler, node);
+        break;
+    case NODE_FLOAT64:
+        visit_Float(compiler, node);
         break;
     case NODE_INT64:
         visit_Integer(compiler, node);

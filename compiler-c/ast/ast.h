@@ -10,6 +10,7 @@ typedef enum {
     NODE_TRIOP,
     NODE_BINOP,
     NODE_UNOP,
+    NODE_FLOAT64,
     NODE_INT64,
     NODE_STR,
 } AST;
@@ -38,6 +39,7 @@ Node *new_String(char *value, int len);
 void del_Print(Node *node);
 void del_TriOp(Node *node);
 void del_BinOp(Node *node);
+void del_Float(Node *node);
 void del_String(Node *node);
 void del_Integer(Node *node);
 void node_del(Node *node);
@@ -85,10 +87,6 @@ class Boolean(AST):
     def __init__(self, token):
         self.token = token
         self.value = token.value
-class Float(AST):
-    def __init__(self, token):
-        self.token = token
-        self.value = token.value
 class FunctionDecl(AST):
     def __init__(self, token, params, block):
         self.token = token
@@ -123,14 +121,6 @@ class Var(AST):
     def __init__(self, token):
         self.token = token
         self.value = token.value
-class Print(AST):
-    def __init__(self, token, expr):
-        self.token = token
-        self.expr = expr
-class Input(AST):
-    def __init__(self, token, expr):
-        self.token = token
-        self.expr = expr
 class If(AST):
     def __init__(self, token, cond, body):
         self.token = token
