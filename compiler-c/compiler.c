@@ -202,9 +202,7 @@ void visit_Float(Compiler *compiler, Node *node) {
 }
 
 void visit_Integer(Compiler *compiler, Node *node) {
-    //printf("compiler->header->count is %d\n", compiler->header->count);
     bb_add_byte(compiler->buffer, ICONST);
-    //printf("number is %s\n", node->name);
     if (node->name_len < 2) {
         bb_intbytes8(compiler->buffer, (int64_t)strtoll(node->name, (char**)NULL, 10));
         return;
@@ -225,6 +223,16 @@ void visit_Integer(Compiler *compiler, Node *node) {
     }
 }
 
+void visit_Boolean(Compiler *compiler, Node *node) {
+    if (!memcmp(node->name, "true", node->name_len)) {
+        bb_add_byte(compiler->buffer, BCONST_T);
+        return;
+    } else if (!memcmp(node->name, "false", node->name_len)) {
+        bb_add_byte(compiler->buffer, BCONST_F);
+        return;
+    }
+}
+
 void visit(Compiler* compiler, Node* node) {
     //printf("compiler->header->count is %d\n", compiler->header->count);
     switch(node->nodetype) {
@@ -242,6 +250,9 @@ void visit(Compiler* compiler, Node* node) {
         break;
     case NODE_INT64:
         visit_Integer(compiler, node);
+        break;
+    case NODE_BOOL:
+        visit_Boolean(compiler, node);
         break;
     case NODE_STR:
         visit_String(compiler, node);

@@ -181,6 +181,7 @@ Node *parse_constant(Parser *parser) {
     if (parser->lex->type == TOK_STR) return parse_string(parser);
     else if (parser->lex->type == TOK_INT64) return parse_integer(parser);
     else if (parser->lex->type == TOK_FLOAT64) return parse_float(parser);
+    else if (parser->lex->type == TOK_BOOL) return parse_boolean(parser);
     puts("ParsingError: Invalid exdpresion.");
     exit(EXIT_FAILURE);
 }
@@ -193,15 +194,21 @@ Node *parse_float(Parser *parser) {
 
 Node *parse_integer(Parser *parser) {
     //printf("integer. type: %s, value: %s\n", YASL_TOKEN_NAMES[parser->lex->type], parser->lex->value);
-    Node* cur_node = new_Integer(parser->lex->value, parser->lex->val_len);
+    Node *cur_node = new_Integer(parser->lex->value, parser->lex->val_len);
     gettok(parser->lex);
     //printf("integer. type: %s, value: %s\n", YASL_TOKEN_NAMES[parser->lex->type], parser->lex->value);
     return cur_node;
 }
 
+Node *parse_boolean(Parser *parser) {
+    Node *cur_node = new_Boolean(parser->lex->value, parser->lex->val_len);
+    gettok(parser->lex);
+    return cur_node;
+}
+
 Node *parse_string(Parser *parser) {
     //gettok(parser->lex);
-    Node* cur_node = new_String(parser->lex->value, parser->lex->val_len);
+    Node *cur_node = new_String(parser->lex->value, parser->lex->val_len);
     gettok(parser->lex);
     return cur_node;
 }

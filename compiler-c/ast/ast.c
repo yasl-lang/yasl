@@ -75,6 +75,16 @@ Node *new_Integer(char *value, int len) {
     return node;
 }
 
+Node *new_Boolean(char *value, int len) {
+    Node *node = malloc(sizeof(Node));
+    node->nodetype = NODE_BOOL;
+    node->type = TOK_BOOL;
+    node->children = NULL;
+    node->name = malloc(sizeof(char)*(node->name_len = len));
+    memcpy(node->name, value, node->name_len);
+    return node;
+}
+
 Node *new_String(char* value, int len) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = NODE_STR;
@@ -115,6 +125,11 @@ void del_Integer(Node *node) {
     free(node);
 }
 
+void del_Boolean(Node *node) {
+    free(node->name);
+    free(node);
+}
+
 void del_String(Node *node) {
     free(node->name);
     free(node);
@@ -136,6 +151,9 @@ void node_del(Node *node) {
         break;
     case NODE_INT64:
         del_Integer(node);
+        break;
+    case NODE_BOOL:
+        del_Boolean(node);
         break;
     case NODE_STR:
         del_String(node);

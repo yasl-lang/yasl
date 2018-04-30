@@ -12,6 +12,7 @@ typedef enum {
     NODE_UNOP,
     NODE_FLOAT64,
     NODE_INT64,
+    NODE_BOOL,
     NODE_STR,
 } AST;
 
