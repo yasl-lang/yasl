@@ -306,6 +306,7 @@ Token YASLToken_TwoChars(char c1, char c2) {
 
 Token YASLToken_OneChar(char c1) {
     switch(c1) {
+        case ';': return TOK_SEMI;
         case '(': return TOK_LPAR;
         case ')': return TOK_RPAR;
         case '[': return TOK_LSQB;

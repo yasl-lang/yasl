@@ -82,14 +82,6 @@ class Index(AST):
         self.left = left
         self.right = right
         self.value = left.value
-class Undef(AST):
-    def __init__(self, token):
-        self.token = token
-        self.value = token.value
-class Boolean(AST):
-    def __init__(self, token):
-        self.token = token
-        self.value = token.value
 class FunctionDecl(AST):
     def __init__(self, token, params, block):
         self.token = token
@@ -105,12 +97,6 @@ class Return(AST):
     def __init__(self, token, expr):
         self.token = token
         self.expr = expr
-'''
-class FuncCall(AST):
-    def __init__(self, token, params):
-        self.token = token
-        self.value = token.value
-        self.params = params'''
 class Decl(AST):
     def __init__(self, left, right):
         self.left = left
