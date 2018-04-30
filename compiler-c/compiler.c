@@ -41,7 +41,7 @@ void compile(Compiler *compiler) {
             if (peof(compiler->parser)) break;
             node = parse(compiler->parser);
             //puts("parsed");
-            printf("compiler->header->count is %d\n", compiler->header->count);
+            //printf("compiler->header->count is %d\n", compiler->header->count);
             visit(compiler, node);
             //puts("visited");
             //printf("compiler->header->count is %d\n", compiler->header->count);
@@ -55,7 +55,7 @@ void compile(Compiler *compiler) {
             //puts("deleted node");
     }
     //puts("ready to calculate header");
-    printf("compiler->header->count is %d\n", compiler->header->count);
+    //printf("compiler->header->count is %d\n", compiler->header->count);
     //memcpy(compiler->header->bytes, &compiler->header->count, sizeof(int64_t));
     //puts("calculated header");
     int i = 0;
@@ -101,6 +101,28 @@ void visit_BinOp(Compiler *compiler, Node *node) {
             visit(compiler, node->children[1]);
             bb_add_byte(compiler->buffer, BAND);
             break;
+        case TOK_DEQ:
+            visit(compiler, node->children[0]);
+            visit(compiler, node->children[1]);
+            bb_add_byte(compiler->buffer, EQ);
+            break;
+        case TOK_TEQ:
+            visit(compiler, node->children[0]);
+            visit(compiler, node->children[1]);
+            bb_add_byte(compiler->buffer, ID);
+            break;
+        case TOK_BANGEQ:
+            visit(compiler, node->children[0]);
+            visit(compiler, node->children[1]);
+            bb_add_byte(compiler->buffer, EQ);
+            bb_add_byte(compiler->buffer, NOT);
+            break;
+        case TOK_BANGDEQ:
+            visit(compiler, node->children[0]);
+            visit(compiler, node->children[1]);
+            bb_add_byte(compiler->buffer, ID);
+            bb_add_byte(compiler->buffer, NOT);
+            break;
         default:
             puts("error in visit_BinOp");
             exit(EXIT_FAILURE);
@@ -114,7 +136,7 @@ void visit_String(Compiler* compiler, Node *node) {
     bb_intbytes8(compiler->buffer, node->name_len);
     bb_intbytes8(compiler->buffer, compiler->header->count);
     bb_append(compiler->header, node->name, node->name_len);
-    printf("compiler->header->count is %d\n", compiler->header->count);
+    //printf("compiler->header->count is %d\n", compiler->header->count);
 }
 
 void visit_Integer(Compiler *compiler, Node *node) {
