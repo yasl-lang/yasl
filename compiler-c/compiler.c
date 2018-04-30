@@ -14,6 +14,7 @@ Compiler *compiler_new(Parser* parser) {
     compiler->buffer = bb_new(16);
     compiler->header = bb_new(16);
     compiler->header->count = 16;
+    //printf("compiler->header->count is %d\n", compiler->header->count);
     compiler->code   = bb_new(16);
     return compiler;
 };
@@ -39,12 +40,24 @@ void compile(Compiler *compiler) {
             gettok(compiler->parser->lex);
             if (peof(compiler->parser)) break;
             node = parse(compiler->parser);
+            //puts("parsed");
+            printf("compiler->header->count is %d\n", compiler->header->count);
             visit(compiler, node);
+            //puts("visited");
+            //printf("compiler->header->count is %d\n", compiler->header->count);
             bb_append(compiler->code, compiler->buffer->bytes, compiler->buffer->count);
+            //puts("appended");
+            //printf("compiler->header->count is %d\n", compiler->header->count);
             compiler->buffer->count = 0;
+            //printf("compiler->header->count is %d\n", compiler->header->count);
             node_del(node);
+            //printf("compiler->header->count is %d\n", compiler->header->count);
+            //puts("deleted node");
     }
-    memcpy(compiler->header->bytes, &compiler->header->count, sizeof(int64_t));
+    //puts("ready to calculate header");
+    printf("compiler->header->count is %d\n", compiler->header->count);
+    //memcpy(compiler->header->bytes, &compiler->header->count, sizeof(int64_t));
+    //puts("calculated header");
     int i = 0;
     for (i = 0; i < compiler->header->count; i++) {
         printf("%02x\n", compiler->header->bytes[i]);// && 0xFF);
@@ -63,21 +76,49 @@ void compile(Compiler *compiler) {
 }
 
 void visit_Print(Compiler* compiler, Node *node) {
+    //printf("compiler->header->count is %d\n", compiler->header->count);
     visit(compiler, node->children[0]);
     char print_bytes[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};      // TODO: lookup in table
     bb_add_byte(compiler->buffer, BCALL_8);
     bb_append(compiler->buffer, print_bytes, 8);
 }
 
+void visit_BinOp(Compiler *compiler, Node *node) {
+    //printf("compiler->header->count is %d\n", compiler->header->count);
+    switch(node->type) {
+        case TOK_BAR:
+            visit(compiler, node->children[0]);
+            visit(compiler, node->children[1]);
+            bb_add_byte(compiler->buffer, BOR);
+            break;
+        case TOK_TILDE:
+            visit(compiler, node->children[0]);
+            visit(compiler, node->children[1]);
+            bb_add_byte(compiler->buffer, BXOR);
+            break;
+        case TOK_AMP:
+            visit(compiler, node->children[0]);
+            visit(compiler, node->children[1]);
+            bb_add_byte(compiler->buffer, BAND);
+            break;
+        default:
+            puts("error in visit_BinOp");
+            exit(EXIT_FAILURE);
+    }
+}
+
 void visit_String(Compiler* compiler, Node *node) {
+    //printf("compiler->header->count is %d\n", compiler->header->count);
     // TODO: store string we've already seen.
     bb_add_byte(compiler->buffer, NEWSTR8);
     bb_intbytes8(compiler->buffer, node->name_len);
     bb_intbytes8(compiler->buffer, compiler->header->count);
     bb_append(compiler->header, node->name, node->name_len);
+    printf("compiler->header->count is %d\n", compiler->header->count);
 }
 
 void visit_Integer(Compiler *compiler, Node *node) {
+    //printf("compiler->header->count is %d\n", compiler->header->count);
     bb_add_byte(compiler->buffer, ICONST);
     switch(node->name[1]) {
         case 'x':
@@ -96,9 +137,13 @@ void visit_Integer(Compiler *compiler, Node *node) {
 }
 
 void visit(Compiler* compiler, Node* node) {
+    //printf("compiler->header->count is %d\n", compiler->header->count);
     switch(node->nodetype) {
     case NODE_PRINT:
         visit_Print(compiler, node);
+        break;
+    case NODE_BINOP:
+        visit_BinOp(compiler, node);
         break;
     case NODE_INT64:
         visit_Integer(compiler, node);
