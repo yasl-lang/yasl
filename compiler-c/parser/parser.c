@@ -155,7 +155,7 @@ Node *parse_multiply(Parser *parser) {
         else:
             return self.exponentiation()*/
 Node *parse_unary(Parser *parser) {
-    puts("made it here");
+    //puts("made it here");
     if (parser->lex->type == TOK_PLUS || parser->lex->type == TOK_MINUS ||parser->lex->type == TOK_BANG ||
      parser->lex->type == TOK_TILDE ||parser->lex->type == TOK_HASH) {
         Token op = parser->lex->type;
@@ -182,8 +182,15 @@ Node *parse_constant(Parser *parser) {
     else if (parser->lex->type == TOK_INT64) return parse_integer(parser);
     else if (parser->lex->type == TOK_FLOAT64) return parse_float(parser);
     else if (parser->lex->type == TOK_BOOL) return parse_boolean(parser);
+    else if (parser->lex->type == TOK_UNDEF) return parse_undef(parser);
     puts("ParsingError: Invalid exdpresion.");
     exit(EXIT_FAILURE);
+}
+
+Node *parse_undef(Parser *parser) {
+    Node *cur_node = new_Undef();
+    gettok(parser->lex);
+    return cur_node;
 }
 
 Node *parse_float(Parser *parser) {

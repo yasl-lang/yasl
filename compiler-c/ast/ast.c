@@ -53,7 +53,16 @@ Node *new_UnOp(Token op, Node *child) {
     node->children[0] = child;
     node->name = NULL;
     return node;
-};
+}
+
+Node *new_Undef(void) {
+    Node *node = malloc(sizeof(Node));
+    node->nodetype = NODE_UNDEF;
+    node->type = TOK_UNDEF;
+    node->children = NULL;
+    node->name = NULL;
+    return node;
+}
 
 Node *new_Float(char *value, int len) {
     Node *node = malloc(sizeof(Node));
@@ -114,6 +123,9 @@ void del_UnOp(Node *node) {
     free(node);
 }
 
+void del_Undef(Node *node) {
+    free(node);
+}
 // void del_TriOp(Node *node);
 void del_Float(Node *node) {
     free(node->name);
@@ -145,6 +157,9 @@ void node_del(Node *node) {
         break;
     case NODE_UNOP:
         del_UnOp(node);
+        break;
+    case NODE_UNDEF:
+        del_Undef(node);
         break;
     case NODE_FLOAT64:
         del_Float(node);

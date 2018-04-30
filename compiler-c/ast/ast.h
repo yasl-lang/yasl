@@ -10,6 +10,7 @@ typedef enum {
     NODE_TRIOP,
     NODE_BINOP,
     NODE_UNOP,
+    NODE_UNDEF,
     NODE_FLOAT64,
     NODE_INT64,
     NODE_BOOL,
@@ -40,6 +41,7 @@ Node *new_String(char *value, int len);
 void del_Print(Node *node);
 void del_TriOp(Node *node);
 void del_BinOp(Node *node);
+void del_Undef(Node *node);
 void del_Float(Node *node);
 void del_String(Node *node);
 void del_Integer(Node *node);
