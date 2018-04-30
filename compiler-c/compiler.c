@@ -86,6 +86,9 @@ void visit_Integer(Compiler *compiler, Node *node) {
         case 'b':
             bb_intbytes8(compiler->buffer, (int64_t)strtoll(node->name+2, (char**)NULL, 2));
             break;
+        case 'o':
+            bb_intbytes8(compiler->buffer, (int64_t)strtoll(node->name+2, (char**)NULL, 8));
+            break;
         default:
             bb_intbytes8(compiler->buffer, (int64_t)strtoll(node->name, (char**)NULL, 10));
             break;

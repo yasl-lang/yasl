@@ -72,7 +72,7 @@ void gettok(Lexer *lex) {
             lex->type = TOK_INT64;
             if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
             return;
-        } else if (c1 == '0' && c2 == 'b'){         // binary literal
+        } else if (c1 == '0' && c2 == 'b') {         // binary literal
             lex->value[i++] = '0';
             lex->value[i++] = 'b';
             c1 = fgetc(lex->file);
@@ -84,6 +84,21 @@ void gettok(Lexer *lex) {
                     lex->value = realloc(lex->value, lex->val_len);
                 }
             } while (!feof(lex->file) && isbdigit(c1));    // isbdigit checks if a binary digit ('1' or '0').
+            lex->type = TOK_INT64;
+            if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
+            return;
+        } else if (c1 == '0' && c2 == 'o') {         // binary literal
+            lex->value[i++] = '0';
+            lex->value[i++] = 'o';
+            c1 = fgetc(lex->file);
+            do {
+                lex->value[i++] = c1;
+                c1 = fgetc(lex->file);
+                if (i == lex->val_len) {
+                    lex->val_len *= 2;
+                    lex->value = realloc(lex->value, lex->val_len);
+                }
+            } while (!feof(lex->file) && isodigit(c1));    // isodigit checks if an octal digit.
             lex->type = TOK_INT64;
             if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
             return;

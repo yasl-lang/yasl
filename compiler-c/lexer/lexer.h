@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #define  isbdigit(x) (x == '0' || x == '1')
+#define  isodigit(x) (isdigit(x) && x != '8' && x != '9')
 // #define EATWHITESPACE() while (lastchar == ' ' || lastchar == '\t') { lastchar = getchar(); }
 
 typedef struct {
