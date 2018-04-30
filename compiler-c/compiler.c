@@ -162,6 +162,30 @@ void visit_BinOp(Compiler *compiler, Node *node) {
     }
 }
 
+void visit_UnOp(Compiler *compiler, Node *node) {
+    visit(compiler, node->children[0]);
+    switch(node->type) {
+        case TOK_PLUS:
+            bb_add_byte(compiler->buffer, NOP);
+            break;
+        case TOK_MINUS:
+            bb_add_byte(compiler->buffer, NEG);
+            break;
+        case TOK_BANG:
+            bb_add_byte(compiler->buffer, NOT);
+            break;
+        case TOK_TILDE:
+            bb_add_byte(compiler->buffer, BNOT);
+            break;
+        case TOK_HASH:
+            bb_add_byte(compiler->buffer, LEN);
+            break;
+        default:
+            puts("error in visit_BinOp");
+            exit(EXIT_FAILURE);
+    }
+}
+
 void visit_String(Compiler* compiler, Node *node) {
     //printf("compiler->header->count is %d\n", compiler->header->count);
     // TODO: store string we've already seen.
@@ -204,6 +228,9 @@ void visit(Compiler* compiler, Node* node) {
         break;
     case NODE_BINOP:
         visit_BinOp(compiler, node);
+        break;
+    case NODE_UNOP:
+        visit_UnOp(compiler, node);
         break;
     case NODE_INT64:
         visit_Integer(compiler, node);

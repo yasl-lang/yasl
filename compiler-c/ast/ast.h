@@ -28,6 +28,7 @@ typedef struct Node_s Node;
 Node *new_Print(Node *child);
 Node *new_TriOp(Token op, Node *left, Node *middle, Node *right);
 Node *new_BinOp(Token op, Node *left, Node *right);
+Node *new_UnOp(Token op, Node *child);
 Node *new_Undef(void);
 Node *new_Float(char *value, int len);
 Node *new_Integer(char *value, int len);

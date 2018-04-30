@@ -87,6 +87,13 @@ void del_BinOp(Node *node) {
     free(node->children);
     free(node);
 }
+
+void del_UnOp(Node *node) {
+    node_del(node->children[0]);
+    free(node->children);
+    free(node);
+}
+
 // void del_TriOp(Node *node);
 void del_Integer(Node *node) {
     free(node->name);
@@ -105,6 +112,9 @@ void node_del(Node *node) {
         break;
     case NODE_BINOP:
         del_BinOp(node);
+        break;
+    case NODE_UNOP:
+        del_UnOp(node);
         break;
     case NODE_INT64:
         del_Integer(node);

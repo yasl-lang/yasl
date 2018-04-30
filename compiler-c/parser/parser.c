@@ -148,9 +148,22 @@ Node *parse_multiply(Parser *parser) {
     }
     return cur_node;
 }
-
+/*
+        if self.current_token.type is TokenTypes.OP and self.current_token.value in ("-", "+", "!", "#", "~"):
+            op = self.eat(TokenTypes.OP)
+            return UnOp(op, self.unop())
+        else:
+            return self.exponentiation()*/
 Node *parse_unary(Parser *parser) {
-    return parse_power(parser);
+    puts("made it here");
+    if (parser->lex->type == TOK_PLUS || parser->lex->type == TOK_MINUS ||parser->lex->type == TOK_BANG ||
+     parser->lex->type == TOK_TILDE ||parser->lex->type == TOK_HASH) {
+        Token op = parser->lex->type;
+        gettok(parser->lex);
+        return new_UnOp(op, parse_unary(parser));
+    } else {
+        return parse_power(parser);
+    }
 }
 
 Node *parse_power(Parser *parser) {
@@ -159,7 +172,7 @@ Node *parse_power(Parser *parser) {
         Token op = parser->lex->type;
         gettok(parser->lex);
         return new_BinOp(op, cur_node, parse_power(parser));
-    } 
+    }
     return cur_node;
 }
 
