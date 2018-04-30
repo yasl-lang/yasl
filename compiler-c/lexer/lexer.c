@@ -10,7 +10,13 @@ void gettok(Lexer *lex) {
     c1 = fgetc(lex->file);
 
     while (!feof(lex->file) && (c1 == ' ' || c1 == '\n' || c1 == '\t')) {
-        if (c1 == '\n') lex->line++;
+        if (c1 == '\n') {
+            lex->line++;
+            if (ispotentialend(lex)) {
+                lex->type = TOK_SEMI;
+                return;
+            }
+        }
         c1 = fgetc(lex->file);
     }
 
@@ -25,15 +31,21 @@ void gettok(Lexer *lex) {
         if (c1 == '$') {
             while (!feof(lex->file) && fgetc(lex->file) != '\n') {}
         } else if (c1 == '*') {
+            int addsemi = 0;
             c1 = fgetc(lex->file);
             c2 = fgetc(lex->file);
             while (!feof(lex->file) && (c1 != '*' || c2 != '$')) {
+                if (c1 == '\n' || c2 == '\n') addsemi = 1;
                 c1 = c2;
                 c2 = fgetc(lex->file);
             }
             if (feof(lex->file)) {
                 puts("LexingError: unclosed block comment.");
                 exit(EXIT_FAILURE);
+            }
+            if (addsemi && ispotentialend(lex)) {
+                lex->type = TOK_SEMI;
+                return;
             }
         } else {
             fseek(lex->file, -2, SEEK_CUR);
@@ -42,7 +54,13 @@ void gettok(Lexer *lex) {
     }
 
     while (!feof(lex->file) && (c1 == ' ' || c1 == '\n' || c1 == '\t')) {
-        if (c1 == '\n') lex->line++;
+        if (c1 == '\n') {
+            lex->line++;
+            if (ispotentialend(lex)) {
+                lex->type = TOK_SEMI;
+                return;
+            }
+        }
         c1 = fgetc(lex->file);
     }
 

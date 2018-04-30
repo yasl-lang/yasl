@@ -8,7 +8,16 @@
 #include <string.h>
 #define  isbdigit(x) (x == '0' || x == '1')
 #define  isodigit(x) (isdigit(x) && x != '8' && x != '9')
-// #define EATWHITESPACE() while (lastchar == ' ' || lastchar == '\t') { lastchar = getchar(); }
+#define  ispotentialend(l) (l->type == TOK_ID || l->type == TOK_STR || \
+            l->type == TOK_INT64 || l->type == TOK_FLOAT64 || l->type == TOK_BREAK || \
+            l->type == TOK_CONT || l->type == TOK_RPAR || l->type == TOK_RSQB || \
+            l->type == TOK_RBRC)
+/*
+an identifier
+an integer, floating-point, or string literal
+one of the keywords break, or continue
+one of the delimiters ), ], or }
+*/
 
 typedef struct {
     FILE *file;
