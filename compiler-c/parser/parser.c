@@ -114,7 +114,7 @@ Node *parse_concat(Parser *parser) {
             return BinOp(token, curr, self.concat())
         return curr */
     Node *cur_node = parse_bshift(parser);
-    if (parser->lex->type == TOK_DBAR) { // || parser->lex->type == TOK_DLT)
+    if (parser->lex->type == TOK_DBAR || parser->lex->type == TOK_TBAR) {
         Token op = eattok(parser, parser->lex->type);
         return new_BinOp(op, cur_node, parse_concat(parser));
     }

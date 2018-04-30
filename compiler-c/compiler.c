@@ -40,6 +40,7 @@ void compile(Compiler *compiler) {
             gettok(compiler->parser->lex);
             if (peof(compiler->parser)) break;
             node = parse(compiler->parser);
+            eattok(compiler->parser, TOK_SEMI);
             //puts("parsed");
             //printf("compiler->header->count is %d\n", compiler->header->count);
             visit(compiler, node);
@@ -86,6 +87,18 @@ void visit_Print(Compiler* compiler, Node *node) {
 void visit_BinOp(Compiler *compiler, Node *node) {
     //printf("compiler->header->count is %d\n", compiler->header->count);
     // TODO: make sure complicated bin ops are handled on their own.
+    if (node->type = TOK_TBAR) {
+    /* return left + [MCALL_8] + intbytes_8(METHODS["tostr"]) + right + [MCALL_8] + intbytes_8(METHODS["tostr"]) \
+                + [HARD_CNCT] */
+        visit(compiler, node->children[0]);
+        bb_add_byte(compiler->buffer, MCALL_8);
+        bb_intbytes8(compiler->buffer, TOSTR);
+        visit(compiler, node->children[1]);
+        bb_add_byte(compiler->buffer, MCALL_8);
+        bb_intbytes8(compiler->buffer, TOSTR);
+        bb_add_byte(compiler->buffer, HARD_CNCT);
+        return;
+    }
     visit(compiler, node->children[0]);
     visit(compiler, node->children[1]);
     switch(node->type) {
