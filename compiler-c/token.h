@@ -108,6 +108,7 @@ typedef enum {
     TOK_TILDE,
     TOK_STAR,
     TOK_SLASH,
+    TOK_DSLASH,
     TOK_MOD,
     TOK_LT,
     TOK_GT,

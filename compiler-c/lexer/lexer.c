@@ -103,7 +103,7 @@ void gettok(Lexer *lex) {
             if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
             return;
         } else {
-            fseek(lex->file, -1, SEEK_CUR);
+            if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
         }
 
         do {
@@ -115,7 +115,7 @@ void gettok(Lexer *lex) {
             }
         } while (!feof(lex->file) && isdigit(c1));
         lex->type = TOK_INT64;
-
+        //printf("lex->value: %s\n", lex->value);
         if (c1 == '.') {                    // floats
             c2 = fgetc(lex->file);
             if (feof(lex->file)) {
@@ -277,7 +277,10 @@ Token YASLToken_TwoChars(char c1, char c2) {
         case '!': switch(c2) { case '=': return TOK_BANGEQ; default: return UNKNOWN;}
         case '~': switch(c2) { case '=': return TOK_TILDEEQ; default: return UNKNOWN;}
         case '*': switch(c2) { case '=': return TOK_STAREQ; default: return UNKNOWN;}
-        case '/': switch(c2) { case '=': return TOK_SLASHEQ; default: return UNKNOWN; }
+        case '/': switch(c2) {
+                case '=': return TOK_SLASHEQ;
+                case '/': return TOK_DSLASH;
+                default: return UNKNOWN; }
         case '%': switch(c2) { case '=': return TOK_MODEQ; default: return UNKNOWN;}
         case '<': switch(c2) {
                 case '=': return TOK_LTEQ;
@@ -438,6 +441,7 @@ const char *YASL_TOKEN_NAMES[] = {
         "~",            // TILDE,
         "*",            // STAR,
         "/",            // SLASH,
+        "//",           // DSLASH,
         "%",            // MOD,
         "<",            // LT,
         ">",            // GT,

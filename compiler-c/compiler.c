@@ -85,43 +85,76 @@ void visit_Print(Compiler* compiler, Node *node) {
 
 void visit_BinOp(Compiler *compiler, Node *node) {
     //printf("compiler->header->count is %d\n", compiler->header->count);
+    // TODO: make sure complicated bin ops are handled on their own.
+    visit(compiler, node->children[0]);
+    visit(compiler, node->children[1]);
     switch(node->type) {
         case TOK_BAR:
-            visit(compiler, node->children[0]);
-            visit(compiler, node->children[1]);
             bb_add_byte(compiler->buffer, BOR);
             break;
         case TOK_TILDE:
-            visit(compiler, node->children[0]);
-            visit(compiler, node->children[1]);
             bb_add_byte(compiler->buffer, BXOR);
             break;
         case TOK_AMP:
-            visit(compiler, node->children[0]);
-            visit(compiler, node->children[1]);
             bb_add_byte(compiler->buffer, BAND);
             break;
         case TOK_DEQ:
-            visit(compiler, node->children[0]);
-            visit(compiler, node->children[1]);
             bb_add_byte(compiler->buffer, EQ);
             break;
         case TOK_TEQ:
-            visit(compiler, node->children[0]);
-            visit(compiler, node->children[1]);
             bb_add_byte(compiler->buffer, ID);
             break;
         case TOK_BANGEQ:
-            visit(compiler, node->children[0]);
-            visit(compiler, node->children[1]);
             bb_add_byte(compiler->buffer, EQ);
             bb_add_byte(compiler->buffer, NOT);
             break;
         case TOK_BANGDEQ:
-            visit(compiler, node->children[0]);
-            visit(compiler, node->children[1]);
             bb_add_byte(compiler->buffer, ID);
             bb_add_byte(compiler->buffer, NOT);
+            break;
+        case TOK_GT:
+            bb_add_byte(compiler->buffer, GT);
+            break;
+        case TOK_GTEQ:
+            bb_add_byte(compiler->buffer, GE);
+            break;
+        case TOK_LT:
+            bb_add_byte(compiler->buffer, GE);
+            bb_add_byte(compiler->buffer, NOT);
+            break;
+        case TOK_LTEQ:
+            bb_add_byte(compiler->buffer, GT);
+            bb_add_byte(compiler->buffer, NOT);
+            break;
+        case TOK_DBAR:
+            bb_add_byte(compiler->buffer, CNCT);
+            break;
+        case TOK_DGT:
+            bb_add_byte(compiler->buffer, BRSHIFT);
+            break;
+        case TOK_DLT:
+            bb_add_byte(compiler->buffer, BLSHIFT);
+            break;
+        case TOK_PLUS:
+            bb_add_byte(compiler->buffer, ADD);
+            break;
+        case TOK_MINUS:
+            bb_add_byte(compiler->buffer, SUB);
+            break;
+        case TOK_STAR:
+            bb_add_byte(compiler->buffer, MUL);
+            break;
+        case TOK_SLASH:
+            bb_add_byte(compiler->buffer, FDIV);
+            break;
+        case TOK_DSLASH:
+            bb_add_byte(compiler->buffer, IDIV);
+            break;
+        case TOK_MOD:
+            bb_add_byte(compiler->buffer, MOD);
+            break;
+        case TOK_CARET:
+            bb_add_byte(compiler->buffer, EXP);
             break;
         default:
             puts("error in visit_BinOp");
@@ -142,6 +175,11 @@ void visit_String(Compiler* compiler, Node *node) {
 void visit_Integer(Compiler *compiler, Node *node) {
     //printf("compiler->header->count is %d\n", compiler->header->count);
     bb_add_byte(compiler->buffer, ICONST);
+    //printf("number is %s\n", node->name);
+    if (node->name_len < 2) {
+        bb_intbytes8(compiler->buffer, (int64_t)strtoll(node->name, (char**)NULL, 10));
+        return;
+    }
     switch(node->name[1]) {
         case 'x':
             bb_intbytes8(compiler->buffer, (int64_t)strtoll(node->name+2, (char**)NULL, 16));

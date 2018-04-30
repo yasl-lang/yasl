@@ -89,18 +89,70 @@ Node *parse_equals(Parser *parser) {
 }
 
 Node *parse_comparator(Parser *parser) {
+    Node *cur_node = parse_concat(parser);
+    while (parser->lex->type == TOK_LT || parser->lex->type == TOK_GT||
+            parser->lex->type == TOK_GTEQ || parser->lex->type == TOK_LTEQ) {
+        Token op = parser->lex->type;
+        gettok(parser->lex);
+        //printf("equals. type: %s, value: %s\n", YASL_TOKEN_NAMES[parser->lex->type], parser->lex->value);
+        cur_node = new_BinOp(op, cur_node, parse_concat(parser));
+    }
+    return cur_node;
+}
+
+Node *parse_concat(Parser *parser) {
+    return parse_bshift(parser);
+}
+
+Node *parse_bshift(Parser *parser) {
+    Node *cur_node = parse_add(parser);
+    while (parser->lex->type == TOK_DGT || parser->lex->type == TOK_DLT) {
+        Token op = parser->lex->type;
+        gettok(parser->lex);
+        //printf("equals. type: %s, value: %s\n", YASL_TOKEN_NAMES[parser->lex->type], parser->lex->value);
+        cur_node = new_BinOp(op, cur_node, parse_add(parser));
+    }
+    return cur_node;
+}
+
+Node *parse_add(Parser *parser) {
+    Node *cur_node = parse_multiply(parser);
+    while (parser->lex->type == TOK_PLUS || parser->lex->type == TOK_MINUS) {
+        Token op = parser->lex->type;
+        gettok(parser->lex);
+        //printf("equals. type: %s, value: %s\n", YASL_TOKEN_NAMES[parser->lex->type], parser->lex->value);
+        cur_node = new_BinOp(op, cur_node, parse_multiply(parser));
+    }
+    return cur_node;
+}
+
+Node *parse_multiply(Parser *parser) {
+    Node *cur_node = parse_unary(parser);
+    while (parser->lex->type == TOK_STAR || parser->lex->type == TOK_SLASH ||
+            parser->lex->type == TOK_DSLASH || parser->lex->type == TOK_MOD) {
+        Token op = parser->lex->type;
+        gettok(parser->lex);
+        //printf("equals. type: %s, value: %s\n", YASL_TOKEN_NAMES[parser->lex->type], parser->lex->value);
+        cur_node = new_BinOp(op, cur_node, parse_unary(parser));
+    }
+    return cur_node;
+}
+
+Node *parse_unary(Parser *parser) {
+    return parse_power(parser);
+}
+
+Node *parse_power(Parser *parser) {
+    return parse_constant(parser);
+}
+
+Node *parse_constant(Parser *parser) {
     //printf("comparator. type: %s, value: %s\n", YASL_TOKEN_NAMES[parser->lex->type], parser->lex->value);
     if (parser->lex->type == TOK_STR) return parse_string(parser);
     else if (parser->lex->type == TOK_INT64) return parse_integer(parser);
     puts("ParsingError: Invalid exdpresion.");
     exit(EXIT_FAILURE);
 }
-
-Node *parse_concat(Parser *parser);
-Node *parse_add(Parser *parser);
-Node *parse_multiply(Parser *parser);
-Node *parse_unary(Parser *parser);
-Node *parse_power(Parser *parser);
 
 Node *parse_integer(Parser *parser) {
     //printf("integer. type: %s, value: %s\n", YASL_TOKEN_NAMES[parser->lex->type], parser->lex->value);
