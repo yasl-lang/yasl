@@ -56,7 +56,7 @@ void compile(Compiler *compiler) {
     }
     //puts("ready to calculate header");
     //printf("compiler->header->count is %d\n", compiler->header->count);
-    //memcpy(compiler->header->bytes, &compiler->header->count, sizeof(int64_t));
+    memcpy(compiler->header->bytes, &compiler->header->count, sizeof(int64_t));
     //puts("calculated header");
     int i = 0;
     for (i = 0; i < compiler->header->count; i++) {
@@ -212,6 +212,7 @@ void visit(Compiler* compiler, Node* node) {
         visit_String(compiler, node);
         break;
     default:
+        printf("%d\n", node->nodetype);
         puts("unknown node type");
         exit(1);
     }

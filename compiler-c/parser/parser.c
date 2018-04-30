@@ -101,7 +101,18 @@ Node *parse_comparator(Parser *parser) {
 }
 
 Node *parse_concat(Parser *parser) {
-    return parse_bshift(parser);
+    /*curr = self.bit_shift()
+        if self.current_token.value in ("||", "|||"):
+            token = self.eat(TokenTypes.OP)
+            return BinOp(token, curr, self.concat())
+        return curr */
+    Node *cur_node = parse_bshift(parser);
+    if (parser->lex->type == TOK_DBAR) { // || parser->lex->type == TOK_DLT)
+        Token op = parser->lex->type;
+        gettok(parser->lex);
+        return new_BinOp(op, cur_node, parse_concat(parser));
+    }
+    return cur_node;
 }
 
 Node *parse_bshift(Parser *parser) {
@@ -143,7 +154,13 @@ Node *parse_unary(Parser *parser) {
 }
 
 Node *parse_power(Parser *parser) {
-    return parse_constant(parser);
+    Node *cur_node = parse_constant(parser);
+    if (parser->lex->type == TOK_CARET) { // || parser->lex->type == TOK_DLT)
+        Token op = parser->lex->type;
+        gettok(parser->lex);
+        return new_BinOp(op, cur_node, parse_power(parser));
+    } 
+    return cur_node;
 }
 
 Node *parse_constant(Parser *parser) {
@@ -164,5 +181,7 @@ Node *parse_integer(Parser *parser) {
 
 Node *parse_string(Parser *parser) {
     //gettok(parser->lex);
-    return new_String(parser->lex->value, parser->lex->val_len);
+    Node* cur_node = new_String(parser->lex->value, parser->lex->val_len);
+    gettok(parser->lex);
+    return cur_node;
 }
