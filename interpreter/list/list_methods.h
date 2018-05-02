@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include "../VM/VM.h"
 #include "../../opcode.h"
-#include "../constant/constant.h"
+#include "../YASL_Object/YASL_Object.h"
 #include "list.h"
 
 

@@ -4,12 +4,11 @@
 
 Compiler *compiler_new(Parser* parser) {
     Compiler *compiler = malloc(sizeof(Compiler));
-    /*compiler->globals = env_new();
-    compiler->locals = env_new();
-    compiler->header = NULL;
-    compiler->header_len = 0;
-    compiler->code = NULL;
-    compiler->code_len = 0; */
+    compiler->globals = env_new(NULL);
+    compiler->locals = env_new(NULL);
+    env_decl_var(compiler->globals, "stdin", 5);
+    env_decl_var(compiler->globals, "stdout", 6);
+    env_decl_var(compiler->globals, "stderr", 6);
     compiler->parser = parser;
     compiler->buffer = bb_new(16);
     compiler->header = bb_new(16);
@@ -20,10 +19,8 @@ Compiler *compiler_new(Parser* parser) {
 };
 
 void compiler_del(Compiler *compiler) {
-    /*env_del(compiler->globals);
+    env_del(compiler->globals);
     env_del(compiler->locals);
-    free(compiler->header);
-    free(compiler->code); */
     //puts("deleting buffer");
     bb_del(compiler->buffer);
     //puts("deleting header");
@@ -36,11 +33,12 @@ void compiler_del(Compiler *compiler) {
 
 void compile(Compiler *compiler) {
     Node *node;
+    gettok(compiler->parser->lex);
     while (!peof(compiler->parser)) {
-            gettok(compiler->parser->lex);
             if (peof(compiler->parser)) break;
             node = parse(compiler->parser);
             eattok(compiler->parser, TOK_SEMI);
+            printf("eaten semi. type: %s, value: %s\n", YASL_TOKEN_NAMES[compiler->parser->lex->type], compiler->parser->lex->value);
             //puts("parsed");
             //printf("compiler->header->count is %d\n", compiler->header->count);
             visit(compiler, node);

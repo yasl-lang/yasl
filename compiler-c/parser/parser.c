@@ -25,7 +25,7 @@ Node *parse(Parser *parser) {
 }
 
 Node *parse_program(Parser *parser) {
-    printf("parse_program. type: %s, value: %s\n", YASL_TOKEN_NAMES[parser->lex->type], parser->lex->value);
+    printf("parse. type: %s, value: %s\n", YASL_TOKEN_NAMES[parser->lex->type], parser->lex->value);
     if (parser->lex->type == TOK_PRINT) {
         eattok(parser, TOK_PRINT);
         return new_Print(parse_expr(parser));

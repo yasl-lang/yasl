@@ -4,7 +4,7 @@
 #include <string.h>
 #include <math.h>
 #include "list.h"
-#include "../constant/constant.h"
+#include "../YASL_Object/YASL_Object.h"
 #define LS_BASESIZE 4
 
 int isvalueinarray(int64_t val, int64_t *arr, int size){

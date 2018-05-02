@@ -10,7 +10,7 @@
 
 #include "VM/VM.h"
 #include "../opcode.h"
-#include "constant/constant.h"
+#include "YASL_Object/YASL_Object.h"
 #include "builtins/builtins.h"
 #include "../hashtable/hashtable.h"
 #include "vtable/vtable.h"

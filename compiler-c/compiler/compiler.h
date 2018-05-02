@@ -6,6 +6,7 @@
 #include "../bytebuffer/bytebuffer.h"
 #include "../../opcode.h"
 #include "../../methods.h"
+#include "../env/env.h"
 
 /*
 class Compiler(NodeVisitor):
@@ -26,13 +27,16 @@ class Compiler(NodeVisitor):
 */
 typedef struct {
     Parser *parser;
-    /*Env *globals; // make sure to declare stdin, stdout, stderr
+    /*
+    Env *globals; // make sure to declare stdin, stdout, stderr
     Env *locals;
     char *header;
     int64_t header_len;
     char *code;
     int64_t code_len;
     */
+    Env_t *globals;
+    Env_t *locals;
     ByteBuffer *buffer;
     ByteBuffer *header;
     ByteBuffer *code;

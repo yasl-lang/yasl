@@ -2,7 +2,7 @@
 
 
 #include "../../prime/prime.h"
-#include "../constant/constant.h"
+#include "../YASL_Object/YASL_Object.h"
 #include <inttypes.h>
 
 typedef struct {

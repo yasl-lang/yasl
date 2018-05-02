@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../prime/prime.h"
-#include "../interpreter/constant/constant.h"
+#include "../interpreter/YASL_Object/YASL_Object.h"
 #include "../interpreter/list/list.h"
 #include <inttypes.h>
 

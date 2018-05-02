@@ -4,7 +4,7 @@
 #include <string.h>
 #include "../VM/VM.h"
 #include "../../opcode.h"
-#include "../constant/constant.h"
+#include "../YASL_Object/YASL_Object.h"
 #include "../list/list.h"
 
 int str___get(VM *vm);

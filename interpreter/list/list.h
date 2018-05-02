@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../constant/constant.h"
+#include "../YASL_Object/YASL_Object.h"
 #include "../../hashtable/hashtable.h"
 #define LEN(v) (*((int64_t*)v.value))
 

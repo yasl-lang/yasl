@@ -2,7 +2,7 @@
 
 //#include "builtins/builtins.h"
 #include "../vtable/vtable.h"
-#include "../constant/constant.h"
+#include "../YASL_Object/YASL_Object.h"
 #define STACK_SIZE 256
 #define NUM_TYPES 8                                      // number of builtin types, each needs a vtable
 #define PUSH(vm, v)  (vm->stack[++vm->sp] = v)           // push value onto stack

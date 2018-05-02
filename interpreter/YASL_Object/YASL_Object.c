@@ -1,4 +1,4 @@
-#include "constant.h"
+#include "YASL_Object.h"
 #define DVAL(v)  (*((double*)&v.value))
 #define TRUE_C   ((Constant) {BOOL, 1})
 #define FALSE_C  ((Constant) {BOOL, 0})

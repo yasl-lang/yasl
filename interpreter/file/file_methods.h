@@ -4,7 +4,7 @@
 #include <string.h>
 #include "../VM/VM.h"
 #include "../../opcode.h"
-#include "../constant/constant.h"
+#include "../YASL_Object/YASL_Object.h"
 
 int file_close(VM* vm);
 int file_pclose(VM *vm);
