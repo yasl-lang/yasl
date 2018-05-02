@@ -9,7 +9,7 @@
 #define FALSE_C  ((Constant) {BOOL, 0})
 #define UNDEF_C  ((Constant) {UNDEF, 0})
 
-enum types {
+typedef enum {
     UNDEF   = 0x00,
     FLOAT64 = 0x13,
     INT64   = 0x1B,
@@ -18,10 +18,10 @@ enum types {
     LIST    = 0x44,
     MAP     = 0x48,
     FILEH   = 0x50,
-};
+} YASL_Types;
 
 typedef struct {
-    char type;
+    YASL_Types type;
     int64_t value;
 } Constant;
 

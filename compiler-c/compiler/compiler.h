@@ -1,11 +1,11 @@
 #pragma once
 
 #include <inttypes.h>
-#include "ast/ast.h"
-#include "parser/parser.h"
-#include "bytebuffer.h"
-#include "opcode.h"
-#include "methods.h"
+#include "../ast/ast.h"
+#include "../parser/parser.h"
+#include "../bytebuffer/bytebuffer.h"
+#include "../opcode.h"
+#include "../methods.h"
 
 /*
 class Compiler(NodeVisitor):

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <stdio.h>
-#include "../VM.h"
-#include "../opcode.h"
+#include "../VM/VM.h"
+#include "../../opcode.h"
 #include "../constant/constant.h"
 #include "list.h"
 

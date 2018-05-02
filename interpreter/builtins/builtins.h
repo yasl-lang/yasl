@@ -1,9 +1,9 @@
 #pragma once
 
 #include <stdio.h>
-#include "methods.h"
-#include "../VM.h"
-#include "../opcode.h"
+#include "../../methods.h"
+#include "../VM/VM.h"
+#include "../../opcode.h"
 #include "../constant/constant.h"
 #include "../hashtable/hashtable.h"
 #include "../vtable/vtable.h"

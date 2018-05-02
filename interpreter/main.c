@@ -8,8 +8,8 @@
  ============================================================================
  */
 
-#include "VM.h"
-#include "opcode.h"
+#include "VM/VM.h"
+#include "../opcode.h"
 #include "constant/constant.h"
 #include "builtins/builtins.h"
 #include "hashtable/hashtable.h"

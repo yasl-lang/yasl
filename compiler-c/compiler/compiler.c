@@ -68,7 +68,7 @@ void compile(Compiler *compiler) {
         printf("%02x\n", compiler->code->bytes[i]);// & 0xFF);
     }
     printf("%02x\n", HALT);
-    FILE *fp = fopen("../source.yb", "wb");
+    FILE *fp = fopen("source.yb", "wb");
     if (!fp) exit(EXIT_FAILURE);
     fwrite(compiler->header->bytes, 1, compiler->header->count, fp);
     fwrite(compiler->code->bytes, 1, compiler->code->count, fp);
@@ -87,7 +87,7 @@ void visit_Print(Compiler* compiler, Node *node) {
 void visit_BinOp(Compiler *compiler, Node *node) {
     //printf("compiler->header->count is %d\n", compiler->header->count);
     // TODO: make sure complicated bin ops are handled on their own.
-    if (node->type = TOK_TBAR) {
+    if (node->type == TOK_TBAR) {
     /* return left + [MCALL_8] + intbytes_8(METHODS["tostr"]) + right + [MCALL_8] + intbytes_8(METHODS["tostr"]) \
                 + [HARD_CNCT] */
         visit(compiler, node->children[0]);

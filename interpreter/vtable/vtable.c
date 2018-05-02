@@ -37,7 +37,7 @@ static VTable_t* new_sized_vtable(const int64_t base_size) {
     vt->base_size = base_size;
     vt->size = next_prime(vt->base_size);
     vt->count = 0;
-    vt->items = calloc((size_t)vt->size, sizeof(VTable_t*));
+    vt->items = calloc((size_t)vt->size, sizeof(VItem_t*));
     return vt;
 }
 
@@ -82,13 +82,13 @@ static void vt_resize(VTable_t* vt, const int64_t base_size) {
 }
 
 static void vt_resize_up(VTable_t* vt) {
-    puts("resize up");
+    //puts("resize up");
     const int64_t new_size = vt->base_size * 2;
     vt_resize(vt, new_size);
 }
 
 static void vt_resize_down(VTable_t* vt) {
-    puts("resize down");
+    //puts("resize down");
     const int64_t new_size = vt->base_size / 2;
     vt_resize(vt, new_size);
 }

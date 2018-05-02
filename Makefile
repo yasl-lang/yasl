@@ -1,18 +1,28 @@
 CC=gcc
 CFLAGS=-lm -O3
+COUT=YASLC
 OUT=YASL
-OBJECTS=interpreter/VM.o interpreter/builtins/builtins.o interpreter/float/float64_methods.o interpreter/integer/int64_methods.o interpreter/boolean/bool_methods.o interpreter/YASL_string/str_methods.o interpreter/list/list_methods.o interpreter/hashtable/hash_methods.o interpreter/file/file_methods.o interpreter/constant/constant.o interpreter/hashtable/hashtable.o interpreter/list/list.o interpreter/prime/prime.o interpreter/YASL_string/YASL_string.o interpreter/vtable/vtable.o
+OBJECTS=interpreter/VM/VM.o interpreter/builtins/builtins.o interpreter/float/float64_methods.o interpreter/integer/int64_methods.o interpreter/boolean/bool_methods.o interpreter/YASL_string/str_methods.o interpreter/list/list_methods.o interpreter/hashtable/hash_methods.o interpreter/file/file_methods.o interpreter/constant/constant.o interpreter/hashtable/hashtable.o interpreter/list/list.o interpreter/prime/prime.o interpreter/YASL_string/YASL_string.o interpreter/vtable/vtable.o
+COBJECTS=compiler-c/lexer/lexer.o compiler-c/ast/ast.o compiler-c/parser/parser.o compiler-c/compiler/compiler.o compiler-c/bytebuffer/bytebuffer.o
+
+YASLC: $(COBJECTS)
+	$(CC) $(COBJECTS) compiler-c/main.c $(CFLAGS) -o $(COUT)
 
 YASL: $(OBJECTS)
 	$(CC) $(OBJECTS) interpreter/main.c $(CFLAGS) -o $(OUT)
+
+cleanc:
+	rm $(COUT) $(COBJECTS)
 
 clean:
 	rm $(OUT) $(OBJECTS)
 
 remake: clean YASL
 
-interpreter/VM.o:
-	$(CC) interpreter/VM.c -c -o interpreter/VM.o
+remakec: cleanc YASLC
+
+interpreter/VM/VM.o:
+	$(CC) interpreter/VM/VM.c -c -o interpreter/VM/VM.o
 
 interpreter/builtins/builtins.o:
 	$(CC) interpreter/builtins/builtins.c $(CFLAGS) -c -o interpreter/builtins/builtins.o
