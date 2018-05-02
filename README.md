@@ -2,7 +2,7 @@
 Bytecode Interpreter for Yet Another Scripting Language (YASL). More information can be found on my website, here: https://coffeetableespresso.github.io/yasl.
 
 ## Building Interpreter
-The interpreter can be compiled using the Makefile via the command `make`.
+The interpreter can be compiled using the Makefile via the command `make YASL`.
 The environment can be cleaned of all binaries (object files and YASL) with `make clean`.
 
 ## Compiling to YASL Bytecode
