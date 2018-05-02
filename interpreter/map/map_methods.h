@@ -4,7 +4,7 @@
 #include "../VM/VM.h"
 #include "../../opcode.h"
 #include "../constant/constant.h"
-#include "hashtable.h"
+#include "../../hashtable/hashtable.h"
 #include "../list/list.h"
 
 int map___get(VM *vm);

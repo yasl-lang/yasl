@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../../prime/prime.h"
-#include "../constant/constant.h"
-#include "../list/list.h"
+#include "../prime/prime.h"
+#include "../interpreter/constant/constant.h"
+#include "../interpreter/list/list.h"
 #include <inttypes.h>
 
 #define LEN(v) (*((int64_t*)v.value))

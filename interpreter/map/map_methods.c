@@ -1,4 +1,4 @@
-#include "hash_methods.h"
+#include "map_methods.h"
 
 int map___get(VM *vm) {
     Hash_t* ht = (Hash_t*)POP(vm).value;

@@ -12,7 +12,7 @@
 #include "../opcode.h"
 #include "constant/constant.h"
 #include "builtins/builtins.h"
-#include "hashtable/hashtable.h"
+#include "../hashtable/hashtable.h"
 #include "vtable/vtable.h"
 #include "YASL_string/YASL_string.h"
 

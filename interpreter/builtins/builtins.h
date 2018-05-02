@@ -5,7 +5,7 @@
 #include "../VM/VM.h"
 #include "../../opcode.h"
 #include "../constant/constant.h"
-#include "../hashtable/hashtable.h"
+#include "../../hashtable/hashtable.h"
 #include "../vtable/vtable.h"
 #include "../list/list.h"
 #include "../YASL_string/YASL_string.h"
@@ -13,7 +13,7 @@
 #include "../float/float64_methods.h"
 #include "../integer/int64_methods.h"
 #include "../boolean/bool_methods.h"
-#include "../hashtable/hash_methods.h"
+#include "../map/map_methods.h"
 #include "../file/file_methods.h"
 #include "../list/list_methods.h"
 

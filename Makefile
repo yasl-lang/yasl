@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS=-lm -O3
 COUT=YASLC
 OUT=YASL
-OBJECTS=interpreter/VM/VM.o interpreter/builtins/builtins.o interpreter/float/float64_methods.o interpreter/integer/int64_methods.o interpreter/boolean/bool_methods.o interpreter/YASL_string/str_methods.o interpreter/list/list_methods.o interpreter/hashtable/hash_methods.o interpreter/file/file_methods.o interpreter/constant/constant.o interpreter/hashtable/hashtable.o interpreter/list/list.o prime/prime.o interpreter/YASL_string/YASL_string.o interpreter/vtable/vtable.o
+OBJECTS=interpreter/VM/VM.o interpreter/builtins/builtins.o interpreter/float/float64_methods.o interpreter/integer/int64_methods.o interpreter/boolean/bool_methods.o interpreter/YASL_string/str_methods.o interpreter/list/list_methods.o interpreter/map/map_methods.o interpreter/file/file_methods.o interpreter/constant/constant.o hashtable/hashtable.o interpreter/list/list.o prime/prime.o interpreter/YASL_string/YASL_string.o interpreter/vtable/vtable.o
 COBJECTS=compiler-c/lexer/lexer.o compiler-c/ast/ast.o compiler-c/parser/parser.o compiler-c/compiler/compiler.o compiler-c/bytebuffer/bytebuffer.o
 
 YASLC: $(COBJECTS)
@@ -42,8 +42,8 @@ interpreter/YASL_string/str_methods.o:
 interpreter/list/list_methods.o:
 	$(CC) interpreter/list/list_methods.c $(CFLAGS) -c -o interpreter/list/list_methods.o
 
-interpreter/hashtable/hash_methods.o:
-	$(CC) interpreter/hashtable/hash_methods.c $(CFLAGS) -c -o interpreter/hashtable/hash_methods.o
+interpreter/map/map_methods.o:
+	$(CC) interpreter/map/map_methods.c $(CFLAGS) -c -o interpreter/map/map_methods.o
 
 interpreter/file/file_methods.o:
 	$(CC) interpreter/file/file_methods.c $(CFLAGS) -c -o interpreter/file/file_methods.o
@@ -51,8 +51,8 @@ interpreter/file/file_methods.o:
 interpreter/constant/constant.o:
 	$(CC) interpreter/constant/constant.c $(CFLAGS) -c -o interpreter/constant/constant.o
 
-interpreter/hashtable/hashtable.o:
-	$(CC) interpreter/hashtable/hashtable.c $(CFLAGS) -c -o interpreter/hashtable/hashtable.o
+hashtable/hashtable.o:
+	$(CC) hashtable/hashtable.c $(CFLAGS) -c -o hashtable/hashtable.o
 
 interpreter/list/list.o:
 	$(CC) interpreter/list/list.c $(CFLAGS) -c -o interpreter/list/list.o
