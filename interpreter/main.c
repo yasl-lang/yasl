@@ -593,7 +593,7 @@ void run(VM* vm){
             vm->pc += size;
             break;
         default:
-            printf("ERROR UNKNOWN OPCODE:       %x\n", opcode);
+            printf("ERROR UNKNOWN OPCODE: %x\n", opcode);
             return;
         }
     }
