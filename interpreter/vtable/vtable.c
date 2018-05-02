@@ -1,5 +1,4 @@
 #include "vtable.h"
-#include "../prime/prime.h"
 
 #include <stdlib.h>
 #include <string.h>

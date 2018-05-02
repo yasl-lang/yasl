@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../../prime/prime.h"
 #include "../constant/constant.h"
 #include "../list/list.h"
 #include <inttypes.h>

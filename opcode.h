@@ -32,7 +32,7 @@ enum Opcodes {
     SUB       = 0x61, // subtract two integers
     MUL       = 0x62, // multiply two integers
     EXP       = 0x63, // exponentiation
-    DIV       = 0x64, // divide two integers
+    FDIV      = 0x64, // divide two integers
     IDIV      = 0x65, // divide two ints (return int)
     MOD       = 0x66, // modulo two numbers
     NEG       = 0x67, // negate an integer

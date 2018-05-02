@@ -229,7 +229,7 @@ void run(VM* vm){
             a = vm->stack[vm->sp--];
             BINOP(vm, a, b, SUB, "binary -");
             break;
-        case DIV:    // handled differently because we always convert to float
+        case FDIV:    // handled differently because we always convert to float
             b = vm->stack[vm->sp--];
             a = vm->stack[vm->sp--];
             if (a.type == INT64 && b.type == INT64) {

@@ -1,6 +1,4 @@
 #include "hashtable.h"
-#include "../constant/constant.h"
-#include "../prime/prime.h"
 
 #include <stdlib.h>
 #include <string.h>
