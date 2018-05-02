@@ -55,6 +55,16 @@ Node *new_UnOp(Token op, Node *child) {
     return node;
 }
 
+Node *new_Var(char *name, int64_t name_len) {
+    Node *node = malloc(sizeof(Node));
+    node->nodetype = NODE_VAR;
+    node->type = TOK_ID;
+    node->children = NULL;
+    node->name = malloc(sizeof(char)*(node->name_len = name_len));
+    memcpy(node->name, name, node->name_len);
+    return node;
+};
+
 Node *new_Undef(void) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = NODE_UNDEF;
@@ -123,6 +133,11 @@ void del_UnOp(Node *node) {
     free(node);
 }
 
+void del_Var(Node *node) {
+    free(node->name);
+    free(node);
+}
+
 void del_Undef(Node *node) {
     free(node);
 }
@@ -157,6 +172,9 @@ void node_del(Node *node) {
         break;
     case NODE_UNOP:
         del_UnOp(node);
+        break;
+    case NODE_VAR:
+        del_Var(node);
         break;
     case NODE_UNDEF:
         del_Undef(node);

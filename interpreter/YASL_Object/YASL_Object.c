@@ -128,11 +128,10 @@ int print(Constant v) {
             //printf("str: ");
             ;
             int64_t i;
-            for (i = 0; i < ((String_t*)v.value)->length; i++) { // TODO: fix hardcoded 8
-                //printf("%.*s\n", ((String_t*)v.value)->length, ((String_t*)v.value)->str);
+            for (i = 0; i < ((String_t*)v.value)->length; i++) {
                 printf("%c", ((String_t*)v.value)->str[i]);
             }
-            printf("");
+            //printf("");
             break;
         /* case MAP:
             printf("<hash %" PRIx64 ">", v.value);

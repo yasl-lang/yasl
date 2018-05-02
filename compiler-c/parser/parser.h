@@ -28,6 +28,7 @@ Node *parse_multiply(Parser *parser);
 Node *parse_unary(Parser *parser);
 Node *parse_power(Parser *parser);
 Node *parse_constant(Parser *parser);
+Node *parse_id(Parser *parser);
 Node *parse_undef(Parser *parser);
 Node *parse_float(Parser *parser);
 Node *parse_integer(Parser *parser);

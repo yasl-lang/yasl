@@ -47,14 +47,6 @@ Node *parse_and(Parser *parser) {
     return parse_bor(parser);
 }
 
-/*
-curr = self.logic_and()
-while self.current_token.value == "or":
-    op = self.eat(TokenTypes.LOGIC)
-    curr = LogicOp(op, curr, self.logic_and())
-return curr
-*/
-
 Node *parse_bor(Parser *parser) {
     //printf("bor. type: %s, value: %s\n", YASL_TOKEN_NAMES[parser->lex->type], parser->lex->value);
     Node *cur_node = parse_bxor(parser);
@@ -179,13 +171,38 @@ Node *parse_power(Parser *parser) {
 
 Node *parse_constant(Parser *parser) {
     //printf("comparator. type: %s, value: %s\n", YASL_TOKEN_NAMES[parser->lex->type], parser->lex->value);
-    if (parser->lex->type == TOK_STR) return parse_string(parser);
+    if (parser->lex->type == TOK_ID) return parse_id(parser);
+    else if (parser->lex->type == TOK_STR) return parse_string(parser);
     else if (parser->lex->type == TOK_INT64) return parse_integer(parser);
     else if (parser->lex->type == TOK_FLOAT64) return parse_float(parser);
     else if (parser->lex->type == TOK_BOOL) return parse_boolean(parser);
     else if (parser->lex->type == TOK_UNDEF) return parse_undef(parser);
     puts("ParsingError: Invalid exdpresion.");
     exit(EXIT_FAILURE);
+}
+
+Node *parse_id(Parser *parser) {
+    char *name = malloc(parser->lex->val_len);
+    memcpy(name, parser->lex->value, parser->lex->val_len);
+    int64_t name_len = parser->lex->val_len;
+    //printf("id: %s\n", parser->lex->value);
+    eattok(parser, TOK_ID);
+    if (parser->lex->type == TOK_LPAR) {
+        puts("function call");
+        // TODO: function calls
+    } else if (parser->lex->type == TOK_LSQB) {
+        puts("index");
+        // TODO: indexing
+    } else if (parser->lex->type == TOK_DOT) {
+        puts("member access");
+        // TODO: member access
+    } else {
+        puts("var");
+        Node *cur_node = new_Var(name, name_len);
+        //printf("id: %s\n", name);
+        free(name);  // TODO: freeing this causes segfault.
+        return cur_node;
+    }
 }
 
 Node *parse_undef(Parser *parser) {

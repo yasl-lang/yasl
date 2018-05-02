@@ -38,10 +38,13 @@ void compile(Compiler *compiler) {
             if (peof(compiler->parser)) break;
             node = parse(compiler->parser);
             eattok(compiler->parser, TOK_SEMI);
+            puts("about to print");
             printf("eaten semi. type: %s, value: %s\n", YASL_TOKEN_NAMES[compiler->parser->lex->type], compiler->parser->lex->value);
             //puts("parsed");
             //printf("compiler->header->count is %d\n", compiler->header->count);
+            puts("about to visit");
             visit(compiler, node);
+            puts("visited");
             //puts("visited");
             //printf("compiler->header->count is %d\n", compiler->header->count);
             bb_append(compiler->code, compiler->buffer->bytes, compiler->buffer->count);
@@ -192,9 +195,22 @@ void visit_UnOp(Compiler *compiler, Node *node) {
             bb_add_byte(compiler->buffer, LEN);
             break;
         default:
-            puts("error in visit_BinOp");
+            puts("error in visit_UnOp");
             exit(EXIT_FAILURE);
     }
+}
+
+void visit_Var(Compiler *compiler, Node *node) {
+    printf("%s is global: %d\n", node->name, env_contains(compiler->globals, node->name, node->name_len));
+    printf("%s is local: %d\n", node->name, env_contains(compiler->locals, node->name, node->name_len));
+    if (!env_contains(compiler->globals, node->name, node->name_len) &&
+        !env_contains(compiler->locals, node->name, node->name_len)) {
+        printf("unknown variable: %s\n", node->name);
+    }
+    // TODO: handle case with functions
+    /*return [GLOAD_1, self.globals[node.value]] */
+    bb_add_byte(compiler->buffer, GLOAD_1);
+    bb_intbytes8(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));
 }
 
 void visit_String(Compiler* compiler, Node *node) {
@@ -250,29 +266,43 @@ void visit_Boolean(Compiler *compiler, Node *node) {
 
 void visit(Compiler* compiler, Node* node) {
     //printf("compiler->header->count is %d\n", compiler->header->count);
+    //printf("node type is %x\n", node->nodetype);
+    //puts("about to switch");
     switch(node->nodetype) {
     case NODE_PRINT:
+        puts("Visit Print");
         visit_Print(compiler, node);
         break;
     case NODE_BINOP:
+        puts("Visit BinOp");
         visit_BinOp(compiler, node);
         break;
     case NODE_UNOP:
+        puts("Visit UnOp");
         visit_UnOp(compiler, node);
         break;
+    case NODE_VAR:
+        puts("Visit Var");
+        visit_Var(compiler, node);
+        break;
     case NODE_UNDEF:
+        puts("Visit Undef");
         visit_Undef(compiler, node);
         break;
     case NODE_FLOAT64:
+        puts("Visit Float");
         visit_Float(compiler, node);
         break;
     case NODE_INT64:
+        puts("Visit Integer");
         visit_Integer(compiler, node);
         break;
     case NODE_BOOL:
+        puts("Visit Boolean");
         visit_Boolean(compiler, node);
         break;
     case NODE_STR:
+        puts("Visit String");
         visit_String(compiler, node);
         break;
     default:
