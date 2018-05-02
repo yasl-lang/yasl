@@ -4,6 +4,20 @@
 #define FALSE_C  ((Constant) {BOOL, 0})
 #define UNDEF_C  ((Constant) {UNDEF, 0})
 
+
+// Keep up to date with the YASL_Types
+const char *YASL_TYPE_NAMES[] = {
+    "undef",    //UNDEF,
+    "float64",  //FLOAT64,
+    "int64",    //INT64,
+    "bool",     //BOOL,
+    "str",      //STR8,
+    "list",     //LIST,
+    "map",      //MAP,
+    "file"      //FILEH,
+};
+
+
 Constant isequal(Constant a, Constant b) {
         if (a.type == UNDEF || b.type == UNDEF) {
             return UNDEF_C;

@@ -9,15 +9,16 @@
 #define FALSE_C  ((Constant) {BOOL, 0})
 #define UNDEF_C  ((Constant) {UNDEF, 0})
 
+//Keep up to date with the YASL_TYPE_NAMES
 typedef enum {
-    UNDEF   = 0x00,
-    FLOAT64 = 0x13,
-    INT64   = 0x1B,
-    BOOL    = 0x20,
-    STR8    = 0x32,
-    LIST    = 0x44,
-    MAP     = 0x48,
-    FILEH   = 0x50,
+    UNDEF,
+    FLOAT64,
+    INT64,
+    BOOL,
+    STR8,
+    LIST,
+    MAP,
+    FILEH
 } YASL_Types;
 
 typedef struct {
@@ -32,3 +33,5 @@ typedef struct {
 
 Constant isequal(Constant a, Constant b);
 int print(Constant a);
+
+const char *YASL_TYPE_NAMES[64/8];
