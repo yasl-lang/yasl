@@ -13,7 +13,7 @@ void bb_del(ByteBuffer *bb) {
     free(bb);
 }
 
-void bb_add_byte(ByteBuffer *bb, char byte) {
+void bb_add_byte(ByteBuffer  *bb, char byte) {
     if (bb->size <= bb->count) bb->bytes = realloc(bb->bytes, bb->count*2);
     bb->bytes[bb->count++] = byte;
 };

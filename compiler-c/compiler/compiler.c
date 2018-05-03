@@ -58,7 +58,8 @@ void compile(Compiler *compiler) {
     }
     //puts("ready to calculate header");
     //printf("compiler->header->count is %d\n", compiler->header->count);
-    memcpy(compiler->header->bytes, &compiler->header->count, sizeof(int64_t));
+    bb_rewrite_intbytes8(compiler->header, 0, compiler->header->count);
+    //memcpy(compiler->header->bytes, &compiler->header->count, sizeof(int64_t));
     //puts("calculated header");
     int i = 0;
     for (i = 0; i < compiler->header->count; i++) {
@@ -121,7 +122,18 @@ void visit_Let(Compiler *compiler, Node *node) {
 void visit_BinOp(Compiler *compiler, Node *node) {
     //printf("compiler->header->count is %d\n", compiler->header->count);
     // TODO: make sure complicated bin ops are handled on their own.
-    if (node->type == TOK_TBAR) {
+    if (node->type == TOK_DQMARK) {
+        // return left + [DUP, BRN_8] + intbytes_8(len(right)+1) + [POP] + right
+        visit(compiler, node->children[0]);
+        bb_add_byte(compiler->buffer, DUP);
+        bb_add_byte(compiler->buffer, BRN_8);
+        int64_t index = compiler->buffer->count;
+        bb_intbytes8(compiler->buffer, 0);
+        bb_add_byte(compiler->buffer, POP);
+        visit(compiler, node->children[1]);
+        bb_rewrite_intbytes8(compiler->buffer, index, compiler->buffer->count-index-8);
+        return;
+    } else if (node->type == TOK_TBAR) {
     /* return left + [MCALL_8] + intbytes_8(METHODS["tostr"]) + right + [MCALL_8] + intbytes_8(METHODS["tostr"]) \
                 + [HARD_CNCT] */
         visit(compiler, node->children[0]);

@@ -62,11 +62,15 @@ Node *parse_assign(Parser *parser) {
         // TODO: add indexing case
     }
     return cur_node;
-    return parse_ternary(parser);
 }
 
 Node *parse_ternary(Parser *parser) {
-    return parse_or(parser);
+    Node *cur_node = parse_or(parser);
+    if (parser->lex->type == TOK_DQMARK) {
+        eattok(parser, TOK_DQMARK);
+        return new_BinOp(TOK_DQMARK, cur_node, parse_ternary(parser));
+    }
+    return cur_node;
 }
 
 Node *parse_or(Parser *parser) {
