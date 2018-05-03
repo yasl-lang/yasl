@@ -1,5 +1,17 @@
 #include "bytebuffer.h"
 
+ByteBuffer *bb_new(int64_t size) {
+    ByteBuffer *bb = malloc(sizeof(ByteBuffer));
+    bb->size = size;
+    bb->bytes = malloc(sizeof(char) * bb->size);
+    bb->count = 0;
+    return bb;
+}
+
+void bb_del(ByteBuffer *bb) {
+    free(bb->bytes);
+    free(bb);
+}
 
 void bb_add_byte(ByteBuffer *bb, char byte) {
     if (bb->size <= bb->count) bb->bytes = realloc(bb->bytes, bb->count*2);
@@ -26,15 +38,11 @@ void bb_intbytes8(ByteBuffer *bb, int64_t value) {
     bb->count += sizeof(int64_t);
 }
 
-ByteBuffer *bb_new(int64_t size) {
-    ByteBuffer *bb = malloc(sizeof(ByteBuffer));
-    bb->size = size;
-    bb->bytes = malloc(sizeof(char) * bb->size);
-    bb->count = 0;
-    return bb;
-    }
 
-void bb_del(ByteBuffer *bb) {
-    free(bb->bytes);
-    free(bb);
+void bb_rewrite_intbytes8(ByteBuffer *bb, int64_t index, int64_t value) {
+    if (bb->size < index + sizeof(int64_t)) {
+        puts("Bad rewrite_intbytes8: outside range");
+        exit(EXIT_FAILURE);
+    }
+    memcpy(bb->bytes + index, &value, sizeof(int64_t));
 }
