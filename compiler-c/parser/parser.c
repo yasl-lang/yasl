@@ -29,10 +29,23 @@ Node *parse_program(Parser *parser) {
     if (parser->lex->type == TOK_PRINT) {
         eattok(parser, TOK_PRINT);
         return new_Print(parse_expr(parser));
+    } else if (parser->lex->type == TOK_LET) {
+        return parse_let(parser);
     }
     printf("ParsingError: Unknown sequence starting with %s\n", YASL_TOKEN_NAMES[parser->lex->type]);
     //puts("ParsingError: Unknown sequence.");
     exit(EXIT_FAILURE);
+}
+
+Node *parse_let(Parser *parser) {
+    eattok(parser, TOK_LET);
+    char *name = malloc(parser->lex->val_len);
+    memcpy(name, parser->lex->value, parser->lex->val_len);
+    int64_t name_len = parser->lex->val_len;
+    eattok(parser, TOK_ID);
+    if (parser->lex->type != TOK_EQ) return new_Let(name, name_len, NULL);
+    eattok(parser, TOK_EQ);
+    return new_Let(name, name_len, parse_expr(parser));
 }
 
 Node *parse_expr(Parser *parser) {

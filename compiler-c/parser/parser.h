@@ -13,6 +13,7 @@ void parser_del(Parser *parser);
 
 Node *parse(Parser *parser);
 Node *parse_program(Parser *parser);
+Node *parse_let(Parser *parser);
 Node *parse_expr(Parser *parser);
 Node *parse_or(Parser *parser);
 Node *parse_and(Parser *parser);

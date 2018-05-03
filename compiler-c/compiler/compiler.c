@@ -85,6 +85,34 @@ void visit_Print(Compiler* compiler, Node *node) {
     bb_append(compiler->buffer, print_bytes, 8);
 }
 
+/*
+ *     def visit_Decl(self, node):
+        result = []
+        for i in range(len(node.left)):
+            var = node.left[i]
+            val = node.right[i]
+            if self.current_fn is not None:
+                if var.value not in self.locals.vars:
+                    self.locals[var.value] = len(self.locals.vars) + 1 - self.offset
+                result = result + self.visit(val) + [LSTORE_1, self.locals[var.value]]
+                continue
+            if var.value not in self.globals.vars:
+                self.globals.decl_var(var.value)
+            right = self.visit(val)
+            result = result + right + [GSTORE_1, self.globals[var.value]]
+        return result
+ */
+void visit_Let(Compiler *compiler, Node *node) {
+    if (!env_contains(compiler->globals, node->name, node->name_len)) {
+        env_decl_var(compiler->globals, node->name, node->name_len);
+    }
+    if (node->children != NULL) visit(compiler, node->children[0]);
+    else bb_add_byte(compiler->buffer, NCONST);
+    // TODO: handle locals
+    bb_add_byte(compiler->buffer, GSTORE_1);
+    bb_intbytes8(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));
+}
+
 void visit_BinOp(Compiler *compiler, Node *node) {
     //printf("compiler->header->count is %d\n", compiler->header->count);
     // TODO: make sure complicated bin ops are handled on their own.
@@ -272,6 +300,10 @@ void visit(Compiler* compiler, Node* node) {
     case NODE_PRINT:
         puts("Visit Print");
         visit_Print(compiler, node);
+        break;
+    case NODE_LET:
+        puts("Visit Let");
+        visit_Let(compiler, node);
         break;
     case NODE_BINOP:
         puts("Visit BinOp");

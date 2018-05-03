@@ -7,6 +7,7 @@
 
 typedef enum {
     NODE_PRINT,
+    NODE_LET,
     NODE_TRIOP,
     NODE_BINOP,
     NODE_UNOP,
@@ -30,6 +31,7 @@ struct Node_s {
 typedef struct Node_s Node;
 
 Node *new_Print(Node *child);
+Node *new_Let(char *name, int64_t name_len, Node *child);
 Node *new_TriOp(Token op, Node *left, Node *middle, Node *right);
 Node *new_BinOp(Token op, Node *left, Node *right);
 Node *new_UnOp(Token op, Node *child);
@@ -41,6 +43,7 @@ Node *new_Boolean(char *value, int len);
 Node *new_String(char *value, int len);
 
 void del_Print(Node *node);
+void del_Let(Node *node);
 void del_TriOp(Node *node);
 void del_BinOp(Node *node);
 void del_Undef(Node *node);

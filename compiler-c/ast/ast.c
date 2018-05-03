@@ -20,7 +20,18 @@ Node *new_Print(Node *child) {
     node->children[0] = child;
     node->name = NULL;
     return node;
-};
+}
+
+Node *new_Let(char *name, int64_t name_len, Node *child) {
+    Node *node = malloc(sizeof(Node));
+    node->nodetype = NODE_LET;
+    node->type = TOK_LET;
+    node->children = malloc(sizeof(Node*));
+    node->children[0] = child;
+    node->name = malloc(sizeof(char)*(node->name_len = name_len));
+    memcpy(node->name, name, node->name_len);
+    return node;
+}
 
 Node *new_TriOp(Token op, Node *left, Node *middle, Node *right) {
     Node *node = malloc(sizeof(Node));
@@ -63,7 +74,7 @@ Node *new_Var(char *name, int64_t name_len) {
     node->name = malloc(sizeof(char)*(node->name_len = name_len));
     memcpy(node->name, name, node->name_len);
     return node;
-};
+}
 
 Node *new_Undef(void) {
     Node *node = malloc(sizeof(Node));
@@ -120,6 +131,13 @@ void del_Print(Node *node) {
     free(node);
 }
 
+void del_Let(Node *node) {
+    if (node->children[0] != NULL) node_del(node->children[0]);
+    free(node->children);
+    free(node->name);
+    free(node);
+}
+
 void del_BinOp(Node *node) {
     node_del(node->children[0]);
     node_del(node->children[1]);
@@ -166,6 +184,9 @@ void node_del(Node *node) {
     switch (node->nodetype) {
     case NODE_PRINT:
         del_Print(node);
+        break;
+    case NODE_LET:
+        del_Let(node);
         break;
     case NODE_BINOP:
         del_BinOp(node);
