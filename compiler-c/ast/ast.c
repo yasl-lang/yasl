@@ -75,6 +75,17 @@ Node *new_UnOp(Token op, Node *child) {
     return node;
 }
 
+Node *new_Assign(char *name, int64_t name_len, Node *child) {
+    Node *node = malloc(sizeof(Node));
+    node->nodetype = NODE_ASSIGN;
+    node->type = TOK_ID;
+    node->children = malloc(sizeof(Node*));
+    node->children[0] = child;
+    node->name = malloc(sizeof(char)*(node->name_len = name_len));
+    memcpy(node->name, name, node->name_len);
+    return node;
+}
+
 Node *new_Var(char *name, int64_t name_len) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = NODE_VAR;
@@ -166,6 +177,13 @@ void del_UnOp(Node *node) {
     free(node);
 }
 
+void del_Assign(Node *node) {
+    node_del(node->children[0]);
+    free(node->children);
+    free(node->name);
+    free(node);
+}
+
 void del_Var(Node *node) {
     free(node->name);
     free(node);
@@ -211,6 +229,9 @@ void node_del(Node *node) {
         break;
     case NODE_UNOP:
         del_UnOp(node);
+        break;
+    case NODE_ASSIGN:
+        del_Assign(node);
         break;
     case NODE_VAR:
         del_Var(node);

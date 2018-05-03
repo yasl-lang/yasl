@@ -49,6 +49,23 @@ Node *parse_let(Parser *parser) {
 }
 
 Node *parse_expr(Parser *parser) {
+    return parse_assign(parser);
+}
+
+Node *parse_assign(Parser *parser) {
+    Node *cur_node = parse_ternary(parser);
+    if (parser->lex->type == TOK_EQ) { // || parser->lex->type == TOK_DLT)
+        eattok(parser, TOK_EQ);
+        if (cur_node->nodetype == NODE_VAR) {
+            return new_Assign(cur_node->name, cur_node->name_len, parse_assign(parser));
+        }
+        // TODO: add indexing case
+    }
+    return cur_node;
+    return parse_ternary(parser);
+}
+
+Node *parse_ternary(Parser *parser) {
     return parse_or(parser);
 }
 

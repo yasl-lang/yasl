@@ -12,6 +12,7 @@ typedef enum {
     NODE_TRIOP,
     NODE_BINOP,
     NODE_UNOP,
+    NODE_ASSIGN,
     NODE_VAR,
     NODE_UNDEF,
     NODE_FLOAT64,
@@ -37,6 +38,7 @@ Node *new_Let(char *name, int64_t name_len, Node *child);
 Node *new_TriOp(Token op, Node *left, Node *middle, Node *right);
 Node *new_BinOp(Token op, Node *left, Node *right);
 Node *new_UnOp(Token op, Node *child);
+Node *new_Assign(char *name, int64_t name_len, Node *child);
 Node *new_Var(char *name, int64_t name_len);
 Node *new_Undef(void);
 Node *new_Float(char *value, int len);

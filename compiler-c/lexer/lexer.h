@@ -11,7 +11,7 @@
 #define  ispotentialend(l) (l->type == TOK_ID || l->type == TOK_STR || \
             l->type == TOK_INT64 || l->type == TOK_FLOAT64 || l->type == TOK_BREAK || \
             l->type == TOK_CONT || l->type == TOK_RPAR || l->type == TOK_RSQB || \
-            l->type == TOK_RBRC || l->type == TOK_UNDEF)
+            l->type == TOK_RBRC || l->type == TOK_UNDEF || l->type == TOK_BOOL)
 /*
 an identifier
 an integer, floating-point, or string literal

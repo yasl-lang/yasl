@@ -233,6 +233,18 @@ void visit_UnOp(Compiler *compiler, Node *node) {
     }
 }
 
+void visit_Assign(Compiler *compiler, Node *node) {
+    if (!env_contains(compiler->globals, node->name, node->name_len) &&
+        !env_contains(compiler->locals, node->name, node->name_len)) {
+        printf("unknown variable: %s\n", node->name);
+    }
+    // TODO: handle locals
+    visit(compiler, node->children[0]);
+    bb_add_byte(compiler->buffer, DUP);
+    bb_add_byte(compiler->buffer, GSTORE_1);
+    bb_intbytes8(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));
+}
+
 void visit_Var(Compiler *compiler, Node *node) {
     printf("%s is global: %d\n", node->name, env_contains(compiler->globals, node->name, node->name_len));
     printf("%s is local: %d\n", node->name, env_contains(compiler->locals, node->name, node->name_len));
@@ -321,6 +333,10 @@ void visit(Compiler* compiler, Node* node) {
     case NODE_UNOP:
         puts("Visit UnOp");
         visit_UnOp(compiler, node);
+        break;
+    case NODE_ASSIGN:
+        puts("Visit Assign");
+        visit_Assign(compiler, node);
         break;
     case NODE_VAR:
         puts("Visit Var");
