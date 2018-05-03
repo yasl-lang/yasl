@@ -6,6 +6,7 @@
 #include <string.h>
 
 typedef enum {
+    NODE_EXPRSTMT,
     NODE_PRINT,
     NODE_LET,
     NODE_TRIOP,
@@ -30,6 +31,7 @@ struct Node_s {
 
 typedef struct Node_s Node;
 
+Node *new_ExprStmt(Node *child);
 Node *new_Print(Node *child);
 Node *new_Let(char *name, int64_t name_len, Node *child);
 Node *new_TriOp(Token op, Node *left, Node *middle, Node *right);

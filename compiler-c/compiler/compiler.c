@@ -77,6 +77,11 @@ void compile(Compiler *compiler) {
     fclose(fp);
 }
 
+void visit_ExprStmt(Compiler *compiler, Node *node) {
+    visit(compiler, node->children[0]);
+    bb_add_byte(compiler->buffer, POP);
+}
+
 void visit_Print(Compiler* compiler, Node *node) {
     //printf("compiler->header->count is %d\n", compiler->header->count);
     visit(compiler, node->children[0]);
@@ -297,6 +302,10 @@ void visit(Compiler* compiler, Node* node) {
     //printf("node type is %x\n", node->nodetype);
     //puts("about to switch");
     switch(node->nodetype) {
+    case NODE_EXPRSTMT:
+        puts("Visit ExprStmt");
+        visit_ExprStmt(compiler, node);
+        break;
     case NODE_PRINT:
         puts("Visit Print");
         visit_Print(compiler, node);

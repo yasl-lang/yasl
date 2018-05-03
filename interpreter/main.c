@@ -54,7 +54,7 @@
                                 d = f(DVAL(a), DVAL(b));\
                             }\
                             else {\
-                                printf("ERROR: %s not supported for operands of types %s and %s.\n", str,\
+                                printf("TypeError: %s not supported for operands of types %s and %s.\n", str,\
                                         YASL_TYPE_NAMES[a.type], YASL_TYPE_NAMES[b.type]);\
                                 return;\
                             }\
@@ -73,7 +73,7 @@
                                 c = f(DVAL(a), DVAL(b));\
                             }\
                             else {\
-                                printf("ERROR: %s not supported for operands of types %s and %s.\n", str,\
+                                printf("TypeError: %s not supported for operands of types %s and %s.\n", str,\
                                         YASL_TYPE_NAMES[a.type], YASL_TYPE_NAMES[b.type]);\
                                 return;\
                             }\
@@ -164,7 +164,7 @@ void run(VM* vm){
                 PEEK(vm).value = a.value | b.value;
                 break;
             } else {
-                printf("ERROR: | not supported for operands of types %s and %s.\n",
+                printf("TypeError: | not supported for operands of types %s and %s.\n",
                        YASL_TYPE_NAMES[a.type],
                        YASL_TYPE_NAMES[b.type]);
                 return;
@@ -176,7 +176,7 @@ void run(VM* vm){
                 PEEK(vm).value = a.value ^ b.value;
                 break;
             } else {
-                printf("ERROR: binary ~ not supported for operands of types %s and %s.\n",
+                printf("TypeError: binary ~ not supported for operands of types %s and %s.\n",
                        YASL_TYPE_NAMES[a.type],
                        YASL_TYPE_NAMES[b.type]);
                 return;
@@ -188,7 +188,7 @@ void run(VM* vm){
                 PEEK(vm).value = a.value & b.value;
                 break;
             } else {
-                printf("ERROR: & not supported for operands of types %s and %s.\n",
+                printf("TypeError: & not supported for operands of types %s and %s.\n",
                        YASL_TYPE_NAMES[a.type],
                        YASL_TYPE_NAMES[b.type]);
                 return;
@@ -199,7 +199,7 @@ void run(VM* vm){
                 PEEK(vm).value = ~a.value;
                 break;
             } else {
-                printf("ERROR: unary ~ not supported for operand of type %s.\n",
+                printf("TypeError: unary ~ not supported for operand of type %s.\n",
                        YASL_TYPE_NAMES[a.type]);
                 return;
             }
@@ -210,7 +210,7 @@ void run(VM* vm){
                 PEEK(vm).value = a.value << b.value;
                 break;
             } else {
-                printf("ERROR: << not supported for operands of types %s and %s.\n",
+                printf("TypeError: << not supported for operands of types %s and %s.\n",
                        YASL_TYPE_NAMES[a.type],
                        YASL_TYPE_NAMES[b.type]);
                 return;
@@ -222,7 +222,7 @@ void run(VM* vm){
                 PEEK(vm).value = (uint64_t)a.value >> (uint64_t)b.value;
                 break;
             } else {
-                printf("ERROR: >> not supported for operands of types %s and %s.\n",
+                printf("TypeError: >> not supported for operands of types %s and %s.\n",
                        YASL_TYPE_NAMES[a.type],
                        YASL_TYPE_NAMES[b.type]);
                 return;
@@ -258,7 +258,7 @@ void run(VM* vm){
                 d = DVAL(a) / DVAL(b);
             }
             else {
-                printf("ERROR: / not supported for operands of types %s and %s.\n",
+                printf("TypeError: / not supported for operands of types %s and %s.\n",
                        YASL_TYPE_NAMES[a.type],
                        YASL_TYPE_NAMES[b.type]);
                 return;
@@ -274,7 +274,7 @@ void run(VM* vm){
                 PEEK(vm).value = a.value / b.value;
                 break;
             } else {
-                printf("ERROR: // not supported for operands of types %s and %s.\n",
+                printf("TypeError: // not supported for operands of types %s and %s.\n",
                        YASL_TYPE_NAMES[a.type],
                        YASL_TYPE_NAMES[b.type]);
                 return;
@@ -283,7 +283,7 @@ void run(VM* vm){
             b = vm->stack[vm->sp--];
             a = vm->stack[vm->sp];
             if (a.type != INT64 || b.type != INT64) {
-               printf("ERROR: %% not supported for operands of types %s and %s.\n",
+               printf("TypeError: %% not supported for operands of types %s and %s.\n",
                       YASL_TYPE_NAMES[a.type],
                       YASL_TYPE_NAMES[b.type]);
                return;
@@ -308,7 +308,7 @@ void run(VM* vm){
                 break;
             }
             else {
-                printf("ERROR: unary - not supported for operand of type %s.\n",
+                printf("TypeError: unary - not supported for operand of type %s.\n",
                        YASL_TYPE_NAMES[a.type]);
                 return;
             }
@@ -322,7 +322,7 @@ void run(VM* vm){
                 break;
             }
             else {
-                printf("ERROR: ! not supported for operand of type %s.\n",
+                printf("TypeError: ! not supported for operand of type %s.\n",
                        YASL_TYPE_NAMES[a.type]);
                 return;
             }
@@ -335,7 +335,7 @@ void run(VM* vm){
             } else if (v.type == LIST) {
                 vm->stack[vm->sp].value = ((List_t*)v.value)->count;
             } else {
-                printf("ERROR: # not supported for operand of type %s.\n",
+                printf("TypeError: # not supported for operand of type %s.\n",
                        YASL_TYPE_NAMES[v.type]);
                 return;
             }
@@ -353,7 +353,7 @@ void run(VM* vm){
                 memcpy(((String_t*)ptr)->str + ((String_t*)a.value)->length, ((String_t*)b.value)->str, ((String_t*)b.value)->length);
                 break;
             }
-            printf("ERROR: || not supported for operands of types %s and %s.\n",
+            printf("TypeError: || not supported for operands of types %s and %s.\n",
                    YASL_TYPE_NAMES[a.type],
                    YASL_TYPE_NAMES[b.type]);
             return;
@@ -382,7 +382,7 @@ void run(VM* vm){
             a = POP(vm);
             if ((a.type != INT64 && a.type != FLOAT64) ||
                 (b.type != INT64 && b.type != FLOAT64)) {
-                printf("ERROR: < and > not supported for operand of types %s and %s.\n",
+                printf("TypeError: < and > not supported for operand of types %s and %s.\n",
                        YASL_TYPE_NAMES[a.type],
                        YASL_TYPE_NAMES[b.type]);
                 return;
@@ -394,7 +394,7 @@ void run(VM* vm){
             a = POP(vm);
             if ((a.type != INT64 && a.type != FLOAT64) ||
                 (b.type != INT64 && b.type != FLOAT64)) {
-                printf("ERROR: <= and >= not supported for operand of types %s and %s.\n",
+                printf("TypeError: <= and >= not supported for operand of types %s and %s.\n",
                        YASL_TYPE_NAMES[a.type],
                        YASL_TYPE_NAMES[b.type]);
                 return;

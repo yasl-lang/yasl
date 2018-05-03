@@ -31,8 +31,8 @@ Node *parse_program(Parser *parser) {
         return new_Print(parse_expr(parser));
     } else if (parser->lex->type == TOK_LET) {
         return parse_let(parser);
-    }
-    printf("ParsingError: Unknown sequence starting with %s\n", YASL_TOKEN_NAMES[parser->lex->type]);
+    } else return new_ExprStmt(parse_expr(parser));
+    //printf("ParsingError: Unknown sequence starting with %s\n", YASL_TOKEN_NAMES[parser->lex->type]);
     //puts("ParsingError: Unknown sequence.");
     exit(EXIT_FAILURE);
 }

@@ -12,6 +12,15 @@
  * }
  */
 
+Node *new_ExprStmt(Node *child) {
+    Node *node = malloc(sizeof(Node));
+    node->nodetype = NODE_EXPRSTMT;
+    node->children = malloc(sizeof(Node*));
+    node->children[0] = child;
+    node->name = NULL;
+    return node;
+}
+
 Node *new_Print(Node *child) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = NODE_PRINT;
@@ -125,6 +134,12 @@ Node *new_String(char* value, int len) {
     return node;
 }
 
+void del_ExprStmt(Node *node) {
+    node_del(node->children[0]);
+    free(node->children);
+    free(node);
+}
+
 void del_Print(Node *node) {
     node_del(node->children[0]);
     free(node->children);
@@ -182,6 +197,9 @@ void del_String(Node *node) {
 void node_del(Node *node) {
     if (node == NULL) return;
     switch (node->nodetype) {
+    case NODE_EXPRSTMT:
+        del_ExprStmt(node);
+        break;
     case NODE_PRINT:
         del_Print(node);
         break;
