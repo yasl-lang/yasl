@@ -74,15 +74,24 @@ Node *parse_ternary(Parser *parser) {
 }
 
 Node *parse_or(Parser *parser) {
-    return parse_and(parser);
+    Node *cur_node = parse_and(parser);
+    while (parser->lex->type == TOK_OR) {
+        eattok(parser, TOK_OR);
+        cur_node = new_BinOp(TOK_OR, cur_node, parse_and(parser));
+    }
+    return cur_node;
 }
 
 Node *parse_and(Parser *parser) {
-    return parse_bor(parser);
+    Node *cur_node = parse_bor(parser);
+    while (parser->lex->type == TOK_AND) {
+        eattok(parser, TOK_AND);
+        cur_node = new_BinOp(TOK_AND, cur_node, parse_bor(parser));
+    }
+    return cur_node;
 }
 
 Node *parse_bor(Parser *parser) {
-    //printf("bor. type: %s, value: %s\n", YASL_TOKEN_NAMES[parser->lex->type], parser->lex->value);
     Node *cur_node = parse_bxor(parser);
     while (parser->lex->type == TOK_BAR) {
         eattok(parser, TOK_BAR);

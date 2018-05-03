@@ -133,17 +133,37 @@ void visit_BinOp(Compiler *compiler, Node *node) {
         visit(compiler, node->children[1]);
         bb_rewrite_intbytes8(compiler->buffer, index, compiler->buffer->count-index-8);
         return;
-    } else if (node->type == TOK_TBAR) {
-    /* return left + [MCALL_8] + intbytes_8(METHODS["tostr"]) + right + [MCALL_8] + intbytes_8(METHODS["tostr"]) \
-                + [HARD_CNCT] */
+    } else if (node->type == TOK_OR) {
         visit(compiler, node->children[0]);
-        bb_add_byte(compiler->buffer, MCALL_8);
-        bb_intbytes8(compiler->buffer, TOSTR);
+        bb_add_byte(compiler->buffer, DUP);
+        bb_add_byte(compiler->buffer, BRT_8);
+        int64_t index = compiler->buffer->count;
+        bb_intbytes8(compiler->buffer, 0);
+        bb_add_byte(compiler->buffer, POP);
         visit(compiler, node->children[1]);
-        bb_add_byte(compiler->buffer, MCALL_8);
-        bb_intbytes8(compiler->buffer, TOSTR);
-        bb_add_byte(compiler->buffer, HARD_CNCT);
+        bb_rewrite_intbytes8(compiler->buffer, index, compiler->buffer->count-index-8);
         return;
+    } else if (node->type == TOK_AND) {
+        visit(compiler, node->children[0]);
+        bb_add_byte(compiler->buffer, DUP);
+        bb_add_byte(compiler->buffer, BRF_8);
+        int64_t index = compiler->buffer->count;
+        bb_intbytes8(compiler->buffer, 0);
+        bb_add_byte(compiler->buffer, POP);
+        visit(compiler, node->children[1]);
+        bb_rewrite_intbytes8(compiler->buffer, index, compiler->buffer->count-index-8);
+        return;
+    } else if (node->type == TOK_TBAR) {
+            /* return left + [MCALL_8] + intbytes_8(METHODS["tostr"]) + right + [MCALL_8] + intbytes_8(METHODS["tostr"]) \
+                + [HARD_CNCT] */
+            visit(compiler, node->children[0]);
+            bb_add_byte(compiler->buffer, MCALL_8);
+            bb_intbytes8(compiler->buffer, TOSTR);
+            visit(compiler, node->children[1]);
+            bb_add_byte(compiler->buffer, MCALL_8);
+            bb_intbytes8(compiler->buffer, TOSTR);
+            bb_add_byte(compiler->buffer, HARD_CNCT);
+            return;
     }
     visit(compiler, node->children[0]);
     visit(compiler, node->children[1]);
