@@ -42,7 +42,7 @@ void bb_intbytes8(ByteBuffer *bb, int64_t value) {
 
 void bb_rewrite_intbytes8(ByteBuffer *bb, int64_t index, int64_t value) {
     if (bb->size < index + sizeof(int64_t)) {
-        printf("size: %d, index: %d, sizeof(int64_t): %d, index + sizeof(int64_t): %d\n", bb->size, index, sizeof(int64_t), index+ sizeof(int64_t));
+        //printf("size: %d, index: %d, sizeof(int64_t): %d, index + sizeof(int64_t): %d\n", bb->size, index, sizeof(int64_t), index+ sizeof(int64_t));
         puts("Bad rewrite_intbytes8: outside range");
         exit(EXIT_FAILURE);
     }

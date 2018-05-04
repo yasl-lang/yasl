@@ -69,6 +69,12 @@ Node *parse_ternary(Parser *parser) {
     if (parser->lex->type == TOK_DQMARK) {
         eattok(parser, TOK_DQMARK);
         return new_BinOp(TOK_DQMARK, cur_node, parse_ternary(parser));
+    } else if (parser->lex->type == TOK_QMARK) {
+        eattok(parser, TOK_QMARK);
+        Node *left = parse_ternary(parser);
+        eattok(parser, TOK_COLON);
+        Node *right = parse_ternary(parser);
+        return new_TriOp(TOK_QMARK, cur_node, left, right);
     }
     return cur_node;
 }

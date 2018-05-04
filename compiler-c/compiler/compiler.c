@@ -119,6 +119,26 @@ void visit_Let(Compiler *compiler, Node *node) {
     bb_intbytes8(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));
 }
 
+void visit_TriOp(Compiler *compiler, Node *node) {
+    /*cond = self.visit(node.cond)
+    left = self.visit(node.left)
+    right = self.visit(node.right)
+    left = left + [BR_8] + intbytes_8(len(right))
+    return cond + [BRF_8] + intbytes_8(len(left)) + left + right */
+    visit(compiler, node->children[0]);
+    bb_add_byte(compiler->buffer, BRF_8);
+    int64_t index_l = compiler->buffer->count;
+    bb_intbytes8(compiler->buffer, 0);
+    visit(compiler, node->children[1]);
+    bb_add_byte(compiler->buffer, BR_8);
+    int64_t index_r = compiler->buffer->count;
+    bb_intbytes8(compiler->buffer, 0);
+    bb_rewrite_intbytes8(compiler->buffer, index_l, compiler->buffer->count-index_l-8);
+    visit(compiler, node->children[2]);
+    bb_rewrite_intbytes8(compiler->buffer, index_r, compiler->buffer->count-index_r-8);
+    return;
+}
+
 void visit_BinOp(Compiler *compiler, Node *node) {
     //printf("compiler->header->count is %d\n", compiler->header->count);
     // TODO: make sure complicated bin ops are handled on their own.
@@ -357,6 +377,10 @@ void visit(Compiler* compiler, Node* node) {
     case NODE_LET:
         puts("Visit Let");
         visit_Let(compiler, node);
+        break;
+    case NODE_TRIOP:
+        puts("Visit TriOp");
+        visit_TriOp(compiler, node);
         break;
     case NODE_BINOP:
         puts("Visit BinOp");

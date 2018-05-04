@@ -164,6 +164,15 @@ void del_Let(Node *node) {
     free(node);
 }
 
+
+void del_TriOp(Node *node) {
+    node_del(node->children[0]);
+    node_del(node->children[1]);
+    node_del(node->children[2]);
+    free(node->children);
+    free(node);
+}
+
 void del_BinOp(Node *node) {
     node_del(node->children[0]);
     node_del(node->children[1]);
@@ -223,6 +232,9 @@ void node_del(Node *node) {
         break;
     case NODE_LET:
         del_Let(node);
+        break;
+    case NODE_TRIOP:
+        del_TriOp(node);
         break;
     case NODE_BINOP:
         del_BinOp(node);
