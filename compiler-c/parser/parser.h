@@ -3,6 +3,14 @@
 #include "../lexer/lexer.h"
 #include "../ast/ast.h"
 #define peof(parser) (parser->lex->type == TOK_EOF)
+#define isaugmented(t) (t == TOK_CARETEQ || t == TOK_STAREQ || t == TOK_SLASHEQ || t == TOK_DSLASHEQ ||\
+            t == TOK_MOD || t == TOK_PLUSEQ || t == TOK_MINUSEQ || t == TOK_DGTEQ || t == TOK_DLTEQ || \
+            t == TOK_DBAREQ || t == TOK_TBAREQ || t == TOK_AMPEQ || t == TOK_TILDEEQ || t == TOK_BAREQ || \
+            t == TOK_DQMARKEQ)
+// ^=, *=, /=, //=,
+// %=, +=, -=, >>=, <<=,
+// ||=, |||=, &=, ~=, |=,
+// ?\?=
 
 typedef struct {
     Lexer *lex;

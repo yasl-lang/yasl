@@ -60,6 +60,22 @@ Node *parse_assign(Parser *parser) {
             return new_Assign(cur_node->name, cur_node->name_len, parse_assign(parser));
         }
         // TODO: add indexing case
+    } else if (isaugmented(parser->lex->type)) {
+        Token op = eattok(parser, parser->lex->type) - 1; // relies on enum
+        if (cur_node->nodetype == NODE_VAR) {
+            return new_Assign(cur_node->name, cur_node->name_len, new_BinOp(op, cur_node, parse_assign(parser)));
+        }
+        // TODO: add indexing case
+        /*
+         * elif self.current_token.value in ("^=", "*=", "/=", "//=", "%=", "+=", "-=", ">>=", "<<=", \
+                                          "||=", "|||=", "&=", "~=", "|=", "??="):
+            token = self.eat(TokenTypes.OP)
+            if isinstance(name, Var) or isinstance(name, Index):
+                right = self.expr()
+                return Assign(name, BinOp(Token(TokenTypes.OP, token.value.rstrip("="), token.line), name, right))
+            else:
+                raise Exception("Invalid assignment target.")
+         */
     }
     return cur_node;
 }
