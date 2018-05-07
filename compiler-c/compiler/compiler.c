@@ -9,6 +9,7 @@ Compiler *compiler_new(Parser* parser) {
     env_decl_var(compiler->globals, "stdin", 5);
     env_decl_var(compiler->globals, "stdout", 6);
     env_decl_var(compiler->globals, "stderr", 6);
+    compiler->strings = new_hash();
     compiler->parser = parser;
     compiler->buffer = bb_new(16);
     compiler->header = bb_new(16);
@@ -312,11 +313,26 @@ void visit_Var(Compiler *compiler, Node *node) {
 
 void visit_String(Compiler* compiler, Node *node) {
     //printf("compiler->header->count is %d\n", compiler->header->count);
-    // TODO: store string we've already seen.
+    // TODO: deal with memory leaks introduced here.
+    String_t *string = malloc(sizeof(String_t));
+    string->length = node->name_len;
+    string->str = malloc(string->length);
+    memcpy(string->str, node->name, string->length);
+    Constant key = (Constant) { .value = (int64_t)string, .type = STR8 };
+
+    Constant *value = ht_search(compiler->strings, key);
+    if (value == NULL) {
+        puts("caching");
+        ht_insert(compiler->strings, key, (Constant) { .type = INT64, .value = compiler->header->count});
+        bb_append(compiler->header, node->name, node->name_len);
+    }
+
+    value = ht_search(compiler->strings, key);
+
     bb_add_byte(compiler->buffer, NEWSTR8);
     bb_intbytes8(compiler->buffer, node->name_len);
-    bb_intbytes8(compiler->buffer, compiler->header->count);
-    bb_append(compiler->header, node->name, node->name_len);
+    bb_intbytes8(compiler->buffer, value->value); //compiler->header->count);
+    // bb_append(compiler->header, node->name, node->name_len);
     //printf("compiler->header->count is %d\n", compiler->header->count);
 }
 

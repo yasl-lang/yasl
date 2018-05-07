@@ -28,11 +28,14 @@ struct Node_s {
     int64_t children_len;
     char* name;
     int64_t name_len;
+    int line;
 };
 
 typedef struct Node_s Node;
 
 Node *new_ExprStmt(Node *child);
+Node *new_Block(void);
+//Node *new_While(Node *cond, Node *body);
 Node *new_Print(Node *child);
 Node *new_Let(char *name, int64_t name_len, Node *child);
 Node *new_TriOp(Token op, Node *left, Node *middle, Node *right);
@@ -46,6 +49,8 @@ Node *new_Integer(char *value, int len);
 Node *new_Boolean(char *value, int len);
 Node *new_String(char *value, int len);
 
+void del_Block(Node *node);
+// void del_While(Node *node);
 void del_Print(Node *node);
 void del_Let(Node *node);
 void del_TriOp(Node *node);

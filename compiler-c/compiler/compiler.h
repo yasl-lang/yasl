@@ -37,6 +37,8 @@ typedef struct {
     */
     Env_t *globals;
     Env_t *locals;
+    Hash_t *strings;
+    // Hash_t *functions;
     ByteBuffer *buffer;
     ByteBuffer *header;
     ByteBuffer *code;
