@@ -32,6 +32,27 @@ void compiler_del(Compiler *compiler) {
     free(compiler);
 };
 
+void enter_scope(Compiler *compiler) {
+    /*if self.current_fn is not None:
+    self.locals = Env(self.locals)
+    else:
+    self.globals = Env(self.globals)    */
+    // TODO: deal with locals
+    compiler->globals = env_new(compiler->globals);
+}
+
+void exit_scope(Compiler *compiler) {
+    /*
+     *         if self.current_fn is not None:
+            self.locals = self.locals.parent
+        else:
+            self.globals = self.globals.parent
+     */
+    compiler->globals = compiler->globals->parent;
+    // TODO: deal with locals
+    // TODO: deal with memory leaks
+}
+
 void compile(Compiler *compiler) {
     Node *node;
     gettok(compiler->parser->lex);
@@ -84,6 +105,46 @@ void visit_ExprStmt(Compiler *compiler, Node *node) {
     bb_add_byte(compiler->buffer, POP);
 }
 
+void visit_Block(Compiler *compiler, Node *node) {
+    int i;
+    for (i = 0; i < node->children_len; i++) {
+        visit(compiler, node->children[i]);
+    }
+}
+
+void visit_While(Compiler *compiler, Node *node) {
+    /*
+     *         cond = self.visit(node.cond)
+        self.checkpoints.append(len(self.code))
+        self.checkpoints.append(len(self.code)+len(cond))
+        self.enter_scope()
+        body = []
+        for stmt in node.body:
+            body.extend(self.visit(stmt))
+        self.exit_scope()
+        self.checkpoints.pop()
+        self.checkpoints.pop()
+        cond.extend([BRF_8] + intbytes_8(len(body)+9))
+        body.extend([BR_8] + intbytes_8(-(len(body)+9+len(cond))))
+        return cond + body
+     */
+    int64_t index_start = compiler->code->count;
+    printf("index start = %d\n", index_start);
+    visit(compiler, node->children[0]);
+    bb_add_byte(compiler->buffer, BRF_8);
+    int64_t index_second = compiler->buffer->count;
+    bb_intbytes8(compiler->buffer, 0);
+    // TODO: checkpoints.
+    enter_scope(compiler);
+    visit(compiler, node->children[1]);
+    bb_add_byte(compiler->buffer, GOTO);
+    bb_intbytes8(compiler->buffer, index_start);
+    bb_rewrite_intbytes8(compiler->buffer, index_second, compiler->buffer->count - index_second - 8);
+    exit_scope(compiler);
+    // TODO: checkpoints
+
+}
+
 void visit_Print(Compiler* compiler, Node *node) {
     //printf("compiler->header->count is %d\n", compiler->header->count);
     visit(compiler, node->children[0]);
@@ -117,7 +178,7 @@ void visit_Let(Compiler *compiler, Node *node) {
     else bb_add_byte(compiler->buffer, NCONST);
     // TODO: handle locals
     bb_add_byte(compiler->buffer, GSTORE_1);
-    bb_intbytes8(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));
+    bb_add_byte(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));
 }
 
 void visit_TriOp(Compiler *compiler, Node *node) {
@@ -295,7 +356,7 @@ void visit_Assign(Compiler *compiler, Node *node) {
     visit(compiler, node->children[0]);
     bb_add_byte(compiler->buffer, DUP);
     bb_add_byte(compiler->buffer, GSTORE_1);
-    bb_intbytes8(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));
+    bb_add_byte(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));
 }
 
 void visit_Var(Compiler *compiler, Node *node) {
@@ -308,7 +369,7 @@ void visit_Var(Compiler *compiler, Node *node) {
     // TODO: handle case with functions
     /*return [GLOAD_1, self.globals[node.value]] */
     bb_add_byte(compiler->buffer, GLOAD_1);
-    bb_intbytes8(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));
+    bb_add_byte(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));
 }
 
 void visit_String(Compiler* compiler, Node *node) {
@@ -385,6 +446,14 @@ void visit(Compiler* compiler, Node* node) {
     case NODE_EXPRSTMT:
         puts("Visit ExprStmt");
         visit_ExprStmt(compiler, node);
+        break;
+    case NODE_BLOCK:
+        puts("Visit Block");
+        visit_Block(compiler, node);
+        break;
+    case NODE_WHILE:
+        puts("Visit While");
+        visit_While(compiler, node);
         break;
     case NODE_PRINT:
         puts("Visit Print");

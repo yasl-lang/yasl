@@ -18,10 +18,12 @@ typedef struct {
 
 Parser *parser_new(Lexer *lex);
 void parser_del(Parser *parser);
+Token eattok(Parser *parser, Token token);
 
 Node *parse(Parser *parser);
 Node *parse_program(Parser *parser);
 Node *parse_let(Parser *parser);
+Node *parse_while(Parser *parser);
 Node *parse_expr(Parser *parser);
 Node *parse_assign(Parser *parser);
 Node *parse_ternary(Parser *parser);

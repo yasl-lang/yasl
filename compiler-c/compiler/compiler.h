@@ -52,7 +52,8 @@ typedef struct {
 Compiler *compiler_new(Parser *parser);
 void compiler_del(Compiler *compiler);
 void compile(Compiler *compiler);
-
+void enter_scope(Compiler *compiler);
+void exit_scope(Compiler *compiler);
 
 void visit_Print(Compiler *compiler, Node *node);
 void visit_UnOp(Compiler *compiler, Node *node);

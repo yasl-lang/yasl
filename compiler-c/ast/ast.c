@@ -21,6 +21,30 @@ Node *new_ExprStmt(Node *child) {
     return node;
 }
 
+Node *new_Block(void) {
+    Node *node = malloc(sizeof(Node));
+    node->nodetype = NODE_BLOCK;
+    node->children = NULL;
+    node->children_len = 0;
+    node->name = NULL;
+    return node;
+}
+
+void block_append(Node *node, Node *child) {
+    node->children = realloc(node->children, ++node->children_len);  //TODO: make better implementation
+    node->children[node->children_len-1] = child;
+}
+
+Node *new_While(Node *cond, Node *body) {
+    Node *node = malloc(sizeof(Node));
+    node->nodetype = NODE_WHILE;
+    node->children = malloc(sizeof(Node*)*2);
+    node->children[0] = cond;
+    node->children[1] = body;
+    node->name = NULL;
+    return node;
+}
+
 Node *new_Print(Node *child) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = NODE_PRINT;
@@ -151,6 +175,22 @@ void del_ExprStmt(Node *node) {
     free(node);
 }
 
+void del_Block(Node *node) {
+    int i;
+    for (i = 0; i < node->children_len; i++) {
+        node_del(node->children[i]);
+    }
+    free(node->children);
+    free(node);
+}
+
+void del_While(Node *node) {
+    node_del(node->children[0]);
+    node_del(node->children[1]);
+    free(node->children);
+    free(node);
+}
+
 void del_Print(Node *node) {
     node_del(node->children[0]);
     free(node->children);
@@ -226,6 +266,12 @@ void node_del(Node *node) {
     switch (node->nodetype) {
     case NODE_EXPRSTMT:
         del_ExprStmt(node);
+        break;
+    case NODE_BLOCK:
+        del_Block(node);
+        break;
+    case NODE_WHILE:
+        del_While(node);
         break;
     case NODE_PRINT:
         del_Print(node);

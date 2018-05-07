@@ -31,6 +31,8 @@ Node *parse_program(Parser *parser) {
         return new_Print(parse_expr(parser));
     } else if (parser->lex->type == TOK_LET) {
         return parse_let(parser);
+    } else if (parser->lex->type == TOK_WHILE) {
+        return parse_while(parser);
     } else return new_ExprStmt(parse_expr(parser));
     //printf("ParsingError: Unknown sequence starting with %s\n", YASL_TOKEN_NAMES[parser->lex->type]);
     //puts("ParsingError: Unknown sequence.");
@@ -46,6 +48,34 @@ Node *parse_let(Parser *parser) {
     if (parser->lex->type != TOK_EQ) return new_Let(name, name_len, NULL);
     eattok(parser, TOK_EQ);
     return new_Let(name, name_len, parse_expr(parser));
+}
+
+Node *parse_while(Parser *parser) {
+    /*
+     * token = self.eat(TokenTypes.WHILE)
+     * cond = self.expr()
+     * self.eat(TokenTypes.LBRACE)
+     * body = []
+     * while self.current_token.type is not TokenTypes.RBRACE and self.current_token.type is not TokenTypes.EOF:
+     *     body.append(self.program())
+     *     self.eat(TokenTypes.SEMI)
+     * self.eat(TokenTypes.RBRACE)
+     * return While(token, cond, body)
+     */
+    eattok(parser, TOK_WHILE);
+    Node *cond = parse_expr(parser);
+    eattok(parser, TOK_LBRC);
+    Node *body = new_Block();
+    while (parser->lex->type != TOK_RBRC && parser->lex->type != TOK_EOF) {
+        block_append(body, parse_program(parser));
+        if (parser->lex->type == TOK_SEMI) eattok(parser, TOK_SEMI);
+        else if (parser->lex->type != TOK_RBRC) {
+            puts("expected semicolon/newline or right brace");
+            exit(EXIT_FAILURE);
+        }
+    }
+    eattok(parser, TOK_RBRC);
+    return new_While(cond, body);
 }
 
 Node *parse_expr(Parser *parser) {

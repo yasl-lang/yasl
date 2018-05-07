@@ -95,7 +95,9 @@ void run(VM* vm){
         double d;
         void* ptr;
         /*printf("\nopcode: %x\n", opcode);
+        printf("tpye is: %s\n", YASL_TYPE_NAMES[PEEK(vm).type]);
         print(PEEK(vm));
+
         //print(vm->stack[vm->sp-1]);
         //print(vm->stack[vm->sp-2]);
         //print(vm->stack[vm->sp-3]);
