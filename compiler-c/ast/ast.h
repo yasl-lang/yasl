@@ -9,6 +9,9 @@ typedef enum {
     NODE_EXPRSTMT,
     NODE_BLOCK,
     NODE_WHILE,
+    NODE_BREAK,
+    NODE_CONT,
+    NODE_IF,
     NODE_PRINT,
     NODE_LET,
     NODE_TRIOP,
@@ -40,6 +43,9 @@ void block_append(Node *node, Node *child);
 Node *new_ExprStmt(Node *child);
 Node *new_Block(void);
 Node *new_While(Node *cond, Node *body);
+Node *new_Break(void);
+Node *new_Continue(void);
+Node *new_If(Node *cond, Node *then_node, Node *else_node);
 Node *new_Print(Node *child);
 Node *new_Let(char *name, int64_t name_len, Node *child);
 Node *new_TriOp(Token op, Node *left, Node *middle, Node *right);
@@ -55,6 +61,9 @@ Node *new_String(char *value, int len);
 
 void del_Block(Node *node);
 void del_While(Node *node);
+void del_Break(Node *node);
+void del_Continue(Node *node);
+void del_If(Node *node);
 void del_Print(Node *node);
 void del_Let(Node *node);
 void del_TriOp(Node *node);
@@ -69,11 +78,6 @@ void node_del(Node *node);
 /*
  * class AST(object):
     pass
-class LogicOp(AST):
-    def __init__(self, op, left, right):
-        self.left = left
-        self.right = right
-        self.token = self.op = op
 class Hash(AST):
     def __init__(self, token, keys, vals):
         self.token = token
@@ -115,19 +119,6 @@ class Return(AST):
     def __init__(self, token, expr):
         self.token = token
         self.expr = expr
-class Decl(AST):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
-class Assign(AST):
-    def __init__(self, left, right):
-        self.left = left  # ID
-        self.right = right # val
-class Var(AST):
-    # ID Token is used here
-    def __init__(self, token):
-        self.token = token
-        self.value = token.value
 class If(AST):
     def __init__(self, token, cond, body):
         self.token = token
@@ -139,11 +130,6 @@ class IfElse(AST):
         self.cond = cond
         self.left = left
         self.right = right
-class While(AST):
-    def __init__(self, token, cond, body):
-        self.token = token
-        self.cond = cond
-        self.body = body
 class For(AST):
     def __init__(self, token, var, ls, body):
         self.token = token
@@ -156,12 +142,6 @@ class Break(AST):
 class Continue(AST):
     def __init__(self, token):
         self.token = token
-class Block(AST):
-    def __init__(self, statements):
-        self.statements = statements  # list of ASTs to iterate over
-class ExprStmt(AST):
-    def __init__(self, expr):
-        self.expr = expr
  */
 
 

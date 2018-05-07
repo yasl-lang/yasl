@@ -1,5 +1,6 @@
 #include "compiler.h"
-
+#define break_checkpoint(compiler)    (compiler->checkpoints[compiler->checkpoints_count-1])
+#define continue_checkpoint(compiler) (compiler->checkpoints[compiler->checkpoints_count-2])
 
 
 Compiler *compiler_new(Parser* parser) {
@@ -14,6 +15,9 @@ Compiler *compiler_new(Parser* parser) {
     compiler->buffer = bb_new(16);
     compiler->header = bb_new(16);
     compiler->header->count = 16;
+    compiler->checkpoints_size = 4;
+    compiler->checkpoints = malloc(sizeof(int64_t)*compiler->checkpoints_size);
+    compiler->checkpoints_count = 0;
     //printf("compiler->header->count is %d\n", compiler->header->count);
     compiler->code   = bb_new(16);
     return compiler;
@@ -27,6 +31,7 @@ void compiler_del(Compiler *compiler) {
     //puts("deleting header");
     bb_del(compiler->header);
     //puts("deleting code");
+    free(compiler->checkpoints);
     bb_del(compiler->code);
     parser_del(compiler->parser);
     free(compiler);
@@ -51,6 +56,16 @@ void exit_scope(Compiler *compiler) {
     compiler->globals = compiler->globals->parent;
     // TODO: deal with locals
     // TODO: deal with memory leaks
+}
+
+void add_checkpoint(Compiler *compiler, int64_t cp) {
+    if (compiler->checkpoints_count >= compiler->checkpoints_size)
+        compiler->checkpoints = realloc(compiler->checkpoints, compiler->checkpoints_size *= 2);
+    compiler->checkpoints[compiler->checkpoints_count++] = cp;
+}
+
+void rm_checkpoint(Compiler *compiler) {
+    compiler->checkpoints_count--;
 }
 
 void compile(Compiler *compiler) {
@@ -128,9 +143,11 @@ void visit_While(Compiler *compiler, Node *node) {
         body.extend([BR_8] + intbytes_8(-(len(body)+9+len(cond))))
         return cond + body
      */
-    int64_t index_start = compiler->code->count;
-    printf("index start = %d\n", index_start);
+    int64_t index_start = compiler->code->count + compiler->buffer->count;
+    add_checkpoint(compiler, index_start);
+    // printf("index start = %d\n", index_start);
     visit(compiler, node->children[0]);
+    add_checkpoint(compiler, compiler->code->count + compiler->buffer->count);
     bb_add_byte(compiler->buffer, BRF_8);
     int64_t index_second = compiler->buffer->count;
     bb_intbytes8(compiler->buffer, 0);
@@ -141,8 +158,31 @@ void visit_While(Compiler *compiler, Node *node) {
     bb_intbytes8(compiler->buffer, index_start);
     bb_rewrite_intbytes8(compiler->buffer, index_second, compiler->buffer->count - index_second - 8);
     exit_scope(compiler);
+
+    rm_checkpoint(compiler);
+    rm_checkpoint(compiler);
     // TODO: checkpoints
 
+}
+
+void visit_Break(Compiler *compiler, Node *node) {
+    if (compiler->checkpoints_count == 0) {
+        puts("SyntaxError: break outside of loop.");
+        exit(EXIT_FAILURE);
+    }
+    bb_add_byte(compiler->buffer, BCONST_F);
+    bb_add_byte(compiler->buffer, GOTO);
+    bb_intbytes8(compiler->buffer, break_checkpoint(compiler));
+}
+
+void visit_Continue(Compiler *compiler, Node *node) {
+    if (compiler->checkpoints_count == 0) {
+        puts("SyntaxError: continue outside of loop.");
+        exit(EXIT_FAILURE);
+    }
+    bb_add_byte(compiler->buffer, GOTO);
+    bb_intbytes8(compiler->buffer, continue_checkpoint(compiler));
+    //bb_intbytes8(compiler->buffer, continue_checkpoint(compiler));
 }
 
 void visit_Print(Compiler* compiler, Node *node) {
@@ -454,6 +494,14 @@ void visit(Compiler* compiler, Node* node) {
     case NODE_WHILE:
         puts("Visit While");
         visit_While(compiler, node);
+        break;
+    case NODE_BREAK:
+        puts("Visit Break");
+        visit_Break(compiler, node);
+        break;
+    case NODE_CONT:
+        puts("Visit Continue");
+        visit_Continue(compiler, node);
         break;
     case NODE_PRINT:
         puts("Visit Print");

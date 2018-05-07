@@ -31,7 +31,7 @@ Node *new_Block(void) {
 }
 
 void block_append(Node *node, Node *child) {
-    node->children = realloc(node->children, ++node->children_len);  //TODO: make better implementation
+    node->children = realloc(node->children, (++node->children_len)*sizeof(Node*));  //TODO: make better implementation
     node->children[node->children_len-1] = child;
 }
 
@@ -41,6 +41,29 @@ Node *new_While(Node *cond, Node *body) {
     node->children = malloc(sizeof(Node*)*2);
     node->children[0] = cond;
     node->children[1] = body;
+    node->name = NULL;
+    return node;
+}
+
+Node *new_Break(void) {
+    Node *node = malloc(sizeof(Node));
+    node->nodetype = NODE_BREAK;
+    return node;
+}
+
+Node *new_Continue(void) {
+    Node *node = malloc(sizeof(Node));
+    node->nodetype = NODE_CONT;
+    return node;
+}
+
+Node *new_If(Node *cond, Node *then_node, Node *else_node) {
+    Node *node = malloc(sizeof(Node));
+    node->nodetype = NODE_IF;
+    node->children = malloc(sizeof(Node*)*3);
+    node->children[0] = cond;
+    node->children[1] = then_node;
+    node->children[2] = else_node;
     node->name = NULL;
     return node;
 }
@@ -141,6 +164,7 @@ Node *new_Float(char *value, int len) {
 
 Node *new_Integer(char *value, int len) {
     Node *node = malloc(sizeof(Node));
+    memset(node, 0, sizeof(node));
     node->nodetype = NODE_INT64;
     node->type = TOK_INT64;
     node->children = NULL;
@@ -187,6 +211,22 @@ void del_Block(Node *node) {
 void del_While(Node *node) {
     node_del(node->children[0]);
     node_del(node->children[1]);
+    free(node->children);
+    free(node);
+}
+
+void del_Break(Node *node) {
+    free(node);
+}
+
+void del_Continue(Node *node) {
+    free(node);
+}
+
+void del_If(Node *node) {
+    node_del(node->children[0]);
+    node_del(node->children[1]);
+    node_del(node->children[2]);
     free(node->children);
     free(node);
 }
@@ -272,6 +312,15 @@ void node_del(Node *node) {
         break;
     case NODE_WHILE:
         del_While(node);
+        break;
+    case NODE_BREAK:
+        del_Break(node);
+        break;
+    case NODE_CONT:
+        del_Continue(node);
+        break;
+    case NODE_IF:
+        del_If(node);
         break;
     case NODE_PRINT:
         del_Print(node);

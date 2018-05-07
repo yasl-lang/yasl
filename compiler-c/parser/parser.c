@@ -33,6 +33,18 @@ Node *parse_program(Parser *parser) {
         return parse_let(parser);
     } else if (parser->lex->type == TOK_WHILE) {
         return parse_while(parser);
+    } else if (parser->lex->type == TOK_BREAK) {
+        eattok(parser, TOK_BREAK);
+        return new_Break();
+    } else if (parser->lex->type == TOK_CONT) {
+        eattok(parser, TOK_CONT);
+        return new_Continue();
+    } else if (parser->lex->type == TOK_ELSEIF) {
+        puts("ParsingError: elseif without previous if");
+        exit(EXIT_FAILURE);
+    } else if (parser->lex->type == TOK_ELSE) {
+        puts("ParsingError: else without previous if");
+        exit(EXIT_FAILURE);
     } else return new_ExprStmt(parse_expr(parser));
     //printf("ParsingError: Unknown sequence starting with %s\n", YASL_TOKEN_NAMES[parser->lex->type]);
     //puts("ParsingError: Unknown sequence.");

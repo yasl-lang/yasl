@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-lm -O3
+CFLAGS=-lm -O3 -g
 COUT=YASLC
 OUT=YASL
 OBJECTS=interpreter/VM/VM.o interpreter/builtins/builtins.o interpreter/float/float64_methods.o interpreter/integer/int64_methods.o interpreter/boolean/bool_methods.o interpreter/YASL_string/str_methods.o interpreter/list/list_methods.o interpreter/map/map_methods.o interpreter/file/file_methods.o interpreter/YASL_Object/YASL_Object.o hashtable/hashtable.o interpreter/list/list.o prime/prime.o interpreter/YASL_string/YASL_string.o interpreter/vtable/vtable.o

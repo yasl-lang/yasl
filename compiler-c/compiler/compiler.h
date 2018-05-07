@@ -42,8 +42,10 @@ typedef struct {
     ByteBuffer *buffer;
     ByteBuffer *header;
     ByteBuffer *code;
-    /*int64_t *checkpoints;
-    STable *functions;
+    int64_t *checkpoints;
+    int64_t checkpoints_count;
+    int64_t checkpoints_size;
+    /*STable *functions;
     char *curfn;
     int64_t offset;
     STable *strings; */
