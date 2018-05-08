@@ -185,6 +185,46 @@ void visit_Continue(Compiler *compiler, Node *node) {
     //bb_intbytes8(compiler->buffer, continue_checkpoint(compiler));
 }
 
+void visit_If(Compiler *compiler, Node *node) {
+
+    /* def visit_If(self, node):
+           cond = self.visit(node.cond)
+           # print([hex(r) for r in cond])
+           self.enter_scope()
+           body = self.visit(node.body)
+           self.exit_scope()
+           return cond + [BRF_8] + intbytes_8(len(body)) + body
+       def visit_IfElse(self, node):
+           cond = self.visit(node.cond)
+           self.enter_scope()
+           left = self.visit(node.left)
+           self.exit_scope()
+           self.enter_scope()
+           right = self.visit(node.right)
+           self.exit_scope()
+           left.extend([BR_8] + intbytes_8(len(right)))
+           return cond + [BRF_8] + intbytes_8(len(left)) + left + right
+     */
+    visit(compiler, node->children[0]);
+    bb_add_byte(compiler->buffer, BRF_8);
+    int64_t index_then = compiler->buffer->count;
+    bb_intbytes8(compiler->buffer, 0);
+    //int64_t index_then = compiler->buffer->count;
+    enter_scope(compiler);
+    visit(compiler, node->children[1]);
+    int64_t index_else = 0;
+    if (node->children[2] != NULL) {
+        bb_add_byte(compiler->buffer, BR_8);
+        index_else = compiler->buffer->count;
+        bb_intbytes8(compiler->buffer, 0);
+    }
+    bb_rewrite_intbytes8(compiler->buffer, index_then, compiler->buffer->count-index_then-8);
+    if (node->children[2] != NULL) {
+        visit(compiler, node->children[2]);
+        bb_rewrite_intbytes8(compiler->buffer, index_else, compiler->buffer->count-index_else-8);
+    }
+}
+
 void visit_Print(Compiler* compiler, Node *node) {
     //printf("compiler->header->count is %d\n", compiler->header->count);
     visit(compiler, node->children[0]);
@@ -502,6 +542,10 @@ void visit(Compiler* compiler, Node* node) {
     case NODE_CONT:
         puts("Visit Continue");
         visit_Continue(compiler, node);
+        break;
+    case NODE_IF:
+        puts("Visit If");
+        visit_If(compiler, node);
         break;
     case NODE_PRINT:
         puts("Visit Print");

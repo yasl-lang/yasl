@@ -39,6 +39,8 @@ Node *parse_program(Parser *parser) {
     } else if (parser->lex->type == TOK_CONT) {
         eattok(parser, TOK_CONT);
         return new_Continue();
+    } else if (parser->lex->type == TOK_IF) {
+        return parse_if(parser);
     } else if (parser->lex->type == TOK_ELSEIF) {
         puts("ParsingError: elseif without previous if");
         exit(EXIT_FAILURE);
@@ -88,6 +90,85 @@ Node *parse_while(Parser *parser) {
     }
     eattok(parser, TOK_RBRC);
     return new_While(cond, body);
+}
+
+Node *parse_if(Parser *parser) {
+    /*
+        if self.current_token.type is TokenTypes.IF:
+            token = self.eat(TokenTypes.IF)
+        else:
+            token = self.eat(TokenTypes.ELSEIF)
+        cond = self.expr()
+        self.eat(TokenTypes.LBRACE)
+        body = []
+        while self.current_token.type is not TokenTypes.RBRACE:
+            body.append(self.program())
+            self.eat(TokenTypes.SEMI)
+        self.eat(TokenTypes.RBRACE)
+        if self.current_token.type is not TokenTypes.ELSE and self.current_token.type is not TokenTypes.ELSEIF:
+            return If(token, cond, Block(body))
+        if self.current_token.type is TokenTypes.SEMI:
+            self.eat(TokenTypes.SEMI)
+        if self.current_token.type is TokenTypes.ELSEIF:
+            return IfElse(token, cond, Block(body), self.if_stmt())
+        if self.current_token.type is TokenTypes.ELSE:
+            left = body
+            right = []
+            self.eat(TokenTypes.ELSE)
+            self.eat(TokenTypes.LBRACE)
+            while self.current_token.type is not TokenTypes.RBRACE:
+                right.append(self.program())
+                self.eat(TokenTypes.SEMI)
+            self.eat(TokenTypes.RBRACE)
+            return IfElse(token, cond, Block(left), Block(right))
+        assert False
+     */
+    if (parser->lex->type == TOK_IF) eattok(parser, TOK_IF);
+    else if (parser->lex->type == TOK_ELSEIF) eattok(parser, TOK_ELSEIF);
+    else {
+        printf("ParsingError: Expected if or elseif, got %s\n", YASL_TOKEN_NAMES[parser->lex->type]);
+        exit(EXIT_FAILURE);
+    }
+    Node *cond = parse_expr(parser);
+    eattok(parser, TOK_LBRC);
+    Node *then_block = new_Block();
+    while (parser->lex->type != TOK_RBRC && parser->lex->type != TOK_EOF) {
+        block_append(then_block, parse_program(parser));
+        if (parser->lex->type == TOK_SEMI) eattok(parser, TOK_SEMI);
+        else if (parser->lex->type != TOK_RBRC) {
+            puts("expected semicolon/newline or right brace");
+            exit(EXIT_FAILURE);
+        }
+    }
+    eattok(parser, TOK_RBRC);
+    if (parser->lex->type != TOK_ELSE && parser->lex->type != TOK_ELSEIF) {
+        puts("No Else");
+        return new_If(cond, then_block, NULL);
+    }
+    // TODO: eat semi
+    if (parser->lex->type == TOK_ELSEIF) {
+        puts("ElseIf");
+        return new_If(cond, then_block, parse_if(parser));
+    }
+    if (parser->lex->type == TOK_ELSE) {
+        puts("Else");
+        eattok(parser, TOK_ELSE);
+        eattok(parser, TOK_LBRC);
+        Node *else_block = new_Block();
+        while (parser->lex->type != TOK_RBRC && parser->lex->type != TOK_EOF) {
+            block_append(else_block, parse_program(parser));
+            if (parser->lex->type == TOK_SEMI) eattok(parser, TOK_SEMI);
+            else if (parser->lex->type != TOK_RBRC) {
+                puts("expected semicolon/newline or right brace");
+                exit(EXIT_FAILURE);
+            }
+        }
+        eattok(parser, TOK_RBRC);
+        return new_If(cond, then_block, else_block);
+    }
+    printf("ParsingError: expected newline or semicolon, got %s\n", YASL_TOKEN_NAMES[parser->lex->type]);
+    exit(EXIT_FAILURE);
+
 }
 
 Node *parse_expr(Parser *parser) {
