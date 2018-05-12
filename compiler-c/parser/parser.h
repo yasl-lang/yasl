@@ -48,3 +48,4 @@ Node *parse_float(Parser *parser);
 Node *parse_integer(Parser *parser);
 Node *parse_boolean(Parser *parser);
 Node *parse_string(Parser *parser);
+Node *parse_collection(Parser *parser);

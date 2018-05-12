@@ -26,6 +26,8 @@ typedef struct {
     int64_t value;
 } Constant;
 
+typedef Constant YASL_Object;
+
 typedef struct {
     char type;
     double value;

@@ -24,6 +24,8 @@ typedef enum {
     NODE_INT64,
     NODE_BOOL,
     NODE_STR,
+    NODE_LIST,
+    NODE_MAP
 } AST;
 
 struct Node_s {
@@ -40,8 +42,13 @@ typedef struct Node_s Node;
 
 void block_append(Node *node, Node *child);
 
-Node *new_ExprStmt(Node *child);
-Node *new_Block(void);
+Node *new_Node_0(AST nodetype, Token type, char *name, int64_t name_len, int line);
+Node *new_Node_1(AST nodetype, Token type, Node *child, char *name, int64_t name_len, int line);
+Node *new_Node_2(AST nodetype, Token type, Node *child1, Node *child2, char *name, int64_t name_len, int line);
+Node *new_Node_3(AST nodetype, Token type, Node *child1, Node *child2, Node *child3, char *name, int64_t name_len, int line);
+
+Node *new_ExprStmt(Node *child, int line);
+Node *new_Block(int line);
 Node *new_While(Node *cond, Node *body);
 Node *new_Break(void);
 Node *new_Continue(void);
@@ -58,6 +65,8 @@ Node *new_Float(char *value, int len);
 Node *new_Integer(char *value, int len);
 Node *new_Boolean(char *value, int len);
 Node *new_String(char *value, int len);
+Node *new_List(Node *values);
+Node *new_Map(Node *keys, Node *values);
 
 void del_Block(Node *node);
 void del_While(Node *node);
@@ -70,8 +79,10 @@ void del_TriOp(Node *node);
 void del_BinOp(Node *node);
 void del_Undef(Node *node);
 void del_Float(Node *node);
-void del_String(Node *node);
 void del_Integer(Node *node);
+void del_String(Node *node);
+void del_List(Node *node);
+void del_Map(Node *node);
 void node_del(Node *node);
 
 
@@ -119,29 +130,12 @@ class Return(AST):
     def __init__(self, token, expr):
         self.token = token
         self.expr = expr
-class If(AST):
-    def __init__(self, token, cond, body):
-        self.token = token
-        self.cond = cond
-        self.body = body
-class IfElse(AST):
-    def __init__(self, token, cond, left, right):
-        self.token = token
-        self.cond = cond
-        self.left = left
-        self.right = right
 class For(AST):
     def __init__(self, token, var, ls, body):
         self.token = token
         self.var = var
         self.ls = ls
         self.body = body
-class Break(AST):
-    def __init__(self, token):
-        self.token = token
-class Continue(AST):
-    def __init__(self, token):
-        self.token = token
  */
 
 

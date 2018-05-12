@@ -24,16 +24,31 @@ Compiler *compiler_new(Parser* parser) {
 };
 
 void compiler_del(Compiler *compiler) {
+
+    int i;
+    for (i = 0; i < compiler->strings->size; i++) {
+        Item_t* item = compiler->strings->items[i];
+        if (item != NULL) {
+            del_string8((String_t*)item->key->value);
+            free(item->key);
+            free(item->value);
+            free(item);
+        }
+    }
+    free(compiler->strings->items);
+    free(compiler->strings);
+
     env_del(compiler->globals);
     env_del(compiler->locals);
-    //puts("deleting buffer");
-    bb_del(compiler->buffer);
-    //puts("deleting header");
-    bb_del(compiler->header);
-    //puts("deleting code");
-    free(compiler->checkpoints);
-    bb_del(compiler->code);
+    
     parser_del(compiler->parser);
+
+    bb_del(compiler->buffer);
+    bb_del(compiler->header);
+    bb_del(compiler->code);
+
+    free(compiler->checkpoints);
+
     free(compiler);
 };
 

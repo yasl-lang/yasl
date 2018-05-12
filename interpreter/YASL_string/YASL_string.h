@@ -8,6 +8,8 @@ typedef struct {
     char* str;
 } String_t;
 
+// typedef String_t YASL_str;
+
 String_t* new_sized_string8(const int64_t base_size);
 String_t* new_sized_string8_from_mem(const int64_t base_size, char* str_mem);
 void del_string8(String_t* str8);

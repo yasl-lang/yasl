@@ -47,7 +47,7 @@ Node *parse_program(Parser *parser) {
     } else if (parser->lex->type == TOK_ELSE) {
         puts("ParsingError: else without previous if");
         exit(EXIT_FAILURE);
-    } else return new_ExprStmt(parse_expr(parser));
+    } else return new_ExprStmt(parse_expr(parser), parser->lex->line);
     //printf("ParsingError: Unknown sequence starting with %s\n", YASL_TOKEN_NAMES[parser->lex->type]);
     //puts("ParsingError: Unknown sequence.");
     exit(EXIT_FAILURE);
@@ -79,7 +79,7 @@ Node *parse_while(Parser *parser) {
     eattok(parser, TOK_WHILE);
     Node *cond = parse_expr(parser);
     eattok(parser, TOK_LBRC);
-    Node *body = new_Block();
+    Node *body = new_Block(parser->lex->line);
     while (parser->lex->type != TOK_RBRC && parser->lex->type != TOK_EOF) {
         block_append(body, parse_program(parser));
         if (parser->lex->type == TOK_SEMI) eattok(parser, TOK_SEMI);
@@ -131,7 +131,7 @@ Node *parse_if(Parser *parser) {
     }
     Node *cond = parse_expr(parser);
     eattok(parser, TOK_LBRC);
-    Node *then_block = new_Block();
+    Node *then_block = new_Block(parser->lex->line);
     while (parser->lex->type != TOK_RBRC && parser->lex->type != TOK_EOF) {
         block_append(then_block, parse_program(parser));
         if (parser->lex->type == TOK_SEMI) eattok(parser, TOK_SEMI);
@@ -154,7 +154,7 @@ Node *parse_if(Parser *parser) {
         puts("Else");
         eattok(parser, TOK_ELSE);
         eattok(parser, TOK_LBRC);
-        Node *else_block = new_Block();
+        Node *else_block = new_Block(parser->lex->line);
         while (parser->lex->type != TOK_RBRC && parser->lex->type != TOK_EOF) {
             block_append(else_block, parse_program(parser));
             if (parser->lex->type == TOK_SEMI) eattok(parser, TOK_SEMI);
@@ -180,7 +180,9 @@ Node *parse_assign(Parser *parser) {
     if (parser->lex->type == TOK_EQ) { // || parser->lex->type == TOK_DLT)
         eattok(parser, TOK_EQ);
         if (cur_node->nodetype == NODE_VAR) {
-            return new_Assign(cur_node->name, cur_node->name_len, parse_assign(parser));
+            Node *assign_node = new_Assign(cur_node->name, cur_node->name_len, parse_assign(parser));
+            node_del(cur_node);
+            return assign_node;
         }
         // TODO: add indexing case
     } else if (isaugmented(parser->lex->type)) {
@@ -360,6 +362,7 @@ Node *parse_power(Parser *parser) {
 Node *parse_constant(Parser *parser) {
     //printf("comparator. type: %s, value: %s\n", YASL_TOKEN_NAMES[parser->lex->type], parser->lex->value);
     if (parser->lex->type == TOK_ID) return parse_id(parser);
+    else if (parser->lex->type == TOK_LSQB) return parse_collection(parser);
     else if (parser->lex->type == TOK_STR) return parse_string(parser);
     else if (parser->lex->type == TOK_INT64) return parse_integer(parser);
     else if (parser->lex->type == TOK_FLOAT64) return parse_float(parser);
@@ -388,7 +391,7 @@ Node *parse_id(Parser *parser) {
         puts("var");
         Node *cur_node = new_Var(name, name_len);
         //printf("id: %s\n", name);
-        free(name);  // TODO: freeing this causes segfault.
+        free(name);
         return cur_node;
     }
 }
@@ -423,4 +426,56 @@ Node *parse_string(Parser *parser) {
     Node *cur_node = new_String(parser->lex->value, parser->lex->val_len);
     eattok(parser, TOK_STR);
     return cur_node;
+}
+
+// parse list and map literals
+Node *parse_collection(Parser *parser) {
+    /*
+    elif self.current_token.type is TokenTypes.LBRACK:
+        ls = self.eat(TokenTypes.LBRACK)
+        keys = []
+        vals = []
+        if self.current_token.type is TokenTypes.RARROW:
+            self.eat(TokenTypes.RARROW)
+            self.eat(TokenTypes.RBRACK)
+            return Hash(ls, keys, vals)
+        if self.current_token.type is not TokenTypes.RBRACK:
+            keys.append(self.expr())
+            if self.current_token.type is TokenTypes.RARROW:
+                self.eat(TokenTypes.RARROW)
+                vals.append(self.expr())
+                while self.current_token.type is TokenTypes.COMMA and self.current_token.type is not TokenTypes.EOF:
+                    self.eat(TokenTypes.COMMA)
+                    keys.append(self.expr())
+                    self.eat(TokenTypes.RARROW)
+                    vals.append(self.expr())
+                self.eat(TokenTypes.RBRACK)
+                return Hash(ls, keys, vals)
+            else:
+                while self.current_token.type is TokenTypes.COMMA and self.current_token.type is not TokenTypes.EOF:
+                    self.eat(TokenTypes.COMMA)
+                    keys.append(self.expr())
+                self.eat(TokenTypes.RBRACK)
+                return List(ls, keys)
+        self.eat(TokenTypes.RBRACK)
+        return List(ls, keys)
+    */
+    eattok(parser, TOK_LSQB);
+    Node *keys = new_Block(parser->lex->line);
+    Node *vals = new_Block(parser->lex->line); // free if we have list.
+
+    if (parser->lex->type == TOK_RARR) {
+        eattok(parser, TOK_RARR);
+        eattok(parser, TOK_RSQB);
+        return new_Map(keys, vals);
+    }
+
+    if (parser->lex->type == TOK_RSQB) {
+        node_del(vals);
+        eattok(parser, TOK_RSQB);
+        return new_List(keys);
+    }
+
+    // TODO: handle non-emtpy case
+
 }

@@ -90,7 +90,7 @@ void run(VM* vm){
         uint64_t big_offset, size;
         int64_t addr;
         int i;
-        Constant a, b, v;
+        YASL_Object a, b, v;
         int64_t c;
         double d;
         void* ptr;
@@ -143,12 +143,12 @@ void run(VM* vm){
         case DCONST:        // constants have native endianness
             memcpy(&c, vm->code + vm->pc, sizeof c);
             vm->pc += sizeof c;
-            PUSH(vm, ((Constant) {FLOAT64, c}));
+            PUSH(vm, ((YASL_Object) {FLOAT64, c}));
             break;
         case ICONST:        // constants have native endianness
             memcpy(&c, vm->code + vm->pc, sizeof c);
             vm->pc += sizeof c;
-            PUSH(vm, ((Constant) {INT64, c}));
+            PUSH(vm, ((YASL_Object) {INT64, c}));
             break;
         case BCONST_F:
         case BCONST_T:
@@ -496,8 +496,8 @@ void run(VM* vm){
             offset = NCODE(vm);
             memcpy(&addr, vm->code + vm->pc, sizeof addr);
             vm->pc += sizeof addr;
-            PUSH(vm, ((Constant) {offset, vm->fp}));  // store previous frame ptr;
-            PUSH(vm, ((Constant) {offset, vm->pc}));  // store pc addr
+            PUSH(vm, ((YASL_Object) {offset, vm->fp}));  // store previous frame ptr;
+            PUSH(vm, ((YASL_Object) {offset, vm->pc}));  // store pc addr
             vm->fp = vm->sp;
             offset = NCODE(vm);
             vm->sp += offset + 1; // + 2

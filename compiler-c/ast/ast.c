@@ -12,16 +12,76 @@
  * }
  */
 
-Node *new_ExprStmt(Node *child) {
+Node *new_Node_0(AST nodetype, Token type, char *name, int64_t name_len, int line) {
     Node *node = malloc(sizeof(Node));
-    node->nodetype = NODE_EXPRSTMT;
-    node->children = malloc(sizeof(Node*));
-    node->children[0] = child;
-    node->name = NULL;
+    node->nodetype = nodetype;
+    node->type = type;
+    node->children = NULL;
+    node->name_len = name_len;
+    if (name == NULL) node->name = NULL;
+    else memcpy(node->name, name, node->name_len);
+    node->line = line;
     return node;
 }
 
-Node *new_Block(void) {
+Node *new_Node_1(AST nodetype, Token type, Node *child, char *name, int64_t name_len, int line) {
+    Node *node = malloc(sizeof(Node));
+    node->nodetype = nodetype;
+    node->type = type;
+    node->children = malloc(sizeof(Node*));
+    node->children[0] = child;
+    node->name_len = name_len;
+    if (name == NULL) node->name = NULL;
+    else memcpy(node->name, name, node->name_len);
+    node->line = line;
+    return node;
+}
+
+Node *new_Node_2(AST nodetype, Token type, Node *child1, Node *child2, char *name, int64_t name_len, int line) {
+    Node *node = malloc(sizeof(Node));
+    node->nodetype = nodetype;
+    node->type = type;
+    node->children = malloc(sizeof(Node*));
+    node->children[0] = child1;
+    node->children[1] = child2;
+    node->name_len = name_len;
+    if (name == NULL) node->name = NULL;
+    else memcpy(node->name, name, node->name_len);
+    node->line = line;
+    return node;
+}
+
+Node *new_Node_3(AST nodetype, Token type, Node *child1, Node *child2, Node *child3, char *name, int64_t name_len, int line) {
+    Node *node = malloc(sizeof(Node));
+    node->nodetype = nodetype;
+    node->type = type;
+    node->children = malloc(sizeof(Node*));
+    node->children[0] = child1;
+    node->children[1] = child2;
+    node->children[2] = child3;
+    node->name_len = name_len;
+    if (name == NULL) node->name = NULL;
+    else memcpy(node->name, name, node->name_len);
+    node->line = line;
+    return node;
+}
+
+
+Node *new_ExprStmt(Node *child, int line) {
+    Node *node = malloc(sizeof(Node));
+    node->nodetype = NODE_EXPRSTMT;
+    node->type = UNKNOWN;
+    node->children = malloc(sizeof(Node*));
+    node->children[0] = child;
+    node->name_len = 0;
+    node->name = NULL;
+    node->line = line;
+    return node;
+    //return new_Node_1(NODE_EXPRSTMT, UNKNOWN, child, NULL, 0, line);
+}
+
+Node *new_Block(int line) {
+    //return new_Node_0(NODE_BLOCK, UNKNOWN, NULL, 0, line);
     Node *node = malloc(sizeof(Node));
     node->nodetype = NODE_BLOCK;
     node->children = NULL;
@@ -193,6 +253,25 @@ Node *new_String(char* value, int len) {
     return node;
 }
 
+Node *new_List(Node *values) {
+    Node *node = malloc(sizeof(Node));
+    node->nodetype = NODE_LIST;
+    node->children = malloc(sizeof(Node*));
+    node->children[0] = values;
+    node->name = NULL;
+    return node;
+}
+
+Node *new_Map(Node *keys, Node *values) {
+    Node *node = malloc(sizeof(Node));
+    node->nodetype = NODE_MAP;
+    node->children = malloc(sizeof(Node*)*2);
+    node->children[0] = keys;
+    node->children[1] = values;
+    node->name = NULL;
+    return node;
+}
+
 void del_ExprStmt(Node *node) {
     node_del(node->children[0]);
     free(node->children);
@@ -301,6 +380,18 @@ void del_String(Node *node) {
     free(node->name);
     free(node);
 }
+
+void del_List(Node *node) {
+    node_del(node->children[0]);
+    free(node);
+}
+
+void del_Map(Node *node) {
+    node_del(node->children[0]);
+    node_del(node->children[1]);
+    free(node);
+}
+
 void node_del(Node *node) {
     if (node == NULL) return;
     switch (node->nodetype) {
@@ -357,6 +448,12 @@ void node_del(Node *node) {
         break;
     case NODE_STR:
         del_String(node);
+        break;
+    case NODE_LIST:
+        del_List(node);
+        break;
+    case NODE_MAP:
+        del_Map(node);
         break;
     default:
         puts("Error in node_del: Unknown type");

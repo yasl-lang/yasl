@@ -2,15 +2,30 @@
 
 Env_t *env_new(Env_t *parent) {
     Env_t *env  = malloc(sizeof(Env_t));
-    env->parent = malloc(sizeof(Env_t));
-    env->vars   = malloc(sizeof(Hash_t));
+    //env->parent = malloc(sizeof(Env_t));
+    //env->vars   = malloc(sizeof(Hash_t));
     env->parent = parent;
     env->vars   = new_hash();
     return env;
 }
 
 void env_del(Env_t *env) {
-    // TODO: implement
+    if (env->parent != NULL) env_del(env->parent);
+    int i;
+    for (i = 0; i < env->vars->size; i++) {
+        Item_t* item = env->vars->items[i];
+        if (item != NULL) {
+            del_string8((String_t*)item->key->value);
+            free(item->key);
+            free(item->value);
+            free(item);
+        }
+    }
+    free(env->vars->items);
+    free(env->vars);
+    free(env->parent);
+    free(env);
+
 }
 
 int64_t env_len(Env_t *env) {
