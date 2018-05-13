@@ -501,9 +501,9 @@ Node *parse_collection(Parser *parser) {
 
     // non-empty list
     node_del(vals);
-    while (parser->lex->type != TOK_COMMA) {
+    while (parser->lex->type == TOK_COMMA) {
         eattok(parser, TOK_COMMA);
-        block_append(parser, parse_expr(parser));
+        block_append(keys, parse_expr(parser));
     }
     eattok(parser, TOK_RSQB);
     return new_List(keys, parser->lex->line);

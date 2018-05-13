@@ -475,31 +475,6 @@ void visit_Var(Compiler *compiler, Node *node) {
     bb_add_byte(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));
 }
 
-void visit_String(Compiler* compiler, Node *node) {
-    //printf("compiler->header->count is %d\n", compiler->header->count);
-    // TODO: deal with memory leaks introduced here.
-    String_t *string = malloc(sizeof(String_t));
-    string->length = node->name_len;
-    string->str = malloc(string->length);
-    memcpy(string->str, node->name, string->length);
-    Constant key = (Constant) { .value = (int64_t)string, .type = STR8 };
-
-    Constant *value = ht_search(compiler->strings, key);
-    if (value == NULL) {
-        puts("caching");
-        ht_insert(compiler->strings, key, (Constant) { .type = INT64, .value = compiler->header->count});
-        bb_append(compiler->header, node->name, node->name_len);
-    }
-
-    value = ht_search(compiler->strings, key);
-
-    bb_add_byte(compiler->buffer, NEWSTR8);
-    bb_intbytes8(compiler->buffer, node->name_len);
-    bb_intbytes8(compiler->buffer, value->value); //compiler->header->count);
-    // bb_append(compiler->header, node->name, node->name_len);
-    //printf("compiler->header->count is %d\n", compiler->header->count);
-}
-
 void visit_Undef(Compiler *compiler, Node *node) {
     bb_add_byte(compiler->buffer, NCONST);
 }
@@ -540,6 +515,81 @@ void visit_Boolean(Compiler *compiler, Node *node) {
         return;
     }
 }
+
+void visit_String(Compiler* compiler, Node *node) {
+    //printf("compiler->header->count is %d\n", compiler->header->count);
+    // TODO: deal with memory leaks introduced here.
+    String_t *string = malloc(sizeof(String_t));
+    string->length = node->name_len;
+    string->str = malloc(string->length);
+    memcpy(string->str, node->name, string->length);
+    Constant key = (Constant) { .value = (int64_t)string, .type = STR8 };
+
+    Constant *value = ht_search(compiler->strings, key);
+    if (value == NULL) {
+        puts("caching");
+        ht_insert(compiler->strings, key, (Constant) { .type = INT64, .value = compiler->header->count});
+        bb_append(compiler->header, node->name, node->name_len);
+    }
+
+    value = ht_search(compiler->strings, key);
+
+    bb_add_byte(compiler->buffer, NEWSTR8);
+    bb_intbytes8(compiler->buffer, node->name_len);
+    bb_intbytes8(compiler->buffer, value->value); //compiler->header->count);
+    // bb_append(compiler->header, node->name, node->name_len);
+    //printf("compiler->header->count is %d\n", compiler->header->count);
+}
+
+/*
+ *
+    def visit_List(self, node):
+        result = [NEWLIST]
+        for expr in node.params:
+            #[MCALL_8] + intbytes_8(METHODS[node.value])
+            result.extend([DUP] + self.visit(expr) + [SWAP] + [MCALL_8] + intbytes_8(METHODS["append"]) + [POP])
+            # TODO: fix order of arguments here
+            #result = result + [DUP] + self.visit(expr) + [BCALL_8] + intbytes_8(BUILTINS["append"]) + [POP]
+        return result
+
+ */
+
+void visit_List(Compiler *compiler, Node *node) {
+    bb_add_byte(compiler->buffer, NEWLIST);
+    int i;
+    for (i = 0; i < node->children[0]->children_len; i++) {
+        bb_add_byte(compiler->buffer, DUP);
+        visit(compiler, node->children[0]->children[i]);
+        bb_add_byte(compiler->buffer, SWAP);
+        bb_add_byte(compiler->buffer, MCALL_8);
+        bb_intbytes8(compiler->buffer, APPEND); // NOTE: this depends on the APPEND constant in method.h
+        bb_add_byte(compiler->buffer, POP);
+    }
+}
+
+/*
+def visit_Hash(self, node):
+result = [NEWHASH]
+for i in range(len(node.keys)):
+result = result + [DUP] + self.visit(node.keys[i]) + [SWAP] + self.visit(node.vals[i]) + [SWAP] + [MCALL_8] + intbytes_8(METHODS["__set"]) + [POP]
+return result  # TODO: allow declaration with a bunch of values in it
+ */
+void visit_Map(Compiler *compiler, Node *node) {
+    bb_add_byte(compiler->buffer, NEWMAP);
+    int i;
+    for (i = 0; i < node->children[0]->children_len; i++) {
+        bb_add_byte(compiler->buffer, DUP);
+        visit(compiler, node->children[0]->children[i]);
+        bb_add_byte(compiler->buffer, SWAP);
+        visit(compiler, node->children[1]->children[i]);
+        bb_add_byte(compiler->buffer, SWAP);
+        bb_add_byte(compiler->buffer, MCALL_8);
+        bb_intbytes8(compiler->buffer, SET__);  // NOTE: depends on value of SET__ in methods.h
+        bb_add_byte(compiler->buffer, POP);
+    }
+}
+
+
 
 void visit(Compiler* compiler, Node* node) {
     //printf("compiler->header->count is %d\n", compiler->header->count);
@@ -617,6 +667,14 @@ void visit(Compiler* compiler, Node* node) {
     case NODE_STR:
         puts("Visit String");
         visit_String(compiler, node);
+        break;
+    case NODE_LIST:
+        puts("Visit List");
+        visit_List(compiler, node);
+        break;
+    case NODE_MAP:
+        puts("Visit Map");
+        visit_Map(compiler, node);
         break;
     default:
         printf("%d\n", node->nodetype);
