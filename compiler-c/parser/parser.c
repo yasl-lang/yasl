@@ -469,18 +469,43 @@ Node *parse_collection(Parser *parser) {
     Node *keys = new_Block(parser->lex->line);
     Node *vals = new_Block(parser->lex->line); // free if we have list.
 
+    // empty map
     if (parser->lex->type == TOK_RARR) {
         eattok(parser, TOK_RARR);
         eattok(parser, TOK_RSQB);
         return new_Map(keys, vals, parser->lex->line);
     }
 
+    // empty list
     if (parser->lex->type == TOK_RSQB) {
         node_del(vals);
         eattok(parser, TOK_RSQB);
         return new_List(keys, parser->lex->line);
     }
 
-    // TODO: handle non-emtpy case
+    block_append(keys, parse_expr(parser));
+
+    // non-empty map
+    if (parser->lex->type == TOK_RARR) {
+        eattok(parser, TOK_RARR);
+        block_append(vals, parse_expr(parser));
+        while (parser->lex->type == TOK_COMMA) {
+            eattok(parser, TOK_COMMA);
+            block_append(keys, parse_expr(parser));
+            eattok(parser, TOK_RARR);
+            block_append(vals, parse_expr(parser));
+        }
+        eattok(parser, TOK_RSQB);
+        return new_Map(keys, vals, parser->lex->line);
+    }
+
+    // non-empty list
+    node_del(vals);
+    while (parser->lex->type != TOK_COMMA) {
+        eattok(parser, TOK_COMMA);
+        block_append(parser, parse_expr(parser));
+    }
+    eattok(parser, TOK_RSQB);
+    return new_List(keys, parser->lex->line);
 
 }
