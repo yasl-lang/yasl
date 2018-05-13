@@ -99,12 +99,17 @@ void compile(Compiler *compiler) {
             puts("visited");
             //puts("visited");
             //printf("compiler->header->count is %d\n", compiler->header->count);
+            puts("about to append");
             bb_append(compiler->code, compiler->buffer->bytes, compiler->buffer->count);
-            //puts("appended");
+            puts("appended");
             //printf("compiler->header->count is %d\n", compiler->header->count);
+            puts("about to zero buffer->count");
             compiler->buffer->count = 0;
+            puts("zeroed");
             //printf("compiler->header->count is %d\n", compiler->header->count);
+            puts("about to delete");
             node_del(node);
+            puts("deleted");
             //printf("compiler->header->count is %d\n", compiler->header->count);
             //puts("deleted node");
     }

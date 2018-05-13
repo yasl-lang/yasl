@@ -43,7 +43,7 @@ int env_contains(Env_t *env, char *name, int64_t name_len) {
     if (value == NULL && env->parent == NULL) {
         return 0;
     }
-    if (value == NULL) return env_get(env->parent, name, name_len);
+    if (value == NULL) return env_contains(env->parent, name, name_len);
     return 1;
 }
 

@@ -18,8 +18,12 @@ Node *new_Node_0(AST nodetype, Token type, char *name, int64_t name_len, int lin
     node->type = type;
     node->children = NULL;
     node->name_len = name_len;
-    if (name == NULL) node->name = NULL;
-    else memcpy(node->name, name, node->name_len);
+    if (name == NULL) {
+        node->name = NULL;
+    } else {
+        node->name = malloc(node->name_len);
+        memcpy(node->name, name, node->name_len);
+    }
     node->line = line;
     return node;
 }
@@ -31,8 +35,12 @@ Node *new_Node_1(AST nodetype, Token type, Node *child, char *name, int64_t name
     node->children = malloc(sizeof(Node*));
     node->children[0] = child;
     node->name_len = name_len;
-    if (name == NULL) node->name = NULL;
-    else memcpy(node->name, name, node->name_len);
+    if (name == NULL) {
+        node->name = NULL;
+    } else {
+        node->name = malloc(node->name_len);
+        memcpy(node->name, name, node->name_len);
+    }
     node->line = line;
     return node;
 }
@@ -45,8 +53,12 @@ Node *new_Node_2(AST nodetype, Token type, Node *child1, Node *child2, char *nam
     node->children[0] = child1;
     node->children[1] = child2;
     node->name_len = name_len;
-    if (name == NULL) node->name = NULL;
-    else memcpy(node->name, name, node->name_len);
+    if (name == NULL) {
+        node->name = NULL;
+    } else {
+        node->name = malloc(node->name_len);
+        memcpy(node->name, name, node->name_len);
+    }
     node->line = line;
     return node;
 }
@@ -60,8 +72,12 @@ Node *new_Node_3(AST nodetype, Token type, Node *child1, Node *child2, Node *chi
     node->children[1] = child2;
     node->children[2] = child3;
     node->name_len = name_len;
-    if (name == NULL) node->name = NULL;
-    else memcpy(node->name, name, node->name_len);
+    if (name == NULL) {
+        node->name = NULL;
+    } else {
+        node->name = malloc(node->name_len);
+        memcpy(node->name, name, node->name_len);
+    }
     node->line = line;
     return node;
 }
@@ -95,6 +111,11 @@ void block_append(Node *node, Node *child) {
     node->children[node->children_len-1] = child;
 }
 
+Node *new_While(Node *cond, Node *body, int line) {
+    return new_Node_2(NODE_WHILE, UNKNOWN, cond, body, NULL, 0, line);
+}
+
+/*
 Node *new_While(Node *cond, Node *body) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = NODE_WHILE;
@@ -103,20 +124,36 @@ Node *new_While(Node *cond, Node *body) {
     node->children[1] = body;
     node->name = NULL;
     return node;
+} */
+
+Node *new_Break(int line) {
+    return new_Node_0(NODE_BREAK, UNKNOWN, NULL, 0, line);
 }
 
+/*
 Node *new_Break(void) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = NODE_BREAK;
     return node;
+} */
+
+Node *new_Continue(int line) {
+    return new_Node_0(NODE_CONT, UNKNOWN, NULL, 0, line);
 }
 
+/*
 Node *new_Continue(void) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = NODE_CONT;
     return node;
 }
+*/
 
+Node *new_If(Node *cond, Node *then_node, Node *else_node, int line) {
+    return new_Node_3(NODE_IF, UNKNOWN, cond, then_node, else_node, NULL, 0, line);
+}
+
+/*
 Node *new_If(Node *cond, Node *then_node, Node *else_node) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = NODE_IF;
@@ -126,8 +163,13 @@ Node *new_If(Node *cond, Node *then_node, Node *else_node) {
     node->children[2] = else_node;
     node->name = NULL;
     return node;
+} */
+
+Node *new_Print(Node *child, int line) {
+    return new_Node_1(NODE_PRINT, UNKNOWN, child, NULL, 0, line);
 }
 
+/*
 Node *new_Print(Node *child) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = NODE_PRINT;
@@ -137,7 +179,13 @@ Node *new_Print(Node *child) {
     node->name = NULL;
     return node;
 }
+ */
 
+Node *new_Let(char *name, int64_t name_len, Node *child, int line) {
+    return new_Node_1(NODE_LET, UNKNOWN, child, name, name_len, line);
+}
+
+/*
 Node *new_Let(char *name, int64_t name_len, Node *child) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = NODE_LET;
@@ -148,7 +196,13 @@ Node *new_Let(char *name, int64_t name_len, Node *child) {
     memcpy(node->name, name, node->name_len);
     return node;
 }
+ */
 
+Node *new_TriOp(Token op, Node *left, Node *middle, Node *right, int line) {
+    return new_Node_3(NODE_TRIOP, op, left, middle, right, NULL, 0, line);
+}
+
+/*
 Node *new_TriOp(Token op, Node *left, Node *middle, Node *right) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = NODE_TRIOP;
@@ -160,7 +214,13 @@ Node *new_TriOp(Token op, Node *left, Node *middle, Node *right) {
     node->name = NULL;
     return node;
 };
+*/
 
+Node *new_BinOp(Token op, Node *left, Node *right, int line) {
+    return new_Node_2(NODE_BINOP, op, left, right, NULL, 0, line);
+}
+
+/*
 Node *new_BinOp(Token op, Node *left, Node *right) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = NODE_BINOP;
@@ -171,7 +231,13 @@ Node *new_BinOp(Token op, Node *left, Node *right) {
     node->name = NULL;
     return node;
 };
+ */
 
+Node *new_UnOp(Token op, Node *child, int line) {
+    return new_Node_1(NODE_UNOP, op, child, NULL, 0, line);
+}
+
+/*
 Node *new_UnOp(Token op, Node *child) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = NODE_UNOP;
@@ -181,7 +247,13 @@ Node *new_UnOp(Token op, Node *child) {
     node->name = NULL;
     return node;
 }
+*/
 
+Node *new_Assign(char *name, int64_t name_len, Node *child, int line) {
+    return new_Node_1(NODE_ASSIGN, UNKNOWN, child, name, name_len, line);
+}
+
+/*
 Node *new_Assign(char *name, int64_t name_len, Node *child) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = NODE_ASSIGN;
@@ -192,7 +264,13 @@ Node *new_Assign(char *name, int64_t name_len, Node *child) {
     memcpy(node->name, name, node->name_len);
     return node;
 }
+ */
 
+Node *new_Var(char *name, int64_t name_len, int line) {
+    return new_Node_0(NODE_VAR, UNKNOWN, name, name_len, line);
+}
+
+/*
 Node *new_Var(char *name, int64_t name_len) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = NODE_VAR;
@@ -202,7 +280,13 @@ Node *new_Var(char *name, int64_t name_len) {
     memcpy(node->name, name, node->name_len);
     return node;
 }
+ */
 
+Node *new_Undef(int line) {
+    return new_Node_0(NODE_UNDEF, UNKNOWN, NULL, 0, line);
+}
+
+/*
 Node *new_Undef(void) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = NODE_UNDEF;
@@ -211,7 +295,13 @@ Node *new_Undef(void) {
     node->name = NULL;
     return node;
 }
+ */
 
+Node *new_Float(char *value, int len, int line) {
+    return new_Node_0(NODE_FLOAT64, UNKNOWN, value, len, line);
+}
+
+/*
 Node *new_Float(char *value, int len) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = NODE_FLOAT64;
@@ -221,7 +311,13 @@ Node *new_Float(char *value, int len) {
     memcpy(node->name, value, node->name_len);
     return node;
 }
+ */
 
+Node *new_Integer(char *value, int len, int line) {
+    return new_Node_0(NODE_INT64, UNKNOWN, value, len, line);
+}
+
+/*
 Node *new_Integer(char *value, int len) {
     Node *node = malloc(sizeof(Node));
     memset(node, 0, sizeof(node));
@@ -232,7 +328,13 @@ Node *new_Integer(char *value, int len) {
     memcpy(node->name, value, node->name_len);
     return node;
 }
+ */
 
+Node *new_Boolean(char *value, int len, int line) {
+    return new_Node_0(NODE_BOOL, UNKNOWN, value, len, line);
+}
+
+/*
 Node *new_Boolean(char *value, int len) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = NODE_BOOL;
@@ -242,7 +344,13 @@ Node *new_Boolean(char *value, int len) {
     memcpy(node->name, value, node->name_len);
     return node;
 }
+ */
 
+Node *new_String(char *value, int len, int line) {
+    return new_Node_0(NODE_STR, UNKNOWN, value, len, line);
+}
+
+/*
 Node *new_String(char* value, int len) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = NODE_STR;
@@ -252,7 +360,13 @@ Node *new_String(char* value, int len) {
     memcpy(node->name, value, node->name_len);
     return node;
 }
+*/
 
+Node *new_List(Node *values, int line) {
+    return new_Node_1(NODE_LIST, UNKNOWN, values, NULL, 0, line);
+}
+
+/*
 Node *new_List(Node *values) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = NODE_LIST;
@@ -261,7 +375,13 @@ Node *new_List(Node *values) {
     node->name = NULL;
     return node;
 }
+ */
 
+Node *new_Map(Node *keys, Node *values, int line) {
+    return new_Node_2(NODE_MAP, UNKNOWN, keys, values, NULL, 0, line);
+}
+
+/*
 Node *new_Map(Node *keys, Node *values) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = NODE_MAP;
@@ -271,6 +391,7 @@ Node *new_Map(Node *keys, Node *values) {
     node->name = NULL;
     return node;
 }
+ */
 
 void del_ExprStmt(Node *node) {
     node_del(node->children[0]);
@@ -305,7 +426,8 @@ void del_Continue(Node *node) {
 void del_If(Node *node) {
     node_del(node->children[0]);
     node_del(node->children[1]);
-    node_del(node->children[2]);
+    if (node->children[2] != NULL)
+        node_del(node->children[2]);
     free(node->children);
     free(node);
 }
@@ -393,6 +515,26 @@ void del_Map(Node *node) {
 }
 
 void node_del(Node *node) {
+/*
+struct Node_s {
+    AST nodetype;
+    Token type;
+    struct Node_s **children;
+    int64_t children_len;
+    char* name;
+    int64_t name_len;
+    int line;
+};*/
+    while(node->children_len-- > 0)
+        if (node->children[node->children_len] != NULL)
+            node_del(node->children[node->children_len]);
+    free(node->name);
+    free(node->children);
+    free(node);
+}
+
+/*
+void node_del(Node *node) {
     if (node == NULL) return;
     switch (node->nodetype) {
     case NODE_EXPRSTMT:
@@ -460,3 +602,4 @@ void node_del(Node *node) {
         exit(1);
     }
 }
+*/
