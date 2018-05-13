@@ -84,26 +84,17 @@ Node *new_Node_3(AST nodetype, Token type, Node *child1, Node *child2, Node *chi
 
 
 Node *new_ExprStmt(Node *child, int line) {
-    Node *node = malloc(sizeof(Node));
-    node->nodetype = NODE_EXPRSTMT;
-    node->type = UNKNOWN;
-    node->children = malloc(sizeof(Node*));
-    node->children[0] = child;
-    node->name_len = 0;
-    node->name = NULL;
-    node->line = line;
-    return node;
-    //return new_Node_1(NODE_EXPRSTMT, UNKNOWN, child, NULL, 0, line);
+    return new_Node_1(NODE_EXPRSTMT, UNKNOWN, child, NULL, 0, line);
 }
 
 Node *new_Block(int line) {
-    //return new_Node_0(NODE_BLOCK, UNKNOWN, NULL, 0, line);
-    Node *node = malloc(sizeof(Node));
+    return new_Node_0(NODE_BLOCK, UNKNOWN, NULL, 0, line);
+    /*Node *node = malloc(sizeof(Node));
     node->nodetype = NODE_BLOCK;
     node->children = NULL;
     node->children_len = 0;
     node->name = NULL;
-    return node;
+    return node; */
 }
 
 void block_append(Node *node, Node *child) {

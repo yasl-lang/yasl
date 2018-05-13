@@ -232,6 +232,7 @@ void visit_If(Compiler *compiler, Node *node) {
     //int64_t index_then = compiler->buffer->count;
     enter_scope(compiler);
     visit(compiler, node->children[1]);
+    exit_scope(compiler);
     int64_t index_else = 0;
     if (node->children[2] != NULL) {
         bb_add_byte(compiler->buffer, BR_8);
@@ -240,7 +241,9 @@ void visit_If(Compiler *compiler, Node *node) {
     }
     bb_rewrite_intbytes8(compiler->buffer, index_then, compiler->buffer->count-index_then-8);
     if (node->children[2] != NULL) {
+        enter_scope(compiler);
         visit(compiler, node->children[2]);
+        exit_scope(compiler);
         bb_rewrite_intbytes8(compiler->buffer, index_else, compiler->buffer->count-index_else-8);
     }
 }
