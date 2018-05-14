@@ -89,17 +89,6 @@ void node_del(Node *node);
 /*
  * class AST(object):
     pass
-class Hash(AST):
-    def __init__(self, token, keys, vals):
-        self.token = token
-        self.value = token.value
-        self.keys = keys
-        self.vals = vals
-class List(AST):
-    def __init__(self, token, params):
-        self.token = token
-        self.value = token.value
-        self.params = params
 class MemberAccess(AST):
     def __init__(self, left, right):
         self.left = left
@@ -136,40 +125,4 @@ class For(AST):
         self.var = var
         self.ls = ls
         self.body = body
- */
-
-
-/*
-
-
-typedef struct {
-    AST nodetype;
-    int type;
-    void *left;
-    void *middle;
-    void *right;
-} TriOpNode;
-
-TriOpNode *ast_new_TriOpNode(int type, void *left, void *middle, void *right) {
-    TriOpNode *triop = malloc(sizeof(TriOpNode));
-    triop->nodetype = TRIOP;
-    triop->type = type;
-    triop->left = left;
-    triop->right = right;
-    triop->middle = middle;
-    return triop;
-}
-
-typedef struct {
-    AST nodetype;
-    int type;
-    void *left;
-    void *right;
-} BinOpNode;
-
-typedef struct {
-    AST nodetype;
-    char *value;
-} ConstantNode;
-
  */
