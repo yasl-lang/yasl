@@ -252,9 +252,9 @@ Node *parse_bor(Parser *parser) {
 Node *parse_bxor(Parser *parser) {
     //printf("bxor. type: %s, value: %s\n", YASL_TOKEN_NAMES[parser->lex->type], parser->lex->value);
     Node *cur_node = parse_band(parser);
-    while (parser->lex->type == TOK_TILDE) {
-        eattok(parser, TOK_TILDE);
-        cur_node = new_BinOp(TOK_TILDE, cur_node, parse_band(parser), parser->lex->line);
+    while (parser->lex->type == TOK_CARET) {
+        eattok(parser, TOK_CARET);
+        cur_node = new_BinOp(TOK_CARET, cur_node, parse_band(parser), parser->lex->line);
     }
     return cur_node;
 }
@@ -344,7 +344,7 @@ Node *parse_multiply(Parser *parser) {
 Node *parse_unary(Parser *parser) {
     //puts("made it here");
     if (parser->lex->type == TOK_PLUS || parser->lex->type == TOK_MINUS ||parser->lex->type == TOK_BANG ||
-     parser->lex->type == TOK_TILDE ||parser->lex->type == TOK_HASH) {
+     parser->lex->type == TOK_CARET ||parser->lex->type == TOK_HASH) {
         Token op = eattok(parser, parser->lex->type);
         return new_UnOp(op, parse_unary(parser), parser->lex->line);
     } else {
@@ -354,9 +354,9 @@ Node *parse_unary(Parser *parser) {
 
 Node *parse_power(Parser *parser) {
     Node *cur_node = parse_constant(parser);
-    if (parser->lex->type == TOK_CARET) { // || parser->lex->type == TOK_DLT)
-        eattok(parser, TOK_CARET);
-        return new_BinOp(TOK_CARET, cur_node, parse_power(parser), parser->lex->line);
+    if (parser->lex->type == TOK_DSTAR) { // || parser->lex->type == TOK_DLT)
+        eattok(parser, TOK_DSTAR);
+        return new_BinOp(TOK_DSTAR, cur_node, parse_power(parser), parser->lex->line);
     }
     return cur_node;
 }

@@ -1,0 +1,3 @@
+[submodule "interpreter/pattern/Patterns"]
+	path = interpreter/pattern/Patterns
+	url = https://github.com/CoffeeTableEspresso/Patterns.git

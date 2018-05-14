@@ -356,7 +356,7 @@ void visit_BinOp(Compiler *compiler, Node *node) {
         case TOK_BAR:
             bb_add_byte(compiler->buffer, BOR);
             break;
-        case TOK_TILDE:
+        case TOK_CARET:
             bb_add_byte(compiler->buffer, BXOR);
             break;
         case TOK_AMP:
@@ -417,7 +417,7 @@ void visit_BinOp(Compiler *compiler, Node *node) {
         case TOK_MOD:
             bb_add_byte(compiler->buffer, MOD);
             break;
-        case TOK_CARET:
+        case TOK_DSTAR:
             bb_add_byte(compiler->buffer, EXP);
             break;
         default:
@@ -438,7 +438,7 @@ void visit_UnOp(Compiler *compiler, Node *node) {
         case TOK_BANG:
             bb_add_byte(compiler->buffer, NOT);
             break;
-        case TOK_TILDE:
+        case TOK_CARET:
             bb_add_byte(compiler->buffer, BNOT);
             break;
         case TOK_HASH:

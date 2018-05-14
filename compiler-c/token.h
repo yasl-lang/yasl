@@ -116,6 +116,8 @@ typedef enum {
     TOK_TILDEEQ,
     TOK_STAR,
     TOK_STAREQ,
+    TOK_DSTAR,
+    TOK_DSTAREQ,
     TOK_SLASH,
     TOK_SLASHEQ,
     TOK_DSLASH,

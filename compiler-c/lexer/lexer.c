@@ -271,6 +271,7 @@ Token YASLToken_ThreeChars(char c1, char c2, char c3) {
         case '>': switch(c2) { case '>': switch(c3) { case '=': return TOK_DGTEQ; default: return UNKNOWN;} }
         case '=': switch(c2) { case '=': switch(c3) { case '=': return TOK_TEQ; default: return UNKNOWN;} }
         case '!': switch(c2) { case '=': switch(c3) { case '=': return TOK_BANGDEQ; default: return UNKNOWN;} }
+        case '*': switch(c2) { case '*': switch(c3) { case '=': return TOK_DSTAREQ; default: return UNKNOWN;} }
         case '/': switch(c2) { case '/': switch(c3) { case '=': return TOK_DSLASHEQ; default: return UNKNOWN;} }
         case '|': switch(c2) { case '|': switch(c3) {
                         case '=': return TOK_DBAREQ;
@@ -294,7 +295,11 @@ Token YASLToken_TwoChars(char c1, char c2) {
         case '=': switch(c2) { case '=': return TOK_DEQ; default: return UNKNOWN;}
         case '!': switch(c2) { case '=': return TOK_BANGEQ; default: return UNKNOWN;}
         case '~': switch(c2) { case '=': return TOK_TILDEEQ; default: return UNKNOWN;}
-        case '*': switch(c2) { case '=': return TOK_STAREQ; default: return UNKNOWN;}
+        case '*': switch(c2) {
+            case '=': return TOK_STAREQ;
+            case '*': return TOK_DSTAR;
+            default: return UNKNOWN;
+        }
         case '/': switch(c2) {
                 case '=': return TOK_SLASHEQ;
                 case '/': return TOK_DSLASH;
@@ -466,6 +471,8 @@ const char *YASL_TOKEN_NAMES[] = {
         "~=",           // TILDEEQ,
         "*",            // STAR,
         "*=",           // STAREQ,
+        "**",           // DSTAR,
+        "**=",          // DSTAREQ,
         "/",            // SLASH,
         "/=",           // SLASHEQ,
         "//",           // DSLASH,
