@@ -259,7 +259,7 @@ void visit_Print(Compiler* compiler, Node *node) {
     //printf("compiler->header->count is %d\n", compiler->header->count);
     visit(compiler, node->children[0]);
     bb_add_byte(compiler->buffer, BCALL_8);
-    bb_intbytes8(compiler->buffer, 0x00);       // TODO: fix hardcoded value
+    bb_intbytes8(compiler->buffer, PRINT);       // TODO: fix hardcoded value
 }
 
 /*
