@@ -59,7 +59,6 @@ enum Opcodes {
     NEWMAP    = 0xBC, // make new HashTable and push it onto stack
     NEWLIST   = 0xBD, // make new List and push it onto stack
     HALT      = 0xF0, // halt
-    PRINT     = 0xF2, // print top of stack (temporary to allow debugging)
     GSTORE_1  = 0xF4, // store top of stack at addr provided
     LSTORE_1  = 0xF5, // store top of stack as local at addr
     GLOAD_1   = 0xF6, // load global from addr
