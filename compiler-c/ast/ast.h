@@ -8,6 +8,8 @@
 typedef enum {
     NODE_EXPRSTMT,
     NODE_BLOCK,
+    NODE_FN,
+    NODE_INDEX,
     NODE_WHILE,
     NODE_BREAK,
     NODE_CONT,
@@ -49,6 +51,8 @@ Node *new_Node_3(AST nodetype, Token type, Node *child1, Node *child2, Node *chi
 
 Node *new_ExprStmt(Node *child, int line);
 Node *new_Block(int line);
+Node *new_FunctionCall(Node *params, char *name, int64_t name_len, int line);
+Node *new_Index(Node *collection, Node *value, int line);
 Node *new_While(Node *cond, Node *body, int line);
 Node *new_Break(int line);
 Node *new_Continue(int line);
@@ -68,21 +72,6 @@ Node *new_String(char *value, int len, int line);
 Node *new_List(Node *values, int line);
 Node *new_Map(Node *keys, Node *values, int line);
 
-void del_Block(Node *node);
-void del_While(Node *node);
-void del_Break(Node *node);
-void del_Continue(Node *node);
-void del_If(Node *node);
-void del_Print(Node *node);
-void del_Let(Node *node);
-void del_TriOp(Node *node);
-void del_BinOp(Node *node);
-void del_Undef(Node *node);
-void del_Float(Node *node);
-void del_Integer(Node *node);
-void del_String(Node *node);
-void del_List(Node *node);
-void del_Map(Node *node);
 void node_del(Node *node);
 
 

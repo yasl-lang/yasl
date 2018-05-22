@@ -12,8 +12,8 @@ void parser_del(Parser *parser) {
 };
 
 Token eattok(Parser *parser, Token token) {
-    if (parser->lex->type != token) {
-        printf("ParsingError: Expected %s, got %s\n", YASL_TOKEN_NAMES[token], YASL_TOKEN_NAMES[parser->lex->type]);
+    if (curtok(parser) != token) {
+        printf("ParsingError: Expected %s, got %s\n", YASL_TOKEN_NAMES[token], YASL_TOKEN_NAMES[curtok(parser)]);
         exit(EXIT_FAILURE);
     }
     gettok(parser->lex);
@@ -25,31 +25,31 @@ Node *parse(Parser *parser) {
 }
 
 Node *parse_program(Parser *parser) {
-    printf("parse. type: %s, value: %s\n", YASL_TOKEN_NAMES[parser->lex->type], parser->lex->value);
-    if (parser->lex->type == TOK_PRINT) {
+    printf("parse. type: %s, value: %s\n", YASL_TOKEN_NAMES[curtok(parser)], parser->lex->value);
+    if (curtok(parser) == TOK_PRINT) {
         eattok(parser, TOK_PRINT);
         puts("about to do new Print");
         return new_Print(parse_expr(parser), parser->lex->line);
-    } else if (parser->lex->type == TOK_LET) {
+    } else if (curtok(parser) == TOK_LET) {
         return parse_let(parser);
-    } else if (parser->lex->type == TOK_WHILE) {
+    } else if (curtok(parser) == TOK_WHILE) {
         return parse_while(parser);
-    } else if (parser->lex->type == TOK_BREAK) {
+    } else if (curtok(parser) == TOK_BREAK) {
         eattok(parser, TOK_BREAK);
         return new_Break(parser->lex->line);
-    } else if (parser->lex->type == TOK_CONT) {
+    } else if (curtok(parser) == TOK_CONT) {
         eattok(parser, TOK_CONT);
         return new_Continue(parser->lex->line);
-    } else if (parser->lex->type == TOK_IF) {
+    } else if (curtok(parser) == TOK_IF) {
         return parse_if(parser);
-    } else if (parser->lex->type == TOK_ELSEIF) {
+    } else if (curtok(parser) == TOK_ELSEIF) {
         puts("ParsingError: elseif without previous if");
         exit(EXIT_FAILURE);
-    } else if (parser->lex->type == TOK_ELSE) {
+    } else if (curtok(parser) == TOK_ELSE) {
         puts("ParsingError: else without previous if");
         exit(EXIT_FAILURE);
     } else return new_ExprStmt(parse_expr(parser), parser->lex->line);
-    //printf("ParsingError: Unknown sequence starting with %s\n", YASL_TOKEN_NAMES[parser->lex->type]);
+    //printf("ParsingError: Unknown sequence starting with %s\n", YASL_TOKEN_NAMES[curtok(parser)]);
     //puts("ParsingError: Unknown sequence.");
     exit(EXIT_FAILURE);
 }
@@ -60,7 +60,7 @@ Node *parse_let(Parser *parser) {
     memcpy(name, parser->lex->value, parser->lex->val_len);
     int64_t name_len = parser->lex->val_len;
     eattok(parser, TOK_ID);
-    if (parser->lex->type != TOK_EQ) return new_Let(name, name_len, NULL, parser->lex->line);
+    if (curtok(parser) != TOK_EQ) return new_Let(name, name_len, NULL, parser->lex->line);
     eattok(parser, TOK_EQ);
     return new_Let(name, name_len, parse_expr(parser), parser->lex->line);
 }
@@ -81,10 +81,10 @@ Node *parse_while(Parser *parser) {
     Node *cond = parse_expr(parser);
     eattok(parser, TOK_LBRC);
     Node *body = new_Block(parser->lex->line);
-    while (parser->lex->type != TOK_RBRC && parser->lex->type != TOK_EOF) {
+    while (curtok(parser) != TOK_RBRC && curtok(parser) != TOK_EOF) {
         block_append(body, parse_program(parser));
-        if (parser->lex->type == TOK_SEMI) eattok(parser, TOK_SEMI);
-        else if (parser->lex->type != TOK_RBRC) {
+        if (curtok(parser) == TOK_SEMI) eattok(parser, TOK_SEMI);
+        else if (curtok(parser) != TOK_RBRC) {
             puts("expected semicolon/newline or right brace");
             exit(EXIT_FAILURE);
         }
@@ -124,42 +124,42 @@ Node *parse_if(Parser *parser) {
             return IfElse(token, cond, Block(left), Block(right))
         assert False
      */
-    if (parser->lex->type == TOK_IF) eattok(parser, TOK_IF);
-    else if (parser->lex->type == TOK_ELSEIF) eattok(parser, TOK_ELSEIF);
+    if (curtok(parser) == TOK_IF) eattok(parser, TOK_IF);
+    else if (curtok(parser) == TOK_ELSEIF) eattok(parser, TOK_ELSEIF);
     else {
-        printf("ParsingError: Expected if or elseif, got %s\n", YASL_TOKEN_NAMES[parser->lex->type]);
+        printf("ParsingError: Expected if or elseif, got %s\n", YASL_TOKEN_NAMES[curtok(parser)]);
         exit(EXIT_FAILURE);
     }
     Node *cond = parse_expr(parser);
     eattok(parser, TOK_LBRC);
     Node *then_block = new_Block(parser->lex->line);
-    while (parser->lex->type != TOK_RBRC && parser->lex->type != TOK_EOF) {
+    while (curtok(parser) != TOK_RBRC && curtok(parser) != TOK_EOF) {
         block_append(then_block, parse_program(parser));
-        if (parser->lex->type == TOK_SEMI) eattok(parser, TOK_SEMI);
-        else if (parser->lex->type != TOK_RBRC) {
+        if (curtok(parser) == TOK_SEMI) eattok(parser, TOK_SEMI);
+        else if (curtok(parser) != TOK_RBRC) {
             puts("expected semicolon/newline or right brace");
             exit(EXIT_FAILURE);
         }
     }
     eattok(parser, TOK_RBRC);
-    if (parser->lex->type != TOK_ELSE && parser->lex->type != TOK_ELSEIF) {
+    if (curtok(parser) != TOK_ELSE && curtok(parser) != TOK_ELSEIF) {
         puts("No Else");
         return new_If(cond, then_block, NULL, parser->lex->line);
     }
     // TODO: eat semi
-    if (parser->lex->type == TOK_ELSEIF) {
+    if (curtok(parser) == TOK_ELSEIF) {
         puts("ElseIf");
         return new_If(cond, then_block, parse_if(parser), parser->lex->line);
     }
-    if (parser->lex->type == TOK_ELSE) {
+    if (curtok(parser) == TOK_ELSE) {
         puts("Else");
         eattok(parser, TOK_ELSE);
         eattok(parser, TOK_LBRC);
         Node *else_block = new_Block(parser->lex->line);
-        while (parser->lex->type != TOK_RBRC && parser->lex->type != TOK_EOF) {
+        while (curtok(parser) != TOK_RBRC && curtok(parser) != TOK_EOF) {
             block_append(else_block, parse_program(parser));
-            if (parser->lex->type == TOK_SEMI) eattok(parser, TOK_SEMI);
-            else if (parser->lex->type != TOK_RBRC) {
+            if (curtok(parser) == TOK_SEMI) eattok(parser, TOK_SEMI);
+            else if (curtok(parser) != TOK_RBRC) {
                 puts("expected semicolon/newline or right brace");
                 exit(EXIT_FAILURE);
             }
@@ -167,7 +167,7 @@ Node *parse_if(Parser *parser) {
         eattok(parser, TOK_RBRC);
         return new_If(cond, then_block, else_block, parser->lex->line);
     }
-    printf("ParsingError: expected newline or semicolon, got %s\n", YASL_TOKEN_NAMES[parser->lex->type]);
+    printf("ParsingError: expected newline or semicolon, got %s\n", YASL_TOKEN_NAMES[curtok(parser)]);
     exit(EXIT_FAILURE);
 
 }
@@ -179,7 +179,7 @@ Node *parse_expr(Parser *parser) {
 
 Node *parse_assign(Parser *parser) {
     Node *cur_node = parse_ternary(parser);
-    if (parser->lex->type == TOK_EQ) { // || parser->lex->type == TOK_DLT)
+    if (curtok(parser) == TOK_EQ) { // || curtok(parser) == TOK_DLT)
         eattok(parser, TOK_EQ);
         if (cur_node->nodetype == NODE_VAR) {
             Node *assign_node = new_Assign(cur_node->name, cur_node->name_len, parse_assign(parser), parser->lex->line);
@@ -187,32 +187,22 @@ Node *parse_assign(Parser *parser) {
             return assign_node;
         }
         // TODO: add indexing case
-    } else if (isaugmented(parser->lex->type)) {
-        Token op = eattok(parser, parser->lex->type) - 1; // relies on enum
+    } else if (isaugmented(curtok(parser))) {
+        Token op = eattok(parser, curtok(parser)) - 1; // relies on enum
         if (cur_node->nodetype == NODE_VAR) {
             return new_Assign(cur_node->name, cur_node->name_len, new_BinOp(op, cur_node, parse_assign(parser), parser->lex->line), parser->lex->line);
         }
         // TODO: add indexing case
-        /*
-         * elif self.current_token.value in ("^=", "*=", "/=", "//=", "%=", "+=", "-=", ">>=", "<<=", \
-                                          "||=", "|||=", "&=", "~=", "|=", "??="):
-            token = self.eat(TokenTypes.OP)
-            if isinstance(name, Var) or isinstance(name, Index):
-                right = self.expr()
-                return Assign(name, BinOp(Token(TokenTypes.OP, token.value.rstrip("="), token.line), name, right))
-            else:
-                raise Exception("Invalid assignment target.")
-         */
     }
     return cur_node;
 }
 
 Node *parse_ternary(Parser *parser) {
     Node *cur_node = parse_or(parser);
-    if (parser->lex->type == TOK_DQMARK) {
+    if (curtok(parser) == TOK_DQMARK) {
         eattok(parser, TOK_DQMARK);
         return new_BinOp(TOK_DQMARK, cur_node, parse_ternary(parser), parser->lex->line);
-    } else if (parser->lex->type == TOK_QMARK) {
+    } else if (curtok(parser) == TOK_QMARK) {
         eattok(parser, TOK_QMARK);
         Node *left = parse_ternary(parser);
         eattok(parser, TOK_COLON);
@@ -224,7 +214,7 @@ Node *parse_ternary(Parser *parser) {
 
 Node *parse_or(Parser *parser) {
     Node *cur_node = parse_and(parser);
-    while (parser->lex->type == TOK_OR) {
+    while (curtok(parser) == TOK_OR) {
         eattok(parser, TOK_OR);
         cur_node = new_BinOp(TOK_OR, cur_node, parse_and(parser), parser->lex->line);
     }
@@ -233,7 +223,7 @@ Node *parse_or(Parser *parser) {
 
 Node *parse_and(Parser *parser) {
     Node *cur_node = parse_bor(parser);
-    while (parser->lex->type == TOK_AND) {
+    while (curtok(parser) == TOK_AND) {
         eattok(parser, TOK_AND);
         cur_node = new_BinOp(TOK_AND, cur_node, parse_bor(parser), parser->lex->line);
     }
@@ -242,7 +232,7 @@ Node *parse_and(Parser *parser) {
 
 Node *parse_bor(Parser *parser) {
     Node *cur_node = parse_bxor(parser);
-    while (parser->lex->type == TOK_BAR) {
+    while (curtok(parser) == TOK_BAR) {
         eattok(parser, TOK_BAR);
         cur_node = new_BinOp(TOK_BAR, cur_node, parse_bxor(parser), parser->lex->line);
     }
@@ -250,9 +240,9 @@ Node *parse_bor(Parser *parser) {
 }
 
 Node *parse_bxor(Parser *parser) {
-    //printf("bxor. type: %s, value: %s\n", YASL_TOKEN_NAMES[parser->lex->type], parser->lex->value);
+    //printf("bxor. type: %s, value: %s\n", YASL_TOKEN_NAMES[curtok(parser)], parser->lex->value);
     Node *cur_node = parse_band(parser);
-    while (parser->lex->type == TOK_CARET) {
+    while (curtok(parser) == TOK_CARET) {
         eattok(parser, TOK_CARET);
         cur_node = new_BinOp(TOK_CARET, cur_node, parse_band(parser), parser->lex->line);
     }
@@ -260,9 +250,9 @@ Node *parse_bxor(Parser *parser) {
 }
 
 Node *parse_band(Parser *parser) {
-    //printf("band. type: %s, value: %s\n", YASL_TOKEN_NAMES[parser->lex->type], parser->lex->value);
+    //printf("band. type: %s, value: %s\n", YASL_TOKEN_NAMES[curtok(parser)], parser->lex->value);
     Node *cur_node = parse_equals(parser);
-    while (parser->lex->type == TOK_AMP) {
+    while (curtok(parser) == TOK_AMP) {
         eattok(parser, TOK_AMP);
         cur_node = new_BinOp(TOK_AMP, cur_node, parse_equals(parser), parser->lex->line);
     }
@@ -270,12 +260,12 @@ Node *parse_band(Parser *parser) {
 }
 
 Node *parse_equals(Parser *parser) {
-    //printf("equals. type: %s, value: %s\n", YASL_TOKEN_NAMES[parser->lex->type], parser->lex->value);
+    //printf("equals. type: %s, value: %s\n", YASL_TOKEN_NAMES[curtok(parser)], parser->lex->value);
     Node *cur_node = parse_comparator(parser);
-    while (parser->lex->type == TOK_DEQ || parser->lex->type == TOK_BANGEQ ||
-            parser->lex->type == TOK_TEQ || parser->lex->type == TOK_BANGDEQ) {
-        Token op = eattok(parser, parser->lex->type);
-        //printf("equals. type: %s, value: %s\n", YASL_TOKEN_NAMES[parser->lex->type], parser->lex->value);
+    while (curtok(parser) == TOK_DEQ || curtok(parser) == TOK_BANGEQ ||
+            curtok(parser) == TOK_TEQ || curtok(parser) == TOK_BANGDEQ) {
+        Token op = eattok(parser, curtok(parser));
+        //printf("equals. type: %s, value: %s\n", YASL_TOKEN_NAMES[curtok(parser)], parser->lex->value);
         cur_node = new_BinOp(op, cur_node, parse_comparator(parser), parser->lex->line);
     }
     return cur_node;
@@ -283,24 +273,19 @@ Node *parse_equals(Parser *parser) {
 
 Node *parse_comparator(Parser *parser) {
     Node *cur_node = parse_concat(parser);
-    while (parser->lex->type == TOK_LT || parser->lex->type == TOK_GT||
-            parser->lex->type == TOK_GTEQ || parser->lex->type == TOK_LTEQ) {
-        Token op = eattok(parser, parser->lex->type);
-        //printf("equals. type: %s, value: %s\n", YASL_TOKEN_NAMES[parser->lex->type], parser->lex->value);
+    while (curtok(parser) == TOK_LT || curtok(parser) == TOK_GT||
+            curtok(parser) == TOK_GTEQ || curtok(parser) == TOK_LTEQ) {
+        Token op = eattok(parser, curtok(parser));
+        //printf("equals. type: %s, value: %s\n", YASL_TOKEN_NAMES[curtok(parser)], parser->lex->value);
         cur_node = new_BinOp(op, cur_node, parse_concat(parser), parser->lex->line);
     }
     return cur_node;
 }
 
 Node *parse_concat(Parser *parser) {
-    /*curr = self.bit_shift()
-        if self.current_token.value in ("||", "|||"):
-            token = self.eat(TokenTypes.OP)
-            return BinOp(token, curr, self.concat())
-        return curr */
     Node *cur_node = parse_bshift(parser);
-    if (parser->lex->type == TOK_DBAR || parser->lex->type == TOK_TBAR) {
-        Token op = eattok(parser, parser->lex->type);
+    if (curtok(parser) == TOK_DBAR || curtok(parser) == TOK_TBAR) {
+        Token op = eattok(parser, curtok(parser));
         return new_BinOp(op, cur_node, parse_concat(parser), parser->lex->line);
     }
     return cur_node;
@@ -308,8 +293,8 @@ Node *parse_concat(Parser *parser) {
 
 Node *parse_bshift(Parser *parser) {
     Node *cur_node = parse_add(parser);
-    while (parser->lex->type == TOK_DGT || parser->lex->type == TOK_DLT) {
-        Token op = eattok(parser, parser->lex->type);
+    while (curtok(parser) == TOK_DGT || curtok(parser) == TOK_DLT) {
+        Token op = eattok(parser, curtok(parser));
         cur_node = new_BinOp(op, cur_node, parse_add(parser), parser->lex->line);
     }
     return cur_node;
@@ -317,9 +302,9 @@ Node *parse_bshift(Parser *parser) {
 
 Node *parse_add(Parser *parser) {
     Node *cur_node = parse_multiply(parser);
-    while (parser->lex->type == TOK_PLUS || parser->lex->type == TOK_MINUS) {
-        Token op = eattok(parser, parser->lex->type);
-        //printf("equals. type: %s, value: %s\n", YASL_TOKEN_NAMES[parser->lex->type], parser->lex->value);
+    while (curtok(parser) == TOK_PLUS || curtok(parser) == TOK_MINUS) {
+        Token op = eattok(parser, curtok(parser));
+        //printf("equals. type: %s, value: %s\n", YASL_TOKEN_NAMES[curtok(parser)], parser->lex->value);
         cur_node = new_BinOp(op, cur_node, parse_multiply(parser), parser->lex->line);
     }
     return cur_node;
@@ -327,25 +312,20 @@ Node *parse_add(Parser *parser) {
 
 Node *parse_multiply(Parser *parser) {
     Node *cur_node = parse_unary(parser);
-    while (parser->lex->type == TOK_STAR || parser->lex->type == TOK_SLASH ||
-            parser->lex->type == TOK_DSLASH || parser->lex->type == TOK_MOD) {
-        Token op = eattok(parser, parser->lex->type);
-        //printf("equals. type: %s, value: %s\n", YASL_TOKEN_NAMES[parser->lex->type], parser->lex->value);
+    while (curtok(parser) == TOK_STAR || curtok(parser) == TOK_SLASH ||
+            curtok(parser) == TOK_DSLASH || curtok(parser) == TOK_MOD) {
+        Token op = eattok(parser, curtok(parser));
+        //printf("equals. type: %s, value: %s\n", YASL_TOKEN_NAMES[curtok(parser)], parser->lex->value);
         cur_node = new_BinOp(op, cur_node, parse_unary(parser), parser->lex->line);
     }
     return cur_node;
 }
-/*
-        if self.current_token.type is TokenTypes.OP and self.current_token.value in ("-", "+", "!", "#", "~"):
-            op = self.eat(TokenTypes.OP)
-            return UnOp(op, self.unop())
-        else:
-            return self.exponentiation()*/
+
 Node *parse_unary(Parser *parser) {
     //puts("made it here");
-    if (parser->lex->type == TOK_PLUS || parser->lex->type == TOK_MINUS ||parser->lex->type == TOK_BANG ||
-     parser->lex->type == TOK_CARET ||parser->lex->type == TOK_HASH) {
-        Token op = eattok(parser, parser->lex->type);
+    if (curtok(parser) == TOK_PLUS || curtok(parser) == TOK_MINUS || curtok(parser) == TOK_BANG ||
+     curtok(parser) == TOK_CARET ||curtok(parser) == TOK_HASH) {
+        Token op = eattok(parser, curtok(parser));
         return new_UnOp(op, parse_unary(parser), parser->lex->line);
     } else {
         return parse_power(parser);
@@ -353,24 +333,66 @@ Node *parse_unary(Parser *parser) {
 }
 
 Node *parse_power(Parser *parser) {
-    Node *cur_node = parse_constant(parser);
-    if (parser->lex->type == TOK_DSTAR) { // || parser->lex->type == TOK_DLT)
+    Node *cur_node = parse_call(parser);
+    if (curtok(parser) == TOK_DSTAR) { // || curtok(parser) == TOK_DLT)
         eattok(parser, TOK_DSTAR);
         return new_BinOp(TOK_DSTAR, cur_node, parse_power(parser), parser->lex->line);
     }
     return cur_node;
 }
 
+Node *parse_call(Parser *parser) {
+    /*
+     *  result = self.literal()
+        while self.current_token.type is TokenTypes.DOT or self.current_token.type is TokenTypes.LBRACK:
+            if self.current_token.type is TokenTypes.DOT:
+                self.eat(TokenTypes.DOT)
+                right = self.literal()
+                if isinstance(right, FunctionCall):
+                    result = MethodCall(result, right.token, right.params)
+                else:
+                    assert False
+            else:
+                self.eat(TokenTypes.LBRACK)
+                result = Index(result, self.expr())
+                self.eat(TokenTypes.RBRACK)
+        return result
+     */
+    Node *cur_node = parse_constant(parser);
+    while (curtok(parser) == TOK_LSQB || curtok(parser) == TOK_DOT) {
+        eattok(parser, TOK_LSQB);
+        cur_node = new_Index(cur_node, parse_expr(parser), parser->lex->line);
+        eattok(parser, TOK_RSQB);
+    }
+    /*while (curtok(parser) == TOK_DOT || curtok(parser) == TOK_LSQB) {
+        /*if (curtok(parser) == TOK_DOT) {
+            eattok(parser, TOK_DOT);
+            Node *right = parse_constant(parser);
+            if (right->nodetype == NODE_FN) {
+                cur_node = new_MethodCall(...);
+            } else if (right->nodetype == NODE_VAR) {
+                cur_node = new_Member(...);
+            }
+        }
+        eattok(parser, TOK_LSQB);
+        // TODO: order of evaluation is undefined here
+        cur_node = new_Index(cur_node, parse_expr(parser), parser->lex->line);
+        eattok(parser, TOK_RSQB);
+    }*/
+    return cur_node;
+
+}
+
 Node *parse_constant(Parser *parser) {
-    //printf("comparator. type: %s, value: %s\n", YASL_TOKEN_NAMES[parser->lex->type], parser->lex->value);
-    if (parser->lex->type == TOK_ID) return parse_id(parser);
-    else if (parser->lex->type == TOK_LSQB) return parse_collection(parser);
-    else if (parser->lex->type == TOK_STR) return parse_string(parser);
-    else if (parser->lex->type == TOK_INT64) return parse_integer(parser);
-    else if (parser->lex->type == TOK_FLOAT64) return parse_float(parser);
-    else if (parser->lex->type == TOK_BOOL) return parse_boolean(parser);
-    else if (parser->lex->type == TOK_UNDEF) return parse_undef(parser);
-    puts("ParsingError: Invalid exdpresion.");
+    //printf("comparator. type: %s, value: %s\n", YASL_TOKEN_NAMES[curtok(parser)], parser->lex->value);
+    if (curtok(parser) == TOK_ID) return parse_id(parser);
+    else if (curtok(parser) == TOK_LSQB) return parse_collection(parser);
+    else if (curtok(parser) == TOK_STR) return parse_string(parser);
+    else if (curtok(parser) == TOK_INT64) return parse_integer(parser);
+    else if (curtok(parser) == TOK_FLOAT64) return parse_float(parser);
+    else if (curtok(parser) == TOK_BOOL) return parse_boolean(parser);
+    else if (curtok(parser) == TOK_UNDEF) return parse_undef(parser);
+    puts("ParsingError: Invalid expression.");
     exit(EXIT_FAILURE);
 }
 
@@ -380,16 +402,16 @@ Node *parse_id(Parser *parser) {
     int64_t name_len = parser->lex->val_len;
     //printf("id: %s\n", parser->lex->value);
     eattok(parser, TOK_ID);
-    if (parser->lex->type == TOK_LPAR) {
+    if (curtok(parser) == TOK_LPAR) {
         puts("function call");
         // TODO: function calls
-    } else if (parser->lex->type == TOK_LSQB) {
+    } /*else if (curtok(parser) == TOK_LSQB) {
         puts("index");
         // TODO: indexing
-    } else if (parser->lex->type == TOK_DOT) {
+    } else if (curtok(parser) == TOK_DOT) {
         puts("member access");
         // TODO: member access
-    } else {
+    } */ else {
         puts("var");
         Node *cur_node = new_Var(name, name_len, parser->lex->line);
         //printf("id: %s\n", name);
@@ -411,10 +433,10 @@ Node *parse_float(Parser *parser) {
 }
 
 Node *parse_integer(Parser *parser) {
-    //printf("integer. type: %s, value: %s\n", YASL_TOKEN_NAMES[parser->lex->type], parser->lex->value);
+    //printf("integer. type: %s, value: %s\n", YASL_TOKEN_NAMES[curtok(parser)], parser->lex->value);
     Node *cur_node = new_Integer(parser->lex->value, parser->lex->val_len, parser->lex->line);
     eattok(parser, TOK_INT64);
-    //printf("integer. type: %s, value: %s\n", YASL_TOKEN_NAMES[parser->lex->type], parser->lex->value);
+    //printf("integer. type: %s, value: %s\n", YASL_TOKEN_NAMES[curtok(parser)], parser->lex->value);
     return cur_node;
 }
 
@@ -435,49 +457,19 @@ Node *parse_string(Parser *parser) {
 
 // parse list and map literals
 Node *parse_collection(Parser *parser) {
-    /*
-    elif self.current_token.type is TokenTypes.LBRACK:
-        ls = self.eat(TokenTypes.LBRACK)
-        keys = []
-        vals = []
-        if self.current_token.type is TokenTypes.RARROW:
-            self.eat(TokenTypes.RARROW)
-            self.eat(TokenTypes.RBRACK)
-            return Hash(ls, keys, vals)
-        if self.current_token.type is not TokenTypes.RBRACK:
-            keys.append(self.expr())
-            if self.current_token.type is TokenTypes.RARROW:
-                self.eat(TokenTypes.RARROW)
-                vals.append(self.expr())
-                while self.current_token.type is TokenTypes.COMMA and self.current_token.type is not TokenTypes.EOF:
-                    self.eat(TokenTypes.COMMA)
-                    keys.append(self.expr())
-                    self.eat(TokenTypes.RARROW)
-                    vals.append(self.expr())
-                self.eat(TokenTypes.RBRACK)
-                return Hash(ls, keys, vals)
-            else:
-                while self.current_token.type is TokenTypes.COMMA and self.current_token.type is not TokenTypes.EOF:
-                    self.eat(TokenTypes.COMMA)
-                    keys.append(self.expr())
-                self.eat(TokenTypes.RBRACK)
-                return List(ls, keys)
-        self.eat(TokenTypes.RBRACK)
-        return List(ls, keys)
-    */
     eattok(parser, TOK_LSQB);
     Node *keys = new_Block(parser->lex->line);
     Node *vals = new_Block(parser->lex->line); // free if we have list.
 
     // empty map
-    if (parser->lex->type == TOK_RARR) {
+    if (curtok(parser) == TOK_RARR) {
         eattok(parser, TOK_RARR);
         eattok(parser, TOK_RSQB);
         return new_Map(keys, vals, parser->lex->line);
     }
 
     // empty list
-    if (parser->lex->type == TOK_RSQB) {
+    if (curtok(parser) == TOK_RSQB) {
         node_del(vals);
         eattok(parser, TOK_RSQB);
         return new_List(keys, parser->lex->line);
@@ -486,10 +478,10 @@ Node *parse_collection(Parser *parser) {
     block_append(keys, parse_expr(parser));
 
     // non-empty map
-    if (parser->lex->type == TOK_RARR) {
+    if (curtok(parser) == TOK_RARR) {
         eattok(parser, TOK_RARR);
         block_append(vals, parse_expr(parser));
-        while (parser->lex->type == TOK_COMMA) {
+        while (curtok(parser) == TOK_COMMA) {
             eattok(parser, TOK_COMMA);
             block_append(keys, parse_expr(parser));
             eattok(parser, TOK_RARR);
@@ -501,7 +493,7 @@ Node *parse_collection(Parser *parser) {
 
     // non-empty list
     node_del(vals);
-    while (parser->lex->type == TOK_COMMA) {
+    while (curtok(parser) == TOK_COMMA) {
         eattok(parser, TOK_COMMA);
         block_append(keys, parse_expr(parser));
     }

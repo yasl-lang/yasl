@@ -96,6 +96,14 @@ void block_append(Node *node, Node *child) {
     node->children[node->children_len-1] = child;
 }
 
+Node *new_FunctionCall(Node *params, char *name, int64_t name_len, int line) {
+    return new_Node_1(NODE_FN, UNKNOWN, params, name, name_len, line);
+}
+
+Node *new_Index(Node *collection, Node *value, int line) {
+    return new_Node_2(NODE_INDEX, UNKNOWN, collection, value, NULL, 0, line);
+}
+
 Node *new_While(Node *cond, Node *body, int line) {
     return new_Node_2(NODE_WHILE, UNKNOWN, cond, body, NULL, 0, line);
 }

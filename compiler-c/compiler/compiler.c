@@ -140,6 +140,13 @@ void visit_ExprStmt(Compiler *compiler, Node *node) {
     bb_add_byte(compiler->buffer, POP);
 }
 
+void visit_Index(Compiler *compiler, Node *node) {
+    visit(compiler, node->children[1]);
+    visit(compiler, node->children[0]);
+    bb_add_byte(compiler->buffer, MCALL_8);
+    bb_intbytes8(compiler->buffer, GET__);
+}
+
 void visit_Block(Compiler *compiler, Node *node) {
     int i;
     for (i = 0; i < node->children_len; i++) {
@@ -251,9 +258,8 @@ void visit_If(Compiler *compiler, Node *node) {
 void visit_Print(Compiler* compiler, Node *node) {
     //printf("compiler->header->count is %d\n", compiler->header->count);
     visit(compiler, node->children[0]);
-    char print_bytes[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};      // TODO: lookup in table
     bb_add_byte(compiler->buffer, BCALL_8);
-    bb_append(compiler->buffer, print_bytes, 8);
+    bb_intbytes8(compiler->buffer, 0x00);       // TODO: fix hardcoded value
 }
 
 /*
@@ -541,19 +547,6 @@ void visit_String(Compiler* compiler, Node *node) {
     //printf("compiler->header->count is %d\n", compiler->header->count);
 }
 
-/*
- *
-    def visit_List(self, node):
-        result = [NEWLIST]
-        for expr in node.params:
-            #[MCALL_8] + intbytes_8(METHODS[node.value])
-            result.extend([DUP] + self.visit(expr) + [SWAP] + [MCALL_8] + intbytes_8(METHODS["append"]) + [POP])
-            # TODO: fix order of arguments here
-            #result = result + [DUP] + self.visit(expr) + [BCALL_8] + intbytes_8(BUILTINS["append"]) + [POP]
-        return result
-
- */
-
 void visit_List(Compiler *compiler, Node *node) {
     bb_add_byte(compiler->buffer, NEWLIST);
     int i;
@@ -567,13 +560,6 @@ void visit_List(Compiler *compiler, Node *node) {
     }
 }
 
-/*
-def visit_Hash(self, node):
-result = [NEWHASH]
-for i in range(len(node.keys)):
-result = result + [DUP] + self.visit(node.keys[i]) + [SWAP] + self.visit(node.vals[i]) + [SWAP] + [MCALL_8] + intbytes_8(METHODS["__set"]) + [POP]
-return result  # TODO: allow declaration with a bunch of values in it
- */
 void visit_Map(Compiler *compiler, Node *node) {
     bb_add_byte(compiler->buffer, NEWMAP);
     int i;
@@ -595,6 +581,11 @@ void visit(Compiler* compiler, Node* node) {
     //printf("compiler->header->count is %d\n", compiler->header->count);
     //printf("node type is %x\n", node->nodetype);
     //puts("about to switch");
+    if (node == NULL) puts("NULL");
+    else puts("NOT NULL");
+    printf("%d\n", node->nodetype);
+    puts("Visit");
+
     switch(node->nodetype) {
     case NODE_EXPRSTMT:
         puts("Visit ExprStmt");
@@ -603,6 +594,10 @@ void visit(Compiler* compiler, Node* node) {
     case NODE_BLOCK:
         puts("Visit Block");
         visit_Block(compiler, node);
+        break;
+    case NODE_INDEX:
+        puts("Visit Index");
+        visit_Index(compiler, node);
         break;
     case NODE_WHILE:
         puts("Visit While");

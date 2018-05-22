@@ -5,12 +5,14 @@
 #define peof(parser) (parser->lex->type == TOK_EOF)
 #define isaugmented(t) (t == TOK_CARETEQ || t == TOK_STAREQ || t == TOK_SLASHEQ || t == TOK_DSLASHEQ ||\
             t == TOK_MOD || t == TOK_PLUSEQ || t == TOK_MINUSEQ || t == TOK_DGTEQ || t == TOK_DLTEQ || \
-            t == TOK_DBAREQ || t == TOK_TBAREQ || t == TOK_AMPEQ || t == TOK_TILDEEQ || t == TOK_BAREQ || \
+            t == TOK_DBAREQ || t == TOK_TBAREQ || t == TOK_AMPEQ || t == TOK_DSTAREQ || t == TOK_BAREQ || \
             t == TOK_DQMARKEQ)
 // ^=, *=, /=, //=,
 // %=, +=, -=, >>=, <<=,
-// ||=, |||=, &=, ~=, |=,
+// ||=, |||=, &=, **=, |=,
 // ?\?=
+
+#define curtok(p) (p->lex->type)
 
 typedef struct {
     Lexer *lex;
@@ -41,6 +43,7 @@ Node *parse_add(Parser *parser);
 Node *parse_multiply(Parser *parser);
 Node *parse_unary(Parser *parser);
 Node *parse_power(Parser *parser);
+Node *parse_call(Parser *parser);
 Node *parse_constant(Parser *parser);
 Node *parse_id(Parser *parser);
 Node *parse_undef(Parser *parser);
