@@ -8,10 +8,10 @@
 #include <string.h>
 #define  isbdigit(x) (x == '0' || x == '1')
 #define  isodigit(x) (isdigit(x) && x != '8' && x != '9')
-#define  ispotentialend(l) (l->type == TOK_ID || l->type == TOK_STR || \
-            l->type == TOK_INT64 || l->type == TOK_FLOAT64 || l->type == TOK_BREAK || \
-            l->type == TOK_CONT || l->type == TOK_RPAR || l->type == TOK_RSQB || \
-            l->type == TOK_RBRC || l->type == TOK_UNDEF || l->type == TOK_BOOL)
+#define  ispotentialend(l) (l->type == T_ID || l->type == T_STR || \
+            l->type == T_INT64 || l->type == T_FLOAT64 || l->type == T_BREAK || \
+            l->type == T_CONT || l->type == T_RPAR || l->type == T_RSQB || \
+            l->type == T_RBRC || l->type == T_UNDEF || l->type == T_BOOL)
 /*
 an identifier
 an integer, floating-point, or string literal

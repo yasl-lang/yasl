@@ -4,11 +4,11 @@
 #include "../ast/ast.h"
 #include "../../debug.h"
 
-#define peof(parser) (parser->lex->type == TOK_EOF)
-#define isaugmented(t) (t == TOK_CARETEQ || t == TOK_STAREQ || t == TOK_SLASHEQ || t == TOK_DSLASHEQ ||\
-            t == TOK_MOD || t == TOK_PLUSEQ || t == TOK_MINUSEQ || t == TOK_DGTEQ || t == TOK_DLTEQ || \
-            t == TOK_DBAREQ || t == TOK_TBAREQ || t == TOK_AMPEQ || t == TOK_DSTAREQ || t == TOK_BAREQ || \
-            t == TOK_DQMARKEQ)
+#define peof(parser) (parser->lex->type == T_EOF)
+#define isaugmented(t) (t == T_CARETEQ || t == T_STAREQ || t == T_SLASHEQ || t == T_DSLASHEQ ||\
+            t == T_MOD || t == T_PLUSEQ || t == T_MINUSEQ || t == T_DGTEQ || t == T_DLTEQ || \
+            t == T_DBAREQ || t == T_TBAREQ || t == T_AMPEQ || t == T_DSTAREQ || t == T_BAREQ || \
+            t == T_DQMARKEQ)
 // ^=, *=, /=, //=,
 // %=, +=, -=, >>=, <<=,
 // ||=, |||=, &=, **=, |=,

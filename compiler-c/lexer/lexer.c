@@ -13,7 +13,7 @@ void gettok(Lexer *lex) {
         if (c1 == '\n') {
             lex->line++;
             if (ispotentialend(lex)) {
-                lex->type = TOK_SEMI;
+                lex->type = T_SEMI;
                 return;
             }
         }
@@ -21,7 +21,7 @@ void gettok(Lexer *lex) {
     }
 
     if (feof(lex->file)) {
-        lex->type = TOK_EOF;
+        lex->type = T_EOF;
         lex->value = realloc(lex->value, 0);
         return;
     }
@@ -44,7 +44,7 @@ void gettok(Lexer *lex) {
                 exit(EXIT_FAILURE);
             }
             if (addsemi && ispotentialend(lex)) {
-                lex->type = TOK_SEMI;
+                lex->type = T_SEMI;
                 return;
             }
         } else {
@@ -57,7 +57,7 @@ void gettok(Lexer *lex) {
         if (c1 == '\n') {
             lex->line++;
             if (ispotentialend(lex)) {
-                lex->type = TOK_SEMI;
+                lex->type = T_SEMI;
                 return;
             }
         }
@@ -65,7 +65,7 @@ void gettok(Lexer *lex) {
     }
 
     if (feof(lex->file)) {
-        lex->type = TOK_EOF;
+        lex->type = T_EOF;
         lex->value = NULL;
         return;
     }
@@ -87,7 +87,7 @@ void gettok(Lexer *lex) {
                     lex->value = realloc(lex->value, lex->val_len);
                 }
             } while (!feof(lex->file) && isxdigit(c1));    // isxdigit checks if a hex digit.
-            lex->type = TOK_INT64;
+            lex->type = T_INT64;
             if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
             return;
         } else if (c1 == '0' && c2 == 'b') {         // binary literal
@@ -102,7 +102,7 @@ void gettok(Lexer *lex) {
                     lex->value = realloc(lex->value, lex->val_len);
                 }
             } while (!feof(lex->file) && isbdigit(c1));    // isbdigit checks if a binary digit ('1' or '0').
-            lex->type = TOK_INT64;
+            lex->type = T_INT64;
             if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
             return;
         } else if (c1 == '0' && c2 == 'o') {         // binary literal
@@ -117,7 +117,7 @@ void gettok(Lexer *lex) {
                     lex->value = realloc(lex->value, lex->val_len);
                 }
             } while (!feof(lex->file) && isodigit(c1));    // isodigit checks if an octal digit.
-            lex->type = TOK_INT64;
+            lex->type = T_INT64;
             if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
             return;
         } else {
@@ -132,7 +132,7 @@ void gettok(Lexer *lex) {
                 lex->value = realloc(lex->value, lex->val_len);
             }
         } while (!feof(lex->file) && isdigit(c1));
-        lex->type = TOK_INT64;
+        lex->type = T_INT64;
         //printf("lex->value: %s\n", lex->value);
         if (c1 == '.') {                    // floats
             c2 = fgetc(lex->file);
@@ -155,7 +155,7 @@ void gettok(Lexer *lex) {
             } while (!feof(lex->file) && isdigit(c1));
 
             if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
-            lex->type = TOK_FLOAT64;
+            lex->type = T_FLOAT64;
             return;
         }
 
@@ -175,7 +175,7 @@ void gettok(Lexer *lex) {
         } while (!feof(lex->file) && isalnum(c1));
         if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
         lex->value = realloc(lex->value, lex->val_len = i);
-        lex->type = TOK_ID;
+        lex->type = T_ID;
         YASLKeywords(lex);          // keywords
         return;
     } else if (c1 == '"') {                             // strings
@@ -197,7 +197,7 @@ void gettok(Lexer *lex) {
             puts("LexingError: unclosed string literal.");
             exit(EXIT_FAILURE);
         }
-        lex->type = TOK_STR;
+        lex->type = T_STR;
         return;
     }
 
@@ -261,100 +261,100 @@ void gettok(Lexer *lex) {
 }
 
 Token YASLToken_FourChars(char c1, char c2, char c3, char c4) {
-    switch(c1) { case '|': switch(c2) { case '|': switch(c3) { case '|':  switch(c4) { case '=': return TOK_TBAREQ; default: return UNKNOWN;} } } }
-    return UNKNOWN;
+    switch(c1) { case '|': switch(c2) { case '|': switch(c3) { case '|':  switch(c4) { case '=': return T_TBAREQ; default: return T_UNKNOWN;} } } }
+    return T_UNKNOWN;
 }
 
 Token YASLToken_ThreeChars(char c1, char c2, char c3) {
     switch(c1) {
-        case '<': switch(c2) { case '<': switch(c3) { case '=': return TOK_DLTEQ; default: return UNKNOWN;} }
-        case '>': switch(c2) { case '>': switch(c3) { case '=': return TOK_DGTEQ; default: return UNKNOWN;} }
-        case '=': switch(c2) { case '=': switch(c3) { case '=': return TOK_TEQ; default: return UNKNOWN;} }
-        case '!': switch(c2) { case '=': switch(c3) { case '=': return TOK_BANGDEQ; default: return UNKNOWN;} }
-        case '*': switch(c2) { case '*': switch(c3) { case '=': return TOK_DSTAREQ; default: return UNKNOWN;} }
-        case '/': switch(c2) { case '/': switch(c3) { case '=': return TOK_DSLASHEQ; default: return UNKNOWN;} }
+        case '<': switch(c2) { case '<': switch(c3) { case '=': return T_DLTEQ; default: return T_UNKNOWN;} }
+        case '>': switch(c2) { case '>': switch(c3) { case '=': return T_DGTEQ; default: return T_UNKNOWN;} }
+        case '=': switch(c2) { case '=': switch(c3) { case '=': return T_TEQ; default: return T_UNKNOWN;} }
+        case '!': switch(c2) { case '=': switch(c3) { case '=': return T_BANGDEQ; default: return T_UNKNOWN;} }
+        case '*': switch(c2) { case '*': switch(c3) { case '=': return T_DSTAREQ; default: return T_UNKNOWN;} }
+        case '/': switch(c2) { case '/': switch(c3) { case '=': return T_DSLASHEQ; default: return T_UNKNOWN;} }
         case '|': switch(c2) { case '|': switch(c3) {
-                        case '=': return TOK_DBAREQ;
-                        case '|': return TOK_TBAR;
-                        default: return UNKNOWN;
+                        case '=': return T_DBAREQ;
+                        case '|': return T_TBAR;
+                        default: return T_UNKNOWN;
         } }
-        case '?': switch(c2) { case '?': switch(c3) { case '=': return TOK_DQMARKEQ; default: return UNKNOWN;} }
+        case '?': switch(c2) { case '?': switch(c3) { case '=': return T_DQMARKEQ; default: return T_UNKNOWN;} }
     }
-    return UNKNOWN;
+    return T_UNKNOWN;
 }
 
 Token YASLToken_TwoChars(char c1, char c2) {
     switch(c1) {
-        case '^': switch(c2) { case '=': return TOK_CARETEQ; default: return UNKNOWN; };
-        case '+': switch(c2) { case '=': return TOK_PLUSEQ; default: return UNKNOWN; };
+        case '^': switch(c2) { case '=': return T_CARETEQ; default: return T_UNKNOWN; };
+        case '+': switch(c2) { case '=': return T_PLUSEQ; default: return T_UNKNOWN; };
         case '-': switch(c2) {
-                case '=': return TOK_MINUSEQ;
-                case '>': return TOK_RARR;
-                default: return UNKNOWN;
+                case '=': return T_MINUSEQ;
+                case '>': return T_RARR;
+                default: return T_UNKNOWN;
         }
-        case '=': switch(c2) { case '=': return TOK_DEQ; default: return UNKNOWN;}
-        case '!': switch(c2) { case '=': return TOK_BANGEQ; default: return UNKNOWN;}
-        case '~': switch(c2) { case '=': return TOK_TILDEEQ; default: return UNKNOWN;}
+        case '=': switch(c2) { case '=': return T_DEQ; default: return T_UNKNOWN;}
+        case '!': switch(c2) { case '=': return T_BANGEQ; default: return T_UNKNOWN;}
+        case '~': switch(c2) { case '=': return T_TILDEEQ; default: return T_UNKNOWN;}
         case '*': switch(c2) {
-            case '=': return TOK_STAREQ;
-            case '*': return TOK_DSTAR;
-            default: return UNKNOWN;
+            case '=': return T_STAREQ;
+            case '*': return T_DSTAR;
+            default: return T_UNKNOWN;
         }
         case '/': switch(c2) {
-                case '=': return TOK_SLASHEQ;
-                case '/': return TOK_DSLASH;
-                default: return UNKNOWN; }
-        case '%': switch(c2) { case '=': return TOK_MODEQ; default: return UNKNOWN;}
+                case '=': return T_SLASHEQ;
+                case '/': return T_DSLASH;
+                default: return T_UNKNOWN; }
+        case '%': switch(c2) { case '=': return T_MODEQ; default: return T_UNKNOWN;}
         case '<': switch(c2) {
-                case '=': return TOK_LTEQ;
-                case '<': return TOK_DLT;
-                case '-': return TOK_LARR;
-                default: return UNKNOWN;
+                case '=': return T_LTEQ;
+                case '<': return T_DLT;
+                case '-': return T_LARR;
+                default: return T_UNKNOWN;
         }
         case '>': switch(c2) {
-                case '=': return TOK_GTEQ;
-                case '>': return TOK_DGT;
-                default:  return UNKNOWN;
+                case '=': return T_GTEQ;
+                case '>': return T_DGT;
+                default:  return T_UNKNOWN;
         }
-        case '&': switch(c2) { case '=': return TOK_AMPEQ; default: return UNKNOWN; }
+        case '&': switch(c2) { case '=': return T_AMPEQ; default: return T_UNKNOWN; }
         case '|': switch(c2) {
-                case '=': return TOK_BAREQ;
-                case '|': return TOK_DBAR;
-                default: return UNKNOWN;
+                case '=': return T_BAREQ;
+                case '|': return T_DBAR;
+                default: return T_UNKNOWN;
         }
-        case '?': switch(c2) { case '?': return TOK_DQMARK; default: return UNKNOWN;}
+        case '?': switch(c2) { case '?': return T_DQMARK; default: return T_UNKNOWN;}
     }
-    return UNKNOWN;
+    return T_UNKNOWN;
 }
 
 Token YASLToken_OneChar(char c1) {
     switch(c1) {
-        case ';': return TOK_SEMI;
-        case '(': return TOK_LPAR;
-        case ')': return TOK_RPAR;
-        case '[': return TOK_LSQB;
-        case ']': return TOK_RSQB;
-        case '{': return TOK_LBRC;
-        case '}': return TOK_RBRC;
-        case '.': return TOK_DOT;
-        case ',': return TOK_COMMA;
-        case '^': return TOK_CARET;
-        case '+': return TOK_PLUS;
-        case '-': return TOK_MINUS;
-        case '#': return TOK_HASH;
-        case '!': return TOK_BANG;
-        case '~': return TOK_TILDE;
-        case '*': return TOK_STAR;
-        case '/': return TOK_SLASH;
-        case '%': return TOK_MOD;
-        case '<': return TOK_LT;
-        case '>': return TOK_GT;
-        case '=': return TOK_EQ;
-        case '&': return TOK_AMP;
-        case '|': return TOK_BAR;
-        case '?': return TOK_QMARK;
-        case ':': return TOK_COLON;
-        default: return UNKNOWN;
+        case ';': return T_SEMI;
+        case '(': return T_LPAR;
+        case ')': return T_RPAR;
+        case '[': return T_LSQB;
+        case ']': return T_RSQB;
+        case '{': return T_LBRC;
+        case '}': return T_RBRC;
+        case '.': return T_DOT;
+        case ',': return T_COMMA;
+        case '^': return T_CARET;
+        case '+': return T_PLUS;
+        case '-': return T_MINUS;
+        case '#': return T_HASH;
+        case '!': return T_BANG;
+        case '~': return T_TILDE;
+        case '*': return T_STAR;
+        case '/': return T_SLASH;
+        case '%': return T_MOD;
+        case '<': return T_LT;
+        case '>': return T_GT;
+        case '=': return T_EQ;
+        case '&': return T_AMP;
+        case '|': return T_BAR;
+        case '?': return T_QMARK;
+        case ':': return T_COLON;
+        default: return T_UNKNOWN;
     }
 }
 
@@ -378,77 +378,77 @@ void YASLKeywords(Lexer *lex) {
      *  return
      */
     if (!memcmp(lex->value, "let", lex->val_len)) {
-        lex->type = TOK_LET;
+        lex->type = T_LET;
         lex->value = realloc(lex->value, 0);
     } else if (!memcmp(lex->value, "print", lex->val_len)) {
-        lex->type = TOK_PRINT;
+        lex->type = T_PRINT;
         lex->value = realloc(lex->value, 0);
     } else if (!memcmp(lex->value, "else", lex->val_len)) {
-        lex->type = TOK_ELSE;
+        lex->type = T_ELSE;
         lex->value = realloc(lex->value, 0);
     } else if (!memcmp(lex->value, "if", lex->val_len)) {
-        lex->type = TOK_IF;
+        lex->type = T_IF;
         lex->value = realloc(lex->value, 0);
     } else if (!memcmp(lex->value, "elseif", lex->val_len)) {
-        lex->type = TOK_ELSEIF;
+        lex->type = T_ELSEIF;
         lex->value = realloc(lex->value, 0);
     } else if (!memcmp(lex->value, "while", lex->val_len)) {
-        lex->type = TOK_WHILE;
+        lex->type = T_WHILE;
         lex->value = realloc(lex->value, 0);
     } else if (!memcmp(lex->value, "for", lex->val_len)) {
-        lex->type = TOK_FOR;
+        lex->type = T_FOR;
         lex->value = realloc(lex->value, 0);
     } else if (!memcmp(lex->value, "break", lex->val_len)) {
-        lex->type = TOK_BREAK;
+        lex->type = T_BREAK;
         lex->value = realloc(lex->value, 0);
     } else if (!memcmp(lex->value, "continue", lex->val_len)) {
-        lex->type = TOK_CONT;
+        lex->type = T_CONT;
         lex->value = realloc(lex->value, 0);
     } else if (!memcmp(lex->value, "true", lex->val_len)) {
-        lex->type = TOK_BOOL;
+        lex->type = T_BOOL;
     } else if (!memcmp(lex->value, "false", lex->val_len)) {
-        lex->type = TOK_BOOL;
+        lex->type = T_BOOL;
     } else if (!memcmp(lex->value, "or", lex->val_len)) {
-        lex->type = TOK_OR;
+        lex->type = T_OR;
         lex->value = realloc(lex->value, 0);
     } else if (!memcmp(lex->value, "and", lex->val_len)) {
-        lex->type = TOK_AND;
+        lex->type = T_AND;
         lex->value = realloc(lex->value, 0);
     } else if (!memcmp(lex->value, "undef", lex->val_len)) {
-        lex->type = TOK_UNDEF;
+        lex->type = T_UNDEF;
         lex->value = realloc(lex->value, 0);
     } else if (!memcmp(lex->value, "fn", lex->val_len)) {
-        lex->type = TOK_FN;
+        lex->type = T_FN;
         lex->value = realloc(lex->value, 0);
     } else if (!memcmp(lex->value, "return", lex->val_len)) {
-        lex->type = TOK_RET;
+        lex->type = T_RET;
         lex->value = realloc(lex->value, 0);
     }
 }
 
 const char *YASL_TOKEN_NAMES[] = {
-        "END OF FILE",  // TOK_EOF,
-        ";",            // TOK_SEMI,
-        "undef",        // TOK_UNDEF,
-        "float64",      // TOK_FLOAT64,
-        "int64",        // TOK_INT64,
-        "bool",         // TOK_BOOL,
-        "str",          // TOK_STR,
-        "if",           // TOK_IF,
-        "elseif",       // TOK_ELSEIF,
-        "else",         // TOK_ELSE,
-        "while",        // TOK_WHILE,
-        "break",        // TOK_BREAK,
-        "continue",     // TOK_CONT,
-        "for",          // TOK_FOR,
-        "and",          // TOK_AND,
-        "or",           // TOK_OR,
-        "id",           // TOK_ID,
-        "let",          // TOK_LET,
-        "fn",           // TOK_FN,
-        "return",       // TOK_RET,
-        "struct",       // TOK_STRUCT,
-        "print",        // TOK_PRINT,
+        "END OF FILE",  // T_EOF,
+        ";",            // T_SEMI,
+        "undef",        // T_UNDEF,
+        "float64",      // T_FLOAT64,
+        "int64",        // T_INT64,
+        "bool",         // T_BOOL,
+        "str",          // T_STR,
+        "if",           // T_IF,
+        "elseif",       // T_ELSEIF,
+        "else",         // T_ELSE,
+        "while",        // T_WHILE,
+        "break",        // T_BREAK,
+        "continue",     // T_CONT,
+        "for",          // T_FOR,
+        "and",          // T_AND,
+        "or",           // T_OR,
+        "id",           // T_ID,
+        "let",          // T_LET,
+        "fn",           // T_FN,
+        "return",       // T_RET,
+        "struct",       // T_STRUCT,
+        "print",        // T_PRINT,
         "(",            // LPAR,
         ")",            // RPAR,
         "[",            // LSQB,
@@ -512,7 +512,7 @@ Lexer *lex_new(FILE *file) {
     lex->value = NULL;
     lex->val_len = 0;
     lex->file = file;
-    lex->type = UNKNOWN;
+    lex->type = T_UNKNOWN;
     return lex;
 }
 
@@ -528,7 +528,7 @@ int main(void) {
     if (fp == NULL) return 1;
     fseek(fp, 0, SEEK_SET);
     Lexer *lex = lex_new(fp);
-    while (lex->type != TOK_EOF) {
+    while (lex->type != T_EOF) {
         gettok(lex);
         printf("type: %s, value: %s\n", YASL_TOKEN_NAMES[lex->type], lex->value);
     }

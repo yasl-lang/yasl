@@ -89,7 +89,7 @@ void compile(Compiler *compiler) {
     while (!peof(compiler->parser)) {
             if (peof(compiler->parser)) break;
             node = parse(compiler->parser);
-            eattok(compiler->parser, TOK_SEMI);
+            eattok(compiler->parser, T_SEMI);
             YASL_DEBUG_LOG("eaten semi. type: %s, ", YASL_TOKEN_NAMES[compiler->parser->lex->type]);
             YASL_DEBUG_LOG("value: %s\n", compiler->parser->lex->value);
             YASL_DEBUG_LOG("%s\n", "about to visit.");
@@ -126,7 +126,7 @@ void visit_Index(Compiler *compiler, Node *node) {
     visit(compiler, node->children[1]);
     visit(compiler, node->children[0]);
     bb_add_byte(compiler->buffer, MCALL_8);
-    bb_intbytes8(compiler->buffer, GET__);
+    bb_intbytes8(compiler->buffer, M___GET);
 }
 
 void visit_Block(Compiler *compiler, Node *node) {
@@ -241,7 +241,7 @@ void visit_Print(Compiler* compiler, Node *node) {
     //printf("compiler->header->count is %d\n", compiler->header->count);
     visit(compiler, node->children[0]);
     bb_add_byte(compiler->buffer, BCALL_8);
-    bb_intbytes8(compiler->buffer, PRINT);       // TODO: fix hardcoded value
+    bb_intbytes8(compiler->buffer, F_PRINT);       // TODO: fix hardcoded value
 }
 
 /*
@@ -295,7 +295,7 @@ void visit_TriOp(Compiler *compiler, Node *node) {
 void visit_BinOp(Compiler *compiler, Node *node) {
     //printf("compiler->header->count is %d\n", compiler->header->count);
     // TODO: make sure complicated bin ops are handled on their own.
-    if (node->type == TOK_DQMARK) {
+    if (node->type == T_DQMARK) {
         // return left + [DUP, BRN_8] + intbytes_8(len(right)+1) + [POP] + right
         visit(compiler, node->children[0]);
         bb_add_byte(compiler->buffer, DUP);
@@ -306,7 +306,7 @@ void visit_BinOp(Compiler *compiler, Node *node) {
         visit(compiler, node->children[1]);
         bb_rewrite_intbytes8(compiler->buffer, index, compiler->buffer->count-index-8);
         return;
-    } else if (node->type == TOK_OR) {
+    } else if (node->type == T_OR) {
         visit(compiler, node->children[0]);
         bb_add_byte(compiler->buffer, DUP);
         bb_add_byte(compiler->buffer, BRT_8);
@@ -316,7 +316,7 @@ void visit_BinOp(Compiler *compiler, Node *node) {
         visit(compiler, node->children[1]);
         bb_rewrite_intbytes8(compiler->buffer, index, compiler->buffer->count-index-8);
         return;
-    } else if (node->type == TOK_AND) {
+    } else if (node->type == T_AND) {
         visit(compiler, node->children[0]);
         bb_add_byte(compiler->buffer, DUP);
         bb_add_byte(compiler->buffer, BRF_8);
@@ -326,86 +326,86 @@ void visit_BinOp(Compiler *compiler, Node *node) {
         visit(compiler, node->children[1]);
         bb_rewrite_intbytes8(compiler->buffer, index, compiler->buffer->count-index-8);
         return;
-    } else if (node->type == TOK_TBAR) {
+    } else if (node->type == T_TBAR) {
             /* return left + [MCALL_8] + intbytes_8(METHODS["tostr"]) + right + [MCALL_8] + intbytes_8(METHODS["tostr"]) \
                 + [HARD_CNCT] */
             visit(compiler, node->children[0]);
             bb_add_byte(compiler->buffer, MCALL_8);
-            bb_intbytes8(compiler->buffer, TOSTR);
+            bb_intbytes8(compiler->buffer, M_TOSTR);
             visit(compiler, node->children[1]);
             bb_add_byte(compiler->buffer, MCALL_8);
-            bb_intbytes8(compiler->buffer, TOSTR);
+            bb_intbytes8(compiler->buffer, M_TOSTR);
             bb_add_byte(compiler->buffer, HARD_CNCT);
             return;
     }
     visit(compiler, node->children[0]);
     visit(compiler, node->children[1]);
     switch(node->type) {
-        case TOK_BAR:
+        case T_BAR:
             bb_add_byte(compiler->buffer, BOR);
             break;
-        case TOK_CARET:
+        case T_CARET:
             bb_add_byte(compiler->buffer, BXOR);
             break;
-        case TOK_AMP:
+        case T_AMP:
             bb_add_byte(compiler->buffer, BAND);
             break;
-        case TOK_DEQ:
+        case T_DEQ:
             bb_add_byte(compiler->buffer, EQ);
             break;
-        case TOK_TEQ:
+        case T_TEQ:
             bb_add_byte(compiler->buffer, ID);
             break;
-        case TOK_BANGEQ:
+        case T_BANGEQ:
             bb_add_byte(compiler->buffer, EQ);
             bb_add_byte(compiler->buffer, NOT);
             break;
-        case TOK_BANGDEQ:
+        case T_BANGDEQ:
             bb_add_byte(compiler->buffer, ID);
             bb_add_byte(compiler->buffer, NOT);
             break;
-        case TOK_GT:
+        case T_GT:
             bb_add_byte(compiler->buffer, GT);
             break;
-        case TOK_GTEQ:
+        case T_GTEQ:
             bb_add_byte(compiler->buffer, GE);
             break;
-        case TOK_LT:
+        case T_LT:
             bb_add_byte(compiler->buffer, GE);
             bb_add_byte(compiler->buffer, NOT);
             break;
-        case TOK_LTEQ:
+        case T_LTEQ:
             bb_add_byte(compiler->buffer, GT);
             bb_add_byte(compiler->buffer, NOT);
             break;
-        case TOK_DBAR:
+        case T_DBAR:
             bb_add_byte(compiler->buffer, CNCT);
             break;
-        case TOK_DGT:
+        case T_DGT:
             bb_add_byte(compiler->buffer, BRSHIFT);
             break;
-        case TOK_DLT:
+        case T_DLT:
             bb_add_byte(compiler->buffer, BLSHIFT);
             break;
-        case TOK_PLUS:
+        case T_PLUS:
             bb_add_byte(compiler->buffer, ADD);
             break;
-        case TOK_MINUS:
+        case T_MINUS:
             bb_add_byte(compiler->buffer, SUB);
             break;
-        case TOK_STAR:
+        case T_STAR:
             bb_add_byte(compiler->buffer, MUL);
             break;
-        case TOK_SLASH:
+        case T_SLASH:
             bb_add_byte(compiler->buffer, FDIV);
             break;
-        case TOK_DSLASH:
+        case T_DSLASH:
             bb_add_byte(compiler->buffer, IDIV);
             break;
-        case TOK_MOD:
+        case T_MOD:
             bb_add_byte(compiler->buffer, MOD);
             break;
-        case TOK_DSTAR:
+        case T_DSTAR:
             bb_add_byte(compiler->buffer, EXP);
             break;
         default:
@@ -417,19 +417,19 @@ void visit_BinOp(Compiler *compiler, Node *node) {
 void visit_UnOp(Compiler *compiler, Node *node) {
     visit(compiler, node->children[0]);
     switch(node->type) {
-        case TOK_PLUS:
+        case T_PLUS:
             bb_add_byte(compiler->buffer, NOP);
             break;
-        case TOK_MINUS:
+        case T_MINUS:
             bb_add_byte(compiler->buffer, NEG);
             break;
-        case TOK_BANG:
+        case T_BANG:
             bb_add_byte(compiler->buffer, NOT);
             break;
-        case TOK_CARET:
+        case T_CARET:
             bb_add_byte(compiler->buffer, BNOT);
             break;
-        case TOK_HASH:
+        case T_HASH:
             bb_add_byte(compiler->buffer, LEN);
             break;
         default:
@@ -537,7 +537,7 @@ void visit_List(Compiler *compiler, Node *node) {
         visit(compiler, node->children[0]->children[i]);
         bb_add_byte(compiler->buffer, SWAP);
         bb_add_byte(compiler->buffer, MCALL_8);
-        bb_intbytes8(compiler->buffer, APPEND); // NOTE: this depends on the APPEND constant in method.h
+        bb_intbytes8(compiler->buffer, M_APPEND); // NOTE: this depends on the M_APPEND constant in method.h
         bb_add_byte(compiler->buffer, POP);
     }
 }
@@ -552,7 +552,7 @@ void visit_Map(Compiler *compiler, Node *node) {
         visit(compiler, node->children[1]->children[i]);
         bb_add_byte(compiler->buffer, SWAP);
         bb_add_byte(compiler->buffer, MCALL_8);
-        bb_intbytes8(compiler->buffer, SET__);  // NOTE: depends on value of SET__ in methods.h
+        bb_intbytes8(compiler->buffer, M___SET);  // NOTE: depends on value of M___SET in methods.h
         bb_add_byte(compiler->buffer, POP);
     }
 }

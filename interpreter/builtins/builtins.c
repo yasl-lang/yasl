@@ -145,65 +145,65 @@ int yasl_popen(VM* vm) {     //TODO: fix bug relating to file pointer
 
 VTable_t* float64_builtins() {
     VTable_t* vt = new_vtable();
-    vt_insert(vt, TOINT64, (int64_t)&float64_toint64);
-    vt_insert(vt, TOSTR,   (int64_t)&float64_tostr);
+    vt_insert(vt, M_TOINT64, (int64_t)&float64_toint64);
+    vt_insert(vt, M_TOSTR,   (int64_t)&float64_tostr);
     return vt;
 }
 
 VTable_t* int64_builtins() {
     VTable_t* vt = new_vtable();
-    vt_insert(vt, TOFLOAT64, (int64_t)&int64_tofloat64);
-    vt_insert(vt, TOSTR,     (int64_t)&int64_tostr);
+    vt_insert(vt, M_TOFLOAT64, (int64_t)&int64_tofloat64);
+    vt_insert(vt, M_TOSTR,     (int64_t)&int64_tostr);
     return vt;
 }
 
 VTable_t* bool_builtins() {
     VTable_t* vt = new_vtable();
-    vt_insert(vt, TOSTR, (int64_t)&bool_tostr);
+    vt_insert(vt, M_TOSTR, (int64_t)&bool_tostr);
     return vt;
 }
 
 VTable_t* str8_builtins() {
     VTable_t* vt = new_vtable();
-    vt_insert(vt, TOBOOL,     (int64_t)&str_tobool);
-    vt_insert(vt, TOSTR,      (int64_t)&str_tostr);
-    vt_insert(vt, UPCASE,     (int64_t)&str_upcase);
-    vt_insert(vt, DOWNCASE,   (int64_t)&str_downcase);
-    vt_insert(vt, ISALNUM,    (int64_t)&str_isalnum);
-    vt_insert(vt, ISAL,       (int64_t)&str_isal);
-    vt_insert(vt, ISNUM,      (int64_t)&str_isnum);
-    vt_insert(vt, ISSPACE,    (int64_t)&str_isspace);
-    vt_insert(vt, STARTSWITH, (int64_t)&str_startswith);
-    vt_insert(vt, ENDSWITH,   (int64_t)&str_endswith);
-    vt_insert(vt, SEARCH,     (int64_t)&str_search);
-    vt_insert(vt, SPLIT,      (int64_t)&str_split);
-    vt_insert(vt, GET__,      (int64_t)&str___get);
+    vt_insert(vt, M_TOBOOL,     (int64_t)&str_tobool);
+    vt_insert(vt, M_TOSTR,      (int64_t)&str_tostr);
+    vt_insert(vt, M_UPCASE,     (int64_t)&str_upcase);
+    vt_insert(vt, M_DOWNCASE,   (int64_t)&str_downcase);
+    vt_insert(vt, M_ISALNUM,    (int64_t)&str_isalnum);
+    vt_insert(vt, M_ISAL,       (int64_t)&str_isal);
+    vt_insert(vt, M_ISNUM,      (int64_t)&str_isnum);
+    vt_insert(vt, M_ISSPACE,    (int64_t)&str_isspace);
+    vt_insert(vt, M_STARTSWITH, (int64_t)&str_startswith);
+    vt_insert(vt, M_ENDSWITH,   (int64_t)&str_endswith);
+    vt_insert(vt, M_SEARCH,     (int64_t)&str_search);
+    vt_insert(vt, M_SPLIT,      (int64_t)&str_split);
+    vt_insert(vt, M___GET,      (int64_t)&str___get);
     return vt;
 }
 
 VTable_t* list_builtins() {
     VTable_t* vt = new_vtable();
-    vt_insert(vt, APPEND, (int64_t)&list_append);
-    vt_insert(vt, GET__,  (int64_t)&list___get);
-    vt_insert(vt, SET__,  (int64_t)&list___set);
+    vt_insert(vt, M_APPEND, (int64_t)&list_append);
+    vt_insert(vt, M___GET,  (int64_t)&list___get);
+    vt_insert(vt, M___SET,  (int64_t)&list___set);
     return vt;
 }
 
 VTable_t* map_builtins() {
     VTable_t* vt = new_vtable();
-    vt_insert(vt, KEYS,   (int64_t)&map_keys);
-    vt_insert(vt, VALUES, (int64_t)&map_values);
-    vt_insert(vt, GET__,  (int64_t)&map___get);
-    vt_insert(vt, SET__,  (int64_t)&map___set);
+    vt_insert(vt, M_KEYS,   (int64_t)&map_keys);
+    vt_insert(vt, M_VALUES, (int64_t)&map_values);
+    vt_insert(vt, M___GET,  (int64_t)&map___get);
+    vt_insert(vt, M___SET,  (int64_t)&map___set);
     return vt;
 }
 
 VTable_t* file_builtins() {
     VTable_t* vt = new_vtable();
-    vt_insert(vt, CLOSE,    (int64_t)&file_close);
-    vt_insert(vt, PCLOSE,   (int64_t)&file_pclose);
-    vt_insert(vt, READ,     (int64_t)&file_read);
-    vt_insert(vt, WRITE,    (int64_t)&file_write);
-    vt_insert(vt, READLINE, (int64_t)&file_readline);
+    vt_insert(vt, M_CLOSE,    (int64_t)&file_close);
+    vt_insert(vt, M_PCLOSE,   (int64_t)&file_pclose);
+    vt_insert(vt, M_READ,     (int64_t)&file_read);
+    vt_insert(vt, M_WRITE,    (int64_t)&file_write);
+    vt_insert(vt, M_READLINE, (int64_t)&file_readline);
     return vt;
 }
