@@ -8,8 +8,8 @@
 #define LEN(v) (*((int64_t*)v.value))
 
 typedef struct {
-    Constant* key;
-    Constant* value;
+    YASL_Object* key;
+    YASL_Object* value;
 } Item_t;
 
 static Item_t TOMBSTONE = {0, 0};
@@ -22,8 +22,8 @@ typedef struct {
 } Hash_t;
 
 Hash_t* new_hash(void);
-void ht_insert(Hash_t* hashtable, Constant key, Constant value);
-Constant* ht_search(Hash_t* hashtable, Constant key);
-void ht_delete(Hash_t* hashtable, Constant key);
+void ht_insert(Hash_t* hashtable, YASL_Object key, YASL_Object value);
+YASL_Object* ht_search(Hash_t* hashtable, YASL_Object key);
+void ht_delete(Hash_t* hashtable, YASL_Object key);
 void ht_print(Hash_t* ht);
 void ht_print_h(Hash_t* ht, int64_t* seen, int seen_size);

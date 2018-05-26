@@ -12,6 +12,6 @@ int int64_tostr(VM *vm) {
     int64_t val = POP(vm).value;
     String_t* string = new_sized_string8(snprintf(NULL, 0, "%" PRId64 "", val));
     sprintf(string->str, "%" PRId64 "", val);           // TODO: adjust so that it doesn't use a null terminator
-    PUSH(vm, ((Constant){STR8, (int64_t)string}));
+    PUSH(vm, ((YASL_Object){STR8, (int64_t)string}));
     return 0;
 }

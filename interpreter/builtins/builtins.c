@@ -4,7 +4,7 @@
 #include "builtins.h"
 
 int yasl_print(VM* vm) {
-    Constant v = vm->stack[vm->sp--];    // pop value from top of the stack ...
+    YASL_Object v = vm->stack[vm->sp--];    // pop value from top of the stack ...
     if (v.type == LIST) {
         ls_print((List_t*)v.value);
         printf("\n");
@@ -55,8 +55,8 @@ int yasl_input(VM* vm) {
 */
 
 int yasl_open(VM* vm) {     //TODO: fix bug relating to file pointer
-    Constant mode_str = POP(vm);
-    Constant str = POP(vm);
+    YASL_Object mode_str = POP(vm);
+    YASL_Object str = POP(vm);
     if (mode_str.type != STR8) {
         printf("Error: open(...) expected type %x as second argument, got type %x\n", STR8, str.type);
         return -1;
@@ -103,8 +103,8 @@ int yasl_open(VM* vm) {     //TODO: fix bug relating to file pointer
 
 
 int yasl_popen(VM* vm) {     //TODO: fix bug relating to file pointer
-    Constant mode_str = POP(vm);
-    Constant str = POP(vm);
+    YASL_Object mode_str = POP(vm);
+    YASL_Object str = POP(vm);
     if (mode_str.type != STR8) {
         printf("Error: popen(...) expected type %x as second argument, got type %x\n", STR8, str.type);
         return -1;

@@ -1,4 +1,6 @@
-/*
+#pragma once
+
+ /*
  ============================================================================
  Name        : VM
  Author      : Thiabaud Engelbrecht
@@ -601,11 +603,7 @@ void run(VM* vm){
     }
 }
 
-char *buffer;
-FILE *file_ptr;
-long file_len;
-int64_t entry_point, num_globals;
-
+/*
 int main(int argc, char** argv) {
     if (argc > 2) {
         printf("ERROR: Too many arguments passed.\nUsage is: YASL [path/to/byte-code.yb]\nDefault path is \"source.yb\"\n");
@@ -641,3 +639,4 @@ int main(int argc, char** argv) {
     fclose(file_ptr);
 	return 0;
 };
+*/

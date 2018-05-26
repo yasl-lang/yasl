@@ -1,18 +1,80 @@
 #pragma once
 
-//#include "builtins/builtins.h"
 #include "../vtable/vtable.h"
 #include "../YASL_Object/YASL_Object.h"
+#include "../../opcode.h"
+#include "../../hashtable/hashtable.h"
+#include "../YASL_string/YASL_string.h"
+
 #define STACK_SIZE 256
 #define NUM_TYPES 8                                      // number of builtin types, each needs a vtable
 #define PUSH(vm, v)  (vm->stack[++vm->sp] = v)           // push value onto stack
 #define POP(vm)      (vm->stack[vm->sp--])               // pop value from top of stack
 #define PEEK(vm)     (vm->stack[vm->sp])                 // pop value from top of stack
-#define BPUSH(vm, v) (PUSH(vm, ((Constant) {BOOL, v})))  //push boolean v onto stack
+#define BPUSH(vm, v) (PUSH(vm, ((YASL_Object) {BOOL, v})))  //push boolean v onto stack
+
+
+#define BUFFER_SIZE 256
+#define NCODE(vm)    (vm->code[vm->pc++])     // get next bytecode
+#define IPUSH(vm, v) (PUSH(vm, ((YASL_Object) {INT64, v})))  //push integer v onto stack
+#define IPOP(vm)     (((vm->stack)[vm->sp--])->value)      // get int from top of stack
+#define IVAL(v)      (*((int64_t*)&v->value))
+#define DPUSH(vm, v) (((FloatConstant*)vm->stack)[++vm->sp] = (FloatConstant) {FLOAT64, v}) // push double v onto stack
+#define LEN_C(v)     (*((int64_t*)v->value))
+#define NPUSH(vm)    (PUSH(vm, ((YASL_Object) {UNDEF, 0})))   //push nil onto stack
+#define ADD(a, b)    (a + b)
+#define DIV(a, b)    (a / b)
+#define SUB(a, b)    (a - b)
+#define MUL(a, b)    (a * b)
+#define MOD(a, b)    (a % b)
+#define EXP(a, b)    (pow(a, b))
+#define GT(a, b)     (a > b)
+#define GE(a, b)     (a >= b)
+#define EQ(a, b)     (a == b)
+#define BINOP(vm, a, b, f, str)  ({\
+                            if (a.type == INT64 && b.type == INT64) {\
+                                c = f(a.value, b.value);\
+                                IPUSH(vm, c);\
+                                break;\
+                            }\
+                            else if (a.type == FLOAT64 && b.type == INT64) {\
+                                d = f(DVAL(a), (double)b.value);\
+                            }\
+                            else if (a.type == INT64 && b.type == FLOAT64) {\
+                                d = f((double)a.value, DVAL(b));\
+                            }\
+                            else if (a.type == FLOAT64 && b.type == FLOAT64) {\
+                                d = f(DVAL(a), DVAL(b));\
+                            }\
+                            else {\
+                                printf("TypeError: %s not supported for operands of types %s and %s.\n", str,\
+                                        YASL_TYPE_NAMES[a.type], YASL_TYPE_NAMES[b.type]);\
+                                return;\
+                            }\
+                            DPUSH(vm, d);})
+#define COMP(vm, a, b, f, str)  ({\
+                            if (a.type == INT64 && b.type == INT64) {\
+                                c = f(a.value, b.value);\
+                            }\
+                            else if (a.type == FLOAT64 && b.type == INT64) {\
+                                c = f(DVAL(a), (double)b.value);\
+                            }\
+                            else if (a.type == INT64 && b.type == FLOAT64) {\
+                                c = f((double)a.value, DVAL(b));\
+                            }\
+                            else if (a.type == FLOAT64 && b.type == FLOAT64) {\
+                                c = f(DVAL(a), DVAL(b));\
+                            }\
+                            else {\
+                                printf("TypeError: %s not supported for operands of types %s and %s.\n", str,\
+                                        YASL_TYPE_NAMES[a.type], YASL_TYPE_NAMES[b.type]);\
+                                return;\
+                            }\
+                            BPUSH(vm, c);})
 
 typedef struct {
-	Constant* globals;          // variables, see "constant.c" for details on Constant.
-	Constant* stack;            // stack
+	YASL_Object* globals;          // variables, see "constant.c" for details on YASL_Object.
+	YASL_Object* stack;            // stack
 	char* code;                 // bytecode
 	int pc;                     // program counter
     int pc0;                    // initial value for pc

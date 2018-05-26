@@ -7,7 +7,7 @@
 
 #define HT_BASESIZE 60
 
-static int hash_function(const Constant s, const int a, const int m) {
+static int hash_function(const YASL_Object s, const int a, const int m) {
     long hash = 0;
     if (s.type == STR8) {
         const int len_s = ((String_t*)s.value)->length;
@@ -22,16 +22,16 @@ static int hash_function(const Constant s, const int a, const int m) {
     }
 }
 
-static int get_hash(const Constant s, const int num_buckets, const int attempt) {
+static int get_hash(const YASL_Object s, const int num_buckets, const int attempt) {
     const int hash_a = hash_function(s, PRIME_A, num_buckets);
     const int hash_b = hash_function(s, PRIME_B, num_buckets);
     return (hash_a + (attempt * (hash_b + 1))) % num_buckets;
 }
 
-static Item_t* new_item(const Constant k, const Constant v) {
+static Item_t* new_item(const YASL_Object k, const YASL_Object v) {
     Item_t* item = malloc(sizeof(Item_t));
-    item->key = malloc(sizeof(Constant));
-    item->value = malloc(sizeof(Constant));
+    item->key = malloc(sizeof(YASL_Object));
+    item->value = malloc(sizeof(YASL_Object));
     item->key->type    = k.type;
     item->key->value   = k.value;
     item->value->type  = v.type;
@@ -115,7 +115,7 @@ static void ht_resize_down(Hash_t* ht) {
     ht_resize(ht, new_size);
 }
 
-void ht_insert(Hash_t* hashtable, const Constant key, const Constant value) {
+void ht_insert(Hash_t* hashtable, const YASL_Object key, const YASL_Object value) {
     const int load = hashtable->count * 100 / hashtable->size;
     if (load > 70) ht_resize_up(hashtable);
     Item_t* item = new_item(key, value);
@@ -139,7 +139,7 @@ void ht_insert(Hash_t* hashtable, const Constant key, const Constant value) {
     hashtable->count++;
 }
 
-Constant* ht_search(Hash_t* hashtable, const Constant key) {
+YASL_Object* ht_search(Hash_t* hashtable, const YASL_Object key) {
     //puts("searching");
     int index = get_hash(key, hashtable->size, 0);
     Item_t* item = hashtable->items[index];
@@ -158,7 +158,7 @@ Constant* ht_search(Hash_t* hashtable, const Constant key) {
     return NULL;
 }
 
-void ht_delete(Hash_t* hashtable, const Constant key) {
+void ht_delete(Hash_t* hashtable, const YASL_Object key) {
     const int load = hashtable->count * 100 / hashtable->size;
     if (load < 10) ht_resize_down(hashtable);
     int index = get_hash(key, hashtable->size, 0);

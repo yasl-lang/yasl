@@ -2,7 +2,7 @@
 
 int str___get(VM *vm) {
     String_t *str = (String_t *)POP(vm).value;
-    Constant index = POP(vm);
+    YASL_Object index = POP(vm);
     if (index.type != INT64) {
         return -1;
         PUSH(vm, UNDEF_C);
@@ -10,13 +10,13 @@ int str___get(VM *vm) {
         return -1;
         PUSH(vm, UNDEF_C);
     } else {
-        PUSH(vm, ((Constant){STR8, (int64_t)new_sized_string8_from_mem(1, str->str + index.value)}));
+        PUSH(vm, ((YASL_Object){STR8, (int64_t)new_sized_string8_from_mem(1, str->str + index.value)}));
     }
     return 0;
 }
 
 int str_tobool(VM* vm) {
-    Constant a = POP(vm);
+    YASL_Object a = POP(vm);
     if (((String_t *) a.value)->length == 0) {
         vm->stack[++vm->sp] = FALSE_C;
     } else {
@@ -30,7 +30,7 @@ int str_tostr(VM *vm) {
 }
 
 int str_upcase(VM* vm) {
-    Constant a = PEEK(vm);
+    YASL_Object a = PEEK(vm);
     int64_t length = ((String_t*)a.value)->length;
     int64_t i = 0;
     String_t* ptr = new_sized_string8(length);
@@ -48,7 +48,7 @@ int str_upcase(VM* vm) {
 }
 
 int str_downcase(VM* vm) {
-    Constant a = PEEK(vm);
+    YASL_Object a = PEEK(vm);
     int64_t length = ((String_t*)a.value)->length;
     int64_t i = 0;
     String_t* ptr = new_sized_string8(length);
@@ -66,7 +66,7 @@ int str_downcase(VM* vm) {
 }
 
 int str_isalnum(VM* vm) {
-    Constant a = POP(vm);
+    YASL_Object a = POP(vm);
     int64_t length = ((String_t*)a.value)->length;
     int64_t i = 0;
     char curr;
@@ -82,7 +82,7 @@ int str_isalnum(VM* vm) {
 }
 
 int str_isal(VM* vm) {
-    Constant a = POP(vm);
+    YASL_Object a = POP(vm);
     int64_t length = ((String_t*)a.value)->length;
     int64_t i = 0;
     char curr;
@@ -98,7 +98,7 @@ int str_isal(VM* vm) {
 }
 
 int str_isnum(VM* vm) {
-    Constant a = POP(vm);
+    YASL_Object a = POP(vm);
     int64_t length = ((String_t*)a.value)->length;
     int64_t i = 0;
     char curr;
@@ -115,7 +115,7 @@ int str_isnum(VM* vm) {
 }
 
 int str_isspace(VM* vm) {
-    Constant a = POP(vm);
+    YASL_Object a = POP(vm);
     int64_t length = ((String_t*)a.value)->length;
     int64_t i = 0;
     char curr;
@@ -131,8 +131,8 @@ int str_isspace(VM* vm) {
 }
 
 int str_startswith(VM* vm) {
-    Constant haystack = POP(vm);
-    Constant needle = POP(vm);
+    YASL_Object haystack = POP(vm);
+    YASL_Object needle = POP(vm);
     if (needle.type != STR8) {
         printf("Error: str.startswith(...) expected type %x as first argument, got type %x\n", STR8, needle.type);
         return -1;
@@ -154,8 +154,8 @@ int str_startswith(VM* vm) {
 }
 
 int str_endswith(VM* vm) {
-    Constant haystack = POP(vm);
-    Constant needle = POP(vm);
+    YASL_Object haystack = POP(vm);
+    YASL_Object needle = POP(vm);
     if (needle.type != STR8) {
         printf("Error: str.startswith(...) expected type %x as first argument, got type %x\n", STR8, needle.type);
         return -1;
@@ -178,23 +178,23 @@ int str_endswith(VM* vm) {
 }
 
 int str_search(VM* vm) {
-    Constant haystack = POP(vm);
-    Constant needle = POP(vm);
+    YASL_Object haystack = POP(vm);
+    YASL_Object needle = POP(vm);
     if (needle.type != STR8) {
         printf("Error: str.search(...) expected type %x as first argument, got type %x\n", STR8, needle.type);
         return -1;
     }
     if ((((String_t*)haystack.value)->length < ((String_t*)needle.value)->length)) {
-        vm->stack[++vm->sp] = (Constant) {INT64, -1};
+        vm->stack[++vm->sp] = (YASL_Object) {INT64, -1};
         return 0;
     }
-    vm->stack[++vm->sp] = (Constant) {INT64, string8_search((String_t*)haystack.value, (String_t*)needle.value)};
+    vm->stack[++vm->sp] = (YASL_Object) {INT64, string8_search((String_t*)haystack.value, (String_t*)needle.value)};
     return 0;
 }
 
 int str_split(VM* vm) {
-    Constant haystack = POP(vm);
-    Constant needle = POP(vm);
+    YASL_Object haystack = POP(vm);
+    YASL_Object needle = POP(vm);
     if (needle.type != STR8) {
         printf("Error: str.split(...) expected type %x as first argument, got type %x\n", STR8, needle.type);
         return -1;
@@ -208,7 +208,7 @@ int str_split(VM* vm) {
         if (!memcmp(((String_t*)haystack.value)->str+end,
                     ((String_t*)needle.value)->str,
                     ((String_t*)needle.value)->length)) {
-            ls_append(result, (Constant) {STR8, (int64_t)new_sized_string8_from_mem(end - start,
+            ls_append(result, (YASL_Object) {STR8, (int64_t)new_sized_string8_from_mem(end - start,
                                                                            ((String_t*)haystack.value)->str+start)});
             end += ((String_t*)needle.value)->length;
             start = end;
@@ -216,9 +216,9 @@ int str_split(VM* vm) {
             end++;
         }
     }
-    ls_append(result, (Constant)
+    ls_append(result, (YASL_Object)
             {STR8, (int64_t)new_sized_string8_from_mem(((String_t*)haystack.value)->length - start,
                                      ((String_t*)haystack.value)->str+start)});
-    vm->stack[++vm->sp] = (Constant) {LIST, (int64_t)result};
+    vm->stack[++vm->sp] = (YASL_Object) {LIST, (int64_t)result};
     return 0;
 }

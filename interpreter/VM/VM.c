@@ -11,11 +11,11 @@ VM* newVM(char* code,    // pointer to bytecode
     vm->pc0 = vm->pc;
     vm->fp = 0;
     vm->sp = -1;
-    vm->globals = malloc(sizeof(Constant) * datasize);
-    vm->globals[0] = (Constant) {FILEH, (int64_t)stdin};
-    vm->globals[1] = (Constant) {FILEH, (int64_t)stdout};
-    vm->globals[2] = (Constant) {FILEH, (int64_t)stderr};
-    vm->stack = malloc(sizeof(Constant) * STACK_SIZE);
+    vm->globals = malloc(sizeof(YASL_Object) * datasize);
+    vm->globals[0] = (YASL_Object) {FILEH, (int64_t)stdin};
+    vm->globals[1] = (YASL_Object) {FILEH, (int64_t)stdout};
+    vm->globals[2] = (YASL_Object) {FILEH, (int64_t)stderr};
+    vm->stack = malloc(sizeof(YASL_Object) * STACK_SIZE);
     vm->builtins_vtable = malloc(sizeof(VTable_t*) * NUM_TYPES);
     vm->builtins_vtable[1] = float64_builtins();
     vm->builtins_vtable[2] = int64_builtins();

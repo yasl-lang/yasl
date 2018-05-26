@@ -2,7 +2,7 @@
 
 int list___get(VM *vm) {
     List_t *ls = (List_t *)POP(vm).value;
-    Constant index = POP(vm);
+    YASL_Object index = POP(vm);
     if (index.type != INT64) {
         return -1;
         PUSH(vm, UNDEF_C);
@@ -17,8 +17,8 @@ int list___get(VM *vm) {
 
 int list___set(VM* vm) {
     List_t *ls = (List_t*)POP(vm).value;
-    Constant value = POP(vm);
-    Constant index = POP(vm);
+    YASL_Object value = POP(vm);
+    YASL_Object index = POP(vm);
     if (index.type != INT64) {
         return -1;
         PUSH(vm, UNDEF_C);
@@ -34,8 +34,8 @@ int list___set(VM* vm) {
 
 
 int list_append(VM* vm) {
-    Constant ls  = POP(vm);
-    Constant val = POP(vm);
+    YASL_Object ls  = POP(vm);
+    YASL_Object val = POP(vm);
     ls_append((List_t*)ls.value, val);
     PUSH(vm, UNDEF_C);
     return 0;

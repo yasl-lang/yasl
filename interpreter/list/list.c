@@ -20,7 +20,7 @@ static List_t* new_sized_list(const int base_size) {
     List_t* ls = malloc(sizeof(List_t));
     ls->size = base_size;
     ls->count = 0;
-    ls->items = malloc(sizeof(Constant)*ls->size);
+    ls->items = malloc(sizeof(YASL_Object)*ls->size);
     return ls;
 }
 
@@ -44,7 +44,7 @@ static void ls_resize(List_t* ls, const int base_size) {
     ls->size = new_ls->size;
     //ls->count = new_ls->count;
 
-    Constant* tmp_items = ls->items;
+    YASL_Object* tmp_items = ls->items;
     ls->items = new_ls->items;
     new_ls->items = tmp_items;
 
@@ -65,19 +65,19 @@ static void ls_resize_down(List_t* ls) {
     //printf("new size is: %d\n", ls->size);
 }
 
-void ls_insert(List_t* ls, const int64_t index, const Constant value) {
+void ls_insert(List_t* ls, const int64_t index, const YASL_Object value) {
     if (ls->count >= ls->size) ls_resize_up(ls);
     ls->items[index] = value;
     ls->count++;
 }
 
-void ls_append(List_t* ls, const Constant value) {
+void ls_append(List_t* ls, const YASL_Object value) {
     if (ls->count >= ls->size) ls_resize_up(ls);
     ls->items[ls->count++] = value;
     //ls->count++;
 }
 
-Constant ls_search(List_t* ls, int64_t index) {
+YASL_Object ls_search(List_t* ls, int64_t index) {
     if (index < 0 || index >= ls->size) return UNDEF_C; 
     return ls->items[index];
 }

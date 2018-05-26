@@ -37,9 +37,9 @@ int env_contains(Env_t *env, char *name, int64_t name_len) {
     string->str = malloc(name_len);
     string->length = name_len;
     memcpy(string->str, name, string->length);
-    Constant key = (Constant) { .value = (int64_t)string, .type = STR8 };
+    YASL_Object key = (YASL_Object) { .value = (int64_t)string, .type = STR8 };
 
-    Constant *value = ht_search(env->vars, key);
+    YASL_Object *value = ht_search(env->vars, key);
     if (value == NULL && env->parent == NULL) {
         return 0;
     }
@@ -52,9 +52,9 @@ int64_t env_get(Env_t *env, char *name, int64_t name_len) {
     string->str = malloc(name_len);
     string->length = name_len;
     memcpy(string->str, name, string->length);
-    Constant key = (Constant) { .value = (int64_t)string, .type = STR8 };
+    YASL_Object key = (YASL_Object) { .value = (int64_t)string, .type = STR8 };
 
-    Constant *value = ht_search(env->vars, key);
+    YASL_Object *value = ht_search(env->vars, key);
     if (value == NULL && env->parent == NULL) {
         printf("error in env_get with key: ");
         print(key);
@@ -69,7 +69,7 @@ void env_decl_var(Env_t *env, char *name, int64_t name_len) {
     string->str = malloc(name_len);
     string->length = name_len;
     memcpy(string->str, name, string->length);
-    Constant key = (Constant) { .value = (int64_t)string, .type = STR8 };
-    Constant value = (Constant) { .value = env_len(env), .type = INT64 };
+    YASL_Object key = (YASL_Object) { .value = (int64_t)string, .type = STR8 };
+    YASL_Object value = (YASL_Object) { .value = env_len(env), .type = INT64 };
     ht_insert(env->vars, key, value);
 }

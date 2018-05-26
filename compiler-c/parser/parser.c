@@ -1,3 +1,4 @@
+#include <compiler-c/lexer/lexer.h>
 #include "parser.h"
 
 Parser *parser_new(Lexer *lex) {
@@ -25,10 +26,10 @@ Node *parse(Parser *parser) {
 }
 
 Node *parse_program(Parser *parser) {
-    printf("parse. type: %s, value: %s\n", YASL_TOKEN_NAMES[curtok(parser)], parser->lex->value);
+    YASL_DEBUG_LOG("parse. type: %s, ", YASL_TOKEN_NAMES[curtok(parser)]);
+    YASL_DEBUG_LOG("value: %s\n", parser->lex->value);
     if (curtok(parser) == TOK_PRINT) {
         eattok(parser, TOK_PRINT);
-        puts("about to do new Print");
         return new_Print(parse_expr(parser), parser->lex->line);
     } else if (curtok(parser) == TOK_LET) {
         return parse_let(parser);
@@ -143,16 +144,16 @@ Node *parse_if(Parser *parser) {
     }
     eattok(parser, TOK_RBRC);
     if (curtok(parser) != TOK_ELSE && curtok(parser) != TOK_ELSEIF) {
-        puts("No Else");
+        YASL_DEBUG_LOG("%s\n", "no else");
         return new_If(cond, then_block, NULL, parser->lex->line);
     }
     // TODO: eat semi
     if (curtok(parser) == TOK_ELSEIF) {
-        puts("ElseIf");
+        YASL_DEBUG_LOG("%s\n", "elseif");
         return new_If(cond, then_block, parse_if(parser), parser->lex->line);
     }
     if (curtok(parser) == TOK_ELSE) {
-        puts("Else");
+        YASL_DEBUG_LOG("%s\n", "else");
         eattok(parser, TOK_ELSE);
         eattok(parser, TOK_LBRC);
         Node *else_block = new_Block(parser->lex->line);
@@ -173,7 +174,7 @@ Node *parse_if(Parser *parser) {
 }
 
 Node *parse_expr(Parser *parser) {
-    puts("parse expr");
+    YASL_DEBUG_LOG("%s\n", "parsing expression.")
     return parse_assign(parser);
 }
 
@@ -412,7 +413,6 @@ Node *parse_id(Parser *parser) {
         puts("member access");
         // TODO: member access
     } */ else {
-        puts("var");
         Node *cur_node = new_Var(name, name_len, parser->lex->line);
         //printf("id: %s\n", name);
         free(name);
@@ -447,11 +447,9 @@ Node *parse_boolean(Parser *parser) {
 }
 
 Node *parse_string(Parser *parser) {
-    puts("string literal");
+    YASL_DEBUG_LOG("string literal: %s\n", parser->lex->value);
     Node *cur_node = new_String(parser->lex->value, parser->lex->val_len, parser->lex->line);
-    puts("got it");
     eattok(parser, TOK_STR);
-    puts("return");
     return cur_node;
 }
 

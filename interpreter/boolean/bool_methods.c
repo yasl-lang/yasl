@@ -10,6 +10,6 @@ int bool_tostr(VM *vm) {
         string = new_sized_string8(snprintf(NULL, 0, "%s", "true"));
         sprintf(string->str, "%s", "true");
     }
-    PUSH(vm, ((Constant){STR8, (int64_t)string}));
+    PUSH(vm, ((YASL_Object){STR8, (int64_t)string}));
     return 0;
 }

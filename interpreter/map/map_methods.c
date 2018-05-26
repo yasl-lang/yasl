@@ -2,15 +2,15 @@
 
 int map___get(VM *vm) {
     Hash_t* ht = (Hash_t*)POP(vm).value;
-    Constant key = POP(vm);
+    YASL_Object key = POP(vm);
     PUSH(vm, *ht_search(ht, key));
     return 0;
 }
 
 int map___set(VM *vm) {
     Hash_t* ht = (Hash_t*)POP(vm).value;
-    Constant val = POP(vm);
-    Constant key = POP(vm);
+    YASL_Object val = POP(vm);
+    YASL_Object key = POP(vm);
     if (key.type == LIST || key.type == MAP) {
         printf("Error: unable to use mutable object of type %x as key.\n", key.type);
         return -1;
@@ -21,7 +21,7 @@ int map___set(VM *vm) {
 }
 
 int map_keys(VM* vm) {
-    Constant ht = POP(vm);
+    YASL_Object ht = POP(vm);
     List_t* ls = new_list();
     int64_t i;
     Item_t* item;
@@ -31,12 +31,12 @@ int map_keys(VM* vm) {
             ls_append(ls, *(item->key));
         }
     }
-    vm->stack[++vm->sp] = (Constant) {LIST, (int64_t)ls};
+    vm->stack[++vm->sp] = (YASL_Object) {LIST, (int64_t)ls};
     return 0;
 }
 
 int map_values(VM* vm) {
-    Constant ht = POP(vm);
+    YASL_Object ht = POP(vm);
     List_t* ls = new_list();
     int64_t i;
     Item_t* item;
@@ -46,6 +46,6 @@ int map_values(VM* vm) {
             ls_append(ls, *(item->value));
         }
     }
-    vm->stack[++vm->sp] = (Constant) {LIST, (int64_t)ls};
+    vm->stack[++vm->sp] = (YASL_Object) {LIST, (int64_t)ls};
     return 0;
 }

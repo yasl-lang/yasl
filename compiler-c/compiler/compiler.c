@@ -90,43 +90,25 @@ void compile(Compiler *compiler) {
             if (peof(compiler->parser)) break;
             node = parse(compiler->parser);
             eattok(compiler->parser, TOK_SEMI);
-            puts("about to print");
-            printf("eaten semi. type: %s, value: %s\n", YASL_TOKEN_NAMES[compiler->parser->lex->type], compiler->parser->lex->value);
-            //puts("parsed");
-            //printf("compiler->header->count is %d\n", compiler->header->count);
-            puts("about to visit");
+            YASL_DEBUG_LOG("eaten semi. type: %s, ", YASL_TOKEN_NAMES[compiler->parser->lex->type]);
+            YASL_DEBUG_LOG("value: %s\n", compiler->parser->lex->value);
+            YASL_DEBUG_LOG("%s\n", "about to visit.");
             visit(compiler, node);
-            puts("visited");
-            //puts("visited");
-            //printf("compiler->header->count is %d\n", compiler->header->count);
-            puts("about to append");
+            YASL_DEBUG_LOG("%s\n", "visited.");
             bb_append(compiler->code, compiler->buffer->bytes, compiler->buffer->count);
-            puts("appended");
-            //printf("compiler->header->count is %d\n", compiler->header->count);
-            puts("about to zero buffer->count");
             compiler->buffer->count = 0;
-            puts("zeroed");
-            //printf("compiler->header->count is %d\n", compiler->header->count);
-            puts("about to delete");
             node_del(node);
-            puts("deleted");
-            //printf("compiler->header->count is %d\n", compiler->header->count);
-            //puts("deleted node");
     }
-    //puts("ready to calculate header");
-    //printf("compiler->header->count is %d\n", compiler->header->count);
     bb_rewrite_intbytes8(compiler->header, 0, compiler->header->count);
-    //memcpy(compiler->header->bytes, &compiler->header->count, sizeof(int64_t));
-    //puts("calculated header");
     int i = 0;
     for (i = 0; i < compiler->header->count; i++) {
-        printf("%02x\n", compiler->header->bytes[i]);// && 0xFF);
+        YASL_DEBUG_LOG("%02x\n", compiler->header->bytes[i]);
     }
-    puts("entry point");
+    YASL_DEBUG_LOG("%s\n", "entry point");
     for (i = 0; i < compiler->code->count; i++) {
-        printf("%02x\n", compiler->code->bytes[i]);// & 0xFF);
+        YASL_DEBUG_LOG("%02x\n", compiler->code->bytes[i]);
     }
-    printf("%02x\n", HALT);
+    YASL_DEBUG_LOG("%02x\n", HALT);
     FILE *fp = fopen("source.yb", "wb");
     if (!fp) exit(EXIT_FAILURE);
     fwrite(compiler->header->bytes, 1, compiler->header->count, fp);
@@ -529,12 +511,12 @@ void visit_String(Compiler* compiler, Node *node) {
     string->length = node->name_len;
     string->str = malloc(string->length);
     memcpy(string->str, node->name, string->length);
-    Constant key = (Constant) { .value = (int64_t)string, .type = STR8 };
+    YASL_Object key = (YASL_Object) { .value = (int64_t)string, .type = STR8 };
 
-    Constant *value = ht_search(compiler->strings, key);
+    YASL_Object *value = ht_search(compiler->strings, key);
     if (value == NULL) {
-        puts("caching");
-        ht_insert(compiler->strings, key, (Constant) { .type = INT64, .value = compiler->header->count});
+        YASL_DEBUG_LOG("%s\n", "caching string");
+        ht_insert(compiler->strings, key, (YASL_Object) { .type = INT64, .value = compiler->header->count});
         bb_append(compiler->header, node->name, node->name_len);
     }
 
@@ -578,97 +560,89 @@ void visit_Map(Compiler *compiler, Node *node) {
 
 
 void visit(Compiler* compiler, Node* node) {
-    //printf("compiler->header->count is %d\n", compiler->header->count);
-    //printf("node type is %x\n", node->nodetype);
-    //puts("about to switch");
-    if (node == NULL) puts("NULL");
-    else puts("NOT NULL");
-    printf("%d\n", node->nodetype);
-    puts("Visit");
-
     switch(node->nodetype) {
     case NODE_EXPRSTMT:
-        puts("Visit ExprStmt");
+        YASL_DEBUG_LOG("%s\n", "Visit ExprStmt");
         visit_ExprStmt(compiler, node);
         break;
     case NODE_BLOCK:
-        puts("Visit Block");
+        YASL_DEBUG_LOG("%s\n", "Visit Block");
         visit_Block(compiler, node);
         break;
     case NODE_INDEX:
-        puts("Visit Index");
+        YASL_DEBUG_LOG("%s\n", "Visit Index");
         visit_Index(compiler, node);
         break;
     case NODE_WHILE:
-        puts("Visit While");
+        YASL_DEBUG_LOG("%s\n", "Visit While");
         visit_While(compiler, node);
         break;
     case NODE_BREAK:
-        puts("Visit Break");
+        YASL_DEBUG_LOG("%s\n", "Visit Break");
         visit_Break(compiler, node);
         break;
     case NODE_CONT:
-        puts("Visit Continue");
+        YASL_DEBUG_LOG("%s\n", "Visit Continue");
         visit_Continue(compiler, node);
         break;
     case NODE_IF:
-        puts("Visit If");
+        YASL_DEBUG_LOG("%s\n", "Visit If");
         visit_If(compiler, node);
         break;
     case NODE_PRINT:
-        puts("Visit Print");
+        YASL_DEBUG_LOG("%s\n", "Visit Print");
         visit_Print(compiler, node);
         break;
     case NODE_LET:
-        puts("Visit Let");
+        YASL_DEBUG_LOG("%s\n", "Visit Let");
         visit_Let(compiler, node);
         break;
     case NODE_TRIOP:
-        puts("Visit TriOp");
+        YASL_DEBUG_LOG("%s\n", "Visit TriOp");
         visit_TriOp(compiler, node);
         break;
     case NODE_BINOP:
-        puts("Visit BinOp");
+        YASL_DEBUG_LOG("%s\n", "Visit BinOp");
         visit_BinOp(compiler, node);
         break;
     case NODE_UNOP:
-        puts("Visit UnOp");
+        YASL_DEBUG_LOG("%s\n", "Visit UnOp");
         visit_UnOp(compiler, node);
         break;
     case NODE_ASSIGN:
-        puts("Visit Assign");
+        YASL_DEBUG_LOG("%s\n", "Visit Assign");
         visit_Assign(compiler, node);
         break;
     case NODE_VAR:
-        puts("Visit Var");
+        YASL_DEBUG_LOG("%s\n", "Visit Var");
         visit_Var(compiler, node);
         break;
     case NODE_UNDEF:
-        puts("Visit Undef");
+        YASL_DEBUG_LOG("%s\n", "Visit Undef");
         visit_Undef(compiler, node);
         break;
     case NODE_FLOAT64:
-        puts("Visit Float");
+        YASL_DEBUG_LOG("%s\n", "Visit Float");
         visit_Float(compiler, node);
         break;
     case NODE_INT64:
-        puts("Visit Integer");
+        YASL_DEBUG_LOG("%s\n", "Visit Integer");
         visit_Integer(compiler, node);
         break;
     case NODE_BOOL:
-        puts("Visit Boolean");
+        YASL_DEBUG_LOG("%s\n", "Visit Boolean");
         visit_Boolean(compiler, node);
         break;
     case NODE_STR:
-        puts("Visit String");
+        YASL_DEBUG_LOG("%s\n", "Visit String");
         visit_String(compiler, node);
         break;
     case NODE_LIST:
-        puts("Visit List");
+        YASL_DEBUG_LOG("%s\n", "Visit List");
         visit_List(compiler, node);
         break;
     case NODE_MAP:
-        puts("Visit Map");
+        YASL_DEBUG_LOG("%s\n", "Visit Map");
         visit_Map(compiler, node);
         break;
     default:

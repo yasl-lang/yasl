@@ -23,8 +23,8 @@ int file_pclose(VM* vm) {
 }
 
 int file_write(VM* vm) {
-    Constant fileh = POP(vm);
-    Constant str = POP(vm);
+    YASL_Object fileh = POP(vm);
+    YASL_Object str = POP(vm);
     if (str.type != STR8) {
         printf("Error: file.write expected type %x as first argument, got type %x\n", STR8, str.type);
         return -1;

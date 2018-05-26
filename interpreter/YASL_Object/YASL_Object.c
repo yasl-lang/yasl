@@ -1,8 +1,8 @@
 #include "YASL_Object.h"
 #define DVAL(v)  (*((double*)&v.value))
-#define TRUE_C   ((Constant) {BOOL, 1})
-#define FALSE_C  ((Constant) {BOOL, 0})
-#define UNDEF_C  ((Constant) {UNDEF, 0})
+#define TRUE_C   ((YASL_Object) {BOOL, 1})
+#define FALSE_C  ((YASL_Object) {BOOL, 0})
+#define UNDEF_C  ((YASL_Object) {UNDEF, 0})
 
 
 // Keep up to date with the YASL_Types
@@ -18,7 +18,7 @@ const char *YASL_TYPE_NAMES[] = {
 };
 
 
-Constant isequal(Constant a, Constant b) {
+YASL_Object isequal(YASL_Object a, YASL_Object b) {
         if (a.type == UNDEF || b.type == UNDEF) {
             return UNDEF_C;
         }
@@ -102,11 +102,11 @@ Constant isequal(Constant a, Constant b) {
                 printf("== and != not supported for operands of types %x and %x.\n", a.type, b.type);
                 return UNDEF_C;
             }
-            return (Constant) {BOOL, c};
+            return (YASL_Object) {BOOL, c};
         }
 }
 
-int print(Constant v) {
+int print(YASL_Object v) {
     int i;
     switch (v.type) {
         case INT64:

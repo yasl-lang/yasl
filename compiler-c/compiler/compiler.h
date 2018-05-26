@@ -8,6 +8,7 @@
 #include "../../methods.h"
 #include "../../functions.h"
 #include "../env/env.h"
+#include "../../debug.h"
 
 /*
 class Compiler(NodeVisitor):
@@ -28,14 +29,6 @@ class Compiler(NodeVisitor):
 */
 typedef struct {
     Parser *parser;
-    /*
-    Env *globals; // make sure to declare stdin, stdout, stderr
-    Env *locals;
-    char *header;
-    int64_t header_len;
-    char *code;
-    int64_t code_len;
-    */
     Env_t *globals;
     Env_t *locals;
     Hash_t *strings;
@@ -46,8 +39,7 @@ typedef struct {
     int64_t *checkpoints;
     int64_t checkpoints_count;
     int64_t checkpoints_size;
-    /*STable *functions;
-    char *curfn;
+    /* char *curfn;
     int64_t offset;
     STable *strings; */
 } Compiler;
