@@ -6,6 +6,11 @@
 #include "../../hashtable/hashtable.h"
 #include "../YASL_string/YASL_string.h"
 
+#include <inttypes.h>
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+
 #define STACK_SIZE 256
 #define NUM_TYPES 8                                      // number of builtin types, each needs a vtable
 #define PUSH(vm, v)  (vm->stack[++vm->sp] = v)           // push value onto stack
@@ -88,6 +93,9 @@ VM* newVM(char* code,    // pointer to bytecode
     int datasize);       // total locals size required to perform a program operations
 
 void delVM(VM* vm);
+
+void run(VM* vm);
+
 VTable_t* float64_builtins(void);
 VTable_t* int64_builtins(void);
 VTable_t* bool_builtins(void);
@@ -95,3 +103,6 @@ VTable_t* str8_builtins(void);
 VTable_t* list_builtins(void);
 VTable_t* map_builtins(void);
 VTable_t* file_builtins(void);
+
+typedef int (*Handler)(VM*);
+static const Handler builtins[];
