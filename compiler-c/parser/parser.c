@@ -393,7 +393,16 @@ Node *parse_id(Parser *parser) {
     //printf("id: %s\n", parser->lex->value);
     eattok(parser, T_ID);
     if (curtok(parser) == T_LPAR) {
-        puts("function call");
+        YASL_DEBUG_LOG("%s\n", "function call.");
+        Node *cur_node = new_FunctionCall(new_Block(parser->lex->line), name, name_len, parser->lex->line);
+        eattok(parser, T_LPAR);
+        while (curtok(parser) != T_RPAR && curtok(parser) != T_EOF) {
+            block_append(cur_node->children[0], parse_expr(parser));
+            if (curtok(parser) != T_COMMA) break;
+            eattok(parser, T_COMMA);
+        }
+        eattok(parser, T_RPAR);
+        return cur_node;
         // TODO: function calls
     } /*else if (curtok(parser) == T_LSQB) {
         puts("index");
