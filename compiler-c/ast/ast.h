@@ -6,28 +6,29 @@
 #include <string.h>
 
 typedef enum {
-    NODE_EXPRSTMT,
-    NODE_BLOCK,
-    NODE_CALL,
-    NODE_INDEX,
-    NODE_WHILE,
-    NODE_BREAK,
-    NODE_CONT,
-    NODE_IF,
-    NODE_PRINT,
-    NODE_LET,
-    NODE_TRIOP,
-    NODE_BINOP,
-    NODE_UNOP,
-    NODE_ASSIGN,
-    NODE_VAR,
-    NODE_UNDEF,
-    NODE_FLOAT64,
-    NODE_INT64,
-    NODE_BOOL,
-    NODE_STR,
-    NODE_LIST,
-    NODE_MAP
+    N_EXPRSTMT,
+    N_BLOCK,
+    N_CALL,
+    N_METHOD,
+    N_INDEX,
+    N_WHILE,
+    N_BREAK,
+    N_CONT,
+    N_IF,
+    N_PRINT,
+    N_LET,
+    N_TRIOP,
+    N_BINOP,
+    N_UNOP,
+    N_ASSIGN,
+    N_VAR,
+    N_UNDEF,
+    N_FLOAT64,
+    N_INT64,
+    N_BOOL,
+    N_STR,
+    N_LIST,
+    N_MAP
 } AST;
 
 struct Node_s {
@@ -52,6 +53,7 @@ Node *new_Node_3(AST nodetype, Token type, Node *child1, Node *child2, Node *chi
 Node *new_ExprStmt(Node *child, int line);
 Node *new_Block(int line);
 Node *new_FunctionCall(Node *params, char *name, int64_t name_len, int line);
+Node *new_MethodCall(Node *object, Node *params, char *name, int64_t name_len, int line);
 Node *new_Index(Node *collection, Node *value, int line);
 Node *new_While(Node *cond, Node *body, int line);
 Node *new_Break(int line);

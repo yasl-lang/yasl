@@ -581,91 +581,91 @@ void visit_Map(Compiler *compiler, Node *node) {
 
 void visit(Compiler* compiler, Node* node) {
     switch(node->nodetype) {
-    case NODE_EXPRSTMT:
+    case N_EXPRSTMT:
         YASL_DEBUG_LOG("%s\n", "Visit ExprStmt");
         visit_ExprStmt(compiler, node);
         break;
-    case NODE_BLOCK:
+    case N_BLOCK:
         YASL_DEBUG_LOG("%s\n", "Visit Block");
         visit_Block(compiler, node);
         break;
-    case NODE_CALL:
+    case N_CALL:
         YASL_DEBUG_LOG("%s\n", "Visit Call");
         visit_Call(compiler, node);
         break;
-    case NODE_INDEX:
+    case N_INDEX:
         YASL_DEBUG_LOG("%s\n", "Visit Index");
         visit_Index(compiler, node);
         break;
-    case NODE_WHILE:
+    case N_WHILE:
         YASL_DEBUG_LOG("%s\n", "Visit While");
         visit_While(compiler, node);
         break;
-    case NODE_BREAK:
+    case N_BREAK:
         YASL_DEBUG_LOG("%s\n", "Visit Break");
         visit_Break(compiler, node);
         break;
-    case NODE_CONT:
+    case N_CONT:
         YASL_DEBUG_LOG("%s\n", "Visit Continue");
         visit_Continue(compiler, node);
         break;
-    case NODE_IF:
+    case N_IF:
         YASL_DEBUG_LOG("%s\n", "Visit If");
         visit_If(compiler, node);
         break;
-    case NODE_PRINT:
+    case N_PRINT:
         YASL_DEBUG_LOG("%s\n", "Visit Print");
         visit_Print(compiler, node);
         break;
-    case NODE_LET:
+    case N_LET:
         YASL_DEBUG_LOG("%s\n", "Visit Let");
         visit_Let(compiler, node);
         break;
-    case NODE_TRIOP:
+    case N_TRIOP:
         YASL_DEBUG_LOG("%s\n", "Visit TriOp");
         visit_TriOp(compiler, node);
         break;
-    case NODE_BINOP:
+    case N_BINOP:
         YASL_DEBUG_LOG("%s\n", "Visit BinOp");
         visit_BinOp(compiler, node);
         break;
-    case NODE_UNOP:
+    case N_UNOP:
         YASL_DEBUG_LOG("%s\n", "Visit UnOp");
         visit_UnOp(compiler, node);
         break;
-    case NODE_ASSIGN:
+    case N_ASSIGN:
         YASL_DEBUG_LOG("%s\n", "Visit Assign");
         visit_Assign(compiler, node);
         break;
-    case NODE_VAR:
+    case N_VAR:
         YASL_DEBUG_LOG("%s\n", "Visit Var");
         visit_Var(compiler, node);
         break;
-    case NODE_UNDEF:
+    case N_UNDEF:
         YASL_DEBUG_LOG("%s\n", "Visit Undef");
         visit_Undef(compiler, node);
         break;
-    case NODE_FLOAT64:
+    case N_FLOAT64:
         YASL_DEBUG_LOG("%s\n", "Visit Float");
         visit_Float(compiler, node);
         break;
-    case NODE_INT64:
+    case N_INT64:
         YASL_DEBUG_LOG("%s\n", "Visit Integer");
         visit_Integer(compiler, node);
         break;
-    case NODE_BOOL:
+    case N_BOOL:
         YASL_DEBUG_LOG("%s\n", "Visit Boolean");
         visit_Boolean(compiler, node);
         break;
-    case NODE_STR:
+    case N_STR:
         YASL_DEBUG_LOG("%s\n", "Visit String");
         visit_String(compiler, node);
         break;
-    case NODE_LIST:
+    case N_LIST:
         YASL_DEBUG_LOG("%s\n", "Visit List");
         visit_List(compiler, node);
         break;
-    case NODE_MAP:
+    case N_MAP:
         YASL_DEBUG_LOG("%s\n", "Visit Map");
         visit_Map(compiler, node);
         break;

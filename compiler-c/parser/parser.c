@@ -166,7 +166,7 @@ Node *parse_assign(Parser *parser) {
     Node *cur_node = parse_ternary(parser);
     if (curtok(parser) == T_EQ) { // || curtok(parser) == T_DLT)
         eattok(parser, T_EQ);
-        if (cur_node->nodetype == NODE_VAR) {
+        if (cur_node->nodetype == N_VAR) {
             Node *assign_node = new_Assign(cur_node->name, cur_node->name_len, parse_assign(parser), parser->lex->line);
             node_del(cur_node);
             return assign_node;
@@ -174,7 +174,7 @@ Node *parse_assign(Parser *parser) {
         // TODO: add indexing case
     } else if (isaugmented(curtok(parser))) {
         Token op = eattok(parser, curtok(parser)) - 1; // relies on enum
-        if (cur_node->nodetype == NODE_VAR) {
+        if (cur_node->nodetype == N_VAR) {
             return new_Assign(cur_node->name, cur_node->name_len, new_BinOp(op, cur_node, parse_assign(parser), parser->lex->line), parser->lex->line);
         }
         // TODO: add indexing case
@@ -337,17 +337,30 @@ Node *parse_call(Parser *parser) {
      */
     Node *cur_node = parse_constant(parser);
     while (curtok(parser) == T_LSQB || curtok(parser) == T_DOT) {
-        eattok(parser, T_LSQB);
-        cur_node = new_Index(cur_node, parse_expr(parser), parser->lex->line);
-        eattok(parser, T_RSQB);
+        if (curtok(parser) == T_DOT) {
+            eattok(parser, T_DOT);
+            Node *right = parse_constant(parser);
+            if (right->nodetype == N_CALL) {
+                Node *method = new_MethodCall(cur_node, right->children[0], right->name, right->name_len, right->line);
+                free(right);
+                return method;
+            } else {
+                puts("Invalid member access");
+                exit(EXIT_FAILURE);
+            }
+        } else {
+            eattok(parser, T_LSQB);
+            cur_node = new_Index(cur_node, parse_expr(parser), parser->lex->line);
+            eattok(parser, T_RSQB);
+        }
     }
     /*while (curtok(parser) == T_DOT || curtok(parser) == T_LSQB) {
         /*if (curtok(parser) == T_DOT) {
             eattok(parser, T_DOT);
             Node *right = parse_constant(parser);
-            if (right->nodetype == NODE_CALL) {
+            if (right->nodetype == N_CALL) {
                 cur_node = new_MethodCall(...);
-            } else if (right->nodetype == NODE_VAR) {
+            } else if (right->nodetype == N_VAR) {
                 cur_node = new_Member(...);
             }
         }
@@ -390,7 +403,6 @@ Node *parse_id(Parser *parser) {
     char *name = malloc(parser->lex->val_len);
     memcpy(name, parser->lex->value, parser->lex->val_len);
     int64_t name_len = parser->lex->val_len;
-    //printf("id: %s\n", parser->lex->value);
     eattok(parser, T_ID);
     if (curtok(parser) == T_LPAR) {
         YASL_DEBUG_LOG("%s\n", "function call.");
@@ -403,13 +415,7 @@ Node *parse_id(Parser *parser) {
         }
         eattok(parser, T_RPAR);
         return cur_node;
-    } /*else if (curtok(parser) == T_LSQB) {
-        puts("index");
-        // TODO: indexing
-    } else if (curtok(parser) == T_DOT) {
-        puts("member access");
-        // TODO: member access
-    } */ else {
+    } else {
         Node *cur_node = new_Var(name, name_len, parser->lex->line);
         free(name);
         return cur_node;
