@@ -61,17 +61,7 @@ Node *parse_let(Parser *parser) {
 }
 
 Node *parse_while(Parser *parser) {
-    /*
-     * token = self.eat(TokenTypes.WHILE)
-     * cond = self.expr()
-     * self.eat(TokenTypes.LBRACE)
-     * body = []
-     * while self.current_token.type is not TokenTypes.RBRACE and self.current_token.type is not TokenTypes.EOF:
-     *     body.append(self.program())
-     *     self.eat(TokenTypes.SEMI)
-     * self.eat(TokenTypes.RBRACE)
-     * return While(token, cond, body)
-     */
+
     eattok(parser, T_WHILE);
     Node *cond = parse_expr(parser);
     eattok(parser, T_LBRC);
@@ -80,7 +70,7 @@ Node *parse_while(Parser *parser) {
         block_append(body, parse_program(parser));
         if (curtok(parser) == T_SEMI) eattok(parser, T_SEMI);
         else if (curtok(parser) != T_RBRC) {
-            puts("expected semicolon/newline or right brace");
+            printf("ParsingError: expected newline or `}`, got `%s`.\n", YASL_TOKEN_NAMES[curtok(parser)]);
             exit(EXIT_FAILURE);
         }
     }
@@ -132,7 +122,7 @@ Node *parse_if(Parser *parser) {
         block_append(then_block, parse_program(parser));
         if (curtok(parser) == T_SEMI) eattok(parser, T_SEMI);
         else if (curtok(parser) != T_RBRC) {
-            puts("expected semicolon/newline or right brace");
+            printf("ParsingError: expected newline or `}`, got `%s`.\n", YASL_TOKEN_NAMES[curtok(parser)]);
             exit(EXIT_FAILURE);
         }
     }
@@ -155,14 +145,14 @@ Node *parse_if(Parser *parser) {
             block_append(else_block, parse_program(parser));
             if (curtok(parser) == T_SEMI) eattok(parser, T_SEMI);
             else if (curtok(parser) != T_RBRC) {
-                puts("expected semicolon/newline or right brace");
+                printf("ParsingError: expected newline or `}`, got `%s`.\n", YASL_TOKEN_NAMES[curtok(parser)]);
                 exit(EXIT_FAILURE);
             }
         }
         eattok(parser, T_RBRC);
         return new_If(cond, then_block, else_block, parser->lex->line);
     }
-    printf("ParsingError: expected newline or semicolon, got %s\n", YASL_TOKEN_NAMES[curtok(parser)]);
+    printf("ParsingError: expected newline, got `%s`.\n", YASL_TOKEN_NAMES[curtok(parser)]);
     exit(EXIT_FAILURE);
 
 }
@@ -235,7 +225,6 @@ Node *parse_bor(Parser *parser) {
 }
 
 Node *parse_bxor(Parser *parser) {
-    //printf("bxor. type: %s, value: %s\n", YASL_TOKEN_NAMES[curtok(parser)], parser->lex->value);
     Node *cur_node = parse_band(parser);
     while (curtok(parser) == T_CARET) {
         eattok(parser, T_CARET);
@@ -245,7 +234,6 @@ Node *parse_bxor(Parser *parser) {
 }
 
 Node *parse_band(Parser *parser) {
-    //printf("band. type: %s, value: %s\n", YASL_TOKEN_NAMES[curtok(parser)], parser->lex->value);
     Node *cur_node = parse_equals(parser);
     while (curtok(parser) == T_AMP) {
         eattok(parser, T_AMP);
@@ -255,12 +243,10 @@ Node *parse_band(Parser *parser) {
 }
 
 Node *parse_equals(Parser *parser) {
-    //printf("equals. type: %s, value: %s\n", YASL_TOKEN_NAMES[curtok(parser)], parser->lex->value);
     Node *cur_node = parse_comparator(parser);
     while (curtok(parser) == T_DEQ || curtok(parser) == T_BANGEQ ||
             curtok(parser) == T_TEQ || curtok(parser) == T_BANGDEQ) {
         Token op = eattok(parser, curtok(parser));
-        //printf("equals. type: %s, value: %s\n", YASL_TOKEN_NAMES[curtok(parser)], parser->lex->value);
         cur_node = new_BinOp(op, cur_node, parse_comparator(parser), parser->lex->line);
     }
     return cur_node;
@@ -271,7 +257,6 @@ Node *parse_comparator(Parser *parser) {
     while (curtok(parser) == T_LT || curtok(parser) == T_GT||
             curtok(parser) == T_GTEQ || curtok(parser) == T_LTEQ) {
         Token op = eattok(parser, curtok(parser));
-        //printf("equals. type: %s, value: %s\n", YASL_TOKEN_NAMES[curtok(parser)], parser->lex->value);
         cur_node = new_BinOp(op, cur_node, parse_concat(parser), parser->lex->line);
     }
     return cur_node;
@@ -299,7 +284,6 @@ Node *parse_add(Parser *parser) {
     Node *cur_node = parse_multiply(parser);
     while (curtok(parser) == T_PLUS || curtok(parser) == T_MINUS) {
         Token op = eattok(parser, curtok(parser));
-        //printf("equals. type: %s, value: %s\n", YASL_TOKEN_NAMES[curtok(parser)], parser->lex->value);
         cur_node = new_BinOp(op, cur_node, parse_multiply(parser), parser->lex->line);
     }
     return cur_node;
@@ -310,14 +294,12 @@ Node *parse_multiply(Parser *parser) {
     while (curtok(parser) == T_STAR || curtok(parser) == T_SLASH ||
             curtok(parser) == T_DSLASH || curtok(parser) == T_MOD) {
         Token op = eattok(parser, curtok(parser));
-        //printf("equals. type: %s, value: %s\n", YASL_TOKEN_NAMES[curtok(parser)], parser->lex->value);
         cur_node = new_BinOp(op, cur_node, parse_unary(parser), parser->lex->line);
     }
     return cur_node;
 }
 
 Node *parse_unary(Parser *parser) {
-    //puts("made it here");
     if (curtok(parser) == T_PLUS || curtok(parser) == T_MINUS || curtok(parser) == T_BANG ||
      curtok(parser) == T_CARET ||curtok(parser) == T_HASH) {
         Token op = eattok(parser, curtok(parser));
@@ -329,7 +311,7 @@ Node *parse_unary(Parser *parser) {
 
 Node *parse_power(Parser *parser) {
     Node *cur_node = parse_call(parser);
-    if (curtok(parser) == T_DSTAR) { // || curtok(parser) == T_DLT)
+    if (curtok(parser) == T_DSTAR) {
         eattok(parser, T_DSTAR);
         return new_BinOp(T_DSTAR, cur_node, parse_power(parser), parser->lex->line);
     }
@@ -421,33 +403,34 @@ Node *parse_id(Parser *parser) {
         // TODO: member access
     } */ else {
         Node *cur_node = new_Var(name, name_len, parser->lex->line);
-        //printf("id: %s\n", name);
         free(name);
         return cur_node;
     }
 }
 
 Node *parse_undef(Parser *parser) {
+    YASL_DEBUG_LOG("undef literal: %s\n", parser->lex->value);
     Node *cur_node = new_Undef(parser->lex->line);
     eattok(parser, T_UNDEF);
     return cur_node;
 }
 
 Node *parse_float(Parser *parser) {
+    YASL_DEBUG_LOG("float literal: %s\n", parser->lex->value);
     Node* cur_node = new_Float(parser->lex->value, parser->lex->val_len, parser->lex->line);
     eattok(parser, T_FLOAT64);
     return cur_node;
 }
 
 Node *parse_integer(Parser *parser) {
-    //printf("integer. type: %s, value: %s\n", YASL_TOKEN_NAMES[curtok(parser)], parser->lex->value);
+    YASL_DEBUG_LOG("integer literal: %s\n", parser->lex->value);
     Node *cur_node = new_Integer(parser->lex->value, parser->lex->val_len, parser->lex->line);
     eattok(parser, T_INT64);
-    //printf("integer. type: %s, value: %s\n", YASL_TOKEN_NAMES[curtok(parser)], parser->lex->value);
     return cur_node;
 }
 
 Node *parse_boolean(Parser *parser) {
+    YASL_DEBUG_LOG("boolean literal: %s\n", parser->lex->value);
     Node *cur_node = new_Boolean(parser->lex->value, parser->lex->val_len, parser->lex->line);
     eattok(parser, T_BOOL);
     return cur_node;
@@ -468,6 +451,7 @@ Node *parse_collection(Parser *parser) {
 
     // empty map
     if (curtok(parser) == T_RARR) {
+        YASL_DEBUG_LOG("empty map literal: %s\n", parser->lex->value);
         eattok(parser, T_RARR);
         eattok(parser, T_RSQB);
         return new_Map(keys, vals, parser->lex->line);
@@ -475,6 +459,7 @@ Node *parse_collection(Parser *parser) {
 
     // empty list
     if (curtok(parser) == T_RSQB) {
+        YASL_DEBUG_LOG("empty list literal: %s\n", parser->lex->value);
         node_del(vals);
         eattok(parser, T_RSQB);
         return new_List(keys, parser->lex->line);
@@ -484,6 +469,7 @@ Node *parse_collection(Parser *parser) {
 
     // non-empty map
     if (curtok(parser) == T_RARR) {
+        YASL_DEBUG_LOG("map literal: %s\n", parser->lex->value);
         eattok(parser, T_RARR);
         block_append(vals, parse_expr(parser));
         while (curtok(parser) == T_COMMA) {
@@ -499,6 +485,7 @@ Node *parse_collection(Parser *parser) {
     // non-empty list
     node_del(vals);
     while (curtok(parser) == T_COMMA) {
+        YASL_DEBUG_LOG("list literal: %s\n", parser->lex->value);
         eattok(parser, T_COMMA);
         block_append(keys, parse_expr(parser));
     }
