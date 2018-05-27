@@ -1,6 +1,6 @@
 #pragma once
 
-enum Opcodes {
+typedef enum Opcode {
     NOP       = 0x00, // pass
     NCONST    = 0x01, // push literal undef onto stack
     ICONST    = 0x02, // push next 8 bytes onto stack as integer constant
@@ -68,4 +68,4 @@ enum Opcodes {
     RCALL_8   = 0xFA, // tail recursive function call
     BCALL_8   = 0xFB, // built-in function call
     MCALL_8   = 0xFC, // method call
-};
+} Opcode;

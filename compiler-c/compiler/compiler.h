@@ -32,6 +32,7 @@ typedef struct {
     Env_t *globals;
     Env_t *locals;
     Hash_t *builtins;
+    Hash_t *methods;
     Hash_t *strings;
     ByteBuffer *buffer;
     ByteBuffer *header;

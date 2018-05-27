@@ -14,7 +14,7 @@ typedef struct {
 
 static Item_t TOMBSTONE = {0, 0};
 
-typedef struct {
+typedef struct Hash_s {
     int64_t size;
     int64_t base_size;
     int64_t count;
@@ -23,6 +23,7 @@ typedef struct {
 
 Hash_t* new_hash(void);
 void ht_insert(Hash_t* hashtable, YASL_Object key, YASL_Object value);
+void ht_insert_string_int(Hash_t *hashtable, char *key, int64_t key_len, int64_t val);
 YASL_Object* ht_search(Hash_t* hashtable, YASL_Object key);
 void ht_delete(Hash_t* hashtable, YASL_Object key);
 void ht_print(Hash_t* ht);

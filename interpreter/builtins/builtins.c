@@ -6,11 +6,11 @@
 int yasl_print(VM* vm) {
     YASL_Object v = vm->stack[vm->sp--];    // pop value from top of the stack ...
     if (v.type == LIST) {
-        ls_print((List_t*)v.value);
+        ls_print(v.value.lval);
         printf("\n");
         return 0;
     } else if (v.type == MAP) {
-        ht_print((Hash_t*)v.value);
+        ht_print(v.value.mval);
         printf("\n");
         return 0;
     }
@@ -36,7 +36,7 @@ int yasl_input(VM* vm) {
         }
     }
     str = realloc(str, sizeof(char)*len);
-    vm->stack[++vm->sp].value = (int64_t)new_sized_string8_from_mem(len, str);
+    vm->stack[++vm->sp].value.sval = new_sized_string8_from_mem(len, str);
     vm->stack[vm->sp].type = STR8;
     return 0;
 }
@@ -65,12 +65,12 @@ int yasl_open(VM* vm) {     //TODO: fix bug relating to file pointer
         printf("Error: open(...) expected type %s as first argument, got type %s\n", YASL_TYPE_NAMES[STR8], YASL_TYPE_NAMES[str.type]);
         return -1;
     }
-    char *buffer = malloc(((String_t*)str.value)->length + 1);
-    memcpy(buffer, ((String_t*)str.value)->str, ((String_t*)str.value)->length);
-    buffer[((String_t*)str.value)->length] = '\0';
-    char *mode = malloc(((String_t*)mode_str.value)->length + 1);
-    memcpy(mode, ((String_t*)mode_str.value)->str, ((String_t*)mode_str.value)->length);
-    mode[((String_t*)mode_str.value)->length] = '\0';
+    char *buffer = malloc((str.value.sval)->length + 1);
+    memcpy(buffer, (str.value.sval)->str, (str.value.sval)->length);
+    buffer[(str.value.sval)->length] = '\0';
+    char *mode = malloc((mode_str.value.sval)->length + 1);
+    memcpy(mode, (mode_str.value.sval)->str, (mode_str.value.sval)->length);
+    mode[(mode_str.value.sval)->length] = '\0';
 
     FILE *f;  // r, w, a, r+, w+, a+
     if (!strcmp(mode, "r")) {
@@ -95,9 +95,8 @@ int yasl_open(VM* vm) {     //TODO: fix bug relating to file pointer
         printf("Error: invalid second argument: %s\n", mode);
         return -1;
     }
-    vm->stack[++vm->sp].value = (int64_t)f;
+    vm->stack[++vm->sp].value.fval = f;
     vm->stack[vm->sp].type = FILEH;
-    f = NULL;
     return 0;
 }
 
@@ -113,12 +112,12 @@ int yasl_popen(VM* vm) {     //TODO: fix bug relating to file pointer
         printf("Error: popen(...) expected type %x as first argument, got type %x\n", STR8, str.type);
         return -1;
     }
-    char *buffer = malloc(((String_t*)str.value)->length + 1);
-    memcpy(buffer, ((String_t*)str.value)->str, ((String_t*)str.value)->length);
-    buffer[((String_t*)str.value)->length] = '\0';
-    char *mode = malloc(((String_t*)mode_str.value)->length + 1);
-    memcpy(mode, ((String_t*)mode_str.value)->str, ((String_t*)mode_str.value)->length);
-    mode[((String_t*)mode_str.value)->length] = '\0';
+    char *buffer = malloc((str.value.sval)->length + 1);
+    memcpy(buffer, (str.value.sval)->str, (str.value.sval)->length);
+    buffer[(str.value.sval)->length] = '\0';
+    char *mode = malloc((mode_str.value.sval)->length + 1);
+    memcpy(mode, (mode_str.value.sval)->str, (mode_str.value.sval)->length);
+    mode[(mode_str.value.sval)->length] = '\0';
 
     FILE *f;  // r, w, a, r+, w+, a+
     if (!strcmp(mode, "r")) {
@@ -129,9 +128,8 @@ int yasl_popen(VM* vm) {     //TODO: fix bug relating to file pointer
         printf("Error: invalid second argument: %s\n", mode);
         return -1;
     }
-    vm->stack[++vm->sp].value = (int64_t)f;
+    vm->stack[++vm->sp].value.fval = f;
     vm->stack[vm->sp].type = FILEH;
-    f = NULL;
     return 0;
 }
 

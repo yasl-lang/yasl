@@ -1,14 +1,15 @@
+#include <interpreter/YASL_Object/YASL_Object.h>
 #include "map_methods.h"
 
 int map___get(VM *vm) {
-    Hash_t* ht = (Hash_t*)POP(vm).value;
+    Hash_t* ht = POP(vm).value.mval;
     YASL_Object key = POP(vm);
     PUSH(vm, *ht_search(ht, key));
     return 0;
 }
 
 int map___set(VM *vm) {
-    Hash_t* ht = (Hash_t*)POP(vm).value;
+    Hash_t* ht = POP(vm).value.mval;
     YASL_Object val = POP(vm);
     YASL_Object key = POP(vm);
     if (key.type == LIST || key.type == MAP) {
@@ -25,8 +26,8 @@ int map_keys(VM* vm) {
     List_t* ls = new_list();
     int64_t i;
     Item_t* item;
-    for (i = 0; i < ((Hash_t*)ht.value)->size; i++) {
-        item = ((Hash_t*)ht.value)->items[i];
+    for (i = 0; i < (ht.value.mval)->size; i++) {
+        item = (ht.value.mval)->items[i];
         if (item != NULL && item != &TOMBSTONE) {
             ls_append(ls, *(item->key));
         }
@@ -40,8 +41,8 @@ int map_values(VM* vm) {
     List_t* ls = new_list();
     int64_t i;
     Item_t* item;
-    for (i = 0; i < ((Hash_t*)ht.value)->size; i++) {
-        item = ((Hash_t*)ht.value)->items[i];
+    for (i = 0; i < (ht.value.mval)->size; i++) {
+        item = (ht.value.mval)->items[i];
         if (item != NULL && item != &TOMBSTONE) {
             ls_append(ls, *(item->value));
         }

@@ -10,10 +10,10 @@
 static int hash_function(const YASL_Object s, const int a, const int m) {
     long hash = 0;
     if (s.type == STR8) {
-        const int len_s = ((String_t*)s.value)->length;
+        const int64_t len_s = (s.value.sval)->length;
         int i;
         for (i = 0; i < len_s; i++) {
-            hash += (long)pow(a, len_s - (i+1)) * (((String_t*)s.value)->str[i]);
+            hash += (long)pow(a, len_s - (i+1)) * ((s.value.sval)->str[i]);
             hash = hash % m;
         }
         return (int)hash;
@@ -139,6 +139,17 @@ void ht_insert(Hash_t* hashtable, const YASL_Object key, const YASL_Object value
     hashtable->count++;
 }
 
+
+void ht_insert_string_int(Hash_t *hashtable, char *key, int64_t key_len, int64_t val) {
+    String_t *string = malloc(sizeof(String_t));
+    string->length = key_len;
+    string->str = malloc(string->length);
+    memcpy(string->str, key, string->length);
+    ht_insert(hashtable,
+              (YASL_Object) { .type = STR8, .value = (int64_t)string},
+              (YASL_Object) { .type = INT64, .value = val});
+}
+
 YASL_Object* ht_search(Hash_t* hashtable, const YASL_Object key) {
     //puts("searching");
     int index = get_hash(key, hashtable->size, 0);
@@ -199,28 +210,28 @@ void ht_print_h(Hash_t* ht, int64_t* seen, int seen_size) {
         print(*item->key);
         printf("->");
         if (item->value->type == LIST) {
-            if (isvalueinarray(item->value->value, seen, seen_size)) {
+            if (isvalueinarray(item->value->value.ival, seen, seen_size)) {
                 printf("[...]");
                 printf(", ");
             } else {
                 new_seen = malloc(sizeof(int64_t) * (seen_size + 2));
                 memcpy(new_seen, seen, seen_size);
                 new_seen[seen_size] = (int64_t)ht;
-                new_seen[seen_size + 1] = item->value->value;
-                ls_print_h((List_t *) item->value->value, new_seen, seen_size + 2);
+                new_seen[seen_size + 1] = item->value->value.ival;
+                ls_print_h( item->value->value.lval, new_seen, seen_size + 2);
                 printf(", ");
                 free(new_seen);
             }
         } else if (item->value->type == MAP) {
-            if (isvalueinarray(item->value->value, seen, seen_size)) {
+            if (isvalueinarray(item->value->value.ival, seen, seen_size)) {
                 printf("[...->...]");
                 printf(", ");
             } else {
                 new_seen = malloc(sizeof(int64_t) * (seen_size + 2));
                 memcpy(new_seen, seen, seen_size);
                 new_seen[seen_size] = (int64_t)ht;
-                new_seen[seen_size + 1] = item->value->value;
-                ht_print_h((Hash_t *) item->value->value, new_seen, seen_size + 2);
+                new_seen[seen_size + 1] = item->value->value.ival;
+                ht_print_h(item->value->value.mval, new_seen, seen_size + 2);
                 printf(", ");
                 free(new_seen);
             }

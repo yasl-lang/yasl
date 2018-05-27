@@ -4,7 +4,7 @@
 #include "../../hashtable/hashtable.h"
 #define LEN(v) (*((int64_t*)v.value))
 
-typedef struct {
+typedef struct List_s {
     int size;
     int count;
     YASL_Object* items;

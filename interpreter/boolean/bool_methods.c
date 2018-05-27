@@ -1,7 +1,7 @@
 #include "bool_methods.h"
 
 int bool_tostr(VM *vm) {
-    int64_t val = POP(vm).value;
+    int64_t val = POP(vm).value.ival;
     String_t* string;
     if (val == 0) {
         string = new_sized_string8(snprintf(NULL, 0, "%s", "false"));

@@ -15,29 +15,40 @@ Compiler *compiler_new(Parser* parser) {
 
     // TODO: deal with memory leaks here.
     compiler->builtins = new_hash();
-    String_t *string_open = malloc(sizeof(String_t));
-    string_open->length = 4;
-    string_open->str = malloc(string_open->length);
-    memcpy(string_open->str, "open", string_open->length);
-    ht_insert(compiler->builtins,
-              (YASL_Object) { .type = STR8, .value = (int64_t)string_open},
-              (YASL_Object) { .type = INT64, .value = F_OPEN});
+    ht_insert_string_int(compiler->builtins, "open", 4, F_OPEN);
+    ht_insert_string_int(compiler->builtins, "popen", 5, F_POPEN);
+    ht_insert_string_int(compiler->builtins, "input", 5, F_INPUT);
 
-    String_t *string_input = malloc(sizeof(String_t));
-    string_input->length = 5;
-    string_input->str = malloc(string_input->length);
-    memcpy(string_input->str, "input", string_input->length);
-    ht_insert(compiler->builtins,
-              (YASL_Object) { .type = STR8, .value = (int64_t)string_input},
-              (YASL_Object) { .type = INT64, .value = F_INPUT});
+    compiler->methods = new_hash();
+    ht_insert_string_int(compiler->methods, "tofloat64", 9, M_TOFLOAT64);
+    ht_insert_string_int(compiler->methods, "toint64", 7, M_TOINT64);
+    ht_insert_string_int(compiler->methods, "tobool", 6, M_TOBOOL);
+    ht_insert_string_int(compiler->methods, "tostr", 5, M_TOSTR);
 
-    String_t *string_popen =  malloc(sizeof(String_t));
-    string_popen->length = 5;
-    string_popen->str = malloc(string_popen->length);
-    memcpy(string_popen->str, "popen", string_popen->length);
-    ht_insert(compiler->builtins,
-              (YASL_Object) { .type = STR8, .value = (int64_t)string_popen},
-              (YASL_Object) { .type = INT64, .value = F_POPEN});
+    ht_insert_string_int(compiler->methods, "upcase", 6, M_UPCASE);
+    ht_insert_string_int(compiler->methods, "downcase", 8, M_DOWNCASE);
+    ht_insert_string_int(compiler->methods, "isalnum", 7, M_ISALNUM);
+    ht_insert_string_int(compiler->methods, "isal", 4, M_ISAL);
+    ht_insert_string_int(compiler->methods, "isnum", 5, M_ISNUM);
+    ht_insert_string_int(compiler->methods, "isspace", 7, M_ISSPACE);
+    ht_insert_string_int(compiler->methods, "startswith", 10, M_STARTSWITH);
+    ht_insert_string_int(compiler->methods, "endswith", 8, M_ENDSWITH);
+    ht_insert_string_int(compiler->methods, "search", 6, M_SEARCH);
+    ht_insert_string_int(compiler->methods, "split", 5, M_SPLIT);
+
+    ht_insert_string_int(compiler->methods, "append", 6, M_APPEND);
+
+    ht_insert_string_int(compiler->methods, "keys", 4, M_KEYS);
+    ht_insert_string_int(compiler->methods, "values", 6, M_VALUES);
+
+    ht_insert_string_int(compiler->methods, "close", 5, M_CLOSE);
+    ht_insert_string_int(compiler->methods, "pclose", 6, M_PCLOSE);
+    ht_insert_string_int(compiler->methods, "read", 4, M_READ);
+    ht_insert_string_int(compiler->methods, "write", 5, M_WRITE);
+    ht_insert_string_int(compiler->methods, "readline", 8, M_READLINE);
+
+    ht_insert_string_int(compiler->methods, "__set", 5, M___SET);
+    ht_insert_string_int(compiler->methods, "__get", 5, M___GET);
 
     compiler->strings = new_hash();
     compiler->parser = parser;
@@ -57,7 +68,7 @@ void compiler_del(Compiler *compiler) {
     for (i = 0; i < compiler->strings->size; i++) {
         Item_t* item = compiler->strings->items[i];
         if (item != NULL) {
-            del_string8((String_t*)item->key->value);
+            del_string8(item->key->value.sval);
             free(item->key);
             free(item->value);
             free(item);
@@ -69,7 +80,7 @@ void compiler_del(Compiler *compiler) {
     for (i = 0; i < compiler->builtins->size; i++) {
         Item_t* item = compiler->builtins->items[i];
         if (item != NULL) {
-            del_string8((String_t*)item->key->value);
+            del_string8(item->key->value.sval);
             free(item->key);
             free(item->value);
             free(item);
@@ -77,6 +88,18 @@ void compiler_del(Compiler *compiler) {
     }
     free(compiler->builtins->items);
     free(compiler->builtins);
+
+    for (i = 0; i < compiler->methods->size; i++) {
+        Item_t* item = compiler->methods->items[i];
+        if (item != NULL) {
+            del_string8(item->key->value.sval);
+            free(item->key);
+            free(item->value);
+            free(item);
+        }
+    }
+    free(compiler->methods->items);
+    free(compiler->methods);
 
     env_del(compiler->globals);
     env_del(compiler->locals);
@@ -180,14 +203,45 @@ void visit_Call(Compiler *compiler, Node *node) {
     string->length = node->name_len;
     string->str = malloc(string->length);
     memcpy(string->str, node->name, string->length);
-    YASL_Object key = (YASL_Object) { .value = (int64_t)string, .type = STR8 };
+    YASL_Object key = (YASL_Object) { .value.sval = string, .type = STR8 };
 
     if (ht_search(compiler->builtins, key)) {
         bb_add_byte(compiler->buffer, BCALL_8);
-        bb_intbytes8(compiler->buffer, ht_search(compiler->builtins, key)->value);
+        bb_intbytes8(compiler->buffer, ht_search(compiler->builtins, key)->value.ival);
     } else {
         // TODO: implement non-builtins.
-        puts("Not a builtin.");
+        puts("Not a builtin function.");
+        exit(EXIT_FAILURE);
+    }
+}
+
+/*
+    def visit_MethodCall(self, node):
+        result = []
+        for expr in node.params:
+            result = result + self.visit(expr)
+        if node.value in METHODS:
+            return result + self.visit(node.left) + [MCALL_8] + intbytes_8(METHODS[node.value])
+        assert False
+ */
+
+
+void visit_Method(Compiler *compiler, Node *node) {
+    visit_Block(compiler, node->children[1]);
+    visit(compiler, node->children[0]);
+
+    String_t *string = malloc(sizeof(String_t));
+    string->length = node->name_len;
+    string->str = malloc(string->length);
+    memcpy(string->str, node->name, string->length);
+    YASL_Object key = (YASL_Object) { .value.sval = string, .type = STR8 };
+
+    if (ht_search(compiler->methods, key)) {
+        bb_add_byte(compiler->buffer, MCALL_8);
+        bb_intbytes8(compiler->buffer, ht_search(compiler->methods, key)->value.ival);
+    } else {
+        // TODO: implement non-builtins.
+        printf("No builtin method `%s`\n", node->name);
         exit(EXIT_FAILURE);
     }
 }
@@ -546,7 +600,7 @@ void visit_String(Compiler* compiler, Node *node) {
 
     bb_add_byte(compiler->buffer, NEWSTR8);
     bb_intbytes8(compiler->buffer, node->name_len);
-    bb_intbytes8(compiler->buffer, value->value);
+    bb_intbytes8(compiler->buffer, value->value.ival);
 }
 
 void visit_List(Compiler *compiler, Node *node) {
@@ -592,6 +646,10 @@ void visit(Compiler* compiler, Node* node) {
     case N_CALL:
         YASL_DEBUG_LOG("%s\n", "Visit Call");
         visit_Call(compiler, node);
+        break;
+    case N_METHOD:
+        YASL_DEBUG_LOG("%s\n", "Visit Method Call");
+        visit_Method(compiler, node);
         break;
     case N_INDEX:
         YASL_DEBUG_LOG("%s\n", "Visit Index");

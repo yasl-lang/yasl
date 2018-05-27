@@ -1,9 +1,10 @@
 #include <stdlib.h>
 #include <memory.h>
+#include <interpreter/YASL_Object/YASL_Object.h>
 #include "VM.h"
 #include "interpreter/builtins/builtins.h"
 
-VM* newVM(char* code,    // pointer to bytecode
+VM* newVM(unsigned char* code,    // pointer to bytecode
     int pc0,             // address of instruction to be executed first -- entrypoint
     int datasize) {      // total locals size required to perform a program operations
     VM* vm = malloc(sizeof(VM));
@@ -47,11 +48,9 @@ void delVM(VM* vm){
 void run(VM* vm){
     while (1) {
         unsigned char opcode = NCODE(vm);        // fetch
-        int argc, rval;
         signed char offset;
         uint64_t big_offset, size;
         int64_t addr;
-        int i;
         YASL_Object a, b, v;
         int64_t c;
         double d;
@@ -93,7 +92,7 @@ void run(VM* vm){
             case ICONST_4:
             case ICONST_5:
                 vm->stack[++vm->sp].type = INT64;
-                vm->stack[vm->sp].value  = opcode - 0x04;
+                vm->stack[vm->sp].value.ival  = opcode - 0x04;
                 break;
             case DCONST_0:    // TODO: make sure no changes to opcodes ruin this
             case DCONST_1:
@@ -115,17 +114,17 @@ void run(VM* vm){
             case BCONST_F:
             case BCONST_T:
                 vm->stack[++vm->sp].type = BOOL;
-                vm->stack[vm->sp].value  = opcode & 0x01;
+                vm->stack[vm->sp].value.ival  = opcode & 0x01;
                 break;
             case NCONST:
                 vm->stack[++vm->sp].type = UNDEF;
-                vm->stack[vm->sp].value  = 0x00;
+                vm->stack[vm->sp].value.ival  = 0x00;
                 break;
             case BOR:
                 b = POP(vm);
                 a = PEEK(vm);
                 if (a.type == INT64 && b.type == INT64) {
-                    PEEK(vm).value = a.value | b.value;
+                    PEEK(vm).value.ival = a.value.ival | b.value.ival;
                     break;
                 } else {
                     printf("TypeError: | not supported for operands of types %s and %s.\n",
@@ -137,7 +136,7 @@ void run(VM* vm){
                 b = POP(vm);
                 a = PEEK(vm);
                 if (a.type == INT64 && b.type == INT64) {
-                    PEEK(vm).value = a.value ^ b.value;
+                    PEEK(vm).value.ival = a.value.ival ^ b.value.ival;
                     break;
                 } else {
                     printf("TypeError: binary ~ not supported for operands of types %s and %s.\n",
@@ -149,7 +148,7 @@ void run(VM* vm){
                 b = POP(vm);
                 a = PEEK(vm);
                 if (a.type == INT64 && b.type == INT64) {
-                    PEEK(vm).value = a.value & b.value;
+                    PEEK(vm).value.ival = a.value.ival & b.value.ival;
                     break;
                 } else {
                     printf("TypeError: & not supported for operands of types %s and %s.\n",
@@ -160,7 +159,7 @@ void run(VM* vm){
             case BNOT:
                 a = PEEK(vm);
                 if (a.type == INT64) {
-                    PEEK(vm).value = ~a.value;
+                    PEEK(vm).value.ival = ~a.value.ival;
                     break;
                 } else {
                     printf("TypeError: unary ~ not supported for operand of type %s.\n",
@@ -171,7 +170,7 @@ void run(VM* vm){
                 b = POP(vm);
                 a = PEEK(vm);
                 if (a.type == INT64 && b.type == INT64) {
-                    PEEK(vm).value = a.value << b.value;
+                    PEEK(vm).value.ival = a.value.ival << b.value.ival;
                     break;
                 } else {
                     printf("TypeError: << not supported for operands of types %s and %s.\n",
@@ -183,7 +182,7 @@ void run(VM* vm){
                 b = POP(vm);
                 a = PEEK(vm);
                 if (a.type == INT64 && b.type == INT64) {
-                    PEEK(vm).value = (uint64_t)a.value >> (uint64_t)b.value;
+                    PEEK(vm).value.ival = (uint64_t)a.value.ival >> (uint64_t)b.value.ival;
                     break;
                 } else {
                     printf("TypeError: >> not supported for operands of types %s and %s.\n",
@@ -210,16 +209,16 @@ void run(VM* vm){
                 b = vm->stack[vm->sp--];
                 a = vm->stack[vm->sp--];
                 if (a.type == INT64 && b.type == INT64) {
-                    d = (double)a.value / (double)b.value;
+                    d = (double)a.value.ival / (double)b.value.ival;
                 }
                 else if (a.type == FLOAT64 && b.type == INT64) {
-                    d = DVAL(a) / (double)b.value;
+                    d = a.value.dval / (double)b.value.ival;
                 }
                 else if (a.type == INT64 && b.type == FLOAT64) {
-                    d = (double)a.value / DVAL(b);
+                    d = (double)a.value.ival / b.value.dval;
                 }
                 else if (a.type == FLOAT64 && b.type == FLOAT64) {
-                    d = DVAL(a) / DVAL(b);
+                    d = a.value.dval / b.value.dval;
                 }
                 else {
                     printf("TypeError: / not supported for operands of types %s and %s.\n",
@@ -235,7 +234,7 @@ void run(VM* vm){
                 a = PEEK(vm);
                 if (a.type == INT64 && b.type == INT64) {
                     //printf("a = %d, b = %d, a/b = %d\n", a.value, b.value, a.value / b.value);
-                    PEEK(vm).value = a.value / b.value;
+                    PEEK(vm).value.ival = a.value.ival / b.value.ival;
                     break;
                 } else {
                     printf("TypeError: // not supported for operands of types %s and %s.\n",
@@ -244,6 +243,7 @@ void run(VM* vm){
                     return;
                 }
             case MOD:
+                // TODO: handle undefined C behaviour for negative numbers.
                 b = vm->stack[vm->sp--];
                 a = vm->stack[vm->sp];
                 if (a.type != INT64 || b.type != INT64) {
@@ -252,7 +252,7 @@ void run(VM* vm){
                            YASL_TYPE_NAMES[b.type]);
                     return;
                 }
-                vm->stack[vm->sp].value = a.value % b.value;
+                vm->stack[vm->sp].value.ival = a.value.ival % b.value.ival;
                 break;
             case EXP:
                 b = POP(vm);
@@ -262,7 +262,7 @@ void run(VM* vm){
             case NEG:
                 a = vm->stack[vm->sp];
                 if (a.type == INT64) {
-                    vm->stack[vm->sp].value = -a.value;
+                    vm->stack[vm->sp].value.ival = -a.value.ival;
                     break;
                 }
                 else if (a.type == FLOAT64) {
@@ -279,7 +279,7 @@ void run(VM* vm){
             case NOT:
                 a = vm->stack[vm->sp];
                 if (a.type == BOOL) {
-                    vm->stack[vm->sp].value ^= 1;    // flip the last bit
+                    vm->stack[vm->sp].value.ival ^= 1;    // flip the last bit
                     break;
                 }
                 else if (a.type == UNDEF) {
@@ -293,11 +293,11 @@ void run(VM* vm){
             case LEN:
                 v = vm->stack[vm->sp];
                 if (v.type == STR8) {
-                    vm->stack[vm->sp].value = ((String_t*)v.value)->length; // (int64_t*)v.value;
+                    vm->stack[vm->sp].value.ival = (v.value.sval)->length; // (int64_t*)v.value;
                 } else if (v.type == MAP) {
-                    vm->stack[vm->sp].value = ((Hash_t*)v.value)->count;
+                    vm->stack[vm->sp].value.ival = (v.value.mval)->count;
                 } else if (v.type == LIST) {
-                    vm->stack[vm->sp].value = ((List_t*)v.value)->count;
+                    vm->stack[vm->sp].value.ival = (v.value.lval)->count;
                 } else {
                     printf("TypeError: # not supported for operand of type %s.\n",
                            YASL_TYPE_NAMES[v.type]);
@@ -309,12 +309,11 @@ void run(VM* vm){
                 b = vm->stack[vm->sp--];
                 a = vm->stack[vm->sp];
                 if (a.type == STR8 && b.type == STR8) {
-                    size = ((String_t*)a.value)->length + ((String_t*)b.value)->length;
-                    ptr = new_sized_string8(size);
-                    vm->stack[vm->sp].value = (int64_t)ptr;
-                    ((String_t*)vm->stack[vm->sp].value)->length = size;
-                    memcpy(((String_t*)ptr)->str, ((String_t*)a.value)->str, ((String_t*)a.value)->length);
-                    memcpy(((String_t*)ptr)->str + ((String_t*)a.value)->length, ((String_t*)b.value)->str, ((String_t*)b.value)->length);
+                    size = (a.value.sval)->length + (b.value.sval)->length;
+                    vm->stack[vm->sp].value.sval = new_sized_string8(size);
+                    (vm->stack[vm->sp].value.sval)->length = size;
+                    memcpy(((String_t*)ptr)->str, (a.value.sval)->str, (a.value.sval)->length);
+                    memcpy(((String_t*)ptr)->str + (a.value.sval)->length, (b.value.sval)->str, (b.value.sval)->length);
                     break;
                 }
                 printf("TypeError: || not supported for operands of types %s and %s.\n",
@@ -328,18 +327,17 @@ void run(VM* vm){
                     puts("||| should have coerced to strings, aborting.");
                     return;
                 }
-                if (((String_t*)b.value)->length == 0) break;
-                if (((String_t*)a.value)->length == 0) {
+                if ((b.value.sval)->length == 0) break;
+                if ((a.value.sval)->length == 0) {
                     PEEK(vm) = b;
                     break;
                 }
-                size = ((String_t*)a.value)->length + ((String_t*)b.value)->length + 1;
-                ptr = new_sized_string8(size);
-                vm->stack[vm->sp].value = (int64_t)ptr;
-                ((String_t*)vm->stack[vm->sp].value)->length = size;
-                memcpy(((String_t*)ptr)->str, ((String_t*)a.value)->str, ((String_t*)a.value)->length);
-                ((String_t*)PEEK(vm).value)->str[((String_t*)a.value)->length] = ' ';
-                memcpy(((String_t*)ptr)->str + ((String_t*)a.value)->length + 1, ((String_t*)b.value)->str, ((String_t*)b.value)->length);
+                size = (a.value.sval)->length + (b.value.sval)->length + 1;
+                vm->stack[vm->sp].value.sval = new_sized_string8(size);
+                (vm->stack[vm->sp].value.sval)->length = size;
+                memcpy(((String_t*)ptr)->str, (a.value.sval)->str, (a.value.sval)->length);
+                (PEEK(vm).value.sval)->str[(a.value.sval)->length] = ' ';
+                memcpy(((String_t*)ptr)->str + (a.value.sval)->length + 1, (b.value.sval)->str, (b.value.sval)->length);
                 break;
             case GT:
                 b = POP(vm);
@@ -373,7 +371,7 @@ void run(VM* vm){
             case ID:
                 b = POP(vm);
                 a = PEEK(vm);
-                vm->stack[vm->sp].value = a.type == b.type && a.value == b.value;
+                vm->stack[vm->sp].value.ival = a.type == b.type && a.value.ival == b.value.ival;
                 vm->stack[vm->sp].type = BOOL;
                 break;
             case NEWSTR8:
@@ -385,21 +383,21 @@ void run(VM* vm){
                 memcpy(&addr, vm->code+vm->pc, sizeof(int64_t));
                 vm->pc += sizeof(int64_t);
 
-                vm->stack[vm->sp].value  = (int64_t)new_sized_string8(size);
+                vm->stack[vm->sp].value.sval  = new_sized_string8(size);
 
 
-                ((String_t*)(vm->stack[vm->sp].value))->length = size;
+                ((vm->stack[vm->sp].value.sval))->length = size;
 
-                memcpy(((String_t*)vm->stack[vm->sp].value)->str, vm->code+addr, size);
+                memcpy((vm->stack[vm->sp].value.sval)->str, vm->code+addr, size);
                 //vm->pc += size;
                 break;
             case NEWMAP:
                 vm->stack[++vm->sp].type = MAP;
-                vm->stack[vm->sp].value  = (int64_t)new_hash();
+                vm->stack[vm->sp].value.mval  = new_hash();
                 break;
             case NEWLIST:
                 vm->stack[++vm->sp].type = LIST;
-                vm->stack[vm->sp].value  = (int64_t)new_list();
+                vm->stack[vm->sp].value.lval  = new_list();
                 break;
             case DUP:
                 vm->stack[vm->sp+1] = vm->stack[vm->sp];
@@ -531,31 +529,31 @@ void run(VM* vm){
                 v = POP(vm);
                 a = vm->stack[vm->fp];
                 b = vm->stack[vm->fp-1];
-                vm->pc = a.value;
+                vm->pc = a.value.ival;
                 vm->pc++;
                 vm->sp = vm->fp - a.type;
                 vm->sp--;
-                vm->fp = b.value;
+                vm->fp = b.value.ival;
                 PUSH(vm, v);
                 break;
             case POP:
                 --vm->sp;      // throw away value at top of the stack
                 break;
-            case MLC_8:
+            /*case MLC_8:
                 vm->stack[++vm->sp].type = vm->code[vm->pc++];
                 memcpy(&size, vm->code + vm->pc, sizeof(size));
                 vm->pc += sizeof(size);
                 ptr = malloc(size);
                 vm->stack[vm->sp].value = (int64_t)ptr;
-                break;
-            case MCP_8:
+                break; */
+            /*case MCP_8:
                 memcpy(&big_offset, vm->code + vm->pc, sizeof(big_offset));
                 vm->pc += sizeof(big_offset);
                 memcpy(&size, vm->code + vm->pc, sizeof(size));
                 vm->pc += sizeof(size);
                 memcpy((char*)vm->stack[vm->sp].value + big_offset, vm->code + vm->pc, size);
                 vm->pc += size;
-                break;
+                break; */
             default:
                 printf("ERROR UNKNOWN OPCODE: %x\n", opcode);
                 return;

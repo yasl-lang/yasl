@@ -25,7 +25,7 @@ YASL_Object isequal(YASL_Object a, YASL_Object b) {
         switch(a.type) {
         case BOOL:
             if (b.type == BOOL) {
-                if (a.value == b.value) {
+                if (a.value.ival == b.value.ival) {
                     return TRUE_C;
                 } else {
                     return FALSE_C;
@@ -66,13 +66,13 @@ YASL_Object isequal(YASL_Object a, YASL_Object b) {
         case STR8:
             //puts("str8");
             if (b.type == STR8) {
-                if (((String_t*)a.value)->length != ((String_t*)b.value)->length) {
+                if ((a.value.sval)->length != (b.value.sval)->length) {
                     //puts("diff len");
                     return FALSE_C;
                 } else {
                     int i = 0;
-                    while (i < ((String_t*)a.value)->length) {
-                        if (((String_t*)a.value)->str[i] != ((String_t*)b.value)->str[i]) {
+                    while (i < (a.value.sval)->length) {
+                        if ((a.value.sval)->str[i] != (b.value.sval)->str[i]) {
                             //printf("a[%d], b[%d]: %x, %x\n", i, i, ((String_t*)a.value)->str[i], ((String_t*)b.value)->str[i]);
                             //puts("diff val at i");
                             return FALSE_C;
@@ -91,13 +91,13 @@ YASL_Object isequal(YASL_Object a, YASL_Object b) {
             }
             int c;
             if (a.type == INT64 && b.type == INT64) {
-                c = a.value == b.value;
+                c = a.value.ival == b.value.ival;
             } else if (a.type == FLOAT64 && b.type == INT64) {
-                c = (*((double*)&a.value)) == (double)b.value;
+                c = a.value.dval == (double)b.value.ival;
             } else if (a.type == INT64 && b.type == FLOAT64) {
-                c = (double)a.value == (*((double*)&b.value));
+                c = (double)a.value.ival == b.value.dval;
             } else if (a.type == FLOAT64 && b.type == FLOAT64) {
-                c = (*((double*)&a.value)) == (*((double*)&b.value));
+                c = a.value.dval == b.value.dval;
             } else {
                 printf("== and != not supported for operands of types %x and %x.\n", a.type, b.type);
                 return UNDEF_C;
@@ -110,7 +110,7 @@ int print(YASL_Object v) {
     int i;
     switch (v.type) {
         case INT64:
-            printf("%" PRId64 "", v.value);
+            printf("%" PRId64 "", v.value.ival);
             //printf("int64: %" PRId64 "\n", v.value);
             break;
         case FLOAT64:
@@ -118,7 +118,7 @@ int print(YASL_Object v) {
             //printf("float64: %f\n", *((double*)&v.value));
             break;
         case BOOL:
-            if (v.value == 0) printf("false");
+            if (v.value.ival == 0) printf("false");
             else printf("true");
             break;
         case UNDEF:
@@ -128,8 +128,8 @@ int print(YASL_Object v) {
             //printf("str: ");
             ;
             int64_t i;
-            for (i = 0; i < ((String_t*)v.value)->length; i++) {
-                printf("%c", ((String_t*)v.value)->str[i]);
+            for (i = 0; i < (v.value.sval)->length; i++) {
+                printf("%c", (v.value.sval)->str[i]);
             }
             //printf("");
             break;
@@ -141,14 +141,14 @@ int print(YASL_Object v) {
             // printf("<list %" PRIx64 ">", v.value);
             break; */
         case FILEH:
-            if ((FILE*)v.value == stdin) {
+            if (v.value.fval == stdin) {
                 printf("stdin");
-            } else if ((FILE*)v.value == stdout) {
+            } else if (v.value.fval == stdout) {
                 printf("stdout");
-            } else if ((FILE*)v.value == stderr) {
+            } else if (v.value.fval == stderr) {
                 printf("stderr");
             } else {
-                printf("<file %" PRIx64 ">", v.value);
+                printf("<file %" PRIx64 ">", v.value.ival);
             }
             break;
         default:

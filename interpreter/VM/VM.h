@@ -38,18 +38,18 @@
 #define EQ(a, b)     (a == b)
 #define BINOP(vm, a, b, f, str)  ({\
                             if (a.type == INT64 && b.type == INT64) {\
-                                c = f(a.value, b.value);\
+                                c = f(a.value.ival, b.value.ival);\
                                 IPUSH(vm, c);\
                                 break;\
                             }\
                             else if (a.type == FLOAT64 && b.type == INT64) {\
-                                d = f(DVAL(a), (double)b.value);\
+                                d = f(a.value.dval, (double)b.value.ival);\
                             }\
                             else if (a.type == INT64 && b.type == FLOAT64) {\
-                                d = f((double)a.value, DVAL(b));\
+                                d = f((double)a.value.ival, b.value.dval);\
                             }\
                             else if (a.type == FLOAT64 && b.type == FLOAT64) {\
-                                d = f(DVAL(a), DVAL(b));\
+                                d = f(a.value.dval, b.value.dval);\
                             }\
                             else {\
                                 printf("TypeError: %s not supported for operands of types %s and %s.\n", str,\
@@ -59,16 +59,16 @@
                             DPUSH(vm, d);})
 #define COMP(vm, a, b, f, str)  ({\
                             if (a.type == INT64 && b.type == INT64) {\
-                                c = f(a.value, b.value);\
+                                c = f(a.value.ival, b.value.ival);\
                             }\
                             else if (a.type == FLOAT64 && b.type == INT64) {\
-                                c = f(DVAL(a), (double)b.value);\
+                                c = f(a.value.dval, (double)b.value.ival);\
                             }\
                             else if (a.type == INT64 && b.type == FLOAT64) {\
-                                c = f((double)a.value, DVAL(b));\
+                                c = f((double)a.value.ival, (b).value.dval);\
                             }\
                             else if (a.type == FLOAT64 && b.type == FLOAT64) {\
-                                c = f(DVAL(a), DVAL(b));\
+                                c = f(a.value.dval, (b).value.dval);\
                             }\
                             else {\
                                 printf("TypeError: %s not supported for operands of types %s and %s.\n", str,\
@@ -80,7 +80,7 @@
 typedef struct {
 	YASL_Object* globals;          // variables, see "constant.c" for details on YASL_Object.
 	YASL_Object* stack;            // stack
-	char* code;                 // bytecode
+	unsigned char* code;                 // bytecode
 	int pc;                     // program counter
     int pc0;                    // initial value for pc
 	int sp;                     // stack pointer
@@ -88,7 +88,7 @@ typedef struct {
 	VTable_t** builtins_vtable;   // vtable of builtin methods
 } VM;
 
-VM* newVM(char* code,    // pointer to bytecode
+VM* newVM(unsigned char* code,    // pointer to bytecode
     int pc0,             // address of instruction to be executed first -- entrypoint
     int datasize);       // total locals size required to perform a program operations
 
