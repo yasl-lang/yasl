@@ -1,5 +1,6 @@
 #include <inttypes.h>
 #include <string.h>
+#include <debug.h>
 
 #include "builtins.h"
 
@@ -97,6 +98,7 @@ int yasl_open(VM* vm) {     //TODO: fix bug relating to file pointer
     }
     vm->stack[++vm->sp].value.fval = f;
     vm->stack[vm->sp].type = FILEH;
+    YASL_DEBUG_LOG("%s\n", "file opened successfully.");
     return 0;
 }
 
@@ -130,6 +132,7 @@ int yasl_popen(VM* vm) {     //TODO: fix bug relating to file pointer
     }
     vm->stack[++vm->sp].value.fval = f;
     vm->stack[vm->sp].type = FILEH;
+    YASL_DEBUG_LOG("%s\n", "process opened successfully.");
     return 0;
 }
 
