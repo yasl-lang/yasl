@@ -18,7 +18,6 @@ Compiler *compiler_new(Parser* parser) {
     compiler->checkpoints_size = 4;
     compiler->checkpoints = malloc(sizeof(int64_t)*compiler->checkpoints_size);
     compiler->checkpoints_count = 0;
-    //printf("compiler->header->count is %d\n", compiler->header->count);
     compiler->code   = bb_new(16);
     return compiler;
 };
@@ -137,30 +136,13 @@ void visit_Block(Compiler *compiler, Node *node) {
 }
 
 void visit_While(Compiler *compiler, Node *node) {
-    /*
-     *         cond = self.visit(node.cond)
-        self.checkpoints.append(len(self.code))
-        self.checkpoints.append(len(self.code)+len(cond))
-        self.enter_scope()
-        body = []
-        for stmt in node.body:
-            body.extend(self.visit(stmt))
-        self.exit_scope()
-        self.checkpoints.pop()
-        self.checkpoints.pop()
-        cond.extend([BRF_8] + intbytes_8(len(body)+9))
-        body.extend([BR_8] + intbytes_8(-(len(body)+9+len(cond))))
-        return cond + body
-     */
     int64_t index_start = compiler->code->count + compiler->buffer->count;
     add_checkpoint(compiler, index_start);
-    // printf("index start = %d\n", index_start);
     visit(compiler, node->children[0]);
     add_checkpoint(compiler, compiler->code->count + compiler->buffer->count);
     bb_add_byte(compiler->buffer, BRF_8);
     int64_t index_second = compiler->buffer->count;
     bb_intbytes8(compiler->buffer, 0);
-    // TODO: checkpoints.
     enter_scope(compiler);
     visit(compiler, node->children[1]);
     bb_add_byte(compiler->buffer, GOTO);
@@ -170,8 +152,6 @@ void visit_While(Compiler *compiler, Node *node) {
 
     rm_checkpoint(compiler);
     rm_checkpoint(compiler);
-    // TODO: checkpoints
-
 }
 
 void visit_Break(Compiler *compiler, Node *node) {
@@ -191,34 +171,13 @@ void visit_Continue(Compiler *compiler, Node *node) {
     }
     bb_add_byte(compiler->buffer, GOTO);
     bb_intbytes8(compiler->buffer, continue_checkpoint(compiler));
-    //bb_intbytes8(compiler->buffer, continue_checkpoint(compiler));
 }
 
 void visit_If(Compiler *compiler, Node *node) {
-
-    /* def visit_If(self, node):
-           cond = self.visit(node.cond)
-           # print([hex(r) for r in cond])
-           self.enter_scope()
-           body = self.visit(node.body)
-           self.exit_scope()
-           return cond + [BRF_8] + intbytes_8(len(body)) + body
-       def visit_IfElse(self, node):
-           cond = self.visit(node.cond)
-           self.enter_scope()
-           left = self.visit(node.left)
-           self.exit_scope()
-           self.enter_scope()
-           right = self.visit(node.right)
-           self.exit_scope()
-           left.extend([BR_8] + intbytes_8(len(right)))
-           return cond + [BRF_8] + intbytes_8(len(left)) + left + right
-     */
     visit(compiler, node->children[0]);
     bb_add_byte(compiler->buffer, BRF_8);
     int64_t index_then = compiler->buffer->count;
     bb_intbytes8(compiler->buffer, 0);
-    //int64_t index_then = compiler->buffer->count;
     enter_scope(compiler);
     visit(compiler, node->children[1]);
     exit_scope(compiler);
@@ -238,10 +197,9 @@ void visit_If(Compiler *compiler, Node *node) {
 }
 
 void visit_Print(Compiler* compiler, Node *node) {
-    //printf("compiler->header->count is %d\n", compiler->header->count);
     visit(compiler, node->children[0]);
     bb_add_byte(compiler->buffer, BCALL_8);
-    bb_intbytes8(compiler->buffer, F_PRINT);       // TODO: fix hardcoded value
+    bb_intbytes8(compiler->buffer, F_PRINT);
 }
 
 /*
@@ -269,15 +227,10 @@ void visit_Let(Compiler *compiler, Node *node) {
     else bb_add_byte(compiler->buffer, NCONST);
     // TODO: handle locals
     bb_add_byte(compiler->buffer, GSTORE_1);
-    bb_add_byte(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));
+    bb_add_byte(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));  // TODO: deal with size
 }
 
 void visit_TriOp(Compiler *compiler, Node *node) {
-    /*cond = self.visit(node.cond)
-    left = self.visit(node.left)
-    right = self.visit(node.right)
-    left = left + [BR_8] + intbytes_8(len(right))
-    return cond + [BRF_8] + intbytes_8(len(left)) + left + right */
     visit(compiler, node->children[0]);
     bb_add_byte(compiler->buffer, BRF_8);
     int64_t index_l = compiler->buffer->count;
@@ -289,14 +242,11 @@ void visit_TriOp(Compiler *compiler, Node *node) {
     bb_rewrite_intbytes8(compiler->buffer, index_l, compiler->buffer->count-index_l-8);
     visit(compiler, node->children[2]);
     bb_rewrite_intbytes8(compiler->buffer, index_r, compiler->buffer->count-index_r-8);
-    return;
 }
 
 void visit_BinOp(Compiler *compiler, Node *node) {
-    //printf("compiler->header->count is %d\n", compiler->header->count);
-    // TODO: make sure complicated bin ops are handled on their own.
-    if (node->type == T_DQMARK) {
-        // return left + [DUP, BRN_8] + intbytes_8(len(right)+1) + [POP] + right
+    // complicated bin ops are handled on their own.
+    if (node->type == T_DQMARK) {     // ?? operator
         visit(compiler, node->children[0]);
         bb_add_byte(compiler->buffer, DUP);
         bb_add_byte(compiler->buffer, BRN_8);
@@ -306,7 +256,7 @@ void visit_BinOp(Compiler *compiler, Node *node) {
         visit(compiler, node->children[1]);
         bb_rewrite_intbytes8(compiler->buffer, index, compiler->buffer->count-index-8);
         return;
-    } else if (node->type == T_OR) {
+    } else if (node->type == T_OR) {  // or operator
         visit(compiler, node->children[0]);
         bb_add_byte(compiler->buffer, DUP);
         bb_add_byte(compiler->buffer, BRT_8);
@@ -316,7 +266,7 @@ void visit_BinOp(Compiler *compiler, Node *node) {
         visit(compiler, node->children[1]);
         bb_rewrite_intbytes8(compiler->buffer, index, compiler->buffer->count-index-8);
         return;
-    } else if (node->type == T_AND) {
+    } else if (node->type == T_AND) {   // and operator
         visit(compiler, node->children[0]);
         bb_add_byte(compiler->buffer, DUP);
         bb_add_byte(compiler->buffer, BRF_8);
@@ -326,7 +276,7 @@ void visit_BinOp(Compiler *compiler, Node *node) {
         visit(compiler, node->children[1]);
         bb_rewrite_intbytes8(compiler->buffer, index, compiler->buffer->count-index-8);
         return;
-    } else if (node->type == T_TBAR) {
+    } else if (node->type == T_TBAR) {  // ||| operator
             /* return left + [MCALL_8] + intbytes_8(METHODS["tostr"]) + right + [MCALL_8] + intbytes_8(METHODS["tostr"]) \
                 + [HARD_CNCT] */
             visit(compiler, node->children[0]);
@@ -338,6 +288,7 @@ void visit_BinOp(Compiler *compiler, Node *node) {
             bb_add_byte(compiler->buffer, HARD_CNCT);
             return;
     }
+    // all other operators follow the same pattern of visiting one child then the other.
     visit(compiler, node->children[0]);
     visit(compiler, node->children[1]);
     switch(node->type) {
@@ -447,7 +398,7 @@ void visit_Assign(Compiler *compiler, Node *node) {
     visit(compiler, node->children[0]);
     bb_add_byte(compiler->buffer, DUP);
     bb_add_byte(compiler->buffer, GSTORE_1);
-    bb_add_byte(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));
+    bb_add_byte(compiler->buffer, env_get(compiler->globals, node->name, node->name_len)); // TODO: handle size
 }
 
 void visit_Var(Compiler *compiler, Node *node) {
@@ -460,7 +411,7 @@ void visit_Var(Compiler *compiler, Node *node) {
     // TODO: handle case with functions
     /*return [GLOAD_1, self.globals[node.value]] */
     bb_add_byte(compiler->buffer, GLOAD_1);
-    bb_add_byte(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));
+    bb_add_byte(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));  // TODO: handle size
 }
 
 void visit_Undef(Compiler *compiler, Node *node) {
@@ -505,7 +456,6 @@ void visit_Boolean(Compiler *compiler, Node *node) {
 }
 
 void visit_String(Compiler* compiler, Node *node) {
-    //printf("compiler->header->count is %d\n", compiler->header->count);
     // TODO: deal with memory leaks introduced here.
     String_t *string = malloc(sizeof(String_t));
     string->length = node->name_len;
@@ -524,9 +474,7 @@ void visit_String(Compiler* compiler, Node *node) {
 
     bb_add_byte(compiler->buffer, NEWSTR8);
     bb_intbytes8(compiler->buffer, node->name_len);
-    bb_intbytes8(compiler->buffer, value->value); //compiler->header->count);
-    // bb_append(compiler->header, node->name, node->name_len);
-    //printf("compiler->header->count is %d\n", compiler->header->count);
+    bb_intbytes8(compiler->buffer, value->value);
 }
 
 void visit_List(Compiler *compiler, Node *node) {
@@ -648,6 +596,6 @@ void visit(Compiler* compiler, Node* node) {
     default:
         printf("%d\n", node->nodetype);
         puts("unknown node type");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 }
