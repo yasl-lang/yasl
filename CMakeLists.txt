@@ -7,9 +7,9 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 include_directories(.)
 include_directories(compiler-c)
 include_directories(compiler-c/ast)
-include_directories(compiler-c/bytebuffer)
+include_directories(compiler-c/compiler/bytebuffer)
 include_directories(compiler-c/compiler)
-include_directories(compiler-c/env)
+include_directories(compiler-c/compiler/env)
 include_directories(compiler-c/lexer)
 include_directories(compiler-c/parser)
 include_directories(hashtable)
@@ -30,12 +30,12 @@ add_executable(YASL
         main.c
         compiler-c/ast/ast.c
         compiler-c/ast/ast.h
-        compiler-c/bytebuffer/bytebuffer.c
-        compiler-c/bytebuffer/bytebuffer.h
+        compiler-c/compiler/bytebuffer/bytebuffer.c
+        compiler-c/compiler/bytebuffer/bytebuffer.h
         compiler-c/compiler/compiler.c
         compiler-c/compiler/compiler.h
-        compiler-c/env/env.c
-        compiler-c/env/env.h
+        compiler-c/compiler/env/env.c
+        compiler-c/compiler/env/env.h
         compiler-c/lexer/lexer.c
         compiler-c/lexer/lexer.h
         compiler-c/parser/parser.c

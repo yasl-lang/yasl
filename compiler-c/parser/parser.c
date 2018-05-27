@@ -174,7 +174,7 @@ Node *parse_if(Parser *parser) {
 }
 
 Node *parse_expr(Parser *parser) {
-    YASL_DEBUG_LOG("%s\n", "parsing expression.")
+    YASL_DEBUG_LOG("%s\n", "parsing expression.");
     return parse_assign(parser);
 }
 
@@ -393,6 +393,33 @@ Node *parse_constant(Parser *parser) {
     else if (curtok(parser) == T_FLOAT64) return parse_float(parser);
     else if (curtok(parser) == T_BOOL) return parse_boolean(parser);
     else if (curtok(parser) == T_UNDEF) return parse_undef(parser);
+
+    // handle invalid expressions with sensible error messages.
+    if (curtok(parser) == T_PRINT) {
+        puts("ParsingError: expected expression, got print.");
+        exit(EXIT_FAILURE);
+    } else if (curtok(parser) == T_LET) {
+        puts("ParsingError: expected expression, got let.");
+        exit(EXIT_FAILURE);
+    } else if (curtok(parser) == T_WHILE) {
+        puts("ParsingError: expected expression, got while.");
+        exit(EXIT_FAILURE);
+    } else if (curtok(parser) == T_BREAK) {
+        puts("ParsingError: expected expression, got break.");
+        exit(EXIT_FAILURE);
+    } else if (curtok(parser) == T_CONT) {
+        puts("ParsingError: expected expression, got continue.");
+        exit(EXIT_FAILURE);
+    } else if (curtok(parser) == T_IF) {
+        puts("ParsingError: expected expression, got if.");
+        exit(EXIT_FAILURE);
+    } else if (curtok(parser) == T_ELSEIF) {
+        puts("ParsingError: expected expression, got elseif.");
+        exit(EXIT_FAILURE);
+    } else if (curtok(parser) == T_ELSE) {
+        puts("ParsingError: expected expression, got else.");
+        exit(EXIT_FAILURE);
+    }
     puts("ParsingError: Invalid expression.");
     exit(EXIT_FAILURE);
 }

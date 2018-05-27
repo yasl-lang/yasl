@@ -1,8 +1,8 @@
 //
 // Created by thiabaud on 01/05/18.
 //
-#include "../../hashtable/hashtable.h"
-#include "../../interpreter/YASL_string/YASL_string.h"
+#include "hashtable/hashtable.h"
+#include "interpreter/YASL_string/YASL_string.h"
 #include <string.h>
 
 struct Env_s {
