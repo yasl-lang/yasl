@@ -61,7 +61,6 @@ Node *parse_let(Parser *parser) {
 }
 
 Node *parse_while(Parser *parser) {
-
     eattok(parser, T_WHILE);
     Node *cond = parse_expr(parser);
     eattok(parser, T_LBRC);
@@ -407,6 +406,7 @@ Node *parse_id(Parser *parser) {
     if (curtok(parser) == T_LPAR) {
         YASL_DEBUG_LOG("%s\n", "function call.");
         Node *cur_node = new_FunctionCall(new_Block(parser->lex->line), name, name_len, parser->lex->line);
+        YASL_DEBUG_LOG("%d parametres.\n", cur_node->children[0]->children_len);
         eattok(parser, T_LPAR);
         while (curtok(parser) != T_RPAR && curtok(parser) != T_EOF) {
             block_append(cur_node->children[0], parse_expr(parser));
@@ -414,6 +414,7 @@ Node *parse_id(Parser *parser) {
             eattok(parser, T_COMMA);
         }
         eattok(parser, T_RPAR);
+        YASL_DEBUG_LOG("%d parametres.\n", cur_node->children[0]->children_len);
         return cur_node;
     } else {
         Node *cur_node = new_Var(name, name_len, parser->lex->line);

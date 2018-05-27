@@ -256,7 +256,7 @@ void gettok(Lexer *lex) {
         return;
     }
 
-    puts("LexingError: unknown lexeme.");
+    printf("LexingError: unknown lexeme: %c\n", c1);
     exit(EXIT_FAILURE);
 }
 

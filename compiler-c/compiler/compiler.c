@@ -198,6 +198,7 @@ void visit_Call(Compiler *compiler, Node *node) {
                          intbytes_8(self.fns[node.token.value]["addr"]) + \
                          [self.fns[node.token.value]["locals"]]
      */
+    YASL_DEBUG_LOG("visiting call %s\n", node->name);
     visit_Block(compiler, node->children[0]);
     String_t *string = malloc(sizeof(String_t));
     string->length = node->name_len;
@@ -227,6 +228,7 @@ void visit_Call(Compiler *compiler, Node *node) {
 
 
 void visit_Method(Compiler *compiler, Node *node) {
+    YASL_DEBUG_LOG("visiting method %s\n", node->name);
     visit_Block(compiler, node->children[1]);
     visit(compiler, node->children[0]);
 

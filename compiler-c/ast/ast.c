@@ -1,3 +1,4 @@
+#include <debug.h>
 #include "ast.h"
 
 
@@ -17,6 +18,7 @@ Node *new_Node_0(AST nodetype, Token type, char *name, int64_t name_len, int lin
     node->nodetype = nodetype;
     node->type = type;
     node->children = NULL;
+    node->children_len = 0;
     node->name_len = name_len;
     if (name == NULL) {
         node->name = NULL;
@@ -34,6 +36,7 @@ Node *new_Node_1(AST nodetype, Token type, Node *child, char *name, int64_t name
     node->type = type;
     node->children = malloc(sizeof(Node*));
     node->children[0] = child;
+    node->children_len = 1;
     node->name_len = name_len;
     if (name == NULL) {
         node->name = NULL;
@@ -52,6 +55,7 @@ Node *new_Node_2(AST nodetype, Token type, Node *child1, Node *child2, char *nam
     node->children = malloc(sizeof(Node*));
     node->children[0] = child1;
     node->children[1] = child2;
+    node->children_len = 2;
     node->name_len = name_len;
     if (name == NULL) {
         node->name = NULL;
@@ -71,6 +75,7 @@ Node *new_Node_3(AST nodetype, Token type, Node *child1, Node *child2, Node *chi
     node->children[0] = child1;
     node->children[1] = child2;
     node->children[2] = child3;
+    node->children_len = 3;
     node->name_len = name_len;
     if (name == NULL) {
         node->name = NULL;
@@ -92,8 +97,11 @@ Node *new_Block(int line) {
 }
 
 void block_append(Node *node, Node *child) {
+    YASL_DEBUG_LOG("%s\n", "appending to block");
+    YASL_DEBUG_LOG("block has %d children.\n", node->children_len);
     node->children = realloc(node->children, (++node->children_len)*sizeof(Node*));  //TODO: make better implementation
     node->children[node->children_len-1] = child;
+    YASL_DEBUG_LOG("block now has %d children.\n", node->children_len);
 }
 
 Node *new_FunctionCall(Node *params, char *name, int64_t name_len, int line) {

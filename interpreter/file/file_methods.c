@@ -9,6 +9,7 @@ int file_close(VM* vm) {
         return -1;
     }
     //puts("closed successfully");
+    BPUSH(vm, 1);
     return 0;
 }
 
@@ -37,6 +38,7 @@ int file_write(VM* vm) {
         printf("Error: failed to write to file\n");
         return -1;
     }
+    BPUSH(vm, 1);
     return 0;
 }
 
