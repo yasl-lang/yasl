@@ -31,8 +31,8 @@ typedef struct {
     Parser *parser;
     Env_t *globals;
     Env_t *locals;
+    Hash_t *builtins;
     Hash_t *strings;
-    // Hash_t *functions;
     ByteBuffer *buffer;
     ByteBuffer *header;
     ByteBuffer *code;
@@ -50,6 +50,7 @@ void compile(Compiler *compiler);
 void enter_scope(Compiler *compiler);
 void exit_scope(Compiler *compiler);
 
+void visit_Block(Compiler *compiler, Node *node);
 void visit_Print(Compiler *compiler, Node *node);
 void visit_UnOp(Compiler *compiler, Node *node);
 void visit_Var(Compiler *compiler, Node *node);

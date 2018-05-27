@@ -97,7 +97,7 @@ void block_append(Node *node, Node *child) {
 }
 
 Node *new_FunctionCall(Node *params, char *name, int64_t name_len, int line) {
-    return new_Node_1(NODE_FN, T_UNKNOWN, params, name, name_len, line);
+    return new_Node_1(NODE_CALL, T_UNKNOWN, params, name, name_len, line);
 }
 
 Node *new_Index(Node *collection, Node *value, int line) {

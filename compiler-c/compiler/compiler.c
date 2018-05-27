@@ -1,3 +1,5 @@
+#include <interpreter/YASL_Object/YASL_Object.h>
+#include <interpreter/YASL_string/YASL_string.h>
 #include "compiler.h"
 #define break_checkpoint(compiler)    (compiler->checkpoints[compiler->checkpoints_count-1])
 #define continue_checkpoint(compiler) (compiler->checkpoints[compiler->checkpoints_count-2])
@@ -10,6 +12,33 @@ Compiler *compiler_new(Parser* parser) {
     env_decl_var(compiler->globals, "stdin", 5);
     env_decl_var(compiler->globals, "stdout", 6);
     env_decl_var(compiler->globals, "stderr", 6);
+
+    // TODO: deal with memory leaks here.
+    compiler->builtins = new_hash();
+    String_t *string_open = malloc(sizeof(String_t));
+    string_open->length = 4;
+    string_open->str = malloc(string_open->length);
+    memcpy(string_open->str, "open", string_open->length);
+    ht_insert(compiler->builtins,
+              (YASL_Object) { .type = STR8, .value = (int64_t)string_open},
+              (YASL_Object) { .type = INT64, .value = F_OPEN});
+
+    String_t *string_input = malloc(sizeof(String_t));
+    string_input->length = 5;
+    string_input->str = malloc(string_input->length);
+    memcpy(string_input->str, "input", string_input->length);
+    ht_insert(compiler->builtins,
+              (YASL_Object) { .type = STR8, .value = (int64_t)string_input},
+              (YASL_Object) { .type = INT64, .value = F_INPUT});
+
+    String_t *string_popen =  malloc(sizeof(String_t));
+    string_popen->length = 5;
+    string_popen->str = malloc(string_popen->length);
+    memcpy(string_popen->str, "popen", string_popen->length);
+    ht_insert(compiler->builtins,
+              (YASL_Object) { .type = STR8, .value = (int64_t)string_popen},
+              (YASL_Object) { .type = INT64, .value = F_POPEN});
+
     compiler->strings = new_hash();
     compiler->parser = parser;
     compiler->buffer = bb_new(16);
@@ -36,6 +65,18 @@ void compiler_del(Compiler *compiler) {
     }
     free(compiler->strings->items);
     free(compiler->strings);
+
+    for (i = 0; i < compiler->builtins->size; i++) {
+        Item_t* item = compiler->builtins->items[i];
+        if (item != NULL) {
+            del_string8((String_t*)item->key->value);
+            free(item->key);
+            free(item->value);
+            free(item);
+        }
+    }
+    free(compiler->builtins->items);
+    free(compiler->builtins);
 
     env_del(compiler->globals);
     env_del(compiler->locals);
@@ -121,6 +162,36 @@ void visit_ExprStmt(Compiler *compiler, Node *node) {
     bb_add_byte(compiler->buffer, POP);
 }
 
+void visit_Call(Compiler *compiler, Node *node) {
+    // TODO: error handling on number of arguments.
+    /*
+    def visit_FunctionCall(self, node):
+        result = []
+        for expr in node.params:
+            result = result + self.visit(expr)
+        if node.value in BUILTINS:
+            return result + [BCALL_8] + intbytes_8(BUILTINS[node.value])
+        return result + [CALL_8, self.fns[node.token.value]["params"]] + \
+                         intbytes_8(self.fns[node.token.value]["addr"]) + \
+                         [self.fns[node.token.value]["locals"]]
+     */
+    visit_Block(compiler, node->children[0]);
+    String_t *string = malloc(sizeof(String_t));
+    string->length = node->name_len;
+    string->str = malloc(string->length);
+    memcpy(string->str, node->name, string->length);
+    YASL_Object key = (YASL_Object) { .value = (int64_t)string, .type = STR8 };
+
+    if (ht_search(compiler->builtins, key)) {
+        bb_add_byte(compiler->buffer, BCALL_8);
+        bb_intbytes8(compiler->buffer, ht_search(compiler->builtins, key)->value);
+    } else {
+        // TODO: implement non-builtins.
+        puts("Not a builtin.");
+        exit(EXIT_FAILURE);
+    }
+}
+
 void visit_Index(Compiler *compiler, Node *node) {
     visit(compiler, node->children[1]);
     visit(compiler, node->children[0]);
@@ -129,6 +200,7 @@ void visit_Index(Compiler *compiler, Node *node) {
 }
 
 void visit_Block(Compiler *compiler, Node *node) {
+    YASL_DEBUG_LOG("the block has %d children.\n", node->children_len);
     int i;
     for (i = 0; i < node->children_len; i++) {
         visit(compiler, node->children[i]);
@@ -516,6 +588,10 @@ void visit(Compiler* compiler, Node* node) {
     case NODE_BLOCK:
         YASL_DEBUG_LOG("%s\n", "Visit Block");
         visit_Block(compiler, node);
+        break;
+    case NODE_CALL:
+        YASL_DEBUG_LOG("%s\n", "Visit Call");
+        visit_Call(compiler, node);
         break;
     case NODE_INDEX:
         YASL_DEBUG_LOG("%s\n", "Visit Index");

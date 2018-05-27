@@ -58,11 +58,11 @@ int yasl_open(VM* vm) {     //TODO: fix bug relating to file pointer
     YASL_Object mode_str = POP(vm);
     YASL_Object str = POP(vm);
     if (mode_str.type != STR8) {
-        printf("Error: open(...) expected type %x as second argument, got type %x\n", STR8, str.type);
+        printf("Error: open(...) expected type %s as second argument, got type %s\n", YASL_TYPE_NAMES[STR8], YASL_TYPE_NAMES[str.type]);
         return -1;
     }
     if (str.type != STR8) {
-        printf("Error: open(...) expected type %x as first argument, got type %x\n", STR8, str.type);
+        printf("Error: open(...) expected type %s as first argument, got type %s\n", YASL_TYPE_NAMES[STR8], YASL_TYPE_NAMES[str.type]);
         return -1;
     }
     char *buffer = malloc(((String_t*)str.value)->length + 1);

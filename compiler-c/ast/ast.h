@@ -8,7 +8,7 @@
 typedef enum {
     NODE_EXPRSTMT,
     NODE_BLOCK,
-    NODE_FN,
+    NODE_CALL,
     NODE_INDEX,
     NODE_WHILE,
     NODE_BREAK,

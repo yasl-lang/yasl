@@ -345,7 +345,7 @@ Node *parse_call(Parser *parser) {
         /*if (curtok(parser) == T_DOT) {
             eattok(parser, T_DOT);
             Node *right = parse_constant(parser);
-            if (right->nodetype == NODE_FN) {
+            if (right->nodetype == NODE_CALL) {
                 cur_node = new_MethodCall(...);
             } else if (right->nodetype == NODE_VAR) {
                 cur_node = new_Member(...);
@@ -403,7 +403,6 @@ Node *parse_id(Parser *parser) {
         }
         eattok(parser, T_RPAR);
         return cur_node;
-        // TODO: function calls
     } /*else if (curtok(parser) == T_LSQB) {
         puts("index");
         // TODO: indexing
