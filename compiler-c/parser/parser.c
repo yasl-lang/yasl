@@ -385,43 +385,29 @@ Node *parse_call(Parser *parser) {
 }
 
 Node *parse_constant(Parser *parser) {
-    //printf("comparator. type: %s, value: %s\n", YASL_TOKEN_NAMES[curtok(parser)], parser->lex->value);
-    if (curtok(parser) == T_ID) return parse_id(parser);
-    else if (curtok(parser) == T_LSQB) return parse_collection(parser);
-    else if (curtok(parser) == T_STR) return parse_string(parser);
-    else if (curtok(parser) == T_INT64) return parse_integer(parser);
-    else if (curtok(parser) == T_FLOAT64) return parse_float(parser);
-    else if (curtok(parser) == T_BOOL) return parse_boolean(parser);
-    else if (curtok(parser) == T_UNDEF) return parse_undef(parser);
-
-    // handle invalid expressions with sensible error messages.
-    if (curtok(parser) == T_PRINT) {
-        puts("ParsingError: expected expression, got print.");
-        exit(EXIT_FAILURE);
-    } else if (curtok(parser) == T_LET) {
-        puts("ParsingError: expected expression, got let.");
-        exit(EXIT_FAILURE);
-    } else if (curtok(parser) == T_WHILE) {
-        puts("ParsingError: expected expression, got while.");
-        exit(EXIT_FAILURE);
-    } else if (curtok(parser) == T_BREAK) {
-        puts("ParsingError: expected expression, got break.");
-        exit(EXIT_FAILURE);
-    } else if (curtok(parser) == T_CONT) {
-        puts("ParsingError: expected expression, got continue.");
-        exit(EXIT_FAILURE);
-    } else if (curtok(parser) == T_IF) {
-        puts("ParsingError: expected expression, got if.");
-        exit(EXIT_FAILURE);
-    } else if (curtok(parser) == T_ELSEIF) {
-        puts("ParsingError: expected expression, got elseif.");
-        exit(EXIT_FAILURE);
-    } else if (curtok(parser) == T_ELSE) {
-        puts("ParsingError: expected expression, got else.");
-        exit(EXIT_FAILURE);
+    switch (curtok(parser)) {
+        case T_ID: return parse_id(parser);
+        case T_LSQB: return parse_collection(parser);
+        case T_STR: return parse_string(parser);
+        case T_INT64: return parse_integer(parser);
+        case T_FLOAT64: return parse_float(parser);
+        case T_BOOL: return parse_boolean(parser);
+        case T_UNDEF: return parse_undef(parser);
+        // handle invalid expressions with sensible error messages.
+        case T_PRINT:
+        case T_LET:
+        case T_WHILE:
+        case T_BREAK:
+        case T_CONT:
+        case T_IF:
+        case T_ELSEIF:
+        case T_ELSE:
+            printf("ParsingError: expected expression, got `%s`\n", YASL_TOKEN_NAMES[curtok(parser)]);
+            exit(EXIT_FAILURE);
+        default:
+            puts("ParsingError: Invalid expression.");
+            exit(EXIT_FAILURE);
     }
-    puts("ParsingError: Invalid expression.");
-    exit(EXIT_FAILURE);
 }
 
 Node *parse_id(Parser *parser) {
