@@ -28,31 +28,25 @@ Node *parse(Parser *parser) {
 Node *parse_program(Parser *parser) {
     YASL_DEBUG_LOG("parse. type: %s, ", YASL_TOKEN_NAMES[curtok(parser)]);
     YASL_DEBUG_LOG("value: %s\n", parser->lex->value);
-    if (curtok(parser) == T_PRINT) {
-        eattok(parser, T_PRINT);
-        return new_Print(parse_expr(parser), parser->lex->line);
-    } else if (curtok(parser) == T_LET) {
-        return parse_let(parser);
-    } else if (curtok(parser) == T_WHILE) {
-        return parse_while(parser);
-    } else if (curtok(parser) == T_BREAK) {
-        eattok(parser, T_BREAK);
-        return new_Break(parser->lex->line);
-    } else if (curtok(parser) == T_CONT) {
-        eattok(parser, T_CONT);
-        return new_Continue(parser->lex->line);
-    } else if (curtok(parser) == T_IF) {
-        return parse_if(parser);
-    } else if (curtok(parser) == T_ELSEIF) {
-        puts("ParsingError: elseif without previous if");
-        exit(EXIT_FAILURE);
-    } else if (curtok(parser) == T_ELSE) {
-        puts("ParsingError: else without previous if");
-        exit(EXIT_FAILURE);
-    } else return new_ExprStmt(parse_expr(parser), parser->lex->line);
-    //printf("ParsingError: Unknown sequence starting with %s\n", YASL_TOKEN_NAMES[curtok(parser)]);
-    //puts("ParsingError: Unknown sequence.");
-    exit(EXIT_FAILURE);
+    switch (curtok(parser)) {
+        case T_PRINT:
+            eattok(parser, T_PRINT);
+            return new_Print(parse_expr(parser), parser->lex->line);
+        case T_LET: return parse_let(parser);
+        case T_WHILE: return parse_while(parser);
+        case T_BREAK:
+            eattok(parser, T_BREAK);
+            return new_Break(parser->lex->line);
+        case T_CONT:
+            eattok(parser, T_CONT);
+            return new_Continue(parser->lex->line);
+        case T_IF: return parse_if(parser);
+        case T_ELSEIF:
+        case T_ELSE:
+            printf("ParsingError: `%s` without previous `if`\n", YASL_TOKEN_NAMES[curtok(parser)]);
+            exit(EXIT_FAILURE);
+        default: return new_ExprStmt(parse_expr(parser), parser->lex->line);
+    }
 }
 
 Node *parse_let(Parser *parser) {
