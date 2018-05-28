@@ -169,6 +169,17 @@ Node *parse_assign(Parser *parser) {
             Node *assign_node = new_Assign(cur_node->name, cur_node->name_len, parse_assign(parser), parser->lex->line);
             node_del(cur_node);
             return assign_node;
+        } else if (cur_node->nodetype == N_INDEX) {
+            Node *left = cur_node->children[0];
+            Node *block = new_Block(parser->lex->line);
+            block_append(block, cur_node->children[1]);
+            block_append(block, parse_expr(parser));
+            free(cur_node->children);
+            free(cur_node);
+            return new_MethodCall(left, block, "__set", 5, parser->lex->line);
+        } else {
+            puts("Invalid lvalue.");
+            exit(EXIT_FAILURE);
         }
         // TODO: add indexing case
     } else if (isaugmented(curtok(parser))) {

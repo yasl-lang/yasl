@@ -16,17 +16,6 @@ int64_t entry_point, num_globals;
 
 int main(int argc, char** argv) {
 
-    FILE *fp = fopen("sample.ysl", "r");
-    if (fp == NULL) return EXIT_FAILURE;
-    fseek(fp, 0, SEEK_SET);
-    Parser *parser = parser_new(lex_new(fp));
-    Compiler *compiler = compiler_new(parser);
-    compile(compiler);
-    compiler_del(compiler);
-    YASL_DEBUG_LOG("%s\n", "end of compilation");
-
-
-
     if (argc > 2) {
         printf("ERROR: Too many arguments passed.\nUsage is: YASL [path/to/byte-code.yb]\nDefault path is \"source.yb\"\n");
         return -1;
@@ -43,6 +32,16 @@ int main(int argc, char** argv) {
             return -3;
         }
     }
+
+    FILE *fp = fopen("sample.ysl", "r");
+    if (fp == NULL) return EXIT_FAILURE;
+    fseek(fp, 0, SEEK_SET);
+    Parser *parser = parser_new(lex_new(fp));
+    Compiler *compiler = compiler_new(parser);
+    compile(compiler);
+    compiler_del(compiler);
+    YASL_DEBUG_LOG("%s\n", "end of compilation");
+
     fseek(file_ptr, 0, SEEK_END);
     file_len = ftell(file_ptr);
     rewind(file_ptr);
