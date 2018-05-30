@@ -1,4 +1,4 @@
-#include <compiler-c/lexer/lexer.h>
+#include "../lexer/lexer.h"
 #include "parser.h"
 
 Parser *parser_new(Lexer *lex) {
@@ -32,6 +32,7 @@ Node *parse_program(Parser *parser) {
         case T_PRINT:
             eattok(parser, T_PRINT);
             return new_Print(parse_expr(parser), parser->lex->line);
+        case T_FN: return parse_fn(parser);
         case T_LET: return parse_let(parser);
         case T_WHILE: return parse_while(parser);
         case T_BREAK:
@@ -47,6 +48,10 @@ Node *parse_program(Parser *parser) {
             exit(EXIT_FAILURE);
         default: return new_ExprStmt(parse_expr(parser), parser->lex->line);
     }
+}
+
+Node *parse_fn(Parser *parser) {
+
 }
 
 Node *parse_let(Parser *parser) {

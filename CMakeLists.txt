@@ -5,13 +5,13 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
 include_directories(.)
-include_directories(compiler-c)
-include_directories(compiler-c/ast)
-include_directories(compiler-c/compiler/bytebuffer)
-include_directories(compiler-c/compiler)
-include_directories(compiler-c/compiler/env)
-include_directories(compiler-c/lexer)
-include_directories(compiler-c/parser)
+include_directories(compiler)
+include_directories(compiler/ast)
+include_directories(compiler/compiler/bytebuffer)
+include_directories(compiler/compiler)
+include_directories(compiler/compiler/env)
+include_directories(compiler/lexer)
+include_directories(compiler/parser)
 include_directories(hashtable)
 include_directories(interpreter/boolean)
 include_directories(interpreter/builtins)
@@ -28,19 +28,19 @@ include_directories(prime)
 
 add_executable(YASL
         main.c
-        compiler-c/ast/ast.c
-        compiler-c/ast/ast.h
-        compiler-c/compiler/bytebuffer/bytebuffer.c
-        compiler-c/compiler/bytebuffer/bytebuffer.h
-        compiler-c/compiler/compiler.c
-        compiler-c/compiler/compiler.h
-        compiler-c/compiler/env/env.c
-        compiler-c/compiler/env/env.h
-        compiler-c/lexer/lexer.c
-        compiler-c/lexer/lexer.h
-        compiler-c/parser/parser.c
-        compiler-c/parser/parser.h
-        compiler-c/token.h
+        compiler/ast/ast.c
+        compiler/ast/ast.h
+        compiler/compiler/bytebuffer/bytebuffer.c
+        compiler/compiler/bytebuffer/bytebuffer.h
+        compiler/compiler/compiler.c
+        compiler/compiler/compiler.h
+        compiler/compiler/env/env.c
+        compiler/compiler/env/env.h
+        compiler/lexer/lexer.c
+        compiler/lexer/lexer.h
+        compiler/parser/parser.c
+        compiler/parser/parser.h
+        compiler/token.h
         hashtable/hashtable.c
         hashtable/hashtable.h
         interpreter/boolean/bool_methods.c
