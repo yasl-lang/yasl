@@ -382,50 +382,51 @@ void YASLKeywords(Lexer *lex) {
      *  fn
      *  return
      */
-    if (!memcmp(lex->value, "let", max(3, lex->val_len))) {
+
+    if (3 == lex->val_len && !memcmp(lex->value, "let", lex->val_len)) {
         lex->type = T_LET;
         lex->value = realloc(lex->value, 0);
-    } else if (!memcmp(lex->value, "print", max(5, lex->val_len))) {
+    } else if (5 == lex->val_len && !memcmp(lex->value, "print", lex->val_len)) {
         lex->type = T_PRINT;
         lex->value = realloc(lex->value, 0);
-    } else if (!memcmp(lex->value, "else", max(4, lex->val_len))) {
+    } else if (4 == lex->val_len && !memcmp(lex->value, "else", lex->val_len)) {
         lex->type = T_ELSE;
         lex->value = realloc(lex->value, 0);
-    } else if (!memcmp(lex->value, "if", max(2, lex->val_len))) {
+    } else if (2 == lex->val_len && !memcmp(lex->value, "if", lex->val_len)) {
         lex->type = T_IF;
         lex->value = realloc(lex->value, 0);
-    } else if (!memcmp(lex->value, "elseif", max(6, lex->val_len))) {
+    } else if (6 == lex->val_len && !memcmp(lex->value, "elseif", lex->val_len)) {
         lex->type = T_ELSEIF;
         lex->value = realloc(lex->value, 0);
-    } else if (!memcmp(lex->value, "while", max(5, lex->val_len))) {
+    } else if (5 == lex->val_len && !memcmp(lex->value, "while", lex->val_len)) {
         lex->type = T_WHILE;
         lex->value = realloc(lex->value, 0);
-    } else if (!memcmp(lex->value, "for", max(3, lex->val_len))) {
+    } else if (3 == lex->val_len && !memcmp(lex->value, "for", lex->val_len)) {
         lex->type = T_FOR;
         lex->value = realloc(lex->value, 0);
-    } else if (!memcmp(lex->value, "break", max(5, lex->val_len))) {
+    } else if (5 == lex->val_len && !memcmp(lex->value, "break", lex->val_len)) {
         lex->type = T_BREAK;
         lex->value = realloc(lex->value, 0);
-    } else if (!memcmp(lex->value, "continue", max(8, lex->val_len))) {
+    } else if (8 == lex->val_len && !memcmp(lex->value, "continue", lex->val_len)) {
         lex->type = T_CONT;
         lex->value = realloc(lex->value, 0);
-    } else if (!memcmp(lex->value, "true", max(4, lex->val_len))) {
+    } else if (4 == lex->val_len && !memcmp(lex->value, "true", lex->val_len)) {
         lex->type = T_BOOL;
-    } else if (!memcmp(lex->value, "false", max(5, lex->val_len))) {
+    } else if (5 == lex->val_len && !memcmp(lex->value, "false", lex->val_len)) {
         lex->type = T_BOOL;
-    } else if (!memcmp(lex->value, "or", max(2, lex->val_len))) {
+    } else if (2 == lex->val_len && !memcmp(lex->value, "or", lex->val_len)) {
         lex->type = T_OR;
         lex->value = realloc(lex->value, 0);
-    } else if (!memcmp(lex->value, "and", max(3, lex->val_len))) {
+    } else if (3 == lex->val_len && !memcmp(lex->value, "and", lex->val_len)) {
         lex->type = T_AND;
         lex->value = realloc(lex->value, 0);
-    } else if (!memcmp(lex->value, "undef", max(5, lex->val_len))) {
+    } else if (5 == lex->val_len && !memcmp(lex->value, "undef", lex->val_len)) {
         lex->type = T_UNDEF;
         lex->value = realloc(lex->value, 0);
-    } else if (!memcmp(lex->value, "fn", max(2, lex->val_len))) {
+    } else if (2 == lex->val_len && !memcmp(lex->value, "fn", lex->val_len)) {
         lex->type = T_FN;
         lex->value = realloc(lex->value, 0);
-    } else if (!memcmp(lex->value, "return", max(6, lex->val_len))) {
+    } else if (6 == lex->val_len && !memcmp(lex->value, "return", lex->val_len)) {
         lex->type = T_RET;
         lex->value = realloc(lex->value, 0);
     }
