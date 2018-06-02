@@ -72,31 +72,31 @@
 // parser.c uses this
 typedef enum {
     T_UNKNOWN = -1,
-    T_EOF,
-    T_SEMI,
-    T_UNDEF,
-    T_FLOAT64,
-    T_INT64,
-    T_BOOL,
-    T_STR,
-    T_IF,
-    T_ELSEIF,
-    T_ELSE,
-    T_WHILE,
-    T_BREAK,
-    T_CONT,
-    T_FOR,
-    T_AND,
-    T_OR,
-    T_ID,
-    T_LET,
-    T_FN,
-    T_RET,
-    T_STRUCT,
-    T_PRINT,
-    T_LPAR,
-    T_RPAR,
-    T_LSQB,
+    T_EOF,      // 0x00
+    T_SEMI,     // 0x01
+    T_UNDEF,    // 0x02
+    T_FLOAT64,  // 0x03
+    T_INT64,    // 0x04
+    T_BOOL,     // 0x05
+    T_STR,      // 0x06
+    T_IF,       // 0x07
+    T_ELSEIF,   // 0x08
+    T_ELSE,     // 0x09
+    T_WHILE,    // 0x0A
+    T_BREAK,    // 0x0B
+    T_CONT,     // 0x0C
+    T_FOR,      // 0x0D
+    T_AND,      // 0x0E
+    T_OR,       // 0x0F
+    T_ID,       // 0x10
+    T_LET,      // 0x11
+    T_FN,       // 0x12
+    T_RET,      // 0x13
+    T_STRUCT,   // 0x14
+    T_PRINT,    // 0x15
+    T_LPAR,     // 0x16
+    T_RPAR,     // 0x17
+    T_LSQB,     // 0x18
     T_RSQB,
     T_LBRC,
     T_RBRC,

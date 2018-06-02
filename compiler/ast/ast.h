@@ -8,6 +8,8 @@
 typedef enum {
     N_EXPRSTMT,
     N_BLOCK,
+    N_FNDECL,
+    N_RET,
     N_CALL,
     N_METHOD,
     N_INDEX,
@@ -52,6 +54,8 @@ Node *new_Node_3(AST nodetype, Token type, Node *child1, Node *child2, Node *chi
 
 Node *new_ExprStmt(Node *child, int line);
 Node *new_Block(int line);
+Node *new_FunctionDecl(Node *params, Node *body, char *name, int64_t name_len, int line);
+Node *new_Return(Node *expr, int line);
 Node *new_FunctionCall(Node *params, char *name, int64_t name_len, int line);
 Node *new_MethodCall(Node *object, Node *params, char *name, int64_t name_len, int line);
 Node *new_Index(Node *collection, Node *value, int line);

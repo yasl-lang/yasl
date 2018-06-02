@@ -27,6 +27,7 @@ Token eattok(Parser *parser, Token token);
 Node *parse(Parser *parser);
 Node *parse_program(Parser *parser);
 Node *parse_let(Parser *parser);
+Node *parse_fn(Parser *parser);
 Node *parse_while(Parser *parser);
 Node *parse_if(Parser *parser);
 Node *parse_expr(Parser *parser);

@@ -1,3 +1,4 @@
+#include <compiler/lexer/lexer.h>
 #include "../lexer/lexer.h"
 #include "parser.h"
 
@@ -13,7 +14,9 @@ void parser_del(Parser *parser) {
 };
 
 Token eattok(Parser *parser, Token token) {
+    YASL_DEBUG_LOG("%s\n", YASL_TOKEN_NAMES[curtok(parser)]);
     if (curtok(parser) != token) {
+        printf("ParsingError: Expected %x, got %x\n", token, curtok(parser));
         printf("ParsingError: Expected %s, got %s\n", YASL_TOKEN_NAMES[token], YASL_TOKEN_NAMES[curtok(parser)]);
         exit(EXIT_FAILURE);
     }
@@ -33,6 +36,9 @@ Node *parse_program(Parser *parser) {
             eattok(parser, T_PRINT);
             return new_Print(parse_expr(parser), parser->lex->line);
         case T_FN: return parse_fn(parser);
+        case T_RET:
+            eattok(parser, T_RET);
+            return new_Return(parse_expr(parser), parser->lex->line);
         case T_LET: return parse_let(parser);
         case T_WHILE: return parse_while(parser);
         case T_BREAK:
@@ -51,7 +57,27 @@ Node *parse_program(Parser *parser) {
 }
 
 Node *parse_fn(Parser *parser) {
-
+    eattok(parser, T_FN);
+    char *name = malloc(parser->lex->val_len);
+    memcpy(name, parser->lex->value, parser->lex->val_len);
+    int64_t name_len = parser->lex->val_len;
+    eattok(parser, T_ID);
+    eattok(parser, T_COLON);
+    Node *block = new_Block(parser->lex->line);
+    while (curtok(parser) == T_ID) {
+        block_append(block, parse_id(parser));
+        if (curtok(parser) == T_COMMA) eattok(parser, T_COMMA);
+        else break;
+    }
+    eattok(parser, T_RARR);
+    eattok(parser, T_LBRC);
+    Node *body = new_Block(parser->lex->line);
+    while (curtok(parser) != T_RBRC) {
+        block_append(body, parse_program(parser));
+        eattok(parser, T_SEMI);
+    }
+    eattok(parser, T_RBRC);
+    return new_FunctionDecl(block, body, name, name_len, parser->lex->line);
 }
 
 Node *parse_let(Parser *parser) {
@@ -399,17 +425,19 @@ Node *parse_constant(Parser *parser) {
         case T_UNDEF: return parse_undef(parser);
         // handle invalid expressions with sensible error messages.
         case T_PRINT:
+        case T_FN:
         case T_LET:
         case T_WHILE:
         case T_BREAK:
+        case T_RET:
         case T_CONT:
         case T_IF:
         case T_ELSEIF:
         case T_ELSE:
-            printf("ParsingError: expected expression, got `%s`\n", YASL_TOKEN_NAMES[curtok(parser)]);
+            printf("ParsingError in line %d: expected expression, got `%s`\n", parser->lex->line, YASL_TOKEN_NAMES[curtok(parser)]);
             exit(EXIT_FAILURE);
         default:
-            puts("ParsingError: Invalid expression.");
+            printf("ParsingError: Invalid expression in line %d.\n", parser->lex->line);
             exit(EXIT_FAILURE);
     }
 }

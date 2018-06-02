@@ -104,6 +104,15 @@ void block_append(Node *node, Node *child) {
     YASL_DEBUG_LOG("block now has %d children.\n", node->children_len);
 }
 
+
+Node *new_FunctionDecl(Node *params, Node *body, char *name, int64_t name_len, int line) {
+    return new_Node_2(N_FNDECL, T_UNKNOWN, params, body, name, name_len, line);
+}
+
+Node *new_Return(Node *expr, int line) {
+    return new_Node_1(N_RET, T_UNKNOWN, expr, NULL, 0, line);
+}
+
 Node *new_FunctionCall(Node *params, char *name, int64_t name_len, int line) {
     return new_Node_1(N_CALL, T_UNKNOWN, params, name, name_len, line);
 }
