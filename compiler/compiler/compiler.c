@@ -185,6 +185,19 @@ void visit_ExprStmt(Compiler *compiler, Node *node) {
     bb_add_byte(compiler->buffer, POP);
 }
 
+void visit_FunctionDecl(Compiler *compiler, Node *node) {
+    /*if (compiler->current_function != NULL) {
+        puts("Illegal function declaration outside global scope.");
+        exit(EXIT_FAILURE);
+    }
+    compiler->current_function = realloc(compiler->current_function, node->name_len);
+    memcpy(compiler->current_function, node->name, node->name_len);
+    */
+
+    puts("User defined functions are currently not implemented.");
+    exit(EXIT_FAILURE);
+}
+
 void visit_Call(Compiler *compiler, Node *node) {
     // TODO: error handling on number of arguments.
     /*
@@ -200,15 +213,10 @@ void visit_Call(Compiler *compiler, Node *node) {
      */
     YASL_DEBUG_LOG("visiting call %s\n", node->name);
     visit_Block(compiler, node->children[0]);
-    String_t *string = malloc(sizeof(String_t));
-    string->length = node->name_len;
-    string->str = malloc(string->length);
-    memcpy(string->str, node->name, string->length);
-    YASL_Object key = (YASL_Object) { .value.sval = string, .type = STR8 };
 
-    if (ht_search(compiler->builtins, key)) {
+    if (ht_search_string_int(compiler->builtins, node->name, node->name_len)) {
         bb_add_byte(compiler->buffer, BCALL_8);
-        bb_intbytes8(compiler->buffer, ht_search(compiler->builtins, key)->value.ival);
+        bb_intbytes8(compiler->buffer, ht_search_string_int(compiler->builtins, node->name, node->name_len)->value.ival);
     } else {
         // TODO: implement non-builtins.
         puts("Not a builtin function.");
@@ -232,15 +240,9 @@ void visit_Method(Compiler *compiler, Node *node) {
     visit_Block(compiler, node->children[1]);
     visit(compiler, node->children[0]);
 
-    String_t *string = malloc(sizeof(String_t));
-    string->length = node->name_len;
-    string->str = malloc(string->length);
-    memcpy(string->str, node->name, string->length);
-    YASL_Object key = (YASL_Object) { .value.sval = string, .type = STR8 };
-
-    if (ht_search(compiler->methods, key)) {
+    if (ht_search_string_int(compiler->methods, node->name, node->name_len)) {
         bb_add_byte(compiler->buffer, MCALL_8);
-        bb_intbytes8(compiler->buffer, ht_search(compiler->methods, key)->value.ival);
+        bb_intbytes8(compiler->buffer, ht_search_string_int(compiler->methods, node->name, node->name_len)->value.ival);
     } else {
         // TODO: implement non-builtins.
         printf("No builtin method `%s`\n", node->name);
@@ -584,21 +586,14 @@ void visit_Boolean(Compiler *compiler, Node *node) {
 }
 
 void visit_String(Compiler* compiler, Node *node) {
-    // TODO: deal with memory leaks introduced here.
-    String_t *string = malloc(sizeof(String_t));
-    string->length = node->name_len;
-    string->str = malloc(string->length);
-    memcpy(string->str, node->name, string->length);
-    YASL_Object key = (YASL_Object) { .value = (int64_t)string, .type = STR8 };
-
-    YASL_Object *value = ht_search(compiler->strings, key);
+    YASL_Object *value = ht_search_string_int(compiler->strings, node->name, node->name_len);
     if (value == NULL) {
         YASL_DEBUG_LOG("%s\n", "caching string");
-        ht_insert(compiler->strings, key, (YASL_Object) { .type = INT64, .value = compiler->header->count});
+        ht_insert_string_int(compiler->strings, node->name, node->name_len, compiler->header->count);
         bb_append(compiler->header, node->name, node->name_len);
     }
 
-    value = ht_search(compiler->strings, key);
+    value = ht_search_string_int(compiler->strings, node->name, node->name_len);
 
     bb_add_byte(compiler->buffer, NEWSTR8);
     bb_intbytes8(compiler->buffer, node->name_len);
@@ -644,6 +639,10 @@ void visit(Compiler* compiler, Node* node) {
     case N_BLOCK:
         YASL_DEBUG_LOG("%s\n", "Visit Block");
         visit_Block(compiler, node);
+        break;
+    case N_FNDECL:
+        YASL_DEBUG_LOG("%s\n", "Visit FunctionDecl");
+        visit_FunctionDecl(compiler, node);
         break;
     case N_CALL:
         YASL_DEBUG_LOG("%s\n", "Visit Call");

@@ -139,34 +139,43 @@ void ht_insert(Hash_t* hashtable, const YASL_Object key, const YASL_Object value
     hashtable->count++;
 }
 
-
 void ht_insert_string_int(Hash_t *hashtable, char *key, int64_t key_len, int64_t val) {
     String_t *string = malloc(sizeof(String_t));
     string->length = key_len;
     string->str = malloc(string->length);
     memcpy(string->str, key, string->length);
     ht_insert(hashtable,
-              (YASL_Object) { .type = STR8, .value = (int64_t)string},
-              (YASL_Object) { .type = INT64, .value = val});
+              (YASL_Object) { .type = STR8, .value.sval = string},
+              (YASL_Object) { .type = INT64, .value.ival = val});
 }
 
 YASL_Object* ht_search(Hash_t* hashtable, const YASL_Object key) {
-    //puts("searching");
     int index = get_hash(key, hashtable->size, 0);
     Item_t* item = hashtable->items[index];
     int i = 1;
     while (item != NULL) {
-        //puts("goooo");
-        //print(*item->key);
-        //print(key);
         if (!FALSEY(isequal(*item->key, key))) {
             return item->value;
         }
         index = get_hash(key, hashtable->size, i++);
         item = hashtable->items[index];
     }
-    //puts("return null");
     return NULL;
+}
+
+YASL_Object *ht_search_string_int(Hash_t *hashtable, char *key, int64_t key_len) {
+    String_t *string = malloc(sizeof(String_t));
+    string->length = key_len;
+    string->str = malloc(string->length);
+    memcpy(string->str, key, string->length);
+    YASL_Object object = (YASL_Object) { .value.sval = string, .type = STR8 };
+
+    YASL_Object *result = ht_search(hashtable, object);
+
+    // free memory here.
+
+    return result;
+
 }
 
 void ht_delete(Hash_t* hashtable, const YASL_Object key) {

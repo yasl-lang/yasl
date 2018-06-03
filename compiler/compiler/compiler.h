@@ -32,6 +32,7 @@ typedef struct {
     Env_t *globals;
     Env_t *locals;
     Hash_t *builtins;
+    Hash_t *functions;
     Hash_t *methods;
     Hash_t *strings;
     ByteBuffer *buffer;
@@ -40,6 +41,7 @@ typedef struct {
     int64_t *checkpoints;
     int64_t checkpoints_count;
     int64_t checkpoints_size;
+    char *current_function;
     /* char *curfn;
     int64_t offset;
     STable *strings; */
