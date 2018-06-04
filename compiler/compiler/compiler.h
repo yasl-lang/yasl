@@ -33,6 +33,8 @@ typedef struct {
     Env_t *locals;
     Hash_t *builtins;
     Hash_t *functions;
+    Hash_t *functions_locals_len;
+    int64_t offset;
     Hash_t *methods;
     Hash_t *strings;
     ByteBuffer *buffer;

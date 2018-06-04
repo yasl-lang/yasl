@@ -1,5 +1,6 @@
 #include <interpreter/YASL_Object/YASL_Object.h>
 #include <interpreter/YASL_string/YASL_string.h>
+#include <compiler/compiler/bytebuffer/bytebuffer.h>
 #include "compiler.h"
 #define break_checkpoint(compiler)    (compiler->checkpoints[compiler->checkpoints_count-1])
 #define continue_checkpoint(compiler) (compiler->checkpoints[compiler->checkpoints_count-2])
@@ -50,6 +51,9 @@ Compiler *compiler_new(Parser* parser) {
     ht_insert_string_int(compiler->methods, "__set", 5, M___SET);
     ht_insert_string_int(compiler->methods, "__get", 5, M___GET);
 
+    compiler->functions = new_hash();
+    compiler->functions_locals_len = new_hash();
+    compiler->offset = 0;
     compiler->strings = new_hash();
     compiler->parser = parser;
     compiler->buffer = bb_new(16);
@@ -64,42 +68,10 @@ Compiler *compiler_new(Parser* parser) {
 
 void compiler_del(Compiler *compiler) {
 
-    int i;
-    for (i = 0; i < compiler->strings->size; i++) {
-        Item_t* item = compiler->strings->items[i];
-        if (item != NULL) {
-            del_string8(item->key->value.sval);
-            free(item->key);
-            free(item->value);
-            free(item);
-        }
-    }
-    free(compiler->strings->items);
-    free(compiler->strings);
-
-    for (i = 0; i < compiler->builtins->size; i++) {
-        Item_t* item = compiler->builtins->items[i];
-        if (item != NULL) {
-            del_string8(item->key->value.sval);
-            free(item->key);
-            free(item->value);
-            free(item);
-        }
-    }
-    free(compiler->builtins->items);
-    free(compiler->builtins);
-
-    for (i = 0; i < compiler->methods->size; i++) {
-        Item_t* item = compiler->methods->items[i];
-        if (item != NULL) {
-            del_string8(item->key->value.sval);
-            free(item->key);
-            free(item->value);
-            free(item);
-        }
-    }
-    free(compiler->methods->items);
-    free(compiler->methods);
+    del_hash_string_int(compiler->strings);
+    del_hash_string_int(compiler->functions);
+    del_hash_string_int(compiler->functions_locals_len);
+    del_hash_string_int(compiler->methods);
 
     env_del(compiler->globals);
     env_del(compiler->locals);
@@ -186,16 +158,70 @@ void visit_ExprStmt(Compiler *compiler, Node *node) {
 }
 
 void visit_FunctionDecl(Compiler *compiler, Node *node) {
-    /*if (compiler->current_function != NULL) {
+    if (compiler->current_function != NULL) {
         puts("Illegal function declaration outside global scope.");
         exit(EXIT_FAILURE);
     }
-    compiler->current_function = realloc(compiler->current_function, node->name_len);
-    memcpy(compiler->current_function, node->name, node->name_len);
-    */
 
-    puts("User defined functions are currently not implemented.");
-    exit(EXIT_FAILURE);
+    if (ht_search_string_int(compiler->functions, node->name, node->name_len) != NULL) {
+        puts("Illegal redeclaration of function.");
+        exit(EXIT_FAILURE);
+    }
+
+    if (ht_search_string_int(compiler->builtins, node->name, node->name_len) != NULL) {
+        puts("Illegal redeclaration of builtin function.");
+        exit(EXIT_FAILURE);
+    }
+
+    compiler->current_function =  node->name;
+
+    // start logic for function, now that we are sure it's legal to do so, and have set up.
+
+    // use offset to compute offsets for locals, in other functions.
+    compiler->offset = node->children[0]->children_len;
+
+    compiler->locals = env_new(compiler->locals);
+
+    int64_t i;
+    for (i = node->children[0]->children_len - 1; i >= 0; i--) {
+        ht_insert_string_int(compiler->locals->vars, node->children[0]->children[i]->name,
+                             node->children[0]->children[i]->name_len, 255 - compiler->locals->vars->count - 1);
+    }
+
+    ht_insert_string_int(compiler->functions_locals_len, node->name, node->name_len, compiler->locals->vars->count);
+
+    visit_Block(compiler, node->children[1]);
+
+    ht_insert_string_int(compiler->functions, node->name, node->name_len, compiler->header->count);
+
+    bb_append(compiler->header, compiler->buffer->bytes, compiler->buffer->count);
+    bb_add_byte(compiler->header, NCONST);
+    bb_add_byte(compiler->header, RET);
+
+    // zero buffer length to ensure t
+    compiler->buffer->count = 0;
+
+    // clean up, i.e. delete local env.
+
+    compiler->current_function = NULL;
+
+    Env_t *tmp = compiler->locals->parent;
+
+    for (i = 0; i < compiler->locals->vars->size; i++) {
+        Item_t* item = compiler->locals->vars->items[i];
+        if (item != NULL) {
+            del_string8(item->key->value.sval);
+            free(item->key);
+            free(item->value);
+            free(item);
+        }
+    }
+    free(compiler->locals->vars->items);
+    free(compiler->locals->vars);
+    free(compiler->locals);
+
+    compiler->locals = tmp;
+
 }
 
 void visit_Call(Compiler *compiler, Node *node) {
@@ -218,22 +244,30 @@ void visit_Call(Compiler *compiler, Node *node) {
         bb_add_byte(compiler->buffer, BCALL_8);
         bb_intbytes8(compiler->buffer, ht_search_string_int(compiler->builtins, node->name, node->name_len)->value.ival);
     } else {
-        // TODO: implement non-builtins.
-        puts("Not a builtin function.");
-        exit(EXIT_FAILURE);
+        if (NULL == ht_search_string_int(compiler->functions, node->name, node->name_len)) {
+            puts("Undefined function.");
+            exit(EXIT_FAILURE);
+        }
+
+        visit_Block(compiler, node->children[0]);
+
+        bb_add_byte(compiler->buffer, CALL_8);
+
+        bb_add_byte(compiler->buffer, node->children[0]->children_len);
+
+        bb_intbytes8(compiler->buffer, ht_search_string_int(compiler->functions, node->name, node->name_len)->value.ival);
+
+        bb_add_byte(compiler->buffer, ht_search_string_int(compiler->functions_locals_len, node->name, node->name_len)->value.ival);
+
+
     }
 }
 
-/*
-    def visit_MethodCall(self, node):
-        result = []
-        for expr in node.params:
-            result = result + self.visit(expr)
-        if node.value in METHODS:
-            return result + self.visit(node.left) + [MCALL_8] + intbytes_8(METHODS[node.value])
-        assert False
- */
-
+void visit_Return(Compiler *compiler, Node *node) {
+    // TODO: handle recursive calls.
+    visit(compiler, node->children[0]);
+    bb_add_byte(compiler->buffer, RET);
+}
 
 void visit_Method(Compiler *compiler, Node *node) {
     YASL_DEBUG_LOG("visiting method %s\n", node->name);
@@ -537,9 +571,15 @@ void visit_Var(Compiler *compiler, Node *node) {
     if (!env_contains(compiler->globals, node->name, node->name_len) &&
         !env_contains(compiler->locals, node->name, node->name_len)) {
         printf("unknown variable: %s\n", node->name);
+        exit(EXIT_FAILURE);
     }
-    // TODO: handle case with functions
-    /*return [GLOAD_1, self.globals[node.value]] */
+
+    if (compiler->current_function != NULL && env_contains(compiler->locals, node->name, node->name_len)) {
+        bb_add_byte(compiler->buffer, LLOAD_1);
+        bb_add_byte(compiler->buffer, env_get(compiler->locals, node->name, node->name_len)); // TODO: handle size
+        return;
+    }
+
     bb_add_byte(compiler->buffer, GLOAD_1);
     bb_add_byte(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));  // TODO: handle size
 }
@@ -647,6 +687,10 @@ void visit(Compiler* compiler, Node* node) {
     case N_CALL:
         YASL_DEBUG_LOG("%s\n", "Visit Call");
         visit_Call(compiler, node);
+        break;
+    case N_RET:
+        YASL_DEBUG_LOG("%s\n", "Visit Return");
+        visit_Return(compiler, node);
         break;
     case N_METHOD:
         YASL_DEBUG_LOG("%s\n", "Visit Method Call");

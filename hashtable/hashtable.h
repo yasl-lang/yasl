@@ -22,6 +22,7 @@ typedef struct Hash_s {
 } Hash_t;
 
 Hash_t* new_hash(void);
+void del_hash_string_int(Hash_t *hashtable);
 void ht_insert(Hash_t* hashtable, YASL_Object key, YASL_Object value);
 void ht_insert_string_int(Hash_t *hashtable, char *key, int64_t key_len, int64_t val);
 YASL_Object* ht_search(Hash_t* hashtable, YASL_Object key);

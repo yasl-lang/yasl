@@ -79,6 +79,21 @@ void del_hash(Hash_t* hashtable) {
     free(hashtable);
 }
 
+void del_hash_string_int(Hash_t *hashtable) {
+    int i;
+    for (i = 0; i < hashtable->size; i++) {
+        Item_t* item = hashtable->items[i];
+        if (item != NULL) {
+            del_string8(item->key->value.sval);
+            free(item->key);
+            free(item->value);
+            free(item);
+        }
+    }
+    free(hashtable->items);
+    free(hashtable);
+}
+
 static void ht_resize(Hash_t* ht, const int base_size) {
     if (base_size < HT_BASESIZE) return;
     Hash_t* new_ht = new_sized_hash(base_size);
