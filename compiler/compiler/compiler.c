@@ -16,40 +16,40 @@ Compiler *compiler_new(Parser* parser) {
 
     // TODO: deal with memory leaks here.
     compiler->builtins = new_hash();
-    ht_insert_string_int(compiler->builtins, "open", 4, F_OPEN);
-    ht_insert_string_int(compiler->builtins, "popen", 5, F_POPEN);
-    ht_insert_string_int(compiler->builtins, "input", 5, F_INPUT);
+    ht_insert_string_int(compiler->builtins, "open", strlen("open"), F_OPEN);
+    ht_insert_string_int(compiler->builtins, "popen", strlen("popen"), F_POPEN);
+    ht_insert_string_int(compiler->builtins, "input", strlen("input"), F_INPUT);
 
     compiler->methods = new_hash();
-    ht_insert_string_int(compiler->methods, "tofloat64", 9, M_TOFLOAT64);
-    ht_insert_string_int(compiler->methods, "toint64", 7, M_TOINT64);
-    ht_insert_string_int(compiler->methods, "tobool", 6, M_TOBOOL);
-    ht_insert_string_int(compiler->methods, "tostr", 5, M_TOSTR);
+    ht_insert_string_int(compiler->methods, "tofloat64", strlen("tofloat64"), M_TOFLOAT64);
+    ht_insert_string_int(compiler->methods, "toint64", strlen("toint64"), M_TOINT64);
+    ht_insert_string_int(compiler->methods, "tobool", strlen("tobool"), M_TOBOOL);
+    ht_insert_string_int(compiler->methods, "tostr", strlen("tostr"), M_TOSTR);
 
-    ht_insert_string_int(compiler->methods, "upcase", 6, M_UPCASE);
-    ht_insert_string_int(compiler->methods, "downcase", 8, M_DOWNCASE);
-    ht_insert_string_int(compiler->methods, "isalnum", 7, M_ISALNUM);
-    ht_insert_string_int(compiler->methods, "isal", 4, M_ISAL);
-    ht_insert_string_int(compiler->methods, "isnum", 5, M_ISNUM);
-    ht_insert_string_int(compiler->methods, "isspace", 7, M_ISSPACE);
-    ht_insert_string_int(compiler->methods, "startswith", 10, M_STARTSWITH);
-    ht_insert_string_int(compiler->methods, "endswith", 8, M_ENDSWITH);
-    ht_insert_string_int(compiler->methods, "search", 6, M_SEARCH);
-    ht_insert_string_int(compiler->methods, "split", 5, M_SPLIT);
+    ht_insert_string_int(compiler->methods, "upcase", strlen("upcase"), M_UPCASE);
+    ht_insert_string_int(compiler->methods, "downcase", strlen("downcase"), M_DOWNCASE);
+    ht_insert_string_int(compiler->methods, "isalnum", strlen("isalnum"), M_ISALNUM);
+    ht_insert_string_int(compiler->methods, "isal", strlen("isal"), M_ISAL);
+    ht_insert_string_int(compiler->methods, "isnum", strlen("isnum"), M_ISNUM);
+    ht_insert_string_int(compiler->methods, "isspace", strlen("isspace"), M_ISSPACE);
+    ht_insert_string_int(compiler->methods, "startswith", strlen("startswith"), M_STARTSWITH);
+    ht_insert_string_int(compiler->methods, "endswith", strlen("endswith"), M_ENDSWITH);
+    ht_insert_string_int(compiler->methods, "search", strlen("search"), M_SEARCH);
+    ht_insert_string_int(compiler->methods, "split", strlen("split"), M_SPLIT);
 
-    ht_insert_string_int(compiler->methods, "append", 6, M_APPEND);
+    ht_insert_string_int(compiler->methods, "append", strlen("append"), M_APPEND);
 
-    ht_insert_string_int(compiler->methods, "keys", 4, M_KEYS);
-    ht_insert_string_int(compiler->methods, "values", 6, M_VALUES);
+    ht_insert_string_int(compiler->methods, "keys", strlen("keys"), M_KEYS);
+    ht_insert_string_int(compiler->methods, "values", strlen("values"), M_VALUES);
 
-    ht_insert_string_int(compiler->methods, "close", 5, M_CLOSE);
-    ht_insert_string_int(compiler->methods, "pclose", 6, M_PCLOSE);
-    ht_insert_string_int(compiler->methods, "read", 4, M_READ);
-    ht_insert_string_int(compiler->methods, "write", 5, M_WRITE);
-    ht_insert_string_int(compiler->methods, "readline", 8, M_READLINE);
+    ht_insert_string_int(compiler->methods, "close", strlen("close"), M_CLOSE);
+    ht_insert_string_int(compiler->methods, "pclose", strlen("pclose"), M_PCLOSE);
+    ht_insert_string_int(compiler->methods, "read", strlen("read"), M_READ);
+    ht_insert_string_int(compiler->methods, "write", strlen("write"), M_WRITE);
+    ht_insert_string_int(compiler->methods, "readline", strlen("readline"), M_READLINE);
 
-    ht_insert_string_int(compiler->methods, "__set", 5, M___SET);
-    ht_insert_string_int(compiler->methods, "__get", 5, M___GET);
+    ht_insert_string_int(compiler->methods, "__set", strlen("__set"), M___SET);
+    ht_insert_string_int(compiler->methods, "__get", strlen("__get"), M___GET);
 
     compiler->functions = new_hash();
     compiler->functions_locals_len = new_hash();

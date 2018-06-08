@@ -92,6 +92,7 @@ typedef enum {
     T_LET,      // 0x11
     T_FN,       // 0x12
     T_RET,      // 0x13
+    T_ENUM,
     T_STRUCT,   // 0x14
     T_PRINT,    // 0x15
     T_LPAR,     // 0x16

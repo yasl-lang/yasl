@@ -383,50 +383,50 @@ void YASLKeywords(Lexer *lex) {
      *  return
      */
 
-    if (3 == lex->val_len && !memcmp(lex->value, "let", lex->val_len)) {
+    if (strlen("let") == lex->val_len && !memcmp(lex->value, "let", lex->val_len)) {
         lex->type = T_LET;
         lex->value = realloc(lex->value, 0);
-    } else if (5 == lex->val_len && !memcmp(lex->value, "print", lex->val_len)) {
+    } else if (strlen("print") == lex->val_len && !memcmp(lex->value, "print", lex->val_len)) {
         lex->type = T_PRINT;
         lex->value = realloc(lex->value, 0);
-    } else if (4 == lex->val_len && !memcmp(lex->value, "else", lex->val_len)) {
+    } else if (strlen("else") == lex->val_len && !memcmp(lex->value, "else", lex->val_len)) {
         lex->type = T_ELSE;
         lex->value = realloc(lex->value, 0);
-    } else if (2 == lex->val_len && !memcmp(lex->value, "if", lex->val_len)) {
+    } else if (strlen("if") == lex->val_len && !memcmp(lex->value, "if", lex->val_len)) {
         lex->type = T_IF;
         lex->value = realloc(lex->value, 0);
-    } else if (6 == lex->val_len && !memcmp(lex->value, "elseif", lex->val_len)) {
+    } else if (strlen("elseif") == lex->val_len && !memcmp(lex->value, "elseif", lex->val_len)) {
         lex->type = T_ELSEIF;
         lex->value = realloc(lex->value, 0);
-    } else if (5 == lex->val_len && !memcmp(lex->value, "while", lex->val_len)) {
+    } else if (strlen("while") == lex->val_len && !memcmp(lex->value, "while", lex->val_len)) {
         lex->type = T_WHILE;
         lex->value = realloc(lex->value, 0);
-    } else if (3 == lex->val_len && !memcmp(lex->value, "for", lex->val_len)) {
+    } else if (strlen("for") == lex->val_len && !memcmp(lex->value, "for", lex->val_len)) {
         lex->type = T_FOR;
         lex->value = realloc(lex->value, 0);
-    } else if (5 == lex->val_len && !memcmp(lex->value, "break", lex->val_len)) {
+    } else if (strlen("break") == lex->val_len && !memcmp(lex->value, "break", lex->val_len)) {
         lex->type = T_BREAK;
         lex->value = realloc(lex->value, 0);
-    } else if (8 == lex->val_len && !memcmp(lex->value, "continue", lex->val_len)) {
+    } else if (strlen("continue") == lex->val_len && !memcmp(lex->value, "continue", lex->val_len)) {
         lex->type = T_CONT;
         lex->value = realloc(lex->value, 0);
-    } else if (4 == lex->val_len && !memcmp(lex->value, "true", lex->val_len)) {
+    } else if (strlen("true") == lex->val_len && !memcmp(lex->value, "true", lex->val_len)) {
         lex->type = T_BOOL;
-    } else if (5 == lex->val_len && !memcmp(lex->value, "false", lex->val_len)) {
+    } else if (strlen("false") == lex->val_len && !memcmp(lex->value, "false", lex->val_len)) {
         lex->type = T_BOOL;
-    } else if (2 == lex->val_len && !memcmp(lex->value, "or", lex->val_len)) {
+    } else if (strlen("or") == lex->val_len && !memcmp(lex->value, "or", lex->val_len)) {
         lex->type = T_OR;
         lex->value = realloc(lex->value, 0);
-    } else if (3 == lex->val_len && !memcmp(lex->value, "and", lex->val_len)) {
+    } else if (strlen("and") == lex->val_len && !memcmp(lex->value, "and", lex->val_len)) {
         lex->type = T_AND;
         lex->value = realloc(lex->value, 0);
-    } else if (5 == lex->val_len && !memcmp(lex->value, "undef", lex->val_len)) {
+    } else if (strlen("undef") == lex->val_len && !memcmp(lex->value, "undef", lex->val_len)) {
         lex->type = T_UNDEF;
         lex->value = realloc(lex->value, 0);
-    } else if (2 == lex->val_len && !memcmp(lex->value, "fn", lex->val_len)) {
+    } else if (strlen("fn") == lex->val_len && !memcmp(lex->value, "fn", lex->val_len)) {
         lex->type = T_FN;
         lex->value = realloc(lex->value, 0);
-    } else if (6 == lex->val_len && !memcmp(lex->value, "return", lex->val_len)) {
+    } else if (strlen("return") == lex->val_len && !memcmp(lex->value, "return", lex->val_len)) {
         lex->type = T_RET;
         lex->value = realloc(lex->value, 0);
     }
@@ -453,6 +453,7 @@ const char *YASL_TOKEN_NAMES[] = {
         "let",          // T_LET,
         "fn",           // T_FN,
         "return",       // T_RET,
+        "enum",         // T_ENUM,
         "struct",       // T_STRUCT,
         "print",        // T_PRINT,
         "(",            // LPAR,
