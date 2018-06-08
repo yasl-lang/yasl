@@ -248,37 +248,10 @@ Node *parse_or(Parser *parser) {
 }
 
 Node *parse_and(Parser *parser) {
-    Node *cur_node = parse_bor(parser);
+    Node *cur_node = parse_equals(parser);
     while (curtok(parser) == T_AND) {
         eattok(parser, T_AND);
-        cur_node = new_BinOp(T_AND, cur_node, parse_bor(parser), parser->lex->line);
-    }
-    return cur_node;
-}
-
-Node *parse_bor(Parser *parser) {
-    Node *cur_node = parse_bxor(parser);
-    while (curtok(parser) == T_BAR) {
-        eattok(parser, T_BAR);
-        cur_node = new_BinOp(T_BAR, cur_node, parse_bxor(parser), parser->lex->line);
-    }
-    return cur_node;
-}
-
-Node *parse_bxor(Parser *parser) {
-    Node *cur_node = parse_band(parser);
-    while (curtok(parser) == T_CARET) {
-        eattok(parser, T_CARET);
-        cur_node = new_BinOp(T_CARET, cur_node, parse_band(parser), parser->lex->line);
-    }
-    return cur_node;
-}
-
-Node *parse_band(Parser *parser) {
-    Node *cur_node = parse_equals(parser);
-    while (curtok(parser) == T_AMP) {
-        eattok(parser, T_AMP);
-        cur_node = new_BinOp(T_AMP, cur_node, parse_equals(parser), parser->lex->line);
+        cur_node = new_BinOp(T_AND, cur_node, parse_equals(parser), parser->lex->line);
     }
     return cur_node;
 }
@@ -304,10 +277,37 @@ Node *parse_comparator(Parser *parser) {
 }
 
 Node *parse_concat(Parser *parser) {
-    Node *cur_node = parse_bshift(parser);
+    Node *cur_node = parse_bor(parser);
     if (curtok(parser) == T_DBAR || curtok(parser) == T_TBAR) {
         Token op = eattok(parser, curtok(parser));
         return new_BinOp(op, cur_node, parse_concat(parser), parser->lex->line);
+    }
+    return cur_node;
+}
+
+Node *parse_bor(Parser *parser) {
+    Node *cur_node = parse_bxor(parser);
+    while (curtok(parser) == T_BAR) {
+        eattok(parser, T_BAR);
+        cur_node = new_BinOp(T_BAR, cur_node, parse_bxor(parser), parser->lex->line);
+    }
+    return cur_node;
+}
+
+Node *parse_bxor(Parser *parser) {
+    Node *cur_node = parse_band(parser);
+    while (curtok(parser) == T_CARET) {
+        eattok(parser, T_CARET);
+        cur_node = new_BinOp(T_CARET, cur_node, parse_band(parser), parser->lex->line);
+    }
+    return cur_node;
+}
+
+Node *parse_band(Parser *parser) {
+    Node *cur_node = parse_bshift(parser);
+    while (curtok(parser) == T_AMP) {
+        eattok(parser, T_AMP);
+        cur_node = new_BinOp(T_AMP, cur_node, parse_bshift(parser), parser->lex->line);
     }
     return cur_node;
 }

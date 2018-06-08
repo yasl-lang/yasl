@@ -10,9 +10,9 @@ Compiler *compiler_new(Parser* parser) {
     Compiler *compiler = malloc(sizeof(Compiler));
     compiler->globals = env_new(NULL);
     compiler->locals = env_new(NULL);
-    env_decl_var(compiler->globals, "stdin", 5);
-    env_decl_var(compiler->globals, "stdout", 6);
-    env_decl_var(compiler->globals, "stderr", 6);
+    env_decl_var(compiler->globals, "stdin", strlen("stdin"));
+    env_decl_var(compiler->globals, "stdout", strlen("stdout"));
+    env_decl_var(compiler->globals, "stderr", strlen("stderr"));
 
     // TODO: deal with memory leaks here.
     compiler->builtins = new_hash();
