@@ -17,7 +17,7 @@ int isvalueinarray(int64_t val, int64_t *arr, int size){
     return 0;
 }
 
-static List_t* new_sized_list(const int base_size) {
+List_t* new_sized_list(const int base_size) {
     List_t* ls = malloc(sizeof(List_t));
     ls->size = base_size;
     ls->count = 0;

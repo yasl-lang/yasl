@@ -152,12 +152,12 @@ void compile(Compiler *compiler) {
     fclose(fp);
 }
 
-void visit_ExprStmt(Compiler *compiler, Node *node) {
+void visit_ExprStmt(Compiler *compiler, const Node *const node) {
     visit(compiler, node->children[0]);
     bb_add_byte(compiler->buffer, POP);
 }
 
-void visit_FunctionDecl(Compiler *compiler, Node *node) {
+void visit_FunctionDecl(Compiler *compiler, const Node *const node) {
     if (compiler->current_function != NULL) {
         puts("Illegal function declaration outside global scope.");
         exit(EXIT_FAILURE);
@@ -179,6 +179,7 @@ void visit_FunctionDecl(Compiler *compiler, Node *node) {
 
     // use offset to compute offsets for locals, in other functions.
     compiler->offset = node->children[0]->children_len;
+    YASL_DEBUG_LOG("compiler->offset is: %d\n", compiler->offset);
 
     compiler->locals = env_new(compiler->locals);
 
@@ -190,9 +191,11 @@ void visit_FunctionDecl(Compiler *compiler, Node *node) {
 
     ht_insert_string_int(compiler->functions_locals_len, node->name, node->name_len, compiler->locals->vars->count);
 
+    ht_insert_string_int(compiler->functions, node->name, node->name_len, compiler->header->count);
+
     visit_Block(compiler, node->children[1]);
 
-    ht_insert_string_int(compiler->functions, node->name, node->name_len, compiler->header->count);
+    YASL_DEBUG_LOG("tried to insert function, result was %d.\n", ht_search_string_int(compiler->functions, node->name, node->name_len) != NULL);
 
     bb_append(compiler->header, compiler->buffer->bytes, compiler->buffer->count);
     bb_add_byte(compiler->header, NCONST);
@@ -224,7 +227,7 @@ void visit_FunctionDecl(Compiler *compiler, Node *node) {
 
 }
 
-void visit_Call(Compiler *compiler, Node *node) {
+void visit_Call(Compiler *compiler, const Node *const node) {
     // TODO: error handling on number of arguments.
     /*
     def visit_FunctionCall(self, node):
@@ -245,7 +248,7 @@ void visit_Call(Compiler *compiler, Node *node) {
         bb_intbytes8(compiler->buffer, ht_search_string_int(compiler->builtins, node->name, node->name_len)->value.ival);
     } else {
         if (NULL == ht_search_string_int(compiler->functions, node->name, node->name_len)) {
-            puts("Undefined function.");
+            printf("Undefined function: %s\n", node->name);
             exit(EXIT_FAILURE);
         }
 
@@ -263,13 +266,25 @@ void visit_Call(Compiler *compiler, Node *node) {
     }
 }
 
-void visit_Return(Compiler *compiler, Node *node) {
-    // TODO: handle recursive calls.
+void visit_Return(Compiler *compiler, const Node *const node) {
+    // deal with recursive calls.
+    if (node->nodetype == N_CALL && !strcmp(compiler->current_function, node->name)) {
+        visit_Block(compiler, node->children[0]);
+
+        bb_add_byte(compiler->buffer, RCALL_8);
+        bb_add_byte(compiler->buffer, node->children[0]->children_len);
+        bb_intbytes8(compiler->buffer, ht_search_string_int(compiler->functions, node->name, node->name_len)->value.ival);
+        bb_add_byte(compiler->buffer, ht_search_string_int(compiler->functions_locals_len, node->name, node->name_len)->value.ival);
+
+        return;
+    }
+
+    // default case.
     visit(compiler, node->children[0]);
     bb_add_byte(compiler->buffer, RET);
 }
 
-void visit_Method(Compiler *compiler, Node *node) {
+void visit_Method(Compiler *compiler, const Node *const node) {
     YASL_DEBUG_LOG("visiting method %s\n", node->name);
     visit_Block(compiler, node->children[1]);
     visit(compiler, node->children[0]);
@@ -284,14 +299,14 @@ void visit_Method(Compiler *compiler, Node *node) {
     }
 }
 
-void visit_Index(Compiler *compiler, Node *node) {
+void visit_Index(Compiler *compiler, const Node *const node) {
     visit(compiler, node->children[1]);
     visit(compiler, node->children[0]);
     bb_add_byte(compiler->buffer, MCALL_8);
     bb_intbytes8(compiler->buffer, M___GET);
 }
 
-void visit_Block(Compiler *compiler, Node *node) {
+void visit_Block(Compiler *compiler, const Node *const node) {
     YASL_DEBUG_LOG("the block has %d children.\n", node->children_len);
     int i;
     for (i = 0; i < node->children_len; i++) {
@@ -299,7 +314,7 @@ void visit_Block(Compiler *compiler, Node *node) {
     }
 }
 
-void visit_While(Compiler *compiler, Node *node) {
+void visit_While(Compiler *compiler, const Node *const node) {
     int64_t index_start = compiler->code->count + compiler->buffer->count;
     add_checkpoint(compiler, index_start);
     visit(compiler, node->children[0]);
@@ -318,7 +333,7 @@ void visit_While(Compiler *compiler, Node *node) {
     rm_checkpoint(compiler);
 }
 
-void visit_Break(Compiler *compiler, Node *node) {
+void visit_Break(Compiler *compiler, const Node *const node) {
     if (compiler->checkpoints_count == 0) {
         puts("SyntaxError: break outside of loop.");
         exit(EXIT_FAILURE);
@@ -328,7 +343,7 @@ void visit_Break(Compiler *compiler, Node *node) {
     bb_intbytes8(compiler->buffer, break_checkpoint(compiler));
 }
 
-void visit_Continue(Compiler *compiler, Node *node) {
+void visit_Continue(Compiler *compiler, const Node *const node) {
     if (compiler->checkpoints_count == 0) {
         puts("SyntaxError: continue outside of loop.");
         exit(EXIT_FAILURE);
@@ -337,7 +352,7 @@ void visit_Continue(Compiler *compiler, Node *node) {
     bb_intbytes8(compiler->buffer, continue_checkpoint(compiler));
 }
 
-void visit_If(Compiler *compiler, Node *node) {
+void visit_If(Compiler *compiler, const Node *const node) {
     visit(compiler, node->children[0]);
     bb_add_byte(compiler->buffer, BRF_8);
     int64_t index_then = compiler->buffer->count;
@@ -360,7 +375,7 @@ void visit_If(Compiler *compiler, Node *node) {
     }
 }
 
-void visit_Print(Compiler* compiler, Node *node) {
+void visit_Print(Compiler* compiler, const Node *const node) {
     visit(compiler, node->children[0]);
     bb_add_byte(compiler->buffer, BCALL_8);
     bb_intbytes8(compiler->buffer, F_PRINT);
@@ -383,18 +398,30 @@ void visit_Print(Compiler* compiler, Node *node) {
             result = result + right + [GSTORE_1, self.globals[var.value]]
         return result
  */
-void visit_Let(Compiler *compiler, Node *node) {
+void visit_Let(Compiler *compiler, const Node *const node) {
+    if (NULL != compiler->current_function) {
+        if (!env_contains(compiler->locals, node->name, node->name_len)) {
+            YASL_DEBUG_LOG("inserting local var at index: %d\n", compiler->locals->vars->count + 1 - compiler->offset);
+            ht_insert_string_int(compiler->locals->vars, node->name, node->name_len,
+                                 compiler->locals->vars->count + 1 - compiler->offset);
+        }
+        visit(compiler, node->children[0]);
+        bb_add_byte(compiler->buffer, LSTORE_1);
+        bb_add_byte(compiler->buffer, ht_search_string_int(compiler->locals->vars, node->name, node->name_len)->value.ival);
+        return;
+    }
+
     if (!env_contains(compiler->globals, node->name, node->name_len)) {
         env_decl_var(compiler->globals, node->name, node->name_len);
     }
     if (node->children != NULL) visit(compiler, node->children[0]);
     else bb_add_byte(compiler->buffer, NCONST);
-    // TODO: handle locals
+
     bb_add_byte(compiler->buffer, GSTORE_1);
-    bb_add_byte(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));  // TODO: deal with size
+    bb_add_byte(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));
 }
 
-void visit_TriOp(Compiler *compiler, Node *node) {
+void visit_TriOp(Compiler *compiler, const Node *const node) {
     visit(compiler, node->children[0]);
     bb_add_byte(compiler->buffer, BRF_8);
     int64_t index_l = compiler->buffer->count;
@@ -408,7 +435,7 @@ void visit_TriOp(Compiler *compiler, Node *node) {
     bb_rewrite_intbytes8(compiler->buffer, index_r, compiler->buffer->count-index_r-8);
 }
 
-void visit_BinOp(Compiler *compiler, Node *node) {
+void visit_BinOp(Compiler *compiler, const Node *const node) {
     // complicated bin ops are handled on their own.
     if (node->type == T_DQMARK) {     // ?? operator
         visit(compiler, node->children[0]);
@@ -529,7 +556,7 @@ void visit_BinOp(Compiler *compiler, Node *node) {
     }
 }
 
-void visit_UnOp(Compiler *compiler, Node *node) {
+void visit_UnOp(Compiler *compiler, const Node *const node) {
     visit(compiler, node->children[0]);
     switch(node->type) {
         case T_PLUS:
@@ -553,7 +580,7 @@ void visit_UnOp(Compiler *compiler, Node *node) {
     }
 }
 
-void visit_Assign(Compiler *compiler, Node *node) {
+void visit_Assign(Compiler *compiler, const Node *const node) {
     if (!env_contains(compiler->globals, node->name, node->name_len) &&
         !env_contains(compiler->locals, node->name, node->name_len)) {
         printf("unknown variable: %s\n", node->name);
@@ -565,7 +592,7 @@ void visit_Assign(Compiler *compiler, Node *node) {
     bb_add_byte(compiler->buffer, env_get(compiler->globals, node->name, node->name_len)); // TODO: handle size
 }
 
-void visit_Var(Compiler *compiler, Node *node) {
+void visit_Var(Compiler *compiler, const Node *const node) {
     printf("%s is global: %d\n", node->name, env_contains(compiler->globals, node->name, node->name_len));
     printf("%s is local: %d\n", node->name, env_contains(compiler->locals, node->name, node->name_len));
     if (!env_contains(compiler->globals, node->name, node->name_len) &&
@@ -584,16 +611,16 @@ void visit_Var(Compiler *compiler, Node *node) {
     bb_add_byte(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));  // TODO: handle size
 }
 
-void visit_Undef(Compiler *compiler, Node *node) {
+void visit_Undef(Compiler *compiler, const Node *const node) {
     bb_add_byte(compiler->buffer, NCONST);
 }
 
-void visit_Float(Compiler *compiler, Node *node) {
+void visit_Float(Compiler *compiler, const Node *const node) {
     bb_add_byte(compiler->buffer, DCONST);
     bb_floatbytes8(compiler->buffer, strtod(node->name, (char**)NULL));
 }
 
-void visit_Integer(Compiler *compiler, Node *node) {
+void visit_Integer(Compiler *compiler, const Node *const node) {
     bb_add_byte(compiler->buffer, ICONST);
     if (node->name_len < 2) {
         bb_intbytes8(compiler->buffer, (int64_t)strtoll(node->name, (char**)NULL, 10));
@@ -615,7 +642,7 @@ void visit_Integer(Compiler *compiler, Node *node) {
     }
 }
 
-void visit_Boolean(Compiler *compiler, Node *node) {
+void visit_Boolean(Compiler *compiler, const Node *const node) {
     if (!memcmp(node->name, "true", node->name_len)) {
         bb_add_byte(compiler->buffer, BCONST_T);
         return;
@@ -625,7 +652,7 @@ void visit_Boolean(Compiler *compiler, Node *node) {
     }
 }
 
-void visit_String(Compiler* compiler, Node *node) {
+void visit_String(Compiler* compiler, const Node *const node) {
     YASL_Object *value = ht_search_string_int(compiler->strings, node->name, node->name_len);
     if (value == NULL) {
         YASL_DEBUG_LOG("%s\n", "caching string");
@@ -640,7 +667,7 @@ void visit_String(Compiler* compiler, Node *node) {
     bb_intbytes8(compiler->buffer, value->value.ival);
 }
 
-void visit_List(Compiler *compiler, Node *node) {
+void visit_List(Compiler *compiler, const Node *const node) {
     bb_add_byte(compiler->buffer, NEWLIST);
     int i;
     for (i = 0; i < node->children[0]->children_len; i++) {
@@ -653,7 +680,7 @@ void visit_List(Compiler *compiler, Node *node) {
     }
 }
 
-void visit_Map(Compiler *compiler, Node *node) {
+void visit_Map(Compiler *compiler, const Node *const node) {
     bb_add_byte(compiler->buffer, NEWMAP);
     int i;
     for (i = 0; i < node->children[0]->children_len; i++) {
@@ -670,7 +697,7 @@ void visit_Map(Compiler *compiler, Node *node) {
 
 
 
-void visit(Compiler* compiler, Node* node) {
+void visit(Compiler* compiler, const Node *const node) {
     switch(node->nodetype) {
     case N_EXPRSTMT:
         YASL_DEBUG_LOG("%s\n", "Visit ExprStmt");

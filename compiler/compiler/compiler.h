@@ -55,10 +55,4 @@ void compile(Compiler *compiler);
 void enter_scope(Compiler *compiler);
 void exit_scope(Compiler *compiler);
 
-void visit_Block(Compiler *compiler, Node *node);
-void visit_Print(Compiler *compiler, Node *node);
-void visit_UnOp(Compiler *compiler, Node *node);
-void visit_Var(Compiler *compiler, Node *node);
-void visit_Undef(Compiler *compiler, Node *node);
-void visit_String(Compiler *compiler, Node *node);
-void visit(Compiler *compiler, Node* node);
+void visit(Compiler *compiler, const Node *const node);

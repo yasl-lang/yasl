@@ -310,10 +310,24 @@ void run(VM* vm){
                 a = vm->stack[vm->sp];
                 if (a.type == STR8 && b.type == STR8) {
                     size = (a.value.sval)->length + (b.value.sval)->length;
-                    vm->stack[vm->sp].value.sval = new_sized_string8(size);
+                    ptr = new_sized_string8(size);
+                    vm->stack[vm->sp].value.sval = ptr;
                     (vm->stack[vm->sp].value.sval)->length = size;
                     memcpy(((String_t*)ptr)->str, (a.value.sval)->str, (a.value.sval)->length);
                     memcpy(((String_t*)ptr)->str + (a.value.sval)->length, (b.value.sval)->str, (b.value.sval)->length);
+                    break;
+                } else if (a.type == LIST && b.type == LIST) {
+                    size = a.value.lval->count + b.value.lval->count;
+                    ptr = new_sized_list(size);
+                    vm->stack[vm->sp].value.lval = ptr;
+                    // TODO: optimise this.
+                    int i;
+                    for (i = 0; i < a.value.lval->count; i++) {
+                        ls_append(ptr, a.value.lval->items[i]);
+                    }
+                    for (i = 0; i < b.value.lval->count; i++) {
+                        ls_append(ptr, b.value.lval->items[i]);
+                    }
                     break;
                 }
                 printf("TypeError: || not supported for operands of types %s and %s.\n",
@@ -333,7 +347,8 @@ void run(VM* vm){
                     break;
                 }
                 size = (a.value.sval)->length + (b.value.sval)->length + 1;
-                vm->stack[vm->sp].value.sval = new_sized_string8(size);
+                ptr = new_sized_string8(size);
+                vm->stack[vm->sp].value.sval = ptr; //ew_sized_string8(size);
                 (vm->stack[vm->sp].value.sval)->length = size;
                 memcpy(((String_t*)ptr)->str, (a.value.sval)->str, (a.value.sval)->length);
                 (PEEK(vm).value.sval)->str[(a.value.sval)->length] = ' ';
