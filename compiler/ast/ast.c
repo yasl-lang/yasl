@@ -34,7 +34,7 @@ Node *new_Node_1(AST nodetype, Token type, Node *child, char *name, int64_t name
     Node *node = malloc(sizeof(Node));
     node->nodetype = nodetype;
     node->type = type;
-    node->children = malloc(sizeof(Node*));
+    node->children = malloc(1 * sizeof(Node*));
     node->children[0] = child;
     node->children_len = 1;
     node->name_len = name_len;
@@ -52,7 +52,7 @@ Node *new_Node_2(AST nodetype, Token type, Node *child1, Node *child2, char *nam
     Node *node = malloc(sizeof(Node));
     node->nodetype = nodetype;
     node->type = type;
-    node->children = malloc(sizeof(Node*));
+    node->children = malloc(2 * sizeof(Node*));
     node->children[0] = child1;
     node->children[1] = child2;
     node->children_len = 2;
@@ -71,7 +71,7 @@ Node *new_Node_3(AST nodetype, Token type, Node *child1, Node *child2, Node *chi
     Node *node = malloc(sizeof(Node));
     node->nodetype = nodetype;
     node->type = type;
-    node->children = malloc(sizeof(Node*));
+    node->children = malloc(3 * sizeof(Node*));
     node->children[0] = child1;
     node->children[1] = child2;
     node->children[2] = child3;

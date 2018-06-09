@@ -26,6 +26,11 @@ int main(int argc, char** argv) {
             return -2;
         }
     } else {
+        //printf("YASL> ");
+        //Compiler *compiler = compiler_new(parser_new(lex_new(stdin)));
+        //compile(compiler);
+        //compiler_del(compiler);
+
         file_ptr = fopen("source.yb", "rb");
         if(file_ptr == NULL) {
             printf("ERROR: Could not default open source file \"source.yb\".\n");
@@ -57,6 +62,7 @@ int main(int argc, char** argv) {
                    256);   // locals to be reserved, should be num_globals
     run(vm);
     delVM(vm);
+    free(buffer);
     fclose(file_ptr);
     return 0;
 };
