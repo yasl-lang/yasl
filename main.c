@@ -9,12 +9,11 @@
 // VTable_t *float64_vtable, *int64_vtable, *str8_vtable, *list_vtable, *hash_vtable;
 
 
-char *buffer;
-FILE *file_ptr;
-long file_len;
-int64_t entry_point, num_globals;
-
 int main(int argc, char** argv) {
+    char *buffer;
+    FILE *file_ptr;
+    long file_len;
+    int64_t entry_point, num_globals;
 
     if (argc > 2) {
         printf("ERROR: Too many arguments passed.\nUsage is: YASL [path/to/byte-code.yb]\nDefault path is \"source.yb\"\n");
