@@ -417,6 +417,11 @@ Node *parse_call(Parser *parser) {
 Node *parse_constant(Parser *parser) {
     switch (curtok(parser)) {
         case T_ID: return parse_id(parser);
+        case T_LPAR:
+            eattok(parser, T_LPAR);
+            Node *expr = parse_expr(parser);
+            eattok(parser, T_RPAR);
+            return expr;
         case T_LSQB: return parse_collection(parser);
         case T_STR: return parse_string(parser);
         case T_INT64: return parse_integer(parser);
