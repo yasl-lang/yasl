@@ -72,6 +72,7 @@ void compiler_del(Compiler *compiler) {
     del_hash_string_int(compiler->functions);
     del_hash_string_int(compiler->functions_locals_len);
     del_hash_string_int(compiler->methods);
+    del_hash_string_int(compiler->builtins);
 
     env_del(compiler->globals);
     env_del(compiler->locals);
@@ -126,7 +127,7 @@ void compile(Compiler *compiler) {
             node = parse(compiler->parser);
             eattok(compiler->parser, T_SEMI);
             YASL_DEBUG_LOG("eaten semi. type: %s, ", YASL_TOKEN_NAMES[compiler->parser->lex->type]);
-            YASL_DEBUG_LOG("value: %s\n", compiler->parser->lex->value);
+            //YASL_DEBUG_LOG("value: %s\n", compiler->parser->lex->value);
             YASL_DEBUG_LOG("%s\n", "about to visit.");
             visit(compiler, node);
             YASL_DEBUG_LOG("%s\n", "visited.");
