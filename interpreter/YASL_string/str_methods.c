@@ -187,10 +187,12 @@ int str_search(VM* vm) {
         return -1;
     }
     if (((haystack.value.sval)->length < (needle.value.sval)->length)) {
-        vm->stack[++vm->sp] = (YASL_Object) {INT64, -1};
+        vm->stack[++vm->sp] = (YASL_Object) {UNDEF, 0};
         return 0;
     }
-    vm->stack[++vm->sp] = (YASL_Object) {INT64, string8_search(haystack.value.sval, needle.value.sval)};
+    int64_t index = string8_search(haystack.value.sval, needle.value.sval);
+    if (index != -1) vm->stack[++vm->sp] = (YASL_Object) {INT64, index };
+    else vm->stack[++vm->sp] = (YASL_Object) {UNDEF, 0};
     return 0;
 }
 
