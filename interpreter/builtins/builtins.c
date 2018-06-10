@@ -178,6 +178,9 @@ VTable_t* str8_builtins() {
     vt_insert(vt, M_ENDSWITH,   (int64_t)&str_endswith);
     vt_insert(vt, M_SEARCH,     (int64_t)&str_search);
     vt_insert(vt, M_SPLIT,      (int64_t)&str_split);
+    vt_insert(vt, M_LTRIM,      (int64_t)&str_ltrim);
+    vt_insert(vt, M_RTRIM,      (int64_t)&str_rtrim);
+    vt_insert(vt, M_TRIM,      (int64_t)&str_trim);
     vt_insert(vt, M___GET,      (int64_t)&str___get);
     return vt;
 }

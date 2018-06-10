@@ -32,3 +32,9 @@ int str_endswith(VM* vm);
 int str_search(VM* vm);
 
 int str_split(VM* vm);
+
+int str_ltrim(VM *vm);
+
+int str_rtrim(VM *vm);
+
+int str_trim(VM *vm);

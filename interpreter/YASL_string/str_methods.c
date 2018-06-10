@@ -1,4 +1,6 @@
+#include <interpreter/YASL_Object/YASL_Object.h>
 #include "str_methods.h"
+#include "YASL_string.h"
 
 int str___get(VM *vm) {
     String_t *str = POP(vm).value.sval;
@@ -220,5 +222,75 @@ int str_split(VM* vm) {
             {STR8, (int64_t)new_sized_string8_from_mem((haystack.value.sval)->length - start,
                                      (haystack.value.sval)->str+start)});
     vm->stack[++vm->sp] = (YASL_Object) {LIST, (int64_t)result};
+    return 0;
+}
+
+int str_ltrim(VM *vm) {
+    YASL_Object haystack = POP(vm);
+    YASL_Object needle = POP(vm);
+    if (needle.type != STR8) {
+        printf("Error: str.ltrim(...) expected type %x as first argument, got type %x\n", STR8, needle.type);
+        return -1;
+    }
+    int64_t start=0;
+    while(haystack.value.sval->length - start >= needle.value.sval->length &&
+          !memcmp(haystack.value.sval->str + start,
+                  needle.value.sval->str,
+                  needle.value.sval->length)) {
+        start += needle.value.sval->length;
+    }
+
+    PUSH(vm, ((YASL_Object) {STR8, (int64_t)new_sized_string8_from_mem(haystack.value.sval->length - start,
+                                                                       haystack.value.sval->str + start)}));
+
+    return 0;
+}
+
+int str_rtrim(VM *vm) {
+    YASL_Object haystack = POP(vm);
+    YASL_Object needle = POP(vm);
+    if (needle.type != STR8) {
+        printf("Error: str.rtrim(...) expected type %x as first argument, got type %x\n", STR8, needle.type);
+        return -1;
+    }
+    int64_t end=haystack.value.sval->length;
+    while(end >= needle.value.sval->length &&
+          !memcmp(haystack.value.sval->str + end - needle.value.sval->length,
+                  needle.value.sval->str,
+                  needle.value.sval->length)) {
+        end -= needle.value.sval->length;
+    }
+
+    PUSH(vm, ((YASL_Object) {STR8, (int64_t)new_sized_string8_from_mem(end, haystack.value.sval->str)}));
+
+    return 0;
+}
+
+int str_trim(VM *vm) {
+    YASL_Object haystack = POP(vm);
+    YASL_Object needle = POP(vm);
+    if (needle.type != STR8) {
+        printf("Error: str.trim(...) expected type %x as first argument, got type %x\n", STR8, needle.type);
+        return -1;
+    }
+
+    int64_t start=0;
+    while(haystack.value.sval->length - start >= needle.value.sval->length &&
+          !memcmp(haystack.value.sval->str + start,
+                  needle.value.sval->str,
+                  needle.value.sval->length)) {
+        start += needle.value.sval->length;
+    }
+
+    int64_t end=haystack.value.sval->length;
+    while(end >= needle.value.sval->length &&
+          !memcmp(haystack.value.sval->str + end - needle.value.sval->length,
+                  needle.value.sval->str,
+                  needle.value.sval->length)) {
+        end -= needle.value.sval->length;
+    }
+
+    PUSH(vm, ((YASL_Object) {STR8, (int64_t)new_sized_string8_from_mem(end - start, haystack.value.sval->str + start)}));
+
     return 0;
 }

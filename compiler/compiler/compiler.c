@@ -36,6 +36,9 @@ Compiler *compiler_new(Parser* parser) {
     ht_insert_string_int(compiler->methods, "endswith", strlen("endswith"), M_ENDSWITH);
     ht_insert_string_int(compiler->methods, "search", strlen("search"), M_SEARCH);
     ht_insert_string_int(compiler->methods, "split", strlen("split"), M_SPLIT);
+    ht_insert_string_int(compiler->methods, "ltrim", strlen("ltrim"), M_LTRIM);
+    ht_insert_string_int(compiler->methods, "rtrim", strlen("rtrim"), M_RTRIM);
+    ht_insert_string_int(compiler->methods, "trim", strlen("trim"), M_TRIM);
 
     ht_insert_string_int(compiler->methods, "append", strlen("append"), M_APPEND);
 
