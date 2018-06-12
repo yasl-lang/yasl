@@ -382,9 +382,8 @@ Node *parse_call(Parser *parser) {
             eattok(parser, T_DOT);
             Node *right = parse_constant(parser);
             if (right->nodetype == N_CALL) {
-                Node *method = new_MethodCall(cur_node, right->children[0], right->name, right->name_len, right->line);
+                cur_node = new_MethodCall(cur_node, right->children[0], right->name, right->name_len, right->line);
                 free(right);
-                return method;
             } else {
                 puts("Invalid member access");
                 exit(EXIT_FAILURE);
