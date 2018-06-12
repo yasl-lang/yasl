@@ -392,19 +392,17 @@ void run(VM* vm){
             case NEWSTR8:
                 vm->stack[++vm->sp].type = STR8;
 
-                memcpy(&size, vm->code+vm->pc, sizeof(int64_t));
-                vm->pc += sizeof(int64_t);
-
                 memcpy(&addr, vm->code+vm->pc, sizeof(int64_t));
                 vm->pc += sizeof(int64_t);
 
+                memcpy(&size, vm->code + addr, sizeof(int64_t));
+
                 vm->stack[vm->sp].value.sval  = new_sized_string8(size);
 
+                vm->stack[vm->sp].value.sval->length = size;
 
-                ((vm->stack[vm->sp].value.sval))->length = size;
+                memcpy(vm->stack[vm->sp].value.sval->str, vm->code+addr+sizeof(int64_t), size);
 
-                memcpy((vm->stack[vm->sp].value.sval)->str, vm->code+addr, size);
-                //vm->pc += size;
                 break;
             case NEWMAP:
                 vm->stack[++vm->sp].type = MAP;

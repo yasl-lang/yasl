@@ -661,13 +661,13 @@ void visit_String(Compiler* compiler, const Node *const node) {
     if (value == NULL) {
         YASL_DEBUG_LOG("%s\n", "caching string");
         ht_insert_string_int(compiler->strings, node->name, node->name_len, compiler->header->count);
+        bb_intbytes8(compiler->header, node->name_len);
         bb_append(compiler->header, node->name, node->name_len);
     }
 
     value = ht_search_string_int(compiler->strings, node->name, node->name_len);
 
     bb_add_byte(compiler->buffer, NEWSTR8);
-    bb_intbytes8(compiler->buffer, node->name_len);
     bb_intbytes8(compiler->buffer, value->value.ival);
 }
 
