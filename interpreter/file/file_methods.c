@@ -34,15 +34,18 @@ int file_write(VM* vm) {
         printf("Error: file.write expected type %s as first argument, got type %s\n", YASL_TYPE_NAMES[STR8], YASL_TYPE_NAMES[str.type]);
         return -1;
     }
-    char *buffer = malloc((str.value.sval)->length + 1);
+    // TODO: don't rely on C-strings for writing
+    char *buffer = malloc((str.value.sval)->length+1);
     memcpy(buffer, (str.value.sval)->str, (str.value.sval)->length);
     buffer[(str.value.sval)->length] = '\0';
-    if (fprintf(fileh.value.fval, "%s", (str.value.sval)->str) < 0) {
+    if (fprintf(fileh.value.fval, "%s", buffer) < 0) {
         YASL_DEBUG_LOG("%s\n", "error writing to file.");
         BPUSH(vm, 0);
+    } else {
+        YASL_DEBUG_LOG("%s\n", "file written to successfully.");
+        BPUSH(vm, 1);
     }
-    YASL_DEBUG_LOG("%s\n", "file written to successfully.");
-    BPUSH(vm, 1);
+    free(buffer);
     return 0;
 }
 

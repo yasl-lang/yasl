@@ -62,14 +62,14 @@ Node *parse_fn(Parser *parser) {
     memcpy(name, parser->lex->value, parser->lex->val_len);
     int64_t name_len = parser->lex->val_len;
     eattok(parser, T_ID);
-    eattok(parser, T_COLON);
+    eattok(parser, T_LPAR);
     Node *block = new_Block(parser->lex->line);
     while (curtok(parser) == T_ID) {
         block_append(block, parse_id(parser));
         if (curtok(parser) == T_COMMA) eattok(parser, T_COMMA);
         else break;
     }
-    eattok(parser, T_RARR);
+    eattok(parser, T_RPAR);
     eattok(parser, T_LBRC);
     Node *body = new_Block(parser->lex->line);
     while (curtok(parser) != T_RBRC) {
