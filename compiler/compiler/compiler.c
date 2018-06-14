@@ -129,11 +129,11 @@ void compile(Compiler *compiler) {
             if (peof(compiler->parser)) break;
             node = parse(compiler->parser);
             eattok(compiler->parser, T_SEMI);
-            YASL_DEBUG_LOG("eaten semi. type: %s, ", YASL_TOKEN_NAMES[compiler->parser->lex->type]);
+            //YASL_DEBUG_LOG("eaten semi. type: %s, ", YASL_TOKEN_NAMES[compiler->parser->lex->type]);
             //YASL_DEBUG_LOG("value: %s\n", compiler->parser->lex->value);
-            YASL_DEBUG_LOG("%s\n", "about to visit.");
+            //YASL_DEBUG_LOG("%s\n", "about to visit statement.");
             visit(compiler, node);
-            YASL_DEBUG_LOG("%s\n", "visited.");
+            //YASL_DEBUG_LOG("%s\n", "visited.");
             bb_append(compiler->code, compiler->buffer->bytes, compiler->buffer->count);
             compiler->buffer->count = 0;
             node_del(node);
@@ -183,7 +183,7 @@ void visit_FunctionDecl(Compiler *compiler, const Node *const node) {
 
     // use offset to compute offsets for locals, in other functions.
     compiler->offset = node->children[0]->children_len;
-    YASL_DEBUG_LOG("compiler->offset is: %d\n", compiler->offset);
+    //YASL_DEBUG_LOG("compiler->offset is: %d\n", compiler->offset);
 
     compiler->locals = env_new(compiler->locals);
 
@@ -199,7 +199,7 @@ void visit_FunctionDecl(Compiler *compiler, const Node *const node) {
 
     visit_Block(compiler, node->children[1]);
 
-    YASL_DEBUG_LOG("tried to insert function, result was %d.\n", ht_search_string_int(compiler->functions, node->name, node->name_len) != NULL);
+    //YASL_DEBUG_LOG("tried to insert function, result was %d.\n", ht_search_string_int(compiler->functions, node->name, node->name_len) != NULL);
 
     bb_append(compiler->header, compiler->buffer->bytes, compiler->buffer->count);
     bb_add_byte(compiler->header, NCONST);
@@ -232,6 +232,7 @@ void visit_FunctionDecl(Compiler *compiler, const Node *const node) {
 }
 
 void visit_Call(Compiler *compiler, const Node *const node) {
+    YASL_TRACE_LOG("Visit Call: %s\n", node->name);
     // TODO: error handling on number of arguments.
     /*
     def visit_FunctionCall(self, node):
@@ -244,8 +245,13 @@ void visit_Call(Compiler *compiler, const Node *const node) {
                          intbytes_8(self.fns[node.token.value]["addr"]) + \
                          [self.fns[node.token.value]["locals"]]
      */
-    YASL_DEBUG_LOG("visiting call %s\n", node->name);
+    //YASL_DEBUG_LOG("visiting call %s\n", node->name);
     visit_Block(compiler, node->children[0]);
+    //YASL_TRACE_LOG("Visiting Block with %d children in reverse.\n", node->children_len);
+    //int i;
+    //for (i = node->children_len - 1; i >= 0; i--) {
+    //    visit(compiler, node->children[i]);
+    //}
 
     if (ht_search_string_int(compiler->builtins, node->name, node->name_len)) {
         bb_add_byte(compiler->buffer, BCALL_8);
@@ -256,7 +262,7 @@ void visit_Call(Compiler *compiler, const Node *const node) {
             exit(EXIT_FAILURE);
         }
 
-        visit_Block(compiler, node->children[0]);
+        //visit_Block(compiler, node->children[0]);
 
         bb_add_byte(compiler->buffer, CALL_8);
 
@@ -311,7 +317,7 @@ void visit_Index(Compiler *compiler, const Node *const node) {
 }
 
 void visit_Block(Compiler *compiler, const Node *const node) {
-    YASL_DEBUG_LOG("the block has %d children.\n", node->children_len);
+    YASL_TRACE_LOG("Visiting Block with %d children.\n", node->children_len);
     int i;
     for (i = 0; i < node->children_len; i++) {
         visit(compiler, node->children[i]);
@@ -597,8 +603,10 @@ void visit_Assign(Compiler *compiler, const Node *const node) {
 }
 
 void visit_Var(Compiler *compiler, const Node *const node) {
-    printf("%s is global: %d\n", node->name, env_contains(compiler->globals, node->name, node->name_len));
-    printf("%s is local: %d\n", node->name, env_contains(compiler->locals, node->name, node->name_len));
+    YASL_TRACE_LOG("%s is global: ", node->name);
+    YASL_TRACE_LOG("%d\n", env_contains(compiler->globals, node->name, node->name_len));
+    YASL_TRACE_LOG("%s is local: ", node->name);
+    YASL_TRACE_LOG("%d\n", env_contains(compiler->locals, node->name, node->name_len));
     if (!env_contains(compiler->globals, node->name, node->name_len) &&
         !env_contains(compiler->locals, node->name, node->name_len)) {
         printf("unknown variable: %s\n", node->name);
@@ -620,12 +628,14 @@ void visit_Undef(Compiler *compiler, const Node *const node) {
 }
 
 void visit_Float(Compiler *compiler, const Node *const node) {
+    YASL_TRACE_LOG("float64: %s\n", node->name);
     bb_add_byte(compiler->buffer, DCONST);
     bb_floatbytes8(compiler->buffer, strtod(node->name, (char**)NULL));
 }
 
 void visit_Integer(Compiler *compiler, const Node *const node) {
     bb_add_byte(compiler->buffer, ICONST);
+    YASL_TRACE_LOG("int64: %s\n", node->name);
     if (node->name_len < 2) {
         bb_intbytes8(compiler->buffer, (int64_t)strtoll(node->name, (char**)NULL, 10));
         return;
@@ -704,103 +714,103 @@ void visit_Map(Compiler *compiler, const Node *const node) {
 void visit(Compiler* compiler, const Node *const node) {
     switch(node->nodetype) {
     case N_EXPRSTMT:
-        YASL_DEBUG_LOG("%s\n", "Visit ExprStmt");
+        YASL_TRACE_LOG("%s\n", "Visit ExprStmt");
         visit_ExprStmt(compiler, node);
         break;
     case N_BLOCK:
-        YASL_DEBUG_LOG("%s\n", "Visit Block");
+        YASL_TRACE_LOG("%s\n", "Visit Block");
         visit_Block(compiler, node);
         break;
     case N_FNDECL:
-        YASL_DEBUG_LOG("%s\n", "Visit FunctionDecl");
+        YASL_TRACE_LOG("%s\n", "Visit FunctionDecl");
         visit_FunctionDecl(compiler, node);
         break;
     case N_CALL:
-        YASL_DEBUG_LOG("%s\n", "Visit Call");
+        YASL_TRACE_LOG("%s\n", "Visit Call");
         visit_Call(compiler, node);
         break;
     case N_RET:
-        YASL_DEBUG_LOG("%s\n", "Visit Return");
+        YASL_TRACE_LOG("%s\n", "Visit Return");
         visit_Return(compiler, node);
         break;
     case N_METHOD:
-        YASL_DEBUG_LOG("%s\n", "Visit Method Call");
+        YASL_TRACE_LOG("%s\n", "Visit Method Call");
         visit_Method(compiler, node);
         break;
     case N_INDEX:
-        YASL_DEBUG_LOG("%s\n", "Visit Index");
+        YASL_TRACE_LOG("%s\n", "Visit Index");
         visit_Index(compiler, node);
         break;
     case N_WHILE:
-        YASL_DEBUG_LOG("%s\n", "Visit While");
+        YASL_TRACE_LOG("%s\n", "Visit While");
         visit_While(compiler, node);
         break;
     case N_BREAK:
-        YASL_DEBUG_LOG("%s\n", "Visit Break");
+        YASL_TRACE_LOG("%s\n", "Visit Break");
         visit_Break(compiler, node);
         break;
     case N_CONT:
-        YASL_DEBUG_LOG("%s\n", "Visit Continue");
+        YASL_TRACE_LOG("%s\n", "Visit Continue");
         visit_Continue(compiler, node);
         break;
     case N_IF:
-        YASL_DEBUG_LOG("%s\n", "Visit If");
+        YASL_TRACE_LOG("%s\n", "Visit If");
         visit_If(compiler, node);
         break;
     case N_PRINT:
-        YASL_DEBUG_LOG("%s\n", "Visit Print");
+        YASL_TRACE_LOG("%s\n", "Visit Print");
         visit_Print(compiler, node);
         break;
     case N_LET:
-        YASL_DEBUG_LOG("%s\n", "Visit Let");
+        YASL_TRACE_LOG("%s\n", "Visit Let");
         visit_Let(compiler, node);
         break;
     case N_TRIOP:
-        YASL_DEBUG_LOG("%s\n", "Visit TriOp");
+        YASL_TRACE_LOG("%s\n", "Visit TriOp");
         visit_TriOp(compiler, node);
         break;
     case N_BINOP:
-        YASL_DEBUG_LOG("%s\n", "Visit BinOp");
+        YASL_TRACE_LOG("%s\n", "Visit BinOp");
         visit_BinOp(compiler, node);
         break;
     case N_UNOP:
-        YASL_DEBUG_LOG("%s\n", "Visit UnOp");
+        YASL_TRACE_LOG("%s\n", "Visit UnOp");
         visit_UnOp(compiler, node);
         break;
     case N_ASSIGN:
-        YASL_DEBUG_LOG("%s\n", "Visit Assign");
+        YASL_TRACE_LOG("%s\n", "Visit Assign");
         visit_Assign(compiler, node);
         break;
     case N_VAR:
-        YASL_DEBUG_LOG("%s\n", "Visit Var");
+        YASL_TRACE_LOG("%s\n", "Visit Var");
         visit_Var(compiler, node);
         break;
     case N_UNDEF:
-        YASL_DEBUG_LOG("%s\n", "Visit Undef");
+        YASL_TRACE_LOG("%s\n", "Visit Undef");
         visit_Undef(compiler, node);
         break;
     case N_FLOAT64:
-        YASL_DEBUG_LOG("%s\n", "Visit Float");
+        YASL_TRACE_LOG("%s\n", "Visit Float");
         visit_Float(compiler, node);
         break;
     case N_INT64:
-        YASL_DEBUG_LOG("%s\n", "Visit Integer");
+        YASL_TRACE_LOG("%s\n", "Visit Integer");
         visit_Integer(compiler, node);
         break;
     case N_BOOL:
-        YASL_DEBUG_LOG("%s\n", "Visit Boolean");
+        YASL_TRACE_LOG("%s\n", "Visit Boolean");
         visit_Boolean(compiler, node);
         break;
     case N_STR:
-        YASL_DEBUG_LOG("%s\n", "Visit String");
+        YASL_TRACE_LOG("%s\n", "Visit String");
         visit_String(compiler, node);
         break;
     case N_LIST:
-        YASL_DEBUG_LOG("%s\n", "Visit List");
+        YASL_TRACE_LOG("%s\n", "Visit List");
         visit_List(compiler, node);
         break;
     case N_MAP:
-        YASL_DEBUG_LOG("%s\n", "Visit Map");
+        YASL_TRACE_LOG("%s\n", "Visit Map");
         visit_Map(compiler, node);
         break;
     default:

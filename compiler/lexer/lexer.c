@@ -88,6 +88,8 @@ void gettok(Lexer *lex) {
                     lex->value = realloc(lex->value, lex->val_len);
                 }
             } while (!feof(lex->file) && isxdigit(c1));    // isxdigit checks if a hex digit.
+            if (i == lex->val_len) lex->value = realloc(lex->value, i + 1);
+            lex->value[i] = '\0';
             lex->type = T_INT64;
             if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
             return;
@@ -103,6 +105,8 @@ void gettok(Lexer *lex) {
                     lex->value = realloc(lex->value, lex->val_len);
                 }
             } while (!feof(lex->file) && isbdigit(c1));    // isbdigit checks if a binary digit ('1' or '0').
+            if (i == lex->val_len) lex->value = realloc(lex->value, i + 1);
+            lex->value[i] = '\0';
             lex->type = T_INT64;
             if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
             return;
@@ -118,6 +122,8 @@ void gettok(Lexer *lex) {
                     lex->value = realloc(lex->value, lex->val_len);
                 }
             } while (!feof(lex->file) && isodigit(c1));    // isodigit checks if an octal digit.
+            if (i == lex->val_len) lex->value = realloc(lex->value, i + 1);
+            lex->value[i] = '\0';
             lex->type = T_INT64;
             if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
             return;
@@ -134,6 +140,8 @@ void gettok(Lexer *lex) {
             }
         } while (!feof(lex->file) && isdigit(c1));
         lex->type = T_INT64;
+        if (i == lex->val_len) lex->value = realloc(lex->value, i + 1);
+        lex->value[i] = '\0';
         //printf("lex->value: %s\n", lex->value);
         if (c1 == '.') {                    // floats
             c2 = fgetc(lex->file);
@@ -155,6 +163,8 @@ void gettok(Lexer *lex) {
                 }
             } while (!feof(lex->file) && isdigit(c1));
 
+            if (i == lex->val_len) lex->value = realloc(lex->value, i + 1);
+            lex->value[i] = '\0';
             if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
             lex->type = T_FLOAT64;
             return;

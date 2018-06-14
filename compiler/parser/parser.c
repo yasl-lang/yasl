@@ -14,7 +14,7 @@ void parser_del(Parser *parser) {
 };
 
 Token eattok(Parser *parser, Token token) {
-    YASL_DEBUG_LOG("%s\n", YASL_TOKEN_NAMES[curtok(parser)]);
+    //YASL_TRACE_LOG("current token is %s\n", YASL_TOKEN_NAMES[curtok(parser)]);
     if (curtok(parser) != token) {
         printf("ParsingError: Expected %x, got %x\n", token, curtok(parser));
         printf("ParsingError: Expected %s, got %s\n", YASL_TOKEN_NAMES[token], YASL_TOKEN_NAMES[curtok(parser)]);
@@ -29,8 +29,8 @@ Node *parse(Parser *parser) {
 }
 
 Node *parse_program(Parser *parser) {
-    YASL_DEBUG_LOG("parse. type: %s, ", YASL_TOKEN_NAMES[curtok(parser)]);
-    YASL_DEBUG_LOG("value: %s\n", parser->lex->value);
+    //YASL_DEBUG_LOG("parse. type: %s, ", YASL_TOKEN_NAMES[curtok(parser)]);
+    //YASL_DEBUG_LOG("value: %s\n", parser->lex->value);
     switch (curtok(parser)) {
         case T_PRINT:
             eattok(parser, T_PRINT);
@@ -45,6 +45,7 @@ Node *parse_program(Parser *parser) {
             eattok(parser, T_BREAK);
             return new_Break(parser->lex->line);
         case T_CONT:
+            eattok(parser, T_CONT);
             eattok(parser, T_CONT);
             return new_Continue(parser->lex->line);
         case T_IF: return parse_if(parser);
@@ -188,7 +189,7 @@ Node *parse_if(Parser *parser) {
 }
 
 Node *parse_expr(Parser *parser) {
-    YASL_DEBUG_LOG("%s\n", "parsing expression.");
+    YASL_TRACE_LOG("%s\n", "parsing expression.");
     return parse_assign(parser);
 }
 
@@ -452,9 +453,8 @@ Node *parse_id(Parser *parser) {
     int64_t name_len = parser->lex->val_len;
     eattok(parser, T_ID);
     if (curtok(parser) == T_LPAR) {
-        YASL_DEBUG_LOG("%s\n", "function call.");
+        YASL_TRACE_LOG("%s\n", "Parsing function call");
         Node *cur_node = new_FunctionCall(new_Block(parser->lex->line), name, name_len, parser->lex->line);
-        YASL_DEBUG_LOG("%d parametres.\n", cur_node->children[0]->children_len);
         eattok(parser, T_LPAR);
         while (curtok(parser) != T_RPAR && curtok(parser) != T_EOF) {
             block_append(cur_node->children[0], parse_expr(parser));
@@ -462,9 +462,9 @@ Node *parse_id(Parser *parser) {
             eattok(parser, T_COMMA);
         }
         eattok(parser, T_RPAR);
-        YASL_DEBUG_LOG("%d parametres.\n", cur_node->children[0]->children_len);
         return cur_node;
     } else {
+        YASL_TRACE_LOG("%s\n", "Parsing variable");
         Node *cur_node = new_Var(name, name_len, parser->lex->line);
         free(name);
         return cur_node;
@@ -472,35 +472,35 @@ Node *parse_id(Parser *parser) {
 }
 
 Node *parse_undef(Parser *parser) {
-    YASL_DEBUG_LOG("undef literal: %s\n", parser->lex->value);
+    YASL_TRACE_LOG("%s\n", "Parsing undef");
     Node *cur_node = new_Undef(parser->lex->line);
     eattok(parser, T_UNDEF);
     return cur_node;
 }
 
 Node *parse_float(Parser *parser) {
-    YASL_DEBUG_LOG("float literal: %s\n", parser->lex->value);
+    YASL_TRACE_LOG("%s\n", "Parsing float64");
     Node* cur_node = new_Float(parser->lex->value, parser->lex->val_len, parser->lex->line);
     eattok(parser, T_FLOAT64);
     return cur_node;
 }
 
 Node *parse_integer(Parser *parser) {
-    YASL_DEBUG_LOG("integer literal: %s\n", parser->lex->value);
+    YASL_TRACE_LOG("%s\n", "Parsing int64");
     Node *cur_node = new_Integer(parser->lex->value, parser->lex->val_len, parser->lex->line);
     eattok(parser, T_INT64);
     return cur_node;
 }
 
 Node *parse_boolean(Parser *parser) {
-    YASL_DEBUG_LOG("boolean literal: %s\n", parser->lex->value);
+    YASL_TRACE_LOG("%s\n", "Parsing bool");
     Node *cur_node = new_Boolean(parser->lex->value, parser->lex->val_len, parser->lex->line);
     eattok(parser, T_BOOL);
     return cur_node;
 }
 
 Node *parse_string(Parser *parser) {
-    YASL_DEBUG_LOG("string literal: %s\n", parser->lex->value);
+    YASL_TRACE_LOG("%s\n", "Parsing str");
     Node *cur_node = new_String(parser->lex->value, parser->lex->val_len, parser->lex->line);
     eattok(parser, T_STR);
     return cur_node;
@@ -514,7 +514,7 @@ Node *parse_collection(Parser *parser) {
 
     // empty map
     if (curtok(parser) == T_RARR) {
-        YASL_DEBUG_LOG("empty map literal: %s\n", parser->lex->value);
+        YASL_TRACE_LOG("%s\n", "Parsing map");
         eattok(parser, T_RARR);
         eattok(parser, T_RSQB);
         return new_Map(keys, vals, parser->lex->line);
@@ -522,7 +522,7 @@ Node *parse_collection(Parser *parser) {
 
     // empty list
     if (curtok(parser) == T_RSQB) {
-        YASL_DEBUG_LOG("empty list literal: %s\n", parser->lex->value);
+        YASL_TRACE_LOG("%s\n", "Parsing list");
         node_del(vals);
         eattok(parser, T_RSQB);
         return new_List(keys, parser->lex->line);
@@ -532,7 +532,7 @@ Node *parse_collection(Parser *parser) {
 
     // non-empty map
     if (curtok(parser) == T_RARR) {
-        YASL_DEBUG_LOG("map literal: %s\n", parser->lex->value);
+        YASL_TRACE_LOG("%s\n", "Parsing map");
         eattok(parser, T_RARR);
         block_append(vals, parse_expr(parser));
         while (curtok(parser) == T_COMMA) {
@@ -548,7 +548,7 @@ Node *parse_collection(Parser *parser) {
     // non-empty list
     node_del(vals);
     while (curtok(parser) == T_COMMA) {
-        YASL_DEBUG_LOG("list literal: %s\n", parser->lex->value);
+        YASL_TRACE_LOG("%s\n", "Parsing list");
         eattok(parser, T_COMMA);
         block_append(keys, parse_expr(parser));
     }

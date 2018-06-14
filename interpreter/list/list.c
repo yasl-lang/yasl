@@ -79,8 +79,9 @@ void ls_append(List_t* ls, const YASL_Object value) {
 }
 
 YASL_Object ls_search(List_t* ls, int64_t index) {
-    if (index < 0 || index >= ls->size) return UNDEF_C; 
-    return ls->items[index];
+    if (index < -ls->count || index >= ls->count) return UNDEF_C;
+    else if (0 <= index) return ls->items[index];
+    else return ls->items[ls->count+index];
 }
 
 void ls_print(List_t* ls) {

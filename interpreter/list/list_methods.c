@@ -7,11 +7,13 @@ int list___get(VM *vm) {
     if (index.type != INT64) {
         return -1;
         PUSH(vm, UNDEF_C);
-    } else if (index.value.ival < 0 || index.value.ival >= ls->size) {
+    } else if (index.value.ival < -ls->count || index.value.ival >= ls->count) {
+        printf("IndexError\n");
         return -1;
         PUSH(vm, UNDEF_C);
     } else {
-        PUSH(vm, ls->items[index.value.ival]);
+        if (index.value.ival >= 0) PUSH(vm, ls->items[index.value.ival]);
+        else PUSH(vm, ls->items[index.value.ival + ls->count]);
     }
     return 0;
 }
@@ -23,11 +25,13 @@ int list___set(VM* vm) {
     if (index.type != INT64) {
         return -1;
         PUSH(vm, UNDEF_C);
-    } else if (index.value.ival < 0 || index.value.ival >= ls->size) {
+    } else if (index.value.ival < -ls->count || index.value.ival >= ls->count) {
+        printf("IndexError\n");
         return -1;
         PUSH(vm, UNDEF_C);
     } else {
-        ls->items[index.value.ival] = value;
+        if (index.value.ival >= 0) ls->items[index.value.ival] = value;
+        else ls->items[index.value.ival + ls->count] = value;
         PUSH(vm, value);
     }
     return 0;
@@ -39,5 +43,14 @@ int list_append(VM* vm) {
     YASL_Object val = POP(vm);
     ls_append(ls.value.lval, val);
     PUSH(vm, UNDEF_C);
+    return 0;
+}
+
+int list_search(VM* vm) {
+    YASL_Object haystack = POP(vm);
+    YASL_Object needle = POP(vm);
+    int64_t index = string8_search(haystack.value.sval, needle.value.sval);
+    if (index != -1) vm->stack[++vm->sp] = (YASL_Object) {INT64, index };
+    else vm->stack[++vm->sp] = (YASL_Object) {UNDEF, 0};
     return 0;
 }

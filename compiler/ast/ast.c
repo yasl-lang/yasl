@@ -97,11 +97,11 @@ Node *new_Block(int line) {
 }
 
 void block_append(Node *node, Node *child) {
-    YASL_DEBUG_LOG("%s\n", "appending to block");
-    YASL_DEBUG_LOG("block has %d children.\n", node->children_len);
+    YASL_TRACE_LOG("%s\n", "appending to block");
+    //YASL_DEBUG_LOG("block has %d children.\n", node->children_len);
     node->children = realloc(node->children, (++node->children_len)*sizeof(Node*));  //TODO: make better implementation
     node->children[node->children_len-1] = child;
-    YASL_DEBUG_LOG("block now has %d children.\n", node->children_len);
+    //YASL_DEBUG_LOG("block now has %d children.\n", node->children_len);
 }
 
 

@@ -2,6 +2,7 @@
 #include "parser/parser.h"
 #include "lexer/lexer.h"
 #include "compiler/compiler.h"
+#include <color.h>
 
 #include "interpreter/VM/VM.h"
 #include "interpreter/builtins/builtins.h"
@@ -10,6 +11,7 @@
 
 
 int main(int argc, char** argv) {
+    // puts(K_YEL "Y" K_RED "A" K_BLU "S" K_GRN "L" K_END "\n");
     char *buffer;
     FILE *file_ptr;
     long file_len;
