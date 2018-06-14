@@ -49,8 +49,12 @@ int list_append(VM* vm) {
 int list_search(VM* vm) {
     YASL_Object haystack = POP(vm);
     YASL_Object needle = POP(vm);
-    int64_t index = string8_search(haystack.value.sval, needle.value.sval);
-    if (index != -1) vm->stack[++vm->sp] = (YASL_Object) {INT64, index };
-    else vm->stack[++vm->sp] = (YASL_Object) {UNDEF, 0};
+    YASL_Object index = UNDEF_C;
+    int i;
+    for (i = 0; i < haystack.value.lval->count; i++) {
+        if (!FALSEY(isequal(haystack.value.lval->items[i], needle)))
+            index = (YASL_Object) { .type = INT64, .value.ival = i };
+    }
+    PUSH(vm, index);
     return 0;
 }

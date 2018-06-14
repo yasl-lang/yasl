@@ -190,6 +190,7 @@ VTable_t* list_builtins() {
     vt_insert(vt, M_APPEND, (int64_t)&list_append);
     vt_insert(vt, M___GET,  (int64_t)&list___get);
     vt_insert(vt, M___SET,  (int64_t)&list___set);
+    vt_insert(vt, M_SEARCH,  (int64_t)&list_search);
     return vt;
 }
 
