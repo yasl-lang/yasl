@@ -11,6 +11,16 @@ void gettok(Lexer *lex) {
     //printf("last char is %c\n", lastchar);
     c1 = fgetc(lex->file);
 
+    if (lex->line == 1 && c1 == '#') {                            // comments
+        c1 = fgetc(lex->file);
+        if (c1 == '!') {
+            while (!feof(lex->file) && fgetc(lex->file) != '\n') {}
+        } else {
+            fseek(lex->file, -2, SEEK_CUR);
+        }
+        c1 = fgetc(lex->file);
+    }
+
     while (!feof(lex->file) && (c1 == ' ' || c1 == '\n' || c1 == '\t') || c1 == '$') {
         while (!feof(lex->file) && (c1 == ' ' || c1 == '\n' || c1 == '\t')) {
             if (c1 == '\n') {
