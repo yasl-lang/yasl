@@ -16,7 +16,7 @@ void parser_del(Parser *parser) {
 Token eattok(Parser *parser, Token token) {
     //YASL_TRACE_LOG("current token is %s\n", YASL_TOKEN_NAMES[curtok(parser)]);
     if (curtok(parser) != token) {
-        printf("ParsingError: Expected %x, got %x\n", token, curtok(parser));
+        //printf("ParsingError: Expected %x, got %x\n", token, curtok(parser));
         printf("ParsingError: Expected %s, got %s\n", YASL_TOKEN_NAMES[token], YASL_TOKEN_NAMES[curtok(parser)]);
         exit(EXIT_FAILURE);
     }
@@ -31,6 +31,7 @@ Node *parse(Parser *parser) {
 Node *parse_program(Parser *parser) {
     //YASL_DEBUG_LOG("parse. type: %s, ", YASL_TOKEN_NAMES[curtok(parser)]);
     //YASL_DEBUG_LOG("value: %s\n", parser->lex->value);
+    YASL_TRACE_LOG("parsing statement in line %d\n", parser->lex->line);
     switch (curtok(parser)) {
         case T_PRINT:
             eattok(parser, T_PRINT);

@@ -1,57 +1,61 @@
+#include <debug.h>
 #include "lexer.h"
 #include "../token.h"
 
 void gettok(Lexer *lex) {
     //puts("getting next");
     //printf("%ld chars from the start.\n", ftell(lex->file));
+    YASL_TRACE_LOG("lexing line %d\n", lex->line);
     char c1, c2, c3, c4;
     int last;
     //printf("last char is %c\n", lastchar);
     c1 = fgetc(lex->file);
 
-    while (!feof(lex->file) && (c1 == ' ' || c1 == '\n' || c1 == '\t')) {
-        if (c1 == '\n') {
-            lex->line++;
-            if (ispotentialend(lex)) {
-                lex->type = T_SEMI;
-                return;
+    while (!feof(lex->file) && (c1 == ' ' || c1 == '\n' || c1 == '\t') || c1 == '$') {
+        while (!feof(lex->file) && (c1 == ' ' || c1 == '\n' || c1 == '\t')) {
+            if (c1 == '\n') {
+                lex->line++;
+                if (ispotentialend(lex)) {
+                    lex->type = T_SEMI;
+                    return;
+                }
             }
-        }
-        c1 = fgetc(lex->file);
-    }
-
-    if (feof(lex->file)) {
-        lex->type = T_EOF;
-        lex->value = realloc(lex->value, 0);
-        return;
-    }
-
-    if (c1 == '$') {                            // comments
-        c1 = fgetc(lex->file);
-        if (c1 == '$') {
-            while (!feof(lex->file) && fgetc(lex->file) != '\n') {}
-        } else if (c1 == '*') {
-            int addsemi = 0;
             c1 = fgetc(lex->file);
-            c2 = fgetc(lex->file);
-            while (!feof(lex->file) && (c1 != '*' || c2 != '$')) {
-                if (c1 == '\n' || c2 == '\n') addsemi = 1;
-                if (c1 == '\n') lex->line++;
-                c1 = c2;
-                c2 = fgetc(lex->file);
-            }
-            if (feof(lex->file)) {
-                puts("LexingError: unclosed block comment.");
-                exit(EXIT_FAILURE);
-            }
-            if (addsemi && ispotentialend(lex)) {
-                lex->type = T_SEMI;
-                return;
-            }
-        } else {
-            fseek(lex->file, -2, SEEK_CUR);
         }
-        c1 = fgetc(lex->file);
+
+        if (feof(lex->file)) {
+            lex->type = T_EOF;
+            lex->value = realloc(lex->value, 0);
+            return;
+        }
+
+        if (c1 == '$') {                            // comments
+            c1 = fgetc(lex->file);
+            if (c1 == '$') {
+                while (!feof(lex->file) && fgetc(lex->file) != '\n') {}
+            } else if (c1 == '*') {
+                int addsemi = 0;
+                c1 = fgetc(lex->file);
+                c2 = fgetc(lex->file);
+                while (!feof(lex->file) && (c1 != '*' || c2 != '$')) {
+                    if (c1 == '\n' || c2 == '\n') addsemi = 1;
+                    if (c1 == '\n') lex->line++;
+                    c1 = c2;
+                    c2 = fgetc(lex->file);
+                }
+                if (feof(lex->file)) {
+                    puts("LexingError: unclosed block comment.");
+                    exit(EXIT_FAILURE);
+                }
+                if (addsemi && ispotentialend(lex)) {
+                    lex->type = T_SEMI;
+                    return;
+                }
+            } else {
+                fseek(lex->file, -2, SEEK_CUR);
+            }
+            c1 = fgetc(lex->file);
+        }
     }
 
     while (!feof(lex->file) && (c1 == ' ' || c1 == '\n' || c1 == '\t')) {
@@ -525,7 +529,7 @@ const char *YASL_TOKEN_NAMES[] = {
 
 Lexer *lex_new(FILE *file) {
     Lexer *lex = malloc(sizeof(Lexer));
-    lex->line = -1;
+    lex->line = 1;
     lex->value = NULL;
     lex->val_len = 0;
     lex->file = file;
