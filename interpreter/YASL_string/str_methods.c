@@ -8,11 +8,12 @@ int str___get(VM *vm) {
     if (index.type != INT64) {
         return -1;
         PUSH(vm, UNDEF_C);
-    } else if (index.value.ival < 0 || index.value.ival >= str->length) {
+    } else if (index.value.ival < -str->length || index.value.ival >= str->length) {
         return -1;
         PUSH(vm, UNDEF_C);
     } else {
-        PUSH(vm, ((YASL_Object){STR8, (int64_t)new_sized_string8_from_mem(1, str->str + index.value.ival)}));
+        if (index.value.ival >= 0) PUSH(vm, ((YASL_Object){STR8, (int64_t)new_sized_string8_from_mem(1, str->str + index.value.ival)}));
+        else PUSH(vm, ((YASL_Object){STR8, (int64_t)new_sized_string8_from_mem(1, str->str + index.value.ival + str->length)}));
     }
     return 0;
 }
