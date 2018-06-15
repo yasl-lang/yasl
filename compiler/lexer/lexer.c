@@ -6,12 +6,8 @@ char lex_getchar(Lexer *lex) {
     return lex->c = fgetc(lex->file);
 }
 
-void lex_eatinlinecomments(Lexer *lex) {
-    while (!feof(lex->file) && lex_getchar(lex) != '\n') {}
-}
-
-//int lex_eatblockcomments(Lexer *lex) {
-
+//void lex_eatinlinecomments(Lexer *lex) {
+//    while (!feof(lex->file) && lex_getchar(lex) != '\n') {}
 //}
 
 void gettok(Lexer *lex) {
@@ -50,7 +46,7 @@ void gettok(Lexer *lex) {
         }
 
         // inline comments
-        if ('"' == lex->c) lex_eatinlinecomments(lex);
+        if ('"' == lex->c) while (!feof(lex->file) && lex_getchar(lex) != '\n') {}
         c1 = lex->c;
 
         // block comments

@@ -6,6 +6,7 @@
 
 #include "interpreter/VM/VM.h"
 #include "interpreter/builtins/builtins.h"
+#include "metadata.h"
 
 // VTable_t *float64_vtable, *int64_vtable, *str8_vtable, *list_vtable, *hash_vtable;
 
@@ -17,7 +18,7 @@ int main(int argc, char** argv) {
     long file_len;
     int64_t entry_point, num_globals;
 
-    if (argc > 2) {
+    /*if (argc > 2) {
         printf("ERROR: Too many arguments passed.\nUsage is: YASL [path/to/byte-code.yb]\nDefault path is \"source.yb\"\n");
         return -1;
     } else if (argc == 2) {
@@ -26,7 +27,7 @@ int main(int argc, char** argv) {
             printf("ERROR: Could not open source file \"%s\".\n", argv[1]);
             return -2;
         }
-    } else {
+    } else */{
         //printf("YASL> ");
         //Compiler *compiler = compiler_new(parser_new(lex_new(stdin)));
         //compile(compiler);
@@ -48,9 +49,18 @@ int main(int argc, char** argv) {
     compiler_del(compiler);
     YASL_DEBUG_LOG("%s\n", "end of compilation");
 
+    char magic_number[7];
     fseek(file_ptr, 0, SEEK_END);
-    file_len = ftell(file_ptr);
+    file_len = ftell(file_ptr) - 7;
     rewind(file_ptr);
+
+    fread(magic_number, 7, 1, file_ptr);
+    if (strcmp("YASL", magic_number) || magic_number[4] != YASL_MAJOR_VERSION ||
+        magic_number[5] != YASL_MINOR_VERSION || magic_number[6] != YASL_PATCH) {
+        puts("Invalid bytecode file.");
+        exit(1);
+    }
+
     buffer = malloc((file_len+1)*sizeof(char));
     fread(buffer, file_len, 1, file_ptr);
     entry_point = *((int64_t*)buffer);

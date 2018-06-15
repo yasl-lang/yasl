@@ -1,6 +1,7 @@
 #include <interpreter/YASL_Object/YASL_Object.h>
 #include <interpreter/YASL_string/YASL_string.h>
 #include <compiler/compiler/bytebuffer/bytebuffer.h>
+#include <metadata.h>
 #include "compiler.h"
 #define break_checkpoint(compiler)    (compiler->checkpoints[compiler->checkpoints_count-1])
 #define continue_checkpoint(compiler) (compiler->checkpoints[compiler->checkpoints_count-2])
@@ -139,7 +140,18 @@ void compile(Compiler *compiler) {
             node_del(node);
     }
     bb_rewrite_intbytes8(compiler->header, 0, compiler->header->count);
+
+    char magic_number[7] = "YASL";
+    magic_number[4] = YASL_MAJOR_VERSION;
+    magic_number[5] = YASL_MINOR_VERSION;
+    magic_number[6] = YASL_PATCH;
+
     int i = 0;
+    YASL_DEBUG_LOG("%s\n", "magic number");
+    for (i = 0; i < 7; i++) {
+        YASL_DEBUG_LOG("%02x\n", magic_number[i]);
+    }
+    YASL_DEBUG_LOG("%s\n", "header");
     for (i = 0; i < compiler->header->count; i++) {
         YASL_DEBUG_LOG("%02x\n", compiler->header->bytes[i]);
     }
@@ -150,6 +162,8 @@ void compile(Compiler *compiler) {
     YASL_DEBUG_LOG("%02x\n", HALT);
     FILE *fp = fopen("source.yb", "wb");
     if (!fp) exit(EXIT_FAILURE);
+
+    fwrite(magic_number, 1, 7, fp);
     fwrite(compiler->header->bytes, 1, compiler->header->count, fp);
     fwrite(compiler->code->bytes, 1, compiler->code->count, fp);
     fputc(HALT, fp);
