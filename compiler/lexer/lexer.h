@@ -17,9 +17,11 @@ an integer, floating-point, or string literal
 one of the keywords break, or continue
 one of the delimiters ), ], or }
 */
+#define STR_DELIM '\''
 
 typedef struct {
     FILE *file;
+    char c;
     Token type;
     char *value;
     int val_len;

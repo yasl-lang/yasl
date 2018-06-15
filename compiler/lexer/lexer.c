@@ -2,26 +2,13 @@
 #include "lexer.h"
 #include "../token.h"
 
-void gettok(Lexer *lex) {
-    //puts("getting next");
-    //printf("%ld chars from the start.\n", ftell(lex->file));
-    YASL_TRACE_LOG("lexing line %d\n", lex->line);
-    char c1, c2, c3, c4;
-    int last;
-    //printf("last char is %c\n", lastchar);
-    c1 = fgetc(lex->file);
+void lex_getchar(Lexer *lex) {
+    lex->c = fgetc(lex->file);
+}
 
-    if (lex->line == 1 && c1 == '#') {                            // comments
-        c1 = fgetc(lex->file);
-        if (c1 == '!') {
-            while (!feof(lex->file) && fgetc(lex->file) != '\n') {}
-        } else {
-            fseek(lex->file, -2, SEEK_CUR);
-        }
-        c1 = fgetc(lex->file);
-    }
-
-    while (!feof(lex->file) && (c1 == ' ' || c1 == '\n' || c1 == '\t') || c1 == '$') {
+void eatwhitespace(Lexer *lex) {
+    char c1 = lex->c;
+    while (!feof(lex->file) && (c1 == ' ' || c1 == '\n' || c1 == '\t') || c1 == '"' || c1 == '/') {
         while (!feof(lex->file) && (c1 == ' ' || c1 == '\n' || c1 == '\t')) {
             if (c1 == '\n') {
                 lex->line++;
@@ -30,7 +17,8 @@ void gettok(Lexer *lex) {
                     return;
                 }
             }
-            c1 = fgetc(lex->file);
+            lex_getchar(lex);
+            c1 = lex->c;
         }
 
         if (feof(lex->file)) {
@@ -39,15 +27,21 @@ void gettok(Lexer *lex) {
             return;
         }
 
-        if (c1 == '$') {                            // comments
-            c1 = fgetc(lex->file);
-            if (c1 == '$') {
-                while (!feof(lex->file) && fgetc(lex->file) != '\n') {}
-            } else if (c1 == '*') {
+        if (c1 == '"') {                            // comments
+            while (!feof(lex->file) && fgetc(lex->file) != '\n') {}
+            lex_getchar(lex);
+            c1 = lex->c;
+        }
+
+        if (c1 == '/') {                            // comments
+            lex_getchar(lex);
+            c1 = lex->c;
+            if (c1 == '*') {
                 int addsemi = 0;
-                c1 = fgetc(lex->file);
-                c2 = fgetc(lex->file);
-                while (!feof(lex->file) && (c1 != '*' || c2 != '$')) {
+                lex_getchar(lex);
+                c1 = lex->c;
+                char c2 = fgetc(lex->file);
+                while (!feof(lex->file) && (c1 != '*' || c2 != '/')) {
                     if (c1 == '\n' || c2 == '\n') addsemi = 1;
                     if (c1 == '\n') lex->line++;
                     c1 = c2;
@@ -64,27 +58,93 @@ void gettok(Lexer *lex) {
             } else {
                 fseek(lex->file, -2, SEEK_CUR);
             }
-            c1 = fgetc(lex->file);
+            lex_getchar(lex);
         }
     }
+}
 
-    while (!feof(lex->file) && (c1 == ' ' || c1 == '\n' || c1 == '\t')) {
-        if (c1 == '\n') {
-            lex->line++;
-            if (ispotentialend(lex)) {
-                lex->type = T_SEMI;
-                return;
+void gettok(Lexer *lex) {
+    //puts("getting next");
+    //printf("%ld chars from the start.\n", ftell(lex->file));
+    YASL_TRACE_LOG("lexing line %d\n", lex->line);
+    char c1, c2, c3, c4;
+    int last;
+    //printf("last char is %c\n", lastchar);
+    lex_getchar(lex);
+    c1 = lex->c;
+
+    if (lex->line == 1 && c1 == '#') {                            // comments
+        lex_getchar(lex);
+        c1 = lex->c;
+        if (c1 == '!') {
+            while (!feof(lex->file) && fgetc(lex->file) != '\n') {}
+        } else {
+            fseek(lex->file, -2, SEEK_CUR);
+        }
+        lex_getchar(lex);
+        c1 = lex->c;
+    }
+
+    while (!feof(lex->file) && (c1 == ' ' || c1 == '\n' || c1 == '\t') || c1 == '"' || c1 == '/') {
+        // white space
+        while (!feof(lex->file) && (c1 == ' ' || c1 == '\n' || c1 == '\t')) {
+            if (c1 == '\n') {
+                lex->line++;
+                if (ispotentialend(lex)) {
+                    lex->type = T_SEMI;
+                    return;
+                }
             }
+            lex_getchar(lex);
+            c1 = lex->c;
         }
-        c1 = fgetc(lex->file);
+
+        // inline comments
+        if (c1 == '"') {
+            while (!feof(lex->file) && fgetc(lex->file) != '\n') {}
+            lex_getchar(lex);
+            c1 = lex->c;
+        }
+
+        // block comments
+        if (c1 == '/') {
+            lex_getchar(lex);
+            c1 = lex->c;
+            if (c1 == '*') {
+                int addsemi = 0;
+                lex_getchar(lex);
+                c1 = lex->c;
+                c2 = fgetc(lex->file);
+                while (!feof(lex->file) && (c1 != '*' || c2 != '/')) {
+                    if (c1 == '\n' || c2 == '\n') addsemi = 1;
+                    if (c1 == '\n') lex->line++;
+                    c1 = c2;
+                    c2 = fgetc(lex->file);
+                }
+                if (feof(lex->file)) {
+                    puts("LexingError: unclosed block comment.");
+                    exit(EXIT_FAILURE);
+                }
+                if (addsemi && ispotentialend(lex)) {
+                    lex->type = T_SEMI;
+                    return;
+                }
+            } else {
+                fseek(lex->file, -2, SEEK_CUR);
+            }
+            lex_getchar(lex);
+            c1 = lex->c;
+        }
     }
 
+    // EOF
     if (feof(lex->file)) {
         lex->type = T_EOF;
         lex->value = NULL;
         return;
     }
 
+    // Numbers
     if (isdigit(c1)) {                          // numbers
         lex->val_len = 6;
         lex->value = realloc(lex->value, lex->val_len);
@@ -93,10 +153,12 @@ void gettok(Lexer *lex) {
         if (c1 == '0' && c2 == 'x'){            // hexadecimal literal
             lex->value[i++] = '0';
             lex->value[i++] = 'x';
-            c1 = fgetc(lex->file);
+            lex_getchar(lex);
+            c1 = lex->c;
             do {
                 lex->value[i++] = c1;
-                c1 = fgetc(lex->file);
+                lex_getchar(lex);
+                c1 = lex->c;
                 if (i == lex->val_len) {
                     lex->val_len *= 2;
                     lex->value = realloc(lex->value, lex->val_len);
@@ -110,10 +172,12 @@ void gettok(Lexer *lex) {
         } else if (c1 == '0' && c2 == 'b') {         // binary literal
             lex->value[i++] = '0';
             lex->value[i++] = 'b';
-            c1 = fgetc(lex->file);
+            lex_getchar(lex);
+            c1 = lex->c;
             do {
                 lex->value[i++] = c1;
-                c1 = fgetc(lex->file);
+                lex_getchar(lex);
+                c1 = lex->c;
                 if (i == lex->val_len) {
                     lex->val_len *= 2;
                     lex->value = realloc(lex->value, lex->val_len);
@@ -127,10 +191,12 @@ void gettok(Lexer *lex) {
         } else if (c1 == '0' && c2 == 'o') {         // binary literal
             lex->value[i++] = '0';
             lex->value[i++] = 'o';
-            c1 = fgetc(lex->file);
+            lex_getchar(lex);
+            c1 = lex->c;
             do {
                 lex->value[i++] = c1;
-                c1 = fgetc(lex->file);
+                lex_getchar(lex);
+                c1 = lex->c;
                 if (i == lex->val_len) {
                     lex->val_len *= 2;
                     lex->value = realloc(lex->value, lex->val_len);
@@ -147,7 +213,8 @@ void gettok(Lexer *lex) {
 
         do {
             lex->value[i++] = c1;
-            c1 = fgetc(lex->file);
+            lex_getchar(lex);
+            c1 = lex->c;
             if (i == lex->val_len) {
                 lex->val_len *= 2;
                 lex->value = realloc(lex->value, lex->val_len);
@@ -170,7 +237,8 @@ void gettok(Lexer *lex) {
             fseek(lex->file, -1, SEEK_CUR);
             do {
                 lex->value[i++] = c1;
-                c1 = fgetc(lex->file);
+                lex_getchar(lex);
+                c1 = lex->c;
                 if (i == lex->val_len) {
                     lex->val_len *= 2;
                     lex->value = realloc(lex->value, lex->val_len);
@@ -186,13 +254,17 @@ void gettok(Lexer *lex) {
 
         if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
         return;
-    } else if (isalpha(c1)) {                           // identifiers and keywords
+    }
+
+    // Identifiers and keywords
+    if (isalpha(c1)) {                           // identifiers and keywords
         lex->val_len = 6;
         lex->value = realloc(lex->value, lex->val_len);
         int i = 0;
         do {
             lex->value[i++] = c1;
-            c1 = fgetc(lex->file);
+            lex_getchar(lex);
+            c1 = lex->c;
             if (i == lex->val_len) {
                 lex->val_len *= 2;
                 lex->value = realloc(lex->value, lex->val_len);
@@ -203,14 +275,16 @@ void gettok(Lexer *lex) {
         lex->type = T_ID;
         YASLKeywords(lex);          // keywords
         return;
-    } else if (c1 == '"') {                             // strings
+    } else if (c1 == STR_DELIM) {                             // strings
         lex->val_len = 6;
         lex->value = realloc(lex->value, lex->val_len);
         int i = 0;
-        c1 = fgetc(lex->file);
-        while (c1 != '"' && !feof(lex->file)) {
+        lex_getchar(lex);
+        c1 = lex->c;
+        while (c1 != STR_DELIM && !feof(lex->file)) {
             lex->value[i++] = c1;
-            c1 = fgetc(lex->file);
+            lex_getchar(lex);
+            c1 = lex->c;
             if (i == lex->val_len) {
                 lex->val_len *= 2;
                 lex->value = realloc(lex->value, lex->val_len);
@@ -243,7 +317,6 @@ void gettok(Lexer *lex) {
     }
 
     four:
-    //puts("four");
     last = YASLToken_FourChars(c1, c2, c3, c4);
     if (last != -1) {
         lex->type = last;
@@ -253,7 +326,6 @@ void gettok(Lexer *lex) {
     fseek(lex->file, -1, SEEK_CUR);
 
     three:
-    //puts("three");
     last = YASLToken_ThreeChars(c1, c2, c3);
     if (last != -1) {
         lex->type = last;
@@ -263,7 +335,6 @@ void gettok(Lexer *lex) {
     fseek(lex->file, -1, SEEK_CUR);
 
     two:
-    //puts("two");
     last = YASLToken_TwoChars(c1, c2);
     if (last != -1) {
         lex->type = last;
@@ -273,7 +344,6 @@ void gettok(Lexer *lex) {
     fseek(lex->file, -1, SEEK_CUR);
 
     one:
-    //puts("one");
     last = YASLToken_OneChar(c1);
     if (last != -1) {
         lex->type = last;
@@ -281,7 +351,7 @@ void gettok(Lexer *lex) {
         return;
     }
 
-    printf("LexingError: unknown lexeme: %c\n", c1);
+    printf("LexingError: unknown lexeme in line %d: `%c` (%x)\n", lex->line, c1, c1);
     exit(EXIT_FAILURE);
 }
 
