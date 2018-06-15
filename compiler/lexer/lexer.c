@@ -10,17 +10,19 @@ void lex_eatinlinecomments(Lexer *lex) {
     while (!feof(lex->file) && lex_getchar(lex) != '\n') {}
 }
 
+//int lex_eatblockcomments(Lexer *lex) {
+
+//}
+
 void gettok(Lexer *lex) {
-    //puts("getting next");
-    //printf("%ld chars from the start.\n", ftell(lex->file));
-    YASL_TRACE_LOG("lexing line %d\n", lex->line);
+    YASL_TRACE_LOG("getting token from line %d\n", lex->line);
     char c1, c2, c3, c4;
     int last;
-    //printf("last char is %c\n", lastchar);
     lex_getchar(lex);
     c1 = lex->c;
 
-    if (lex->line == 1 && c1 == '#') {                            // comments
+    // hash-bang
+    if (lex->line == 1 && c1 == '#') {
         lex_getchar(lex);
         c1 = lex->c;
         if (c1 == '!') {
@@ -32,6 +34,7 @@ void gettok(Lexer *lex) {
         c1 = lex->c;
     }
 
+    // whitespace and comments.
     while (!feof(lex->file) && (c1 == ' ' || c1 == '\n' || c1 == '\t') || c1 == '"' || c1 == '/') {
         // white space
         while (!feof(lex->file) && (c1 == ' ' || c1 == '\n' || c1 == '\t')) {
@@ -88,7 +91,7 @@ void gettok(Lexer *lex) {
         return;
     }
 
-    // Numbers
+    // numbers
     if (isdigit(c1)) {                          // numbers
         lex->val_len = 6;
         lex->value = realloc(lex->value, lex->val_len);
@@ -179,7 +182,7 @@ void gettok(Lexer *lex) {
         lex->value[i] = '\0';
 
         // floats
-        if (c1 == '.') {                    // floats
+        if (c1 == '.') {
             c2 = fgetc(lex->file);
             if (feof(lex->file)) {
                 fseek(lex->file, -1, SEEK_CUR);
@@ -211,7 +214,7 @@ void gettok(Lexer *lex) {
         return;
     }
 
-    // Identifiers and keywords
+    // identifiers and keywords
     if (isalpha(c1)) {                           // identifiers and keywords
         lex->val_len = 6;
         lex->value = realloc(lex->value, lex->val_len);
@@ -230,7 +233,10 @@ void gettok(Lexer *lex) {
         lex->type = T_ID;
         YASLKeywords(lex);          // keywords
         return;
-    } else if (c1 == STR_DELIM) {                             // strings
+    }
+
+    // strings
+    if (c1 == STR_DELIM) {                             // strings
         lex->val_len = 6;
         lex->value = realloc(lex->value, lex->val_len);
         int i = 0;
@@ -306,7 +312,7 @@ void gettok(Lexer *lex) {
         return;
     }
 
-    printf("LexingError: unknown lexeme in line %d: `%c` (%x)\n", lex->line, c1, c1);
+    printf("LexingError: unknown lexeme in line %d: `%c` (0x%x)\n", lex->line, c1, c1);
     exit(EXIT_FAILURE);
 }
 
