@@ -141,10 +141,11 @@ void compile(Compiler *compiler) {
     }
     bb_rewrite_intbytes8(compiler->header, 0, compiler->header->count);
 
-    char magic_number[7] = "YASL";
-    magic_number[4] = YASL_MAJOR_VERSION;
-    magic_number[5] = YASL_MINOR_VERSION;
-    magic_number[6] = YASL_PATCH;
+    char magic_number[YASL_MAG_NUM_SIZE] = "YASL";
+    magic_number[4] = YASL_COMPILER;
+    magic_number[5] = YASL_MAJOR_VERSION;
+    magic_number[6] = YASL_MINOR_VERSION;
+    magic_number[7] = YASL_PATCH;
 
     int i = 0;
     YASL_DEBUG_LOG("%s\n", "magic number");
@@ -163,7 +164,7 @@ void compile(Compiler *compiler) {
     FILE *fp = fopen("source.yb", "wb");
     if (!fp) exit(EXIT_FAILURE);
 
-    fwrite(magic_number, 1, 7, fp);
+    fwrite(magic_number, 1, YASL_MAG_NUM_SIZE, fp);
     fwrite(compiler->header->bytes, 1, compiler->header->count, fp);
     fwrite(compiler->code->bytes, 1, compiler->code->count, fp);
     fputc(HALT, fp);

@@ -49,14 +49,15 @@ int main(int argc, char** argv) {
     compiler_del(compiler);
     YASL_DEBUG_LOG("%s\n", "end of compilation");
 
-    char magic_number[7];
+    char magic_number[YASL_MAG_NUM_SIZE];
     fseek(file_ptr, 0, SEEK_END);
-    file_len = ftell(file_ptr) - 7;
+    file_len = ftell(file_ptr) - YASL_MAG_NUM_SIZE;
     rewind(file_ptr);
 
-    fread(magic_number, 7, 1, file_ptr);
-    if (strcmp("YASL", magic_number) || magic_number[4] != YASL_MAJOR_VERSION ||
-        magic_number[5] != YASL_MINOR_VERSION || magic_number[6] != YASL_PATCH) {
+    fread(magic_number, YASL_MAG_NUM_SIZE, 1, file_ptr);
+    if (strcmp("YASL", magic_number) || magic_number[4] != YASL_COMPILER ||
+        magic_number[5] != YASL_MAJOR_VERSION ||
+        magic_number[6] != YASL_MINOR_VERSION || magic_number[7] != YASL_PATCH) {
         puts("Invalid bytecode file.");
         exit(1);
     }
