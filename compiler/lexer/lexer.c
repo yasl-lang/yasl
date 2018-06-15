@@ -2,65 +2,12 @@
 #include "lexer.h"
 #include "../token.h"
 
-void lex_getchar(Lexer *lex) {
-    lex->c = fgetc(lex->file);
+char lex_getchar(Lexer *lex) {
+    return lex->c = fgetc(lex->file);
 }
 
-void eatwhitespace(Lexer *lex) {
-    char c1 = lex->c;
-    while (!feof(lex->file) && (c1 == ' ' || c1 == '\n' || c1 == '\t') || c1 == '"' || c1 == '/') {
-        while (!feof(lex->file) && (c1 == ' ' || c1 == '\n' || c1 == '\t')) {
-            if (c1 == '\n') {
-                lex->line++;
-                if (ispotentialend(lex)) {
-                    lex->type = T_SEMI;
-                    return;
-                }
-            }
-            lex_getchar(lex);
-            c1 = lex->c;
-        }
-
-        if (feof(lex->file)) {
-            lex->type = T_EOF;
-            lex->value = realloc(lex->value, 0);
-            return;
-        }
-
-        if (c1 == '"') {                            // comments
-            while (!feof(lex->file) && fgetc(lex->file) != '\n') {}
-            lex_getchar(lex);
-            c1 = lex->c;
-        }
-
-        if (c1 == '/') {                            // comments
-            lex_getchar(lex);
-            c1 = lex->c;
-            if (c1 == '*') {
-                int addsemi = 0;
-                lex_getchar(lex);
-                c1 = lex->c;
-                char c2 = fgetc(lex->file);
-                while (!feof(lex->file) && (c1 != '*' || c2 != '/')) {
-                    if (c1 == '\n' || c2 == '\n') addsemi = 1;
-                    if (c1 == '\n') lex->line++;
-                    c1 = c2;
-                    c2 = fgetc(lex->file);
-                }
-                if (feof(lex->file)) {
-                    puts("LexingError: unclosed block comment.");
-                    exit(EXIT_FAILURE);
-                }
-                if (addsemi && ispotentialend(lex)) {
-                    lex->type = T_SEMI;
-                    return;
-                }
-            } else {
-                fseek(lex->file, -2, SEEK_CUR);
-            }
-            lex_getchar(lex);
-        }
-    }
+void lex_eatinlinecomments(Lexer *lex) {
+    while (!feof(lex->file) && lex_getchar(lex) != '\n') {}
 }
 
 void gettok(Lexer *lex) {
@@ -100,11 +47,8 @@ void gettok(Lexer *lex) {
         }
 
         // inline comments
-        if (c1 == '"') {
-            while (!feof(lex->file) && fgetc(lex->file) != '\n') {}
-            lex_getchar(lex);
-            c1 = lex->c;
-        }
+        if ('"' == lex->c) lex_eatinlinecomments(lex);
+        c1 = lex->c;
 
         // block comments
         if (c1 == '/') {
@@ -150,6 +94,8 @@ void gettok(Lexer *lex) {
         lex->value = realloc(lex->value, lex->val_len);
         int i = 0;
         c2 = fgetc(lex->file);
+
+        // hex literal
         if (c1 == '0' && c2 == 'x'){            // hexadecimal literal
             lex->value[i++] = '0';
             lex->value[i++] = 'x';
@@ -169,7 +115,10 @@ void gettok(Lexer *lex) {
             lex->type = T_INT64;
             if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
             return;
-        } else if (c1 == '0' && c2 == 'b') {         // binary literal
+        }
+
+        // binary literal
+        if (c1 == '0' && c2 == 'b') {
             lex->value[i++] = '0';
             lex->value[i++] = 'b';
             lex_getchar(lex);
@@ -188,7 +137,10 @@ void gettok(Lexer *lex) {
             lex->type = T_INT64;
             if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
             return;
-        } else if (c1 == '0' && c2 == 'o') {         // binary literal
+        }
+
+        // octal literal
+        if (c1 == '0' && c2 == 'o') {
             lex->value[i++] = '0';
             lex->value[i++] = 'o';
             lex_getchar(lex);
@@ -207,10 +159,12 @@ void gettok(Lexer *lex) {
             lex->type = T_INT64;
             if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
             return;
-        } else {
-            if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
         }
 
+        // rewind, because we don't have an octal, hex, or binary number.
+        if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
+
+        // decimal (or first half of float)
         do {
             lex->value[i++] = c1;
             lex_getchar(lex);
@@ -223,7 +177,8 @@ void gettok(Lexer *lex) {
         lex->type = T_INT64;
         if (i == lex->val_len) lex->value = realloc(lex->value, i + 1);
         lex->value[i] = '\0';
-        //printf("lex->value: %s\n", lex->value);
+
+        // floats
         if (c1 == '.') {                    // floats
             c2 = fgetc(lex->file);
             if (feof(lex->file)) {
