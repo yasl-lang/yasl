@@ -1,5 +1,6 @@
 #pragma once
 
+#include <bytebuffer/bytebuffer.h>
 #include "../YASL_Object/YASL_Object.h"
 #include "../../hashtable/hashtable.h"
 #define LEN(v) (*((int64_t*)v.value))
@@ -17,4 +18,4 @@ void ls_insert(List_t* ls, int64_t index, YASL_Object value);
 void ls_append(List_t* ls, YASL_Object value);
 YASL_Object ls_search(List_t* ls, int64_t index);
 void ls_print(List_t* ls);
-void ls_print_h(List_t* ls, int64_t* seen, int seen_size);
+void ls_print_h(List_t* ls, ByteBuffer *seen);

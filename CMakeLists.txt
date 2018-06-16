@@ -7,7 +7,7 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 include_directories(.)
 include_directories(compiler)
 include_directories(compiler/ast)
-include_directories(compiler/compiler/bytebuffer)
+include_directories(bytebuffer)
 include_directories(compiler/compiler)
 include_directories(compiler/compiler/env)
 include_directories(compiler/lexer)
@@ -30,8 +30,8 @@ add_executable(YASL
         main.c
         compiler/ast/ast.c
         compiler/ast/ast.h
-        compiler/compiler/bytebuffer/bytebuffer.c
-        compiler/compiler/bytebuffer/bytebuffer.h
+        bytebuffer/bytebuffer.c
+        bytebuffer/bytebuffer.h
         compiler/compiler/compiler.c
         compiler/compiler/compiler.h
         compiler/compiler/env/env.c

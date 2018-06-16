@@ -6,6 +6,9 @@
 #include <interpreter/YASL_Object/YASL_Object.h>
 #include "list.h"
 #include "../YASL_Object/YASL_Object.h"
+#include <bytebuffer.h>
+#include <bytebuffer/bytebuffer.h>
+
 #define LS_BASESIZE 4
 
 int isvalueinarray(int64_t val, int64_t *arr, int size){
@@ -85,48 +88,38 @@ YASL_Object ls_search(List_t* ls, int64_t index) {
 }
 
 void ls_print(List_t* ls) {
-    ls_print_h(ls, NULL,  0);
+    ByteBuffer *seen = bb_new(sizeof(int64_t)*2);
+    ls_print_h(ls, seen);
 }
 
-void ls_print_h(List_t* ls, int64_t* seen, int seen_size) {
+void ls_print_h(List_t* ls, ByteBuffer *seen) {
     int i = 0;
     if (ls->count == 0) {
         printf("[]");
         return;
     }
-    int64_t *new_seen;
     printf("[");
     while (i < ls->count) {
         if (ls->items[i].type == LIST) {
-            if (isvalueinarray(ls->items[i].value.ival, seen, seen_size)) {
+            if (isvalueinarray(ls->items[i].value.ival, (int64_t*)seen->bytes, seen->count/sizeof(int64_t))) {
                 printf("[...]");
-                printf(", ");
             } else {
-                new_seen = malloc(sizeof(int64_t) * (seen_size + 2));
-                memcpy(new_seen, seen, seen_size);
-                new_seen[seen_size] = (int64_t)ls;
-                new_seen[seen_size + 1] = ls->items[i].value.ival;
-                ls_print_h(ls->items[i].value.lval, new_seen, seen_size + 2);
-                printf(", ");
-                free(new_seen);
+                bb_intbytes8(seen, (int64_t)ls);
+                bb_intbytes8(seen, ls->items[i].value.ival);
+                ls_print_h(ls->items[i].value.lval, seen);
             }
         } else if (ls->items[i].type == MAP) {
-            if (isvalueinarray(ls->items[i].value.ival, seen, seen_size)) {
+            if (isvalueinarray(ls->items[i].value.ival, (int64_t*)seen->bytes, seen->count/sizeof(int64_t))) {
                 printf("[...->...]");
-                printf(", ");
             } else {
-                new_seen = malloc(sizeof(int64_t) * (seen_size + 2));
-                memcpy(new_seen, seen, seen_size);
-                new_seen[seen_size] = (int64_t)ls;
-                new_seen[seen_size + 1] = ls->items[i].value.ival;
-                ht_print_h(ls->items[i].value.mval, new_seen, seen_size + 2);
-                printf(", ");
-                free(new_seen);
+                bb_intbytes8(seen, (int64_t)ls);
+                bb_intbytes8(seen, ls->items[i].value.ival);
+                ht_print_h(ls->items[i].value.mval, seen);
             }
         } else {
             print(ls->items[i]);
-            printf(", ");
         }
+        printf(", ");
         i++;
     }
     printf("\b\b]");

@@ -213,10 +213,11 @@ void ht_delete(Hash_t* hashtable, const YASL_Object key) {
 }
 
 void ht_print(Hash_t* ht) {
-    ht_print_h(ht, NULL,  0);
+    ByteBuffer *seen = bb_new(sizeof(int64_t)*2);
+    ht_print_h(ht, seen);
 }
 
-void ht_print_h(Hash_t* ht, int64_t* seen, int seen_size) {
+void ht_print_h(Hash_t* ht, ByteBuffer* seen) {
     int i = 0;
     int64_t *new_seen;
     if (ht->count == 0) {
@@ -234,35 +235,25 @@ void ht_print_h(Hash_t* ht, int64_t* seen, int seen_size) {
         print(*item->key);
         printf("->");
         if (item->value->type == LIST) {
-            if (isvalueinarray(item->value->value.ival, seen, seen_size)) {
+            if (isvalueinarray(item->value->value.ival, (int64_t*)seen->bytes, seen->count/sizeof(int64_t))) {
                 printf("[...]");
-                printf(", ");
             } else {
-                new_seen = malloc(sizeof(int64_t) * (seen_size + 2));
-                memcpy(new_seen, seen, seen_size);
-                new_seen[seen_size] = (int64_t)ht;
-                new_seen[seen_size + 1] = item->value->value.ival;
-                ls_print_h( item->value->value.lval, new_seen, seen_size + 2);
-                printf(", ");
-                free(new_seen);
+                bb_intbytes8(seen, (int64_t)ht);
+                bb_intbytes8(seen, ht->items[i]->value->value.ival);
+                ls_print_h(ht->items[i]->value->value.lval, seen);
             }
         } else if (item->value->type == MAP) {
-            if (isvalueinarray(item->value->value.ival, seen, seen_size)) {
+            if (isvalueinarray(item->value->value.ival, (int64_t*)seen->bytes, seen->count/sizeof(int64_t))) {
                 printf("[...->...]");
-                printf(", ");
             } else {
-                new_seen = malloc(sizeof(int64_t) * (seen_size + 2));
-                memcpy(new_seen, seen, seen_size);
-                new_seen[seen_size] = (int64_t)ht;
-                new_seen[seen_size + 1] = item->value->value.ival;
-                ht_print_h(item->value->value.mval, new_seen, seen_size + 2);
-                printf(", ");
-                free(new_seen);
+                bb_intbytes8(seen, (int64_t)ht);
+                bb_intbytes8(seen, ht->items[i]->value->value.ival);
+                ht_print_h(ht->items[i]->value->value.mval, seen);
             }
         } else {
             print(*item->value);
-            printf(", ");
         }
+        printf(", ");
         i++;
     }
     printf("\b\b]");

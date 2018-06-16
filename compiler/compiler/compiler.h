@@ -56,3 +56,4 @@ void enter_scope(Compiler *compiler);
 void exit_scope(Compiler *compiler);
 
 void visit(Compiler *compiler, const Node *const node);
+void visit_Block(Compiler *compiler, const Node *const node);

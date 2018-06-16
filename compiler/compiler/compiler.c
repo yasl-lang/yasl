@@ -1,6 +1,6 @@
 #include <interpreter/YASL_Object/YASL_Object.h>
 #include <interpreter/YASL_string/YASL_string.h>
-#include <compiler/compiler/bytebuffer/bytebuffer.h>
+#include <bytebuffer/bytebuffer.h>
 #include <metadata.h>
 #include "compiler.h"
 #define break_checkpoint(compiler)    (compiler->checkpoints[compiler->checkpoints_count-1])
@@ -15,7 +15,6 @@ Compiler *compiler_new(Parser* parser) {
     env_decl_var(compiler->globals, "stdout", strlen("stdout"));
     env_decl_var(compiler->globals, "stderr", strlen("stderr"));
 
-    // TODO: deal with memory leaks here.
     compiler->builtins = new_hash();
     ht_insert_string_int(compiler->builtins, "open", strlen("open"), F_OPEN);
     ht_insert_string_int(compiler->builtins, "popen", strlen("popen"), F_POPEN);
@@ -130,11 +129,7 @@ void compile(Compiler *compiler) {
             if (peof(compiler->parser)) break;
             node = parse(compiler->parser);
             eattok(compiler->parser, T_SEMI);
-            //YASL_DEBUG_LOG("eaten semi. type: %s, ", YASL_TOKEN_NAMES[compiler->parser->lex->type]);
-            //YASL_DEBUG_LOG("value: %s\n", compiler->parser->lex->value);
-            //YASL_DEBUG_LOG("%s\n", "about to visit statement.");
             visit(compiler, node);
-            //YASL_DEBUG_LOG("%s\n", "visited.");
             bb_append(compiler->code, compiler->buffer->bytes, compiler->buffer->count);
             compiler->buffer->count = 0;
             node_del(node);
