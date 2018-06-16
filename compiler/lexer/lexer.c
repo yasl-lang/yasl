@@ -6,10 +6,6 @@ char lex_getchar(Lexer *lex) {
     return lex->c = fgetc(lex->file);
 }
 
-//void lex_eatinlinecomments(Lexer *lex) {
-//    while (!feof(lex->file) && lex_getchar(lex) != '\n') {}
-//}
-
 void gettok(Lexer *lex) {
     YASL_TRACE_LOG("getting token from line %d\n", lex->line);
     char c1, c2, c3, c4;
@@ -31,10 +27,10 @@ void gettok(Lexer *lex) {
     }
 
     // whitespace and comments.
-    while (!feof(lex->file) && (c1 == ' ' || c1 == '\n' || c1 == '\t') || c1 == '"' || c1 == '/') {
+    while (!feof(lex->file) && (lex->c == ' ' || lex->c == '\n' || lex->c == '\t') || lex->c == '"' || lex->c == '/') {
         // white space
-        while (!feof(lex->file) && (c1 == ' ' || c1 == '\n' || c1 == '\t')) {
-            if (c1 == '\n') {
+        while (!feof(lex->file) && (lex->c == ' ' || lex->c == '\n' || lex->c == '\t')) {
+            if (lex->c == '\n') {
                 lex->line++;
                 if (ispotentialend(lex)) {
                     lex->type = T_SEMI;
@@ -42,7 +38,6 @@ void gettok(Lexer *lex) {
                 }
             }
             lex_getchar(lex);
-            c1 = lex->c;
         }
 
         // inline comments
@@ -50,10 +45,9 @@ void gettok(Lexer *lex) {
         c1 = lex->c;
 
         // block comments
-        if (c1 == '/') {
+        if (lex->c == '/') {
             lex_getchar(lex);
-            c1 = lex->c;
-            if (c1 == '*') {
+            if (lex->c == '*') {
                 int addsemi = 0;
                 lex_getchar(lex);
                 c1 = lex->c;
@@ -232,16 +226,14 @@ void gettok(Lexer *lex) {
     }
 
     // strings
-    if (c1 == STR_DELIM) {                             // strings
+    if (lex->c == STR_DELIM) {                             // strings
         lex->val_len = 6;
         lex->value = realloc(lex->value, lex->val_len);
         int i = 0;
         lex_getchar(lex);
-        c1 = lex->c;
-        while (c1 != STR_DELIM && !feof(lex->file)) {
-            lex->value[i++] = c1;
+        while (lex->c != STR_DELIM && !feof(lex->file)) {
+            lex->value[i++] = lex->c;
             lex_getchar(lex);
-            c1 = lex->c;
             if (i == lex->val_len) {
                 lex->val_len *= 2;
                 lex->value = realloc(lex->value, lex->val_len);
@@ -410,10 +402,6 @@ Token YASLToken_OneChar(char c1) {
     }
 }
 
-int max(int a, int b) {
-    return a > b ? a : b;
-}
-
 void YASLKeywords(Lexer *lex) {
     /* keywords:
      *  let
@@ -579,17 +567,3 @@ void lex_del(Lexer *lex) {
     free(lex->value);
     free(lex);
 }
-
-/*
-int main(void) {
-    FILE *fp = fopen("sample.yasl", "r");
-    if (fp == NULL) return 1;
-    fseek(fp, 0, SEEK_SET);
-    Lexer *lex = lex_new(fp);
-    while (lex->type != T_EOF) {
-        gettok(lex);
-        printf("type: %s, value: %s\n", YASL_TOKEN_NAMES[lex->type], lex->value);
-    }
-    lex_del(lex);
-}
-*/
