@@ -257,7 +257,12 @@ void run(VM* vm){
             case EXP:
                 b = POP(vm);
                 a = POP(vm);
-                BINOP(vm, a, b, EXP, "^");
+                if (a.type == INT64 && b.type == INT64 && b.value.ival < 0) {
+                    d = pow((double)a.value.ival, (double)b.value.ival);
+                    DPUSH(vm, d);
+                    break;
+                }
+                BINOP(vm, a, b, EXP, "**");
                 break;
             case NEG:
                 a = vm->stack[vm->sp];

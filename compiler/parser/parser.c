@@ -59,6 +59,7 @@ Node *parse_program(Parser *parser) {
 }
 
 Node *parse_fn(Parser *parser) {
+    YASL_TRACE_LOG("parsing fn in line %d\n", parser->lex->line);
     eattok(parser, T_FN);
     char *name = malloc(parser->lex->val_len);
     memcpy(name, parser->lex->value, parser->lex->val_len);
@@ -83,6 +84,7 @@ Node *parse_fn(Parser *parser) {
 }
 
 Node *parse_let(Parser *parser) {
+    YASL_TRACE_LOG("parsing let in line %d\n", parser->lex->line);
     eattok(parser, T_LET);
     char *name = malloc(parser->lex->val_len);
     memcpy(name, parser->lex->value, parser->lex->val_len);
@@ -94,6 +96,7 @@ Node *parse_let(Parser *parser) {
 }
 
 Node *parse_while(Parser *parser) {
+    YASL_TRACE_LOG("parsing while in line %d\n", parser->lex->line);
     eattok(parser, T_WHILE);
     Node *cond = parse_expr(parser);
     eattok(parser, T_LBRC);
@@ -111,36 +114,7 @@ Node *parse_while(Parser *parser) {
 }
 
 Node *parse_if(Parser *parser) {
-    /*
-        if self.current_token.type is TokenTypes.IF:
-            token = self.eat(TokenTypes.IF)
-        else:
-            token = self.eat(TokenTypes.ELSEIF)
-        cond = self.expr()
-        self.eat(TokenTypes.LBRACE)
-        body = []
-        while self.current_token.type is not TokenTypes.RBRACE:
-            body.append(self.program())
-            self.eat(TokenTypes.SEMI)
-        self.eat(TokenTypes.RBRACE)
-        if self.current_token.type is not TokenTypes.ELSE and self.current_token.type is not TokenTypes.ELSEIF:
-            return If(token, cond, Block(body))
-        if self.current_token.type is TokenTypes.SEMI:
-            self.eat(TokenTypes.SEMI)
-        if self.current_token.type is TokenTypes.ELSEIF:
-            return IfElse(token, cond, Block(body), self.if_stmt())
-        if self.current_token.type is TokenTypes.ELSE:
-            left = body
-            right = []
-            self.eat(TokenTypes.ELSE)
-            self.eat(TokenTypes.LBRACE)
-            while self.current_token.type is not TokenTypes.RBRACE:
-                right.append(self.program())
-                self.eat(TokenTypes.SEMI)
-            self.eat(TokenTypes.RBRACE)
-            return IfElse(token, cond, Block(left), Block(right))
-        assert False
-     */
+    YASL_TRACE_LOG("parsing if in line %d\n", parser->lex->line);
     if (curtok(parser) == T_IF) eattok(parser, T_IF);
     else if (curtok(parser) == T_ELSEIF) eattok(parser, T_ELSEIF);
     else {
@@ -195,6 +169,7 @@ Node *parse_expr(Parser *parser) {
 }
 
 Node *parse_assign(Parser *parser) {
+    YASL_TRACE_LOG("parsing = in line %d\n", parser->lex->line);
     Node *cur_node = parse_ternary(parser);
     if (curtok(parser) == T_EQ) { // || curtok(parser) == T_DLT)
         eattok(parser, T_EQ);
@@ -226,6 +201,7 @@ Node *parse_assign(Parser *parser) {
 }
 
 Node *parse_ternary(Parser *parser) {
+    YASL_TRACE_LOG("parsing ?: in line %d\n", parser->lex->line);
     Node *cur_node = parse_or(parser);
     if (curtok(parser) == T_DQMARK) {
         eattok(parser, T_DQMARK);
@@ -241,6 +217,7 @@ Node *parse_ternary(Parser *parser) {
 }
 
 Node *parse_or(Parser *parser) {
+    YASL_TRACE_LOG("parsing or in line %d\n", parser->lex->line);
     Node *cur_node = parse_and(parser);
     while (curtok(parser) == T_OR) {
         eattok(parser, T_OR);
@@ -250,6 +227,7 @@ Node *parse_or(Parser *parser) {
 }
 
 Node *parse_and(Parser *parser) {
+    YASL_TRACE_LOG("parsing and in line %d\n", parser->lex->line);
     Node *cur_node = parse_equals(parser);
     while (curtok(parser) == T_AND) {
         eattok(parser, T_AND);
@@ -259,6 +237,7 @@ Node *parse_and(Parser *parser) {
 }
 
 Node *parse_equals(Parser *parser) {
+    YASL_TRACE_LOG("parsing == in line %d\n", parser->lex->line);
     Node *cur_node = parse_comparator(parser);
     while (curtok(parser) == T_DEQ || curtok(parser) == T_BANGEQ ||
             curtok(parser) == T_TEQ || curtok(parser) == T_BANGDEQ) {
@@ -269,6 +248,7 @@ Node *parse_equals(Parser *parser) {
 }
 
 Node *parse_comparator(Parser *parser) {
+    YASL_TRACE_LOG("parsing > in line %d\n", parser->lex->line);
     Node *cur_node = parse_concat(parser);
     while (curtok(parser) == T_LT || curtok(parser) == T_GT||
             curtok(parser) == T_GTEQ || curtok(parser) == T_LTEQ) {
@@ -279,6 +259,7 @@ Node *parse_comparator(Parser *parser) {
 }
 
 Node *parse_concat(Parser *parser) {
+    YASL_TRACE_LOG("parsing || in line %d\n", parser->lex->line);
     Node *cur_node = parse_bor(parser);
     if (curtok(parser) == T_DBAR || curtok(parser) == T_TBAR) {
         Token op = eattok(parser, curtok(parser));
@@ -288,6 +269,7 @@ Node *parse_concat(Parser *parser) {
 }
 
 Node *parse_bor(Parser *parser) {
+    YASL_TRACE_LOG("parsing | in line %d\n", parser->lex->line);
     Node *cur_node = parse_bxor(parser);
     while (curtok(parser) == T_BAR) {
         eattok(parser, T_BAR);
@@ -297,6 +279,7 @@ Node *parse_bor(Parser *parser) {
 }
 
 Node *parse_bxor(Parser *parser) {
+    YASL_TRACE_LOG("parsing ^ in line %d\n", parser->lex->line);
     Node *cur_node = parse_band(parser);
     while (curtok(parser) == T_CARET) {
         eattok(parser, T_CARET);
@@ -306,6 +289,7 @@ Node *parse_bxor(Parser *parser) {
 }
 
 Node *parse_band(Parser *parser) {
+    YASL_TRACE_LOG("parsing & in line %d\n", parser->lex->line);
     Node *cur_node = parse_bshift(parser);
     while (curtok(parser) == T_AMP) {
         eattok(parser, T_AMP);
@@ -315,6 +299,7 @@ Node *parse_band(Parser *parser) {
 }
 
 Node *parse_bshift(Parser *parser) {
+    YASL_TRACE_LOG("parsing >> in line %d\n", parser->lex->line);
     Node *cur_node = parse_add(parser);
     while (curtok(parser) == T_DGT || curtok(parser) == T_DLT) {
         Token op = eattok(parser, curtok(parser));
@@ -324,6 +309,7 @@ Node *parse_bshift(Parser *parser) {
 }
 
 Node *parse_add(Parser *parser) {
+    YASL_TRACE_LOG("parsing + in line %d\n", parser->lex->line);
     Node *cur_node = parse_multiply(parser);
     while (curtok(parser) == T_PLUS || curtok(parser) == T_MINUS) {
         Token op = eattok(parser, curtok(parser));
@@ -333,6 +319,7 @@ Node *parse_add(Parser *parser) {
 }
 
 Node *parse_multiply(Parser *parser) {
+    YASL_TRACE_LOG("parsing * in line %d\n", parser->lex->line);
     Node *cur_node = parse_unary(parser);
     while (curtok(parser) == T_STAR || curtok(parser) == T_SLASH ||
             curtok(parser) == T_DSLASH || curtok(parser) == T_MOD) {
@@ -343,6 +330,7 @@ Node *parse_multiply(Parser *parser) {
 }
 
 Node *parse_unary(Parser *parser) {
+    YASL_TRACE_LOG("parsing ! in line %d\n", parser->lex->line);
     if (curtok(parser) == T_PLUS || curtok(parser) == T_MINUS || curtok(parser) == T_BANG ||
      curtok(parser) == T_CARET ||curtok(parser) == T_HASH) {
         Token op = eattok(parser, curtok(parser));
@@ -353,10 +341,11 @@ Node *parse_unary(Parser *parser) {
 }
 
 Node *parse_power(Parser *parser) {
+    YASL_TRACE_LOG("parsing ** in line %d\n", parser->lex->line);
     Node *cur_node = parse_call(parser);
     if (curtok(parser) == T_DSTAR) {
         eattok(parser, T_DSTAR);
-        return new_BinOp(T_DSTAR, cur_node, parse_power(parser), parser->lex->line);
+        return new_BinOp(T_DSTAR, cur_node, parse_unary(parser), parser->lex->line);
     }
     return cur_node;
 }
