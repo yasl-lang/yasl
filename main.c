@@ -12,42 +12,52 @@
 
 
 int main(int argc, char** argv) {
-    // puts(K_YEL "Y" K_RED "A" K_BLU "S" K_GRN "L" K_END "\n");
     char *buffer;
     FILE *file_ptr;
     long file_len;
     int64_t entry_point, num_globals;
+    FILE *fp;
+    char *name = "source.yb";
 
-    /*if (argc > 2) {
-        printf("ERROR: Too many arguments passed.\nUsage is: YASL [path/to/byte-code.yb]\nDefault path is \"source.yb\"\n");
+    if (argc > 2) {
+        printf("ERROR: Too many arguments passed.\nUsage is: YASL [path/to/script.ysl]\n");
         return -1;
     } else if (argc == 2) {
-        file_ptr = fopen(argv[1], "rb");
-        if(file_ptr == NULL) {
-            printf("ERROR: Could not open source file \"%s\".\n", argv[1]);
-            return -2;
+        fp = fopen(argv[1], "r");
+        if (fp == NULL) {
+            puts("Error opening file.");
+            return EXIT_FAILURE;
         }
-    } else */{
-        //printf("YASL> ");
-        //Compiler *compiler = compiler_new(parser_new(lex_new(stdin)));
-        //compile(compiler);
-        //compiler_del(compiler);
-
-        file_ptr = fopen("source.yb", "rb");
-        if(file_ptr == NULL) {
-            printf("ERROR: Could not default open source file \"source.yb\".\n");
-            return -3;
+        if (!strcmp(argv[1] + strlen(argv[1]) - strlen(".ysl"), ".ysl")) {
+            name = malloc(strlen(argv[1]) - strlen(".ysl") + strlen(".yb") + 1);
+            memcpy(name, argv[1], strlen(argv[1]) - strlen(".ysl"));
+            memcpy(name + strlen(argv[1]), ".yb", strlen(".yb") + 1);
+        } else if (!strcmp(argv[1] + strlen(argv[1]) - strlen(".yasl"), ".yasl")) {
+            name = malloc(strlen(argv[1]) - strlen(".yasl") + strlen(".yb") + 1);
+            memcpy(name, argv[1], strlen(argv[1]) - strlen(".yasl"));
+            memcpy(name + strlen(argv[1]), ".yb", strlen(".yb") + 1);
+        } else {
+            name = malloc(strlen(argv[1]) + strlen(".yb") + 1);
+            memcpy(name, argv[1], strlen(argv[1]));
+            memcpy(name + strlen(argv[1]), ".yb", strlen(".yb") + 1);
         }
+    } else {
+        puts("REPL is not yet implemented.");
+        return EXIT_FAILURE;
     }
 
-    FILE *fp = fopen("sample.ysl", "r");
-    if (fp == NULL) return EXIT_FAILURE;
     fseek(fp, 0, SEEK_SET);
     Parser *parser = parser_new(lex_new(fp));
-    Compiler *compiler = compiler_new(parser);
+    Compiler *compiler = compiler_new(parser, name);
     compile(compiler);
     compiler_del(compiler);
     YASL_DEBUG_LOG("%s\n", "end of compilation");
+
+    file_ptr = fopen(name, "rb");
+    if (file_ptr == NULL) {
+        puts("Error reading bytecode file.");
+        return EXIT_FAILURE;
+    }
 
     char magic_number[YASL_MAG_NUM_SIZE];
     fseek(file_ptr, 0, SEEK_END);

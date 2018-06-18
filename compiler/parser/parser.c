@@ -351,22 +351,6 @@ Node *parse_power(Parser *parser) {
 }
 
 Node *parse_call(Parser *parser) {
-    /*
-     *  result = self.literal()
-        while self.current_token.type is TokenTypes.DOT or self.current_token.type is TokenTypes.LBRACK:
-            if self.current_token.type is TokenTypes.DOT:
-                self.eat(TokenTypes.DOT)
-                right = self.literal()
-                if isinstance(right, FunctionCall):
-                    result = MethodCall(result, right.token, right.params)
-                else:
-                    assert False
-            else:
-                self.eat(TokenTypes.LBRACK)
-                result = Index(result, self.expr())
-                self.eat(TokenTypes.RBRACK)
-        return result
-     */
     Node *cur_node = parse_constant(parser);
     while (curtok(parser) == T_LSQB || curtok(parser) == T_DOT) {
         if (curtok(parser) == T_DOT) {
@@ -385,21 +369,6 @@ Node *parse_call(Parser *parser) {
             eattok(parser, T_RSQB);
         }
     }
-    /*while (curtok(parser) == T_DOT || curtok(parser) == T_LSQB) {
-        /*if (curtok(parser) == T_DOT) {
-            eattok(parser, T_DOT);
-            Node *right = parse_constant(parser);
-            if (right->nodetype == N_CALL) {
-                cur_node = new_MethodCall(...);
-            } else if (right->nodetype == N_VAR) {
-                cur_node = new_Member(...);
-            }
-        }
-        eattok(parser, T_LSQB);
-        // TODO: order of evaluation is undefined here
-        cur_node = new_Index(cur_node, parse_expr(parser), parser->lex->line);
-        eattok(parser, T_RSQB);
-    }*/
     return cur_node;
 
 }

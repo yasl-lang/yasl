@@ -7,8 +7,9 @@
 #define continue_checkpoint(compiler) (compiler->checkpoints[compiler->checkpoints_count-2])
 
 
-Compiler *compiler_new(Parser* parser) {
+Compiler *compiler_new(Parser* parser, char *name) {
     Compiler *compiler = malloc(sizeof(Compiler));
+
     compiler->globals = env_new(NULL);
     compiler->locals = env_new(NULL);
     env_decl_var(compiler->globals, "stdin", strlen("stdin"));
@@ -59,6 +60,7 @@ Compiler *compiler_new(Parser* parser) {
     compiler->offset = 0;
     compiler->strings = new_hash();
     compiler->parser = parser;
+    compiler->name = name;
     compiler->buffer = bb_new(16);
     compiler->header = bb_new(16);
     compiler->header->count = 16;
@@ -156,7 +158,7 @@ void compile(Compiler *compiler) {
         YASL_DEBUG_LOG("%02x\n", compiler->code->bytes[i]);
     }
     YASL_DEBUG_LOG("%02x\n", HALT);
-    FILE *fp = fopen("source.yb", "wb");
+    FILE *fp = fopen(compiler->name, "wb");
     if (!fp) exit(EXIT_FAILURE);
 
     fwrite(magic_number, 1, YASL_MAG_NUM_SIZE, fp);

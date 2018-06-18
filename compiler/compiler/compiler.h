@@ -10,25 +10,9 @@
 #include "env/env.h"
 #include "../../debug.h"
 
-/*
-class Compiler(NodeVisitor):
-    def __init__(self):
-        self.globals = Env()
-        self.globals.decl_var("stdin")
-        self.globals.decl_var("stdout")
-        self.globals.decl_var("stderr")
-        self.locals = Env()
-        self.code = []
-        self.checkpoints = []
-        self.header = intbytes_8(8) + intbytes_8(0)
-        self.buffer = []
-        self.fns = {}
-        self.current_fn = None
-        self.offset = 0
-        self.strs = {}
-*/
 typedef struct {
     Parser *parser;
+    char *name;
     Env_t *globals;
     Env_t *locals;
     Hash_t *builtins;
@@ -44,12 +28,9 @@ typedef struct {
     int64_t checkpoints_count;
     int64_t checkpoints_size;
     char *current_function;
-    /* char *curfn;
-    int64_t offset;
-    STable *strings; */
 } Compiler;
 
-Compiler *compiler_new(Parser *parser);
+Compiler *compiler_new(Parser *parser, char *name);
 void compiler_del(Compiler *compiler);
 void compile(Compiler *compiler);
 void enter_scope(Compiler *compiler);
