@@ -2,8 +2,141 @@
 #include "lexer.h"
 #include "../token.h"
 
+int isbdigit(int c) {
+    return c == '0' || c == '1';
+}
+
+int isodigit(int c) {
+    return '0' <= c && c < '8';
+}
+
 char lex_getchar(Lexer *lex) {
     return lex->c = fgetc(lex->file);
+}
+
+int lex_eatwhitespace(Lexer *lex) {
+    while (!feof(lex->file) && (lex->c == ' ' || lex->c == '\n' || lex->c == '\t')) {
+        if (lex->c == '\n') {
+            lex->line++;
+            if (ispotentialend(lex)) {
+                lex->type = T_SEMI;
+                return 1;
+            }
+        }
+        lex_getchar(lex);
+    }
+    return 0;
+}
+
+int lex_eatinlinecomments(Lexer *lex) {
+    if ('"' == lex->c) while (!feof(lex->file) && lex_getchar(lex) != '\n') {}
+    return 0;
+}
+
+int lex_eatint(Lexer *lex, char separator, int (*isvaliddigit)(int)) {
+    int i = 0;
+    lex->value[i++] = '0';
+    lex->value[i++] = separator;
+    lex_getchar(lex);
+    if (!(*isvaliddigit)(lex->c)) {
+        printf("Invalid int64 literal in line %d\n", lex->line);
+        exit(EXIT_FAILURE);
+    }
+    do {
+        lex->value[i++] = lex->c;
+        lex_getchar(lex);
+        if (i == lex->val_len) {
+            lex->val_len *= 2;
+            lex->value = realloc(lex->value, lex->val_len);
+        }
+    } while (!feof(lex->file) && (*isvaliddigit)(lex->c));
+    if (i == lex->val_len) lex->value = realloc(lex->value, i + 1);
+    lex->value[i] = '\0';
+    lex->type = T_INT64;
+    if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
+    return 1;
+}
+
+int lex_eatop(Lexer *lex) {
+    char c1, c2, c3, c4;
+    int last;
+    c1 = lex->c;
+    c2 = fgetc(lex->file);
+    if (feof(lex->file)) {
+        goto one;
+    }
+
+    c3 = fgetc(lex->file);
+    if (feof(lex->file)) {
+        goto two;
+    }
+
+    c4 = fgetc(lex->file);
+    if (feof(lex->file)) {
+        goto three;
+    }
+
+    four:
+    last = YASLToken_FourChars(c1, c2, c3, c4);
+    if (last != -1) {
+        lex->type = last;
+        lex->value = realloc(lex->value, 0);
+        return 1;
+    }
+    fseek(lex->file, -1, SEEK_CUR);
+
+    three:
+    last = YASLToken_ThreeChars(c1, c2, c3);
+    if (last != -1) {
+        lex->type = last;
+        lex->value = realloc(lex->value, 0);
+        return 1;
+    }
+    fseek(lex->file, -1, SEEK_CUR);
+
+    two:
+    last = YASLToken_TwoChars(c1, c2);
+    if (last != -1) {
+        lex->type = last;
+        lex->value = realloc(lex->value, 0);
+        return 1;
+    }
+    fseek(lex->file, -1, SEEK_CUR);
+
+    one:
+    last = YASLToken_OneChar(c1);
+    if (last != -1) {
+        lex->type = last;
+        lex->value = realloc(lex->value, 0);
+        return 1;
+    }
+    return 0;
+}
+
+int lex_eatstring(Lexer *lex) {
+    if (lex->c == STR_DELIM) {
+        lex->val_len = 6;
+        lex->value = realloc(lex->value, lex->val_len);
+        int i = 0;
+        lex_getchar(lex);
+        while (lex->c != STR_DELIM && !feof(lex->file)) {
+            lex->value[i++] = lex->c;
+            lex_getchar(lex);
+            if (i == lex->val_len) {
+                lex->val_len *= 2;
+                lex->value = realloc(lex->value, lex->val_len);
+            }
+        }
+        lex->value = realloc(lex->value, lex->val_len = i);
+
+        if (feof(lex->file)) {
+            puts("LexingError: unclosed string literal.");
+            exit(EXIT_FAILURE);
+        }
+        lex->type = T_STR;
+        return 1;
+    }
+    return 0;
 }
 
 void gettok(Lexer *lex) {
@@ -19,6 +152,7 @@ void gettok(Lexer *lex) {
         c1 = lex->c;
         if (c1 == '!') {
             while (!feof(lex->file) && fgetc(lex->file) != '\n') {}
+            lex->line++;
         } else {
             fseek(lex->file, -2, SEEK_CUR);
         }
@@ -29,20 +163,10 @@ void gettok(Lexer *lex) {
     // whitespace and comments.
     while (!feof(lex->file) && (lex->c == ' ' || lex->c == '\n' || lex->c == '\t') || lex->c == '"' || lex->c == '/') {
         // white space
-        while (!feof(lex->file) && (lex->c == ' ' || lex->c == '\n' || lex->c == '\t')) {
-            if (lex->c == '\n') {
-                lex->line++;
-                if (ispotentialend(lex)) {
-                    lex->type = T_SEMI;
-                    return;
-                }
-            }
-            lex_getchar(lex);
-        }
+        if (lex_eatwhitespace(lex)) return;
 
         // inline comments
-        if ('"' == lex->c) while (!feof(lex->file) && lex_getchar(lex) != '\n') {}
-        c1 = lex->c;
+        if (lex_eatinlinecomments(lex)) return;
 
         // block comments
         if (lex->c == '/') {
@@ -67,12 +191,14 @@ void gettok(Lexer *lex) {
                     return;
                 }
             } else {
-                fseek(lex->file, -2, SEEK_CUR);
+                fseek(lex->file, -1, SEEK_CUR);
+                break;
             }
             lex_getchar(lex);
-            c1 = lex->c;
         }
     }
+
+    c1 = lex->c;
 
     // EOF
     if (feof(lex->file)) {
@@ -86,72 +212,22 @@ void gettok(Lexer *lex) {
         lex->val_len = 6;
         lex->value = realloc(lex->value, lex->val_len);
         int i = 0;
+        c1 = lex->c;
         c2 = fgetc(lex->file);
 
         // hex literal
         if (c1 == '0' && c2 == 'x'){            // hexadecimal literal
-            lex->value[i++] = '0';
-            lex->value[i++] = 'x';
-            lex_getchar(lex);
-            c1 = lex->c;
-            do {
-                lex->value[i++] = c1;
-                lex_getchar(lex);
-                c1 = lex->c;
-                if (i == lex->val_len) {
-                    lex->val_len *= 2;
-                    lex->value = realloc(lex->value, lex->val_len);
-                }
-            } while (!feof(lex->file) && isxdigit(c1));    // isxdigit checks if a hex digit.
-            if (i == lex->val_len) lex->value = realloc(lex->value, i + 1);
-            lex->value[i] = '\0';
-            lex->type = T_INT64;
-            if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
-            return;
+            if (lex_eatint(lex, 'x', &isxdigit)) return;
         }
 
         // binary literal
         if (c1 == '0' && c2 == 'b') {
-            lex->value[i++] = '0';
-            lex->value[i++] = 'b';
-            lex_getchar(lex);
-            c1 = lex->c;
-            do {
-                lex->value[i++] = c1;
-                lex_getchar(lex);
-                c1 = lex->c;
-                if (i == lex->val_len) {
-                    lex->val_len *= 2;
-                    lex->value = realloc(lex->value, lex->val_len);
-                }
-            } while (!feof(lex->file) && isbdigit(c1));    // isbdigit checks if a binary digit ('1' or '0').
-            if (i == lex->val_len) lex->value = realloc(lex->value, i + 1);
-            lex->value[i] = '\0';
-            lex->type = T_INT64;
-            if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
-            return;
+            if (lex_eatint(lex, 'b', &isbdigit)) return;
         }
 
         // octal literal
         if (c1 == '0' && c2 == 'o') {
-            lex->value[i++] = '0';
-            lex->value[i++] = 'o';
-            lex_getchar(lex);
-            c1 = lex->c;
-            do {
-                lex->value[i++] = c1;
-                lex_getchar(lex);
-                c1 = lex->c;
-                if (i == lex->val_len) {
-                    lex->val_len *= 2;
-                    lex->value = realloc(lex->value, lex->val_len);
-                }
-            } while (!feof(lex->file) && isodigit(c1));    // isodigit checks if an octal digit.
-            if (i == lex->val_len) lex->value = realloc(lex->value, i + 1);
-            lex->value[i] = '\0';
-            lex->type = T_INT64;
-            if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
-            return;
+            if (lex_eatint(lex, 'o', &isodigit)) return;
         }
 
         // rewind, because we don't have an octal, hex, or binary number.
@@ -226,81 +302,12 @@ void gettok(Lexer *lex) {
     }
 
     // strings
-    if (lex->c == STR_DELIM) {                             // strings
-        lex->val_len = 6;
-        lex->value = realloc(lex->value, lex->val_len);
-        int i = 0;
-        lex_getchar(lex);
-        while (lex->c != STR_DELIM && !feof(lex->file)) {
-            lex->value[i++] = lex->c;
-            lex_getchar(lex);
-            if (i == lex->val_len) {
-                lex->val_len *= 2;
-                lex->value = realloc(lex->value, lex->val_len);
-            }
-        }
-        lex->value = realloc(lex->value, lex->val_len = i);
-
-        if (feof(lex->file)) {
-            puts("LexingError: unclosed string literal.");
-            exit(EXIT_FAILURE);
-        }
-        lex->type = T_STR;
-        return;
-    }
+    if (lex_eatstring(lex)) return;
 
     // operators
-    c2 = fgetc(lex->file);
-    if (feof(lex->file)) {
-        goto one;
-    }
+    if (lex_eatop(lex)) return;
 
-    c3 = fgetc(lex->file);
-    if (feof(lex->file)) {
-        goto two;
-    }
-
-    c4 = fgetc(lex->file);
-    if (feof(lex->file)) {
-        goto three;
-    }
-
-    four:
-    last = YASLToken_FourChars(c1, c2, c3, c4);
-    if (last != -1) {
-        lex->type = last;
-        lex->value = realloc(lex->value, 0);
-        return;
-    }
-    fseek(lex->file, -1, SEEK_CUR);
-
-    three:
-    last = YASLToken_ThreeChars(c1, c2, c3);
-    if (last != -1) {
-        lex->type = last;
-        lex->value = realloc(lex->value, 0);
-        return;
-    }
-    fseek(lex->file, -1, SEEK_CUR);
-
-    two:
-    last = YASLToken_TwoChars(c1, c2);
-    if (last != -1) {
-        lex->type = last;
-        lex->value = realloc(lex->value, 0);
-        return;
-    }
-    fseek(lex->file, -1, SEEK_CUR);
-
-    one:
-    last = YASLToken_OneChar(c1);
-    if (last != -1) {
-        lex->type = last;
-        lex->value = realloc(lex->value, 0);
-        return;
-    }
-
-    printf("LexingError: unknown lexeme in line %d: `%c` (0x%x)\n", lex->line, c1, c1);
+    printf("LexingError: unknown lexeme in line %d: `%c` (0x%x)\n", lex->line, lex->c, lex->c);
     exit(EXIT_FAILURE);
 }
 

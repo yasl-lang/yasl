@@ -14,3 +14,5 @@ int map___set(VM *vm);
 int map_keys(VM *vm);
 
 int map_values(VM *vm);
+
+int map_clone(VM *vm);

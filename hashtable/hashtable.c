@@ -54,7 +54,7 @@ static void del_item(Item_t* item) {
     free(item);
 }
 
-static Hash_t* new_sized_hash(const int base_size) {
+Hash_t* new_sized_hash(const int base_size) {
     Hash_t* ht = malloc(sizeof(Hash_t));
     ht->base_size = base_size;
     ht->size = next_prime(ht->base_size);

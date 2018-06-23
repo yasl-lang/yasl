@@ -45,6 +45,7 @@ Compiler *compiler_new(Parser* parser, char *name) {
 
     ht_insert_string_int(compiler->methods, "keys", strlen("keys"), M_KEYS);
     ht_insert_string_int(compiler->methods, "values", strlen("values"), M_VALUES);
+    ht_insert_string_int(compiler->methods, "clone", strlen("clone"), M_CLONE);
 
     ht_insert_string_int(compiler->methods, "close", strlen("close"), M_CLOSE);
     ht_insert_string_int(compiler->methods, "pclose", strlen("pclose"), M_PCLOSE);
@@ -64,6 +65,19 @@ Compiler *compiler_new(Parser* parser, char *name) {
     compiler->buffer = bb_new(16);
     compiler->header = bb_new(16);
     compiler->header->count = 16;
+    /*bb_add_byte(compiler->header, 'Y');
+    bb_add_byte(compiler->header, 'Y');
+    bb_add_byte(compiler->header, 'Y');
+    bb_add_byte(compiler->header, 'Y');
+    bb_add_byte(compiler->header, 'Y');
+    bb_add_byte(compiler->header, 'Y');
+    bb_add_byte(compiler->header, 'Y');
+    bb_add_byte(compiler->header, 'Y');
+    char magic_number[YASL_MAG_NUM_SIZE] = "YASL";
+    magic_number[4] = YASL_COMPILER;
+    magic_number[5] = YASL_MAJOR_VERSION;
+    magic_number[6] = YASL_MINOR_VERSION;
+    magic_number[7] = YASL_PATCH; */
     compiler->checkpoints_size = 4;
     compiler->checkpoints = malloc(sizeof(int64_t)*compiler->checkpoints_size);
     compiler->checkpoints_count = 0;
@@ -138,17 +152,11 @@ void compile(Compiler *compiler) {
     }
     bb_rewrite_intbytes8(compiler->header, 0, compiler->header->count);
 
-    char magic_number[YASL_MAG_NUM_SIZE] = "YASL";
-    magic_number[4] = YASL_COMPILER;
-    magic_number[5] = YASL_MAJOR_VERSION;
-    magic_number[6] = YASL_MINOR_VERSION;
-    magic_number[7] = YASL_PATCH;
-
     int i = 0;
-    YASL_DEBUG_LOG("%s\n", "magic number");
+    /*YASL_DEBUG_LOG("%s\n", "magic number");
     for (i = 0; i < 7; i++) {
         YASL_DEBUG_LOG("%02x\n", magic_number[i]);
-    }
+    } */
     YASL_DEBUG_LOG("%s\n", "header");
     for (i = 0; i < compiler->header->count; i++) {
         YASL_DEBUG_LOG("%02x\n", compiler->header->bytes[i]);
@@ -161,7 +169,7 @@ void compile(Compiler *compiler) {
     FILE *fp = fopen(compiler->name, "wb");
     if (!fp) exit(EXIT_FAILURE);
 
-    fwrite(magic_number, 1, YASL_MAG_NUM_SIZE, fp);
+    //fwrite(magic_number, 1, YASL_MAG_NUM_SIZE, fp);
     fwrite(compiler->header->bytes, 1, compiler->header->count, fp);
     fwrite(compiler->code->bytes, 1, compiler->code->count, fp);
     fputc(HALT, fp);
@@ -207,9 +215,9 @@ void visit_FunctionDecl(Compiler *compiler, const Node *const node) {
 
     ht_insert_string_int(compiler->functions_locals_len, node->name, node->name_len, compiler->locals->vars->count);
 
-    ht_insert_string_int(compiler->functions, node->name, node->name_len, compiler->header->count);
-
     visit_Block(compiler, node->children[1]);
+
+    ht_insert_string_int(compiler->functions, node->name, node->name_len, compiler->header->count);
 
     //YASL_DEBUG_LOG("tried to insert function, result was %d.\n", ht_search_string_int(compiler->functions, node->name, node->name_len) != NULL);
 

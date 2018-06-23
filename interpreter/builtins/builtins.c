@@ -198,6 +198,7 @@ VTable_t* map_builtins() {
     VTable_t* vt = new_vtable();
     vt_insert(vt, M_KEYS,   (int64_t)&map_keys);
     vt_insert(vt, M_VALUES, (int64_t)&map_values);
+    vt_insert(vt, M_CLONE, (int64_t)&map_clone);
     vt_insert(vt, M___GET,  (int64_t)&map___get);
     vt_insert(vt, M___SET,  (int64_t)&map___set);
     return vt;

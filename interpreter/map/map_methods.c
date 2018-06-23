@@ -1,5 +1,6 @@
 #include <interpreter/YASL_Object/YASL_Object.h>
 #include "map_methods.h"
+#include "hashtable.h"
 
 int map___get(VM *vm) {
     Hash_t* ht = POP(vm).value.mval;
@@ -48,5 +49,19 @@ int map_values(VM* vm) {
         }
     }
     vm->stack[++vm->sp] = (YASL_Object) {LIST, (int64_t)ls};
+    return 0;
+}
+
+int map_clone(VM* vm) {
+    Hash_t* ht = POP(vm).value.mval;
+    Hash_t* new_ht = new_sized_hash(ht->base_size);
+    int i;
+    for (i = 0; i < ht->size; i++) {
+        Item_t* item = ht->items[i];
+        if (item != NULL && item != &TOMBSTONE) {
+            ht_insert(new_ht, *item->key, *item->value);
+        }
+    }
+    vm->stack[++vm->sp] = (YASL_Object) {MAP, (int64_t)new_ht};
     return 0;
 }

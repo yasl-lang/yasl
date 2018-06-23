@@ -26,6 +26,7 @@ enum Methods {
 
     M_KEYS        = 0x30,
     M_VALUES      = 0x31,
+    M_CLONE       = 0x32,
 
     M_CLOSE       = 0x40,
     M_PCLOSE      = 0x41,

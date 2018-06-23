@@ -19,7 +19,8 @@ typedef enum {
     STR8,
     LIST,
     MAP,
-    FILEH
+    FILEH,
+    FN_P
 } YASL_Types;
 
 struct List_s;

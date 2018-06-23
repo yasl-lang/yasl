@@ -184,7 +184,7 @@ Node *parse_assign(Parser *parser) {
             block_append(block, parse_expr(parser));
             free(cur_node->children);
             free(cur_node);
-            return new_MethodCall(left, block, "__set", 5, parser->lex->line);
+            return new_MethodCall(left, block, "__set", strlen("__set"), parser->lex->line);
         } else {
             puts("Invalid lvalue.");
             exit(EXIT_FAILURE);
@@ -359,6 +359,9 @@ Node *parse_call(Parser *parser) {
             if (right->nodetype == N_CALL) {
                 cur_node = new_MethodCall(cur_node, right->children[0], right->name, right->name_len, right->line);
                 free(right);
+            } else if (right->nodetype == N_VAR) {
+                right->nodetype = N_STR;
+                cur_node = new_Index(cur_node, right, parser->lex->line);
             } else {
                 puts("Invalid member access");
                 exit(EXIT_FAILURE);
