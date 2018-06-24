@@ -13,6 +13,24 @@
  * }
  */
 
+Node *clone_node(Node *node) {
+    if (node == NULL) return NULL;
+    Node *clone = malloc(sizeof(Node));
+    clone->nodetype = node->nodetype;
+    clone->type = node->type;
+    clone->children_len = node->children_len;
+    clone->children = malloc(clone->children_len * sizeof(Node));
+    for (int i = 0; i < clone->children_len; i++) {
+        clone->children[i] = clone_node(node->children[i]);
+    }
+    clone->name_len = node->name_len;
+    clone->name = malloc(node->name_len);
+    memcpy(clone->name, node->name, clone->name_len);
+    clone->line = node->line;
+    return clone;
+}
+
+
 Node *new_Node_0(AST nodetype, Token type, char *name, int64_t name_len, int line) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = nodetype;
@@ -113,8 +131,8 @@ Node *new_Return(Node *expr, int line) {
     return new_Node_1(N_RET, T_UNKNOWN, expr, NULL, 0, line);
 }
 
-Node *new_FunctionCall(Node *params, char *name, int64_t name_len, int line) {
-    return new_Node_1(N_CALL, T_UNKNOWN, params, name, name_len, line);
+Node *new_FunctionCall(Node *params, Node *object, int line) {
+    return new_Node_2(N_CALL, T_UNKNOWN, params, object, NULL, 0, line);
 }
 
 
@@ -204,4 +222,5 @@ void node_del(Node *node) {
     free(node->name);
     free(node->children);
     free(node);
+
 }

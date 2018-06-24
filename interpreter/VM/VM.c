@@ -477,7 +477,7 @@ void run(VM* vm){
                 break;
             case CALL_8:
                 offset = NCODE(vm);
-                addr = vm->globals[NCODE(vm)].value.ival;
+                addr = POP(vm).value.ival;
                 //memcpy(&addr, vm->code + vm->pc, sizeof addr);
                 //vm->pc += sizeof addr;
                 PUSH(vm, ((YASL_Object) {offset, vm->fp}));  // store previous frame ptr;

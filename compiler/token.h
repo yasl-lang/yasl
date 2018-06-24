@@ -148,6 +148,7 @@ typedef enum {
     T_DQMARK,
     T_DQMARKEQ,
     T_COLON,
+    T_DCOLON,
     T_RARR,
     T_LARR,
 } Token;

@@ -352,24 +352,55 @@ Node *parse_power(Parser *parser) {
 
 Node *parse_call(Parser *parser) {
     Node *cur_node = parse_constant(parser);
-    while (curtok(parser) == T_LSQB || curtok(parser) == T_DOT) {
-        if (curtok(parser) == T_DOT) {
+    while (curtok(parser) == T_LSQB || curtok(parser) == T_DOT ||
+           curtok(parser) == T_LPAR || curtok(parser) == T_DCOLON) {
+        if (curtok(parser) == T_DCOLON) {
+            eattok(parser, T_DCOLON);
+            Node *right = parse_constant(parser);
+            if (right->nodetype != N_VAR) {
+                puts("Invalid method call.");
+            }
+
+            Node *block = new_Block(parser->lex->line);
+            block_append(block, clone_node(cur_node));
+
+            right->nodetype = N_STR;
+            cur_node = new_Index(cur_node, right, parser->lex->line);
+
+
+            cur_node = new_FunctionCall(block, cur_node, parser->lex->line);
+            eattok(parser, T_LPAR);
+            while (curtok(parser) != T_RPAR && curtok(parser) != T_EOF) {
+                block_append(cur_node->children[0], parse_expr(parser));
+                if (curtok(parser) != T_COMMA) break;
+                eattok(parser, T_COMMA);
+            }
+            eattok(parser, T_RPAR);
+
+        } else if (curtok(parser) == T_DOT) {
             eattok(parser, T_DOT);
             Node *right = parse_constant(parser);
-            if (right->nodetype == N_CALL) {
-                cur_node = new_MethodCall(cur_node, right->children[0], right->name, right->name_len, right->line);
-                free(right);
-            } else if (right->nodetype == N_VAR) {
+            if (right->nodetype == N_VAR) {
                 right->nodetype = N_STR;
                 cur_node = new_Index(cur_node, right, parser->lex->line);
             } else {
-                puts("Invalid member access");
-                exit(EXIT_FAILURE);
+                puts("failled)");
+                exit(1);
             }
-        } else {
+        } else if (curtok(parser) == T_LSQB) {
             eattok(parser, T_LSQB);
             cur_node = new_Index(cur_node, parse_expr(parser), parser->lex->line);
             eattok(parser, T_RSQB);
+        } else if (curtok(parser) == T_LPAR) {
+            YASL_TRACE_LOG("%s\n", "Parsing function call");
+            cur_node = new_FunctionCall(new_Block(parser->lex->line), cur_node, parser->lex->line);
+            eattok(parser, T_LPAR);
+            while (curtok(parser) != T_RPAR && curtok(parser) != T_EOF) {
+                block_append(cur_node->children[0], parse_expr(parser));
+                if (curtok(parser) != T_COMMA) break;
+                eattok(parser, T_COMMA);
+            }
+            eattok(parser, T_RPAR);
         }
     }
     return cur_node;
@@ -404,7 +435,7 @@ Node *parse_constant(Parser *parser) {
             printf("ParsingError in line %d: expected expression, got `%s`\n", parser->lex->line, YASL_TOKEN_NAMES[curtok(parser)]);
             exit(EXIT_FAILURE);
         default:
-            printf("ParsingError: Invalid expression in line %d.\n", parser->lex->line);
+            printf("ParsingError: Invalid expression in line %d (%s).\n", parser->lex->line, YASL_TOKEN_NAMES[curtok(parser)]);
             exit(EXIT_FAILURE);
     }
 }
@@ -414,23 +445,10 @@ Node *parse_id(Parser *parser) {
     memcpy(name, parser->lex->value, parser->lex->val_len);
     int64_t name_len = parser->lex->val_len;
     eattok(parser, T_ID);
-    if (curtok(parser) == T_LPAR) {
-        YASL_TRACE_LOG("%s\n", "Parsing function call");
-        Node *cur_node = new_FunctionCall(new_Block(parser->lex->line), name, name_len, parser->lex->line);
-        eattok(parser, T_LPAR);
-        while (curtok(parser) != T_RPAR && curtok(parser) != T_EOF) {
-            block_append(cur_node->children[0], parse_expr(parser));
-            if (curtok(parser) != T_COMMA) break;
-            eattok(parser, T_COMMA);
-        }
-        eattok(parser, T_RPAR);
-        return cur_node;
-    } else {
-        YASL_TRACE_LOG("%s\n", "Parsing variable");
-        Node *cur_node = new_Var(name, name_len, parser->lex->line);
-        free(name);
-        return cur_node;
-    }
+    YASL_TRACE_LOG("%s\n", "Parsing variable");
+    Node *cur_node = new_Var(name, name_len, parser->lex->line);
+    free(name);
+    return cur_node;
 }
 
 Node *parse_undef(Parser *parser) {

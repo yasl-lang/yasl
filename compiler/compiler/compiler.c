@@ -281,6 +281,7 @@ void visit_Call(Compiler *compiler, const Node *const node) {
      */
     //YASL_DEBUG_LOG("visiting call %s\n", node->name);
     visit_Block(compiler, node->children[0]);
+    visit(compiler, node->children[1]);
     //YASL_TRACE_LOG("Visiting Block with %d children in reverse.\n", node->children_len);
     //int i;
     //for (i = node->children_len - 1; i >= 0; i--) {
@@ -300,7 +301,7 @@ void visit_Call(Compiler *compiler, const Node *const node) {
 
         bb_add_byte(compiler->buffer, node->children[0]->children_len);
 
-        bb_add_byte(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));
+        //bb_add_byte(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));
 
         //bb_add_byte(compiler->buffer, ht_search_string_int(compiler->functions_locals_len, node->name, node->name_len)->value.ival);
 
@@ -636,9 +637,9 @@ void visit_Assign(Compiler *compiler, const Node *const node) {
 
 void visit_Var(Compiler *compiler, const Node *const node) {
     YASL_TRACE_LOG("%s is global: ", node->name);
-    YASL_TRACE_LOG("%d\n", env_contains(compiler->globals, node->name, node->name_len));
+    //YASL_TRACE_LOG("%d\n", env_contains(compiler->globals, node->name, node->name_len));
     YASL_TRACE_LOG("%s is local: ", node->name);
-    YASL_TRACE_LOG("%d\n", env_contains(compiler->locals, node->name, node->name_len));
+    //YASL_TRACE_LOG("%d\n", env_contains(compiler->locals, node->name, node->name_len));
     if (!env_contains(compiler->globals, node->name, node->name_len) &&
         !env_contains(compiler->locals, node->name, node->name_len)) {
         printf("unknown variable: %s\n", node->name);

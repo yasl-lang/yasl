@@ -47,6 +47,7 @@ typedef struct Node_s Node;
 
 void block_append(Node *node, Node *child);
 
+Node *clone_node(Node *node);
 Node *new_Node_0(AST nodetype, Token type, char *name, int64_t name_len, int line);
 Node *new_Node_1(AST nodetype, Token type, Node *child, char *name, int64_t name_len, int line);
 Node *new_Node_2(AST nodetype, Token type, Node *child1, Node *child2, char *name, int64_t name_len, int line);
@@ -56,7 +57,7 @@ Node *new_ExprStmt(Node *child, int line);
 Node *new_Block(int line);
 Node *new_FunctionDecl(Node *params, Node *body, char *name, int64_t name_len, int line);
 Node *new_Return(Node *expr, int line);
-Node *new_FunctionCall(Node *params, char *name, int64_t name_len, int line);
+Node *new_FunctionCall(Node *params, Node *object, int line);
 Node *new_MethodCall(Node *object, Node *params, char *name, int64_t name_len, int line);
 Node *new_Index(Node *collection, Node *value, int line);
 Node *new_While(Node *cond, Node *body, int line);
