@@ -55,9 +55,9 @@ void run(VM* vm){
         int64_t c;
         double d;
         void* ptr;
-        /*printf("\nopcode: %x\n", opcode);
-        printf("tpye is: %s\n", YASL_TYPE_NAMES[PEEK(vm).type]);
-        print(PEEK(vm));
+        //printf("\nopcode at %x: %x\n", vm->pc, opcode);
+        //printf("tpye is: %s\n", YASL_TYPE_NAMES[PEEK(vm).type]);
+        //print(PEEK(vm));
 
         //print(vm->stack[vm->sp-1]);
         //print(vm->stack[vm->sp-2]);
@@ -119,6 +119,11 @@ void run(VM* vm){
             case NCONST:
                 vm->stack[++vm->sp].type = UNDEF;
                 vm->stack[vm->sp].value.ival  = 0x00;
+                break;
+            case FCONST:
+                memcpy(&c, vm->code + vm->pc, sizeof c);
+                vm->pc += sizeof c;
+                PUSH(vm, ((YASL_Object) {FN_P, c}));
                 break;
             case BOR:
                 b = POP(vm);
@@ -472,14 +477,18 @@ void run(VM* vm){
                 break;
             case CALL_8:
                 offset = NCODE(vm);
-                memcpy(&addr, vm->code + vm->pc, sizeof addr);
-                vm->pc += sizeof addr;
+                addr = vm->globals[NCODE(vm)].value.ival;
+                //memcpy(&addr, vm->code + vm->pc, sizeof addr);
+                //vm->pc += sizeof addr;
                 PUSH(vm, ((YASL_Object) {offset, vm->fp}));  // store previous frame ptr;
                 PUSH(vm, ((YASL_Object) {offset, vm->pc}));  // store pc addr
                 vm->fp = vm->sp;
-                offset = NCODE(vm);
+                if (vm->code[addr] != offset) {
+                    puts("CallError: wrong number params.");
+                }
+                offset = vm->code[addr+1];
                 vm->sp += offset + 1; // + 2
-                vm->pc = addr;
+                vm->pc = addr + 2;
                 break;
             case BCALL_8:
                 memcpy(&addr, vm->code + vm->pc, sizeof(addr));
@@ -548,9 +557,7 @@ void run(VM* vm){
                 a = vm->stack[vm->fp];
                 b = vm->stack[vm->fp-1];
                 vm->pc = a.value.ival;
-                vm->pc++;
-                vm->sp = vm->fp - a.type;
-                vm->sp--;
+                vm->sp = vm->fp - a.type - 2;
                 vm->fp = b.value.ival;
                 PUSH(vm, v);
                 break;
