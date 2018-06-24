@@ -33,6 +33,11 @@ int lex_eatinlinecomments(Lexer *lex) {
     return 0;
 }
 
+int lex_eatblockcomments(Lexer *lex) {
+
+    return 0;
+}
+
 int lex_eatint(Lexer *lex, char separator, int (*isvaliddigit)(int)) {
     int i = 0;
     lex->value[i++] = '0';
@@ -118,6 +123,8 @@ int lex_eatstring(Lexer *lex) {
         lex->val_len = 6;
         lex->value = realloc(lex->value, lex->val_len);
         int i = 0;
+        lex->type = T_STR;
+
         lex_getchar(lex);
         while (lex->c != STR_DELIM && !feof(lex->file)) {
             lex->value[i++] = lex->c;
@@ -127,14 +134,16 @@ int lex_eatstring(Lexer *lex) {
                 lex->value = realloc(lex->value, lex->val_len);
             }
         }
+        lex_getchar(lex);
         lex->value = realloc(lex->value, lex->val_len = i);
 
         if (feof(lex->file)) {
             puts("LexingError: unclosed string literal.");
             exit(EXIT_FAILURE);
         }
-        lex->type = T_STR;
+
         return 1;
+
     }
     return 0;
 }
