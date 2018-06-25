@@ -17,7 +17,7 @@ Token eattok(Parser *parser, Token token) {
     //YASL_TRACE_LOG("current token is %s\n", YASL_TOKEN_NAMES[curtok(parser)]);
     if (curtok(parser) != token) {
         //printf("ParsingError: Expected %x, got %x\n", token, curtok(parser));
-        printf("ParsingError: Expected %s, got %s\n", YASL_TOKEN_NAMES[token], YASL_TOKEN_NAMES[curtok(parser)]);
+        printf("ParsingError: Expected %s, got %s, in line %d\n", YASL_TOKEN_NAMES[token], YASL_TOKEN_NAMES[curtok(parser)], parser->lex->line);
         exit(EXIT_FAILURE);
     }
     gettok(parser->lex);
@@ -128,7 +128,7 @@ Node *parse_if(Parser *parser) {
         block_append(then_block, parse_program(parser));
         if (curtok(parser) == T_SEMI) eattok(parser, T_SEMI);
         else if (curtok(parser) != T_RBRC) {
-            printf("ParsingError: expected newline or `}`, got `%s`.\n", YASL_TOKEN_NAMES[curtok(parser)]);
+            printf("ParsingError: in line %d: expected newline or `}`, got `%s`.\n", parser->lex->line, YASL_TOKEN_NAMES[curtok(parser)]);
             exit(EXIT_FAILURE);
         }
     }

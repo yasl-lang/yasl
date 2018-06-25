@@ -134,7 +134,7 @@ int lex_eatstring(Lexer *lex) {
                 lex->value = realloc(lex->value, lex->val_len);
             }
         }
-        lex_getchar(lex);
+        //lex_getchar(lex);
         lex->value = realloc(lex->value, lex->val_len = i);
 
         if (feof(lex->file)) {
@@ -488,6 +488,7 @@ void YASLKeywords(Lexer *lex) {
     }
 }
 
+// Note: keep in sync with token.h
 const char *YASL_TOKEN_NAMES[] = {
         "END OF FILE",  // T_EOF,
         ";",            // T_SEMI,
@@ -510,7 +511,6 @@ const char *YASL_TOKEN_NAMES[] = {
         "fn",           // T_FN,
         "return",       // T_RET,
         "enum",         // T_ENUM,
-        "struct",       // T_STRUCT,
         "print",        // T_PRINT,
         "(",            // LPAR,
         ")",            // RPAR,

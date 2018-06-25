@@ -25,6 +25,7 @@ include_directories(interpreter/vtable)
 include_directories(interpreter/YASL_Object)
 include_directories(interpreter/YASL_string)
 include_directories(prime)
+include_directories(test)
 
 add_executable(YASL
         main.c
@@ -74,5 +75,8 @@ add_executable(YASL
         functions.h
         methods.h
         opcode.h)
+
+add_executable(YASLTEST
+        test/lexertest.c)
 
 target_link_libraries(YASL m)
