@@ -189,11 +189,21 @@ Node *parse_assign(Parser *parser) {
             puts("Invalid lvalue.");
             exit(EXIT_FAILURE);
         }
-        // TODO: add indexing case
     } else if (isaugmented(curtok(parser))) {
-        Token op = eattok(parser, curtok(parser)) - 1; // relies on enum
+        Token op = eattok(parser, curtok(parser)) - 1; // Note: relies on enum
         if (cur_node->nodetype == N_VAR) {
             return new_Assign(cur_node->name, cur_node->name_len, new_BinOp(op, cur_node, parse_assign(parser), parser->lex->line), parser->lex->line);
+        } else if (cur_node->nodetype == N_INDEX) {
+            Node *left = cur_node->children[0];
+            Node *block = new_Block(parser->lex->line);
+            block_append(block, cur_node->children[1]);
+            block_append(block, new_BinOp(op, clone_node(cur_node), parse_expr(parser), parser->lex->line));
+            free(cur_node->children);
+            free(cur_node);
+            return new_MethodCall(left, block, "__set", strlen("__set"), parser->lex->line);
+        } else {
+            puts("Invalid lvalue.");
+            exit(EXIT_FAILURE);
         }
         // TODO: add indexing case
     }

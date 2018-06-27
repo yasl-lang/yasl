@@ -77,6 +77,8 @@ add_executable(YASL
         opcode.h)
 
 add_executable(YASLTEST
-        test/lexertest.c)
+        test/lexertest.c
+        compiler/lexer/lexer.c
+        compiler/lexer/lexer.h)
 
 target_link_libraries(YASL m)

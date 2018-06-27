@@ -14,6 +14,11 @@ char lex_getchar(Lexer *lex) {
     return lex->c = fgetc(lex->file);
 }
 
+char lex_rewind(Lexer *lex, int len) {
+    fseek(lex->file, len-1, SEEK_CUR);
+    lex_getchar(lex);
+}
+
 int lex_eatwhitespace(Lexer *lex) {
     while (!feof(lex->file) && (lex->c == ' ' || lex->c == '\n' || lex->c == '\t')) {
         if (lex->c == '\n') {
@@ -200,10 +205,9 @@ void gettok(Lexer *lex) {
                     return;
                 }
             } else {
-                fseek(lex->file, -1, SEEK_CUR);
+                lex_rewind(lex, -1);
                 break;
             }
-            lex_getchar(lex);
         }
     }
 
