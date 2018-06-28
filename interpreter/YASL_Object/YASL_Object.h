@@ -20,7 +20,8 @@ typedef enum {
     LIST,
     MAP,
     FILEH,
-    FN_P
+    FN_P,
+    MN_P
 } YASL_Types;
 
 struct List_s;

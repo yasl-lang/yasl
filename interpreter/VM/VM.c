@@ -171,7 +171,7 @@ void run(VM* vm){
                            YASL_TYPE_NAMES[a.type]);
                     return;
                 }
-            case BLSHIFT:
+            case BSL:
                 b = POP(vm);
                 a = PEEK(vm);
                 if (a.type == INT64 && b.type == INT64) {
@@ -183,7 +183,7 @@ void run(VM* vm){
                            YASL_TYPE_NAMES[b.type]);
                     return;
                 }
-            case BRSHIFT:
+            case BSR:
                 b = POP(vm);
                 a = PEEK(vm);
                 if (a.type == INT64 && b.type == INT64) {
@@ -399,7 +399,7 @@ void run(VM* vm){
                 vm->stack[vm->sp].value.ival = a.type == b.type && a.value.ival == b.value.ival;
                 vm->stack[vm->sp].type = BOOL;
                 break;
-            case NEWSTR8:
+            case NEWSTR:
                 vm->stack[++vm->sp].type = STR8;
 
                 memcpy(&addr, vm->code+vm->pc, sizeof(int64_t));
@@ -414,7 +414,7 @@ void run(VM* vm){
                 memcpy(vm->stack[vm->sp].value.sval->str, vm->code+addr+sizeof(int64_t), size);
 
                 break;
-            case NEWMAP:
+            case NEWTABLE:
                 vm->stack[++vm->sp].type = MAP;
                 vm->stack[vm->sp].value.mval  = new_hash();
                 break;
@@ -476,20 +476,27 @@ void run(VM* vm){
                 vm->stack[vm->fp+offset] = vm->stack[vm->sp--];
                 break;
             case CALL_8:
-                offset = NCODE(vm);
-                addr = POP(vm).value.ival;
-                //memcpy(&addr, vm->code + vm->pc, sizeof addr);
-                //vm->pc += sizeof addr;
-                PUSH(vm, ((YASL_Object) {offset, vm->fp}));  // store previous frame ptr;
-                PUSH(vm, ((YASL_Object) {offset, vm->pc}));  // store pc addr
-                vm->fp = vm->sp;
-                if (vm->code[addr] != offset) {
-                    puts("CallError: wrong number params.");
+                if (PEEK(vm).type == FN_P) {
+                    offset = NCODE(vm);
+                    addr = POP(vm).value.ival;
+                    PUSH(vm, ((YASL_Object) {offset, vm->fp}));  // store previous frame ptr;
+                    PUSH(vm, ((YASL_Object) {offset, vm->pc}));  // store pc addr
+                    vm->fp = vm->sp;
+                    if (vm->code[addr] != offset) {
+                        puts("CallError: wrong number params.");
+                    }
+                    offset = vm->code[addr+1];
+                    vm->sp += offset + 1; // + 2
+                    vm->pc = addr + 2;
+                    break;
+                } else if (PEEK(vm).type == MN_P) {
+                    //TODO
+                    puts("Builtin functions are not yet implemented.");
+                    exit(EXIT_FAILURE);
+                } else {
+                    puts("TypeError: called non-callable object.");
+                    exit(EXIT_FAILURE);
                 }
-                offset = vm->code[addr+1];
-                vm->sp += offset + 1; // + 2
-                vm->pc = addr + 2;
-                break;
             case BCALL_8:
                 memcpy(&addr, vm->code + vm->pc, sizeof(addr));
                 vm->pc += sizeof(addr);

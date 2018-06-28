@@ -567,10 +567,10 @@ void visit_BinOp(Compiler *compiler, const Node *const node) {
             bb_add_byte(compiler->buffer, CNCT);
             break;
         case T_DGT:
-            bb_add_byte(compiler->buffer, BRSHIFT);
+            bb_add_byte(compiler->buffer, BSR);
             break;
         case T_DLT:
-            bb_add_byte(compiler->buffer, BLSHIFT);
+            bb_add_byte(compiler->buffer, BSL);
             break;
         case T_PLUS:
             bb_add_byte(compiler->buffer, ADD);
@@ -710,7 +710,7 @@ void visit_String(Compiler* compiler, const Node *const node) {
 
     value = ht_search_string_int(compiler->strings, node->name, node->name_len);
 
-    bb_add_byte(compiler->buffer, NEWSTR8);
+    bb_add_byte(compiler->buffer, NEWSTR);
     bb_intbytes8(compiler->buffer, value->value.ival);
 }
 
@@ -728,7 +728,7 @@ void visit_List(Compiler *compiler, const Node *const node) {
 }
 
 void visit_Map(Compiler *compiler, const Node *const node) {
-    bb_add_byte(compiler->buffer, NEWMAP);
+    bb_add_byte(compiler->buffer, NEWTABLE);
     int i;
     for (i = 0; i < node->children[0]->children_len; i++) {
         bb_add_byte(compiler->buffer, DUP);
