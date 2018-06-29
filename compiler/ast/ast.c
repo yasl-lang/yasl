@@ -117,13 +117,12 @@ Node *new_FunctionCall(Node *params, char *name, int64_t name_len, int line) {
     return new_Node_1(N_CALL, T_UNKNOWN, params, name, name_len, line);
 }
 
-
-Node *new_MethodCall(Node *object, Node *params, char *name, int64_t name_len, int line) {
-    return new_Node_2(N_METHOD, T_UNKNOWN, object, params, name, name_len, line);
+Node *new_Set(Node *collection, Node *key, Node *value, int line) {
+    return new_Node_3(N_SET, T_UNKNOWN, collection, key, value, NULL, 0, line);
 }
 
-Node *new_Index(Node *collection, Node *value, int line) {
-    return new_Node_2(N_INDEX, T_UNKNOWN, collection, value, NULL, 0, line);
+Node *new_Get(Node *collection, Node *value, int line) {
+    return new_Node_2(N_GET, T_UNKNOWN, collection, value, NULL, 0, line);
 }
 
 Node *new_While(Node *cond, Node *body, int line) {

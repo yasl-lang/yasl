@@ -14,7 +14,9 @@ const char *YASL_TYPE_NAMES[] = {
     "str",      //STR8,
     "list",     //LIST,
     "map",      //MAP,
-    "file"      //FILEH,
+    "file",     //FILEH,
+    "fn",       //FN_P
+    "mn"        //MN_P
 };
 
 
@@ -62,28 +64,21 @@ YASL_Object isequal(YASL_Object a, YASL_Object b) {
                 return UNDEF_C;
             }
             return FALSE_C;
-            // #define LEN_C(v)     (*((int64_t*)v.value))
         case STR8:
-            //puts("str8");
             if (b.type == STR8) {
                 if ((a.value.sval)->length != (b.value.sval)->length) {
-                    //puts("diff len");
                     return FALSE_C;
                 } else {
                     int i = 0;
                     while (i < (a.value.sval)->length) {
                         if ((a.value.sval)->str[i] != (b.value.sval)->str[i]) {
-                            //printf("a[%d], b[%d]: %x, %x\n", i, i, ((String_t*)a.value)->str[i], ((String_t*)b.value)->str[i]);
-                            //puts("diff val at i");
                             return FALSE_C;
                         }
                         i++;
                     }
-                    //puts("true");
                     return TRUE_C;
                 }
             }
-            //puts("b has wrong type");
             return FALSE_C;
         default:
             if (b.type == BOOL || b.type == MAP) {

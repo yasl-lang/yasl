@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
     long file_len;
     int64_t entry_point, num_globals;
     FILE *fp;
-    char *name = "source.yb";
+    char *name;
 
     if (argc > 2) {
         printf("ERROR: Too many arguments passed.\nUsage is: YASL [path/to/script.ysl]\n");

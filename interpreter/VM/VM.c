@@ -58,29 +58,7 @@ void run(VM* vm){
         /*printf("\nopcode: %x\n", opcode);
         printf("tpye is: %s\n", YASL_TYPE_NAMES[PEEK(vm).type]);
         print(PEEK(vm));
-
-        //print(vm->stack[vm->sp-1]);
-        //print(vm->stack[vm->sp-2]);
-        //print(vm->stack[vm->sp-3]);
-        //print(vm->globals[0]);
-        //print(vm->globals[1]);
-        //print(vm->globals[2]);
-        //print(vm->globals[3]);
-        //print(vm->globals[4]);
-        //print(vm->globals[5]); //*/
-
-        //printf("pc: %d\n", vm->pc);
-        //printf("vm->sp: %d, vm->pc: %d\n", vm->sp, vm->pc);
-        /*printf("stack[0, 1, 2, 3] are %d:%x, %d:%x, %d:%x, %d:%x\n",
-               (int)vm->stack[vm->sp].value,     (int)vm->stack[vm->sp].type,
-               (int)vm->stack[vm->sp - 1].value, (int)vm->stack[vm->sp - 1].type,
-               (int)vm->stack[vm->sp - 2].value, (int)vm->stack[vm->sp - 2].type,
-               (int)vm->stack[vm->sp - 3].value, (int)vm->stack[vm->sp - 3].type); //
-        /*printf("globals[0, 1, 2, 3] are %d:%x, %d:%x, %d:%x, %d:%x\n",
-               (int)vm->globals[0].value, (int)vm->globals[0].type,
-               (int)vm->globals[1].value, (int)vm->globals[1].type,
-               (int)vm->globals[2].value, (int)vm->globals[2].type,
-               (int)vm->globals[3].value, (int)vm->globals[3].type); //*/
+         */
         switch (opcode) {   // decode
             case HALT: return;  // stop the program
             case NOP: break;    // pass
@@ -233,7 +211,6 @@ void run(VM* vm){
                 b = POP(vm);
                 a = PEEK(vm);
                 if (a.type == INT64 && b.type == INT64) {
-                    //printf("a = %d, b = %d, a/b = %d\n", a.value, b.value, a.value / b.value);
                     PEEK(vm).value.ival = a.value.ival / b.value.ival;
                     break;
                 } else {
@@ -298,7 +275,7 @@ void run(VM* vm){
             case LEN:
                 v = vm->stack[vm->sp];
                 if (v.type == STR8) {
-                    vm->stack[vm->sp].value.ival = (v.value.sval)->length; // (int64_t*)v.value;
+                    vm->stack[vm->sp].value.ival = (v.value.sval)->length;
                 } else if (v.type == MAP) {
                     vm->stack[vm->sp].value.ival = (v.value.mval)->count;
                 } else if (v.type == LIST) {
@@ -555,23 +532,8 @@ void run(VM* vm){
                 PUSH(vm, v);
                 break;
             case POP:
-                --vm->sp;      // throw away value at top of the stack
+                --vm->sp;
                 break;
-            /*case MLC_8:
-                vm->stack[++vm->sp].type = vm->code[vm->pc++];
-                memcpy(&size, vm->code + vm->pc, sizeof(size));
-                vm->pc += sizeof(size);
-                ptr = malloc(size);
-                vm->stack[vm->sp].value = (int64_t)ptr;
-                break; */
-            /*case MCP_8:
-                memcpy(&big_offset, vm->code + vm->pc, sizeof(big_offset));
-                vm->pc += sizeof(big_offset);
-                memcpy(&size, vm->code + vm->pc, sizeof(size));
-                vm->pc += sizeof(size);
-                memcpy((char*)vm->stack[vm->sp].value + big_offset, vm->code + vm->pc, size);
-                vm->pc += size;
-                break; */
             default:
                 printf("ERROR UNKNOWN OPCODE: %x\n", opcode);
                 return;

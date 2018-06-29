@@ -30,11 +30,6 @@ typedef struct {
     char *current_function;
 } Compiler;
 
-Compiler *compiler_new(Parser *parser, char *name);
+Compiler *compiler_new(Parser *const parser, char *const name);
 void compiler_del(Compiler *compiler);
-void compile(Compiler *compiler);
-void enter_scope(Compiler *compiler);
-void exit_scope(Compiler *compiler);
-
-void visit(Compiler *compiler, const Node *const node);
-void visit_Block(Compiler *compiler, const Node *const node);
+void compile(const Compiler *const compiler);

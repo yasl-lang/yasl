@@ -20,7 +20,8 @@ typedef enum {
     LIST,
     MAP,
     FILEH,
-    FN_P
+    FN_P,
+    MN_P
 } YASL_Types;
 
 struct List_s;
@@ -46,4 +47,4 @@ typedef struct {
 YASL_Object isequal(YASL_Object a, YASL_Object b);
 int print(YASL_Object a);
 
-const char *YASL_TYPE_NAMES[64/8];
+const char *YASL_TYPE_NAMES[10];

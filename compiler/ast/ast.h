@@ -12,7 +12,8 @@ typedef enum {
     N_RET,
     N_CALL,
     N_METHOD,
-    N_INDEX,
+    N_SET,
+    N_GET,
     N_WHILE,
     N_BREAK,
     N_CONT,
@@ -57,8 +58,8 @@ Node *new_Block(int line);
 Node *new_FunctionDecl(Node *params, Node *body, char *name, int64_t name_len, int line);
 Node *new_Return(Node *expr, int line);
 Node *new_FunctionCall(Node *params, char *name, int64_t name_len, int line);
-Node *new_MethodCall(Node *object, Node *params, char *name, int64_t name_len, int line);
-Node *new_Index(Node *collection, Node *value, int line);
+Node *new_Set(Node *collection, Node *key, Node *value, int line);
+Node *new_Get(Node *collection, Node *value, int line);
 Node *new_While(Node *cond, Node *body, int line);
 Node *new_Break(int line);
 Node *new_Continue(int line);

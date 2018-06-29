@@ -2,11 +2,11 @@
 #include "lexer.h"
 #include "../token.h"
 
-int isbdigit(int c) {
+static int isbdigit(int c) {
     return c == '0' || c == '1';
 }
 
-int isodigit(int c) {
+static int isodigit(int c) {
     return '0' <= c && c < '8';
 }
 
@@ -14,7 +14,7 @@ char lex_getchar(Lexer *lex) {
     return lex->c = fgetc(lex->file);
 }
 
-int lex_eatwhitespace(Lexer *lex) {
+static int lex_eatwhitespace(Lexer *lex) {
     while (!feof(lex->file) && (lex->c == ' ' || lex->c == '\n' || lex->c == '\t')) {
         if (lex->c == '\n') {
             lex->line++;
@@ -28,12 +28,12 @@ int lex_eatwhitespace(Lexer *lex) {
     return 0;
 }
 
-int lex_eatinlinecomments(Lexer *lex) {
+static int lex_eatinlinecomments(Lexer *lex) {
     if ('"' == lex->c) while (!feof(lex->file) && lex_getchar(lex) != '\n') {}
     return 0;
 }
 
-int lex_eatint(Lexer *lex, char separator, int (*isvaliddigit)(int)) {
+static int lex_eatint(Lexer *lex, char separator, int (*isvaliddigit)(int)) {
     int i = 0;
     lex->value[i++] = '0';
     lex->value[i++] = separator;
@@ -57,7 +57,7 @@ int lex_eatint(Lexer *lex, char separator, int (*isvaliddigit)(int)) {
     return 1;
 }
 
-int lex_eatop(Lexer *lex) {
+static int lex_eatop(Lexer *lex) {
     char c1, c2, c3, c4;
     int last;
     c1 = lex->c;
@@ -113,7 +113,7 @@ int lex_eatop(Lexer *lex) {
     return 0;
 }
 
-int lex_eatstring(Lexer *lex) {
+static int lex_eatstring(Lexer *lex) {
     if (lex->c == STR_DELIM) {
         lex->val_len = 6;
         lex->value = realloc(lex->value, lex->val_len);
@@ -311,12 +311,12 @@ void gettok(Lexer *lex) {
     exit(EXIT_FAILURE);
 }
 
-Token YASLToken_FourChars(char c1, char c2, char c3, char c4) {
+static Token YASLToken_FourChars(char c1, char c2, char c3, char c4) {
     switch(c1) { case '|': switch(c2) { case '|': switch(c3) { case '|':  switch(c4) { case '=': return T_TBAREQ; default: return T_UNKNOWN;} } } }
     return T_UNKNOWN;
 }
 
-Token YASLToken_ThreeChars(char c1, char c2, char c3) {
+static Token YASLToken_ThreeChars(char c1, char c2, char c3) {
     switch(c1) {
         case '<': switch(c2) { case '<': switch(c3) { case '=': return T_DLTEQ; default: return T_UNKNOWN;} }
         case '>': switch(c2) { case '>': switch(c3) { case '=': return T_DGTEQ; default: return T_UNKNOWN;} }
@@ -334,7 +334,7 @@ Token YASLToken_ThreeChars(char c1, char c2, char c3) {
     return T_UNKNOWN;
 }
 
-Token YASLToken_TwoChars(char c1, char c2) {
+static Token YASLToken_TwoChars(char c1, char c2) {
     switch(c1) {
         case '^': switch(c2) { case '=': return T_CARETEQ; default: return T_UNKNOWN; };
         case '+': switch(c2) { case '=': return T_PLUSEQ; default: return T_UNKNOWN; };
@@ -378,7 +378,7 @@ Token YASLToken_TwoChars(char c1, char c2) {
     return T_UNKNOWN;
 }
 
-Token YASLToken_OneChar(char c1) {
+static Token YASLToken_OneChar(char c1) {
     switch(c1) {
         case ';': return T_SEMI;
         case '(': return T_LPAR;
@@ -409,7 +409,7 @@ Token YASLToken_OneChar(char c1) {
     }
 }
 
-void YASLKeywords(Lexer *lex) {
+static void YASLKeywords(Lexer *lex) {
     /* keywords:
      *  let
      *  print
