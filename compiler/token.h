@@ -92,8 +92,7 @@ typedef enum {
     T_LET,      // 0x11
     T_FN,       // 0x12
     T_RET,      // 0x13
-    T_ENUM,
-    T_STRUCT,   // 0x14
+    T_ENUM,     // 0x14
     T_PRINT,    // 0x15
     T_LPAR,     // 0x16
     T_RPAR,     // 0x17
@@ -148,6 +147,7 @@ typedef enum {
     T_DQMARK,
     T_DQMARKEQ,
     T_COLON,
+    T_DCOLON,
     T_RARR,
     T_LARR,
 } Token;

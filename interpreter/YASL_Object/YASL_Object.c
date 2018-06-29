@@ -102,7 +102,7 @@ YASL_Object isequal(YASL_Object a, YASL_Object b) {
 }
 
 int print(YASL_Object v) {
-    int i;
+    int64_t i;
     switch (v.type) {
         case INT64:
             printf("%" PRId64 "", v.value.ival);
@@ -120,13 +120,9 @@ int print(YASL_Object v) {
             printf("undef");
             break;
         case STR8:
-            //printf("str: ");
-            ;
-            int64_t i;
             for (i = 0; i < (v.value.sval)->length; i++) {
                 printf("%c", (v.value.sval)->str[i]);
             }
-            //printf("");
             break;
         /* case MAP:
             printf("<hash %" PRIx64 ">", v.value);
@@ -145,6 +141,9 @@ int print(YASL_Object v) {
             } else {
                 printf("<file %" PRIx64 ">", v.value.ival);
             }
+            break;
+        case FN_P:
+            printf("<fn: %" PRIx64 ">", v.value.ival);
             break;
         default:
             printf("Error, unknown type: %x", v.type);

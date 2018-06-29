@@ -228,17 +228,31 @@ static void visit_FunctionDecl(Compiler *const compiler, const Node *const node)
 
     ht_insert_string_int(compiler->functions, node->name, node->name_len, compiler->header->count);
 
+    int64_t fn_val = compiler->header->count;
+
     //YASL_DEBUG_LOG("tried to insert function, result was %d.\n", ht_search_string_int(compiler->functions, node->name, node->name_len) != NULL);
 
+    bb_add_byte(compiler->header, node->children[0]->children_len);
+    bb_add_byte(compiler->header, compiler->locals->vars->count);
     bb_append(compiler->header, compiler->buffer->bytes, compiler->buffer->count);
     bb_add_byte(compiler->header, NCONST);
     bb_add_byte(compiler->header, RET);
 
-    // zero buffer length to ensure t
+    // zero buffer length
     compiler->buffer->count = 0;
 
-    // clean up, i.e. delete local env.
+    // declare var
+    if (!env_contains(compiler->globals, node->name, node->name_len)) {
+        env_decl_var(compiler->globals, node->name, node->name_len);
+    }
 
+    bb_add_byte(compiler->buffer, FCONST);
+    bb_intbytes8(compiler->buffer, fn_val);
+
+    bb_add_byte(compiler->buffer, GSTORE_1);
+    bb_add_byte(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));
+
+    // clean up, i.e. delete local env.
     compiler->current_function = NULL;
 
     Env_t *tmp = compiler->locals->parent;
@@ -276,6 +290,7 @@ static void visit_Call(const Compiler *const compiler, const Node *const node) {
      */
     //YASL_DEBUG_LOG("visiting call %s\n", node->name);
     visit_Block(compiler, node->children[0]);
+    visit(compiler, node->children[1]);
     //YASL_TRACE_LOG("Visiting Block with %d children in reverse.\n", node->children_len);
     //int i;
     //for (i = node->children_len - 1; i >= 0; i--) {
@@ -286,20 +301,18 @@ static void visit_Call(const Compiler *const compiler, const Node *const node) {
         bb_add_byte(compiler->buffer, BCALL_8);
         bb_intbytes8(compiler->buffer, ht_search_string_int(compiler->builtins, node->name, node->name_len)->value.ival);
     } else {
-        if (NULL == ht_search_string_int(compiler->functions, node->name, node->name_len)) {
-            printf("Undefined function: %s\n", node->name);
-            exit(EXIT_FAILURE);
-        }
-
-        //visit_Block(compiler, node->children[0]);
+        //if (NULL == ht_search_string_int(compiler->functions, node->name, node->name_len)) {
+        //    printf("Undefined function: %s\n", node->name);
+        //    exit(EXIT_FAILURE);
+        //}
 
         bb_add_byte(compiler->buffer, CALL_8);
 
         bb_add_byte(compiler->buffer, node->children[0]->children_len);
 
-        bb_intbytes8(compiler->buffer, ht_search_string_int(compiler->functions, node->name, node->name_len)->value.ival);
+        //bb_add_byte(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));
 
-        bb_add_byte(compiler->buffer, ht_search_string_int(compiler->functions_locals_len, node->name, node->name_len)->value.ival);
+        //bb_add_byte(compiler->buffer, ht_search_string_int(compiler->functions_locals_len, node->name, node->name_len)->value.ival);
 
 
     }
@@ -557,10 +570,10 @@ static void visit_BinOp(const Compiler *const compiler, const Node *const node) 
             bb_add_byte(compiler->buffer, CNCT);
             break;
         case T_DGT:
-            bb_add_byte(compiler->buffer, BRSHIFT);
+            bb_add_byte(compiler->buffer, BSR);
             break;
         case T_DLT:
-            bb_add_byte(compiler->buffer, BLSHIFT);
+            bb_add_byte(compiler->buffer, BSL);
             break;
         case T_PLUS:
             bb_add_byte(compiler->buffer, ADD);
@@ -627,9 +640,9 @@ static void visit_Assign(const Compiler *const compiler, const Node *const node)
 
 static void visit_Var(const Compiler *const compiler, const Node *const node) {
     YASL_TRACE_LOG("%s is global: ", node->name);
-    YASL_TRACE_LOG("%d\n", env_contains(compiler->globals, node->name, node->name_len));
+    //YASL_TRACE_LOG("%d\n", env_contains(compiler->globals, node->name, node->name_len));
     YASL_TRACE_LOG("%s is local: ", node->name);
-    YASL_TRACE_LOG("%d\n", env_contains(compiler->locals, node->name, node->name_len));
+    //YASL_TRACE_LOG("%d\n", env_contains(compiler->locals, node->name, node->name_len));
     if (!env_contains(compiler->globals, node->name, node->name_len) &&
         !env_contains(compiler->locals, node->name, node->name_len)) {
         printf("unknown variable: %s\n", node->name);
@@ -700,7 +713,7 @@ static void visit_String(const Compiler *const compiler, const Node *const node)
 
     value = ht_search_string_int(compiler->strings, node->name, node->name_len);
 
-    bb_add_byte(compiler->buffer, NEWSTR8);
+    bb_add_byte(compiler->buffer, NEWSTR);
     bb_intbytes8(compiler->buffer, value->value.ival);
 }
 
@@ -718,7 +731,7 @@ static void visit_List(const Compiler *const compiler, const Node *const node) {
 }
 
 static void visit_Map(const Compiler *const compiler, const Node *const node) {
-    bb_add_byte(compiler->buffer, NEWMAP);
+    bb_add_byte(compiler->buffer, NEWTABLE);
     int i;
     for (i = 0; i < node->children[0]->children_len; i++) {
         bb_add_byte(compiler->buffer, DUP);

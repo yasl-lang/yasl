@@ -14,6 +14,12 @@ char lex_getchar(Lexer *lex) {
     return lex->c = fgetc(lex->file);
 }
 
+
+char lex_rewind(Lexer *lex, int len) {
+    fseek(lex->file, len-1, SEEK_CUR);
+    lex_getchar(lex);
+}
+
 static int lex_eatwhitespace(Lexer *lex) {
     while (!feof(lex->file) && (lex->c == ' ' || lex->c == '\n' || lex->c == '\t')) {
         if (lex->c == '\n') {
@@ -30,6 +36,10 @@ static int lex_eatwhitespace(Lexer *lex) {
 
 static int lex_eatinlinecomments(Lexer *lex) {
     if ('"' == lex->c) while (!feof(lex->file) && lex_getchar(lex) != '\n') {}
+    return 0;
+}
+
+int lex_eatblockcomments(Lexer *lex) {
     return 0;
 }
 
@@ -118,6 +128,8 @@ static int lex_eatstring(Lexer *lex) {
         lex->val_len = 6;
         lex->value = realloc(lex->value, lex->val_len);
         int i = 0;
+        lex->type = T_STR;
+
         lex_getchar(lex);
         while (lex->c != STR_DELIM && !feof(lex->file)) {
             lex->value[i++] = lex->c;
@@ -127,14 +139,16 @@ static int lex_eatstring(Lexer *lex) {
                 lex->value = realloc(lex->value, lex->val_len);
             }
         }
+        //lex_getchar(lex);
         lex->value = realloc(lex->value, lex->val_len = i);
 
         if (feof(lex->file)) {
             puts("LexingError: unclosed string literal.");
             exit(EXIT_FAILURE);
         }
-        lex->type = T_STR;
+
         return 1;
+
     }
     return 0;
 }
@@ -191,10 +205,9 @@ void gettok(Lexer *lex) {
                     return;
                 }
             } else {
-                fseek(lex->file, -1, SEEK_CUR);
+                lex_rewind(lex, -1);
                 break;
             }
-            lex_getchar(lex);
         }
     }
 
@@ -373,6 +386,7 @@ static Token YASLToken_TwoChars(char c1, char c2) {
                 case '|': return T_DBAR;
                 default: return T_UNKNOWN;
         }
+        case ':': switch(c2) { case ':': return T_DCOLON; default: return T_UNKNOWN; }
         case '?': switch(c2) { case '?': return T_DQMARK; default: return T_UNKNOWN;}
     }
     return T_UNKNOWN;
@@ -478,6 +492,7 @@ static void YASLKeywords(Lexer *lex) {
     }
 }
 
+// Note: keep in sync with token.h
 const char *YASL_TOKEN_NAMES[] = {
         "END OF FILE",  // T_EOF,
         ";",            // T_SEMI,
@@ -500,7 +515,6 @@ const char *YASL_TOKEN_NAMES[] = {
         "fn",           // T_FN,
         "return",       // T_RET,
         "enum",         // T_ENUM,
-        "struct",       // T_STRUCT,
         "print",        // T_PRINT,
         "(",            // LPAR,
         ")",            // RPAR,
@@ -555,6 +569,7 @@ const char *YASL_TOKEN_NAMES[] = {
         "??",           // DQMARK,
         "?\?=",         // DQMARKEQ,
         ":",            // COLON,
+        "::",           // DCOLON,
         "->",           // RARR,
         "<-",           // LARR,
 };
