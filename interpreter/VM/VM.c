@@ -491,10 +491,10 @@ void vm_run(VM *vm){
                     if (!list___get(vm)) break;
                 } else if (PEEK(vm).type == TABLE) {
                     if (!table___get(vm)) break;
+                } else {
+                    POP(vm);
                 }
-                POP(vm);
                 YASL_Object key = POP(vm);
-                //printf("%s\n", key.value.sval->str);
                 YASL_Object *result = ht_search(vm->builtins_htable[index], key);
                 if (result == NULL) {
                     puts("Not foundsdadsadsasds");
