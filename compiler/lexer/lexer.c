@@ -508,6 +508,7 @@ const char *YASL_TOKEN_NAMES[] = {
         "break",        // T_BREAK,
         "continue",     // T_CONT,
         "for",          // T_FOR,
+        "in",           // T_IN
         "and",          // T_AND,
         "or",           // T_OR,
         "id",           // T_ID,

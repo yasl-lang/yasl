@@ -86,17 +86,18 @@ typedef enum {
     T_BREAK,    // 0x0B
     T_CONT,     // 0x0C
     T_FOR,      // 0x0D
-    T_AND,      // 0x0E
-    T_OR,       // 0x0F
-    T_ID,       // 0x10
-    T_LET,      // 0x11
-    T_FN,       // 0x12
-    T_RET,      // 0x13
-    T_ENUM,     // 0x14
-    T_PRINT,    // 0x15
-    T_LPAR,     // 0x16
-    T_RPAR,     // 0x17
-    T_LSQB,     // 0x18
+    T_IN,
+    T_AND,
+    T_OR,
+    T_ID,
+    T_LET,
+    T_FN,
+    T_RET,
+    T_ENUM,
+    T_PRINT,
+    T_LPAR,
+    T_RPAR,
+    T_LSQB,
     T_RSQB,
     T_LBRC,
     T_RBRC,
