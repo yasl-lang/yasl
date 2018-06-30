@@ -21,10 +21,10 @@ Compiler *compiler_new(Parser *const parser, char *const name) {
     env_decl_var(compiler->globals, "popen", strlen("popen"));
     env_decl_var(compiler->globals, "input", strlen("input"));
 
-    compiler->functions = new_hash();
-    compiler->functions_locals_len = new_hash();
+    compiler->functions = ht_new();
+    compiler->functions_locals_len = ht_new();
     compiler->offset = 0;
-    compiler->strings = new_hash();
+    compiler->strings = ht_new();
     compiler->parser = parser;
     compiler->name = name;
     compiler->buffer = bb_new(16);
@@ -51,9 +51,9 @@ Compiler *compiler_new(Parser *const parser, char *const name) {
 };
 
 void compiler_tables_del(Compiler *compiler) {
-    del_hash_string_int(compiler->strings);
-    del_hash_string_int(compiler->functions);
-    del_hash_string_int(compiler->functions_locals_len);
+    ht_del_string_int(compiler->strings);
+    ht_del_string_int(compiler->functions);
+    ht_del_string_int(compiler->functions_locals_len);
 }
 
 static void compiler_buffers_del(const Compiler *const compiler) {
@@ -103,7 +103,7 @@ static void rm_checkpoint(Compiler *compiler) {
     compiler->checkpoints_count--;
 }
 
-static void visit(const Compiler *const compiler, const Node *const node);
+static void visit(Compiler *const compiler, const Node *const node);
 static void visit_Block(const Compiler *const compiler, const Node *const node);
 
 void compile(const Compiler *const compiler) {
@@ -214,7 +214,7 @@ static void visit_FunctionDecl(Compiler *const compiler, const Node *const node)
     for (i = 0; i < compiler->locals->vars->size; i++) {
         Item_t* item = compiler->locals->vars->items[i];
         if (item != NULL) {
-            del_string8(item->key->value.sval);
+            str_del(item->key->value.sval);
             free(item->key);
             free(item->value);
             free(item);
@@ -271,14 +271,14 @@ static void visit_Get(const Compiler *const compiler, const Node *const node) {
 }
 
 static void visit_Block(const Compiler *const compiler, const Node *const node) {
-    YASL_TRACE_LOG("Visiting Block with %d children.\n", node->children_len);
+    YASL_TRACE_LOG("Visiting Block with %" PRId64 " children.\n", node->children_len);
     int i;
     for (i = 0; i < node->children_len; i++) {
         visit(compiler, node->children[i]);
     }
 }
 
-static void visit_While(const Compiler *const compiler, const Node *const node) {
+static void visit_While(Compiler *const compiler, const Node *const node) {
     int64_t index_start = compiler->code->count + compiler->buffer->count;
     add_checkpoint(compiler, index_start);
     visit(compiler, node->children[0]);
@@ -316,7 +316,7 @@ static void visit_Continue(const Compiler *const compiler, const Node *const nod
     bb_intbytes8(compiler->buffer, continue_checkpoint(compiler));
 }
 
-static void visit_If(const Compiler *const compiler, const Node *const node) {
+static void visit_If(Compiler *const compiler, const Node *const node) {
     visit(compiler, node->children[0]);
     bb_add_byte(compiler->buffer, BRF_8);
     int64_t index_then = compiler->buffer->count;
@@ -435,14 +435,14 @@ static void visit_BinOp(const Compiler *const compiler, const Node *const node) 
         exit(1);
             /* return left + [MCALL_8] + intbytes_8(METHODS["tostr"]) + right + [MCALL_8] + intbytes_8(METHODS["tostr"]) \
                 + [HARD_CNCT] */
-            visit(compiler, node->children[0]);
+           /* visit(compiler, node->children[0]);
             bb_add_byte(compiler->buffer, MCALL_8);
             bb_intbytes8(compiler->buffer, M_TOSTR);
             visit(compiler, node->children[1]);
             bb_add_byte(compiler->buffer, MCALL_8);
             bb_intbytes8(compiler->buffer, M_TOSTR);
             bb_add_byte(compiler->buffer, HARD_CNCT);
-            return;
+            return; */
     }
     // all other operators follow the same pattern of visiting one child then the other.
     visit(compiler, node->children[0]);
@@ -644,7 +644,8 @@ static void visit_List(const Compiler *const compiler, const Node *const node) {
         visit(compiler, node->children[0]->children[i]);
         bb_add_byte(compiler->buffer, SWAP);
         bb_add_byte(compiler->buffer, MCALL_8);
-        bb_intbytes8(compiler->buffer, M_APPEND); // NOTE: this depends on the M_APPEND constant in method.h
+        exit(1);
+        //bb_intbytes8(compiler->buffer, M_APPEND); // NOTE: this depends on the M_APPEND constant in method.h
         bb_add_byte(compiler->buffer, POP);
     }
 }
@@ -664,7 +665,7 @@ static void visit_Map(const Compiler *const compiler, const Node *const node) {
 }
 
 
-static void visit(const Compiler *const compiler, const Node *const node) {
+static void visit(Compiler *const compiler, const Node *const node) {
     switch(node->nodetype) {
     case N_EXPRSTMT:
         YASL_TRACE_LOG("%s\n", "Visit ExprStmt");

@@ -19,7 +19,7 @@ include_directories(interpreter/file)
 include_directories(interpreter/float)
 include_directories(interpreter/integer)
 include_directories(interpreter/list)
-include_directories(interpreter/map)
+include_directories(interpreter/table)
 include_directories(interpreter/VM)
 include_directories(interpreter/YASL_Object)
 include_directories(interpreter/YASL_string)
@@ -57,8 +57,8 @@ add_executable(YASL
         interpreter/list/list.h
         interpreter/list/list_methods.c
         interpreter/list/list_methods.h
-        interpreter/map/map_methods.c
-        interpreter/map/map_methods.h
+        interpreter/table/table_methods.c
+        interpreter/table/table_methods.h
         interpreter/VM/VM.c
         interpreter/VM/VM.h
         interpreter/YASL_Object/YASL_Object.c
@@ -70,7 +70,6 @@ add_executable(YASL
         prime/prime.c
         prime/prime.h
         functions.h
-        methods.h
         opcode.h)
 
 add_executable(YASLTEST

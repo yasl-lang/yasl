@@ -5,11 +5,11 @@
 #include <math.h>
 #include <stdio.h>
 
-#define HT_BASESIZE 60
+#define HT_BASESIZE 30
 
 static int hash_function(const YASL_Object s, const int a, const int m) {
     long hash = 0;
-    if (s.type == STR8) {
+    if (s.type == STR) {
         const int64_t len_s = (s.value.sval)->length;
         int i;
         for (i = 0; i < len_s; i++) {
@@ -36,7 +36,7 @@ static Item_t* new_item(const YASL_Object k, const YASL_Object v) {
     item->key->value   = k.value;
     item->value->type  = v.type;
     item->value->value = v.value;
-    /*if (v.type == STR8) {
+    /*if (v.type == STR) {
         item->key.type = v.type;
         int64_t len_v = *((int64_t*)v->value);
         //printf("%" PRId64 "\n", len_v);
@@ -54,7 +54,7 @@ static void del_item(Item_t* item) {
     free(item);
 }
 
-Hash_t* new_sized_hash(const int base_size) {
+Hash_t* ht_new_sized(const int base_size) {
     Hash_t* ht = malloc(sizeof(Hash_t));
     ht->base_size = base_size;
     ht->size = next_prime(ht->base_size);
@@ -63,8 +63,8 @@ Hash_t* new_sized_hash(const int base_size) {
     return ht;
 }
 
-Hash_t* new_hash() {
-    return new_sized_hash(HT_BASESIZE);
+Hash_t* ht_new() {
+    return ht_new_sized(HT_BASESIZE);
 }
 
 void del_hash(Hash_t* hashtable) {
@@ -79,12 +79,12 @@ void del_hash(Hash_t* hashtable) {
     free(hashtable);
 }
 
-void del_hash_string_int(Hash_t *hashtable) {
+void ht_del_string_int(Hash_t *hashtable) {
     int i;
     for (i = 0; i < hashtable->size; i++) {
         Item_t* item = hashtable->items[i];
         if (item != NULL) {
-            del_string8(item->key->value.sval);
+            str_del(item->key->value.sval);
             free(item->key);
             free(item->value);
             free(item);
@@ -96,7 +96,7 @@ void del_hash_string_int(Hash_t *hashtable) {
 
 static void ht_resize(Hash_t* ht, const int base_size) {
     if (base_size < HT_BASESIZE) return;
-    Hash_t* new_ht = new_sized_hash(base_size);
+    Hash_t* new_ht = ht_new_sized(base_size);
     int i;
     for (i = 0; i < ht->size; i++) {
         Item_t* item = ht->items[i];
@@ -160,11 +160,11 @@ void ht_insert_string_int(Hash_t *hashtable, char *key, int64_t key_len, int64_t
     string->str = malloc(string->length);
     memcpy(string->str, key, string->length);
     ht_insert(hashtable,
-              (YASL_Object) { .type = STR8, .value.sval = string},
+              (YASL_Object) { .type = STR, .value.sval = string},
               (YASL_Object) { .type = MN_P, .value.ival = val});
 }
 
-YASL_Object* ht_search(Hash_t* hashtable, const YASL_Object key) {
+YASL_Object* ht_search(const Hash_t *const hashtable, const YASL_Object key) {
     int index = get_hash(key, hashtable->size, 0);
     Item_t* item = hashtable->items[index];
     int i = 1;
@@ -178,12 +178,12 @@ YASL_Object* ht_search(Hash_t* hashtable, const YASL_Object key) {
     return NULL;
 }
 
-YASL_Object *ht_search_string_int(Hash_t *hashtable, char *key, int64_t key_len) {
+YASL_Object *ht_search_string_int(const Hash_t *const hashtable, char *key, int64_t key_len) {
     String_t *string = malloc(sizeof(String_t));
     string->length = key_len;
     string->str = malloc(string->length);
     memcpy(string->str, key, string->length);
-    YASL_Object object = (YASL_Object) { .value.sval = string, .type = STR8 };
+    YASL_Object object = (YASL_Object) { .value.sval = string, .type = STR };
 
     YASL_Object *result = ht_search(hashtable, object);
 
@@ -191,7 +191,7 @@ YASL_Object *ht_search_string_int(Hash_t *hashtable, char *key, int64_t key_len)
 
 }
 
-void ht_delete(Hash_t* hashtable, const YASL_Object key) {
+void ht_rm(Hash_t *hashtable, YASL_Object key) {
     const int load = hashtable->count * 100 / hashtable->size;
     if (load < 10) ht_resize_down(hashtable);
     int index = get_hash(key, hashtable->size, 0);
@@ -210,12 +210,12 @@ void ht_delete(Hash_t* hashtable, const YASL_Object key) {
     hashtable->count--;
 }
 
-void ht_print(Hash_t* ht) {
+void ht_print(const Hash_t *const  ht) {
     ByteBuffer *seen = bb_new(sizeof(int64_t)*2);
     ht_print_h(ht, seen);
 }
 
-void ht_print_h(Hash_t* ht, ByteBuffer* seen) {
+void ht_print_h(const Hash_t *const ht, ByteBuffer* seen) {
     int i = 0;
     int64_t *new_seen;
     if (ht->count == 0) {
@@ -240,7 +240,7 @@ void ht_print_h(Hash_t* ht, ByteBuffer* seen) {
                 bb_intbytes8(seen, ht->items[i]->value->value.ival);
                 ls_print_h(ht->items[i]->value->value.lval, seen);
             }
-        } else if (item->value->type == MAP) {
+        } else if (item->value->type == TABLE) {
             if (isvalueinarray(item->value->value.ival, (int64_t*)seen->bytes, seen->count/sizeof(int64_t))) {
                 printf("[...->...]");
             } else {

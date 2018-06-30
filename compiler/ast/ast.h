@@ -46,13 +46,9 @@ struct Node_s {
 
 typedef struct Node_s Node;
 
-void block_append(Node *node, Node *child);
+void block_append(Node *const node, Node *const child);
 
-Node *clone_node(Node *node);
-Node *new_Node_0(AST nodetype, Token type, char *name, int64_t name_len, int line);
-Node *new_Node_1(AST nodetype, Token type, Node *child, char *name, int64_t name_len, int line);
-Node *new_Node_2(AST nodetype, Token type, Node *child1, Node *child2, char *name, int64_t name_len, int line);
-Node *new_Node_3(AST nodetype, Token type, Node *child1, Node *child2, Node *child3, char *name, int64_t name_len, int line);
+Node *node_clone(const Node *const node);
 
 Node *new_ExprStmt(Node *child, int line);
 Node *new_Block(int line);
@@ -81,45 +77,3 @@ Node *new_List(Node *values, int line);
 Node *new_Map(Node *keys, Node *values, int line);
 
 void node_del(Node *node);
-
-
-/*
- * class AST(object):
-    pass
-class MemberAccess(AST):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
-class MethodCall(AST):
-    def __init__(self, left, right, params):
-        self.left = left
-        self.right = right
-        self.value = right.value
-        self.params = params
-class Index(AST):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
-        self.value = left.value
-class FunctionDecl(AST):
-    def __init__(self, token, params, block):
-        self.token = token
-        self.value = token.value
-        self.params = params # list of formal params
-        self.block = block
-class FunctionCall(AST):
-    def __init__(self, token, params):
-        self.token = token
-        self.value = token.value
-        self.params = params
-class Return(AST):
-    def __init__(self, token, expr):
-        self.token = token
-        self.expr = expr
-class For(AST):
-    def __init__(self, token, var, ls, body):
-        self.token = token
-        self.var = var
-        self.ls = ls
-        self.body = body
- */

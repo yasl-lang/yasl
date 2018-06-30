@@ -4,7 +4,7 @@
 #include <stdlib.h>
 //#include "../list/list.h"
 #include "../YASL_string/YASL_string.h"
-#define FALSEY(v)  (v.type == UNDEF || (v.type == BOOL && v.value.ival == 0) || (v.type == STR8 && (v.value.sval)->length == 0))  // returns true iff v is a falsey value
+#define FALSEY(v)  (v.type == UNDEF || (v.type == BOOL && v.value.ival == 0) || (v.type == STR && (v.value.sval)->length == 0))  // returns true iff v is a falsey value
 #define DVAL(v)  (*((double*)&v.value))
 #define TRUE_C   ((YASL_Object) {BOOL, 1})
 #define FALSE_C  ((YASL_Object) {BOOL, 0})
@@ -16,9 +16,9 @@ typedef enum {
     FLOAT64,
     INT64,
     BOOL,
-    STR8,
+    STR,
     LIST,
-    MAP,
+    TABLE,
     FILEH,
     FN_P,
     MN_P

@@ -2,14 +2,14 @@
 #include <string.h>
 
 //#define STRLEN(s)
-String_t* new_sized_string8(const int64_t base_size) {
+String_t* str_new_sized(const int64_t base_size) {
     String_t* str = malloc(sizeof(String_t));
     str->length = base_size;
     str->str = malloc(sizeof(char)*str->length);
     return str;
 }
 
-String_t* new_sized_string8_from_mem(const int64_t base_size, char* str_mem) {
+String_t* str_new_sized_from_mem(const int64_t base_size, char *str_mem) {
     String_t* str = malloc(sizeof(String_t));
     str->length = base_size;
     str->str = str_mem;
@@ -18,12 +18,12 @@ String_t* new_sized_string8_from_mem(const int64_t base_size, char* str_mem) {
 
 //TODO: add new string constructor that takes address of string as second param.
 
-void del_string8(String_t* str8) {
+void str_del(String_t *str8) {
     free(str8->str);
     free(str8);
 }
 
-int64_t string8_search(const String_t* haystack, const String_t* needle) {
+int64_t str_find_index(const String_t *haystack, const String_t *needle) {
     // TODO: implement non-naive algorithm for string search.
     if (haystack->length < needle->length) return -1;
     int64_t i = 0;

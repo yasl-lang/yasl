@@ -5,7 +5,6 @@
 #include "../parser/parser.h"
 #include "../bytebuffer/bytebuffer.h"
 #include "../../opcode.h"
-#include "../../methods.h"
 #include "../../functions.h"
 #include "env/env.h"
 #include "../../debug.h"

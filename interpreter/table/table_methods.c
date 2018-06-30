@@ -1,5 +1,5 @@
 #include <interpreter/YASL_Object/YASL_Object.h>
-#include "map_methods.h"
+#include "table_methods.h"
 #include "hashtable.h"
 
 int map___get(VM *vm) {
@@ -18,7 +18,7 @@ int map___set(VM *vm) {
     Hash_t* ht = POP(vm).value.mval;
     YASL_Object val = POP(vm);
     YASL_Object key = POP(vm);
-    if (key.type == LIST || key.type == MAP) {
+    if (key.type == LIST || key.type == TABLE) {
         printf("Error: unable to use mutable object of type %x as key.\n", key.type);
         return -1;
     }
@@ -29,7 +29,7 @@ int map___set(VM *vm) {
 
 int map_keys(VM* vm) {
     YASL_Object ht = POP(vm);
-    List_t* ls = new_list();
+    List_t* ls = ls_new();
     int64_t i;
     Item_t* item;
     for (i = 0; i < (ht.value.mval)->size; i++) {
@@ -44,7 +44,7 @@ int map_keys(VM* vm) {
 
 int map_values(VM* vm) {
     YASL_Object ht = POP(vm);
-    List_t* ls = new_list();
+    List_t* ls = ls_new();
     int64_t i;
     Item_t* item;
     for (i = 0; i < (ht.value.mval)->size; i++) {
@@ -59,7 +59,7 @@ int map_values(VM* vm) {
 
 int map_clone(VM* vm) {
     Hash_t* ht = POP(vm).value.mval;
-    Hash_t* new_ht = new_sized_hash(ht->base_size);
+    Hash_t* new_ht = ht_new_sized(ht->base_size);
     int i;
     for (i = 0; i < ht->size; i++) {
         Item_t* item = ht->items[i];
@@ -67,6 +67,6 @@ int map_clone(VM* vm) {
             ht_insert(new_ht, *item->key, *item->value);
         }
     }
-    vm->stack[++vm->sp] = (YASL_Object) {MAP, (int64_t)new_ht};
+    vm->stack[++vm->sp] = (YASL_Object) {TABLE, (int64_t)new_ht};
     return 0;
 }

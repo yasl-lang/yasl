@@ -1,19 +1,7 @@
 #include <debug.h>
 #include "ast.h"
 
-
-/*
- * Node {
- *   AST nodetype;
- *   Token type;
- *   Node *children;
- *   char* name;
- *   int len;
- *   int line;
- * }
- */
-
-Node *clone_node(Node *node) {
+Node *node_clone(const Node *const node) {
     if (node == NULL) return NULL;
     Node *clone = malloc(sizeof(Node));
     clone->nodetype = node->nodetype;
@@ -21,7 +9,7 @@ Node *clone_node(Node *node) {
     clone->children_len = node->children_len;
     clone->children = malloc(clone->children_len * sizeof(Node));
     for (int i = 0; i < clone->children_len; i++) {
-        clone->children[i] = clone_node(node->children[i]);
+        clone->children[i] = node_clone(node->children[i]);
     }
     clone->name_len = node->name_len;
     clone->name = malloc(node->name_len);
@@ -31,7 +19,7 @@ Node *clone_node(Node *node) {
 }
 
 
-Node *new_Node_0(AST nodetype, Token type, char *name, int64_t name_len, int line) {
+static Node *new_Node_0(AST nodetype, Token type, char *name, int64_t name_len, int line) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = nodetype;
     node->type = type;
@@ -48,7 +36,7 @@ Node *new_Node_0(AST nodetype, Token type, char *name, int64_t name_len, int lin
     return node;
 }
 
-Node *new_Node_1(AST nodetype, Token type, Node *child, char *name, int64_t name_len, int line) {
+static Node *new_Node_1(AST nodetype, Token type, Node *child, char *name, int64_t name_len, int line) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = nodetype;
     node->type = type;
@@ -66,7 +54,7 @@ Node *new_Node_1(AST nodetype, Token type, Node *child, char *name, int64_t name
     return node;
 }
 
-Node *new_Node_2(AST nodetype, Token type, Node *child1, Node *child2, char *name, int64_t name_len, int line) {
+static Node *new_Node_2(AST nodetype, Token type, Node *child1, Node *child2, char *name, int64_t name_len, int line) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = nodetype;
     node->type = type;
@@ -85,7 +73,7 @@ Node *new_Node_2(AST nodetype, Token type, Node *child1, Node *child2, char *nam
     return node;
 }
 
-Node *new_Node_3(AST nodetype, Token type, Node *child1, Node *child2, Node *child3, char *name, int64_t name_len, int line) {
+static Node *new_Node_3(AST nodetype, Token type, Node *child1, Node *child2, Node *child3, char *name, int64_t name_len, int line) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = nodetype;
     node->type = type;
@@ -114,12 +102,10 @@ Node *new_Block(int line) {
     return new_Node_0(N_BLOCK, T_UNKNOWN, NULL, 0, line);
 }
 
-void block_append(Node *node, Node *child) {
+void block_append(Node *const node, Node *const child) {
     YASL_TRACE_LOG("%s\n", "appending to block");
-    //YASL_DEBUG_LOG("block has %d children.\n", node->children_len);
-    node->children = realloc(node->children, (++node->children_len)*sizeof(Node*));  //TODO: make better implementation
+    node->children = realloc(node->children, (++node->children_len)*sizeof(Node*));
     node->children[node->children_len-1] = child;
-    //YASL_DEBUG_LOG("block now has %d children.\n", node->children_len);
 }
 
 

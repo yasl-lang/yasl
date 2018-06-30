@@ -6,9 +6,9 @@
 #include <functions.h>
 #include <interpreter/YASL_string/YASL_string.h>
 
-VM* newVM(unsigned char* code,    // pointer to bytecode
-    int pc0,             // address of instruction to be executed first -- entrypoint
-    int datasize) {      // total locals size required to perform a program operations
+VM* vm_new(unsigned char *code,    // pointer to bytecode
+           int pc0,             // address of instruction to be executed first -- entrypoint
+           int datasize) {      // total locals size required to perform a program operations
     VM* vm = malloc(sizeof(VM));
     vm->code = code;
     vm->pc = pc0;
@@ -28,30 +28,30 @@ VM* newVM(unsigned char* code,    // pointer to bytecode
     vm->builtins_htable[1] = float64_builtins();
     vm->builtins_htable[2] = int64_builtins();
     vm->builtins_htable[3] = bool_builtins();
-    vm->builtins_htable[4] = str8_builtins();
+    vm->builtins_htable[4] = str_builtins();
     vm->builtins_htable[5] = list_builtins();
-    vm->builtins_htable[6] = map_builtins();
+    vm->builtins_htable[6] = table_builtins();
     vm->builtins_htable[7] = file_builtins();
     return vm;
 }
 
-void delVM(VM* vm){
+void vm_del(VM *vm){
     free(vm->globals);                   // TODO: free these properly
     free(vm->stack);                     // TODO: free these properly
-    //del_hash_string_int(vm->builtins_htable[0]);
-    del_hash_string_int(vm->builtins_htable[1]);
-    del_hash_string_int(vm->builtins_htable[2]);
-    del_hash_string_int(vm->builtins_htable[3]);
-    del_hash_string_int(vm->builtins_htable[4]);
-    del_hash_string_int(vm->builtins_htable[5]);
-    del_hash_string_int(vm->builtins_htable[6]);
-    del_hash_string_int(vm->builtins_htable[7]);
+    //ht_del_string_int(vm->builtins_htable[0]);
+    ht_del_string_int(vm->builtins_htable[1]);
+    ht_del_string_int(vm->builtins_htable[2]);
+    ht_del_string_int(vm->builtins_htable[3]);
+    ht_del_string_int(vm->builtins_htable[4]);
+    ht_del_string_int(vm->builtins_htable[5]);
+    ht_del_string_int(vm->builtins_htable[6]);
+    ht_del_string_int(vm->builtins_htable[7]);
     free(vm->builtins_htable);
         free(vm);
 }
 
 
-void run(VM* vm){
+void vm_run(VM *vm){
     while (1) {
         unsigned char opcode = NCODE(vm);        // fetch
         signed char offset;
@@ -285,9 +285,9 @@ void run(VM* vm){
                 }
             case LEN:
                 v = vm->stack[vm->sp];
-                if (v.type == STR8) {
+                if (v.type == STR) {
                     vm->stack[vm->sp].value.ival = (v.value.sval)->length;
-                } else if (v.type == MAP) {
+                } else if (v.type == TABLE) {
                     vm->stack[vm->sp].value.ival = (v.value.mval)->count;
                 } else if (v.type == LIST) {
                     vm->stack[vm->sp].value.ival = (v.value.lval)->count;
@@ -301,9 +301,9 @@ void run(VM* vm){
             case CNCT:
                 b = vm->stack[vm->sp--];
                 a = vm->stack[vm->sp];
-                if (a.type == STR8 && b.type == STR8) {
+                if (a.type == STR && b.type == STR) {
                     size = (a.value.sval)->length + (b.value.sval)->length;
-                    ptr = new_sized_string8(size);
+                    ptr = str_new_sized(size);
                     vm->stack[vm->sp].value.sval = ptr;
                     (vm->stack[vm->sp].value.sval)->length = size;
                     memcpy(((String_t*)ptr)->str, (a.value.sval)->str, (a.value.sval)->length);
@@ -311,7 +311,7 @@ void run(VM* vm){
                     break;
                 } else if (a.type == LIST && b.type == LIST) {
                     size = a.value.lval->count + b.value.lval->count;
-                    ptr = new_sized_list(size);
+                    ptr = ls_new_sized(size);
                     vm->stack[vm->sp].value.lval = ptr;
                     // TODO: optimise this.
                     int i;
@@ -330,7 +330,7 @@ void run(VM* vm){
             case HARD_CNCT:
                 b = POP(vm);
                 a = PEEK(vm);
-                if (a.type != STR8 || b.type != STR8) {
+                if (a.type != STR || b.type != STR) {
                     puts("||| should have coerced to strings, aborting.");
                     return;
                 }
@@ -340,7 +340,7 @@ void run(VM* vm){
                     break;
                 }
                 size = (a.value.sval)->length + (b.value.sval)->length + 1;
-                ptr = new_sized_string8(size);
+                ptr = str_new_sized(size);
                 vm->stack[vm->sp].value.sval = ptr; //ew_sized_string8(size);
                 (vm->stack[vm->sp].value.sval)->length = size;
                 memcpy(((String_t*)ptr)->str, (a.value.sval)->str, (a.value.sval)->length);
@@ -383,14 +383,14 @@ void run(VM* vm){
                 vm->stack[vm->sp].type = BOOL;
                 break;
             case NEWSTR:
-                vm->stack[++vm->sp].type = STR8;
+                vm->stack[++vm->sp].type = STR;
 
                 memcpy(&addr, vm->code+vm->pc, sizeof(int64_t));
                 vm->pc += sizeof(int64_t);
 
                 memcpy(&size, vm->code + addr, sizeof(int64_t));
 
-                vm->stack[vm->sp].value.sval  = new_sized_string8(size);
+                vm->stack[vm->sp].value.sval  = str_new_sized(size);
 
                 vm->stack[vm->sp].value.sval->length = size;
 
@@ -398,12 +398,12 @@ void run(VM* vm){
 
                 break;
             case NEWTABLE:
-                vm->stack[++vm->sp].type = MAP;
-                vm->stack[vm->sp].value.mval  = new_hash();
+                vm->stack[++vm->sp].type = TABLE;
+                vm->stack[vm->sp].value.mval  = ht_new();
                 break;
             case NEWLIST:
                 vm->stack[++vm->sp].type = LIST;
-                vm->stack[vm->sp].value.lval  = new_list();
+                vm->stack[vm->sp].value.lval  = ls_new();
                 break;
             case DUP:
                 vm->stack[vm->sp+1] = vm->stack[vm->sp];
@@ -484,20 +484,12 @@ void run(VM* vm){
                     printf("TypeError: %s is not callable.", YASL_TYPE_NAMES[PEEK(vm).type]);
                     exit(EXIT_FAILURE);
                 }
-            case BCALL_8:
-                memcpy(&addr, vm->code + vm->pc, sizeof(addr));
-                vm->pc += sizeof(addr);
-                if (builtins[addr](vm)) {
-                    printf("ERROR: invalid argument type(s) to builtin function.\n");
-                    return;
-                };
-                break;
             case GET:
             {
                 int index = PEEK(vm).type;
                 if (PEEK(vm).type == LIST) {
                     if (!list___get(vm)) break;
-                } else if (PEEK(vm).type == MAP) {
+                } else if (PEEK(vm).type == TABLE) {
                     if (!map___get(vm)) break;
                 }
                 YASL_Object key = POP(vm);
@@ -513,53 +505,12 @@ void run(VM* vm){
             case SET:
                 if (PEEK(vm).type == LIST) {
                     list___set(vm);
-                } else if (PEEK(vm).type == MAP) {
+                } else if (PEEK(vm).type == TABLE) {
                     map___set(vm);
                 } else {
                     printf("object of type %s is immutable.", YASL_TYPE_NAMES[PEEK(vm).type]);
                     exit(EXIT_FAILURE);
                 }
-                /*
-                 * 1 -> float64_builtins();
-                 * 2 -> int64_builtins();
-                 * 3 -> bool_builtins();
-                 * 4 -> str8_builtins();
-                 * 5 -> list_builtins();
-                 * 6 -> map_builtins();
-                 * 7 -> file_builtins();
-                 */
-                /*addr = M___SET;
-                //memcpy(&addr, vm->code + vm->pc, sizeof(addr));
-                //vm->pc += sizeof(addr);
-                if (PEEK(vm).type == FLOAT64) {
-                    addr = vt_search(vm->builtins_htable[1], addr);
-                } else if (PEEK(vm).type == INT64) {
-                    addr = vt_search(vm->builtins_htable[2], addr);
-                } else if (PEEK(vm).type == BOOL) {
-                    addr = vt_search(vm->builtins_htable[3], addr);
-                } else if (PEEK(vm).type == STR8) {
-                    addr = vt_search(vm->builtins_htable[4], addr);
-                } else if (PEEK(vm).type == LIST) {
-                    addr = vt_search(vm->builtins_htable[5], addr);
-                } else if (PEEK(vm).type == MAP) {
-                    addr = vt_search(vm->builtins_htable[6], addr);
-                } else if (PEEK(vm).type == FILEH) {
-                    addr = vt_search(vm->builtins_htable[7], addr);
-                } else {
-                    printf("ERROR: No methods implemented for this type: %s.\n",
-                           YASL_TYPE_NAMES[PEEK(vm).type]);
-                    return;
-                }
-                if (addr != -1) {
-                    if (((int (*)(VM*))addr)(vm)) {
-                        printf("ERROR: invalid argument type(s) to builtin function.\n");
-                        return;
-                    }
-                }
-                else {
-                    printf("ERROR: No method implemented by this name.\n");
-                    return;
-                }*/
                 break;
             case RCALL_8:
                 offset = NCODE(vm);

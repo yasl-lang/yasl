@@ -5,7 +5,7 @@ Env_t *env_new(Env_t *parent) {
     //env->parent = malloc(sizeof(Env_t));
     //env->vars   = malloc(sizeof(Hash_t));
     env->parent = parent;
-    env->vars   = new_hash();
+    env->vars   = ht_new();
     return env;
 }
 
@@ -15,7 +15,7 @@ void env_del(Env_t *env) {
     for (i = 0; i < env->vars->size; i++) {
         Item_t* item = env->vars->items[i];
         if (item != NULL) {
-            del_string8(item->key->value.sval);
+            str_del(item->key->value.sval);
             free(item->key);
             free(item->value);
             free(item);
@@ -37,7 +37,7 @@ int env_contains(Env_t *env, char *name, int64_t name_len) {
     string->str = malloc(name_len);
     string->length = name_len;
     memcpy(string->str, name, string->length);
-    YASL_Object key = (YASL_Object) { .value = (int64_t)string, .type = STR8 };
+    YASL_Object key = (YASL_Object) { .value = (int64_t)string, .type = STR };
 
     YASL_Object *value = ht_search(env->vars, key);
     if (value == NULL && env->parent == NULL) {
@@ -52,7 +52,7 @@ int64_t env_get(Env_t *env, char *name, int64_t name_len) {
     string->str = malloc(name_len);
     string->length = name_len;
     memcpy(string->str, name, string->length);
-    YASL_Object key = (YASL_Object) { .value.sval = string, .type = STR8 };
+    YASL_Object key = (YASL_Object) { .value.sval = string, .type = STR };
 
     YASL_Object *value = ht_search(env->vars, key);
     if (value == NULL && env->parent == NULL) {
@@ -69,7 +69,7 @@ void env_decl_var(Env_t *env, char *name, int64_t name_len) {
     string->str = malloc(name_len);
     string->length = name_len;
     memcpy(string->str, name, string->length);
-    YASL_Object key = (YASL_Object) { .value.sval = string, .type = STR8 };
+    YASL_Object key = (YASL_Object) { .value.sval = string, .type = STR };
     YASL_Object value = (YASL_Object) { .value.ival = env_len(env), .type = INT64 };
     ht_insert(env->vars, key, value);
 }

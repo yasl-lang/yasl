@@ -10,8 +10,8 @@ int int64_tofloat64(VM* vm) {
 
 int int64_tostr(VM *vm) {
     int64_t val = POP(vm).value.ival;
-    String_t* string = new_sized_string8(snprintf(NULL, 0, "%" PRId64 "", val));
+    String_t* string = str_new_sized(snprintf(NULL, 0, "%" PRId64 "", val));
     sprintf(string->str, "%" PRId64 "", val);           // TODO: adjust so that it doesn't use a null terminator
-    PUSH(vm, ((YASL_Object){STR8, (int64_t)string}));
+    PUSH(vm, ((YASL_Object){STR, (int64_t)string}));
     return 0;
 }

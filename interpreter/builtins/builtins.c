@@ -10,7 +10,7 @@ int yasl_print(VM* vm) {
         ls_print(v.value.lval);
         printf("\n");
         return 0;
-    } else if (v.type == MAP) {
+    } else if (v.type == TABLE) {
         ht_print(v.value.mval);
         printf("\n");
         return 0;
@@ -37,33 +37,20 @@ int yasl_input(VM* vm) {
         }
     }
     str = realloc(str, sizeof(char)*len);
-    vm->stack[++vm->sp].value.sval = new_sized_string8_from_mem(len, str);
-    vm->stack[vm->sp].type = STR8;
+    vm->stack[++vm->sp].value.sval = str_new_sized_from_mem(len, str);
+    vm->stack[vm->sp].type = STR;
     return 0;
 }
-
-/* int yasl_typeof(VM *vm) {
-    return 0;
-} */
-
-/* TODO: implement for all types
- * "tofloat64":    0x0A,
- * "toint64":      0x0B,
- * "tobool":       0x0C,
- * "tostr8":       0x0D,
- * "tolist":       0x0E,
- * "tomap":        0x0F,
-*/
 
 int yasl_open(VM* vm) {     //TODO: fix bug relating to file pointer
     YASL_Object mode_str = POP(vm);
     YASL_Object str = POP(vm);
-    if (mode_str.type != STR8) {
-        printf("Error: open(...) expected type %s as second argument, got type %s\n", YASL_TYPE_NAMES[STR8], YASL_TYPE_NAMES[str.type]);
+    if (mode_str.type != STR) {
+        printf("Error: open(...) expected type %s as second argument, got type %s\n", YASL_TYPE_NAMES[STR], YASL_TYPE_NAMES[str.type]);
         return -1;
     }
-    if (str.type != STR8) {
-        printf("Error: open(...) expected type %s as first argument, got type %s\n", YASL_TYPE_NAMES[STR8], YASL_TYPE_NAMES[str.type]);
+    if (str.type != STR) {
+        printf("Error: open(...) expected type %s as first argument, got type %s\n", YASL_TYPE_NAMES[STR], YASL_TYPE_NAMES[str.type]);
         return -1;
     }
     char *buffer = malloc((str.value.sval)->length + 1);
@@ -106,12 +93,12 @@ int yasl_open(VM* vm) {     //TODO: fix bug relating to file pointer
 int yasl_popen(VM* vm) {     //TODO: fix bug relating to file pointer
     YASL_Object mode_str = POP(vm);
     YASL_Object str = POP(vm);
-    if (mode_str.type != STR8) {
-        printf("Error: popen(...) expected type %x as second argument, got type %x\n", STR8, str.type);
+    if (mode_str.type != STR) {
+        printf("Error: popen(...) expected type %x as second argument, got type %x\n", STR, str.type);
         return -1;
     }
-    if (str.type != STR8) {
-        printf("Error: popen(...) expected type %x as first argument, got type %x\n", STR8, str.type);
+    if (str.type != STR) {
+        printf("Error: popen(...) expected type %x as first argument, got type %x\n", STR, str.type);
         return -1;
     }
     char *buffer = malloc((str.value.sval)->length + 1);
@@ -145,7 +132,7 @@ int yasl_popen(VM* vm) {     //TODO: fix bug relating to file pointer
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 Hash_t* float64_builtins() {
-    Hash_t* ht = new_hash();
+    Hash_t* ht = ht_new();
     ht_insert_string_int(ht, "toint64", strlen("toint64"), (int64_t)&float64_toint64);
     ht_insert_string_int(ht, "tostr", strlen("tostr"), (int64_t)&float64_tostr);
     return ht;
@@ -153,21 +140,21 @@ Hash_t* float64_builtins() {
 
 
 Hash_t* int64_builtins() {
-    Hash_t* ht = new_hash();
+    Hash_t* ht = ht_new();
     ht_insert_string_int(ht, "tofloat64", strlen("tofloat64"), (int64_t)&int64_tofloat64);
     ht_insert_string_int(ht, "tostr", strlen("tostr"), (int64_t)&int64_tostr);
     return ht;
 }
 
 Hash_t* bool_builtins() {
-    Hash_t* ht = new_hash();
+    Hash_t* ht = ht_new();
     ht_insert_string_int(ht, "tostr", strlen("tostr"), (int64_t)&bool_tostr);
     return ht;
 }
 
 
-Hash_t* str8_builtins() {
-    Hash_t* ht = new_hash();
+Hash_t* str_builtins() {
+    Hash_t* ht = ht_new();
     ht_insert_string_int(ht, "tobool",     strlen("tobool"),     (int64_t)&str_tobool);
     ht_insert_string_int(ht, "tostr",      strlen("tostr"),      (int64_t)&str_tostr);
     ht_insert_string_int(ht, "toupper",    strlen("toupper"),    (int64_t)&str_upcase);
@@ -188,7 +175,7 @@ Hash_t* str8_builtins() {
 }
 
 Hash_t* list_builtins() {
-    Hash_t* ht = new_hash();
+    Hash_t* ht = ht_new();
     ht_insert_string_int(ht, "append", strlen("append"), (int64_t)&list_append);
     ht_insert_string_int(ht, "__get",  strlen("__get"),  (int64_t)&list___get);
     ht_insert_string_int(ht, "__set",  strlen("__set"),  (int64_t)&list___set);
@@ -196,8 +183,8 @@ Hash_t* list_builtins() {
     return ht;
 }
 
-Hash_t* map_builtins() {
-    Hash_t* ht = new_hash();
+Hash_t* table_builtins() {
+    Hash_t* ht = ht_new();
     ht_insert_string_int(ht, "keys",   strlen("keys"),   (int64_t)&map_keys);
     ht_insert_string_int(ht, "values", strlen("values"), (int64_t)&map_values);
     ht_insert_string_int(ht, "clone",  strlen("clone"),  (int64_t)&map_clone);
@@ -207,7 +194,7 @@ Hash_t* map_builtins() {
 }
 
 Hash_t* file_builtins() {
-    Hash_t* ht = new_hash();
+    Hash_t* ht = ht_new();
     ht_insert_string_int(ht, "close",    strlen("close"),    (int64_t)&file_close);
     ht_insert_string_int(ht, "pclose",   strlen("pclose"),   (int64_t)&file_pclose);
     ht_insert_string_int(ht, "read",     strlen("read"),     (int64_t)&file_read);

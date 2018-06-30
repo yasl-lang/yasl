@@ -30,8 +30,8 @@ int file_pclose(VM* vm) {
 int file_write(VM* vm) {
     YASL_Object fileh = POP(vm);
     YASL_Object str = POP(vm);
-    if (str.type != STR8) {
-        printf("Error: file.write expected type %s as first argument, got type %s\n", YASL_TYPE_NAMES[STR8], YASL_TYPE_NAMES[str.type]);
+    if (str.type != STR) {
+        printf("Error: file.write expected type %s as first argument, got type %s\n", YASL_TYPE_NAMES[STR], YASL_TYPE_NAMES[str.type]);
         return -1;
     }
     // TODO: don't rely on C-strings for writing
@@ -64,8 +64,8 @@ int file_read(VM* vm) {
         }
     }
     str = realloc(str, sizeof(char)*len);
-    vm->stack[++vm->sp].value.sval = new_sized_string8_from_mem(len, str);
-    vm->stack[vm->sp].type = STR8;
+    vm->stack[++vm->sp].value.sval = str_new_sized_from_mem(len, str);
+    vm->stack[vm->sp].type = STR;
     YASL_DEBUG_LOG("%s\n", "successfully read from file.");
     return 0;
 }
@@ -86,8 +86,8 @@ int file_readline(VM* vm) {
         }
     }
     str = realloc(str, sizeof(char)*len);
-    vm->stack[++vm->sp].value.sval = new_sized_string8_from_mem(len, str);
-    vm->stack[vm->sp].type = STR8;
+    vm->stack[++vm->sp].value.sval = str_new_sized_from_mem(len, str);
+    vm->stack[vm->sp].type = STR;
     YASL_DEBUG_LOG("%s\n", "successfully readline from file.");
     return 0;
 }

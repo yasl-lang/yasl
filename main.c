@@ -79,11 +79,11 @@ int main(int argc, char** argv) {
     //printf("num_globals = %" PRId64 "\n", num_globals);
     // printf("entry_point = %" PRId64 "\n", entry_point);
     //bytes_read = fread(buffer, sizeof(unsigned char), BUFFER_SIZE, file_ptr);
-    VM* vm = newVM(buffer,   // program to execute
-                   entry_point,    // start address of main function
-                   256);   // locals to be reserved, should be num_globals
-    run(vm);
-    delVM(vm);
+    VM* vm = vm_new(buffer,   // program to execute
+                    entry_point,    // start address of main function
+                    256);   // locals to be reserved, should be num_globals
+    vm_run(vm);
+    vm_del(vm);
     free(buffer);
     fclose(file_ptr);
     return 0;

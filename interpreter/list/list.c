@@ -20,7 +20,7 @@ int isvalueinarray(int64_t val, int64_t *arr, int size){
     return 0;
 }
 
-List_t* new_sized_list(const int base_size) {
+List_t* ls_new_sized(const int base_size) {
     List_t* ls = malloc(sizeof(List_t));
     ls->size = base_size;
     ls->count = 0;
@@ -28,45 +28,39 @@ List_t* new_sized_list(const int base_size) {
     return ls;
 }
 
-List_t* new_list() {
-    return new_sized_list(LS_BASESIZE);
+List_t* ls_new(void) {
+    return ls_new_sized(LS_BASESIZE);
 }
 
-void del_list(List_t* ls) {
+void ls_del(List_t *ls) {
     free(ls->items);
     free(ls);
 }
 
 static void ls_resize(List_t* ls, const int base_size) {
     if (base_size < LS_BASESIZE) return;
-    List_t* new_ls = new_sized_list(base_size);
+    List_t* new_ls = ls_new_sized(base_size);
     int i;
     for (i = 0; i < ls->size; i++) {
-        //printf("ls->items[i].value: %d\n", (int)ls->items[i].value);
         new_ls->items[i] = ls->items[i];
     }
     ls->size = new_ls->size;
-    //ls->count = new_ls->count;
 
     YASL_Object* tmp_items = ls->items;
     ls->items = new_ls->items;
     new_ls->items = tmp_items;
 
-    del_list(new_ls);
+    ls_del(new_ls);
 }
 
 static void ls_resize_up(List_t* ls) {
-    //puts("resize up");
     const int new_size = ls->size * 2;
     ls_resize(ls, new_size);
-    //printf("new size is: %d\n", ls->size);
 }
 
 static void ls_resize_down(List_t* ls) {
-    //puts("resize down");
     const int new_size = ls->size / 2;
     ls_resize(ls, new_size);
-    //printf("new size is: %d\n", ls->size);
 }
 
 void ls_insert(List_t* ls, const int64_t index, const YASL_Object value) {
@@ -78,7 +72,6 @@ void ls_insert(List_t* ls, const int64_t index, const YASL_Object value) {
 void ls_append(List_t* ls, const YASL_Object value) {
     if (ls->count >= ls->size) ls_resize_up(ls);
     ls->items[ls->count++] = value;
-    //ls->count++;
 }
 
 YASL_Object ls_search(List_t* ls, int64_t index) {
@@ -108,7 +101,7 @@ void ls_print_h(List_t* ls, ByteBuffer *seen) {
                 bb_intbytes8(seen, ls->items[i].value.ival);
                 ls_print_h(ls->items[i].value.lval, seen);
             }
-        } else if (ls->items[i].type == MAP) {
+        } else if (ls->items[i].type == TABLE) {
             if (isvalueinarray(ls->items[i].value.ival, (int64_t*)seen->bytes, seen->count/sizeof(int64_t))) {
                 printf("[...->...]");
             } else {

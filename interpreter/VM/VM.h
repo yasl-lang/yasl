@@ -87,21 +87,18 @@ typedef struct {
 	Hash_t **builtins_htable;   // htable of builtin methods
 } VM;
 
-VM* newVM(unsigned char* code,    // pointer to bytecode
-    int pc0,             // address of instruction to be executed first -- entrypoint
-    int datasize);       // total locals size required to perform a program operations
+VM* vm_new(unsigned char *code,    // pointer to bytecode
+           int pc0,             // address of instruction to be executed first -- entrypoint
+           int datasize);       // total locals size required to perform a program operations
 
-void delVM(VM* vm);
+void vm_del(VM *vm);
 
-void run(VM* vm);
+void vm_run(VM *vm);
 
 Hash_t* float64_builtins(void);
 Hash_t* int64_builtins(void);
 Hash_t* bool_builtins(void);
-Hash_t* str8_builtins(void);
+Hash_t* str_builtins(void);
 Hash_t* list_builtins(void);
-Hash_t* map_builtins(void);
+Hash_t* table_builtins(void);
 Hash_t* file_builtins(void);
-
-typedef int (*Handler)(VM*);
-static const Handler builtins[];

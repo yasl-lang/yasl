@@ -216,7 +216,7 @@ static Node *parse_assign(const Parser *const parser) {
             Node *left = cur_node->children[0];
             Node *block = new_Block(parser->lex->line);
             block_append(block, cur_node->children[1]);
-            block_append(block, new_BinOp(op, clone_node(cur_node), parse_expr(parser), parser->lex->line));
+            block_append(block, new_BinOp(op, node_clone(cur_node), parse_expr(parser), parser->lex->line));
             free(cur_node->children);
             free(cur_node);
             return new_Set(left, block->children[0], block->children[1], parser->lex->line);
@@ -391,7 +391,7 @@ static Node *parse_call(const Parser *const parser) {
             }
 
             Node *block = new_Block(parser->lex->line);
-            block_append(block, clone_node(cur_node));
+            block_append(block, node_clone(cur_node));
 
             right->nodetype = N_STR;
             cur_node = new_Get(cur_node, right, parser->lex->line);
@@ -518,15 +518,15 @@ static Node *parse_string(const Parser *const parser) {
     return cur_node;
 }
 
-// parse list and map literals
+// parse list and table literals
 static Node *parse_collection(const Parser *const parser) {
     eattok(parser, T_LSQB);
     Node *keys = new_Block(parser->lex->line);
     Node *vals = new_Block(parser->lex->line); // free if we have list.
 
-    // empty map
+    // empty table
     if (curtok(parser) == T_RARR) {
-        YASL_TRACE_LOG("%s\n", "Parsing map");
+        YASL_TRACE_LOG("%s\n", "Parsing table");
         eattok(parser, T_RARR);
         eattok(parser, T_RSQB);
         return new_Map(keys, vals, parser->lex->line);
@@ -542,9 +542,9 @@ static Node *parse_collection(const Parser *const parser) {
 
     block_append(keys, parse_expr(parser));
 
-    // non-empty map
+    // non-empty table
     if (curtok(parser) == T_RARR) {
-        YASL_TRACE_LOG("%s\n", "Parsing map");
+        YASL_TRACE_LOG("%s\n", "Parsing table");
         eattok(parser, T_RARR);
         block_append(vals, parse_expr(parser));
         while (curtok(parser) == T_COMMA) {

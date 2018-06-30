@@ -21,13 +21,13 @@ typedef struct Hash_s {
     Item_t** items;
 } Hash_t;
 
-Hash_t* new_hash(void);
-Hash_t* new_sized_hash(const int base_size);
-void del_hash_string_int(Hash_t *hashtable);
-void ht_insert(Hash_t* hashtable, YASL_Object key, YASL_Object value);
-void ht_insert_string_int(Hash_t *hashtable, char *key, int64_t key_len, int64_t val);
-YASL_Object* ht_search(Hash_t* hashtable, YASL_Object key);
-YASL_Object *ht_search_string_int(Hash_t *hashtable, char *key, int64_t key_len);
-void ht_delete(Hash_t* hashtable, YASL_Object key);
-void ht_print(Hash_t* ht);
-void ht_print_h(Hash_t* ht, ByteBuffer* seen);
+Hash_t* ht_new(void);
+Hash_t* ht_new_sized(const int base_size);
+void ht_del_string_int(Hash_t *hashtable);
+void ht_insert(Hash_t *const hashtable, YASL_Object key, YASL_Object value);
+void ht_insert_string_int(Hash_t *const hashtable, char *key, int64_t key_len, int64_t val);
+YASL_Object* ht_search(const Hash_t *const hashtable, YASL_Object key);
+YASL_Object *ht_search_string_int(const Hash_t *const hashtable, char *key, int64_t key_len);
+void ht_rm(Hash_t *hashtable, YASL_Object key);
+void ht_print(const Hash_t *const ht);
+void ht_print_h(const Hash_t *const ht, ByteBuffer* seen);

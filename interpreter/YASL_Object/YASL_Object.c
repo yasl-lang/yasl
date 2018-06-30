@@ -11,9 +11,9 @@ const char *YASL_TYPE_NAMES[] = {
     "float64",  //FLOAT64,
     "int64",    //INT64,
     "bool",     //BOOL,
-    "str",      //STR8,
+    "str",      //STR,
     "list",     //LIST,
-    "map",      //MAP,
+    "table",      //TABLE,
     "file",     //FILEH,
     "fn",       //FN_P
     "mn"        //MN_P
@@ -35,8 +35,8 @@ YASL_Object isequal(YASL_Object a, YASL_Object b) {
             } else {
                 return FALSE_C;
             }
-        case MAP:
-            if (b.type == MAP) {
+        case TABLE:
+            if (b.type == TABLE) {
                 puts("Warning: comparison of hashes currently is not implemented.");
                 return UNDEF_C;
             }
@@ -64,8 +64,8 @@ YASL_Object isequal(YASL_Object a, YASL_Object b) {
                 return UNDEF_C;
             }
             return FALSE_C;
-        case STR8:
-            if (b.type == STR8) {
+        case STR:
+            if (b.type == STR) {
                 if ((a.value.sval)->length != (b.value.sval)->length) {
                     return FALSE_C;
                 } else {
@@ -81,7 +81,7 @@ YASL_Object isequal(YASL_Object a, YASL_Object b) {
             }
             return FALSE_C;
         default:
-            if (b.type == BOOL || b.type == MAP) {
+            if (b.type == BOOL || b.type == TABLE) {
                 return FALSE_C;
             }
             int c;
@@ -119,12 +119,12 @@ int print(YASL_Object v) {
         case UNDEF:
             printf("undef");
             break;
-        case STR8:
+        case STR:
             for (i = 0; i < (v.value.sval)->length; i++) {
                 printf("%c", (v.value.sval)->str[i]);
             }
             break;
-        /* case MAP:
+        /* case TABLE:
             printf("<hash %" PRIx64 ">", v.value);
             break; */
         /* case LIST:
