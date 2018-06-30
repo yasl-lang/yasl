@@ -8,10 +8,10 @@
 typedef enum {
     N_EXPRSTMT,
     N_BLOCK,
+    N_BODY,
     N_FNDECL,
     N_RET,
     N_CALL,
-    N_METHOD,
     N_SET,
     N_GET,
     N_WHILE,
@@ -46,12 +46,13 @@ struct Node_s {
 
 typedef struct Node_s Node;
 
-void block_append(Node *const node, Node *const child);
+void body_append(Node *const node, Node *const child);
 
 Node *node_clone(const Node *const node);
 
 Node *new_ExprStmt(Node *child, int line);
-Node *new_Block(int line);
+Node *new_Block(Node *body, int line);
+Node *new_Body(int line);
 Node *new_FunctionDecl(Node *params, Node *body, char *name, int64_t name_len, int line);
 Node *new_Return(Node *expr, int line);
 Node *new_Set(Node *collection, Node *key, Node *value, int line);

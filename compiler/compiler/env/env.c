@@ -32,12 +32,26 @@ int64_t env_len(Env_t *env) {
     return env->vars->count + (env->parent == NULL ? 0 : env_len(env->parent));
 }
 
+int env_contains_cur_scope(Env_t *env, char *name, int64_t name_len) {
+    String_t *string = malloc(sizeof(String_t));
+    string->str = malloc(name_len);
+    string->length = name_len;
+    memcpy(string->str, name, string->length);
+    YASL_Object key = (YASL_Object) { .value.sval = string, .type = STR };
+
+    YASL_Object *value = ht_search(env->vars, key);
+    if (value == NULL) {
+        return 0;
+    }
+    return 1;
+}
+
 int env_contains(Env_t *env, char *name, int64_t name_len) {
     String_t *string = malloc(sizeof(String_t));
     string->str = malloc(name_len);
     string->length = name_len;
     memcpy(string->str, name, string->length);
-    YASL_Object key = (YASL_Object) { .value = (int64_t)string, .type = STR };
+    YASL_Object key = (YASL_Object) { .value.sval = string, .type = STR };
 
     YASL_Object *value = ht_search(env->vars, key);
     if (value == NULL && env->parent == NULL) {

@@ -98,11 +98,15 @@ Node *new_ExprStmt(Node *child, int line) {
     return new_Node_1(N_EXPRSTMT, T_UNKNOWN, child, NULL, 0, line);
 }
 
-Node *new_Block(int line) {
-    return new_Node_0(N_BLOCK, T_UNKNOWN, NULL, 0, line);
+Node *new_Block(Node *body, int line) {
+    return new_Node_1(N_BLOCK, T_UNKNOWN, body, NULL, 0, line);
 }
 
-void block_append(Node *const node, Node *const child) {
+Node *new_Body(int line) {
+    return new_Node_0(N_BODY, T_UNKNOWN, NULL, 0, line);
+}
+
+void body_append(Node *const node, Node *const child) {
     YASL_TRACE_LOG("%s\n", "appending to block");
     node->children = realloc(node->children, (++node->children_len)*sizeof(Node*));
     node->children[node->children_len-1] = child;

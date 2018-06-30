@@ -104,7 +104,7 @@ static void rm_checkpoint(Compiler *compiler) {
 }
 
 static void visit(Compiler *const compiler, const Node *const node);
-static void visit_Block(const Compiler *const compiler, const Node *const node);
+static void visit_Body(const Compiler *const compiler, const Node *const node);
 
 void compile(const Compiler *const compiler) {
     Node *node;
@@ -178,7 +178,7 @@ static void visit_FunctionDecl(Compiler *const compiler, const Node *const node)
 
     ht_insert_string_int(compiler->functions_locals_len, node->name, node->name_len, compiler->locals->vars->count);
 
-    visit_Block(compiler, node->children[1]);
+    visit_Body(compiler, node->children[1]);
 
     ht_insert_string_int(compiler->functions, node->name, node->name_len, compiler->header->count);
 
@@ -230,7 +230,7 @@ static void visit_FunctionDecl(Compiler *const compiler, const Node *const node)
 
 static void visit_Call(const Compiler *const compiler, const Node *const node) {
     YASL_TRACE_LOG("Visit Call: %s\n", node->name);
-    visit_Block(compiler, node->children[0]);
+    visit_Body(compiler, node->children[0]);
     visit(compiler, node->children[1]);
     bb_add_byte(compiler->buffer, CALL_8);
     bb_add_byte(compiler->buffer, node->children[0]->children_len);
@@ -239,7 +239,7 @@ static void visit_Call(const Compiler *const compiler, const Node *const node) {
 static void visit_Return(const Compiler *const compiler, const Node *const node) {
     // recursive calls.
     if (node->nodetype == N_CALL && !strcmp(compiler->current_function, node->name)) {
-        visit_Block(compiler, node->children[0]);
+        visit_Body(compiler, node->children[0]);
 
         bb_add_byte(compiler->buffer, RCALL_8);
         bb_add_byte(compiler->buffer, node->children[0]->children_len);
@@ -270,12 +270,17 @@ static void visit_Get(const Compiler *const compiler, const Node *const node) {
     //bb_intbytes8(compiler->buffer, M___GET);
 }
 
-static void visit_Block(const Compiler *const compiler, const Node *const node) {
+static void visit_Body(const Compiler *const compiler, const Node *const node) {
     YASL_TRACE_LOG("Visiting Block with %" PRId64 " children.\n", node->children_len);
     int i;
     for (i = 0; i < node->children_len; i++) {
         visit(compiler, node->children[i]);
     }
+}
+static void visit_Block(Compiler *const compiler, const Node *const node) {
+    enter_scope(compiler);
+    visit(compiler, node->children[0]);
+    exit_scope(compiler);
 }
 
 static void visit_While(Compiler *const compiler, const Node *const node) {
@@ -344,23 +349,6 @@ static void visit_Print(const Compiler *const compiler, const Node *const node) 
     bb_add_byte(compiler->buffer, PRINT);
 }
 
-/*
- *     def visit_Decl(self, node):
-        result = []
-        for i in range(len(node.left)):
-            var = node.left[i]
-            val = node.right[i]
-            if self.current_fn is not None:
-                if var.value not in self.locals.vars:
-                    self.locals[var.value] = len(self.locals.vars) + 1 - self.offset
-                result = result + self.visit(val) + [LSTORE_1, self.locals[var.value]]
-                continue
-            if var.value not in self.globals.vars:
-                self.globals.decl_var(var.value)
-            right = self.visit(val)
-            result = result + right + [GSTORE_1, self.globals[var.value]]
-        return result
- */
 static void visit_Let(const Compiler *const compiler, const Node *const node) {
     if (NULL != compiler->current_function) {
         if (!env_contains(compiler->locals, node->name, node->name_len)) {
@@ -374,8 +362,11 @@ static void visit_Let(const Compiler *const compiler, const Node *const node) {
         return;
     }
 
-    if (!env_contains(compiler->globals, node->name, node->name_len)) {
+    if (!env_contains_cur_scope(compiler->globals, node->name, node->name_len)) {
         env_decl_var(compiler->globals, node->name, node->name_len);
+    } else {
+        printf("Illegal redeclaration of %s in line %d.\n", node->name, node->line);
+        exit(EXIT_FAILURE);
     }
     if (node->children != NULL) visit(compiler, node->children[0]);
     else bb_add_byte(compiler->buffer, NCONST);
@@ -670,6 +661,10 @@ static void visit(Compiler *const compiler, const Node *const node) {
     case N_EXPRSTMT:
         YASL_TRACE_LOG("%s\n", "Visit ExprStmt");
         visit_ExprStmt(compiler, node);
+        break;
+    case N_BODY:
+        YASL_TRACE_LOG("%s\n", "Visit Body");
+        visit_Body(compiler, node);
         break;
     case N_BLOCK:
         YASL_TRACE_LOG("%s\n", "Visit Block");

@@ -19,6 +19,7 @@ Node *parse(const Parser *const parser);
 static Node *parse_program(const Parser *const parser);
 static Node *parse_let(const Parser *const parser);
 static Node *parse_fn(const Parser *const parser);
+static Node *parse_block(const Parser *const parser);
 static Node *parse_while(const Parser *const parser);
 static Node *parse_if(const Parser *const parser);
 static Node *parse_expr(const Parser *const parser);
