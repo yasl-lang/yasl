@@ -2,7 +2,8 @@
 #include "table_methods.h"
 #include "hashtable.h"
 
-int map___get(VM *vm) {
+int table___get(VM *vm) {
+    ASSERT_TYPE(vm, TABLE, "table.__get");
     Hash_t* ht = POP(vm).value.mval;
     YASL_Object key = PEEK(vm);
     YASL_Object *result = ht_search(ht, key);
@@ -14,7 +15,8 @@ int map___get(VM *vm) {
     return 0;
 }
 
-int map___set(VM *vm) {
+int table___set(VM *vm) {
+    ASSERT_TYPE(vm, TABLE, "table.__set");
     Hash_t* ht = POP(vm).value.mval;
     YASL_Object val = POP(vm);
     YASL_Object key = POP(vm);
@@ -27,7 +29,8 @@ int map___set(VM *vm) {
     return 0;
 }
 
-int map_keys(VM* vm) {
+int table_keys(VM *vm) {
+    ASSERT_TYPE(vm, TABLE, "table.keys");
     YASL_Object ht = POP(vm);
     List_t* ls = ls_new();
     int64_t i;
@@ -42,7 +45,8 @@ int map_keys(VM* vm) {
     return 0;
 }
 
-int map_values(VM* vm) {
+int table_values(VM *vm) {
+    ASSERT_TYPE(vm, TABLE, "table.values");
     YASL_Object ht = POP(vm);
     List_t* ls = ls_new();
     int64_t i;
@@ -57,7 +61,8 @@ int map_values(VM* vm) {
     return 0;
 }
 
-int map_clone(VM* vm) {
+int table_clone(VM *vm) {
+    ASSERT_TYPE(vm, TABLE, "table.clone");
     Hash_t* ht = POP(vm).value.mval;
     Hash_t* new_ht = ht_new_sized(ht->base_size);
     int i;

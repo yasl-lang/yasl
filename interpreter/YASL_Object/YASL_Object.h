@@ -48,3 +48,10 @@ YASL_Object isequal(YASL_Object a, YASL_Object b);
 int print(YASL_Object a);
 
 const char *YASL_TYPE_NAMES[10];
+
+#define ASSERT_TYPE(vm, expected_type, name) do {\
+                    if (vm->stack[vm->sp].type != expected_type) {\
+                        printf("%s(...) expected first argument of type %s, got %s.\n", \
+                                name, YASL_TYPE_NAMES[expected_type], YASL_TYPE_NAMES[vm->stack[vm->sp].type] );\
+                    }\
+                } while(0)

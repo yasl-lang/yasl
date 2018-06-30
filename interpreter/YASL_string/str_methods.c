@@ -3,6 +3,7 @@
 #include "YASL_string.h"
 
 int str___get(VM *vm) {
+    ASSERT_TYPE(vm, STR, "str.__get");
     String_t *str = POP(vm).value.sval;
     YASL_Object index = POP(vm);
     if (index.type != INT64) {
@@ -20,6 +21,7 @@ int str___get(VM *vm) {
 }
 
 int str_tobool(VM* vm) {
+    ASSERT_TYPE(vm, STR, "str.tobool");
     YASL_Object a = POP(vm);
     if ((a.value.sval)->length == 0) {
         vm->stack[++vm->sp] = FALSE_C;
@@ -30,10 +32,12 @@ int str_tobool(VM* vm) {
 }
 
 int str_tostr(VM *vm) {
+    ASSERT_TYPE(vm, STR, "str.tostr");
     return 0;
 }
 
-int str_upcase(VM* vm) {
+int str_toupper(VM *vm) {
+    ASSERT_TYPE(vm, STR, "str.toupper");
     YASL_Object a = PEEK(vm);
     int64_t length = (a.value.sval)->length;
     int64_t i = 0;
@@ -51,7 +55,8 @@ int str_upcase(VM* vm) {
     return 0;
 }
 
-int str_downcase(VM* vm) {
+int str_tolower(VM *vm) {
+    ASSERT_TYPE(vm, STR, "str.tolower");
     YASL_Object a = PEEK(vm);
     int64_t length = (a.value.sval)->length;
     int64_t i = 0;
@@ -70,6 +75,7 @@ int str_downcase(VM* vm) {
 }
 
 int str_isalnum(VM* vm) {
+    ASSERT_TYPE(vm, STR, "str.isalnum");
     YASL_Object a = POP(vm);
     int64_t length = (a.value.sval)->length;
     int64_t i = 0;
@@ -86,6 +92,7 @@ int str_isalnum(VM* vm) {
 }
 
 int str_isal(VM* vm) {
+    ASSERT_TYPE(vm, STR, "str.isal");
     YASL_Object a = POP(vm);
     int64_t length = (a.value.sval)->length;
     int64_t i = 0;
@@ -102,6 +109,7 @@ int str_isal(VM* vm) {
 }
 
 int str_isnum(VM* vm) {
+    ASSERT_TYPE(vm, STR, "str.isnum");
     YASL_Object a = POP(vm);
     int64_t length = (a.value.sval)->length;
     int64_t i = 0;
@@ -119,6 +127,7 @@ int str_isnum(VM* vm) {
 }
 
 int str_isspace(VM* vm) {
+    ASSERT_TYPE(vm, STR, "str.isspace");
     YASL_Object a = POP(vm);
     int64_t length = (a.value.sval)->length;
     int64_t i = 0;
@@ -135,6 +144,7 @@ int str_isspace(VM* vm) {
 }
 
 int str_startswith(VM* vm) {
+    ASSERT_TYPE(vm, STR, "str.startswith");
     YASL_Object haystack = POP(vm);
     YASL_Object needle = POP(vm);
     if (needle.type != STR) {
@@ -158,6 +168,7 @@ int str_startswith(VM* vm) {
 }
 
 int str_endswith(VM* vm) {
+    ASSERT_TYPE(vm, STR, "str.endswith");
     YASL_Object haystack = POP(vm);
     YASL_Object needle = POP(vm);
     if (needle.type != STR) {
@@ -182,6 +193,7 @@ int str_endswith(VM* vm) {
 }
 
 int str_search(VM* vm) {
+    ASSERT_TYPE(vm, STR, "str.search");
     YASL_Object haystack = POP(vm);
     YASL_Object needle = POP(vm);
     if (needle.type != STR) {
@@ -199,6 +211,7 @@ int str_search(VM* vm) {
 }
 
 int str_split(VM* vm) {
+    ASSERT_TYPE(vm, STR, "str.split");
     YASL_Object haystack = POP(vm);
     YASL_Object needle = POP(vm);
     if (needle.type != STR) {
@@ -230,10 +243,11 @@ int str_split(VM* vm) {
 }
 
 int str_ltrim(VM *vm) {
+    ASSERT_TYPE(vm, STR, "str.ltrim");
     YASL_Object haystack = POP(vm);
     YASL_Object needle = POP(vm);
     if (needle.type != STR) {
-        printf("Error: str.ltrim(...) expected type %x as first argument, got type %x\n", STR, needle.type);
+        printf("Error: str.ltrim(...) expected type %x as second argument, got type %x\n", STR, needle.type);
         return -1;
     }
     int64_t start=0;
@@ -251,10 +265,11 @@ int str_ltrim(VM *vm) {
 }
 
 int str_rtrim(VM *vm) {
+    ASSERT_TYPE(vm, STR, "str.rtrim");
     YASL_Object haystack = POP(vm);
     YASL_Object needle = POP(vm);
     if (needle.type != STR) {
-        printf("Error: str.rtrim(...) expected type %x as first argument, got type %x\n", STR, needle.type);
+        printf("Error: str.rtrim(...) expected type %x as second argument, got type %x\n", STR, needle.type);
         return -1;
     }
     int64_t end=haystack.value.sval->length;
@@ -271,6 +286,7 @@ int str_rtrim(VM *vm) {
 }
 
 int str_trim(VM *vm) {
+    ASSERT_TYPE(vm, STR, "str.trim");
     YASL_Object haystack = POP(vm);
     YASL_Object needle = POP(vm);
     if (needle.type != STR) {

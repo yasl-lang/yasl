@@ -157,8 +157,8 @@ Hash_t* str_builtins() {
     Hash_t* ht = ht_new();
     ht_insert_string_int(ht, "tobool",     strlen("tobool"),     (int64_t)&str_tobool);
     ht_insert_string_int(ht, "tostr",      strlen("tostr"),      (int64_t)&str_tostr);
-    ht_insert_string_int(ht, "toupper",    strlen("toupper"),    (int64_t)&str_upcase);
-    ht_insert_string_int(ht, "tolower",    strlen("tolower"),    (int64_t)&str_downcase);
+    ht_insert_string_int(ht, "toupper",    strlen("toupper"),    (int64_t) &str_toupper);
+    ht_insert_string_int(ht, "tolower",    strlen("tolower"),    (int64_t) &str_tolower);
     ht_insert_string_int(ht, "isalnum",    strlen("isalnum"),    (int64_t)&str_isalnum);
     ht_insert_string_int(ht, "isal",       strlen("isal"),       (int64_t)&str_isal);
     ht_insert_string_int(ht, "isnum",      strlen("isnum"),      (int64_t)&str_isnum);
@@ -185,11 +185,11 @@ Hash_t* list_builtins() {
 
 Hash_t* table_builtins() {
     Hash_t* ht = ht_new();
-    ht_insert_string_int(ht, "keys",   strlen("keys"),   (int64_t)&map_keys);
-    ht_insert_string_int(ht, "values", strlen("values"), (int64_t)&map_values);
-    ht_insert_string_int(ht, "clone",  strlen("clone"),  (int64_t)&map_clone);
-    ht_insert_string_int(ht, "__get",  strlen("__get"),  (int64_t)&map___get);
-    ht_insert_string_int(ht, "__set",  strlen("__set"),  (int64_t)&map___set);
+    ht_insert_string_int(ht, "keys",   strlen("keys"),   (int64_t) &table_keys);
+    ht_insert_string_int(ht, "values", strlen("values"), (int64_t) &table_values);
+    ht_insert_string_int(ht, "clone",  strlen("clone"),  (int64_t) &table_clone);
+    ht_insert_string_int(ht, "__get",  strlen("__get"),  (int64_t) &table___get);
+    ht_insert_string_int(ht, "__set",  strlen("__set"),  (int64_t) &table___set);
     return ht;
 }
 

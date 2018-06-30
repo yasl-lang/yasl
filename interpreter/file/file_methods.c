@@ -3,7 +3,7 @@
 #include "file_methods.h"
 
 int file_close(VM* vm) {
-    //puts("trying to close file");
+    ASSERT_TYPE(vm, FILEH, "file.close");
     FILE *f = (POP(vm).value.fval);
     if (fclose(f)) {
         YASL_DEBUG_LOG("%s\n", "error closing file.");
@@ -16,7 +16,7 @@ int file_close(VM* vm) {
 }
 
 int file_pclose(VM* vm) {
-    //puts("trying to close file");
+    ASSERT_TYPE(vm, FILEH, "file.pclose");
     FILE *f = (POP(vm).value.fval);
     if (pclose(f)) {
         YASL_DEBUG_LOG("%s\n", "error closing process.");
@@ -28,6 +28,7 @@ int file_pclose(VM* vm) {
 }
 
 int file_write(VM* vm) {
+    ASSERT_TYPE(vm, FILEH, "file.write");
     YASL_Object fileh = POP(vm);
     YASL_Object str = POP(vm);
     if (str.type != STR) {
@@ -50,6 +51,7 @@ int file_write(VM* vm) {
 }
 
 int file_read(VM* vm) {
+    ASSERT_TYPE(vm, FILEH, "file.read");
     FILE* f = (POP(vm).value.fval);
     int ch;
     size_t len = 0;
@@ -71,6 +73,7 @@ int file_read(VM* vm) {
 }
 
 int file_readline(VM* vm) {
+    ASSERT_TYPE(vm, FILEH, "file.readline");
     FILE* f = (POP(vm).value.fval);
     int ch;
     size_t len = 0;

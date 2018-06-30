@@ -2,6 +2,7 @@
 #include "list_methods.h"
 
 int list___get(VM *vm) {
+    ASSERT_TYPE(vm, LIST, "list.__get");
     List_t *ls = POP(vm).value.lval;
     YASL_Object index = POP(vm);
     if (index.type != INT64) {
@@ -19,6 +20,7 @@ int list___get(VM *vm) {
 }
 
 int list___set(VM* vm) {
+    ASSERT_TYPE(vm, LIST, "list.__set");
     List_t *ls = POP(vm).value.lval;
     YASL_Object value = POP(vm);
     YASL_Object index = POP(vm);
@@ -39,6 +41,7 @@ int list___set(VM* vm) {
 
 
 int list_append(VM* vm) {
+    ASSERT_TYPE(vm, LIST, "list.append");
     YASL_Object ls  = POP(vm);
     YASL_Object val = POP(vm);
     ls_append(ls.value.lval, val);
@@ -47,6 +50,7 @@ int list_append(VM* vm) {
 }
 
 int list_search(VM* vm) {
+    ASSERT_TYPE(vm, LIST, "list.search");
     YASL_Object haystack = POP(vm);
     YASL_Object needle = POP(vm);
     YASL_Object index = UNDEF_C;

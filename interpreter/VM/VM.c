@@ -490,9 +490,11 @@ void vm_run(VM *vm){
                 if (PEEK(vm).type == LIST) {
                     if (!list___get(vm)) break;
                 } else if (PEEK(vm).type == TABLE) {
-                    if (!map___get(vm)) break;
+                    if (!table___get(vm)) break;
                 }
+                POP(vm);
                 YASL_Object key = POP(vm);
+                //printf("%s\n", key.value.sval->str);
                 YASL_Object *result = ht_search(vm->builtins_htable[index], key);
                 if (result == NULL) {
                     puts("Not foundsdadsadsasds");
@@ -506,7 +508,7 @@ void vm_run(VM *vm){
                 if (PEEK(vm).type == LIST) {
                     list___set(vm);
                 } else if (PEEK(vm).type == TABLE) {
-                    map___set(vm);
+                    table___set(vm);
                 } else {
                     printf("object of type %s is immutable.", YASL_TYPE_NAMES[PEEK(vm).type]);
                     exit(EXIT_FAILURE);

@@ -1,6 +1,7 @@
 #include "bool_methods.h"
 
 int bool_tostr(VM *vm) {
+    ASSERT_TYPE(vm, BOOL, "bool.tostr");
     int64_t val = POP(vm).value.ival;
     String_t* string;
     if (val == 0) {

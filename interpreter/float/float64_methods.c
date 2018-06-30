@@ -2,6 +2,7 @@
 #include "float64_methods.h"
 
 int float64_toint64(VM* vm) {
+    ASSERT_TYPE(vm, FLOAT64, "float.toint64");
     YASL_Object a = POP(vm);
     vm->stack[++vm->sp].type = INT64;
     PEEK(vm).value.ival = (int64_t)a.value.dval;
@@ -9,6 +10,7 @@ int float64_toint64(VM* vm) {
 }
 
 int float64_tostr(VM *vm) {
+    ASSERT_TYPE(vm, FLOAT64, "float.tostr");
     double val = 0;
     memcpy(&val, &vm->stack[vm->sp].value, sizeof(double));
     String_t* string = str_new_sized(snprintf(NULL, 0, "%f", val));
