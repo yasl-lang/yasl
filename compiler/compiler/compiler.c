@@ -2,50 +2,12 @@
 #include <interpreter/YASL_string/YASL_string.h>
 #include <bytebuffer/bytebuffer.h>
 #include <metadata.h>
+#include <compiler/parser/parser.h>
 #include "compiler.h"
 #define break_checkpoint(compiler)    (compiler->checkpoints[compiler->checkpoints_count-1])
 #define continue_checkpoint(compiler) (compiler->checkpoints[compiler->checkpoints_count-2])
 
 
-static Compiler *compiler_tables_init(const Compiler *const compiler) {
-    ht_insert_string_int(compiler->builtins, "open", strlen("open"), F_OPEN);
-    ht_insert_string_int(compiler->builtins, "popen", strlen("popen"), F_POPEN);
-    ht_insert_string_int(compiler->builtins, "input", strlen("input"), F_INPUT);
-
-    ht_insert_string_int(compiler->methods, "tofloat64", strlen("tofloat64"), M_TOFLOAT64);
-    ht_insert_string_int(compiler->methods, "toint64", strlen("toint64"), M_TOINT64);
-    ht_insert_string_int(compiler->methods, "tobool", strlen("tobool"), M_TOBOOL);
-    ht_insert_string_int(compiler->methods, "tostr", strlen("tostr"), M_TOSTR);
-
-    ht_insert_string_int(compiler->methods, "upcase", strlen("upcase"), M_UPCASE);
-    ht_insert_string_int(compiler->methods, "downcase", strlen("downcase"), M_DOWNCASE);
-    ht_insert_string_int(compiler->methods, "isalnum", strlen("isalnum"), M_ISALNUM);
-    ht_insert_string_int(compiler->methods, "isal", strlen("isal"), M_ISAL);
-    ht_insert_string_int(compiler->methods, "isnum", strlen("isnum"), M_ISNUM);
-    ht_insert_string_int(compiler->methods, "isspace", strlen("isspace"), M_ISSPACE);
-    ht_insert_string_int(compiler->methods, "startswith", strlen("startswith"), M_STARTSWITH);
-    ht_insert_string_int(compiler->methods, "endswith", strlen("endswith"), M_ENDSWITH);
-    ht_insert_string_int(compiler->methods, "search", strlen("search"), M_SEARCH);
-    ht_insert_string_int(compiler->methods, "split", strlen("split"), M_SPLIT);
-    ht_insert_string_int(compiler->methods, "ltrim", strlen("ltrim"), M_LTRIM);
-    ht_insert_string_int(compiler->methods, "rtrim", strlen("rtrim"), M_RTRIM);
-    ht_insert_string_int(compiler->methods, "trim", strlen("trim"), M_TRIM);
-
-    ht_insert_string_int(compiler->methods, "append", strlen("append"), M_APPEND);
-
-    ht_insert_string_int(compiler->methods, "keys", strlen("keys"), M_KEYS);
-    ht_insert_string_int(compiler->methods, "values", strlen("values"), M_VALUES);
-    ht_insert_string_int(compiler->methods, "clone", strlen("clone"), M_CLONE);
-
-    ht_insert_string_int(compiler->methods, "close", strlen("close"), M_CLOSE);
-    ht_insert_string_int(compiler->methods, "pclose", strlen("pclose"), M_PCLOSE);
-    ht_insert_string_int(compiler->methods, "read", strlen("read"), M_READ);
-    ht_insert_string_int(compiler->methods, "write", strlen("write"), M_WRITE);
-    ht_insert_string_int(compiler->methods, "readline", strlen("readline"), M_READLINE);
-
-    ht_insert_string_int(compiler->methods, "__set", strlen("__set"), M___SET);
-    ht_insert_string_int(compiler->methods, "__get", strlen("__get"), M___GET);
-}
 
 Compiler *compiler_new(Parser *const parser, char *const name) {
     Compiler *compiler = malloc(sizeof(Compiler));
@@ -55,10 +17,9 @@ Compiler *compiler_new(Parser *const parser, char *const name) {
     env_decl_var(compiler->globals, "stdin", strlen("stdin"));
     env_decl_var(compiler->globals, "stdout", strlen("stdout"));
     env_decl_var(compiler->globals, "stderr", strlen("stderr"));
-
-    compiler->builtins = new_hash();
-    compiler->methods = new_hash();
-    compiler_tables_init(compiler);
+    env_decl_var(compiler->globals, "open", strlen("open"));
+    env_decl_var(compiler->globals, "popen", strlen("popen"));
+    env_decl_var(compiler->globals, "input", strlen("input"));
 
     compiler->functions = new_hash();
     compiler->functions_locals_len = new_hash();
@@ -93,8 +54,6 @@ void compiler_tables_del(Compiler *compiler) {
     del_hash_string_int(compiler->strings);
     del_hash_string_int(compiler->functions);
     del_hash_string_int(compiler->functions_locals_len);
-    del_hash_string_int(compiler->methods);
-    del_hash_string_int(compiler->builtins);
 }
 
 static void compiler_buffers_del(const Compiler *const compiler) {
@@ -201,11 +160,6 @@ static void visit_FunctionDecl(Compiler *const compiler, const Node *const node)
         exit(EXIT_FAILURE);
     }
 
-    if (ht_search_string_int(compiler->builtins, node->name, node->name_len) != NULL) {
-        puts("Illegal redeclaration of builtin function.");
-        exit(EXIT_FAILURE);
-    }
-
     compiler->current_function =  node->name;
 
     // start logic for function, now that we are sure it's legal to do so, and have set up.
@@ -276,50 +230,14 @@ static void visit_FunctionDecl(Compiler *const compiler, const Node *const node)
 
 static void visit_Call(const Compiler *const compiler, const Node *const node) {
     YASL_TRACE_LOG("Visit Call: %s\n", node->name);
-    // TODO: error handling on number of arguments.
-    /*
-    def visit_FunctionCall(self, node):
-        result = []
-        for expr in node.params:
-            result = result + self.visit(expr)
-        if node.value in BUILTINS:
-            return result + [BCALL_8] + intbytes_8(BUILTINS[node.value])
-        return result + [CALL_8, self.fns[node.token.value]["params"]] + \
-                         intbytes_8(self.fns[node.token.value]["addr"]) + \
-                         [self.fns[node.token.value]["locals"]]
-     */
-    //YASL_DEBUG_LOG("visiting call %s\n", node->name);
     visit_Block(compiler, node->children[0]);
     visit(compiler, node->children[1]);
-    //YASL_TRACE_LOG("Visiting Block with %d children in reverse.\n", node->children_len);
-    //int i;
-    //for (i = node->children_len - 1; i >= 0; i--) {
-    //    visit(compiler, node->children[i]);
-    //}
-
-    if (ht_search_string_int(compiler->builtins, node->name, node->name_len)) {
-        bb_add_byte(compiler->buffer, BCALL_8);
-        bb_intbytes8(compiler->buffer, ht_search_string_int(compiler->builtins, node->name, node->name_len)->value.ival);
-    } else {
-        //if (NULL == ht_search_string_int(compiler->functions, node->name, node->name_len)) {
-        //    printf("Undefined function: %s\n", node->name);
-        //    exit(EXIT_FAILURE);
-        //}
-
-        bb_add_byte(compiler->buffer, CALL_8);
-
-        bb_add_byte(compiler->buffer, node->children[0]->children_len);
-
-        //bb_add_byte(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));
-
-        //bb_add_byte(compiler->buffer, ht_search_string_int(compiler->functions_locals_len, node->name, node->name_len)->value.ival);
-
-
-    }
+    bb_add_byte(compiler->buffer, CALL_8);
+    bb_add_byte(compiler->buffer, node->children[0]->children_len);
 }
 
 static void visit_Return(const Compiler *const compiler, const Node *const node) {
-    // deal with recursive calls.
+    // recursive calls.
     if (node->nodetype == N_CALL && !strcmp(compiler->current_function, node->name)) {
         visit_Block(compiler, node->children[0]);
 
@@ -341,15 +259,15 @@ static void visit_Set(const Compiler *const compiler, const Node *const node) {
     visit(compiler, node->children[1]);
     visit(compiler, node->children[2]);
     visit(compiler, node->children[0]);
-    bb_add_byte(compiler->buffer, MCALL_8);
-    bb_intbytes8(compiler->buffer, M___SET);
+    bb_add_byte(compiler->buffer, SET);
+    //bb_intbytes8(compiler->buffer, M___SET);
 }
 
 static void visit_Get(const Compiler *const compiler, const Node *const node) {
     visit(compiler, node->children[1]);
     visit(compiler, node->children[0]);
-    bb_add_byte(compiler->buffer, MCALL_8);
-    bb_intbytes8(compiler->buffer, M___GET);
+    bb_add_byte(compiler->buffer, GET);
+    //bb_intbytes8(compiler->buffer, M___GET);
 }
 
 static void visit_Block(const Compiler *const compiler, const Node *const node) {
@@ -423,8 +341,7 @@ static void visit_If(const Compiler *const compiler, const Node *const node) {
 
 static void visit_Print(const Compiler *const compiler, const Node *const node) {
     visit(compiler, node->children[0]);
-    bb_add_byte(compiler->buffer, BCALL_8);
-    bb_intbytes8(compiler->buffer, F_PRINT);
+    bb_add_byte(compiler->buffer, PRINT);
 }
 
 /*
@@ -514,6 +431,8 @@ static void visit_BinOp(const Compiler *const compiler, const Node *const node) 
         bb_rewrite_intbytes8(compiler->buffer, index, compiler->buffer->count-index-8);
         return;
     } else if (node->type == T_TBAR) {  // ||| operator
+        puts("not yet implemented");
+        exit(1);
             /* return left + [MCALL_8] + intbytes_8(METHODS["tostr"]) + right + [MCALL_8] + intbytes_8(METHODS["tostr"]) \
                 + [HARD_CNCT] */
             visit(compiler, node->children[0]);
@@ -629,7 +548,7 @@ static void visit_UnOp(const Compiler *const compiler, const Node *const node) {
 static void visit_Assign(const Compiler *const compiler, const Node *const node) {
     if (!env_contains(compiler->globals, node->name, node->name_len) &&
         !env_contains(compiler->locals, node->name, node->name_len)) {
-        printf("unknown variable: %s\n", node->name);
+        printf("unknown variable in line %d: %s\n", compiler->parser->lex->line, node->name);
     }
     // TODO: handle locals
     visit(compiler, node->children[0]);
@@ -645,7 +564,7 @@ static void visit_Var(const Compiler *const compiler, const Node *const node) {
     //YASL_TRACE_LOG("%d\n", env_contains(compiler->locals, node->name, node->name_len));
     if (!env_contains(compiler->globals, node->name, node->name_len) &&
         !env_contains(compiler->locals, node->name, node->name_len)) {
-        printf("unknown variable: %s\n", node->name);
+        printf("unknown variable in line %d: %s\n", compiler->parser->lex->line, node->name);
         exit(EXIT_FAILURE);
     }
 
@@ -739,8 +658,7 @@ static void visit_Map(const Compiler *const compiler, const Node *const node) {
         bb_add_byte(compiler->buffer, SWAP);
         visit(compiler, node->children[1]->children[i]);
         bb_add_byte(compiler->buffer, SWAP);
-        bb_add_byte(compiler->buffer, MCALL_8);
-        bb_intbytes8(compiler->buffer, M___SET);  // NOTE: depends on value of M___SET in methods.h
+        bb_add_byte(compiler->buffer, SET);
         bb_add_byte(compiler->buffer, POP);
     }
 }

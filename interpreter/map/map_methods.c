@@ -4,8 +4,13 @@
 
 int map___get(VM *vm) {
     Hash_t* ht = POP(vm).value.mval;
-    YASL_Object key = POP(vm);
-    PUSH(vm, *ht_search(ht, key));
+    YASL_Object key = PEEK(vm);
+    YASL_Object *result = ht_search(ht, key);
+    if (result == NULL) return -1;
+    else {
+        POP(vm);
+        PUSH(vm, *result);
+    }
     return 0;
 }
 

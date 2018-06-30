@@ -145,6 +145,9 @@ int print(YASL_Object v) {
         case FN_P:
             printf("<fn: %" PRIx64 ">", v.value.ival);
             break;
+        case MN_P:
+            printf("<mn: %" PRIx64 ">", v.value.ival);
+            break;
         default:
             printf("Error, unknown type: %x", v.type);
             return -1;

@@ -21,7 +21,6 @@ include_directories(interpreter/integer)
 include_directories(interpreter/list)
 include_directories(interpreter/map)
 include_directories(interpreter/VM)
-include_directories(interpreter/vtable)
 include_directories(interpreter/YASL_Object)
 include_directories(interpreter/YASL_string)
 include_directories(prime)
@@ -62,8 +61,6 @@ add_executable(YASL
         interpreter/map/map_methods.h
         interpreter/VM/VM.c
         interpreter/VM/VM.h
-        interpreter/vtable/vtable.c
-        interpreter/vtable/vtable.h
         interpreter/YASL_Object/YASL_Object.c
         interpreter/YASL_Object/YASL_Object.h
         interpreter/YASL_string/str_methods.c

@@ -45,6 +45,8 @@ typedef enum Opcode {
     GE        = 0x73, // greater than or equal
     EQ        = 0x74, // equality
     ID        = 0x76, // identity
+    SET       = 0x80, // sets field.
+    GET       = 0x81, // gets field.
     BR_4      = 0x90, // branch unconditionally (takes next 4 bytes as jump length)
     BR_8      = 0x91, // branch unconditionally (takes next 8 bytes as jump length)
     BRF_4     = 0x92, // branch if condition is falsey (takes next 4 bytes as jump length)
@@ -67,4 +69,5 @@ typedef enum Opcode {
     RCALL_8   = 0xFA, // tail recursive function call
     BCALL_8   = 0xFB, // built-in function call
     MCALL_8   = 0xFC, // method call
+    PRINT     = 0xFF, // print
 } Opcode;

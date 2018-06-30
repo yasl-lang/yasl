@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../vtable/vtable.h"
 #include "../YASL_Object/YASL_Object.h"
 #include "../../opcode.h"
 #include "../../hashtable/hashtable.h"
@@ -85,7 +84,7 @@ typedef struct {
     int pc0;                    // initial value for pc
 	int sp;                     // stack pointer
 	int fp;                     // frame pointer
-	VTable_t** builtins_vtable;   // vtable of builtin methods
+	Hash_t **builtins_htable;   // htable of builtin methods
 } VM;
 
 VM* newVM(unsigned char* code,    // pointer to bytecode
@@ -96,13 +95,13 @@ void delVM(VM* vm);
 
 void run(VM* vm);
 
-VTable_t* float64_builtins(void);
-VTable_t* int64_builtins(void);
-VTable_t* bool_builtins(void);
-VTable_t* str8_builtins(void);
-VTable_t* list_builtins(void);
-VTable_t* map_builtins(void);
-VTable_t* file_builtins(void);
+Hash_t* float64_builtins(void);
+Hash_t* int64_builtins(void);
+Hash_t* bool_builtins(void);
+Hash_t* str8_builtins(void);
+Hash_t* list_builtins(void);
+Hash_t* map_builtins(void);
+Hash_t* file_builtins(void);
 
 typedef int (*Handler)(VM*);
 static const Handler builtins[];

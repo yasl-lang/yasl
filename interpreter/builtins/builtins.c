@@ -144,72 +144,75 @@ int yasl_popen(VM* vm) {     //TODO: fix bug relating to file pointer
  *                                                                                                                   *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-VTable_t* float64_builtins() {
-    VTable_t* vt = new_vtable();
-    vt_insert(vt, M_TOINT64, (int64_t)&float64_toint64);
-    vt_insert(vt, M_TOSTR,   (int64_t)&float64_tostr);
-    return vt;
+Hash_t* float64_builtins() {
+    Hash_t* ht = new_hash();
+    ht_insert_string_int(ht, "toint64", strlen("toint64"), (int64_t)&float64_toint64);
+    ht_insert_string_int(ht, "tostr", strlen("tostr"), (int64_t)&float64_tostr);
+    return ht;
 }
 
-VTable_t* int64_builtins() {
-    VTable_t* vt = new_vtable();
-    vt_insert(vt, M_TOFLOAT64, (int64_t)&int64_tofloat64);
-    vt_insert(vt, M_TOSTR,     (int64_t)&int64_tostr);
-    return vt;
+
+Hash_t* int64_builtins() {
+    Hash_t* ht = new_hash();
+    ht_insert_string_int(ht, "tofloat64", strlen("tofloat64"), (int64_t)&int64_tofloat64);
+    ht_insert_string_int(ht, "tostr", strlen("tostr"), (int64_t)&int64_tostr);
+    return ht;
 }
 
-VTable_t* bool_builtins() {
-    VTable_t* vt = new_vtable();
-    vt_insert(vt, M_TOSTR, (int64_t)&bool_tostr);
-    return vt;
+Hash_t* bool_builtins() {
+    Hash_t* ht = new_hash();
+    ht_insert_string_int(ht, "tostr", strlen("tostr"), (int64_t)&bool_tostr);
+    return ht;
 }
 
-VTable_t* str8_builtins() {
-    VTable_t* vt = new_vtable();
-    vt_insert(vt, M_TOBOOL,     (int64_t)&str_tobool);
-    vt_insert(vt, M_TOSTR,      (int64_t)&str_tostr);
-    vt_insert(vt, M_UPCASE,     (int64_t)&str_upcase);
-    vt_insert(vt, M_DOWNCASE,   (int64_t)&str_downcase);
-    vt_insert(vt, M_ISALNUM,    (int64_t)&str_isalnum);
-    vt_insert(vt, M_ISAL,       (int64_t)&str_isal);
-    vt_insert(vt, M_ISNUM,      (int64_t)&str_isnum);
-    vt_insert(vt, M_ISSPACE,    (int64_t)&str_isspace);
-    vt_insert(vt, M_STARTSWITH, (int64_t)&str_startswith);
-    vt_insert(vt, M_ENDSWITH,   (int64_t)&str_endswith);
-    vt_insert(vt, M_SEARCH,     (int64_t)&str_search);
-    vt_insert(vt, M_SPLIT,      (int64_t)&str_split);
-    vt_insert(vt, M_LTRIM,      (int64_t)&str_ltrim);
-    vt_insert(vt, M_RTRIM,      (int64_t)&str_rtrim);
-    vt_insert(vt, M_TRIM,      (int64_t)&str_trim);
-    vt_insert(vt, M___GET,      (int64_t)&str___get);
-    return vt;
+
+Hash_t* str8_builtins() {
+    Hash_t* ht = new_hash();
+    ht_insert_string_int(ht, "tobool",     strlen("tobool"),     (int64_t)&str_tobool);
+    ht_insert_string_int(ht, "tostr",      strlen("tostr"),      (int64_t)&str_tostr);
+    ht_insert_string_int(ht, "toupper",    strlen("toupper"),    (int64_t)&str_upcase);
+    ht_insert_string_int(ht, "tolower",    strlen("tolower"),    (int64_t)&str_downcase);
+    ht_insert_string_int(ht, "isalnum",    strlen("isalnum"),    (int64_t)&str_isalnum);
+    ht_insert_string_int(ht, "isal",       strlen("isal"),       (int64_t)&str_isal);
+    ht_insert_string_int(ht, "isnum",      strlen("isnum"),      (int64_t)&str_isnum);
+    ht_insert_string_int(ht, "isspace",    strlen("isspace"),    (int64_t)&str_isspace);
+    ht_insert_string_int(ht, "startswith", strlen("startswith"), (int64_t)&str_startswith);
+    ht_insert_string_int(ht, "endswith",   strlen("endswith"),   (int64_t)&str_endswith);
+    ht_insert_string_int(ht, "search",     strlen("search"),     (int64_t)&str_search);
+    ht_insert_string_int(ht, "split",      strlen("split"),      (int64_t)&str_split);
+    ht_insert_string_int(ht, "ltrim",      strlen("ltrim"),      (int64_t)&str_ltrim);
+    ht_insert_string_int(ht, "rtrim",      strlen("rtrim"),      (int64_t)&str_rtrim);
+    ht_insert_string_int(ht, "trim",       strlen("trim"),       (int64_t)&str_trim);
+    ht_insert_string_int(ht, "__get",      strlen("__get"),      (int64_t)&str___get);
+    return ht;
 }
 
-VTable_t* list_builtins() {
-    VTable_t* vt = new_vtable();
-    vt_insert(vt, M_APPEND, (int64_t)&list_append);
-    vt_insert(vt, M___GET,  (int64_t)&list___get);
-    vt_insert(vt, M___SET,  (int64_t)&list___set);
-    vt_insert(vt, M_SEARCH,  (int64_t)&list_search);
-    return vt;
+Hash_t* list_builtins() {
+    Hash_t* ht = new_hash();
+    ht_insert_string_int(ht, "append", strlen("append"), (int64_t)&list_append);
+    ht_insert_string_int(ht, "__get",  strlen("__get"),  (int64_t)&list___get);
+    ht_insert_string_int(ht, "__set",  strlen("__set"),  (int64_t)&list___set);
+    ht_insert_string_int(ht, "search", strlen("search"), (int64_t)&list_search);
+    return ht;
 }
 
-VTable_t* map_builtins() {
-    VTable_t* vt = new_vtable();
-    vt_insert(vt, M_KEYS,   (int64_t)&map_keys);
-    vt_insert(vt, M_VALUES, (int64_t)&map_values);
-    vt_insert(vt, M_CLONE, (int64_t)&map_clone);
-    vt_insert(vt, M___GET,  (int64_t)&map___get);
-    vt_insert(vt, M___SET,  (int64_t)&map___set);
-    return vt;
+Hash_t* map_builtins() {
+    Hash_t* ht = new_hash();
+    ht_insert_string_int(ht, "keys",   strlen("keys"),   (int64_t)&map_keys);
+    ht_insert_string_int(ht, "values", strlen("values"), (int64_t)&map_values);
+    ht_insert_string_int(ht, "clone",  strlen("clone"),  (int64_t)&map_clone);
+    ht_insert_string_int(ht, "__get",  strlen("__get"),  (int64_t)&map___get);
+    ht_insert_string_int(ht, "__set",  strlen("__set"),  (int64_t)&map___set);
+    return ht;
 }
 
-VTable_t* file_builtins() {
-    VTable_t* vt = new_vtable();
-    vt_insert(vt, M_CLOSE,    (int64_t)&file_close);
-    vt_insert(vt, M_PCLOSE,   (int64_t)&file_pclose);
-    vt_insert(vt, M_READ,     (int64_t)&file_read);
-    vt_insert(vt, M_WRITE,    (int64_t)&file_write);
-    vt_insert(vt, M_READLINE, (int64_t)&file_readline);
-    return vt;
+Hash_t* file_builtins() {
+    Hash_t* ht = new_hash();
+    ht_insert_string_int(ht, "close",    strlen("close"),    (int64_t)&file_close);
+    ht_insert_string_int(ht, "pclose",   strlen("pclose"),   (int64_t)&file_pclose);
+    ht_insert_string_int(ht, "read",     strlen("read"),     (int64_t)&file_read);
+    ht_insert_string_int(ht, "write",    strlen("write"),    (int64_t)&file_write);
+    ht_insert_string_int(ht, "readline", strlen("readline"), (int64_t)&file_readline);
+    return ht;
 }
+

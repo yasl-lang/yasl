@@ -6,7 +6,6 @@
 #include "../../opcode.h"
 #include "../YASL_Object/YASL_Object.h"
 #include "../../hashtable/hashtable.h"
-#include "../vtable/vtable.h"
 #include "../list/list.h"
 #include "../YASL_string/YASL_string.h"
 #include "../YASL_string/str_methods.h"
@@ -39,8 +38,8 @@ static const Handler builtins[] = {
     yasl_print,     yasl_input,     yasl_open,      yasl_popen
 };
 
-VTable_t* float64_builtins(void);
-VTable_t* int64_builtins(void);
-VTable_t* str8_builtins(void);
-VTable_t* list_builtins(void);
-VTable_t* hash_builtins(void);
+Hash_t* float64_builtins(void);
+Hash_t* int64_builtins(void);
+Hash_t* str8_builtins(void);
+Hash_t* list_builtins(void);
+Hash_t* hash_builtins(void);

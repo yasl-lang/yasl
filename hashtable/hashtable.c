@@ -161,7 +161,7 @@ void ht_insert_string_int(Hash_t *hashtable, char *key, int64_t key_len, int64_t
     memcpy(string->str, key, string->length);
     ht_insert(hashtable,
               (YASL_Object) { .type = STR8, .value.sval = string},
-              (YASL_Object) { .type = INT64, .value.ival = val});
+              (YASL_Object) { .type = MN_P, .value.ival = val});
 }
 
 YASL_Object* ht_search(Hash_t* hashtable, const YASL_Object key) {
@@ -186,8 +186,6 @@ YASL_Object *ht_search_string_int(Hash_t *hashtable, char *key, int64_t key_len)
     YASL_Object object = (YASL_Object) { .value.sval = string, .type = STR8 };
 
     YASL_Object *result = ht_search(hashtable, object);
-
-    // free memory here.
 
     return result;
 

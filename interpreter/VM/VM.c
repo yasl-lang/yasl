@@ -3,6 +3,8 @@
 #include <interpreter/YASL_Object/YASL_Object.h>
 #include "VM.h"
 #include "interpreter/builtins/builtins.h"
+#include <functions.h>
+#include <interpreter/YASL_string/YASL_string.h>
 
 VM* newVM(unsigned char* code,    // pointer to bytecode
     int pc0,             // address of instruction to be executed first -- entrypoint
@@ -17,30 +19,34 @@ VM* newVM(unsigned char* code,    // pointer to bytecode
     vm->globals[0] = (YASL_Object) {FILEH, (int64_t)stdin};
     vm->globals[1] = (YASL_Object) {FILEH, (int64_t)stdout};
     vm->globals[2] = (YASL_Object) {FILEH, (int64_t)stderr};
+    vm->globals[3] = (YASL_Object) {MN_P,  (int64_t)&yasl_open};
+    vm->globals[4] = (YASL_Object) {MN_P,  (int64_t)&yasl_popen};
+    vm->globals[5] = (YASL_Object) {MN_P,  (int64_t)&yasl_input};
+
     vm->stack = malloc(sizeof(YASL_Object) * STACK_SIZE);
-    vm->builtins_vtable = malloc(sizeof(VTable_t*) * NUM_TYPES);
-    vm->builtins_vtable[1] = float64_builtins();
-    vm->builtins_vtable[2] = int64_builtins();
-    vm->builtins_vtable[3] = bool_builtins();
-    vm->builtins_vtable[4] = str8_builtins();
-    vm->builtins_vtable[5] = list_builtins();
-    vm->builtins_vtable[6] = map_builtins();
-    vm->builtins_vtable[7] = file_builtins();
+    vm->builtins_htable = malloc(sizeof(Hash_t*) * NUM_TYPES);
+    vm->builtins_htable[1] = float64_builtins();
+    vm->builtins_htable[2] = int64_builtins();
+    vm->builtins_htable[3] = bool_builtins();
+    vm->builtins_htable[4] = str8_builtins();
+    vm->builtins_htable[5] = list_builtins();
+    vm->builtins_htable[6] = map_builtins();
+    vm->builtins_htable[7] = file_builtins();
     return vm;
 }
 
 void delVM(VM* vm){
     free(vm->globals);                   // TODO: free these properly
     free(vm->stack);                     // TODO: free these properly
-    //del_vtable(vm->builtins_vtable[0]);
-    del_vtable(vm->builtins_vtable[1]);
-    del_vtable(vm->builtins_vtable[2]);
-    del_vtable(vm->builtins_vtable[3]);
-    del_vtable(vm->builtins_vtable[4]);
-    del_vtable(vm->builtins_vtable[5]);
-    del_vtable(vm->builtins_vtable[6]);
-    del_vtable(vm->builtins_vtable[7]);
-    free(vm->builtins_vtable);
+    //del_hash_string_int(vm->builtins_htable[0]);
+    del_hash_string_int(vm->builtins_htable[1]);
+    del_hash_string_int(vm->builtins_htable[2]);
+    del_hash_string_int(vm->builtins_htable[3]);
+    del_hash_string_int(vm->builtins_htable[4]);
+    del_hash_string_int(vm->builtins_htable[5]);
+    del_hash_string_int(vm->builtins_htable[6]);
+    del_hash_string_int(vm->builtins_htable[7]);
+    free(vm->builtins_htable);
         free(vm);
 }
 
@@ -467,11 +473,15 @@ void run(VM* vm){
                     vm->pc = addr + 2;
                     break;
                 } else if (PEEK(vm).type == MN_P) {
-                    //TODO
-                    puts("Builtin functions are not yet implemented.");
-                    exit(EXIT_FAILURE);
+                    offset = NCODE(vm);
+                    addr = POP(vm).value.ival;
+                    if (((int (*)(VM*))addr)(vm)) {
+                        printf("ERROR: invalid argument type(s) to builtin function.\n");
+                        return;
+                    };
+                    break;
                 } else {
-                    puts("TypeError: called non-callable object.");
+                    printf("TypeError: %s is not callable.", YASL_TYPE_NAMES[PEEK(vm).type]);
                     exit(EXIT_FAILURE);
                 }
             case BCALL_8:
@@ -482,7 +492,33 @@ void run(VM* vm){
                     return;
                 };
                 break;
-            case MCALL_8:
+            case GET:
+            {
+                int index = PEEK(vm).type;
+                if (PEEK(vm).type == LIST) {
+                    if (!list___get(vm)) break;
+                } else if (PEEK(vm).type == MAP) {
+                    if (!map___get(vm)) break;
+                }
+                YASL_Object key = POP(vm);
+                YASL_Object *result = ht_search(vm->builtins_htable[index], key);
+                if (result == NULL) {
+                    puts("Not foundsdadsadsasds");
+                    exit(1);
+                } else {
+                    PUSH(vm, *result);
+                }
+                break;
+            }
+            case SET:
+                if (PEEK(vm).type == LIST) {
+                    list___set(vm);
+                } else if (PEEK(vm).type == MAP) {
+                    map___set(vm);
+                } else {
+                    printf("object of type %s is immutable.", YASL_TYPE_NAMES[PEEK(vm).type]);
+                    exit(EXIT_FAILURE);
+                }
                 /*
                  * 1 -> float64_builtins();
                  * 2 -> int64_builtins();
@@ -492,22 +528,23 @@ void run(VM* vm){
                  * 6 -> map_builtins();
                  * 7 -> file_builtins();
                  */
-                memcpy(&addr, vm->code + vm->pc, sizeof(addr));
-                vm->pc += sizeof(addr);
+                /*addr = M___SET;
+                //memcpy(&addr, vm->code + vm->pc, sizeof(addr));
+                //vm->pc += sizeof(addr);
                 if (PEEK(vm).type == FLOAT64) {
-                    addr = vt_search(vm->builtins_vtable[1], addr);
+                    addr = vt_search(vm->builtins_htable[1], addr);
                 } else if (PEEK(vm).type == INT64) {
-                    addr = vt_search(vm->builtins_vtable[2], addr);
+                    addr = vt_search(vm->builtins_htable[2], addr);
                 } else if (PEEK(vm).type == BOOL) {
-                    addr = vt_search(vm->builtins_vtable[3], addr);
+                    addr = vt_search(vm->builtins_htable[3], addr);
                 } else if (PEEK(vm).type == STR8) {
-                    addr = vt_search(vm->builtins_vtable[4], addr);
+                    addr = vt_search(vm->builtins_htable[4], addr);
                 } else if (PEEK(vm).type == LIST) {
-                    addr = vt_search(vm->builtins_vtable[5], addr);
+                    addr = vt_search(vm->builtins_htable[5], addr);
                 } else if (PEEK(vm).type == MAP) {
-                    addr = vt_search(vm->builtins_vtable[6], addr);
+                    addr = vt_search(vm->builtins_htable[6], addr);
                 } else if (PEEK(vm).type == FILEH) {
-                    addr = vt_search(vm->builtins_vtable[7], addr);
+                    addr = vt_search(vm->builtins_htable[7], addr);
                 } else {
                     printf("ERROR: No methods implemented for this type: %s.\n",
                            YASL_TYPE_NAMES[PEEK(vm).type]);
@@ -522,7 +559,7 @@ void run(VM* vm){
                 else {
                     printf("ERROR: No method implemented by this name.\n");
                     return;
-                }
+                }*/
                 break;
             case RCALL_8:
                 offset = NCODE(vm);
@@ -547,6 +584,9 @@ void run(VM* vm){
                 break;
             case POP:
                 --vm->sp;
+                break;
+            case PRINT:
+                yasl_print(vm);
                 break;
             default:
                 printf("ERROR UNKNOWN OPCODE: %x\n", opcode);
