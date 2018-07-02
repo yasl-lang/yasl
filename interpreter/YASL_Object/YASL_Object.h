@@ -4,24 +4,25 @@
 #include <stdlib.h>
 //#include "../list/list.h"
 #include "../YASL_string/YASL_string.h"
-#define FALSEY(v)  (v.type == UNDEF || (v.type == BOOL && v.value.ival == 0) || (v.type == STR && (v.value.sval)->length == 0))  // returns true iff v is a falsey value
+#define FALSEY(v)  (v.type == Y_UNDEF || (v.type == Y_BOOL && v.value.ival == 0) || (v.type == Y_STR && (v.value.sval)->length == 0))  // returns true iff v is a falsey value
 #define DVAL(v)  (*((double*)&v.value))
-#define TRUE_C   ((YASL_Object) {BOOL, 1})
-#define FALSE_C  ((YASL_Object) {BOOL, 0})
-#define UNDEF_C  ((YASL_Object) {UNDEF, 0})
+#define TRUE_C   ((YASL_Object) {Y_BOOL, 1})
+#define FALSE_C  ((YASL_Object) {Y_BOOL, 0})
+#define UNDEF_C  ((YASL_Object) {Y_UNDEF, 0})
 
 //Keep up to date with the YASL_TYPE_NAMES
 typedef enum {
-    UNDEF,
-    FLOAT64,
-    INT64,
-    BOOL,
-    STR,
-    LIST,
-    TABLE,
-    FILEH,
-    FN_P,
-    MN_P
+    Y_END = -1,
+    Y_UNDEF,
+    Y_FLOAT64,
+    Y_INT64,
+    Y_BOOL,
+    Y_STR,
+    Y_LIST,
+    Y_TABLE,
+    Y_FILE,
+    Y_FN,
+    Y_BFN
 } YASL_Types;
 
 struct List_s;

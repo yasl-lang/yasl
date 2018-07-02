@@ -37,7 +37,7 @@ int env_contains_cur_scope(Env_t *env, char *name, int64_t name_len) {
     string->str = malloc(name_len);
     string->length = name_len;
     memcpy(string->str, name, string->length);
-    YASL_Object key = (YASL_Object) { .value.sval = string, .type = STR };
+    YASL_Object key = (YASL_Object) { .value.sval = string, .type = Y_STR };
 
     YASL_Object *value = ht_search(env->vars, key);
     if (value == NULL) {
@@ -51,7 +51,7 @@ int env_contains(Env_t *env, char *name, int64_t name_len) {
     string->str = malloc(name_len);
     string->length = name_len;
     memcpy(string->str, name, string->length);
-    YASL_Object key = (YASL_Object) { .value.sval = string, .type = STR };
+    YASL_Object key = (YASL_Object) { .value.sval = string, .type = Y_STR };
 
     YASL_Object *value = ht_search(env->vars, key);
     if (value == NULL && env->parent == NULL) {
@@ -66,7 +66,7 @@ int64_t env_get(Env_t *env, char *name, int64_t name_len) {
     string->str = malloc(name_len);
     string->length = name_len;
     memcpy(string->str, name, string->length);
-    YASL_Object key = (YASL_Object) { .value.sval = string, .type = STR };
+    YASL_Object key = (YASL_Object) { .value.sval = string, .type = Y_STR };
 
     YASL_Object *value = ht_search(env->vars, key);
     if (value == NULL && env->parent == NULL) {
@@ -83,7 +83,7 @@ void env_decl_var(Env_t *env, char *name, int64_t name_len) {
     string->str = malloc(name_len);
     string->length = name_len;
     memcpy(string->str, name, string->length);
-    YASL_Object key = (YASL_Object) { .value.sval = string, .type = STR };
-    YASL_Object value = (YASL_Object) { .value.ival = env_len(env), .type = INT64 };
+    YASL_Object key = (YASL_Object) { .value.sval = string, .type = Y_STR };
+    YASL_Object value = (YASL_Object) { .value.ival = env_len(env), .type = Y_INT64 };
     ht_insert(env->vars, key, value);
 }

@@ -230,7 +230,10 @@ static void visit_FunctionDecl(Compiler *const compiler, const Node *const node)
 
 static void visit_Call(const Compiler *const compiler, const Node *const node) {
     YASL_TRACE_LOG("Visit Call: %s\n", node->name);
-    visit_Body(compiler, node->children[0]);
+    int i;
+    for (i = node->children[0]->children_len - 1; i >= 0; i--) {
+        visit(compiler, node->children[0]->children[i]);
+    }
     visit(compiler, node->children[1]);
     bb_add_byte(compiler->buffer, CALL_8);
     bb_add_byte(compiler->buffer, node->children[0]->children_len);
@@ -283,16 +286,20 @@ static void visit_Block(Compiler *const compiler, const Node *const node) {
     exit_scope(compiler);
 }
 
+static void visit_IterFor(Compiler *const compiler, const Node *const node) {
+
+}
+
 static void visit_While(Compiler *const compiler, const Node *const node) {
     int64_t index_start = compiler->code->count + compiler->buffer->count;
     add_checkpoint(compiler, index_start);
-    visit(compiler, node->children[0]);
+    visit(compiler, While_get_cond(node));
     add_checkpoint(compiler, compiler->code->count + compiler->buffer->count);
     bb_add_byte(compiler->buffer, BRF_8);
     int64_t index_second = compiler->buffer->count;
     bb_intbytes8(compiler->buffer, 0);
     enter_scope(compiler);
-    visit(compiler, node->children[1]);
+    visit(compiler, While_get_body(node));
     bb_add_byte(compiler->buffer, GOTO);
     bb_intbytes8(compiler->buffer, index_start);
     bb_rewrite_intbytes8(compiler->buffer, index_second, compiler->buffer->count - index_second - 8);
@@ -345,7 +352,7 @@ static void visit_If(Compiler *const compiler, const Node *const node) {
 }
 
 static void visit_Print(const Compiler *const compiler, const Node *const node) {
-    visit(compiler, node->children[0]);
+    visit(compiler, Print_get_expr(node));
     bb_add_byte(compiler->buffer, PRINT);
 }
 
@@ -356,7 +363,7 @@ static void visit_Let(const Compiler *const compiler, const Node *const node) {
             ht_insert_string_int(compiler->locals->vars, node->name, node->name_len,
                                  compiler->locals->vars->count + 1 - compiler->offset);
         }
-        visit(compiler, node->children[0]);
+        visit(compiler, Let_get_expr(node));
         bb_add_byte(compiler->buffer, LSTORE_1);
         bb_add_byte(compiler->buffer, ht_search_string_int(compiler->locals->vars, node->name, node->name_len)->value.ival);
         return;
@@ -628,31 +635,20 @@ static void visit_String(const Compiler *const compiler, const Node *const node)
 }
 
 static void visit_List(const Compiler *const compiler, const Node *const node) {
-    bb_add_byte(compiler->buffer, NEWLIST);
-    int i;
-    for (i = 0; i < node->children[0]->children_len; i++) {
-        bb_add_byte(compiler->buffer, DUP);
+    bb_add_byte(compiler->buffer, END);
+    for (int64_t i = node->children[0]->children_len - 1; i >= 0; i--) {
         visit(compiler, node->children[0]->children[i]);
-        bb_add_byte(compiler->buffer, SWAP);
-        bb_add_byte(compiler->buffer, MCALL_8);
-        exit(1);
-        //bb_intbytes8(compiler->buffer, M_APPEND); // NOTE: this depends on the M_APPEND constant in method.h
-        bb_add_byte(compiler->buffer, POP);
     }
+    bb_add_byte(compiler->buffer, NEWLIST);
 }
 
 static void visit_Map(const Compiler *const compiler, const Node *const node) {
-    bb_add_byte(compiler->buffer, NEWTABLE);
-    int i;
-    for (i = 0; i < node->children[0]->children_len; i++) {
-        bb_add_byte(compiler->buffer, DUP);
-        visit(compiler, node->children[0]->children[i]);
-        bb_add_byte(compiler->buffer, SWAP);
+    bb_add_byte(compiler->buffer, END);
+    for (int64_t i = node->children[0]->children_len - 1; i >= 0; i--) {
         visit(compiler, node->children[1]->children[i]);
-        bb_add_byte(compiler->buffer, SWAP);
-        bb_add_byte(compiler->buffer, SET);
-        bb_add_byte(compiler->buffer, POP);
+        visit(compiler, node->children[0]->children[i]);
     }
+    bb_add_byte(compiler->buffer, NEWTABLE);
 }
 
 
@@ -758,7 +754,7 @@ static void visit(Compiler *const compiler, const Node *const node) {
         YASL_TRACE_LOG("%s\n", "Visit List");
         visit_List(compiler, node);
         break;
-    case N_MAP:
+    case N_TABLE:
         YASL_TRACE_LOG("%s\n", "Visit Map");
         visit_Map(compiler, node);
         break;

@@ -113,7 +113,7 @@ void body_append(Node *const node, Node *const child) {
 }
 
 
-Node *new_FunctionDecl(Node *params, Node *body, char *name, int64_t name_len, int line) {
+Node *new_FnDecl(Node *params, Node *body, char *name, int64_t name_len, int line) {
     return new_Node_2(N_FNDECL, T_UNKNOWN, params, body, name, name_len, line);
 }
 
@@ -121,7 +121,7 @@ Node *new_Return(Node *expr, int line) {
     return new_Node_1(N_RET, T_UNKNOWN, expr, NULL, 0, line);
 }
 
-Node *new_FunctionCall(Node *params, Node *object, int line) {
+Node *new_Call(Node *params, Node *object, int line) {
     return new_Node_2(N_CALL, T_UNKNOWN, params, object, NULL, 0, line);
 }
 
@@ -131,6 +131,14 @@ Node *new_Set(Node *collection, Node *key, Node *value, int line) {
 
 Node *new_Get(Node *collection, Node *value, int line) {
     return new_Node_2(N_GET, T_UNKNOWN, collection, value, NULL, 0, line);
+}
+
+Node *While_get_cond(Node *node) {
+    return node->children[0];
+}
+
+Node *While_get_body(Node *node) {
+    return node->children[1];
 }
 
 Node *new_While(Node *cond, Node *body, int line) {
@@ -149,12 +157,20 @@ Node *new_If(Node *cond, Node *then_node, Node *else_node, int line) {
     return new_Node_3(N_IF, T_UNKNOWN, cond, then_node, else_node, NULL, 0, line);
 }
 
-Node *new_Print(Node *child, int line) {
-    return new_Node_1(N_PRINT, T_UNKNOWN, child, NULL, 0, line);
+Node *Print_get_expr(Node *node) {
+    return node->children[0];
 }
 
-Node *new_Let(char *name, int64_t name_len, Node *child, int line) {
-    return new_Node_1(N_LET, T_UNKNOWN, child, name, name_len, line);
+Node *new_Print(Node *expr, int line) {
+    return new_Node_1(N_PRINT, T_UNKNOWN, expr, NULL, 0, line);
+}
+
+Node *Let_get_expr(Node *node) {
+    return node->children[0];
+}
+
+Node *new_Let(char *name, int64_t name_len, Node *expr, int line) {
+    return new_Node_1(N_LET, T_UNKNOWN, expr, name, name_len, line);
 }
 
 Node *new_TriOp(Token op, Node *left, Node *middle, Node *right, int line) {
@@ -200,8 +216,8 @@ Node *new_String(char *value, int len, int line) {
 Node *new_List(Node *values, int line) {
     return new_Node_1(N_LIST, T_UNKNOWN, values, NULL, 0, line);
 }
-Node *new_Map(Node *keys, Node *values, int line) {
-    return new_Node_2(N_MAP, T_UNKNOWN, keys, values, NULL, 0, line);
+Node *new_Table(Node *keys, Node *values, int line) {
+    return new_Node_2(N_TABLE, T_UNKNOWN, keys, values, NULL, 0, line);
 }
 
 void node_del(Node *node) {

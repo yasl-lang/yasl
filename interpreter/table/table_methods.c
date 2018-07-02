@@ -3,7 +3,7 @@
 #include "hashtable.h"
 
 int table___get(VM *vm) {
-    ASSERT_TYPE(vm, TABLE, "table.__get");
+    ASSERT_TYPE(vm, Y_TABLE, "table.__get");
     Hash_t* ht = POP(vm).value.mval;
     YASL_Object key = PEEK(vm);
     YASL_Object *result = ht_search(ht, key);
@@ -16,11 +16,11 @@ int table___get(VM *vm) {
 }
 
 int table___set(VM *vm) {
-    ASSERT_TYPE(vm, TABLE, "table.__set");
+    ASSERT_TYPE(vm, Y_TABLE, "table.__set");
     Hash_t* ht = POP(vm).value.mval;
     YASL_Object val = POP(vm);
     YASL_Object key = POP(vm);
-    if (key.type == LIST || key.type == TABLE) {
+    if (key.type == Y_LIST || key.type == Y_TABLE) {
         printf("Error: unable to use mutable object of type %x as key.\n", key.type);
         return -1;
     }
@@ -30,7 +30,7 @@ int table___set(VM *vm) {
 }
 
 int table_keys(VM *vm) {
-    ASSERT_TYPE(vm, TABLE, "table.keys");
+    ASSERT_TYPE(vm, Y_TABLE, "table.keys");
     YASL_Object ht = POP(vm);
     List_t* ls = ls_new();
     int64_t i;
@@ -41,12 +41,12 @@ int table_keys(VM *vm) {
             ls_append(ls, *(item->key));
         }
     }
-    vm->stack[++vm->sp] = (YASL_Object) {LIST, (int64_t)ls};
+    vm->stack[++vm->sp] = (YASL_Object) {Y_LIST, (int64_t)ls};
     return 0;
 }
 
 int table_values(VM *vm) {
-    ASSERT_TYPE(vm, TABLE, "table.values");
+    ASSERT_TYPE(vm, Y_TABLE, "table.values");
     YASL_Object ht = POP(vm);
     List_t* ls = ls_new();
     int64_t i;
@@ -57,12 +57,12 @@ int table_values(VM *vm) {
             ls_append(ls, *(item->value));
         }
     }
-    vm->stack[++vm->sp] = (YASL_Object) {LIST, (int64_t)ls};
+    vm->stack[++vm->sp] = (YASL_Object) {Y_LIST, (int64_t)ls};
     return 0;
 }
 
 int table_clone(VM *vm) {
-    ASSERT_TYPE(vm, TABLE, "table.clone");
+    ASSERT_TYPE(vm, Y_TABLE, "table.clone");
     Hash_t* ht = POP(vm).value.mval;
     Hash_t* new_ht = ht_new_sized(ht->base_size);
     int i;
@@ -72,6 +72,6 @@ int table_clone(VM *vm) {
             ht_insert(new_ht, *item->key, *item->value);
         }
     }
-    vm->stack[++vm->sp] = (YASL_Object) {TABLE, (int64_t)new_ht};
+    vm->stack[++vm->sp] = (YASL_Object) {Y_TABLE, (int64_t)new_ht};
     return 0;
 }

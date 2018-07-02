@@ -3,7 +3,7 @@
 #include "file_methods.h"
 
 int file_close(VM* vm) {
-    ASSERT_TYPE(vm, FILEH, "file.close");
+    ASSERT_TYPE(vm, Y_FILE, "file.close");
     FILE *f = (POP(vm).value.fval);
     if (fclose(f)) {
         YASL_DEBUG_LOG("%s\n", "error closing file.");
@@ -16,7 +16,7 @@ int file_close(VM* vm) {
 }
 
 int file_pclose(VM* vm) {
-    ASSERT_TYPE(vm, FILEH, "file.pclose");
+    ASSERT_TYPE(vm, Y_FILE, "file.pclose");
     FILE *f = (POP(vm).value.fval);
     if (pclose(f)) {
         YASL_DEBUG_LOG("%s\n", "error closing process.");
@@ -28,11 +28,11 @@ int file_pclose(VM* vm) {
 }
 
 int file_write(VM* vm) {
-    ASSERT_TYPE(vm, FILEH, "file.write");
+    ASSERT_TYPE(vm, Y_FILE, "file.write");
     YASL_Object fileh = POP(vm);
     YASL_Object str = POP(vm);
-    if (str.type != STR) {
-        printf("Error: file.write expected type %s as first argument, got type %s\n", YASL_TYPE_NAMES[STR], YASL_TYPE_NAMES[str.type]);
+    if (str.type != Y_STR) {
+        printf("Error: file.write expected type %s as first argument, got type %s\n", YASL_TYPE_NAMES[Y_STR], YASL_TYPE_NAMES[str.type]);
         return -1;
     }
     // TODO: don't rely on C-strings for writing
@@ -51,7 +51,7 @@ int file_write(VM* vm) {
 }
 
 int file_read(VM* vm) {
-    ASSERT_TYPE(vm, FILEH, "file.read");
+    ASSERT_TYPE(vm, Y_FILE, "file.read");
     FILE* f = (POP(vm).value.fval);
     int ch;
     size_t len = 0;
@@ -67,13 +67,13 @@ int file_read(VM* vm) {
     }
     str = realloc(str, sizeof(char)*len);
     vm->stack[++vm->sp].value.sval = str_new_sized_from_mem(len, str);
-    vm->stack[vm->sp].type = STR;
+    vm->stack[vm->sp].type = Y_STR;
     YASL_DEBUG_LOG("%s\n", "successfully read from file.");
     return 0;
 }
 
 int file_readline(VM* vm) {
-    ASSERT_TYPE(vm, FILEH, "file.readline");
+    ASSERT_TYPE(vm, Y_FILE, "file.readline");
     FILE* f = (POP(vm).value.fval);
     int ch;
     size_t len = 0;
@@ -90,7 +90,7 @@ int file_readline(VM* vm) {
     }
     str = realloc(str, sizeof(char)*len);
     vm->stack[++vm->sp].value.sval = str_new_sized_from_mem(len, str);
-    vm->stack[vm->sp].type = STR;
+    vm->stack[vm->sp].type = Y_STR;
     YASL_DEBUG_LOG("%s\n", "successfully readline from file.");
     return 0;
 }

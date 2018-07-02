@@ -15,15 +15,15 @@
 #define PUSH(vm, v)  (vm->stack[++vm->sp] = v)           // push value onto stack
 #define POP(vm)      (vm->stack[vm->sp--])               // pop value from top of stack
 #define PEEK(vm)     (vm->stack[vm->sp])                 // pop value from top of stack
-#define BPUSH(vm, v) (PUSH(vm, ((YASL_Object) {BOOL, v})))  //push boolean v onto stack
+#define BPUSH(vm, v) (PUSH(vm, ((YASL_Object) {Y_BOOL, v})))  //push boolean v onto stack
 
 
 #define BUFFER_SIZE 256
 #define NCODE(vm)    (vm->code[vm->pc++])     // get next bytecode
-#define IPUSH(vm, v) (PUSH(vm, ((YASL_Object) {INT64, v})))  //push integer v onto stack
+#define IPUSH(vm, v) (PUSH(vm, ((YASL_Object) {Y_INT64, v})))  //push integer v onto stack
 #define IPOP(vm)     (((vm->stack)[vm->sp--])->value)      // get int from top of stack
 #define IVAL(v)      (*((int64_t*)&v->value))
-#define DPUSH(vm, v) (((FloatConstant*)vm->stack)[++vm->sp] = (FloatConstant) {FLOAT64, v}) // push double v onto stack
+#define DPUSH(vm, v) (((FloatConstant*)vm->stack)[++vm->sp] = (FloatConstant) {Y_FLOAT64, v}) // push double v onto stack
 #define LEN_C(v)     (*((int64_t*)v->value))
 #define NPUSH(vm)    (PUSH(vm, ((YASL_Object) {UNDEF, 0})))   //push nil onto stack
 #define ADD(a, b)    (a + b)
@@ -36,18 +36,18 @@
 #define GE(a, b)     (a >= b)
 #define EQ(a, b)     (a == b)
 #define BINOP(vm, a, b, f, str)  ({\
-                            if (a.type == INT64 && b.type == INT64) {\
+                            if (a.type == Y_INT64 && b.type == Y_INT64) {\
                                 c = f(a.value.ival, b.value.ival);\
                                 IPUSH(vm, c);\
                                 break;\
                             }\
-                            else if (a.type == FLOAT64 && b.type == INT64) {\
+                            else if (a.type == Y_FLOAT64 && b.type == Y_INT64) {\
                                 d = f(a.value.dval, (double)b.value.ival);\
                             }\
-                            else if (a.type == INT64 && b.type == FLOAT64) {\
+                            else if (a.type == Y_INT64 && b.type == Y_FLOAT64) {\
                                 d = f((double)a.value.ival, b.value.dval);\
                             }\
-                            else if (a.type == FLOAT64 && b.type == FLOAT64) {\
+                            else if (a.type == Y_FLOAT64 && b.type == Y_FLOAT64) {\
                                 d = f(a.value.dval, b.value.dval);\
                             }\
                             else {\
@@ -57,16 +57,16 @@
                             }\
                             DPUSH(vm, d);})
 #define COMP(vm, a, b, f, str)  ({\
-                            if (a.type == INT64 && b.type == INT64) {\
+                            if (a.type == Y_INT64 && b.type == Y_INT64) {\
                                 c = f(a.value.ival, b.value.ival);\
                             }\
-                            else if (a.type == FLOAT64 && b.type == INT64) {\
+                            else if (a.type == Y_FLOAT64 && b.type == Y_INT64) {\
                                 c = f(a.value.dval, (double)b.value.ival);\
                             }\
-                            else if (a.type == INT64 && b.type == FLOAT64) {\
+                            else if (a.type == Y_INT64 && b.type == Y_FLOAT64) {\
                                 c = f((double)a.value.ival, (b).value.dval);\
                             }\
-                            else if (a.type == FLOAT64 && b.type == FLOAT64) {\
+                            else if (a.type == Y_FLOAT64 && b.type == Y_FLOAT64) {\
                                 c = f(a.value.dval, (b).value.dval);\
                             }\
                             else {\

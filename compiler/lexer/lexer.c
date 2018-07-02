@@ -353,10 +353,12 @@ static Token YASLToken_TwoChars(char c1, char c2) {
         case '+': switch(c2) { case '=': return T_PLUSEQ; default: return T_UNKNOWN; };
         case '-': switch(c2) {
                 case '=': return T_MINUSEQ;
-                case '>': return T_RARR;
                 default: return T_UNKNOWN;
         }
-        case '=': switch(c2) { case '=': return T_DEQ; default: return T_UNKNOWN;}
+        case '=': switch(c2) {
+            case '=': return T_DEQ;
+            case '>': return T_ARR;
+            default: return T_UNKNOWN;}
         case '!': switch(c2) { case '=': return T_BANGEQ; default: return T_UNKNOWN;}
         case '~': switch(c2) { case '=': return T_TILDEEQ; default: return T_UNKNOWN;}
         case '*': switch(c2) {
@@ -372,7 +374,6 @@ static Token YASLToken_TwoChars(char c1, char c2) {
         case '<': switch(c2) {
                 case '=': return T_LTEQ;
                 case '<': return T_DLT;
-                case '-': return T_LARR;
                 default: return T_UNKNOWN;
         }
         case '>': switch(c2) {
@@ -458,6 +459,12 @@ static void YASLKeywords(Lexer *lex) {
     } else if (strlen("elseif") == lex->val_len && !memcmp(lex->value, "elseif", lex->val_len)) {
         lex->type = T_ELSEIF;
         lex->value = realloc(lex->value, 0);
+    } else if (strlen("for") == lex->val_len && !memcmp(lex->value, "for", lex->val_len)) {
+        lex->type = T_FOR;
+        lex->value = realloc(lex->value, 0);
+    } else if (strlen("in") == lex->val_len && !memcmp(lex->value, "in", lex->val_len)) {
+        lex->type = T_IN;
+        lex->value = realloc(lex->value, 0);
     } else if (strlen("while") == lex->val_len && !memcmp(lex->value, "while", lex->val_len)) {
         lex->type = T_WHILE;
         lex->value = realloc(lex->value, 0);
@@ -513,6 +520,7 @@ const char *YASL_TOKEN_NAMES[] = {
         "or",           // T_OR,
         "id",           // T_ID,
         "let",          // T_LET,
+        "const",        // T_CONST,
         "fn",           // T_FN,
         "return",       // T_RET,
         "enum",         // T_ENUM,
@@ -571,8 +579,7 @@ const char *YASL_TOKEN_NAMES[] = {
         "?\?=",         // DQMARKEQ,
         ":",            // COLON,
         "::",           // DCOLON,
-        "->",           // RARR,
-        "<-",           // LARR,
+        "=>",           // ARR,
 };
 
 Lexer *lex_new(FILE *file) {

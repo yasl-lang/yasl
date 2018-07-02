@@ -9,7 +9,7 @@
 
 static int hash_function(const YASL_Object s, const int a, const int m) {
     long hash = 0;
-    if (s.type == STR) {
+    if (s.type == Y_STR) {
         const int64_t len_s = (s.value.sval)->length;
         int i;
         for (i = 0; i < len_s; i++) {
@@ -36,7 +36,7 @@ static Item_t* new_item(const YASL_Object k, const YASL_Object v) {
     item->key->value   = k.value;
     item->value->type  = v.type;
     item->value->value = v.value;
-    /*if (v.type == STR) {
+    /*if (v.type == Y_STR) {
         item->key.type = v.type;
         int64_t len_v = *((int64_t*)v->value);
         //printf("%" PRId64 "\n", len_v);
@@ -160,8 +160,8 @@ void ht_insert_string_int(Hash_t *hashtable, char *key, int64_t key_len, int64_t
     string->str = malloc(string->length);
     memcpy(string->str, key, string->length);
     ht_insert(hashtable,
-              (YASL_Object) { .type = STR, .value.sval = string},
-              (YASL_Object) { .type = MN_P, .value.ival = val});
+              (YASL_Object) { .type = Y_STR, .value.sval = string},
+              (YASL_Object) { .type = Y_BFN, .value.ival = val});
 }
 
 YASL_Object* ht_search(const Hash_t *const hashtable, const YASL_Object key) {
@@ -183,7 +183,7 @@ YASL_Object *ht_search_string_int(const Hash_t *const hashtable, char *key, int6
     string->length = key_len;
     string->str = malloc(string->length);
     memcpy(string->str, key, string->length);
-    YASL_Object object = (YASL_Object) { .value.sval = string, .type = STR };
+    YASL_Object object = (YASL_Object) { .value.sval = string, .type = Y_STR };
 
     YASL_Object *result = ht_search(hashtable, object);
 
@@ -232,7 +232,7 @@ void ht_print_h(const Hash_t *const ht, ByteBuffer* seen) {
         }
         print(*item->key);
         printf("->");
-        if (item->value->type == LIST) {
+        if (item->value->type == Y_LIST) {
             if (isvalueinarray(item->value->value.ival, (int64_t*)seen->bytes, seen->count/sizeof(int64_t))) {
                 printf("[...]");
             } else {
@@ -240,7 +240,7 @@ void ht_print_h(const Hash_t *const ht, ByteBuffer* seen) {
                 bb_intbytes8(seen, ht->items[i]->value->value.ival);
                 ls_print_h(ht->items[i]->value->value.lval, seen);
             }
-        } else if (item->value->type == TABLE) {
+        } else if (item->value->type == Y_TABLE) {
             if (isvalueinarray(item->value->value.ival, (int64_t*)seen->bytes, seen->count/sizeof(int64_t))) {
                 printf("[...->...]");
             } else {

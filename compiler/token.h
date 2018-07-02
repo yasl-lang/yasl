@@ -91,6 +91,7 @@ typedef enum {
     T_OR,
     T_ID,
     T_LET,
+    T_CONST,
     T_FN,
     T_RET,
     T_ENUM,
@@ -149,6 +150,5 @@ typedef enum {
     T_DQMARKEQ,
     T_COLON,
     T_DCOLON,
-    T_RARR,
-    T_LARR,
+    T_ARR,
 } Token;

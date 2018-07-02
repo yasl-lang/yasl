@@ -1,7 +1,7 @@
 #include "bool_methods.h"
 
 int bool_tostr(VM *vm) {
-    ASSERT_TYPE(vm, BOOL, "bool.tostr");
+    ASSERT_TYPE(vm, Y_BOOL, "bool.tostr");
     int64_t val = POP(vm).value.ival;
     String_t* string;
     if (val == 0) {
@@ -11,6 +11,6 @@ int bool_tostr(VM *vm) {
         string = str_new_sized(snprintf(NULL, 0, "%s", "true"));
         sprintf(string->str, "%s", "true");
     }
-    PUSH(vm, ((YASL_Object){STR, (int64_t)string}));
+    PUSH(vm, ((YASL_Object){Y_STR, (int64_t)string}));
     return 0;
 }

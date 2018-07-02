@@ -6,11 +6,11 @@
 
 int yasl_print(VM* vm) {
     YASL_Object v = vm->stack[vm->sp--];    // pop value from top of the stack ...
-    if (v.type == LIST) {
+    if (v.type == Y_LIST) {
         ls_print(v.value.lval);
         printf("\n");
         return 0;
-    } else if (v.type == TABLE) {
+    } else if (v.type == Y_TABLE) {
         ht_print(v.value.mval);
         printf("\n");
         return 0;
@@ -38,19 +38,19 @@ int yasl_input(VM* vm) {
     }
     str = realloc(str, sizeof(char)*len);
     vm->stack[++vm->sp].value.sval = str_new_sized_from_mem(len, str);
-    vm->stack[vm->sp].type = STR;
+    vm->stack[vm->sp].type = Y_STR;
     return 0;
 }
 
 int yasl_open(VM* vm) {     //TODO: fix bug relating to file pointer
-    YASL_Object mode_str = POP(vm);
     YASL_Object str = POP(vm);
-    if (mode_str.type != STR) {
-        printf("Error: open(...) expected type %s as second argument, got type %s\n", YASL_TYPE_NAMES[STR], YASL_TYPE_NAMES[str.type]);
+    YASL_Object mode_str = POP(vm);
+    if (mode_str.type != Y_STR) {
+        printf("Error: open(...) expected type %s as second argument, got type %s\n", YASL_TYPE_NAMES[Y_STR], YASL_TYPE_NAMES[str.type]);
         return -1;
     }
-    if (str.type != STR) {
-        printf("Error: open(...) expected type %s as first argument, got type %s\n", YASL_TYPE_NAMES[STR], YASL_TYPE_NAMES[str.type]);
+    if (str.type != Y_STR) {
+        printf("Error: open(...) expected type %s as first argument, got type %s\n", YASL_TYPE_NAMES[Y_STR], YASL_TYPE_NAMES[str.type]);
         return -1;
     }
     char *buffer = malloc((str.value.sval)->length + 1);
@@ -84,21 +84,21 @@ int yasl_open(VM* vm) {     //TODO: fix bug relating to file pointer
         return -1;
     }
     vm->stack[++vm->sp].value.fval = f;
-    vm->stack[vm->sp].type = FILEH;
+    vm->stack[vm->sp].type = Y_FILE;
     YASL_DEBUG_LOG("%s\n", "file opened successfully.");
     return 0;
 }
 
 
 int yasl_popen(VM* vm) {     //TODO: fix bug relating to file pointer
-    YASL_Object mode_str = POP(vm);
     YASL_Object str = POP(vm);
-    if (mode_str.type != STR) {
-        printf("Error: popen(...) expected type %x as second argument, got type %x\n", STR, str.type);
+    YASL_Object mode_str = POP(vm);
+    if (mode_str.type != Y_STR) {
+        printf("Error: popen(...) expected type %x as second argument, got type %x\n", Y_STR, str.type);
         return -1;
     }
-    if (str.type != STR) {
-        printf("Error: popen(...) expected type %x as first argument, got type %x\n", STR, str.type);
+    if (str.type != Y_STR) {
+        printf("Error: popen(...) expected type %x as first argument, got type %x\n", Y_STR, str.type);
         return -1;
     }
     char *buffer = malloc((str.value.sval)->length + 1);
@@ -118,7 +118,7 @@ int yasl_popen(VM* vm) {     //TODO: fix bug relating to file pointer
         return -1;
     }
     vm->stack[++vm->sp].value.fval = f;
-    vm->stack[vm->sp].type = FILEH;
+    vm->stack[vm->sp].type = Y_FILE;
     YASL_DEBUG_LOG("%s\n", "process opened successfully.");
     return 0;
 }
