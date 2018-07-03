@@ -77,6 +77,12 @@
                             BPUSH(vm, c);})
 
 typedef struct {
+    YASL_Object *stack;
+    int64_t *indices;
+    int sp;
+} LoopStack;
+
+typedef struct {
 	YASL_Object* globals;          // variables, see "constant.c" for details on YASL_Object.
 	YASL_Object* stack;            // stack
 	unsigned char* code;                 // bytecode
@@ -85,6 +91,7 @@ typedef struct {
 	int sp;                     // stack pointer
 	int fp;                     // frame pointer
 	Hash_t **builtins_htable;   // htable of builtin methods
+    LoopStack *loopstack;
 } VM;
 
 VM* vm_new(unsigned char *code,    // pointer to bytecode

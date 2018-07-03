@@ -14,6 +14,7 @@ typedef enum {
     N_CALL,
     N_SET,
     N_GET,
+    N_FORITER,
     N_WHILE,
     N_BREAK,
     N_CONT,
@@ -70,6 +71,10 @@ Node *new_Get(Node *collection, Node *value, int line);
 Node *Call_get_params(Node *node);
 Node *Call_get_object(Node *node);
 Node *new_Call(Node *params, Node *object, int line);
+Node *ForIter_get_var(const Node *const node);
+Node *ForIter_get_collection(const Node *const node);
+Node *ForIter_get_body(const Node *const node);
+Node *new_ForIter(Node *var, Node *collection, Node *body, int line);
 Node *While_get_cond(Node *node);
 Node *While_get_body(Node *node);
 Node *new_While(Node *cond, Node *body, int line);

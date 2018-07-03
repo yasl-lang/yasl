@@ -133,6 +133,22 @@ Node *new_Get(Node *collection, Node *value, int line) {
     return new_Node_2(N_GET, T_UNKNOWN, collection, value, NULL, 0, line);
 }
 
+Node *ForIter_get_var(const Node *const node) {
+    return node->children[0];
+}
+
+Node *ForIter_get_collection(const Node *const node) {
+    return node->children[1];
+}
+
+Node *ForIter_get_body(const Node *const node) {
+    return node->children[2];
+}
+
+Node *new_ForIter(Node *var, Node *collection, Node *body, int line) {
+    return new_Node_3(N_FORITER, T_UNKNOWN, var, collection, body, NULL, 0, line);
+}
+
 Node *While_get_cond(Node *node) {
     return node->children[0];
 }

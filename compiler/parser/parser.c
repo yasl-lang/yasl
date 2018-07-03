@@ -132,8 +132,28 @@ static Node *parse_block(const Parser *const parser) {
 }
 
 static Node *parse_for(const Parser *const parser) {
-    puts("for loops are not yet implemented");
-    exit(EXIT_FAILURE);
+    /* Currently only implements case:
+     *
+     * for let x in y { ... }
+     *
+     */
+    eattok(parser, T_FOR);
+    eattok(parser, T_LET);
+    Node *var = parse_id(parser);
+    eattok(parser, T_IN);
+    Node *collection = parse_expr(parser);
+    eattok(parser, T_LBRC);
+    Node *body = new_Body(parser->lex->line);
+    while (curtok(parser) != T_RBRC && curtok(parser) != T_EOF) {
+        body_append(body, parse_program(parser));
+        if (curtok(parser) == T_SEMI) eattok(parser, T_SEMI);
+        else if (curtok(parser) != T_RBRC) {
+            printf("ParsingError: expected newline or `}`, got `%s`.\n", YASL_TOKEN_NAMES[curtok(parser)]);
+            exit(EXIT_FAILURE);
+        }
+    }
+    eattok(parser, T_RBRC);
+    return new_ForIter(var, collection, body, parser->lex->line);
 }
 
 static Node *parse_while(const Parser *const parser) {

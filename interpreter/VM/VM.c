@@ -6,6 +6,27 @@
 #include <functions.h>
 #include <interpreter/YASL_string/YASL_string.h>
 
+static LoopStack *loopstack_new(void) {
+    LoopStack *ls = malloc(sizeof(LoopStack));
+    ls->indices = malloc(sizeof(int64_t)*6);
+    ls->stack = malloc(sizeof(int64_t)*6);
+    ls->sp = -1;
+    return ls;
+}
+
+static Hash_t **builtins_htable_new(void) {
+    Hash_t **ht = malloc(sizeof(Hash_t*) * NUM_TYPES);
+    ht[1] = float64_builtins();
+    ht[2] = int64_builtins();
+    ht[3] = bool_builtins();
+    ht[4] = str_builtins();
+    ht[5] = list_builtins();
+    ht[6] = table_builtins();
+    ht[7] = file_builtins();
+
+    return ht;
+}
+
 VM* vm_new(unsigned char *code,    // pointer to bytecode
            int pc0,             // address of instruction to be executed first -- entrypoint
            int datasize) {      // total locals size required to perform a program operations
@@ -24,20 +45,16 @@ VM* vm_new(unsigned char *code,    // pointer to bytecode
     vm->globals[5] = (YASL_Object) {Y_BFN,  (int64_t)&yasl_input};
 
     vm->stack = malloc(sizeof(YASL_Object) * STACK_SIZE);
-    vm->builtins_htable = malloc(sizeof(Hash_t*) * NUM_TYPES);
-    vm->builtins_htable[1] = float64_builtins();
-    vm->builtins_htable[2] = int64_builtins();
-    vm->builtins_htable[3] = bool_builtins();
-    vm->builtins_htable[4] = str_builtins();
-    vm->builtins_htable[5] = list_builtins();
-    vm->builtins_htable[6] = table_builtins();
-    vm->builtins_htable[7] = file_builtins();
+
+    vm->builtins_htable = builtins_htable_new();
+    vm->loopstack = loopstack_new();
     return vm;
 }
 
 void vm_del(VM *vm){
     free(vm->globals);                   // TODO: free these properly
     free(vm->stack);                     // TODO: free these properly
+
     //ht_del_string_int(vm->builtins_htable[0]);
     ht_del_string_int(vm->builtins_htable[1]);
     ht_del_string_int(vm->builtins_htable[2]);
@@ -47,7 +64,11 @@ void vm_del(VM *vm){
     ht_del_string_int(vm->builtins_htable[6]);
     ht_del_string_int(vm->builtins_htable[7]);
     free(vm->builtins_htable);
-        free(vm);
+
+    free(vm->loopstack->stack);
+    free(vm->loopstack->indices);
+
+    free(vm);
 }
 
 
@@ -418,6 +439,25 @@ void vm_run(VM *vm){
                 vm->stack[vm->sp].value.lval = ls;
                 break;
             }
+            case INITFOR:
+                vm->loopstack->stack[++vm->loopstack->sp] = POP(vm);
+                vm->loopstack->indices[vm->loopstack->sp] = 0;
+                break;
+            case ENDFOR:
+                vm->loopstack->sp--;
+                break;
+            case ITER_1:
+                // NOTE: only supports lists currently
+                addr = NCODE(vm);
+                if (vm->loopstack->stack[vm->loopstack->sp].value.lval->count <= vm->loopstack->indices[vm->loopstack->sp]) {
+                    BPUSH(vm, 0);
+                } else {
+                    vm->globals[addr] = vm->loopstack->stack[vm->loopstack->sp].value.lval->items[vm->loopstack->indices[vm->loopstack->sp]++]; //.value.lval->items;
+                    BPUSH(vm, 1);
+                }
+                break;
+            case ITER_2:
+                exit(1);
             case END:
                 vm->stack[++vm->sp].type = Y_END;
                 break;

@@ -286,8 +286,34 @@ static void visit_Block(Compiler *const compiler, const Node *const node) {
     exit_scope(compiler);
 }
 
-static void visit_IterFor(Compiler *const compiler, const Node *const node) {
+static void visit_ForIter(Compiler *const compiler, const Node *const node) {
+    /* Currently only implements case, at global scope:
+     *
+     * for let x in y { ... }
+     *
+     */
+    enter_scope(compiler);
+    // TODO: don't always decl global
+    env_decl_var(compiler->globals, ForIter_get_var(node)->name, ForIter_get_var(node)->name_len);
+    visit(compiler, ForIter_get_collection(node));
+    bb_add_byte(compiler->buffer, INITFOR);
+    int64_t index_start = compiler->code->count + compiler->buffer->count;
+    add_checkpoint(compiler, index_start);
+    bb_add_byte(compiler->buffer, ITER_1);
+    bb_add_byte(compiler->buffer, env_get(compiler->globals, ForIter_get_var(node)->name, ForIter_get_var(node)->name_len));
+    add_checkpoint(compiler, compiler->code->count + compiler->buffer->count);
+    bb_add_byte(compiler->buffer, BRF_8);
+    int64_t index_second = compiler->buffer->count;
+    bb_intbytes8(compiler->buffer, 0);
+    visit(compiler, ForIter_get_body(node));
+    bb_add_byte(compiler->buffer, GOTO);
+    bb_intbytes8(compiler->buffer, index_start);
+    bb_rewrite_intbytes8(compiler->buffer, index_second, compiler->buffer->count - index_second - 8);
+    bb_add_byte(compiler->buffer, ENDFOR);
+    exit_scope(compiler);
 
+    rm_checkpoint(compiler);
+    rm_checkpoint(compiler);
 }
 
 static void visit_While(Compiler *const compiler, const Node *const node) {
@@ -642,7 +668,7 @@ static void visit_List(const Compiler *const compiler, const Node *const node) {
     bb_add_byte(compiler->buffer, NEWLIST);
 }
 
-static void visit_Map(const Compiler *const compiler, const Node *const node) {
+static void visit_Table(const Compiler *const compiler, const Node *const node) {
     bb_add_byte(compiler->buffer, END);
     for (int64_t i = node->children[0]->children_len - 1; i >= 0; i--) {
         visit(compiler, node->children[1]->children[i]);
@@ -685,6 +711,10 @@ static void visit(Compiler *const compiler, const Node *const node) {
     case N_GET:
         YASL_TRACE_LOG("%s\n", "Visit Get");
         visit_Get(compiler, node);
+        break;
+    case N_FORITER:
+        YASL_TRACE_LOG("%s\n", "Visit Iterative For");
+        visit_ForIter(compiler, node);
         break;
     case N_WHILE:
         YASL_TRACE_LOG("%s\n", "Visit While");
@@ -756,7 +786,7 @@ static void visit(Compiler *const compiler, const Node *const node) {
         break;
     case N_TABLE:
         YASL_TRACE_LOG("%s\n", "Visit Map");
-        visit_Map(compiler, node);
+            visit_Table(compiler, node);
         break;
     default:
         printf("%d\n", node->nodetype);
