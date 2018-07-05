@@ -150,5 +150,6 @@ typedef enum {
     T_DQMARKEQ,
     T_COLON,
     T_DCOLON,
-    T_ARR,
+    T_BIG_ARR,
+    T_SMALL_ARR
 } Token;

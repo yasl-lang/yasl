@@ -5,6 +5,7 @@
 #include "interpreter/builtins/builtins.h"
 #include <functions.h>
 #include <interpreter/YASL_string/YASL_string.h>
+#include <hashtable/hashtable.h>
 
 static LoopStack *loopstack_new(void) {
     LoopStack *ls = malloc(sizeof(LoopStack));
@@ -449,11 +450,31 @@ void vm_run(VM *vm){
             case ITER_1:
                 // NOTE: only supports lists currently
                 addr = NCODE(vm);
-                if (vm->loopstack->stack[vm->loopstack->sp].value.lval->count <= vm->loopstack->indices[vm->loopstack->sp]) {
-                    BPUSH(vm, 0);
-                } else {
-                    vm->globals[addr] = vm->loopstack->stack[vm->loopstack->sp].value.lval->items[vm->loopstack->indices[vm->loopstack->sp]++]; //.value.lval->items;
-                    BPUSH(vm, 1);
+                switch (vm->loopstack->stack[vm->loopstack->sp].type) {
+                    case Y_LIST:
+                        if (vm->loopstack->stack[vm->loopstack->sp].value.lval->count <= vm->loopstack->indices[vm->loopstack->sp]) {
+                            BPUSH(vm, 0);
+                        } else {
+                            vm->globals[addr] = vm->loopstack->stack[vm->loopstack->sp].value.lval->items[vm->loopstack->indices[vm->loopstack->sp]++]; //.value.lval->items;
+                            BPUSH(vm, 1);
+                        }
+                        break;
+                    case Y_TABLE:
+                        while ((vm->loopstack->stack[vm->loopstack->sp].value.mval->items[vm->loopstack->indices[vm->loopstack->sp]] == &TOMBSTONE ||
+                                vm->loopstack->stack[vm->loopstack->sp].value.mval->items[vm->loopstack->indices[vm->loopstack->sp]] == NULL) &&
+                                vm->loopstack->stack[vm->loopstack->sp].value.mval->size > vm->loopstack->indices[vm->loopstack->sp]) {
+                            vm->loopstack->indices[vm->loopstack->sp]++;
+                        }
+                        if (vm->loopstack->stack[vm->loopstack->sp].value.mval->size <= vm->loopstack->indices[vm->loopstack->sp]) {
+                            BPUSH(vm, 0);
+                            break;
+                        }
+                        vm->globals[addr] = *vm->loopstack->stack[vm->loopstack->sp].value.mval->items[vm->loopstack->indices[vm->loopstack->sp]++]->key; //.value.lval->items;
+                        BPUSH(vm, 1);
+                        break;
+                    default:
+                        printf("object of type %s is not iterable.\n", YASL_TYPE_NAMES[vm->loopstack->stack[vm->loopstack->sp].type]);
+                        exit(EXIT_FAILURE);
                 }
                 break;
             case ITER_2:
@@ -473,7 +494,7 @@ void vm_run(VM *vm){
                 break;
             case GOTO:
                 memcpy(&c, vm->code + vm->pc, sizeof c);
-                vm->pc = c + vm->pc0;
+                vm->pc = c + (vm->pc < vm->pc0 ? 16 : vm->pc0);
                 break;
             case BR_8:
                 memcpy(&c, vm->code + vm->pc, sizeof c);
@@ -553,6 +574,7 @@ void vm_run(VM *vm){
                 YASL_Object key = POP(vm);
                 YASL_Object *result = ht_search(vm->builtins_htable[index], key);
                 if (result == NULL) {
+                    printf("%s\n", YASL_TYPE_NAMES[index]);
                     puts("Not foundsdadsadsasds");
                     exit(1);
                 } else {

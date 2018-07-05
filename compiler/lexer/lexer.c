@@ -11,6 +11,7 @@ static int isodigit(int c) {
 }
 
 char lex_getchar(Lexer *lex) {
+    //printf("last char was %c (%x)\n", lex->c, lex->c);
     return lex->c = fgetc(lex->file);
 }
 
@@ -187,8 +188,8 @@ void gettok(Lexer *lex) {
             lex_getchar(lex);
             if (lex->c == '*') {
                 int addsemi = 0;
-                lex_getchar(lex);
-                c1 = lex->c;
+                lex->c = ' ';
+                c1 = fgetc(lex->file);
                 c2 = fgetc(lex->file);
                 while (!feof(lex->file) && (c1 != '*' || c2 != '/')) {
                     if (c1 == '\n' || c2 == '\n') addsemi = 1;
@@ -353,11 +354,12 @@ static Token YASLToken_TwoChars(char c1, char c2) {
         case '+': switch(c2) { case '=': return T_PLUSEQ; default: return T_UNKNOWN; };
         case '-': switch(c2) {
                 case '=': return T_MINUSEQ;
+                case '>': return T_SMALL_ARR;
                 default: return T_UNKNOWN;
         }
         case '=': switch(c2) {
             case '=': return T_DEQ;
-            case '>': return T_ARR;
+            case '>': return T_BIG_ARR;
             default: return T_UNKNOWN;}
         case '!': switch(c2) { case '=': return T_BANGEQ; default: return T_UNKNOWN;}
         case '~': switch(c2) { case '=': return T_TILDEEQ; default: return T_UNKNOWN;}
@@ -579,7 +581,8 @@ const char *YASL_TOKEN_NAMES[] = {
         "?\?=",         // DQMARKEQ,
         ":",            // COLON,
         "::",           // DCOLON,
-        "=>",           // ARR,
+        "=>",           // BIG_ARR,
+        "->"            // SMALL_ARR
 };
 
 Lexer *lex_new(FILE *file) {

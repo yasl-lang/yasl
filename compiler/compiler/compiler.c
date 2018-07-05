@@ -78,7 +78,8 @@ static void enter_scope(Compiler *const compiler) {
     else:
     self.globals = Env(self.globals)    */
     // TODO: deal with locals
-    compiler->globals = env_new(compiler->globals);
+    if (compiler->current_function != NULL) compiler->locals = env_new(compiler->locals);
+    else compiler->globals = env_new(compiler->globals);
 }
 
 static void exit_scope(Compiler *const compiler) {
@@ -88,8 +89,8 @@ static void exit_scope(Compiler *const compiler) {
         else:
             self.globals = self.globals.parent
      */
-    compiler->globals = compiler->globals->parent;
-    // TODO: deal with locals
+    if (compiler->current_function != NULL) compiler->locals = compiler->locals->parent;
+    else compiler->globals = compiler->globals->parent;
     // TODO: deal with memory leaks
 }
 
@@ -104,9 +105,10 @@ static void rm_checkpoint(Compiler *compiler) {
 }
 
 static void visit(Compiler *const compiler, const Node *const node);
-static void visit_Body(const Compiler *const compiler, const Node *const node);
+static void visit_Body(Compiler *const compiler, const Node *const node);
+static void visit_Body_reverse(Compiler *const compiler, const Node *const node);
 
-void compile(const Compiler *const compiler) {
+void compile(Compiler *const compiler) {
     Node *node;
     gettok(compiler->parser->lex);
     while (!peof(compiler->parser)) {
@@ -144,7 +146,7 @@ void compile(const Compiler *const compiler) {
     fclose(fp);
 }
 
-static void visit_ExprStmt(const Compiler *const compiler, const Node *const node) {
+static void visit_ExprStmt(Compiler *const compiler, const Node *const node) {
     visit(compiler, node->children[0]);
     bb_add_byte(compiler->buffer, POP);
 }
@@ -168,26 +170,24 @@ static void visit_FunctionDecl(Compiler *const compiler, const Node *const node)
     compiler->offset = node->children[0]->children_len;
     //YASL_DEBUG_LOG("compiler->offset is: %d\n", compiler->offset);
 
-    compiler->locals = env_new(compiler->locals);
+    enter_scope(compiler);
+    //compiler->locals = env_new(compiler->locals);
 
     int64_t i;
-    for (i = node->children[0]->children_len - 1; i >= 0; i--) {
+    for (i = 0; i < node->children[0]->children_len; i++) {
         ht_insert_string_int(compiler->locals->vars, node->children[0]->children[i]->name,
                              node->children[0]->children[i]->name_len, 255 - compiler->locals->vars->count - 1);
     }
 
     ht_insert_string_int(compiler->functions_locals_len, node->name, node->name_len, compiler->locals->vars->count);
 
+    bb_add_byte(compiler->buffer, node->children[0]->children_len);
+    bb_add_byte(compiler->buffer, compiler->locals->vars->count);
     visit_Body(compiler, node->children[1]);
 
     ht_insert_string_int(compiler->functions, node->name, node->name_len, compiler->header->count);
 
     int64_t fn_val = compiler->header->count;
-
-    //YASL_DEBUG_LOG("tried to insert function, result was %d.\n", ht_search_string_int(compiler->functions, node->name, node->name_len) != NULL);
-
-    bb_add_byte(compiler->header, node->children[0]->children_len);
-    bb_add_byte(compiler->header, compiler->locals->vars->count);
     bb_append(compiler->header, compiler->buffer->bytes, compiler->buffer->count);
     bb_add_byte(compiler->header, NCONST);
     bb_add_byte(compiler->header, RET);
@@ -206,34 +206,14 @@ static void visit_FunctionDecl(Compiler *const compiler, const Node *const node)
     bb_add_byte(compiler->buffer, GSTORE_1);
     bb_add_byte(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));
 
-    // clean up, i.e. delete local env.
+    exit_scope(compiler);
     compiler->current_function = NULL;
-
-    Env_t *tmp = compiler->locals->parent;
-
-    for (i = 0; i < compiler->locals->vars->size; i++) {
-        Item_t* item = compiler->locals->vars->items[i];
-        if (item != NULL) {
-            str_del(item->key->value.sval);
-            free(item->key);
-            free(item->value);
-            free(item);
-        }
-    }
-    free(compiler->locals->vars->items);
-    free(compiler->locals->vars);
-    free(compiler->locals);
-
-    compiler->locals = tmp;
 
 }
 
-static void visit_Call(const Compiler *const compiler, const Node *const node) {
+static void visit_Call(Compiler *const compiler, const Node *const node) {
     YASL_TRACE_LOG("Visit Call: %s\n", node->name);
-    int i;
-    for (i = node->children[0]->children_len - 1; i >= 0; i--) {
-        visit(compiler, node->children[0]->children[i]);
-    }
+    visit_Body_reverse(compiler, node->children[0]);
     visit(compiler, node->children[1]);
     bb_add_byte(compiler->buffer, CALL_8);
     bb_add_byte(compiler->buffer, node->children[0]->children_len);
@@ -263,23 +243,26 @@ static void visit_Set(const Compiler *const compiler, const Node *const node) {
     visit(compiler, node->children[2]);
     visit(compiler, node->children[0]);
     bb_add_byte(compiler->buffer, SET);
-    //bb_intbytes8(compiler->buffer, M___SET);
 }
 
 static void visit_Get(const Compiler *const compiler, const Node *const node) {
     visit(compiler, node->children[1]);
     visit(compiler, node->children[0]);
     bb_add_byte(compiler->buffer, GET);
-    //bb_intbytes8(compiler->buffer, M___GET);
 }
 
-static void visit_Body(const Compiler *const compiler, const Node *const node) {
-    YASL_TRACE_LOG("Visiting Block with %" PRId64 " children.\n", node->children_len);
-    int i;
-    for (i = 0; i < node->children_len; i++) {
+static void visit_Body_reverse(Compiler *const compiler, const Node *const node) {
+    for (int i = node->children_len - 1; i  >= 0; i--) {
         visit(compiler, node->children[i]);
     }
 }
+
+static void visit_Body(Compiler *const compiler, const Node *const node) {
+    for (int i = 0; i < node->children_len; i++) {
+        visit(compiler, node->children[i]);
+    }
+}
+
 static void visit_Block(Compiler *const compiler, const Node *const node) {
     enter_scope(compiler);
     visit(compiler, node->children[0]);
@@ -577,8 +560,24 @@ static void visit_Assign(const Compiler *const compiler, const Node *const node)
     // TODO: handle locals
     visit(compiler, node->children[0]);
     bb_add_byte(compiler->buffer, DUP);
-    bb_add_byte(compiler->buffer, GSTORE_1);
-    bb_add_byte(compiler->buffer, env_get(compiler->globals, node->name, node->name_len)); // TODO: handle size
+    if (compiler->current_function != NULL) {
+        bb_add_byte(compiler->buffer, LSTORE_1);
+        bb_add_byte(compiler->buffer, env_get(compiler->locals, node->name, node->name_len));
+    } else {
+        bb_add_byte(compiler->buffer, GSTORE_1);
+        bb_add_byte(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));
+    }
+    // TODO: handle size
+}
+
+static void compiler_load_var(const Compiler *const compiler, char *name, int64_t name_len) {
+    if (compiler->current_function != NULL && env_contains(compiler->locals, name, name_len)) {
+        bb_add_byte(compiler->buffer, LLOAD_1);
+        bb_add_byte(compiler->buffer, env_get(compiler->locals, name, name_len)); // TODO: handle size
+    } else {
+        bb_add_byte(compiler->buffer, GLOAD_1);
+        bb_add_byte(compiler->buffer, env_get(compiler->globals, name, name_len));  // TODO: handle size
+    }
 }
 
 static void visit_Var(const Compiler *const compiler, const Node *const node) {
@@ -592,14 +591,17 @@ static void visit_Var(const Compiler *const compiler, const Node *const node) {
         exit(EXIT_FAILURE);
     }
 
+    compiler_load_var(compiler, node->name, node->name_len);
+
+    /*
     if (compiler->current_function != NULL && env_contains(compiler->locals, node->name, node->name_len)) {
         bb_add_byte(compiler->buffer, LLOAD_1);
         bb_add_byte(compiler->buffer, env_get(compiler->locals, node->name, node->name_len)); // TODO: handle size
         return;
-    }
-
-    bb_add_byte(compiler->buffer, GLOAD_1);
-    bb_add_byte(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));  // TODO: handle size
+    } else {
+        bb_add_byte(compiler->buffer, GLOAD_1);
+        bb_add_byte(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));  // TODO: handle size
+    } */
 }
 
 static void visit_Undef(const Compiler *const compiler, const Node *const node) {
@@ -662,13 +664,11 @@ static void visit_String(const Compiler *const compiler, const Node *const node)
 
 static void visit_List(const Compiler *const compiler, const Node *const node) {
     bb_add_byte(compiler->buffer, END);
-    for (int64_t i = node->children[0]->children_len - 1; i >= 0; i--) {
-        visit(compiler, node->children[0]->children[i]);
-    }
+    visit_Body_reverse(compiler, node->children[0]);
     bb_add_byte(compiler->buffer, NEWLIST);
 }
 
-static void visit_Table(const Compiler *const compiler, const Node *const node) {
+static void visit_Table(Compiler *const compiler, const Node *const node) {
     bb_add_byte(compiler->buffer, END);
     for (int64_t i = node->children[0]->children_len - 1; i >= 0; i--) {
         visit(compiler, node->children[1]->children[i]);

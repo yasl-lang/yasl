@@ -29,4 +29,4 @@ typedef struct {
 
 Compiler *compiler_new(Parser *const parser, char *const name);
 void compiler_del(Compiler *compiler);
-void compile(const Compiler *const compiler);
+void compile(Compiler *const compiler);
