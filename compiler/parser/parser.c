@@ -423,9 +423,9 @@ static Node *parse_power(const Parser *const parser) {
 static Node *parse_call(const Parser *const parser) {
     Node *cur_node = parse_constant(parser);
     while (curtok(parser) == T_LSQB || curtok(parser) == T_DOT ||
-           curtok(parser) == T_LPAR || curtok(parser) == T_DCOLON) {
-        if (curtok(parser) == T_DCOLON) {
-            eattok(parser, T_DCOLON);
+           curtok(parser) == T_LPAR || curtok(parser) == T_HASH) {
+        if (curtok(parser) == T_HASH) {
+            eattok(parser, T_HASH);
             Node *right = parse_constant(parser);
             if (right->nodetype != N_VAR) {
                 puts("Invalid method call.");
