@@ -13,6 +13,7 @@ typedef struct {
     Parser *parser;
     char *name;
     Env_t *globals;
+    Env_t *params;
     Env_t *locals;
     Hash_t *functions;
     Hash_t *functions_locals_len;

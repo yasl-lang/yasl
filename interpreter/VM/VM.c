@@ -30,7 +30,7 @@ static Hash_t **builtins_htable_new(void) {
 
 VM* vm_new(unsigned char *code,    // pointer to bytecode
            int pc0,             // address of instruction to be executed first -- entrypoint
-           int datasize) {      // total locals size required to perform a program operations
+           int datasize) {      // total params size required to perform a program operations
     VM* vm = malloc(sizeof(VM));
     vm->code = code;
     vm->pc = pc0;
@@ -449,13 +449,12 @@ void vm_run(VM *vm){
                 break;
             case ITER_1:
                 // NOTE: only supports lists currently
-                addr = NCODE(vm);
                 switch (vm->loopstack->stack[vm->loopstack->sp].type) {
                     case Y_LIST:
                         if (vm->loopstack->stack[vm->loopstack->sp].value.lval->count <= vm->loopstack->indices[vm->loopstack->sp]) {
                             BPUSH(vm, 0);
                         } else {
-                            vm->globals[addr] = vm->loopstack->stack[vm->loopstack->sp].value.lval->items[vm->loopstack->indices[vm->loopstack->sp]++]; //.value.lval->items;
+                            PUSH(vm, vm->loopstack->stack[vm->loopstack->sp].value.lval->items[vm->loopstack->indices[vm->loopstack->sp]++]); //.value.lval->items;
                             BPUSH(vm, 1);
                         }
                         break;
@@ -469,7 +468,7 @@ void vm_run(VM *vm){
                             BPUSH(vm, 0);
                             break;
                         }
-                        vm->globals[addr] = *vm->loopstack->stack[vm->loopstack->sp].value.mval->items[vm->loopstack->indices[vm->loopstack->sp]++]->key; //.value.lval->items;
+                        PUSH(vm, *vm->loopstack->stack[vm->loopstack->sp].value.mval->items[vm->loopstack->indices[vm->loopstack->sp]++]->key); //.value.lval->items;
                         BPUSH(vm, 1);
                         break;
                     default:
@@ -520,7 +519,7 @@ void vm_run(VM *vm){
                 if (v.type != Y_UNDEF) vm->pc += c;
                 break;
             case GLOAD_1:
-                addr = vm->code[vm->pc++];               // get addr of var in locals
+                addr = vm->code[vm->pc++];               // get addr of var in params
                 vm->stack[++vm->sp] = vm->globals[addr];  // load value from memory of the provided addr
                 break;
             case GSTORE_1:
@@ -529,11 +528,11 @@ void vm_run(VM *vm){
                 break;
             case LLOAD_1:
                 offset = NCODE(vm);
-                vm->stack[++vm->sp] = vm->stack[vm->fp+offset];
+                vm->stack[++vm->sp] = vm->stack[vm->fp-offset-2];
                 break;
             case LSTORE_1:
                 offset = NCODE(vm);
-                vm->stack[vm->fp+offset] = vm->stack[vm->sp--];
+                vm->stack[vm->fp-offset-2] = vm->stack[vm->sp--];
                 break;
             case CALL_8:
                 if (PEEK(vm).type == Y_FN) {

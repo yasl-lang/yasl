@@ -13,6 +13,7 @@ Compiler *compiler_new(Parser *const parser, char *const name) {
     Compiler *compiler = malloc(sizeof(Compiler));
 
     compiler->globals = env_new(NULL);
+    compiler->params = env_new(NULL);
     compiler->locals = env_new(NULL);
     env_decl_var(compiler->globals, "stdin", strlen("stdin"));
     env_decl_var(compiler->globals, "stdout", strlen("stdout"));
@@ -65,6 +66,7 @@ static void compiler_buffers_del(const Compiler *const compiler) {
 void compiler_del(Compiler *compiler) {
     compiler_tables_del(compiler);
     env_del(compiler->globals);
+    env_del(compiler->params);
     env_del(compiler->locals);
     parser_del(compiler->parser);
     compiler_buffers_del(compiler);
@@ -74,10 +76,10 @@ void compiler_del(Compiler *compiler) {
 
 static void enter_scope(Compiler *const compiler) {
     /*if self.current_fn is not None:
-    self.locals = Env(self.locals)
+    self.params = Env(self.params)
     else:
     self.globals = Env(self.globals)    */
-    // TODO: deal with locals
+    // TODO: deal with params
     if (compiler->current_function != NULL) compiler->locals = env_new(compiler->locals);
     else compiler->globals = env_new(compiler->globals);
 }
@@ -85,7 +87,7 @@ static void enter_scope(Compiler *const compiler) {
 static void exit_scope(Compiler *const compiler) {
     /*
      *         if self.current_fn is not None:
-            self.locals = self.locals.parent
+            self.params = self.params.parent
         else:
             self.globals = self.globals.parent
      */
@@ -105,8 +107,65 @@ static void rm_checkpoint(Compiler *compiler) {
 }
 
 static void visit(Compiler *const compiler, const Node *const node);
-static void visit_Body(Compiler *const compiler, const Node *const node);
-static void visit_Body_reverse(Compiler *const compiler, const Node *const node);
+
+static void visit_Body_reverse(Compiler *const compiler, const Node *const node) {
+    for (int i = node->children_len - 1; i  >= 0; i--) {
+        visit(compiler, node->children[i]);
+    }
+}
+
+static void visit_Body(Compiler *const compiler, const Node *const node) {
+    for (int i = 0; i < node->children_len; i++) {
+        visit(compiler, node->children[i]);
+    }
+}
+
+static void load_var(const Compiler *const compiler, char *name, int64_t name_len) {
+    if (env_contains(compiler->locals, name, name_len)) {
+        bb_add_byte(compiler->buffer, GLOAD_1);
+        bb_add_byte(compiler->buffer, env_get(compiler->locals, name, name_len));
+    } else if (env_contains(compiler->params, name, name_len)) {
+        bb_add_byte(compiler->buffer, LLOAD_1);
+        bb_add_byte(compiler->buffer, env_get(compiler->params, name, name_len)); // TODO: handle size
+    } else if (env_contains(compiler->globals, name, name_len)){
+        bb_add_byte(compiler->buffer, GLOAD_1);
+        bb_add_byte(compiler->buffer, env_get(compiler->globals, name, name_len));  // TODO: handle size
+    } else {
+        printf("undeclared variable %s.\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
+static void store_var(const Compiler *const compiler, char *name, int64_t name_len) {
+    if (env_contains(compiler->locals, name, name_len)) {
+        bb_add_byte(compiler->buffer, GSTORE_1);
+        bb_add_byte(compiler->buffer, env_get(compiler->locals, name, name_len));
+    } else if (env_contains(compiler->params, name, name_len)) {
+        bb_add_byte(compiler->buffer, LSTORE_1);
+        bb_add_byte(compiler->buffer, env_get(compiler->params, name, name_len)); // TODO: handle size
+    } else if (env_contains(compiler->globals, name, name_len)){
+        bb_add_byte(compiler->buffer, GSTORE_1);
+        bb_add_byte(compiler->buffer, env_get(compiler->globals, name, name_len));  // TODO: handle size
+    } else {
+        printf("undeclared variable %s.\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
+static int contains_var(const Compiler *const compiler, char *name, int64_t name_len) {
+    return env_contains(compiler->globals, name, name_len) ||
+           env_contains(compiler->params, name, name_len) ||
+            env_contains(compiler->locals, name, name_len);
+}
+
+static void decl_var(Compiler *const compiler, char *name, int64_t name_len) {
+    if (NULL != compiler->current_function) env_decl_var(compiler->locals, name, name_len);
+    else env_decl_var(compiler->globals, name, name_len);
+}
+
+static void decl_param(Compiler *const compiler, char *name, int64_t name_len) {
+    env_decl_var(compiler->params, name, name_len);
+}
 
 void compile(Compiler *const compiler) {
     Node *node;
@@ -157,35 +216,31 @@ static void visit_FunctionDecl(Compiler *const compiler, const Node *const node)
         exit(EXIT_FAILURE);
     }
 
-    if (ht_search_string_int(compiler->functions, node->name, node->name_len) != NULL) {
-        puts("Illegal redeclaration of function.");
-        exit(EXIT_FAILURE);
+    // declare var
+    if (!contains_var(compiler, node->name, node->name_len)) {
+        decl_var(compiler, node->name, node->name_len);
     }
 
     compiler->current_function =  node->name;
 
     // start logic for function, now that we are sure it's legal to do so, and have set up.
 
-    // use offset to compute offsets for locals, in other functions.
+    // use offset to compute offsets for params, in other functions.
     compiler->offset = node->children[0]->children_len;
     //YASL_DEBUG_LOG("compiler->offset is: %d\n", compiler->offset);
 
     enter_scope(compiler);
-    //compiler->locals = env_new(compiler->locals);
 
     int64_t i;
     for (i = 0; i < node->children[0]->children_len; i++) {
-        ht_insert_string_int(compiler->locals->vars, node->children[0]->children[i]->name,
-                             node->children[0]->children[i]->name_len, 255 - compiler->locals->vars->count - 1);
+        decl_param(compiler, node->children[0]->children[i]->name, node->children[0]->children[i]->name_len);
     }
 
-    ht_insert_string_int(compiler->functions_locals_len, node->name, node->name_len, compiler->locals->vars->count);
+    ht_insert_string_int(compiler->functions_locals_len, node->name, node->name_len, compiler->params->vars->count);
 
     bb_add_byte(compiler->buffer, node->children[0]->children_len);
-    bb_add_byte(compiler->buffer, compiler->locals->vars->count);
+    bb_add_byte(compiler->buffer, compiler->params->vars->count);
     visit_Body(compiler, node->children[1]);
-
-    ht_insert_string_int(compiler->functions, node->name, node->name_len, compiler->header->count);
 
     int64_t fn_val = compiler->header->count;
     bb_append(compiler->header, compiler->buffer->bytes, compiler->buffer->count);
@@ -195,20 +250,13 @@ static void visit_FunctionDecl(Compiler *const compiler, const Node *const node)
     // zero buffer length
     compiler->buffer->count = 0;
 
-    // declare var
-    if (!env_contains(compiler->globals, node->name, node->name_len)) {
-        env_decl_var(compiler->globals, node->name, node->name_len);
-    }
+    exit_scope(compiler);
+    compiler->current_function = NULL;
 
     bb_add_byte(compiler->buffer, FCONST);
     bb_intbytes8(compiler->buffer, fn_val);
 
-    bb_add_byte(compiler->buffer, GSTORE_1);
-    bb_add_byte(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));
-
-    exit_scope(compiler);
-    compiler->current_function = NULL;
-
+    store_var(compiler, node->name, node->name_len);
 }
 
 static void visit_Call(Compiler *const compiler, const Node *const node) {
@@ -251,18 +299,6 @@ static void visit_Get(const Compiler *const compiler, const Node *const node) {
     bb_add_byte(compiler->buffer, GET);
 }
 
-static void visit_Body_reverse(Compiler *const compiler, const Node *const node) {
-    for (int i = node->children_len - 1; i  >= 0; i--) {
-        visit(compiler, node->children[i]);
-    }
-}
-
-static void visit_Body(Compiler *const compiler, const Node *const node) {
-    for (int i = 0; i < node->children_len; i++) {
-        visit(compiler, node->children[i]);
-    }
-}
-
 static void visit_Block(Compiler *const compiler, const Node *const node) {
     enter_scope(compiler);
     visit(compiler, node->children[0]);
@@ -276,18 +312,26 @@ static void visit_ForIter(Compiler *const compiler, const Node *const node) {
      *
      */
     enter_scope(compiler);
-    // TODO: don't always decl global
-    env_decl_var(compiler->globals, ForIter_get_var(node)->name, ForIter_get_var(node)->name_len);
+
+    decl_var(compiler, ForIter_get_var(node)->name, ForIter_get_var(node)->name_len);
+
     visit(compiler, ForIter_get_collection(node));
+
     bb_add_byte(compiler->buffer, INITFOR);
+
     int64_t index_start = compiler->code->count + compiler->buffer->count;
     add_checkpoint(compiler, index_start);
+
     bb_add_byte(compiler->buffer, ITER_1);
-    bb_add_byte(compiler->buffer, env_get(compiler->globals, ForIter_get_var(node)->name, ForIter_get_var(node)->name_len));
+
     add_checkpoint(compiler, compiler->code->count + compiler->buffer->count);
     bb_add_byte(compiler->buffer, BRF_8);
+
     int64_t index_second = compiler->buffer->count;
+
     bb_intbytes8(compiler->buffer, 0);
+    store_var(compiler, ForIter_get_var(node)->name, ForIter_get_var(node)->name_len);
+
     visit(compiler, ForIter_get_body(node));
     bb_add_byte(compiler->buffer, GOTO);
     bb_intbytes8(compiler->buffer, index_start);
@@ -366,29 +410,17 @@ static void visit_Print(const Compiler *const compiler, const Node *const node) 
 }
 
 static void visit_Let(const Compiler *const compiler, const Node *const node) {
-    if (NULL != compiler->current_function) {
-        if (!env_contains(compiler->locals, node->name, node->name_len)) {
-            YASL_DEBUG_LOG("inserting local var at index: %d\n", compiler->locals->vars->count + 1 - compiler->offset);
-            ht_insert_string_int(compiler->locals->vars, node->name, node->name_len,
-                                 compiler->locals->vars->count + 1 - compiler->offset);
-        }
-        visit(compiler, Let_get_expr(node));
-        bb_add_byte(compiler->buffer, LSTORE_1);
-        bb_add_byte(compiler->buffer, ht_search_string_int(compiler->locals->vars, node->name, node->name_len)->value.ival);
-        return;
-    }
-
-    if (!env_contains_cur_scope(compiler->globals, node->name, node->name_len)) {
-        env_decl_var(compiler->globals, node->name, node->name_len);
-    } else {
+    if (contains_var(compiler, node->name, node->name_len)) {
         printf("Illegal redeclaration of %s in line %d.\n", node->name, node->line);
         exit(EXIT_FAILURE);
     }
-    if (node->children != NULL) visit(compiler, node->children[0]);
+
+    decl_var(compiler, node->name, node->name_len);
+
+    if (node->children[0] != NULL) visit(compiler, Let_get_expr(node));
     else bb_add_byte(compiler->buffer, NCONST);
 
-    bb_add_byte(compiler->buffer, GSTORE_1);
-    bb_add_byte(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));
+    store_var(compiler, node->name, node->name_len);
 }
 
 static void visit_TriOp(const Compiler *const compiler, const Node *const node) {
@@ -553,55 +585,21 @@ static void visit_UnOp(const Compiler *const compiler, const Node *const node) {
 }
 
 static void visit_Assign(const Compiler *const compiler, const Node *const node) {
-    if (!env_contains(compiler->globals, node->name, node->name_len) &&
-        !env_contains(compiler->locals, node->name, node->name_len)) {
+    if (!contains_var(compiler, node->name, node->name_len)) {
         printf("unknown variable in line %d: %s\n", compiler->parser->lex->line, node->name);
     }
-    // TODO: handle locals
     visit(compiler, node->children[0]);
     bb_add_byte(compiler->buffer, DUP);
-    if (compiler->current_function != NULL) {
-        bb_add_byte(compiler->buffer, LSTORE_1);
-        bb_add_byte(compiler->buffer, env_get(compiler->locals, node->name, node->name_len));
-    } else {
-        bb_add_byte(compiler->buffer, GSTORE_1);
-        bb_add_byte(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));
-    }
-    // TODO: handle size
-}
-
-static void compiler_load_var(const Compiler *const compiler, char *name, int64_t name_len) {
-    if (compiler->current_function != NULL && env_contains(compiler->locals, name, name_len)) {
-        bb_add_byte(compiler->buffer, LLOAD_1);
-        bb_add_byte(compiler->buffer, env_get(compiler->locals, name, name_len)); // TODO: handle size
-    } else {
-        bb_add_byte(compiler->buffer, GLOAD_1);
-        bb_add_byte(compiler->buffer, env_get(compiler->globals, name, name_len));  // TODO: handle size
-    }
+    store_var(compiler, node->name, node->name_len);
 }
 
 static void visit_Var(const Compiler *const compiler, const Node *const node) {
-    YASL_TRACE_LOG("%s is global: ", node->name);
-    //YASL_TRACE_LOG("%d\n", env_contains(compiler->globals, node->name, node->name_len));
-    YASL_TRACE_LOG("%s is local: ", node->name);
-    //YASL_TRACE_LOG("%d\n", env_contains(compiler->locals, node->name, node->name_len));
-    if (!env_contains(compiler->globals, node->name, node->name_len) &&
-        !env_contains(compiler->locals, node->name, node->name_len)) {
+    if (!contains_var(compiler, node->name, node->name_len)) {
         printf("unknown variable in line %d: %s\n", compiler->parser->lex->line, node->name);
         exit(EXIT_FAILURE);
     }
 
-    compiler_load_var(compiler, node->name, node->name_len);
-
-    /*
-    if (compiler->current_function != NULL && env_contains(compiler->locals, node->name, node->name_len)) {
-        bb_add_byte(compiler->buffer, LLOAD_1);
-        bb_add_byte(compiler->buffer, env_get(compiler->locals, node->name, node->name_len)); // TODO: handle size
-        return;
-    } else {
-        bb_add_byte(compiler->buffer, GLOAD_1);
-        bb_add_byte(compiler->buffer, env_get(compiler->globals, node->name, node->name_len));  // TODO: handle size
-    } */
+    load_var(compiler, node->name, node->name_len);
 }
 
 static void visit_Undef(const Compiler *const compiler, const Node *const node) {

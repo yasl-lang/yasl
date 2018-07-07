@@ -96,7 +96,7 @@ typedef struct {
 
 VM* vm_new(unsigned char *code,    // pointer to bytecode
            int pc0,             // address of instruction to be executed first -- entrypoint
-           int datasize);       // total locals size required to perform a program operations
+           int datasize);       // total params size required to perform a program operations
 
 void vm_del(VM *vm);
 

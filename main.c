@@ -81,7 +81,7 @@ int main(int argc, char** argv) {
     //bytes_read = fread(buffer, sizeof(unsigned char), BUFFER_SIZE, file_ptr);
     VM* vm = vm_new(buffer,   // program to execute
                     entry_point,    // start address of main function
-                    256);   // locals to be reserved, should be num_globals
+                    256);   // params to be reserved, should be num_globals
     vm_run(vm);
     vm_del(vm);
     free(buffer);
