@@ -32,7 +32,7 @@ VM* vm_new(unsigned char *code,    // pointer to bytecode
            int pc0,             // address of instruction to be executed first -- entrypoint
            int datasize) {      // total params size required to perform a program operations
     VM* vm = malloc(sizeof(VM));
-    vm->code = code;
+    vm->code = rcptr_new(code);
     vm->pc = pc0;
     vm->pc0 = vm->pc;
     vm->fp = 0;
@@ -108,12 +108,12 @@ void vm_run(VM *vm){
                 memcpy(&vm->stack[vm->sp].value, &d, sizeof(double));
                 break;
             case DCONST:        // constants have native endianness
-                memcpy(&c, vm->code + vm->pc, sizeof c);
+                memcpy(&c, vm->code.ptr + vm->pc, sizeof c);
                 vm->pc += sizeof c;
                 PUSH(vm, ((YASL_Object) {Y_FLOAT64, c}));
                 break;
             case ICONST:        // constants have native endianness
-                memcpy(&c, vm->code + vm->pc, sizeof c);
+                memcpy(&c, vm->code.ptr + vm->pc, sizeof c);
                 vm->pc += sizeof c;
                 PUSH(vm, ((YASL_Object) {Y_INT64, c}));
                 break;
@@ -127,7 +127,7 @@ void vm_run(VM *vm){
                 vm->stack[vm->sp].value.ival  = 0x00;
                 break;
             case FCONST:
-                memcpy(&c, vm->code + vm->pc, sizeof c);
+                memcpy(&c, vm->code.ptr + vm->pc, sizeof c);
                 vm->pc += sizeof c;
                 PUSH(vm, ((YASL_Object) {Y_FN, c}));
                 break;
@@ -308,7 +308,7 @@ void vm_run(VM *vm){
             case LEN:
                 v = vm->stack[vm->sp];
                 if (v.type == Y_STR) {
-                    vm->stack[vm->sp].value.ival = (v.value.sval)->length;
+                    vm->stack[vm->sp].value.ival = yasl_string_len(v.value.sval);
                 } else if (v.type == Y_TABLE) {
                     vm->stack[vm->sp].value.ival = (v.value.mval)->count;
                 } else if (v.type == Y_LIST) {
@@ -324,12 +324,11 @@ void vm_run(VM *vm){
                 b = vm->stack[vm->sp--];
                 a = vm->stack[vm->sp];
                 if (a.type == Y_STR && b.type == Y_STR) {
-                    size = (a.value.sval)->length + (b.value.sval)->length;
-                    ptr = str_new_sized(size);
-                    vm->stack[vm->sp].value.sval = ptr;
-                    (vm->stack[vm->sp].value.sval)->length = size;
-                    memcpy(((String_t*)ptr)->str, (a.value.sval)->str, (a.value.sval)->length);
-                    memcpy(((String_t*)ptr)->str + (a.value.sval)->length, (b.value.sval)->str, (b.value.sval)->length);
+                    size = yasl_string_len(a.value.sval) + yasl_string_len(b.value.sval);
+                    char *ptr = malloc(size);
+                    memcpy(ptr, (a.value.sval)->str.ptr + a.value.sval->start, yasl_string_len(a.value.sval));
+                    memcpy(ptr + yasl_string_len(a.value.sval), (b.value.sval)->str.ptr + b.value.sval->start, yasl_string_len(b.value.sval));
+                    vm->stack[vm->sp].value.sval = str_new_sized(size, ptr);
                     break;
                 } else if (a.type == Y_LIST && b.type == Y_LIST) {
                     size = a.value.lval->count + b.value.lval->count;
@@ -349,26 +348,27 @@ void vm_run(VM *vm){
                        YASL_TYPE_NAMES[a.type],
                        YASL_TYPE_NAMES[b.type]);
                 return;
-            case HARD_CNCT:
+            /* case HARD_CNCT:
                 b = POP(vm);
                 a = PEEK(vm);
                 if (a.type != Y_STR || b.type != Y_STR) {
                     puts("||| should have coerced to strings, aborting.");
                     return;
                 }
-                if ((b.value.sval)->length == 0) break;
-                if ((a.value.sval)->length == 0) {
+                if (yasl_string_len(b.value.sval) == 0) break;
+                if (yasl_string_len(a.value.sval) == 0) {
                     PEEK(vm) = b;
                     break;
                 }
-                size = (a.value.sval)->length + (b.value.sval)->length + 1;
+                size = yasl_string_len(a.value.sval) + yasl_string_len(b.value.sval) + 1;
                 ptr = str_new_sized(size);
-                vm->stack[vm->sp].value.sval = ptr; //ew_sized_string8(size);
-                (vm->stack[vm->sp].value.sval)->length = size;
-                memcpy(((String_t*)ptr)->str, (a.value.sval)->str, (a.value.sval)->length);
-                (PEEK(vm).value.sval)->str[(a.value.sval)->length] = ' ';
-                memcpy(((String_t*)ptr)->str + (a.value.sval)->length + 1, (b.value.sval)->str, (b.value.sval)->length);
-                break;
+                PEEK(vm).value.sval = ptr; //ew_sized_string8(size);
+                PEEK(vm).value.sval->start = 0;
+                PEEK(vm).value.sval->end = size;
+                memcpy(((String_t*)ptr)->str.ptr, (a.value.sval)->str.ptr, yasl_string_len(a.value.sval));
+                (PEEK(vm).value.sval)->str.ptr[yasl_string_len(a.value.sval)] = ' ';
+                memcpy(((String_t*)ptr)->str.ptr + yasl_string_len(a.value.sval) + 1, (b.value.sval)->str.ptr, yasl_string_len(b.value.sval));
+                break; */
             case GT:
                 b = POP(vm);
                 a = POP(vm);
@@ -406,18 +406,13 @@ void vm_run(VM *vm){
                 break;
             case NEWSTR:
                 vm->stack[++vm->sp].type = Y_STR;
+                memcpy(&addr, vm->code.ptr + vm->pc, sizeof(int64_t));
 
-                memcpy(&addr, vm->code+vm->pc, sizeof(int64_t));
                 vm->pc += sizeof(int64_t);
+                memcpy(&size, vm->code.ptr + addr, sizeof(int64_t));
+                addr += sizeof(int64_t);
 
-                memcpy(&size, vm->code + addr, sizeof(int64_t));
-
-                vm->stack[vm->sp].value.sval  = str_new_sized(size);
-
-                vm->stack[vm->sp].value.sval->length = size;
-
-                memcpy(vm->stack[vm->sp].value.sval->str, vm->code+addr+sizeof(int64_t), size);
-
+                PEEK(vm).value.sval  = str_new_sized_from_mem(addr, addr + size, vm->code);
                 break;
             case NEWTABLE: {
                 Hash_t *ht = ht_new();
@@ -492,38 +487,38 @@ void vm_run(VM *vm){
                 vm->stack[vm->sp] = b;
                 break;
             case GOTO:
-                memcpy(&c, vm->code + vm->pc, sizeof c);
+                memcpy(&c, vm->code.ptr + vm->pc, sizeof c);
                 vm->pc = c + (vm->pc < vm->pc0 ? 16 : vm->pc0);
                 break;
             case BR_8:
-                memcpy(&c, vm->code + vm->pc, sizeof c);
+                memcpy(&c, vm->code.ptr + vm->pc, sizeof c);
                 vm->pc += sizeof c;
                 vm->pc += c;
                 break;
             case BRF_8:
-                memcpy(&c, vm->code + vm->pc, sizeof c);
+                memcpy(&c, vm->code.ptr + vm->pc, sizeof c);
                 vm->pc += sizeof c;
                 v = vm->stack[vm->sp--];
                 if (FALSEY(v)) vm->pc += c;
                 break;
             case BRT_8:
-                memcpy(&c, vm->code + vm->pc, sizeof c);
+                memcpy(&c, vm->code.ptr + vm->pc, sizeof c);
                 vm->pc += sizeof c;
                 v = vm->stack[vm->sp--];
                 if (!(FALSEY(v))) vm->pc += c;
                 break;
             case BRN_8:
-                memcpy(&c, vm->code + vm->pc, sizeof(c));
+                memcpy(&c, vm->code.ptr + vm->pc, sizeof(c));
                 vm->pc += sizeof(c);
                 v = vm->stack[vm->sp--];
                 if (v.type != Y_UNDEF) vm->pc += c;
                 break;
             case GLOAD_1:
-                addr = vm->code[vm->pc++];               // get addr of var in params
+                addr = vm->code.ptr[vm->pc++];               // get addr of var in params
                 vm->stack[++vm->sp] = vm->globals[addr];  // load value from memory of the provided addr
                 break;
             case GSTORE_1:
-                addr = vm->code[vm->pc++];
+                addr = vm->code.ptr[vm->pc++];
                 vm->globals[addr] = vm->stack[vm->sp--];
                 break;
             case LLOAD_1:
@@ -541,10 +536,10 @@ void vm_run(VM *vm){
                     PUSH(vm, ((YASL_Object) {offset, vm->fp}));  // store previous frame ptr;
                     PUSH(vm, ((YASL_Object) {offset, vm->pc}));  // store pc addr
                     vm->fp = vm->sp;
-                    if (vm->code[addr] != offset) {
+                    if (vm->code.ptr[addr] != offset) {
                         puts("CallError: wrong number params.");
                     }
-                    offset = vm->code[addr+1];
+                    offset = vm->code.ptr[addr+1];
                     vm->sp += offset + 1; // + 2
                     vm->pc = addr + 2;
                     break;
@@ -597,7 +592,7 @@ void vm_run(VM *vm){
                 for (i = 0; i < offset; i++) {
                     vm->stack[vm->fp - 2 - i] = vm->stack[vm->sp - i];
                 }
-                memcpy(&addr, vm->code + vm->pc, sizeof addr);
+                memcpy(&addr, vm->code.ptr + vm->pc, sizeof addr);
                 vm->pc += sizeof addr;
                 offset = NCODE(vm);
                 vm->sp = vm->fp + offset;

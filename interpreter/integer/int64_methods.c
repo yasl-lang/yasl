@@ -12,8 +12,9 @@ int int64_tofloat64(VM* vm) {
 int int64_tostr(VM *vm) {
     ASSERT_TYPE(vm, Y_INT64, "int64.tostr");
     int64_t val = POP(vm).value.ival;
-    String_t* string = str_new_sized(snprintf(NULL, 0, "%" PRId64 "", val));
-    sprintf(string->str, "%" PRId64 "", val);           // TODO: adjust so that it doesn't use a null terminator
+    char *ptr = malloc(snprintf(NULL, 0, "%" PRId64 "", val));
+    sprintf(ptr, "%" PRId64 "", val);
+    String_t* string = str_new_sized(snprintf(NULL, 0, "%" PRId64 "", val), ptr);
     PUSH(vm, ((YASL_Object){Y_STR, (int64_t)string}));
     return 0;
 }

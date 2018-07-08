@@ -67,6 +67,8 @@ add_executable(YASL
         interpreter/YASL_string/str_methods.h
         interpreter/YASL_string/YASL_string.c
         interpreter/YASL_string/YASL_string.h
+        interpreter/YASL_string/refcountptr.c
+        interpreter/YASL_string/refcountptr.h
         prime/prime.c
         prime/prime.h
         functions.h

@@ -13,8 +13,9 @@ int float64_tostr(VM *vm) {
     ASSERT_TYPE(vm, Y_FLOAT64, "float.tostr");
     double val = 0;
     memcpy(&val, &vm->stack[vm->sp].value, sizeof(double));
-    String_t* string = str_new_sized(snprintf(NULL, 0, "%f", val));
-    sprintf(string->str, "%f", val);           // TODO: adjust so that it doesn't use a null terminator
+    char *ptr = malloc(snprintf(NULL, 0, "%f", val));
+    sprintf(ptr, "%f", val);
+    String_t* string = str_new_sized(snprintf(NULL, 0, "%f", val), ptr);
     PEEK(vm) = (YASL_Object){Y_STR, (int64_t)string};
     return 0;
 }

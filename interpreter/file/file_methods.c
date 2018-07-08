@@ -1,5 +1,6 @@
 #include <interpreter/YASL_Object/YASL_Object.h>
 #include <debug.h>
+#include <interpreter/YASL_string/refcountptr.h>
 #include "file_methods.h"
 
 int file_close(VM* vm) {
@@ -36,9 +37,9 @@ int file_write(VM* vm) {
         return -1;
     }
     // TODO: don't rely on C-strings for writing
-    char *buffer = malloc((str.value.sval)->length+1);
-    memcpy(buffer, (str.value.sval)->str, (str.value.sval)->length);
-    buffer[(str.value.sval)->length] = '\0';
+    char *buffer = malloc(yasl_string_len(str.value.sval)+1);
+    memcpy(buffer, (str.value.sval)->str.ptr, yasl_string_len(str.value.sval));
+    buffer[yasl_string_len(str.value.sval)] = '\0';
     if (fprintf(fileh.value.fval, "%s", buffer) < 0) {
         YASL_DEBUG_LOG("%s\n", "error writing to file.");
         BPUSH(vm, 0);
@@ -66,7 +67,7 @@ int file_read(VM* vm) {
         }
     }
     str = realloc(str, sizeof(char)*len);
-    vm->stack[++vm->sp].value.sval = str_new_sized_from_mem(len, str);
+    vm->stack[++vm->sp].value.sval = str_new_sized(len, str);
     vm->stack[vm->sp].type = Y_STR;
     YASL_DEBUG_LOG("%s\n", "successfully read from file.");
     return 0;
@@ -89,7 +90,7 @@ int file_readline(VM* vm) {
         }
     }
     str = realloc(str, sizeof(char)*len);
-    vm->stack[++vm->sp].value.sval = str_new_sized_from_mem(len, str);
+    vm->stack[++vm->sp].value.sval = str_new_sized(len, str);
     vm->stack[vm->sp].type = Y_STR;
     YASL_DEBUG_LOG("%s\n", "successfully readline from file.");
     return 0;

@@ -19,7 +19,7 @@
 
 
 #define BUFFER_SIZE 256
-#define NCODE(vm)    (vm->code[vm->pc++])     // get next bytecode
+#define NCODE(vm)    (vm->code.ptr[vm->pc++])     // get next bytecode
 #define IPUSH(vm, v) (PUSH(vm, ((YASL_Object) {Y_INT64, v})))  //push integer v onto stack
 #define IPOP(vm)     (((vm->stack)[vm->sp--])->value)      // get int from top of stack
 #define IVAL(v)      (*((int64_t*)&v->value))
@@ -85,7 +85,7 @@ typedef struct {
 typedef struct {
 	YASL_Object* globals;          // variables, see "constant.c" for details on YASL_Object.
 	YASL_Object* stack;            // stack
-	unsigned char* code;                 // bytecode
+	rcptr code;                 // bytecode
 	int pc;                     // program counter
     int pc0;                    // initial value for pc
 	int sp;                     // stack pointer

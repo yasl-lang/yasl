@@ -1,19 +1,21 @@
 #include "hashtable.h"
-
+#include "refcountptr.h"
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include <stdio.h>
+#include <interpreter/YASL_Object/YASL_Object.h>
+#include <interpreter/YASL_string/YASL_string.h>
 
 #define HT_BASESIZE 30
 
 static int hash_function(const YASL_Object s, const int a, const int m) {
     long hash = 0;
     if (s.type == Y_STR) {
-        const int64_t len_s = (s.value.sval)->length;
+        const int64_t len_s = (s.value.sval)->end - s.value.sval->start;
         int i;
         for (i = 0; i < len_s; i++) {
-            hash += (long)pow(a, len_s - (i+1)) * ((s.value.sval)->str[i]);
+            hash += (long)pow(a, len_s - (i+1)) * ((s.value.sval)->str.ptr[i]);
             hash = hash % m;
         }
         return (int)hash;
@@ -156,9 +158,11 @@ void ht_insert(Hash_t* hashtable, const YASL_Object key, const YASL_Object value
 
 void ht_insert_string_int(Hash_t *hashtable, char *key, int64_t key_len, int64_t val) {
     String_t *string = malloc(sizeof(String_t));
-    string->length = key_len;
-    string->str = malloc(string->length);
-    memcpy(string->str, key, string->length);
+    char *tmp = malloc(key_len);
+    memcpy(tmp, key, key_len);
+    string->str = rcptr_new(tmp);
+    string->start = 0;
+    string->end = key_len;
     ht_insert(hashtable,
               (YASL_Object) { .type = Y_STR, .value.sval = string},
               (YASL_Object) { .type = Y_BFN, .value.ival = val});
@@ -180,9 +184,11 @@ YASL_Object* ht_search(const Hash_t *const hashtable, const YASL_Object key) {
 
 YASL_Object *ht_search_string_int(const Hash_t *const hashtable, char *key, int64_t key_len) {
     String_t *string = malloc(sizeof(String_t));
-    string->length = key_len;
-    string->str = malloc(string->length);
-    memcpy(string->str, key, string->length);
+    char *tmp = malloc(key_len);
+    memcpy(tmp, key, key_len);
+    string->str = rcptr_new(tmp);
+    string->start = 0;
+    string->end = key_len;
     YASL_Object object = (YASL_Object) { .value.sval = string, .type = Y_STR };
 
     YASL_Object *result = ht_search(hashtable, object);

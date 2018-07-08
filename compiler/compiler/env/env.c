@@ -1,3 +1,5 @@
+#include <interpreter/YASL_string/refcountptr.h>
+#include <interpreter/YASL_string/YASL_string.h>
 #include "env.h"
 
 Env_t *env_new(Env_t *parent) {
@@ -34,9 +36,11 @@ int64_t env_len(Env_t *env) {
 
 int env_contains_cur_scope(Env_t *env, char *name, int64_t name_len) {
     String_t *string = malloc(sizeof(String_t));
-    string->str = malloc(name_len);
-    string->length = name_len;
-    memcpy(string->str, name, string->length);
+    char *tmp = malloc(name_len);
+    memcpy(tmp, name, name_len);
+    string->str = rcptr_new(tmp);
+    string->start = 0;
+    string->end = name_len;
     YASL_Object key = (YASL_Object) { .value.sval = string, .type = Y_STR };
 
     YASL_Object *value = ht_search(env->vars, key);
@@ -48,9 +52,11 @@ int env_contains_cur_scope(Env_t *env, char *name, int64_t name_len) {
 
 int env_contains(Env_t *env, char *name, int64_t name_len) {
     String_t *string = malloc(sizeof(String_t));
-    string->str = malloc(name_len);
-    string->length = name_len;
-    memcpy(string->str, name, string->length);
+    char *tmp = malloc(name_len);
+    memcpy(tmp, name, name_len);
+    string->str = rcptr_new(tmp);
+    string->start = 0;
+    string->end = name_len;
     YASL_Object key = (YASL_Object) { .value.sval = string, .type = Y_STR };
 
     YASL_Object *value = ht_search(env->vars, key);
@@ -63,9 +69,11 @@ int env_contains(Env_t *env, char *name, int64_t name_len) {
 
 int64_t env_get(Env_t *env, char *name, int64_t name_len) {
     String_t *string = malloc(sizeof(String_t));
-    string->str = malloc(name_len);
-    string->length = name_len;
-    memcpy(string->str, name, string->length);
+    char *tmp = malloc(name_len);
+    memcpy(tmp, name, name_len);
+    string->str = rcptr_new(tmp);
+    string->start = 0;
+    string->end = name_len;
     YASL_Object key = (YASL_Object) { .value.sval = string, .type = Y_STR };
 
     YASL_Object *value = ht_search(env->vars, key);
@@ -80,9 +88,11 @@ int64_t env_get(Env_t *env, char *name, int64_t name_len) {
 
 void env_decl_var(Env_t *env, char *name, int64_t name_len) {
     String_t *string = malloc(sizeof(String_t));
-    string->str = malloc(name_len);
-    string->length = name_len;
-    memcpy(string->str, name, string->length);
+    char *tmp = malloc(name_len);
+    memcpy(tmp, name, name_len);
+    string->str = rcptr_new(tmp);
+    string->start = 0;
+    string->end = name_len;
     YASL_Object key = (YASL_Object) { .value.sval = string, .type = Y_STR };
     YASL_Object value = (YASL_Object) { .value.ival = env_len(env), .type = Y_INT64 };
     ht_insert(env->vars, key, value);

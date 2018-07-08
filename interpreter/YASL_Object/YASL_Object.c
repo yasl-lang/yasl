@@ -1,3 +1,4 @@
+#include <interpreter/YASL_string/YASL_string.h>
 #include "YASL_Object.h"
 #define DVAL(v)  (*((double*)&v.value))
 #define TRUE_C   ((YASL_Object) {Y_BOOL, 1})
@@ -66,12 +67,12 @@ YASL_Object isequal(YASL_Object a, YASL_Object b) {
             return FALSE_C;
         case Y_STR:
             if (b.type == Y_STR) {
-                if ((a.value.sval)->length != (b.value.sval)->length) {
+                if (yasl_string_len(a.value.sval) != yasl_string_len(b.value.sval)) {
                     return FALSE_C;
                 } else {
                     int i = 0;
-                    while (i < (a.value.sval)->length) {
-                        if ((a.value.sval)->str[i] != (b.value.sval)->str[i]) {
+                    while (i < yasl_string_len(a.value.sval)) {
+                        if ((a.value.sval)->str.ptr[i] != (b.value.sval)->str.ptr[i]) {
                             return FALSE_C;
                         }
                         i++;
@@ -120,8 +121,8 @@ int print(YASL_Object v) {
             printf("undef");
             break;
         case Y_STR:
-            for (i = 0; i < (v.value.sval)->length; i++) {
-                printf("%c", (v.value.sval)->str[i]);
+            for (i = 0; i < yasl_string_len(v.value.sval); i++) {
+                printf("%c", (v.value.sval)->str.ptr[i + v.value.sval->start]);
             }
             break;
         /* case Y_TABLE:

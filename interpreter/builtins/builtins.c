@@ -1,6 +1,8 @@
 #include <inttypes.h>
 #include <string.h>
 #include <debug.h>
+#include <interpreter/YASL_Object/YASL_Object.h>
+#include <interpreter/YASL_string/YASL_string.h>
 
 #include "builtins.h"
 
@@ -37,7 +39,7 @@ int yasl_input(VM* vm) {
         }
     }
     str = realloc(str, sizeof(char)*len);
-    vm->stack[++vm->sp].value.sval = str_new_sized_from_mem(len, str);
+    vm->stack[++vm->sp].value.sval = str_new_sized(len, str);
     vm->stack[vm->sp].type = Y_STR;
     return 0;
 }
@@ -53,12 +55,12 @@ int yasl_open(VM* vm) {     //TODO: fix bug relating to file pointer
         printf("Error: open(...) expected type %s as first argument, got type %s\n", YASL_TYPE_NAMES[Y_STR], YASL_TYPE_NAMES[str.type]);
         return -1;
     }
-    char *buffer = malloc((str.value.sval)->length + 1);
-    memcpy(buffer, (str.value.sval)->str, (str.value.sval)->length);
-    buffer[(str.value.sval)->length] = '\0';
-    char *mode = malloc((mode_str.value.sval)->length + 1);
-    memcpy(mode, (mode_str.value.sval)->str, (mode_str.value.sval)->length);
-    mode[(mode_str.value.sval)->length] = '\0';
+    char *buffer = malloc(yasl_string_len(str.value.sval) + 1);
+    memcpy(buffer, (str.value.sval)->str.ptr, yasl_string_len(str.value.sval));
+    buffer[str.value.sval->end - str.value.sval->start] = '\0';
+    char *mode = malloc(str.value.sval->end - str.value.sval->start + 1);
+    memcpy(mode, yasl_string_len(mode_str.value.sval), yasl_string_len(str.value.sval));
+    mode[yasl_string_len(mode_str.value.sval)] = '\0';
 
     FILE *f;  // r, w, a, r+, w+, a+
     if (!strcmp(mode, "r")) {
@@ -101,12 +103,12 @@ int yasl_popen(VM* vm) {     //TODO: fix bug relating to file pointer
         printf("Error: popen(...) expected type %x as first argument, got type %x\n", Y_STR, str.type);
         return -1;
     }
-    char *buffer = malloc((str.value.sval)->length + 1);
-    memcpy(buffer, (str.value.sval)->str, (str.value.sval)->length);
-    buffer[(str.value.sval)->length] = '\0';
-    char *mode = malloc((mode_str.value.sval)->length + 1);
-    memcpy(mode, (mode_str.value.sval)->str, (mode_str.value.sval)->length);
-    mode[(mode_str.value.sval)->length] = '\0';
+    char *buffer = malloc(yasl_string_len(str.value.sval) + 1);
+    memcpy(buffer, (str.value.sval)->str.ptr, yasl_string_len(str.value.sval));
+    buffer[yasl_string_len(str.value.sval)] = '\0';
+    char *mode = malloc(yasl_string_len(mode_str.value.sval) + 1);
+    memcpy(mode, (mode_str.value.sval)->str.ptr, yasl_string_len(mode_str.value.sval));
+    mode[yasl_string_len(mode_str.value.sval)] = '\0';
 
     FILE *f;  // r, w, a, r+, w+, a+
     if (!strcmp(mode, "r")) {
