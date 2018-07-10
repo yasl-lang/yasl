@@ -1,4 +1,5 @@
 #include <interpreter/YASL_string/YASL_string.h>
+#include <interpreter/YASL_string/refcountptr.h>
 #include "YASL_Object.h"
 #define DVAL(v)  (*((double*)&v.value))
 #define TRUE_C   ((YASL_Object) {Y_BOOL, 1})
@@ -72,7 +73,7 @@ YASL_Object isequal(YASL_Object a, YASL_Object b) {
                 } else {
                     int i = 0;
                     while (i < yasl_string_len(a.value.sval)) {
-                        if ((a.value.sval)->str.ptr[i] != (b.value.sval)->str.ptr[i]) {
+                        if ((a.value.sval)->str.ptr[i+a.value.sval->start] != (b.value.sval)->str.ptr[i+b.value.sval->start]) {
                             return FALSE_C;
                         }
                         i++;

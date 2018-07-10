@@ -4,7 +4,7 @@
 #include <stdlib.h>
 //#include "../list/list.h"
 #include "../YASL_string/YASL_string.h"
-#define FALSEY(v)  (v.type == Y_UNDEF || (v.type == Y_BOOL && v.value.ival == 0) || (v.type == Y_STR && (v.value.sval)->end - v.value.sval->start == 0))  // returns true iff v is a falsey value
+#define FALSEY(v)  (v.type == Y_UNDEF || (v.type == Y_BOOL && v.value.ival == 0) || (v.type == Y_STR && yasl_string_len(v.value.sval) == 0))  // returns true iff v is a falsey value
 #define DVAL(v)  (*((double*)&v.value))
 #define TRUE_C   ((YASL_Object) {Y_BOOL, 1})
 #define FALSE_C  ((YASL_Object) {Y_BOOL, 0})

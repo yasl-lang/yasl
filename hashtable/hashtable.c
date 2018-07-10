@@ -12,10 +12,10 @@
 static int hash_function(const YASL_Object s, const int a, const int m) {
     long hash = 0;
     if (s.type == Y_STR) {
-        const int64_t len_s = (s.value.sval)->end - s.value.sval->start;
+        const int64_t len_s = yasl_string_len(s.value.sval);
         int i;
         for (i = 0; i < len_s; i++) {
-            hash += (long)pow(a, len_s - (i+1)) * ((s.value.sval)->str.ptr[i]);
+            hash += (long)pow(a, len_s - (i+1)) * ((s.value.sval)->str.ptr[i + s.value.sval->start]);
             hash = hash % m;
         }
         return (int)hash;

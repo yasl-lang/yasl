@@ -292,7 +292,7 @@ void vm_run(VM *vm){
                     return;
                 }
             case NOT:
-                a = vm->stack[vm->sp];
+                a = PEEK(vm);
                 if (a.type == Y_BOOL) {
                     vm->stack[vm->sp].value.ival ^= 1;    // flip the last bit
                     break;
@@ -321,8 +321,8 @@ void vm_run(VM *vm){
                 vm->stack[vm->sp].type = Y_INT64;
                 break;
             case CNCT:
-                b = vm->stack[vm->sp--];
-                a = vm->stack[vm->sp];
+                b = POP(vm);
+                a = PEEK(vm);
                 if (a.type == Y_STR && b.type == Y_STR) {
                     size = yasl_string_len(a.value.sval) + yasl_string_len(b.value.sval);
                     char *ptr = malloc(size);
