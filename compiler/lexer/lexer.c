@@ -69,7 +69,7 @@ static int lex_eatint(Lexer *lex, char separator, int (*isvaliddigit)(int)) {
 }
 
 static int lex_eatop(Lexer *lex) {
-    char c1, c2, c3, c4;
+    char c1, c2, c3;
     int last;
     c1 = lex->c;
     c2 = fgetc(lex->file);
@@ -81,20 +81,6 @@ static int lex_eatop(Lexer *lex) {
     if (feof(lex->file)) {
         goto two;
     }
-
-    c4 = fgetc(lex->file);
-    if (feof(lex->file)) {
-        goto three;
-    }
-
-    four:
-    last = YASLToken_FourChars(c1, c2, c3, c4);
-    if (last != -1) {
-        lex->type = last;
-        lex->value = realloc(lex->value, 0);
-        return 1;
-    }
-    fseek(lex->file, -1, SEEK_CUR);
 
     three:
     last = YASLToken_ThreeChars(c1, c2, c3);
@@ -325,11 +311,6 @@ void gettok(Lexer *lex) {
     exit(EXIT_FAILURE);
 }
 
-static Token YASLToken_FourChars(char c1, char c2, char c3, char c4) {
-    switch(c1) { case '|': switch(c2) { case '|': switch(c3) { case '|':  switch(c4) { case '=': return T_TBAREQ; default: return T_UNKNOWN;} } } }
-    return T_UNKNOWN;
-}
-
 static Token YASLToken_ThreeChars(char c1, char c2, char c3) {
     switch(c1) {
         case '<': switch(c2) { case '<': switch(c3) { case '=': return T_DLTEQ; default: return T_UNKNOWN;} }
@@ -338,10 +319,13 @@ static Token YASLToken_ThreeChars(char c1, char c2, char c3) {
         case '!': switch(c2) { case '=': switch(c3) { case '=': return T_BANGDEQ; default: return T_UNKNOWN;} }
         case '*': switch(c2) { case '*': switch(c3) { case '=': return T_DSTAREQ; default: return T_UNKNOWN;} }
         case '/': switch(c2) { case '/': switch(c3) { case '=': return T_DSLASHEQ; default: return T_UNKNOWN;} }
-        case '|': switch(c2) { case '|': switch(c3) {
-                        case '=': return T_DBAREQ;
-                        case '|': return T_TBAR;
+        case '&': switch(c2) { case '&': switch(c3) {
+                        case '=': return T_DAMPEQ;
                         default: return T_UNKNOWN;
+        } }
+        case '|': switch(c2) { case '|': switch(c3) {
+            case '=': return T_DBAREQ;
+            default: return T_UNKNOWN;
         } }
         case '?': switch(c2) { case '?': switch(c3) { case '=': return T_DQMARKEQ; default: return T_UNKNOWN;} }
     }
@@ -360,8 +344,14 @@ static Token YASLToken_TwoChars(char c1, char c2) {
         case '=': switch(c2) {
             case '=': return T_DEQ;
             case '>': return T_BIG_ARR;
-            default: return T_UNKNOWN;}
-        case '!': switch(c2) { case '=': return T_BANGEQ; default: return T_UNKNOWN;}
+            case '~': return T_EQTILDE;
+            default: return T_UNKNOWN;
+        }
+        case '!': switch(c2) {
+            case '=': return T_BANGEQ;
+            case '~': return T_BANGTILDE;
+            default: return T_UNKNOWN;
+        }
         case '~': switch(c2) { case '=': return T_TILDEEQ; default: return T_UNKNOWN;}
         case '*': switch(c2) {
             case '=': return T_STAREQ;
@@ -383,7 +373,11 @@ static Token YASLToken_TwoChars(char c1, char c2) {
                 case '>': return T_DGT;
                 default:  return T_UNKNOWN;
         }
-        case '&': switch(c2) { case '=': return T_AMPEQ; default: return T_UNKNOWN; }
+        case '&': switch(c2) {
+            case '=': return T_AMPEQ;
+            case '&': return T_DAMP;
+            default: return T_UNKNOWN;
+        }
         case '|': switch(c2) {
                 case '=': return T_BAREQ;
                 case '|': return T_DBAR;
@@ -449,6 +443,9 @@ static void YASLKeywords(Lexer *lex) {
     if (strlen("let") == lex->val_len && !memcmp(lex->value, "let", lex->val_len)) {
         lex->type = T_LET;
         lex->value = realloc(lex->value, 0);
+    } else if (strlen("const") == lex->val_len && !memcmp(lex->value, "const", lex->val_len)) {
+        lex->type = T_CONST;
+        lex->value = realloc(lex->value, 0);
     } else if (strlen("print") == lex->val_len && !memcmp(lex->value, "print", lex->val_len)) {
         lex->type = T_PRINT;
         lex->value = realloc(lex->value, 0);
@@ -483,12 +480,6 @@ static void YASLKeywords(Lexer *lex) {
         lex->type = T_BOOL;
     } else if (strlen("false") == lex->val_len && !memcmp(lex->value, "false", lex->val_len)) {
         lex->type = T_BOOL;
-    } else if (strlen("or") == lex->val_len && !memcmp(lex->value, "or", lex->val_len)) {
-        lex->type = T_OR;
-        lex->value = realloc(lex->value, 0);
-    } else if (strlen("and") == lex->val_len && !memcmp(lex->value, "and", lex->val_len)) {
-        lex->type = T_AND;
-        lex->value = realloc(lex->value, 0);
     } else if (strlen("undef") == lex->val_len && !memcmp(lex->value, "undef", lex->val_len)) {
         lex->type = T_UNDEF;
         lex->value = realloc(lex->value, 0);
@@ -518,8 +509,6 @@ const char *YASL_TOKEN_NAMES[] = {
         "continue",     // T_CONT,
         "for",          // T_FOR,
         "in",           // T_IN
-        "and",          // T_AND,
-        "or",           // T_OR,
         "id",           // T_ID,
         "let",          // T_LET,
         "const",        // T_CONST,
@@ -545,6 +534,7 @@ const char *YASL_TOKEN_NAMES[] = {
         "!",            // BANG,
         "!=",           // BANGEQ,
         "!==",          // BANGDEQ,
+        "!~",           // BANGTILDE,
         "~",            // TILDE,
         "~=",           // TILDEEQ,
         "*",            // STAR,
@@ -568,14 +558,15 @@ const char *YASL_TOKEN_NAMES[] = {
         "=",            // EQ,
         "==",           // DEQ,
         "===",          // TEQ,
+        "=~",           // EQTILDE,
         "&",            // AMP,
         "&=",           // AMPEQ,
+        "&&",           // DAMP,
+        "&&=",          // DAMPEQ,
         "|",            // BAR,
         "|=",           // BAREQ,
         "||",           // DBAR,
         "||=",          // DBAREQ,
-        "|||",          // TBAR,
-        "|||=",         // TBAREQ,
         "?",            // QMARK,
         "??",           // DQMARK,
         "?\?=",         // DQMARKEQ,

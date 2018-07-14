@@ -189,6 +189,14 @@ Node *new_Let(char *name, int64_t name_len, Node *expr, int line) {
     return new_Node_1(N_LET, T_UNKNOWN, expr, name, name_len, line);
 }
 
+Node *Const_get_expr(Node *node) {
+    return node->children[0];
+}
+
+Node *new_Const(char *name, int64_t name_len, Node *expr, int line) {
+    return new_Node_1(N_CONST, T_UNKNOWN, expr, name, name_len, line);
+}
+
 Node *new_TriOp(Token op, Node *left, Node *middle, Node *right, int line) {
     return new_Node_3(N_TRIOP, op, left, middle, right, NULL, 0, line);
 }

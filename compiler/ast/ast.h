@@ -21,6 +21,7 @@ typedef enum {
     N_IF,
     N_PRINT,
     N_LET,
+    N_CONST,
     N_TRIOP,
     N_BINOP,
     N_UNOP,
@@ -88,6 +89,8 @@ Node *Print_get_expr(Node *node);
 Node *new_Print(Node *expr, int line);
 Node *Let_get_expr(Node *node);
 Node *new_Let(char *name, int64_t name_len, Node *expr, int line);
+Node *Const_get_expr(Node *node);
+Node *new_Const(char *name, int64_t name_len, Node *expr, int line);
 Node *TriOp_get_left(Node *node);
 Node *TriOp_get_middle(Node *node);
 Node *TriOp_get_right(Node *node);

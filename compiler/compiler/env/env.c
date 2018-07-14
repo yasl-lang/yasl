@@ -1,5 +1,6 @@
 #include <interpreter/YASL_string/refcountptr.h>
 #include <interpreter/YASL_string/YASL_string.h>
+#include <interpreter/YASL_Object/YASL_Object.h>
 #include "env.h"
 
 Env_t *env_new(Env_t *parent) {
@@ -96,4 +97,14 @@ void env_decl_var(Env_t *env, char *name, int64_t name_len) {
     YASL_Object key = (YASL_Object) { .value.sval = string, .type = Y_STR };
     YASL_Object value = (YASL_Object) { .value.ival = env_len(env), .type = Y_INT64 };
     ht_insert(env->vars, key, value);
+}
+
+static Hash_t *get_closest_scope_with_var(Env_t *env, char *name, int64_t name_len) {
+    YASL_Object *key = ht_search_string_int(env->vars, name, name_len);
+    return key ? env->vars : get_closest_scope_with_var(env->parent, name, name_len);
+}
+
+void env_make_const(Env_t *env, char *name, int64_t name_len) {
+    Hash_t *ht = get_closest_scope_with_var(env, name, name_len);
+    ht_insert_string_int(ht, name, name_len, ~ht_search_string_int(ht, name, name_len)->value.ival);
 }

@@ -120,16 +120,25 @@ static void visit_Body(Compiler *const compiler, const Node *const node) {
     }
 }
 
+static int is_const(int64_t value) {
+    const uint64_t MASK = 0x8000000000000000;
+    return (MASK & value) != 0;
+}
+
+static int64_t get_index(int64_t value) {
+    return is_const(value) ? ~value : value;
+}
+
 static void load_var(const Compiler *const compiler, char *name, int64_t name_len) {
     if (env_contains(compiler->locals, name, name_len)) {
         bb_add_byte(compiler->buffer, GLOAD_1);
-        bb_add_byte(compiler->buffer, env_get(compiler->locals, name, name_len));
+        bb_add_byte(compiler->buffer, get_index(env_get(compiler->locals, name, name_len)));
     } else if (env_contains(compiler->params, name, name_len)) {
         bb_add_byte(compiler->buffer, LLOAD_1);
-        bb_add_byte(compiler->buffer, env_get(compiler->params, name, name_len)); // TODO: handle size
+        bb_add_byte(compiler->buffer, get_index(env_get(compiler->params, name, name_len))); // TODO: handle size
     } else if (env_contains(compiler->globals, name, name_len)){
         bb_add_byte(compiler->buffer, GLOAD_1);
-        bb_add_byte(compiler->buffer, env_get(compiler->globals, name, name_len));  // TODO: handle size
+        bb_add_byte(compiler->buffer, get_index(env_get(compiler->globals, name, name_len)));  // TODO: handle size
     } else {
         printf("undeclared variable %s.\n");
         exit(EXIT_FAILURE);
@@ -138,14 +147,29 @@ static void load_var(const Compiler *const compiler, char *name, int64_t name_le
 
 static void store_var(const Compiler *const compiler, char *name, int64_t name_len) {
     if (env_contains(compiler->locals, name, name_len)) {
+        int64_t index = env_get(compiler->locals, name, name_len);
+        if (is_const(index)) {
+            printf("cannot assign to constant %s", name);
+            exit(EXIT_FAILURE);
+        }
         bb_add_byte(compiler->buffer, GSTORE_1);
-        bb_add_byte(compiler->buffer, env_get(compiler->locals, name, name_len));
+        bb_add_byte(compiler->buffer, index);
     } else if (env_contains(compiler->params, name, name_len)) {
+        int64_t index = env_get(compiler->params, name, name_len);
+        if (is_const(index)) {
+            printf("cannot assign to constant %s", name);
+            exit(EXIT_FAILURE);
+        }
         bb_add_byte(compiler->buffer, LSTORE_1);
-        bb_add_byte(compiler->buffer, env_get(compiler->params, name, name_len)); // TODO: handle size
+        bb_add_byte(compiler->buffer, index); // TODO: handle size
     } else if (env_contains(compiler->globals, name, name_len)){
+        int64_t index = env_get(compiler->globals, name, name_len);
+        if (is_const(index)) {
+            printf("cannot assign to constant %s", name);
+            exit(EXIT_FAILURE);
+        }
         bb_add_byte(compiler->buffer, GSTORE_1);
-        bb_add_byte(compiler->buffer, env_get(compiler->globals, name, name_len));  // TODO: handle size
+        bb_add_byte(compiler->buffer, index);  // TODO: handle size
     } else {
         printf("undeclared variable %s.\n");
         exit(EXIT_FAILURE);
@@ -161,6 +185,11 @@ static int contains_var(const Compiler *const compiler, char *name, int64_t name
 static void decl_var(Compiler *const compiler, char *name, int64_t name_len) {
     if (NULL != compiler->current_function) env_decl_var(compiler->locals, name, name_len);
     else env_decl_var(compiler->globals, name, name_len);
+}
+
+static void make_const(Compiler * const compiler, char *name, int64_t name_len) {
+    if (NULL != compiler->current_function) env_make_const(compiler->locals, name, name_len);
+    else env_make_const(compiler->globals, name, name_len);
 }
 
 static void decl_param(Compiler *const compiler, char *name, int64_t name_len) {
@@ -409,7 +438,7 @@ static void visit_Print(const Compiler *const compiler, const Node *const node) 
     bb_add_byte(compiler->buffer, PRINT);
 }
 
-static void visit_Let(const Compiler *const compiler, const Node *const node) {
+static void declare_with_let_or_const(const Compiler *const compiler, const Node *const node) {
     if (contains_var(compiler, node->name, node->name_len)) {
         printf("Illegal redeclaration of %s in line %d.\n", node->name, node->line);
         exit(EXIT_FAILURE);
@@ -421,6 +450,15 @@ static void visit_Let(const Compiler *const compiler, const Node *const node) {
     else bb_add_byte(compiler->buffer, NCONST);
 
     store_var(compiler, node->name, node->name_len);
+}
+
+static void visit_Let(const Compiler *const compiler, const Node *const node) {
+    declare_with_let_or_const(compiler, node);
+}
+
+static void visit_Const(const Compiler *const compiler, const Node *const node) {
+    declare_with_let_or_const(compiler, node);
+    make_const(compiler, node->name, node->name_len);
 }
 
 static void visit_TriOp(const Compiler *const compiler, const Node *const node) {
@@ -449,7 +487,7 @@ static void visit_BinOp(const Compiler *const compiler, const Node *const node) 
         visit(compiler, node->children[1]);
         bb_rewrite_intbytes8(compiler->buffer, index, compiler->buffer->count-index-8);
         return;
-    } else if (node->type == T_OR) {  // or operator
+    } else if (node->type == T_DBAR) {  // or operator
         visit(compiler, node->children[0]);
         bb_add_byte(compiler->buffer, DUP);
         bb_add_byte(compiler->buffer, BRT_8);
@@ -459,7 +497,7 @@ static void visit_BinOp(const Compiler *const compiler, const Node *const node) 
         visit(compiler, node->children[1]);
         bb_rewrite_intbytes8(compiler->buffer, index, compiler->buffer->count-index-8);
         return;
-    } else if (node->type == T_AND) {   // and operator
+    } else if (node->type == T_DAMP) {   // and operator
         visit(compiler, node->children[0]);
         bb_add_byte(compiler->buffer, DUP);
         bb_add_byte(compiler->buffer, BRF_8);
@@ -469,19 +507,6 @@ static void visit_BinOp(const Compiler *const compiler, const Node *const node) 
         visit(compiler, node->children[1]);
         bb_rewrite_intbytes8(compiler->buffer, index, compiler->buffer->count-index-8);
         return;
-    } else if (node->type == T_TBAR) {  // ||| operator
-        puts("not yet implemented");
-        exit(1);
-            /* return left + [MCALL_8] + intbytes_8(METHODS["tostr"]) + right + [MCALL_8] + intbytes_8(METHODS["tostr"]) \
-                + [HARD_CNCT] */
-           /* visit(compiler, node->children[0]);
-            bb_add_byte(compiler->buffer, MCALL_8);
-            bb_intbytes8(compiler->buffer, M_TOSTR);
-            visit(compiler, node->children[1]);
-            bb_add_byte(compiler->buffer, MCALL_8);
-            bb_intbytes8(compiler->buffer, M_TOSTR);
-            bb_add_byte(compiler->buffer, HARD_CNCT);
-            return; */
     }
     // all other operators follow the same pattern of visiting one child then the other.
     visit(compiler, node->children[0]);
@@ -524,7 +549,7 @@ static void visit_BinOp(const Compiler *const compiler, const Node *const node) 
             bb_add_byte(compiler->buffer, GT);
             bb_add_byte(compiler->buffer, NOT);
             break;
-        case T_DBAR:
+        case T_TILDE:
             bb_add_byte(compiler->buffer, CNCT);
             break;
         case T_DGT:
@@ -737,6 +762,10 @@ static void visit(Compiler *const compiler, const Node *const node) {
     case N_LET:
         YASL_TRACE_LOG("%s\n", "Visit Let");
         visit_Let(compiler, node);
+        break;
+    case N_CONST:
+        YASL_TRACE_LOG("%s\n", "Visit Const");
+        visit_Const(compiler, node);
         break;
     case N_TRIOP:
         YASL_TRACE_LOG("%s\n", "Visit TriOp");

@@ -124,18 +124,6 @@ void test_in(void) {
     ASSERT_EATTOK(T_EOF, lex);
 }
 
-void test_and(void) {
-    Lexer *lex = setup_lexer("and");
-    ASSERT_EATTOK(T_AND, lex);
-    ASSERT_EATTOK(T_EOF, lex);
-}
-
-void test_or(void) {
-    Lexer *lex = setup_lexer("or");
-    ASSERT_EATTOK(T_OR, lex);
-    ASSERT_EATTOK(T_EOF, lex);
-}
-
 void test_let(void) {
     Lexer *lex = setup_lexer("let");
     ASSERT_EATTOK(T_LET, lex);
@@ -430,6 +418,19 @@ void test_ampeq(void) {
     ASSERT_EATTOK(T_EOF, lex);
 }
 
+void test_damp(void) {
+    Lexer *lex = setup_lexer("&&");
+    ASSERT_EATTOK(T_DAMP, lex);
+    ASSERT_EATTOK(T_EOF, lex);
+}
+
+void test_dampeq(void) {
+    Lexer *lex = setup_lexer("&&=");
+    ASSERT_EATTOK(T_DAMPEQ, lex);
+    ASSERT_EATTOK(T_EOF, lex);
+}
+
+
 void test_bar(void) {
     Lexer *lex = setup_lexer("|");
     ASSERT_EATTOK(T_BAR, lex);
@@ -562,8 +563,6 @@ int main() {
     test_continue();
     test_for();
     test_in();
-    test_and();
-    test_or();
     test_let();
     test_const();
     test_fn();
@@ -613,6 +612,8 @@ int main() {
     test_teq();
     test_amp();
     test_ampeq();
+    test_damp();
+    test_dampeq();
     test_bar();
     test_bareq();
     test_dbar();
