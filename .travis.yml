@@ -1,0 +1,7 @@
+language: c
+
+script: 
+  - cmake .
+  - make YASL # attempt to build binary
+  - make YASLTEST
+  - ./YASLTEST
