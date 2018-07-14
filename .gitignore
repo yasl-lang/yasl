@@ -10,4 +10,4 @@ YASL
 
 # Generated
 dump.ysl
-dump.yb
+*.yb
