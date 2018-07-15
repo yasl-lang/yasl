@@ -570,7 +570,7 @@ int main() {
     test_const();
     test_fn();
     test_return();
-    test_enum();
+    // test_enum();
     test_print();
     test_lpar();
     test_rpar();
