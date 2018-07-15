@@ -10,11 +10,14 @@
             }\
         } while(0)
 
+static int __YASL_TESTS_FAILED__ = 0;
+
 #define ASSERT_TOK_EQ(left, right) do {\
     if (left == right) {\
         /*printf(K_GRN "assert passed in %s: line %d" K_END "\n", __func__, __LINE__);*/\
     } else {\
         printf(K_RED "assert failed in %s: line %d: `%s` =/= `%s`" K_END "\n", __func__, __LINE__, YASL_TOKEN_NAMES[left], YASL_TOKEN_NAMES[right]);\
+        __YASL_TESTS_FAILED__ = 1;\
     }\
 } while(0)
 
@@ -621,4 +624,5 @@ int main() {
     test_qmark();
     test_dqmark();
     test_dqmarkeq();
+    return __YASL_TESTS_FAILED__;
 }
