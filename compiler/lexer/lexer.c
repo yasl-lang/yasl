@@ -154,6 +154,9 @@ void gettok(Lexer *lex) {
         if (c1 == '!') {
             while (!feof(lex->file) && fgetc(lex->file) != '\n') {}
             lex->line++;
+        } else if (feof(lex->file)) {
+            lex->type = T_HASH;
+            return;
         } else {
             fseek(lex->file, -2, SEEK_CUR);
         }
@@ -191,6 +194,9 @@ void gettok(Lexer *lex) {
                     lex->type = T_SEMI;
                     return;
                 }
+            } else if (feof(lex->file)) {
+                lex->type = T_SLASH;
+                return;
             } else {
                 lex_rewind(lex, -1);
                 break;
