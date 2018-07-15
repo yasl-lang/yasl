@@ -1,19 +1,25 @@
 #include <debug.h>
 #include "ast.h"
 
+Node *node_clone(const Node *const node) {
+    if (node == NULL) return NULL;
+    Node *clone = malloc(sizeof(Node));
+    clone->nodetype = node->nodetype;
+    clone->type = node->type;
+    clone->children_len = node->children_len;
+    clone->children = malloc(clone->children_len * sizeof(Node));
+    for (int i = 0; i < clone->children_len; i++) {
+        clone->children[i] = node_clone(node->children[i]);
+    }
+    clone->name_len = node->name_len;
+    clone->name = malloc(node->name_len);
+    memcpy(clone->name, node->name, clone->name_len);
+    clone->line = node->line;
+    return clone;
+}
 
-/*
- * Node {
- *   AST nodetype;
- *   Token type;
- *   Node *children;
- *   char* name;
- *   int len;
- *   int line;
- * }
- */
 
-Node *new_Node_0(AST nodetype, Token type, char *name, int64_t name_len, int line) {
+static Node *new_Node_0(AST nodetype, Token type, char *name, int64_t name_len, int line) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = nodetype;
     node->type = type;
@@ -30,7 +36,7 @@ Node *new_Node_0(AST nodetype, Token type, char *name, int64_t name_len, int lin
     return node;
 }
 
-Node *new_Node_1(AST nodetype, Token type, Node *child, char *name, int64_t name_len, int line) {
+static Node *new_Node_1(AST nodetype, Token type, Node *child, char *name, int64_t name_len, int line) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = nodetype;
     node->type = type;
@@ -48,7 +54,7 @@ Node *new_Node_1(AST nodetype, Token type, Node *child, char *name, int64_t name
     return node;
 }
 
-Node *new_Node_2(AST nodetype, Token type, Node *child1, Node *child2, char *name, int64_t name_len, int line) {
+static Node *new_Node_2(AST nodetype, Token type, Node *child1, Node *child2, char *name, int64_t name_len, int line) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = nodetype;
     node->type = type;
@@ -67,7 +73,7 @@ Node *new_Node_2(AST nodetype, Token type, Node *child1, Node *child2, char *nam
     return node;
 }
 
-Node *new_Node_3(AST nodetype, Token type, Node *child1, Node *child2, Node *child3, char *name, int64_t name_len, int line) {
+static Node *new_Node_3(AST nodetype, Token type, Node *child1, Node *child2, Node *child3, char *name, int64_t name_len, int line) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = nodetype;
     node->type = type;
@@ -92,20 +98,22 @@ Node *new_ExprStmt(Node *child, int line) {
     return new_Node_1(N_EXPRSTMT, T_UNKNOWN, child, NULL, 0, line);
 }
 
-Node *new_Block(int line) {
-    return new_Node_0(N_BLOCK, T_UNKNOWN, NULL, 0, line);
+Node *new_Block(Node *body, int line) {
+    return new_Node_1(N_BLOCK, T_UNKNOWN, body, NULL, 0, line);
 }
 
-void block_append(Node *node, Node *child) {
-    YASL_DEBUG_LOG("%s\n", "appending to block");
-    YASL_DEBUG_LOG("block has %d children.\n", node->children_len);
-    node->children = realloc(node->children, (++node->children_len)*sizeof(Node*));  //TODO: make better implementation
+Node *new_Body(int line) {
+    return new_Node_0(N_BODY, T_UNKNOWN, NULL, 0, line);
+}
+
+void body_append(Node *const node, Node *const child) {
+    YASL_TRACE_LOG("%s\n", "appending to block");
+    node->children = realloc(node->children, (++node->children_len)*sizeof(Node*));
     node->children[node->children_len-1] = child;
-    YASL_DEBUG_LOG("block now has %d children.\n", node->children_len);
 }
 
 
-Node *new_FunctionDecl(Node *params, Node *body, char *name, int64_t name_len, int line) {
+Node *new_FnDecl(Node *params, Node *body, char *name, int64_t name_len, int line) {
     return new_Node_2(N_FNDECL, T_UNKNOWN, params, body, name, name_len, line);
 }
 
@@ -113,17 +121,40 @@ Node *new_Return(Node *expr, int line) {
     return new_Node_1(N_RET, T_UNKNOWN, expr, NULL, 0, line);
 }
 
-Node *new_FunctionCall(Node *params, char *name, int64_t name_len, int line) {
-    return new_Node_1(N_CALL, T_UNKNOWN, params, name, name_len, line);
+Node *new_Call(Node *params, Node *object, int line) {
+    return new_Node_2(N_CALL, T_UNKNOWN, params, object, NULL, 0, line);
 }
 
-
-Node *new_MethodCall(Node *object, Node *params, char *name, int64_t name_len, int line) {
-    return new_Node_2(N_METHOD, T_UNKNOWN, object, params, name, name_len, line);
+Node *new_Set(Node *collection, Node *key, Node *value, int line) {
+    return new_Node_3(N_SET, T_UNKNOWN, collection, key, value, NULL, 0, line);
 }
 
-Node *new_Index(Node *collection, Node *value, int line) {
-    return new_Node_2(N_INDEX, T_UNKNOWN, collection, value, NULL, 0, line);
+Node *new_Get(Node *collection, Node *value, int line) {
+    return new_Node_2(N_GET, T_UNKNOWN, collection, value, NULL, 0, line);
+}
+
+Node *ForIter_get_var(const Node *const node) {
+    return node->children[0];
+}
+
+Node *ForIter_get_collection(const Node *const node) {
+    return node->children[1];
+}
+
+Node *ForIter_get_body(const Node *const node) {
+    return node->children[2];
+}
+
+Node *new_ForIter(Node *var, Node *collection, Node *body, int line) {
+    return new_Node_3(N_FORITER, T_UNKNOWN, var, collection, body, NULL, 0, line);
+}
+
+Node *While_get_cond(Node *node) {
+    return node->children[0];
+}
+
+Node *While_get_body(Node *node) {
+    return node->children[1];
 }
 
 Node *new_While(Node *cond, Node *body, int line) {
@@ -142,12 +173,28 @@ Node *new_If(Node *cond, Node *then_node, Node *else_node, int line) {
     return new_Node_3(N_IF, T_UNKNOWN, cond, then_node, else_node, NULL, 0, line);
 }
 
-Node *new_Print(Node *child, int line) {
-    return new_Node_1(N_PRINT, T_UNKNOWN, child, NULL, 0, line);
+Node *Print_get_expr(Node *node) {
+    return node->children[0];
 }
 
-Node *new_Let(char *name, int64_t name_len, Node *child, int line) {
-    return new_Node_1(N_LET, T_UNKNOWN, child, name, name_len, line);
+Node *new_Print(Node *expr, int line) {
+    return new_Node_1(N_PRINT, T_UNKNOWN, expr, NULL, 0, line);
+}
+
+Node *Let_get_expr(Node *node) {
+    return node->children[0];
+}
+
+Node *new_Let(char *name, int64_t name_len, Node *expr, int line) {
+    return new_Node_1(N_LET, T_UNKNOWN, expr, name, name_len, line);
+}
+
+Node *Const_get_expr(Node *node) {
+    return node->children[0];
+}
+
+Node *new_Const(char *name, int64_t name_len, Node *expr, int line) {
+    return new_Node_1(N_CONST, T_UNKNOWN, expr, name, name_len, line);
 }
 
 Node *new_TriOp(Token op, Node *left, Node *middle, Node *right, int line) {
@@ -193,8 +240,8 @@ Node *new_String(char *value, int len, int line) {
 Node *new_List(Node *values, int line) {
     return new_Node_1(N_LIST, T_UNKNOWN, values, NULL, 0, line);
 }
-Node *new_Map(Node *keys, Node *values, int line) {
-    return new_Node_2(N_MAP, T_UNKNOWN, keys, values, NULL, 0, line);
+Node *new_Table(Node *keys, Node *values, int line) {
+    return new_Node_2(N_TABLE, T_UNKNOWN, keys, values, NULL, 0, line);
 }
 
 void node_del(Node *node) {
@@ -204,4 +251,5 @@ void node_del(Node *node) {
     free(node->name);
     free(node->children);
     free(node);
+
 }

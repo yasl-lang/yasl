@@ -15,7 +15,7 @@ int is_prime(const int64_t x) {
     return 1;
 }
 
-int next_prime(int64_t x) {
+int64_t next_prime(int64_t x) {
     while (is_prime(x++) != 1) {}
-    return x;
+    return x - 1;
 }

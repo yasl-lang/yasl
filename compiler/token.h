@@ -86,18 +86,17 @@ typedef enum {
     T_BREAK,    // 0x0B
     T_CONT,     // 0x0C
     T_FOR,      // 0x0D
-    T_AND,      // 0x0E
-    T_OR,       // 0x0F
-    T_ID,       // 0x10
-    T_LET,      // 0x11
-    T_FN,       // 0x12
-    T_RET,      // 0x13
+    T_IN,
+    T_ID,
+    T_LET,
+    T_CONST,
+    T_FN,
+    T_RET,
     T_ENUM,
-    T_STRUCT,   // 0x14
-    T_PRINT,    // 0x15
-    T_LPAR,     // 0x16
-    T_RPAR,     // 0x17
-    T_LSQB,     // 0x18
+    T_PRINT,
+    T_LPAR,
+    T_RPAR,
+    T_LSQB,
     T_RSQB,
     T_LBRC,
     T_RBRC,
@@ -113,6 +112,7 @@ typedef enum {
     T_BANG,
     T_BANGEQ,
     T_BANGDEQ,
+    T_BANGTILDE,
     T_TILDE,
     T_TILDEEQ,
     T_STAR,
@@ -136,18 +136,20 @@ typedef enum {
     T_EQ,
     T_DEQ,
     T_TEQ,
+    T_EQTILDE,
     T_AMP,
     T_AMPEQ,
+    T_DAMP,
+    T_DAMPEQ,
     T_BAR,
     T_BAREQ,
     T_DBAR,
     T_DBAREQ,
-    T_TBAR,
-    T_TBAREQ,
     T_QMARK,
     T_DQMARK,
     T_DQMARKEQ,
     T_COLON,
-    T_RARR,
-    T_LARR,
+    T_DCOLON,
+    T_BIG_ARR,
+    T_SMALL_ARR
 } Token;

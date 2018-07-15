@@ -1,34 +1,40 @@
+#include "refcountptr.h"
 #include "YASL_string.h"
 #include <string.h>
 
-//#define STRLEN(s)
-String_t* new_sized_string8(const int64_t base_size) {
+int64_t yasl_string_len(const String_t *const str) {
+    return str->end - str->start;
+}
+
+String_t* str_new_sized(const int64_t base_size, char *ptr) {
     String_t* str = malloc(sizeof(String_t));
-    str->length = base_size;
-    str->str = malloc(sizeof(char)*str->length);
+    str->start = 0;
+    str->end = base_size;
+    str->str = rcptr_new(ptr);
     return str;
 }
 
-String_t* new_sized_string8_from_mem(const int64_t base_size, char* str_mem) {
+String_t* str_new_sized_from_mem(const int64_t start, const int64_t end, rcptr mem) {
     String_t* str = malloc(sizeof(String_t));
-    str->length = base_size;
-    str->str = str_mem;
+    str->start = start;
+    str->end = end;
+    str->str = rcptr_copy(mem);
     return str;
 }
 
 //TODO: add new string constructor that takes address of string as second param.
 
-void del_string8(String_t* str8) {
-    free(str8->str);
+void str_del(String_t *str8) {
+    rcptr_dec(str8->str);
     free(str8);
 }
 
-int64_t string8_search(const String_t* haystack, const String_t* needle) {
+int64_t str_find_index(const String_t *haystack, const String_t *needle) {
     // TODO: implement non-naive algorithm for string search.
-    if (haystack->length < needle->length) return -1;
+    if (yasl_string_len(haystack) < yasl_string_len(needle)) return -1;
     int64_t i = 0;
-    while (i < haystack->length) {
-        if (!memcmp(haystack->str+i, needle->str, needle->length)) return i;
+    while (i < yasl_string_len(haystack)) {
+        if (!memcmp(haystack->str.ptr + i, needle->str.ptr, yasl_string_len(needle))) return i;
         i++;
     }
     return -1;

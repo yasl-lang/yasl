@@ -1,9 +1,10 @@
 #include <interpreter/YASL_Object/YASL_Object.h>
 #include <debug.h>
+#include <interpreter/YASL_string/refcountptr.h>
 #include "file_methods.h"
 
 int file_close(VM* vm) {
-    //puts("trying to close file");
+    ASSERT_TYPE(vm, Y_FILE, "file.close");
     FILE *f = (POP(vm).value.fval);
     if (fclose(f)) {
         YASL_DEBUG_LOG("%s\n", "error closing file.");
@@ -16,7 +17,7 @@ int file_close(VM* vm) {
 }
 
 int file_pclose(VM* vm) {
-    //puts("trying to close file");
+    ASSERT_TYPE(vm, Y_FILE, "file.pclose");
     FILE *f = (POP(vm).value.fval);
     if (pclose(f)) {
         YASL_DEBUG_LOG("%s\n", "error closing process.");
@@ -28,25 +29,30 @@ int file_pclose(VM* vm) {
 }
 
 int file_write(VM* vm) {
+    ASSERT_TYPE(vm, Y_FILE, "file.write");
     YASL_Object fileh = POP(vm);
     YASL_Object str = POP(vm);
-    if (str.type != STR8) {
-        printf("Error: file.write expected type %s as first argument, got type %s\n", YASL_TYPE_NAMES[STR8], YASL_TYPE_NAMES[str.type]);
+    if (str.type != Y_STR) {
+        printf("Error: file.write expected type %s as first argument, got type %s\n", YASL_TYPE_NAMES[Y_STR], YASL_TYPE_NAMES[str.type]);
         return -1;
     }
-    char *buffer = malloc((str.value.sval)->length + 1);
-    memcpy(buffer, (str.value.sval)->str, (str.value.sval)->length);
-    buffer[(str.value.sval)->length] = '\0';
-    if (fprintf(fileh.value.fval, "%s", (str.value.sval)->str) < 0) {
+    // TODO: don't rely on C-strings for writing
+    char *buffer = malloc(yasl_string_len(str.value.sval)+1);
+    memcpy(buffer, (str.value.sval)->str.ptr, yasl_string_len(str.value.sval));
+    buffer[yasl_string_len(str.value.sval)] = '\0';
+    if (fprintf(fileh.value.fval, "%s", buffer) < 0) {
         YASL_DEBUG_LOG("%s\n", "error writing to file.");
         BPUSH(vm, 0);
+    } else {
+        YASL_DEBUG_LOG("%s\n", "file written to successfully.");
+        BPUSH(vm, 1);
     }
-    YASL_DEBUG_LOG("%s\n", "file written to successfully.");
-    BPUSH(vm, 1);
+    free(buffer);
     return 0;
 }
 
 int file_read(VM* vm) {
+    ASSERT_TYPE(vm, Y_FILE, "file.read");
     FILE* f = (POP(vm).value.fval);
     int ch;
     size_t len = 0;
@@ -61,13 +67,14 @@ int file_read(VM* vm) {
         }
     }
     str = realloc(str, sizeof(char)*len);
-    vm->stack[++vm->sp].value.sval = new_sized_string8_from_mem(len, str);
-    vm->stack[vm->sp].type = STR8;
+    vm->stack[++vm->sp].value.sval = str_new_sized(len, str);
+    vm->stack[vm->sp].type = Y_STR;
     YASL_DEBUG_LOG("%s\n", "successfully read from file.");
     return 0;
 }
 
 int file_readline(VM* vm) {
+    ASSERT_TYPE(vm, Y_FILE, "file.readline");
     FILE* f = (POP(vm).value.fval);
     int ch;
     size_t len = 0;
@@ -83,8 +90,8 @@ int file_readline(VM* vm) {
         }
     }
     str = realloc(str, sizeof(char)*len);
-    vm->stack[++vm->sp].value.sval = new_sized_string8_from_mem(len, str);
-    vm->stack[vm->sp].type = STR8;
+    vm->stack[++vm->sp].value.sval = str_new_sized(len, str);
+    vm->stack[vm->sp].type = Y_STR;
     YASL_DEBUG_LOG("%s\n", "successfully readline from file.");
     return 0;
 }

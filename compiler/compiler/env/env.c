@@ -1,3 +1,6 @@
+#include <interpreter/YASL_string/refcountptr.h>
+#include <interpreter/YASL_string/YASL_string.h>
+#include <interpreter/YASL_Object/YASL_Object.h>
 #include "env.h"
 
 Env_t *env_new(Env_t *parent) {
@@ -5,7 +8,7 @@ Env_t *env_new(Env_t *parent) {
     //env->parent = malloc(sizeof(Env_t));
     //env->vars   = malloc(sizeof(Hash_t));
     env->parent = parent;
-    env->vars   = new_hash();
+    env->vars   = ht_new();
     return env;
 }
 
@@ -15,7 +18,7 @@ void env_del(Env_t *env) {
     for (i = 0; i < env->vars->size; i++) {
         Item_t* item = env->vars->items[i];
         if (item != NULL) {
-            del_string8(item->key->value.sval);
+            str_del(item->key->value.sval);
             free(item->key);
             free(item->value);
             free(item);
@@ -32,12 +35,30 @@ int64_t env_len(Env_t *env) {
     return env->vars->count + (env->parent == NULL ? 0 : env_len(env->parent));
 }
 
+int env_contains_cur_scope(Env_t *env, char *name, int64_t name_len) {
+    String_t *string = malloc(sizeof(String_t));
+    char *tmp = malloc(name_len);
+    memcpy(tmp, name, name_len);
+    string->str = rcptr_new(tmp);
+    string->start = 0;
+    string->end = name_len;
+    YASL_Object key = (YASL_Object) { .value.sval = string, .type = Y_STR };
+
+    YASL_Object *value = ht_search(env->vars, key);
+    if (value == NULL) {
+        return 0;
+    }
+    return 1;
+}
+
 int env_contains(Env_t *env, char *name, int64_t name_len) {
     String_t *string = malloc(sizeof(String_t));
-    string->str = malloc(name_len);
-    string->length = name_len;
-    memcpy(string->str, name, string->length);
-    YASL_Object key = (YASL_Object) { .value = (int64_t)string, .type = STR8 };
+    char *tmp = malloc(name_len);
+    memcpy(tmp, name, name_len);
+    string->str = rcptr_new(tmp);
+    string->start = 0;
+    string->end = name_len;
+    YASL_Object key = (YASL_Object) { .value.sval = string, .type = Y_STR };
 
     YASL_Object *value = ht_search(env->vars, key);
     if (value == NULL && env->parent == NULL) {
@@ -49,10 +70,12 @@ int env_contains(Env_t *env, char *name, int64_t name_len) {
 
 int64_t env_get(Env_t *env, char *name, int64_t name_len) {
     String_t *string = malloc(sizeof(String_t));
-    string->str = malloc(name_len);
-    string->length = name_len;
-    memcpy(string->str, name, string->length);
-    YASL_Object key = (YASL_Object) { .value.sval = string, .type = STR8 };
+    char *tmp = malloc(name_len);
+    memcpy(tmp, name, name_len);
+    string->str = rcptr_new(tmp);
+    string->start = 0;
+    string->end = name_len;
+    YASL_Object key = (YASL_Object) { .value.sval = string, .type = Y_STR };
 
     YASL_Object *value = ht_search(env->vars, key);
     if (value == NULL && env->parent == NULL) {
@@ -66,10 +89,22 @@ int64_t env_get(Env_t *env, char *name, int64_t name_len) {
 
 void env_decl_var(Env_t *env, char *name, int64_t name_len) {
     String_t *string = malloc(sizeof(String_t));
-    string->str = malloc(name_len);
-    string->length = name_len;
-    memcpy(string->str, name, string->length);
-    YASL_Object key = (YASL_Object) { .value.sval = string, .type = STR8 };
-    YASL_Object value = (YASL_Object) { .value.ival = env_len(env), .type = INT64 };
+    char *tmp = malloc(name_len);
+    memcpy(tmp, name, name_len);
+    string->str = rcptr_new(tmp);
+    string->start = 0;
+    string->end = name_len;
+    YASL_Object key = (YASL_Object) { .value.sval = string, .type = Y_STR };
+    YASL_Object value = (YASL_Object) { .value.ival = env_len(env), .type = Y_INT64 };
     ht_insert(env->vars, key, value);
+}
+
+static Hash_t *get_closest_scope_with_var(Env_t *env, char *name, int64_t name_len) {
+    YASL_Object *key = ht_search_string_int(env->vars, name, name_len);
+    return key ? env->vars : get_closest_scope_with_var(env->parent, name, name_len);
+}
+
+void env_make_const(Env_t *env, char *name, int64_t name_len) {
+    Hash_t *ht = get_closest_scope_with_var(env, name, name_len);
+    ht_insert_string_int(ht, name, name_len, ~ht_search_string_int(ht, name, name_len)->value.ival);
 }

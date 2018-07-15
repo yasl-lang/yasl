@@ -3,49 +3,77 @@
 #include <interpreter/YASL_Object/YASL_Object.h>
 #include "VM.h"
 #include "interpreter/builtins/builtins.h"
+#include <functions.h>
+#include <interpreter/YASL_string/YASL_string.h>
+#include <hashtable/hashtable.h>
 
-VM* newVM(unsigned char* code,    // pointer to bytecode
-    int pc0,             // address of instruction to be executed first -- entrypoint
-    int datasize) {      // total locals size required to perform a program operations
+static LoopStack *loopstack_new(void) {
+    LoopStack *ls = malloc(sizeof(LoopStack));
+    ls->indices = malloc(sizeof(int64_t)*6);
+    ls->stack = malloc(sizeof(int64_t)*6);
+    ls->sp = -1;
+    return ls;
+}
+
+static Hash_t **builtins_htable_new(void) {
+    Hash_t **ht = malloc(sizeof(Hash_t*) * NUM_TYPES);
+    ht[1] = float64_builtins();
+    ht[2] = int64_builtins();
+    ht[3] = bool_builtins();
+    ht[4] = str_builtins();
+    ht[5] = list_builtins();
+    ht[6] = table_builtins();
+    ht[7] = file_builtins();
+
+    return ht;
+}
+
+VM* vm_new(unsigned char *code,    // pointer to bytecode
+           int pc0,             // address of instruction to be executed first -- entrypoint
+           int datasize) {      // total params size required to perform a program operations
     VM* vm = malloc(sizeof(VM));
-    vm->code = code;
+    vm->code = rcptr_new(code);
     vm->pc = pc0;
     vm->pc0 = vm->pc;
     vm->fp = 0;
     vm->sp = -1;
     vm->globals = malloc(sizeof(YASL_Object) * datasize);
-    vm->globals[0] = (YASL_Object) {FILEH, (int64_t)stdin};
-    vm->globals[1] = (YASL_Object) {FILEH, (int64_t)stdout};
-    vm->globals[2] = (YASL_Object) {FILEH, (int64_t)stderr};
+    vm->globals[0] = (YASL_Object) {Y_FILE, (int64_t)stdin};
+    vm->globals[1] = (YASL_Object) {Y_FILE, (int64_t)stdout};
+    vm->globals[2] = (YASL_Object) {Y_FILE, (int64_t)stderr};
+    vm->globals[3] = (YASL_Object) {Y_BFN,  (int64_t)&yasl_open};
+    vm->globals[4] = (YASL_Object) {Y_BFN,  (int64_t)&yasl_popen};
+    vm->globals[5] = (YASL_Object) {Y_BFN,  (int64_t)&yasl_input};
+
     vm->stack = malloc(sizeof(YASL_Object) * STACK_SIZE);
-    vm->builtins_vtable = malloc(sizeof(VTable_t*) * NUM_TYPES);
-    vm->builtins_vtable[1] = float64_builtins();
-    vm->builtins_vtable[2] = int64_builtins();
-    vm->builtins_vtable[3] = bool_builtins();
-    vm->builtins_vtable[4] = str8_builtins();
-    vm->builtins_vtable[5] = list_builtins();
-    vm->builtins_vtable[6] = map_builtins();
-    vm->builtins_vtable[7] = file_builtins();
+
+    vm->builtins_htable = builtins_htable_new();
+    vm->loopstack = loopstack_new();
     return vm;
 }
 
-void delVM(VM* vm){
+void vm_del(VM *vm){
     free(vm->globals);                   // TODO: free these properly
     free(vm->stack);                     // TODO: free these properly
-    //del_vtable(vm->builtins_vtable[0]);
-    del_vtable(vm->builtins_vtable[1]);
-    del_vtable(vm->builtins_vtable[2]);
-    del_vtable(vm->builtins_vtable[3]);
-    del_vtable(vm->builtins_vtable[4]);
-    del_vtable(vm->builtins_vtable[5]);
-    del_vtable(vm->builtins_vtable[6]);
-    del_vtable(vm->builtins_vtable[7]);
-    free(vm->builtins_vtable);
-        free(vm);
+
+    //ht_del_string_int(vm->builtins_htable[0]);
+    ht_del_string_int(vm->builtins_htable[1]);
+    ht_del_string_int(vm->builtins_htable[2]);
+    ht_del_string_int(vm->builtins_htable[3]);
+    ht_del_string_int(vm->builtins_htable[4]);
+    ht_del_string_int(vm->builtins_htable[5]);
+    ht_del_string_int(vm->builtins_htable[6]);
+    ht_del_string_int(vm->builtins_htable[7]);
+    free(vm->builtins_htable);
+
+    free(vm->loopstack->stack);
+    free(vm->loopstack->indices);
+
+    free(vm);
 }
 
 
-void run(VM* vm){
+void vm_run(VM *vm){
     while (1) {
         unsigned char opcode = NCODE(vm);        // fetch
         signed char offset;
@@ -58,29 +86,7 @@ void run(VM* vm){
         /*printf("\nopcode: %x\n", opcode);
         printf("tpye is: %s\n", YASL_TYPE_NAMES[PEEK(vm).type]);
         print(PEEK(vm));
-
-        //print(vm->stack[vm->sp-1]);
-        //print(vm->stack[vm->sp-2]);
-        //print(vm->stack[vm->sp-3]);
-        //print(vm->globals[0]);
-        //print(vm->globals[1]);
-        //print(vm->globals[2]);
-        //print(vm->globals[3]);
-        //print(vm->globals[4]);
-        //print(vm->globals[5]); //*/
-
-        //printf("pc: %d\n", vm->pc);
-        //printf("vm->sp: %d, vm->pc: %d\n", vm->sp, vm->pc);
-        /*printf("stack[0, 1, 2, 3] are %d:%x, %d:%x, %d:%x, %d:%x\n",
-               (int)vm->stack[vm->sp].value,     (int)vm->stack[vm->sp].type,
-               (int)vm->stack[vm->sp - 1].value, (int)vm->stack[vm->sp - 1].type,
-               (int)vm->stack[vm->sp - 2].value, (int)vm->stack[vm->sp - 2].type,
-               (int)vm->stack[vm->sp - 3].value, (int)vm->stack[vm->sp - 3].type); //
-        /*printf("globals[0, 1, 2, 3] are %d:%x, %d:%x, %d:%x, %d:%x\n",
-               (int)vm->globals[0].value, (int)vm->globals[0].type,
-               (int)vm->globals[1].value, (int)vm->globals[1].type,
-               (int)vm->globals[2].value, (int)vm->globals[2].type,
-               (int)vm->globals[3].value, (int)vm->globals[3].type); //*/
+         */
         switch (opcode) {   // decode
             case HALT: return;  // stop the program
             case NOP: break;    // pass
@@ -91,39 +97,44 @@ void run(VM* vm){
             case ICONST_3:
             case ICONST_4:
             case ICONST_5:
-                vm->stack[++vm->sp].type = INT64;
+                vm->stack[++vm->sp].type = Y_INT64;
                 vm->stack[vm->sp].value.ival  = opcode - 0x04;
                 break;
             case DCONST_0:    // TODO: make sure no changes to opcodes ruin this
             case DCONST_1:
             case DCONST_2:
-                vm->stack[++vm->sp].type = FLOAT64;
+                vm->stack[++vm->sp].type = Y_FLOAT64;
                 d = opcode - 0x0B;
                 memcpy(&vm->stack[vm->sp].value, &d, sizeof(double));
                 break;
             case DCONST:        // constants have native endianness
-                memcpy(&c, vm->code + vm->pc, sizeof c);
+                memcpy(&c, vm->code.ptr + vm->pc, sizeof c);
                 vm->pc += sizeof c;
-                PUSH(vm, ((YASL_Object) {FLOAT64, c}));
+                PUSH(vm, ((YASL_Object) {Y_FLOAT64, c}));
                 break;
             case ICONST:        // constants have native endianness
-                memcpy(&c, vm->code + vm->pc, sizeof c);
+                memcpy(&c, vm->code.ptr + vm->pc, sizeof c);
                 vm->pc += sizeof c;
-                PUSH(vm, ((YASL_Object) {INT64, c}));
+                PUSH(vm, ((YASL_Object) {Y_INT64, c}));
                 break;
             case BCONST_F:
             case BCONST_T:
-                vm->stack[++vm->sp].type = BOOL;
+                vm->stack[++vm->sp].type = Y_BOOL;
                 vm->stack[vm->sp].value.ival  = opcode & 0x01;
                 break;
             case NCONST:
-                vm->stack[++vm->sp].type = UNDEF;
+                vm->stack[++vm->sp].type = Y_UNDEF;
                 vm->stack[vm->sp].value.ival  = 0x00;
+                break;
+            case FCONST:
+                memcpy(&c, vm->code.ptr + vm->pc, sizeof c);
+                vm->pc += sizeof c;
+                PUSH(vm, ((YASL_Object) {Y_FN, c}));
                 break;
             case BOR:
                 b = POP(vm);
                 a = PEEK(vm);
-                if (a.type == INT64 && b.type == INT64) {
+                if (a.type == Y_INT64 && b.type == Y_INT64) {
                     PEEK(vm).value.ival = a.value.ival | b.value.ival;
                     break;
                 } else {
@@ -135,7 +146,7 @@ void run(VM* vm){
             case BXOR:
                 b = POP(vm);
                 a = PEEK(vm);
-                if (a.type == INT64 && b.type == INT64) {
+                if (a.type == Y_INT64 && b.type == Y_INT64) {
                     PEEK(vm).value.ival = a.value.ival ^ b.value.ival;
                     break;
                 } else {
@@ -147,7 +158,7 @@ void run(VM* vm){
             case BAND:
                 b = POP(vm);
                 a = PEEK(vm);
-                if (a.type == INT64 && b.type == INT64) {
+                if (a.type == Y_INT64 && b.type == Y_INT64) {
                     PEEK(vm).value.ival = a.value.ival & b.value.ival;
                     break;
                 } else {
@@ -158,7 +169,7 @@ void run(VM* vm){
                 }
             case BNOT:
                 a = PEEK(vm);
-                if (a.type == INT64) {
+                if (a.type == Y_INT64) {
                     PEEK(vm).value.ival = ~a.value.ival;
                     break;
                 } else {
@@ -166,10 +177,10 @@ void run(VM* vm){
                            YASL_TYPE_NAMES[a.type]);
                     return;
                 }
-            case BLSHIFT:
+            case BSL:
                 b = POP(vm);
                 a = PEEK(vm);
-                if (a.type == INT64 && b.type == INT64) {
+                if (a.type == Y_INT64 && b.type == Y_INT64) {
                     PEEK(vm).value.ival = a.value.ival << b.value.ival;
                     break;
                 } else {
@@ -178,10 +189,10 @@ void run(VM* vm){
                            YASL_TYPE_NAMES[b.type]);
                     return;
                 }
-            case BRSHIFT:
+            case BSR:
                 b = POP(vm);
                 a = PEEK(vm);
-                if (a.type == INT64 && b.type == INT64) {
+                if (a.type == Y_INT64 && b.type == Y_INT64) {
                     PEEK(vm).value.ival = (uint64_t)a.value.ival >> (uint64_t)b.value.ival;
                     break;
                 } else {
@@ -208,16 +219,16 @@ void run(VM* vm){
             case FDIV:    // handled differently because we always convert to float
                 b = vm->stack[vm->sp--];
                 a = vm->stack[vm->sp--];
-                if (a.type == INT64 && b.type == INT64) {
+                if (a.type == Y_INT64 && b.type == Y_INT64) {
                     d = (double)a.value.ival / (double)b.value.ival;
                 }
-                else if (a.type == FLOAT64 && b.type == INT64) {
+                else if (a.type == Y_FLOAT64 && b.type == Y_INT64) {
                     d = a.value.dval / (double)b.value.ival;
                 }
-                else if (a.type == INT64 && b.type == FLOAT64) {
+                else if (a.type == Y_INT64 && b.type == Y_FLOAT64) {
                     d = (double)a.value.ival / b.value.dval;
                 }
-                else if (a.type == FLOAT64 && b.type == FLOAT64) {
+                else if (a.type == Y_FLOAT64 && b.type == Y_FLOAT64) {
                     d = a.value.dval / b.value.dval;
                 }
                 else {
@@ -226,14 +237,13 @@ void run(VM* vm){
                            YASL_TYPE_NAMES[b.type]);
                     return;
                 }
-                vm->stack[++vm->sp].type = FLOAT64;
+                vm->stack[++vm->sp].type = Y_FLOAT64;
                 memcpy(&vm->stack[vm->sp].value, &d, sizeof(d));
                 break;
             case IDIV:
                 b = POP(vm);
                 a = PEEK(vm);
-                if (a.type == INT64 && b.type == INT64) {
-                    //printf("a = %d, b = %d, a/b = %d\n", a.value, b.value, a.value / b.value);
+                if (a.type == Y_INT64 && b.type == Y_INT64) {
                     PEEK(vm).value.ival = a.value.ival / b.value.ival;
                     break;
                 } else {
@@ -246,7 +256,7 @@ void run(VM* vm){
                 // TODO: handle undefined C behaviour for negative numbers.
                 b = vm->stack[vm->sp--];
                 a = vm->stack[vm->sp];
-                if (a.type != INT64 || b.type != INT64) {
+                if (a.type != Y_INT64 || b.type != Y_INT64) {
                     printf("TypeError: %% not supported for operands of types %s and %s.\n",
                            YASL_TYPE_NAMES[a.type],
                            YASL_TYPE_NAMES[b.type]);
@@ -257,15 +267,20 @@ void run(VM* vm){
             case EXP:
                 b = POP(vm);
                 a = POP(vm);
-                BINOP(vm, a, b, EXP, "^");
+                if (a.type == Y_INT64 && b.type == Y_INT64 && b.value.ival < 0) {
+                    d = pow((double)a.value.ival, (double)b.value.ival);
+                    DPUSH(vm, d);
+                    break;
+                }
+                BINOP(vm, a, b, EXP, "**");
                 break;
             case NEG:
                 a = vm->stack[vm->sp];
-                if (a.type == INT64) {
+                if (a.type == Y_INT64) {
                     vm->stack[vm->sp].value.ival = -a.value.ival;
                     break;
                 }
-                else if (a.type == FLOAT64) {
+                else if (a.type == Y_FLOAT64) {
                     memcpy(&d, &vm->stack[vm->sp].value, sizeof(double));
                     d = -d;
                     memcpy(&vm->stack[vm->sp].value, &d, sizeof(double));
@@ -277,12 +292,12 @@ void run(VM* vm){
                     return;
                 }
             case NOT:
-                a = vm->stack[vm->sp];
-                if (a.type == BOOL) {
+                a = PEEK(vm);
+                if (a.type == Y_BOOL) {
                     vm->stack[vm->sp].value.ival ^= 1;    // flip the last bit
                     break;
                 }
-                else if (a.type == UNDEF) {
+                else if (a.type == Y_UNDEF) {
                     break;
                 }
                 else {
@@ -292,33 +307,32 @@ void run(VM* vm){
                 }
             case LEN:
                 v = vm->stack[vm->sp];
-                if (v.type == STR8) {
-                    vm->stack[vm->sp].value.ival = (v.value.sval)->length; // (int64_t*)v.value;
-                } else if (v.type == MAP) {
+                if (v.type == Y_STR) {
+                    vm->stack[vm->sp].value.ival = yasl_string_len(v.value.sval);
+                } else if (v.type == Y_TABLE) {
                     vm->stack[vm->sp].value.ival = (v.value.mval)->count;
-                } else if (v.type == LIST) {
+                } else if (v.type == Y_LIST) {
                     vm->stack[vm->sp].value.ival = (v.value.lval)->count;
                 } else {
                     printf("TypeError: # not supported for operand of type %s.\n",
                            YASL_TYPE_NAMES[v.type]);
                     return;
                 }
-                vm->stack[vm->sp].type = INT64;
+                vm->stack[vm->sp].type = Y_INT64;
                 break;
             case CNCT:
-                b = vm->stack[vm->sp--];
-                a = vm->stack[vm->sp];
-                if (a.type == STR8 && b.type == STR8) {
-                    size = (a.value.sval)->length + (b.value.sval)->length;
-                    ptr = new_sized_string8(size);
-                    vm->stack[vm->sp].value.sval = ptr;
-                    (vm->stack[vm->sp].value.sval)->length = size;
-                    memcpy(((String_t*)ptr)->str, (a.value.sval)->str, (a.value.sval)->length);
-                    memcpy(((String_t*)ptr)->str + (a.value.sval)->length, (b.value.sval)->str, (b.value.sval)->length);
+                b = POP(vm);
+                a = PEEK(vm);
+                if (a.type == Y_STR && b.type == Y_STR) {
+                    size = yasl_string_len(a.value.sval) + yasl_string_len(b.value.sval);
+                    char *ptr = malloc(size);
+                    memcpy(ptr, (a.value.sval)->str.ptr + a.value.sval->start, yasl_string_len(a.value.sval));
+                    memcpy(ptr + yasl_string_len(a.value.sval), (b.value.sval)->str.ptr + b.value.sval->start, yasl_string_len(b.value.sval));
+                    vm->stack[vm->sp].value.sval = str_new_sized(size, ptr);
                     break;
-                } else if (a.type == LIST && b.type == LIST) {
+                } else if (a.type == Y_LIST && b.type == Y_LIST) {
                     size = a.value.lval->count + b.value.lval->count;
-                    ptr = new_sized_list(size);
+                    ptr = ls_new_sized(size);
                     vm->stack[vm->sp].value.lval = ptr;
                     // TODO: optimise this.
                     int i;
@@ -334,31 +348,32 @@ void run(VM* vm){
                        YASL_TYPE_NAMES[a.type],
                        YASL_TYPE_NAMES[b.type]);
                 return;
-            case HARD_CNCT:
+            /* case HARD_CNCT:
                 b = POP(vm);
                 a = PEEK(vm);
-                if (a.type != STR8 || b.type != STR8) {
+                if (a.type != Y_STR || b.type != Y_STR) {
                     puts("||| should have coerced to strings, aborting.");
                     return;
                 }
-                if ((b.value.sval)->length == 0) break;
-                if ((a.value.sval)->length == 0) {
+                if (yasl_string_len(b.value.sval) == 0) break;
+                if (yasl_string_len(a.value.sval) == 0) {
                     PEEK(vm) = b;
                     break;
                 }
-                size = (a.value.sval)->length + (b.value.sval)->length + 1;
-                ptr = new_sized_string8(size);
-                vm->stack[vm->sp].value.sval = ptr; //ew_sized_string8(size);
-                (vm->stack[vm->sp].value.sval)->length = size;
-                memcpy(((String_t*)ptr)->str, (a.value.sval)->str, (a.value.sval)->length);
-                (PEEK(vm).value.sval)->str[(a.value.sval)->length] = ' ';
-                memcpy(((String_t*)ptr)->str + (a.value.sval)->length + 1, (b.value.sval)->str, (b.value.sval)->length);
-                break;
+                size = yasl_string_len(a.value.sval) + yasl_string_len(b.value.sval) + 1;
+                ptr = str_new_sized(size);
+                PEEK(vm).value.sval = ptr; //ew_sized_string8(size);
+                PEEK(vm).value.sval->start = 0;
+                PEEK(vm).value.sval->end = size;
+                memcpy(((String_t*)ptr)->str.ptr, (a.value.sval)->str.ptr, yasl_string_len(a.value.sval));
+                (PEEK(vm).value.sval)->str.ptr[yasl_string_len(a.value.sval)] = ' ';
+                memcpy(((String_t*)ptr)->str.ptr + yasl_string_len(a.value.sval) + 1, (b.value.sval)->str.ptr, yasl_string_len(b.value.sval));
+                break; */
             case GT:
                 b = POP(vm);
                 a = POP(vm);
-                if ((a.type != INT64 && a.type != FLOAT64) ||
-                    (b.type != INT64 && b.type != FLOAT64)) {
+                if ((a.type != Y_INT64 && a.type != Y_FLOAT64) ||
+                    (b.type != Y_INT64 && b.type != Y_FLOAT64)) {
                     printf("TypeError: < and > not supported for operand of types %s and %s.\n",
                            YASL_TYPE_NAMES[a.type],
                            YASL_TYPE_NAMES[b.type]);
@@ -369,8 +384,8 @@ void run(VM* vm){
             case GE:
                 b = POP(vm);
                 a = POP(vm);
-                if ((a.type != INT64 && a.type != FLOAT64) ||
-                    (b.type != INT64 && b.type != FLOAT64)) {
+                if ((a.type != Y_INT64 && a.type != Y_FLOAT64) ||
+                    (b.type != Y_INT64 && b.type != Y_FLOAT64)) {
                     printf("TypeError: <= and >= not supported for operand of types %s and %s.\n",
                            YASL_TYPE_NAMES[a.type],
                            YASL_TYPE_NAMES[b.type]);
@@ -387,30 +402,79 @@ void run(VM* vm){
                 b = POP(vm);
                 a = PEEK(vm);
                 vm->stack[vm->sp].value.ival = a.type == b.type && a.value.ival == b.value.ival;
-                vm->stack[vm->sp].type = BOOL;
+                vm->stack[vm->sp].type = Y_BOOL;
                 break;
-            case NEWSTR8:
-                vm->stack[++vm->sp].type = STR8;
+            case NEWSTR:
+                vm->stack[++vm->sp].type = Y_STR;
+                memcpy(&addr, vm->code.ptr + vm->pc, sizeof(int64_t));
 
-                memcpy(&addr, vm->code+vm->pc, sizeof(int64_t));
                 vm->pc += sizeof(int64_t);
+                memcpy(&size, vm->code.ptr + addr, sizeof(int64_t));
+                addr += sizeof(int64_t);
 
-                memcpy(&size, vm->code + addr, sizeof(int64_t));
-
-                vm->stack[vm->sp].value.sval  = new_sized_string8(size);
-
-                vm->stack[vm->sp].value.sval->length = size;
-
-                memcpy(vm->stack[vm->sp].value.sval->str, vm->code+addr+sizeof(int64_t), size);
-
+                PEEK(vm).value.sval  = str_new_sized_from_mem(addr, addr + size, vm->code);
                 break;
-            case NEWMAP:
-                vm->stack[++vm->sp].type = MAP;
-                vm->stack[vm->sp].value.mval  = new_hash();
+            case NEWTABLE: {
+                Hash_t *ht = ht_new();
+                while(PEEK(vm).type != Y_END) {
+                    YASL_Object key = POP(vm);
+                    YASL_Object value = POP(vm);
+                    ht_insert(ht, key, value);
+                }
+                vm->stack[++vm->sp].type = Y_TABLE;
+                vm->stack[vm->sp].value.mval  = ht;
                 break;
-            case NEWLIST:
-                vm->stack[++vm->sp].type = LIST;
-                vm->stack[vm->sp].value.lval  = new_list();
+            }
+            case NEWLIST: {
+                List_t *ls = ls_new();
+                while (PEEK(vm).type != Y_END) {
+                    ls_append(ls, POP(vm));
+                }
+                POP(vm);
+                vm->stack[++vm->sp].type = Y_LIST;
+                vm->stack[vm->sp].value.lval = ls;
+                break;
+            }
+            case INITFOR:
+                vm->loopstack->stack[++vm->loopstack->sp] = POP(vm);
+                vm->loopstack->indices[vm->loopstack->sp] = 0;
+                break;
+            case ENDFOR:
+                vm->loopstack->sp--;
+                break;
+            case ITER_1:
+                // NOTE: only supports lists currently
+                switch (vm->loopstack->stack[vm->loopstack->sp].type) {
+                    case Y_LIST:
+                        if (vm->loopstack->stack[vm->loopstack->sp].value.lval->count <= vm->loopstack->indices[vm->loopstack->sp]) {
+                            BPUSH(vm, 0);
+                        } else {
+                            PUSH(vm, vm->loopstack->stack[vm->loopstack->sp].value.lval->items[vm->loopstack->indices[vm->loopstack->sp]++]); //.value.lval->items;
+                            BPUSH(vm, 1);
+                        }
+                        break;
+                    case Y_TABLE:
+                        while ((vm->loopstack->stack[vm->loopstack->sp].value.mval->items[vm->loopstack->indices[vm->loopstack->sp]] == &TOMBSTONE ||
+                                vm->loopstack->stack[vm->loopstack->sp].value.mval->items[vm->loopstack->indices[vm->loopstack->sp]] == NULL) &&
+                                vm->loopstack->stack[vm->loopstack->sp].value.mval->size > vm->loopstack->indices[vm->loopstack->sp]) {
+                            vm->loopstack->indices[vm->loopstack->sp]++;
+                        }
+                        if (vm->loopstack->stack[vm->loopstack->sp].value.mval->size <= vm->loopstack->indices[vm->loopstack->sp]) {
+                            BPUSH(vm, 0);
+                            break;
+                        }
+                        PUSH(vm, *vm->loopstack->stack[vm->loopstack->sp].value.mval->items[vm->loopstack->indices[vm->loopstack->sp]++]->key); //.value.lval->items;
+                        BPUSH(vm, 1);
+                        break;
+                    default:
+                        printf("object of type %s is not iterable.\n", YASL_TYPE_NAMES[vm->loopstack->stack[vm->loopstack->sp].type]);
+                        exit(EXIT_FAILURE);
+                }
+                break;
+            case ITER_2:
+                exit(1);
+            case END:
+                vm->stack[++vm->sp].type = Y_END;
                 break;
             case DUP:
                 vm->stack[vm->sp+1] = vm->stack[vm->sp];
@@ -423,107 +487,103 @@ void run(VM* vm){
                 vm->stack[vm->sp] = b;
                 break;
             case GOTO:
-                memcpy(&c, vm->code + vm->pc, sizeof c);
-                vm->pc = c + vm->pc0;
+                memcpy(&c, vm->code.ptr + vm->pc, sizeof c);
+                vm->pc = c + (vm->pc < vm->pc0 ? 16 : vm->pc0);
                 break;
             case BR_8:
-                memcpy(&c, vm->code + vm->pc, sizeof c);
+                memcpy(&c, vm->code.ptr + vm->pc, sizeof c);
                 vm->pc += sizeof c;
                 vm->pc += c;
                 break;
             case BRF_8:
-                memcpy(&c, vm->code + vm->pc, sizeof c);
+                memcpy(&c, vm->code.ptr + vm->pc, sizeof c);
                 vm->pc += sizeof c;
                 v = vm->stack[vm->sp--];
                 if (FALSEY(v)) vm->pc += c;
                 break;
             case BRT_8:
-                memcpy(&c, vm->code + vm->pc, sizeof c);
+                memcpy(&c, vm->code.ptr + vm->pc, sizeof c);
                 vm->pc += sizeof c;
                 v = vm->stack[vm->sp--];
                 if (!(FALSEY(v))) vm->pc += c;
                 break;
             case BRN_8:
-                memcpy(&c, vm->code + vm->pc, sizeof(c));
+                memcpy(&c, vm->code.ptr + vm->pc, sizeof(c));
                 vm->pc += sizeof(c);
                 v = vm->stack[vm->sp--];
-                if (v.type != UNDEF) vm->pc += c;
+                if (v.type != Y_UNDEF) vm->pc += c;
                 break;
             case GLOAD_1:
-                addr = vm->code[vm->pc++];               // get addr of var in locals
+                addr = vm->code.ptr[vm->pc++];               // get addr of var in params
                 vm->stack[++vm->sp] = vm->globals[addr];  // load value from memory of the provided addr
                 break;
             case GSTORE_1:
-                addr = vm->code[vm->pc++];
+                addr = vm->code.ptr[vm->pc++];
                 vm->globals[addr] = vm->stack[vm->sp--];
                 break;
             case LLOAD_1:
                 offset = NCODE(vm);
-                vm->stack[++vm->sp] = vm->stack[vm->fp+offset];
+                vm->stack[++vm->sp] = vm->stack[vm->fp-offset-2];
                 break;
             case LSTORE_1:
                 offset = NCODE(vm);
-                vm->stack[vm->fp+offset] = vm->stack[vm->sp--];
+                vm->stack[vm->fp-offset-2] = vm->stack[vm->sp--];
                 break;
             case CALL_8:
-                offset = NCODE(vm);
-                memcpy(&addr, vm->code + vm->pc, sizeof addr);
-                vm->pc += sizeof addr;
-                PUSH(vm, ((YASL_Object) {offset, vm->fp}));  // store previous frame ptr;
-                PUSH(vm, ((YASL_Object) {offset, vm->pc}));  // store pc addr
-                vm->fp = vm->sp;
-                offset = NCODE(vm);
-                vm->sp += offset + 1; // + 2
-                vm->pc = addr;
-                break;
-            case BCALL_8:
-                memcpy(&addr, vm->code + vm->pc, sizeof(addr));
-                vm->pc += sizeof(addr);
-                if (builtins[addr](vm)) {
-                    printf("ERROR: invalid argument type(s) to builtin function.\n");
-                    return;
-                };
-                break;
-            case MCALL_8:
-                /*
-                 * 1 -> float64_builtins();
-                 * 2 -> int64_builtins();
-                 * 3 -> bool_builtins();
-                 * 4 -> str8_builtins();
-                 * 5 -> list_builtins();
-                 * 6 -> map_builtins();
-                 * 7 -> file_builtins();
-                 */
-                memcpy(&addr, vm->code + vm->pc, sizeof(addr));
-                vm->pc += sizeof(addr);
-                if (PEEK(vm).type == FLOAT64) {
-                    addr = vt_search(vm->builtins_vtable[1], addr);
-                } else if (PEEK(vm).type == INT64) {
-                    addr = vt_search(vm->builtins_vtable[2], addr);
-                } else if (PEEK(vm).type == BOOL) {
-                    addr = vt_search(vm->builtins_vtable[3], addr);
-                } else if (PEEK(vm).type == STR8) {
-                    addr = vt_search(vm->builtins_vtable[4], addr);
-                } else if (PEEK(vm).type == LIST) {
-                    addr = vt_search(vm->builtins_vtable[5], addr);
-                } else if (PEEK(vm).type == MAP) {
-                    addr = vt_search(vm->builtins_vtable[6], addr);
-                } else if (PEEK(vm).type == FILEH) {
-                    addr = vt_search(vm->builtins_vtable[7], addr);
-                } else {
-                    printf("ERROR: No methods implemented for this type: %s.\n",
-                           YASL_TYPE_NAMES[PEEK(vm).type]);
-                    return;
-                }
-                if (addr != -1) {
+                if (PEEK(vm).type == Y_FN) {
+                    offset = NCODE(vm);
+                    addr = POP(vm).value.ival;
+                    PUSH(vm, ((YASL_Object) {offset, vm->fp}));  // store previous frame ptr;
+                    PUSH(vm, ((YASL_Object) {offset, vm->pc}));  // store pc addr
+                    vm->fp = vm->sp;
+                    if (vm->code.ptr[addr] != offset) {
+                        puts("CallError: wrong number params.");
+                    }
+                    offset = vm->code.ptr[addr+1];
+                    vm->sp += offset + 1; // + 2
+                    vm->pc = addr + 2;
+                    break;
+                } else if (PEEK(vm).type == Y_BFN) {
+                    offset = NCODE(vm);
+                    addr = POP(vm).value.ival;
                     if (((int (*)(VM*))addr)(vm)) {
                         printf("ERROR: invalid argument type(s) to builtin function.\n");
                         return;
-                    }
+                    };
+                    break;
+                } else {
+                    printf("TypeError: %s is not callable.", YASL_TYPE_NAMES[PEEK(vm).type]);
+                    exit(EXIT_FAILURE);
                 }
-                else {
-                    printf("ERROR: No method implemented by this name.\n");
-                    return;
+            case GET:
+            {
+                int index = PEEK(vm).type;
+                if (PEEK(vm).type == Y_LIST) {
+                    if (!list___get(vm)) break;
+                } else if (PEEK(vm).type == Y_TABLE) {
+                    if (!table___get(vm)) break;
+                } else {
+                    POP(vm);
+                }
+                YASL_Object key = POP(vm);
+                YASL_Object *result = ht_search(vm->builtins_htable[index], key);
+                if (result == NULL) {
+                    printf("%s\n", YASL_TYPE_NAMES[index]);
+                    puts("Not foundsdadsadsasds");
+                    exit(1);
+                } else {
+                    PUSH(vm, *result);
+                }
+                break;
+            }
+            case SET:
+                if (PEEK(vm).type == Y_LIST) {
+                    list___set(vm);
+                } else if (PEEK(vm).type == Y_TABLE) {
+                    table___set(vm);
+                } else {
+                    printf("object of type %s is immutable.", YASL_TYPE_NAMES[PEEK(vm).type]);
+                    exit(EXIT_FAILURE);
                 }
                 break;
             case RCALL_8:
@@ -532,7 +592,7 @@ void run(VM* vm){
                 for (i = 0; i < offset; i++) {
                     vm->stack[vm->fp - 2 - i] = vm->stack[vm->sp - i];
                 }
-                memcpy(&addr, vm->code + vm->pc, sizeof addr);
+                memcpy(&addr, vm->code.ptr + vm->pc, sizeof addr);
                 vm->pc += sizeof addr;
                 offset = NCODE(vm);
                 vm->sp = vm->fp + offset;
@@ -543,30 +603,16 @@ void run(VM* vm){
                 a = vm->stack[vm->fp];
                 b = vm->stack[vm->fp-1];
                 vm->pc = a.value.ival;
-                vm->pc++;
-                vm->sp = vm->fp - a.type;
-                vm->sp--;
+                vm->sp = vm->fp - a.type - 2;
                 vm->fp = b.value.ival;
                 PUSH(vm, v);
                 break;
             case POP:
-                --vm->sp;      // throw away value at top of the stack
+                --vm->sp;
                 break;
-            /*case MLC_8:
-                vm->stack[++vm->sp].type = vm->code[vm->pc++];
-                memcpy(&size, vm->code + vm->pc, sizeof(size));
-                vm->pc += sizeof(size);
-                ptr = malloc(size);
-                vm->stack[vm->sp].value = (int64_t)ptr;
-                break; */
-            /*case MCP_8:
-                memcpy(&big_offset, vm->code + vm->pc, sizeof(big_offset));
-                vm->pc += sizeof(big_offset);
-                memcpy(&size, vm->code + vm->pc, sizeof(size));
-                vm->pc += sizeof(size);
-                memcpy((char*)vm->stack[vm->sp].value + big_offset, vm->code + vm->pc, size);
-                vm->pc += size;
-                break; */
+            case PRINT:
+                yasl_print(vm);
+                break;
             default:
                 printf("ERROR UNKNOWN OPCODE: %x\n", opcode);
                 return;

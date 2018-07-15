@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.9.2)
 project(YASL C)
 
 set(CMAKE_C_STANDARD 11)
@@ -7,7 +7,7 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 include_directories(.)
 include_directories(compiler)
 include_directories(compiler/ast)
-include_directories(compiler/compiler/bytebuffer)
+include_directories(bytebuffer)
 include_directories(compiler/compiler)
 include_directories(compiler/compiler/env)
 include_directories(compiler/lexer)
@@ -19,19 +19,19 @@ include_directories(interpreter/file)
 include_directories(interpreter/float)
 include_directories(interpreter/integer)
 include_directories(interpreter/list)
-include_directories(interpreter/map)
+include_directories(interpreter/table)
 include_directories(interpreter/VM)
-include_directories(interpreter/vtable)
 include_directories(interpreter/YASL_Object)
 include_directories(interpreter/YASL_string)
 include_directories(prime)
+include_directories(test)
 
 add_executable(YASL
         main.c
         compiler/ast/ast.c
         compiler/ast/ast.h
-        compiler/compiler/bytebuffer/bytebuffer.c
-        compiler/compiler/bytebuffer/bytebuffer.h
+        bytebuffer/bytebuffer.c
+        bytebuffer/bytebuffer.h
         compiler/compiler/compiler.c
         compiler/compiler/compiler.h
         compiler/compiler/env/env.c
@@ -57,22 +57,26 @@ add_executable(YASL
         interpreter/list/list.h
         interpreter/list/list_methods.c
         interpreter/list/list_methods.h
-        interpreter/map/map_methods.c
-        interpreter/map/map_methods.h
+        interpreter/table/table_methods.c
+        interpreter/table/table_methods.h
         interpreter/VM/VM.c
         interpreter/VM/VM.h
-        interpreter/vtable/vtable.c
-        interpreter/vtable/vtable.h
         interpreter/YASL_Object/YASL_Object.c
         interpreter/YASL_Object/YASL_Object.h
         interpreter/YASL_string/str_methods.c
         interpreter/YASL_string/str_methods.h
         interpreter/YASL_string/YASL_string.c
         interpreter/YASL_string/YASL_string.h
+        interpreter/YASL_string/refcountptr.c
+        interpreter/YASL_string/refcountptr.h
         prime/prime.c
         prime/prime.h
         functions.h
-        methods.h
         opcode.h)
+
+add_executable(YASLTEST
+        test/lexertest.c
+        compiler/lexer/lexer.c
+        compiler/lexer/lexer.h)
 
 target_link_libraries(YASL m)
