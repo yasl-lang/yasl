@@ -26,9 +26,11 @@ typedef enum Opcode {
             BSL       = 0x24, // bitwise left shift
             BSR       = 0x25, // bitwise right shift
             INITFOR   = 0x30, // initialises for-loop in VM
-            ENDFOR    = 0x31, // end for-loop in VM
-            ITER_1    = 0x32, // iterate to next, 1 var
-            ITER_2    = 0x33, // iterate to next, 2 var
+            INITFORR  = 0x31, // init for-loop for iterating backwards in VM
+            ENDFOR    = 0x32, // end for-loop in VM
+            ITER_1    = 0x33, // iterate to next, 1 var
+            ITER_1R   = 0x34, // iterate backwards over loop
+            ITER_2    = 0x35, // iterate to next, 2 var
             END       = 0x50, // indicate end of list on stack.
             DUP       = 0x58, // duplicate top value of stack
             SWAP      = 0x5B, // swap top two elements of the stack
@@ -45,7 +47,6 @@ typedef enum Opcode {
             NOT       = 0x69, // negate a boolean
             LEN       = 0x6A, // get length
             CNCT      = 0x6B, // concat two strings or lists
-            HARD_CNCT = 0x6C, // hard concat
             GT        = 0x72, // greater than
             GE        = 0x73, // greater than or equal
             EQ        = 0x74, // equality

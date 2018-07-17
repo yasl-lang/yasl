@@ -2,15 +2,11 @@
 #include <compiler/lexer/lexer.h>
 #include <color.h>
 
-#define ASSERT_EQ(left, right) do {\
-            if ((left) == (right)) {\
-                printf(K_GRN "assert passed in %s: line %d" K_END "\n", __func__, __LINE__);\
-            } else {\
-                printf(K_RED "assert failed in %s: line %d" K_END "\n", __func__, __LINE__);\
-            }\
-        } while(0)
 
-static int __YASL_TESTS_FAILED__ = 0;
+#define SETUP_YATS() \
+    static int __YASL_TESTS_FAILED__ = 0
+
+SETUP_YATS();
 
 #define ASSERT_TOK_EQ(left, right) do {\
     if (left == right) {\
@@ -482,6 +478,13 @@ void test_colon(void) {
     ASSERT_EATTOK(T_EOF, lex);
 }
 
+void test_dcolon(void) {
+    Lexer *lex = setup_lexer("::");
+    ASSERT_EATTOK(T_DCOLON, lex);
+    ASSERT_EATTOK(T_EOF, lex);
+}
+
+
 void test_big_arrow(void) {
     Lexer *lex = setup_lexer("=>");
     ASSERT_EATTOK(T_BIG_ARR, lex);
@@ -624,5 +627,9 @@ int main() {
     test_qmark();
     test_dqmark();
     test_dqmarkeq();
+    test_colon();
+    test_dcolon();
+    test_small_arrow();
+    test_big_arrow();
     return __YASL_TESTS_FAILED__;
 }

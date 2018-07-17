@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+// NOTE: must keep this up to date with the jumptable in compiler.c
 typedef enum {
     N_EXPRSTMT,
     N_BLOCK,
@@ -14,6 +15,8 @@ typedef enum {
     N_CALL,
     N_SET,
     N_GET,
+    N_LISTCOMP,
+    N_TABLECOMP,
     N_FORITER,
     N_WHILE,
     N_BREAK,
@@ -72,12 +75,16 @@ Node *new_Get(Node *collection, Node *value, int line);
 Node *Call_get_params(Node *node);
 Node *Call_get_object(Node *node);
 Node *new_Call(Node *params, Node *object, int line);
+Node *ListComp_get_expr(const Node *const node);
+Node *ListComp_get_var(const Node *const node);
+Node *ListComp_get_collection(const Node *const node);
+Node *new_ListComp(Node *expr, Node *var, Node *collection, int line);
 Node *ForIter_get_var(const Node *const node);
 Node *ForIter_get_collection(const Node *const node);
 Node *ForIter_get_body(const Node *const node);
 Node *new_ForIter(Node *var, Node *collection, Node *body, int line);
-Node *While_get_cond(Node *node);
-Node *While_get_body(Node *node);
+Node *While_get_cond(const Node *const node);
+Node *While_get_body(const Node *const node);
 Node *new_While(Node *cond, Node *body, int line);
 Node *new_Break(int line);
 Node *new_Continue(int line);
@@ -85,9 +92,9 @@ Node *If_get_cond(Node *node);
 Node *If_get_then(Node *node);
 Node *If_get_else(Node *node);
 Node *new_If(Node *cond, Node *then_node, Node *else_node, int line);
-Node *Print_get_expr(Node *node);
+Node *Print_get_expr(const Node *const node);
 Node *new_Print(Node *expr, int line);
-Node *Let_get_expr(Node *node);
+Node *Let_get_expr(const Node *const node);
 Node *new_Let(char *name, int64_t name_len, Node *expr, int line);
 Node *Const_get_expr(Node *node);
 Node *new_Const(char *name, int64_t name_len, Node *expr, int line);
@@ -108,10 +115,10 @@ Node *new_Float(char *value, int len, int line);
 Node *new_Integer(char *value, int len, int line);
 Node *new_Boolean(char *value, int len, int line);
 Node *new_String(char *value, int len, int line);
-Node *List_get_values(Node *node);
+Node *List_get_values(const Node *const node);
 Node *new_List(Node *values, int line);
-Node *Table_get_keys(Node *node);
-Node *Table_get_values(Node *node);
+Node *Table_get_keys(const Node *const node);
+Node *Table_get_values(const Node *const node);
 Node *new_Table(Node *keys, Node *values, int line);
 
 void node_del(Node *node);

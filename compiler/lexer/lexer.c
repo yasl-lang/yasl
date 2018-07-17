@@ -11,7 +11,6 @@ static int isodigit(int c) {
 }
 
 char lex_getchar(Lexer *lex) {
-    //printf("last char was %c (%x)\n", lex->c, lex->c);
     return lex->c = fgetc(lex->file);
 }
 
@@ -40,12 +39,8 @@ static int lex_eatinlinecomments(Lexer *lex) {
     return 0;
 }
 
-int lex_eatblockcomments(Lexer *lex) {
-    return 0;
-}
-
 static int lex_eatint(Lexer *lex, char separator, int (*isvaliddigit)(int)) {
-    int i = 0;
+    size_t i = 0;
     lex->value[i++] = '0';
     lex->value[i++] = separator;
     lex_getchar(lex);
@@ -142,6 +137,7 @@ static int lex_eatstring(Lexer *lex) {
 
 void gettok(Lexer *lex) {
     YASL_TRACE_LOG("getting token from line %d\n", lex->line);
+    lex->value = NULL;
     char c1, c2, c3, c4;
     int last;
     lex_getchar(lex);
@@ -454,7 +450,7 @@ static void YASLKeywords(Lexer *lex) {
         lex->value = realloc(lex->value, 0);
     } else if (strlen("print") == lex->val_len && !memcmp(lex->value, "print", lex->val_len)) {
         lex->type = T_PRINT;
-        lex->value = realloc(lex->value, 0);
+        //lex->value = realloc(lex->value, 0);
     } else if (strlen("else") == lex->val_len && !memcmp(lex->value, "else", lex->val_len)) {
         lex->type = T_ELSE;
         lex->value = realloc(lex->value, 0);
@@ -582,7 +578,7 @@ const char *YASL_TOKEN_NAMES[] = {
         "->"            // SMALL_ARR
 };
 
-Lexer *lex_new(FILE *file) {
+Lexer *lex_new(FILE *file /* OWN */) {
     Lexer *lex = malloc(sizeof(Lexer));
     lex->line = 1;
     lex->value = NULL;
@@ -594,6 +590,5 @@ Lexer *lex_new(FILE *file) {
 
 void lex_del(Lexer *lex) {
     fclose(lex->file);
-    free(lex->value);
     free(lex);
 }

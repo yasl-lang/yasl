@@ -1,6 +1,7 @@
 #include <compiler/lexer/lexer.h>
 #include "../lexer/lexer.h"
 #include "parser.h"
+#include <inttypes.h>
 
 int peof(const Parser *const parser) {
     return parser->lex->type == T_EOF;
@@ -80,8 +81,7 @@ static Node *parse_program(const Parser *const parser) {
 static Node *parse_fn(const Parser *const parser) {
     YASL_TRACE_LOG("parsing fn in line %d\n", parser->lex->line);
     eattok(parser, T_FN);
-    char *name = malloc(parser->lex->val_len);
-    memcpy(name, parser->lex->value, parser->lex->val_len);
+    char *name = parser->lex->value;
     int64_t name_len = parser->lex->val_len;
     eattok(parser, T_ID);
     eattok(parser, T_LPAR);
@@ -107,16 +107,14 @@ static Node *parse_let(const Parser *const parser) {
     eattok(parser, T_LET);
     if (curtok(parser) == T_CONST) {
         eattok(parser, T_CONST);
-        char *name = malloc(parser->lex->val_len);
-        memcpy(name, parser->lex->value, parser->lex->val_len);
+        char *name = parser->lex->value;
         int64_t name_len = parser->lex->val_len;
         eattok(parser, T_ID);
         eattok(parser, T_EQ);
         Node *expr = parse_expr(parser);
         return new_Const(name, name_len, expr, parser->lex->line);
     } else {
-        char *name = malloc(parser->lex->val_len);
-        memcpy(name, parser->lex->value, parser->lex->val_len);
+        char *name = parser->lex->value;
         int64_t name_len = parser->lex->val_len;
         eattok(parser, T_ID);
         if (curtok(parser) != T_EQ) return new_Let(name, name_len, NULL, parser->lex->line);
@@ -517,22 +515,20 @@ static Node *parse_constant(const Parser *const parser) {
         case T_IF:
         case T_ELSEIF:
         case T_ELSE:
-            printf("ParsingError in line %d: expected expression, got `%s`\n", parser->lex->line, YASL_TOKEN_NAMES[curtok(parser)]);
+            printf("ParsingError in line %" PRId64 ": expected expression, got `%s`\n", parser->lex->line, YASL_TOKEN_NAMES[curtok(parser)]);
             exit(EXIT_FAILURE);
         default:
-            printf("ParsingError: Invalid expression in line %d (%s).\n", parser->lex->line, YASL_TOKEN_NAMES[curtok(parser)]);
+            printf("ParsingError: Invalid expression in line %" PRId64 " (%s).\n", parser->lex->line, YASL_TOKEN_NAMES[curtok(parser)]);
             exit(EXIT_FAILURE);
     }
 }
 
 static Node *parse_id(const Parser *const parser) {
-    char *name = malloc(parser->lex->val_len);
-    memcpy(name, parser->lex->value, parser->lex->val_len);
+    char *name = parser->lex->value;
     int64_t name_len = parser->lex->val_len;
     eattok(parser, T_ID);
     YASL_TRACE_LOG("%s\n", "Parsing variable");
     Node *cur_node = new_Var(name, name_len, parser->lex->line);
-    free(name);
     return cur_node;
 }
 
@@ -612,12 +608,29 @@ static Node *parse_collection(const Parser *const parser) {
 
     // non-empty list
     node_del(vals);
-    while (curtok(parser) == T_COMMA) {
-        YASL_TRACE_LOG("%s\n", "Parsing list");
-        eattok(parser, T_COMMA);
-        body_append(keys, parse_expr(parser));
+    if (curtok(parser) == T_FOR) {
+        puts("non-empty list");
+        eattok(parser, T_FOR);
+        eattok(parser, T_LET);
+        Node *var = parse_id(parser);
+        eattok(parser, T_IN);
+        Node *collection = parse_expr(parser);
+        Node *cond = NULL;
+        if (curtok(parser) == T_IF) {
+            eattok(parser, T_IF);
+            cond = parse_expr(parser);
+        }
+        eattok(parser, T_RSQB);
+        Node *table_comp = new_ListComp(cond ? new_If(cond, keys->children[0], NULL, parser->lex->line) : keys->children[0], var, collection, parser->lex->line);
+        free(keys);
+        return table_comp;
+    } else {
+        while (curtok(parser) == T_COMMA) {
+            YASL_TRACE_LOG("%s\n", "Parsing list");
+            eattok(parser, T_COMMA);
+            body_append(keys, parse_expr(parser));
+        }
+        eattok(parser, T_RSQB);
+        return new_List(keys, parser->lex->line);
     }
-    eattok(parser, T_RSQB);
-    return new_List(keys, parser->lex->line);
-
 }

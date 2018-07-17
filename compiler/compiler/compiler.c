@@ -140,7 +140,7 @@ static void load_var(const Compiler *const compiler, char *name, int64_t name_le
         bb_add_byte(compiler->buffer, GLOAD_1);
         bb_add_byte(compiler->buffer, get_index(env_get(compiler->globals, name, name_len)));  // TODO: handle size
     } else {
-        printf("undeclared variable %s.\n");
+        printf("undeclared variable %s.\n", name);
         exit(EXIT_FAILURE);
     }
 }
@@ -171,7 +171,7 @@ static void store_var(const Compiler *const compiler, char *name, int64_t name_l
         bb_add_byte(compiler->buffer, GSTORE_1);
         bb_add_byte(compiler->buffer, index);  // TODO: handle size
     } else {
-        printf("undeclared variable %s.\n");
+        printf("undeclared variable %s.\n", name);
         exit(EXIT_FAILURE);
     }
 }
@@ -296,7 +296,7 @@ static void visit_Call(Compiler *const compiler, const Node *const node) {
     bb_add_byte(compiler->buffer, node->children[0]->children_len);
 }
 
-static void visit_Return(const Compiler *const compiler, const Node *const node) {
+static void visit_Return(Compiler *const compiler, const Node *const node) {
     // recursive calls.
     if (node->nodetype == N_CALL && !strcmp(compiler->current_function, node->name)) {
         visit_Body(compiler, node->children[0]);
@@ -314,7 +314,7 @@ static void visit_Return(const Compiler *const compiler, const Node *const node)
     bb_add_byte(compiler->buffer, RET);
 }
 
-static void visit_Set(const Compiler *const compiler, const Node *const node) {
+static void visit_Set(Compiler *const compiler, const Node *const node) {
     // TODO: fix order here by changing VM
     visit(compiler, node->children[1]);
     visit(compiler, node->children[2]);
@@ -322,7 +322,7 @@ static void visit_Set(const Compiler *const compiler, const Node *const node) {
     bb_add_byte(compiler->buffer, SET);
 }
 
-static void visit_Get(const Compiler *const compiler, const Node *const node) {
+static void visit_Get(Compiler *const compiler, const Node *const node) {
     visit(compiler, node->children[1]);
     visit(compiler, node->children[0]);
     bb_add_byte(compiler->buffer, GET);
@@ -332,6 +332,40 @@ static void visit_Block(Compiler *const compiler, const Node *const node) {
     enter_scope(compiler);
     visit(compiler, node->children[0]);
     exit_scope(compiler);
+}
+
+static void visit_ListComp(Compiler *const compiler, const Node *const node) {
+    enter_scope(compiler);
+
+    bb_add_byte(compiler->buffer, END);
+    decl_var(compiler, ListComp_get_var(node)->name, ListComp_get_var(node)->name_len);
+
+    visit(compiler, ListComp_get_collection(node));
+
+    bb_add_byte(compiler->buffer, INITFORR);
+
+    int64_t index_start = compiler->code->count + compiler->buffer->count;
+
+    bb_add_byte(compiler->buffer, ITER_1R);
+
+    bb_add_byte(compiler->buffer, BRF_8);
+
+    int64_t index_second = compiler->buffer->count;
+
+    bb_intbytes8(compiler->buffer, 0);
+    store_var(compiler, ListComp_get_var(node)->name, ListComp_get_var(node)->name_len);
+
+    visit(compiler, ListComp_get_expr(node));
+    bb_add_byte(compiler->buffer, GOTO);
+    bb_intbytes8(compiler->buffer, index_start);
+    bb_rewrite_intbytes8(compiler->buffer, index_second, compiler->buffer->count - index_second - 8);
+    bb_add_byte(compiler->buffer, ENDFOR);
+    bb_add_byte(compiler->buffer, NEWLIST);
+    exit_scope(compiler);
+}
+
+static void visit_TableComp(Compiler *const compiler, const Node *const node) {
+
 }
 
 static void visit_ForIter(Compiler *const compiler, const Node *const node) {
@@ -391,7 +425,7 @@ static void visit_While(Compiler *const compiler, const Node *const node) {
     rm_checkpoint(compiler);
 }
 
-static void visit_Break(const Compiler *const compiler, const Node *const node) {
+static void visit_Break(Compiler *const compiler, const Node *const node) {
     if (compiler->checkpoints_count == 0) {
         puts("SyntaxError: break outside of loop.");
         exit(EXIT_FAILURE);
@@ -401,7 +435,7 @@ static void visit_Break(const Compiler *const compiler, const Node *const node) 
     bb_intbytes8(compiler->buffer, break_checkpoint(compiler));
 }
 
-static void visit_Continue(const Compiler *const compiler, const Node *const node) {
+static void visit_Continue(Compiler *const compiler, const Node *const node) {
     if (compiler->checkpoints_count == 0) {
         puts("SyntaxError: continue outside of loop.");
         exit(EXIT_FAILURE);
@@ -433,12 +467,12 @@ static void visit_If(Compiler *const compiler, const Node *const node) {
     }
 }
 
-static void visit_Print(const Compiler *const compiler, const Node *const node) {
+static void visit_Print(Compiler *const compiler, const Node *const node) {
     visit(compiler, Print_get_expr(node));
     bb_add_byte(compiler->buffer, PRINT);
 }
 
-static void declare_with_let_or_const(const Compiler *const compiler, const Node *const node) {
+static void declare_with_let_or_const(Compiler *const compiler, const Node *const node) {
     if (contains_var(compiler, node->name, node->name_len)) {
         printf("Illegal redeclaration of %s in line %d.\n", node->name, node->line);
         exit(EXIT_FAILURE);
@@ -452,16 +486,17 @@ static void declare_with_let_or_const(const Compiler *const compiler, const Node
     store_var(compiler, node->name, node->name_len);
 }
 
-static void visit_Let(const Compiler *const compiler, const Node *const node) {
+static void visit_Let(Compiler *const compiler, const Node *const node) {
     declare_with_let_or_const(compiler, node);
+    printf("contains var %s? %d\n", node->name, contains_var(compiler, node->name, node->name_len));
 }
 
-static void visit_Const(const Compiler *const compiler, const Node *const node) {
+static void visit_Const(Compiler *const compiler, const Node *const node) {
     declare_with_let_or_const(compiler, node);
     make_const(compiler, node->name, node->name_len);
 }
 
-static void visit_TriOp(const Compiler *const compiler, const Node *const node) {
+static void visit_TriOp(Compiler *const compiler, const Node *const node) {
     visit(compiler, node->children[0]);
     bb_add_byte(compiler->buffer, BRF_8);
     int64_t index_l = compiler->buffer->count;
@@ -475,7 +510,7 @@ static void visit_TriOp(const Compiler *const compiler, const Node *const node) 
     bb_rewrite_intbytes8(compiler->buffer, index_r, compiler->buffer->count-index_r-8);
 }
 
-static void visit_BinOp(const Compiler *const compiler, const Node *const node) {
+static void visit_BinOp(Compiler *const compiler, const Node *const node) {
     // complicated bin ops are handled on their own.
     if (node->type == T_DQMARK) {     // ?? operator
         visit(compiler, node->children[0]);
@@ -585,7 +620,7 @@ static void visit_BinOp(const Compiler *const compiler, const Node *const node) 
     }
 }
 
-static void visit_UnOp(const Compiler *const compiler, const Node *const node) {
+static void visit_UnOp(Compiler *const compiler, const Node *const node) {
     visit(compiler, node->children[0]);
     switch(node->type) {
         case T_PLUS:
@@ -609,7 +644,7 @@ static void visit_UnOp(const Compiler *const compiler, const Node *const node) {
     }
 }
 
-static void visit_Assign(const Compiler *const compiler, const Node *const node) {
+static void visit_Assign(Compiler *const compiler, const Node *const node) {
     if (!contains_var(compiler, node->name, node->name_len)) {
         printf("unknown variable in line %d: %s\n", compiler->parser->lex->line, node->name);
     }
@@ -618,7 +653,7 @@ static void visit_Assign(const Compiler *const compiler, const Node *const node)
     store_var(compiler, node->name, node->name_len);
 }
 
-static void visit_Var(const Compiler *const compiler, const Node *const node) {
+static void visit_Var(Compiler *const compiler, const Node *const node) {
     if (!contains_var(compiler, node->name, node->name_len)) {
         printf("unknown variable in line %d: %s\n", compiler->parser->lex->line, node->name);
         exit(EXIT_FAILURE);
@@ -627,17 +662,17 @@ static void visit_Var(const Compiler *const compiler, const Node *const node) {
     load_var(compiler, node->name, node->name_len);
 }
 
-static void visit_Undef(const Compiler *const compiler, const Node *const node) {
+static void visit_Undef(Compiler *const compiler, const Node *const node) {
     bb_add_byte(compiler->buffer, NCONST);
 }
 
-static void visit_Float(const Compiler *const compiler, const Node *const node) {
+static void visit_Float(Compiler *const compiler, const Node *const node) {
     YASL_TRACE_LOG("float64: %s\n", node->name);
     bb_add_byte(compiler->buffer, DCONST);
     bb_floatbytes8(compiler->buffer, strtod(node->name, (char**)NULL));
 }
 
-static void visit_Integer(const Compiler *const compiler, const Node *const node) {
+static void visit_Integer(Compiler *const compiler, const Node *const node) {
     bb_add_byte(compiler->buffer, ICONST);
     YASL_TRACE_LOG("int64: %s\n", node->name);
     if (node->name_len < 2) {
@@ -660,7 +695,7 @@ static void visit_Integer(const Compiler *const compiler, const Node *const node
     }
 }
 
-static void visit_Boolean(const Compiler *const compiler, const Node *const node) {
+static void visit_Boolean(Compiler *const compiler, const Node *const node) {
     if (!memcmp(node->name, "true", node->name_len)) {
         bb_add_byte(compiler->buffer, BCONST_T);
         return;
@@ -670,7 +705,7 @@ static void visit_Boolean(const Compiler *const compiler, const Node *const node
     }
 }
 
-static void visit_String(const Compiler *const compiler, const Node *const node) {
+static void visit_String(Compiler *const compiler, const Node *const node) {
     YASL_Object *value = ht_search_string_int(compiler->strings, node->name, node->name_len);
     if (value == NULL) {
         YASL_DEBUG_LOG("%s\n", "caching string");
@@ -685,139 +720,55 @@ static void visit_String(const Compiler *const compiler, const Node *const node)
     bb_intbytes8(compiler->buffer, value->value.ival);
 }
 
-static void visit_List(const Compiler *const compiler, const Node *const node) {
+static void visit_List(Compiler *const compiler, const Node *const node) {
     bb_add_byte(compiler->buffer, END);
-    visit_Body_reverse(compiler, node->children[0]);
+    visit_Body_reverse(compiler, List_get_values(node));
     bb_add_byte(compiler->buffer, NEWLIST);
 }
 
 static void visit_Table(Compiler *const compiler, const Node *const node) {
     bb_add_byte(compiler->buffer, END);
-    for (int64_t i = node->children[0]->children_len - 1; i >= 0; i--) {
-        visit(compiler, node->children[1]->children[i]);
-        visit(compiler, node->children[0]->children[i]);
+    for (int64_t i = Table_get_keys(node)->children_len - 1; i >= 0; i--) {
+        visit(compiler, Table_get_values(node)->children[i]);
+        visit(compiler, Table_get_keys(node)->children[i]);
     }
     bb_add_byte(compiler->buffer, NEWTABLE);
 }
 
+// NOTE: must keep this synced with the enum in ast.h
+static void (*jumptable[])(Compiler *const, const Node *const) = {
+        &visit_ExprStmt,
+        &visit_Block,
+        &visit_Body,
+        &visit_FunctionDecl,
+        &visit_Return,
+        &visit_Call,
+        &visit_Set,
+        &visit_Get,
+        &visit_ListComp,
+        &visit_TableComp,
+        &visit_ForIter,
+        &visit_While,
+        &visit_Break,
+        &visit_Continue,
+        &visit_If,
+        &visit_Print,
+        &visit_Let,
+        &visit_Const,
+        &visit_TriOp,
+        &visit_BinOp,
+        &visit_UnOp,
+        &visit_Assign,
+        &visit_Var,
+        &visit_Undef,
+        &visit_Float,
+        &visit_Integer,
+        &visit_Boolean,
+        &visit_String,
+        &visit_List,
+        &visit_Table
+};
 
 static void visit(Compiler *const compiler, const Node *const node) {
-    switch(node->nodetype) {
-    case N_EXPRSTMT:
-        YASL_TRACE_LOG("%s\n", "Visit ExprStmt");
-        visit_ExprStmt(compiler, node);
-        break;
-    case N_BODY:
-        YASL_TRACE_LOG("%s\n", "Visit Body");
-        visit_Body(compiler, node);
-        break;
-    case N_BLOCK:
-        YASL_TRACE_LOG("%s\n", "Visit Block");
-        visit_Block(compiler, node);
-        break;
-    case N_FNDECL:
-        YASL_TRACE_LOG("%s\n", "Visit FunctionDecl");
-        visit_FunctionDecl(compiler, node);
-        break;
-    case N_CALL:
-        YASL_TRACE_LOG("%s\n", "Visit Call");
-        visit_Call(compiler, node);
-        break;
-    case N_RET:
-        YASL_TRACE_LOG("%s\n", "Visit Return");
-        visit_Return(compiler, node);
-        break;
-    case N_SET:
-        YASL_TRACE_LOG("%s\n", "Visit Set");
-        visit_Set(compiler, node);
-        break;
-    case N_GET:
-        YASL_TRACE_LOG("%s\n", "Visit Get");
-        visit_Get(compiler, node);
-        break;
-    case N_FORITER:
-        YASL_TRACE_LOG("%s\n", "Visit Iterative For");
-        visit_ForIter(compiler, node);
-        break;
-    case N_WHILE:
-        YASL_TRACE_LOG("%s\n", "Visit While");
-        visit_While(compiler, node);
-        break;
-    case N_BREAK:
-        YASL_TRACE_LOG("%s\n", "Visit Break");
-        visit_Break(compiler, node);
-        break;
-    case N_CONT:
-        YASL_TRACE_LOG("%s\n", "Visit Continue");
-        visit_Continue(compiler, node);
-        break;
-    case N_IF:
-        YASL_TRACE_LOG("%s\n", "Visit If");
-        visit_If(compiler, node);
-        break;
-    case N_PRINT:
-        YASL_TRACE_LOG("%s\n", "Visit Print");
-        visit_Print(compiler, node);
-        break;
-    case N_LET:
-        YASL_TRACE_LOG("%s\n", "Visit Let");
-        visit_Let(compiler, node);
-        break;
-    case N_CONST:
-        YASL_TRACE_LOG("%s\n", "Visit Const");
-        visit_Const(compiler, node);
-        break;
-    case N_TRIOP:
-        YASL_TRACE_LOG("%s\n", "Visit TriOp");
-        visit_TriOp(compiler, node);
-        break;
-    case N_BINOP:
-        YASL_TRACE_LOG("%s\n", "Visit BinOp");
-        visit_BinOp(compiler, node);
-        break;
-    case N_UNOP:
-        YASL_TRACE_LOG("%s\n", "Visit UnOp");
-        visit_UnOp(compiler, node);
-        break;
-    case N_ASSIGN:
-        YASL_TRACE_LOG("%s\n", "Visit Assign");
-        visit_Assign(compiler, node);
-        break;
-    case N_VAR:
-        YASL_TRACE_LOG("%s\n", "Visit Var");
-        visit_Var(compiler, node);
-        break;
-    case N_UNDEF:
-        YASL_TRACE_LOG("%s\n", "Visit Undef");
-        visit_Undef(compiler, node);
-        break;
-    case N_FLOAT64:
-        YASL_TRACE_LOG("%s\n", "Visit Float");
-        visit_Float(compiler, node);
-        break;
-    case N_INT64:
-        YASL_TRACE_LOG("%s\n", "Visit Integer");
-        visit_Integer(compiler, node);
-        break;
-    case N_BOOL:
-        YASL_TRACE_LOG("%s\n", "Visit Boolean");
-        visit_Boolean(compiler, node);
-        break;
-    case N_STR:
-        YASL_TRACE_LOG("%s\n", "Visit String");
-        visit_String(compiler, node);
-        break;
-    case N_LIST:
-        YASL_TRACE_LOG("%s\n", "Visit List");
-        visit_List(compiler, node);
-        break;
-    case N_TABLE:
-        YASL_TRACE_LOG("%s\n", "Visit Map");
-            visit_Table(compiler, node);
-        break;
-    default:
-        printf("%d\n", node->nodetype);
-        puts("unknown node type");
-        exit(EXIT_FAILURE);
-    }
+    jumptable[node->nodetype](compiler, node);
 }

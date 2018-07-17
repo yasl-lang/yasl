@@ -19,24 +19,19 @@ Node *node_clone(const Node *const node) {
 }
 
 
-static Node *new_Node_0(AST nodetype, Token type, char *name, int64_t name_len, int line) {
+static Node *new_Node_0(AST nodetype, Token type, char *name /* OWN */, int64_t name_len, int line) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = nodetype;
     node->type = type;
     node->children = NULL;
     node->children_len = 0;
     node->name_len = name_len;
-    if (name == NULL) {
-        node->name = NULL;
-    } else {
-        node->name = malloc(node->name_len);
-        memcpy(node->name, name, node->name_len);
-    }
+    node->name = name;
     node->line = line;
     return node;
 }
 
-static Node *new_Node_1(AST nodetype, Token type, Node *child, char *name, int64_t name_len, int line) {
+static Node *new_Node_1(AST nodetype, Token type, Node *child /* OWN */, char *name /* OWN */, int64_t name_len, int line) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = nodetype;
     node->type = type;
@@ -44,17 +39,12 @@ static Node *new_Node_1(AST nodetype, Token type, Node *child, char *name, int64
     node->children[0] = child;
     node->children_len = 1;
     node->name_len = name_len;
-    if (name == NULL) {
-        node->name = NULL;
-    } else {
-        node->name = malloc(node->name_len);
-        memcpy(node->name, name, node->name_len);
-    }
+    node->name = name;
     node->line = line;
     return node;
 }
 
-static Node *new_Node_2(AST nodetype, Token type, Node *child1, Node *child2, char *name, int64_t name_len, int line) {
+static Node *new_Node_2(AST nodetype, Token type, Node *child1 /* OWN */, Node *child2 /* OWN */, char *name /* OWN */, int64_t name_len, int line) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = nodetype;
     node->type = type;
@@ -63,17 +53,12 @@ static Node *new_Node_2(AST nodetype, Token type, Node *child1, Node *child2, ch
     node->children[1] = child2;
     node->children_len = 2;
     node->name_len = name_len;
-    if (name == NULL) {
-        node->name = NULL;
-    } else {
-        node->name = malloc(node->name_len);
-        memcpy(node->name, name, node->name_len);
-    }
+    node->name = name;
     node->line = line;
     return node;
 }
 
-static Node *new_Node_3(AST nodetype, Token type, Node *child1, Node *child2, Node *child3, char *name, int64_t name_len, int line) {
+static Node *new_Node_3(AST nodetype, Token type, Node *child1 /* OWN */, Node *child2 /* OWN */, Node *child3 /* OWN */, char *name /* OWN */, int64_t name_len, int line) {
     Node *node = malloc(sizeof(Node));
     node->nodetype = nodetype;
     node->type = type;
@@ -83,12 +68,7 @@ static Node *new_Node_3(AST nodetype, Token type, Node *child1, Node *child2, No
     node->children[2] = child3;
     node->children_len = 3;
     node->name_len = name_len;
-    if (name == NULL) {
-        node->name = NULL;
-    } else {
-        node->name = malloc(node->name_len);
-        memcpy(node->name, name, node->name_len);
-    }
+    node->name = name;
     node->line = line;
     return node;
 }
@@ -133,6 +113,22 @@ Node *new_Get(Node *collection, Node *value, int line) {
     return new_Node_2(N_GET, T_UNKNOWN, collection, value, NULL, 0, line);
 }
 
+Node *ListComp_get_expr(const Node *const node) {
+    return node->children[0];
+}
+
+Node *ListComp_get_var(const Node *const node) {
+    return node->children[1];
+}
+
+Node *ListComp_get_collection(const Node *const node) {
+    return node->children[2];
+}
+
+Node *new_ListComp(Node *expr, Node *var, Node *collection, int line) {
+    return new_Node_3(N_LISTCOMP, T_UNKNOWN, expr, var, collection, NULL, 0, line);
+}
+
 Node *ForIter_get_var(const Node *const node) {
     return node->children[0];
 }
@@ -149,11 +145,11 @@ Node *new_ForIter(Node *var, Node *collection, Node *body, int line) {
     return new_Node_3(N_FORITER, T_UNKNOWN, var, collection, body, NULL, 0, line);
 }
 
-Node *While_get_cond(Node *node) {
+Node *While_get_cond(const Node *const node) {
     return node->children[0];
 }
 
-Node *While_get_body(Node *node) {
+Node *While_get_body(const Node *const node) {
     return node->children[1];
 }
 
@@ -173,7 +169,7 @@ Node *new_If(Node *cond, Node *then_node, Node *else_node, int line) {
     return new_Node_3(N_IF, T_UNKNOWN, cond, then_node, else_node, NULL, 0, line);
 }
 
-Node *Print_get_expr(Node *node) {
+Node *Print_get_expr(const Node *const node) {
     return node->children[0];
 }
 
@@ -181,7 +177,7 @@ Node *new_Print(Node *expr, int line) {
     return new_Node_1(N_PRINT, T_UNKNOWN, expr, NULL, 0, line);
 }
 
-Node *Let_get_expr(Node *node) {
+Node *Let_get_expr(const Node *const node) {
     return node->children[0];
 }
 
@@ -237,9 +233,22 @@ Node *new_String(char *value, int len, int line) {
     return new_Node_0(N_STR, T_UNKNOWN, value, len, line);
 }
 
+Node *List_get_values(const Node *const node) {
+    return node->children[0];
+}
+
 Node *new_List(Node *values, int line) {
     return new_Node_1(N_LIST, T_UNKNOWN, values, NULL, 0, line);
 }
+
+Node *Table_get_keys(const Node *const node) {
+    return node->children[0];
+}
+
+Node *Table_get_values(const Node *const node) {
+    return node->children[1];
+}
+
 Node *new_Table(Node *keys, Node *values, int line) {
     return new_Node_2(N_TABLE, T_UNKNOWN, keys, values, NULL, 0, line);
 }

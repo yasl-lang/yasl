@@ -7,6 +7,11 @@
 #include <interpreter/YASL_string/YASL_string.h>
 #include <hashtable/hashtable.h>
 
+#define LOOPSTACK_PUSH(vm, val) vm->loopstack->stack[++vm->loopstack->sp] = val
+#define LOOPSTACK_PEEK(vm) vm->loopstack->stack[vm->loopstack->sp]
+#define LOOPSTACK_POP(vm) vm->loopstack->sp--
+#define LOOPSTACK_INDEX(vm) vm->loopstack->indices[vm->loopstack->sp]
+
 static LoopStack *loopstack_new(void) {
     LoopStack *ls = malloc(sizeof(LoopStack));
     ls->indices = malloc(sizeof(int64_t)*6);
@@ -348,27 +353,6 @@ void vm_run(VM *vm){
                        YASL_TYPE_NAMES[a.type],
                        YASL_TYPE_NAMES[b.type]);
                 return;
-            /* case HARD_CNCT:
-                b = POP(vm);
-                a = PEEK(vm);
-                if (a.type != Y_STR || b.type != Y_STR) {
-                    puts("||| should have coerced to strings, aborting.");
-                    return;
-                }
-                if (yasl_string_len(b.value.sval) == 0) break;
-                if (yasl_string_len(a.value.sval) == 0) {
-                    PEEK(vm) = b;
-                    break;
-                }
-                size = yasl_string_len(a.value.sval) + yasl_string_len(b.value.sval) + 1;
-                ptr = str_new_sized(size);
-                PEEK(vm).value.sval = ptr; //ew_sized_string8(size);
-                PEEK(vm).value.sval->start = 0;
-                PEEK(vm).value.sval->end = size;
-                memcpy(((String_t*)ptr)->str.ptr, (a.value.sval)->str.ptr, yasl_string_len(a.value.sval));
-                (PEEK(vm).value.sval)->str.ptr[yasl_string_len(a.value.sval)] = ' ';
-                memcpy(((String_t*)ptr)->str.ptr + yasl_string_len(a.value.sval) + 1, (b.value.sval)->str.ptr, yasl_string_len(b.value.sval));
-                break; */
             case GT:
                 b = POP(vm);
                 a = POP(vm);
@@ -436,39 +420,51 @@ void vm_run(VM *vm){
                 break;
             }
             case INITFOR:
-                vm->loopstack->stack[++vm->loopstack->sp] = POP(vm);
-                vm->loopstack->indices[vm->loopstack->sp] = 0;
+                LOOPSTACK_PUSH(vm, POP(vm));
+                LOOPSTACK_INDEX(vm) = 0;
+                break;
+            case INITFORR:
+                LOOPSTACK_PUSH(vm, POP(vm));
+                LOOPSTACK_INDEX(vm) = LOOPSTACK_PEEK(vm).value.lval->count - 1;
                 break;
             case ENDFOR:
+                LOOPSTACK_POP(vm);
                 vm->loopstack->sp--;
                 break;
             case ITER_1:
-                // NOTE: only supports lists currently
-                switch (vm->loopstack->stack[vm->loopstack->sp].type) {
+                switch (LOOPSTACK_PEEK(vm).type) {
                     case Y_LIST:
-                        if (vm->loopstack->stack[vm->loopstack->sp].value.lval->count <= vm->loopstack->indices[vm->loopstack->sp]) {
+                        if (LOOPSTACK_PEEK(vm).value.lval->count <= LOOPSTACK_INDEX(vm)) {
                             BPUSH(vm, 0);
                         } else {
-                            PUSH(vm, vm->loopstack->stack[vm->loopstack->sp].value.lval->items[vm->loopstack->indices[vm->loopstack->sp]++]); //.value.lval->items;
+                            PUSH(vm, LOOPSTACK_PEEK(vm).value.lval->items[LOOPSTACK_INDEX(vm)++]); //.value.lval->items;
                             BPUSH(vm, 1);
                         }
                         break;
                     case Y_TABLE:
-                        while ((vm->loopstack->stack[vm->loopstack->sp].value.mval->items[vm->loopstack->indices[vm->loopstack->sp]] == &TOMBSTONE ||
-                                vm->loopstack->stack[vm->loopstack->sp].value.mval->items[vm->loopstack->indices[vm->loopstack->sp]] == NULL) &&
-                                vm->loopstack->stack[vm->loopstack->sp].value.mval->size > vm->loopstack->indices[vm->loopstack->sp]) {
-                            vm->loopstack->indices[vm->loopstack->sp]++;
+                        while ((LOOPSTACK_PEEK(vm).value.mval->items[LOOPSTACK_INDEX(vm)] == &TOMBSTONE ||
+                                LOOPSTACK_PEEK(vm).value.mval->items[LOOPSTACK_INDEX(vm)] == NULL) &&
+                                LOOPSTACK_PEEK(vm).value.mval->size > LOOPSTACK_INDEX(vm)) {
+                            LOOPSTACK_INDEX(vm)++;
                         }
-                        if (vm->loopstack->stack[vm->loopstack->sp].value.mval->size <= vm->loopstack->indices[vm->loopstack->sp]) {
+                        if (LOOPSTACK_PEEK(vm).value.mval->size <= LOOPSTACK_INDEX(vm)) {
                             BPUSH(vm, 0);
                             break;
                         }
-                        PUSH(vm, *vm->loopstack->stack[vm->loopstack->sp].value.mval->items[vm->loopstack->indices[vm->loopstack->sp]++]->key); //.value.lval->items;
+                        PUSH(vm, *LOOPSTACK_PEEK(vm).value.mval->items[LOOPSTACK_INDEX(vm)++]->key); //.value.lval->items;
                         BPUSH(vm, 1);
                         break;
                     default:
-                        printf("object of type %s is not iterable.\n", YASL_TYPE_NAMES[vm->loopstack->stack[vm->loopstack->sp].type]);
+                        printf("object of type %s is not iterable.\n", YASL_TYPE_NAMES[LOOPSTACK_PEEK(vm).type]);
                         exit(EXIT_FAILURE);
+                }
+                break;
+            case ITER_1R:
+                if (0 > LOOPSTACK_INDEX(vm)) {
+                    BPUSH(vm, 0);
+                } else {
+                    PUSH(vm, LOOPSTACK_PEEK(vm).value.lval->items[LOOPSTACK_INDEX(vm)--]); //.value.lval->items;
+                    BPUSH(vm, 1);
                 }
                 break;
             case ITER_2:
