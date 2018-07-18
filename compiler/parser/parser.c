@@ -262,7 +262,11 @@ static Node *parse_assign(const Parser *const parser) {
     } else if (tok_isaugmented(curtok(parser))) {
         Token op = eattok(parser, curtok(parser)) - 1; // relies on enum
         if (cur_node->nodetype == N_VAR) {
-            return new_Assign(cur_node->name, cur_node->name_len, new_BinOp(op, cur_node, parse_assign(parser), parser->lex->line), parser->lex->line);
+            char *name = cur_node->name;
+            int64_t name_len = cur_node->name_len;
+            Node *tmp = node_clone(cur_node);
+            free(cur_node);
+            return new_Assign(name, name_len, new_BinOp(op, tmp, parse_assign(parser), parser->lex->line), parser->lex->line);
         } else if (cur_node->nodetype == N_GET) {
             Node *left = cur_node->children[0];
             Node *block = new_Body(parser->lex->line);

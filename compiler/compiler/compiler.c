@@ -215,6 +215,7 @@ void compile(Compiler *const compiler) {
     for (i = 0; i < 7; i++) {
         YASL_DEBUG_LOG("%02x\n", magic_number[i]);
     } */
+
     YASL_DEBUG_LOG("%s\n", "header");
     for (i = 0; i < compiler->header->count; i++) {
         YASL_DEBUG_LOG("%02x\n", compiler->header->bytes[i]);
@@ -227,6 +228,7 @@ void compile(Compiler *const compiler) {
     FILE *fp = fopen(compiler->name, "wb");
     if (!fp) exit(EXIT_FAILURE);
 
+    fflush(stdout);
     //fwrite(magic_number, 1, YASL_MAG_NUM_SIZE, fp);
     fwrite(compiler->header->bytes, 1, compiler->header->count, fp);
     fwrite(compiler->code->bytes, 1, compiler->code->count, fp);
@@ -488,7 +490,6 @@ static void declare_with_let_or_const(Compiler *const compiler, const Node *cons
 
 static void visit_Let(Compiler *const compiler, const Node *const node) {
     declare_with_let_or_const(compiler, node);
-    printf("contains var %s? %d\n", node->name, contains_var(compiler, node->name, node->name_len));
 }
 
 static void visit_Const(Compiler *const compiler, const Node *const node) {
