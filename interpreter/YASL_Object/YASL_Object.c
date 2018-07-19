@@ -1,10 +1,6 @@
 #include <interpreter/YASL_string/YASL_string.h>
 #include <interpreter/YASL_string/refcountptr.h>
 #include "YASL_Object.h"
-#define DVAL(v)  (*((double*)&v.value))
-#define TRUE_C   ((YASL_Object) {Y_BOOL, 1})
-#define FALSE_C  ((YASL_Object) {Y_BOOL, 0})
-#define UNDEF_C  ((YASL_Object) {Y_UNDEF, 0})
 
 
 // Keep up to date with the YASL_Types
@@ -21,6 +17,10 @@ const char *YASL_TYPE_NAMES[] = {
     "mn"        //Y_BFN
 };
 
+int isfalsey(YASL_Object v) {
+    return (v.type == Y_UNDEF || (v.type == Y_BOOL && v.value.ival == 0) ||
+     (v.type == Y_STR && yasl_string_len(v.value.sval) == 0));
+}
 
 YASL_Object isequal(YASL_Object a, YASL_Object b) {
         if (a.type == Y_UNDEF || b.type == Y_UNDEF) {

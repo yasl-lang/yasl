@@ -60,7 +60,7 @@ int list_search(VM* vm) {
     YASL_Object index = UNDEF_C;
     int i;
     for (i = 0; i < haystack.value.lval->count; i++) {
-        if (!FALSEY(isequal(haystack.value.lval->items[i], needle)))
+        if (!isfalsey(isequal(haystack.value.lval->items[i], needle)))
             index = (YASL_Object) { .type = Y_INT64, .value.ival = i };
     }
     PUSH(vm, index);
