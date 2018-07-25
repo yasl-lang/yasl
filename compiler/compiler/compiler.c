@@ -353,11 +353,11 @@ static void visit_ListComp(Compiler *const compiler, const Node *const node) {
 
     visit(compiler, ListComp_get_collection(node));
 
-    bb_add_byte(compiler->buffer, INITFORR);
+    bb_add_byte(compiler->buffer, INITFOR);
 
     int64_t index_start = compiler->code->count + compiler->buffer->count;
 
-    bb_add_byte(compiler->buffer, ITER_1R);
+    bb_add_byte(compiler->buffer, ITER_1);
 
     int64_t index_second;
     enter_conditional_false(compiler, &index_second);
@@ -742,7 +742,7 @@ static void visit_String(Compiler *const compiler, const Node *const node) {
 
 static void visit_List(Compiler *const compiler, const Node *const node) {
     bb_add_byte(compiler->buffer, END);
-    visit_Body_reverse(compiler, List_get_values(node));
+    visit_Body(compiler, List_get_values(node));
     bb_add_byte(compiler->buffer, NEWLIST);
 }
 

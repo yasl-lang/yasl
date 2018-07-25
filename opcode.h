@@ -26,10 +26,8 @@ typedef enum Opcode {
             BSL       = 0x24, // bitwise left shift
             BSR       = 0x25, // bitwise right shift
             INITFOR   = 0x30, // initialises for-loop in VM
-            INITFORR  = 0x31, // init for-loop for iterating backwards in VM
             ENDFOR    = 0x32, // end for-loop in VM
             ITER_1    = 0x33, // iterate to next, 1 var
-            ITER_1R   = 0x34, // iterate backwards over loop
             ITER_2    = 0x35, // iterate to next, 2 var
             END       = 0x50, // indicate end of list on stack.
             DUP       = 0x58, // duplicate top value of stack

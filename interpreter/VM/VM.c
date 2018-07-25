@@ -477,6 +477,7 @@ void vm_run(VM *vm){
                 while (vm_peek(vm).type != Y_END) {
                     ls_append(ls, vm_pop(vm));
                 }
+                ls_reverse(ls);
                 vm_pop(vm);
                 vm->stack[++vm->sp].type = Y_LIST;
                 vm->stack[vm->sp].value.lval = ls;
