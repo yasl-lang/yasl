@@ -375,7 +375,34 @@ static void visit_ListComp(Compiler *const compiler, const Node *const node) {
 }
 
 static void visit_TableComp(Compiler *const compiler, const Node *const node) {
-    exit(1);
+    enter_scope(compiler);
+
+    bb_add_byte(compiler->buffer, END);
+    decl_var(compiler, ListComp_get_var(node)->name, ListComp_get_var(node)->name_len);
+
+    visit(compiler, ListComp_get_collection(node));
+
+    bb_add_byte(compiler->buffer, INITFOR);
+
+    int64_t index_start = compiler->code->count + compiler->buffer->count;
+
+    bb_add_byte(compiler->buffer, ITER_1);
+
+    int64_t index_second;
+    enter_conditional_false(compiler, &index_second);
+
+    store_var(compiler, ListComp_get_var(node)->name, ListComp_get_var(node)->name_len);
+
+    visit(compiler, ListComp_get_expr(node)->children[1]);
+    visit(compiler, ListComp_get_expr(node)->children[0]);
+//    visit_Block(compiler, ListComp_get_expr(node));
+    goto_index(compiler, index_start);
+
+    exit_conditional_false(compiler, &index_second);
+
+    bb_add_byte(compiler->buffer, ENDFOR);
+    bb_add_byte(compiler->buffer, NEWTABLE);
+    exit_scope(compiler);
 }
 
 static void visit_ForIter(Compiler *const compiler, const Node *const node) {
@@ -740,19 +767,18 @@ static void visit_String(Compiler *const compiler, const Node *const node) {
     bb_intbytes8(compiler->buffer, value->value.ival);
 }
 
-static void visit_List(Compiler *const compiler, const Node *const node) {
+static void make_new_collection(Compiler *const compiler, const Node *const node, Opcode type) {
     bb_add_byte(compiler->buffer, END);
-    visit_Body(compiler, List_get_values(node));
-    bb_add_byte(compiler->buffer, NEWLIST);
+    visit_Body(compiler, node);
+    bb_add_byte(compiler->buffer, type);
+}
+
+static void visit_List(Compiler *const compiler, const Node *const node) {
+    make_new_collection(compiler, List_get_values(node), NEWLIST);
 }
 
 static void visit_Table(Compiler *const compiler, const Node *const node) {
-    bb_add_byte(compiler->buffer, END);
-    for (int64_t i = Table_get_keys(node)->children_len - 1; i >= 0; i--) {
-        visit(compiler, Table_get_values(node)->children[i]);
-        visit(compiler, Table_get_keys(node)->children[i]);
-    }
-    bb_add_byte(compiler->buffer, NEWTABLE);
+    make_new_collection(compiler, Table_get_values(node), NEWTABLE);
 }
 
 // NOTE: must keep this synced with the enum in ast.h

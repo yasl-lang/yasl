@@ -129,6 +129,22 @@ Node *new_ListComp(Node *expr, Node *var, Node *collection, int line) {
     return new_Node_3(N_LISTCOMP, T_UNKNOWN, expr, var, collection, NULL, 0, line);
 }
 
+Node *TableComp_get_key_value(const Node *const node) {
+    return node->children[0];
+}
+
+Node *TableComp_get_var(const Node *const node) {
+    return node->children[1];
+}
+
+Node *TableComp_get_collection(const Node *const node) {
+    return node->children[2];
+}
+
+Node *new_TableComp(Node *expr, Node *var, Node *collection, int line) {
+    return new_Node_3(N_TABLECOMP, T_UNKNOWN, expr, var, collection, NULL, 0, line);
+}
+
 Node *ForIter_get_var(const Node *const node) {
     return node->children[0];
 }
@@ -241,16 +257,12 @@ Node *new_List(Node *values, int line) {
     return new_Node_1(N_LIST, T_UNKNOWN, values, NULL, 0, line);
 }
 
-Node *Table_get_keys(const Node *const node) {
+Node *Table_get_values(const Node *const node) {
     return node->children[0];
 }
 
-Node *Table_get_values(const Node *const node) {
-    return node->children[1];
-}
-
-Node *new_Table(Node *keys, Node *values, int line) {
-    return new_Node_2(N_TABLE, T_UNKNOWN, keys, values, NULL, 0, line);
+Node *new_Table(Node *keys, int line) {
+    return new_Node_1(N_TABLE, T_UNKNOWN, keys, NULL, 0, line);
 }
 
 void node_del(Node *node) {

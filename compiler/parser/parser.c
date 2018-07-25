@@ -575,20 +575,18 @@ static Node *parse_string(const Parser *const parser) {
 static Node *parse_collection(const Parser *const parser) {
     eattok(parser, T_LSQB);
     Node *keys = new_Body(parser->lex->line);
-    Node *vals = new_Body(parser->lex->line); // free if we have list.
 
     // empty table
     if (curtok(parser) == T_COLON) {
         YASL_TRACE_LOG("%s\n", "Parsing table");
         eattok(parser, T_COLON);
         eattok(parser, T_RSQB);
-        return new_Table(keys, vals, parser->lex->line);
+        return new_Table(keys, parser->lex->line);
     }
 
     // empty list
     if (curtok(parser) == T_RSQB) {
         YASL_TRACE_LOG("%s\n", "Parsing list");
-        node_del(vals);
         eattok(parser, T_RSQB);
         return new_List(keys, parser->lex->line);
     }
@@ -599,19 +597,36 @@ static Node *parse_collection(const Parser *const parser) {
     if (curtok(parser) == T_COLON) {
         YASL_TRACE_LOG("%s\n", "Parsing table");
         eattok(parser, T_COLON);
-        body_append(vals, parse_expr(parser));
+        body_append(keys, parse_expr(parser));
+
+        if (curtok(parser) == T_FOR) {
+            puts("table comp");
+            eattok(parser, T_FOR);
+            eattok(parser, T_LET);
+            Node *var = parse_id(parser);
+            eattok(parser, T_IN);
+            Node *collection = parse_expr(parser);
+            Node *cond = NULL;
+            if (curtok(parser) == T_IF) {
+                eattok(parser, T_IF);
+                cond = parse_expr(parser);
+            }
+            eattok(parser, T_RSQB);
+            Node *table_comp = new_TableComp(cond ? new_If(cond, keys/*->children[0]*/, NULL, parser->lex->line) : keys/*->children[0]*/, var, collection, parser->lex->line);
+            //free(keys);
+            return table_comp;
+        }
         while (curtok(parser) == T_COMMA) {
             eattok(parser, T_COMMA);
             body_append(keys, parse_expr(parser));
             eattok(parser, T_COLON);
-            body_append(vals, parse_expr(parser));
+            body_append(keys, parse_expr(parser));
         }
         eattok(parser, T_RSQB);
-        return new_Table(keys, vals, parser->lex->line);
+        return new_Table(keys, parser->lex->line);
     }
 
     // non-empty list
-    node_del(vals);
     if (curtok(parser) == T_FOR) {
         puts("non-empty list");
         eattok(parser, T_FOR);
