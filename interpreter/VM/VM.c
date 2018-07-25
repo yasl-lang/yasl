@@ -366,17 +366,11 @@ void vm_run(VM *vm){
                 vm_num_unop(vm, &int_neg, &float_neg, "-");
                 break;
             case NOT:
-                a = vm_peek(vm);
-                if (a.type == Y_BOOL) {
-                    vm->stack[vm->sp].value.ival ^= 1;    // flip the last bit
-                    break;
-                } else if (a.type == Y_UNDEF) {
-                    break;
-                } else {
-                    printf("TypeError: ! not supported for operand of type %s.\n",
-                           YASL_TYPE_NAMES[a.type]);
-                    return;
-                }
+            {
+                YASL_Object tmp = (YASL_Object) { .type = Y_BOOL, .value.ival = isfalsey(vm_pop(vm))};
+                vm_push(vm, tmp);
+                break;
+            }
             case LEN:
                 v = vm->stack[vm->sp];
                 if (v.type == Y_STR) {

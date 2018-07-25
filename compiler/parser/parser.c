@@ -240,11 +240,11 @@ static Node *parse_expr(const Parser *const parser) {
 static Node *parse_assign(const Parser *const parser) {
     YASL_TRACE_LOG("parsing = in line %d\n", parser->lex->line);
     Node *cur_node = parse_ternary(parser);
-    if (curtok(parser) == T_EQ) { // || curtok(parser) == T_DLT)
+    if (curtok(parser) == T_EQ) {
         eattok(parser, T_EQ);
         if (cur_node->nodetype == N_VAR) {
             Node *assign_node = new_Assign(cur_node->name, cur_node->name_len, parse_assign(parser), parser->lex->line);
-            node_del(cur_node);
+            free(cur_node);
             return assign_node;
         } else if (cur_node->nodetype == N_GET) {
             Node *left = cur_node->children[0];
