@@ -1,5 +1,5 @@
 # YASL
-Bytecode Interpreter for Yet Another Scripting Language (YASL). More information can be found on my website, here: https://coffeetableespresso.github.io/yasl.
+Bytecode Interpreter for Yet Another Scripting Language (YASL). More information can be found on my website, here: https://github.com/CoffeeTableEspresso/YASL/wiki.
 
 ## Building Interpreter
 The bytecode interpreter can be compiled using the included `CMakeLists`.
