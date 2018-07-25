@@ -378,9 +378,9 @@ static void visit_TableComp(Compiler *const compiler, const Node *const node) {
     enter_scope(compiler);
 
     bb_add_byte(compiler->buffer, END);
-    decl_var(compiler, ListComp_get_var(node)->name, ListComp_get_var(node)->name_len);
+    decl_var(compiler, TableComp_get_var(node)->name, TableComp_get_var(node)->name_len);
 
-    visit(compiler, ListComp_get_collection(node));
+    visit(compiler, TableComp_get_collection(node));
 
     bb_add_byte(compiler->buffer, INITFOR);
 
@@ -391,11 +391,11 @@ static void visit_TableComp(Compiler *const compiler, const Node *const node) {
     int64_t index_second;
     enter_conditional_false(compiler, &index_second);
 
-    store_var(compiler, ListComp_get_var(node)->name, ListComp_get_var(node)->name_len);
+    store_var(compiler, TableComp_get_var(node)->name, TableComp_get_var(node)->name_len);
 
-    visit(compiler, ListComp_get_expr(node)->children[1]);
-    visit(compiler, ListComp_get_expr(node)->children[0]);
-//    visit_Block(compiler, ListComp_get_expr(node));
+    visit(compiler, TableComp_get_key_value(node)->children[1]);
+    visit(compiler, TableComp_get_key_value(node)->children[0]);
+
     goto_index(compiler, index_start);
 
     exit_conditional_false(compiler, &index_second);

@@ -349,6 +349,10 @@ void vm_run(VM *vm){
                 vm_fdiv(vm);   // handled differently because we always convert to float
                 break;
             case IDIV:
+                if (vm_peek(vm).type == Y_INT64 && vm_peek(vm).value.ival == 0) {
+                    vm_fdiv(vm);
+                    break;
+                }
                 vm_int_binop(vm, &idiv, "//");
                 break;
             case MOD:
