@@ -182,6 +182,7 @@ Hash_t* list_builtins() {
     ht_insert_string_int(ht, "__get",  strlen("__get"),  (int64_t)&list___get);
     ht_insert_string_int(ht, "__set",  strlen("__set"),  (int64_t)&list___set);
     ht_insert_string_int(ht, "search", strlen("search"), (int64_t)&list_search);
+    ht_insert_string_int(ht, "reverse", strlen("reverse"), (int64_t)&list_reverse);
     return ht;
 }
 

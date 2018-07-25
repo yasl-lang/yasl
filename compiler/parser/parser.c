@@ -578,9 +578,9 @@ static Node *parse_collection(const Parser *const parser) {
     Node *vals = new_Body(parser->lex->line); // free if we have list.
 
     // empty table
-    if (curtok(parser) == T_BIG_ARR) {
+    if (curtok(parser) == T_COLON) {
         YASL_TRACE_LOG("%s\n", "Parsing table");
-        eattok(parser, T_BIG_ARR);
+        eattok(parser, T_COLON);
         eattok(parser, T_RSQB);
         return new_Table(keys, vals, parser->lex->line);
     }
@@ -596,14 +596,14 @@ static Node *parse_collection(const Parser *const parser) {
     body_append(keys, parse_expr(parser));
 
     // non-empty table
-    if (curtok(parser) == T_BIG_ARR) {
+    if (curtok(parser) == T_COLON) {
         YASL_TRACE_LOG("%s\n", "Parsing table");
-        eattok(parser, T_BIG_ARR);
+        eattok(parser, T_COLON);
         body_append(vals, parse_expr(parser));
         while (curtok(parser) == T_COMMA) {
             eattok(parser, T_COMMA);
             body_append(keys, parse_expr(parser));
-            eattok(parser, T_BIG_ARR);
+            eattok(parser, T_COLON);
             body_append(vals, parse_expr(parser));
         }
         eattok(parser, T_RSQB);

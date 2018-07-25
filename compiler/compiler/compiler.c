@@ -85,15 +85,19 @@ static void enter_scope(Compiler *const compiler) {
 }
 
 static void exit_scope(Compiler *const compiler) {
-    /*
-     *         if self.current_fn is not None:
-            self.params = self.params.parent
-        else:
-            self.globals = self.globals.parent
-     */
     if (compiler->current_function != NULL) compiler->locals = compiler->locals->parent;
     else compiler->globals = compiler->globals->parent;
     // TODO: deal with memory leaks
+}
+
+static inline void enter_conditional_false(Compiler *const compiler, int64_t *index) {
+    bb_add_byte(compiler->buffer, BRF_8);
+    *index = compiler->buffer->count;
+    bb_intbytes8(compiler->buffer, 0);
+}
+
+static inline void exit_conditional_false(Compiler *const compiler, const int64_t *const index) {
+    bb_rewrite_intbytes8(compiler->buffer, *index, compiler->buffer->count - *index - 8);
 }
 
 static void add_checkpoint(Compiler *const compiler, const int64_t cp) {
@@ -120,12 +124,12 @@ static void visit_Body(Compiler *const compiler, const Node *const node) {
     }
 }
 
-static int is_const(int64_t value) {
+static inline int is_const(int64_t value) {
     const uint64_t MASK = 0x8000000000000000;
     return (MASK & value) != 0;
 }
 
-static int64_t get_index(int64_t value) {
+static inline int64_t get_index(int64_t value) {
     return is_const(value) ? ~value : value;
 }
 
@@ -336,6 +340,11 @@ static void visit_Block(Compiler *const compiler, const Node *const node) {
     exit_scope(compiler);
 }
 
+static inline void goto_index(Compiler *const compiler, int64_t index) {
+    bb_add_byte(compiler->buffer, GOTO);
+    bb_intbytes8(compiler->buffer, index);
+}
+
 static void visit_ListComp(Compiler *const compiler, const Node *const node) {
     enter_scope(compiler);
 
@@ -350,24 +359,23 @@ static void visit_ListComp(Compiler *const compiler, const Node *const node) {
 
     bb_add_byte(compiler->buffer, ITER_1R);
 
-    bb_add_byte(compiler->buffer, BRF_8);
+    int64_t index_second;
+    enter_conditional_false(compiler, &index_second);
 
-    int64_t index_second = compiler->buffer->count;
-
-    bb_intbytes8(compiler->buffer, 0);
     store_var(compiler, ListComp_get_var(node)->name, ListComp_get_var(node)->name_len);
 
     visit(compiler, ListComp_get_expr(node));
-    bb_add_byte(compiler->buffer, GOTO);
-    bb_intbytes8(compiler->buffer, index_start);
-    bb_rewrite_intbytes8(compiler->buffer, index_second, compiler->buffer->count - index_second - 8);
+    goto_index(compiler, index_start);
+
+    exit_conditional_false(compiler, &index_second);
+
     bb_add_byte(compiler->buffer, ENDFOR);
     bb_add_byte(compiler->buffer, NEWLIST);
     exit_scope(compiler);
 }
 
 static void visit_TableComp(Compiler *const compiler, const Node *const node) {
-
+    exit(1);
 }
 
 static void visit_ForIter(Compiler *const compiler, const Node *const node) {
@@ -390,17 +398,18 @@ static void visit_ForIter(Compiler *const compiler, const Node *const node) {
     bb_add_byte(compiler->buffer, ITER_1);
 
     add_checkpoint(compiler, compiler->code->count + compiler->buffer->count);
-    bb_add_byte(compiler->buffer, BRF_8);
 
-    int64_t index_second = compiler->buffer->count;
+    int64_t index_second;
+    enter_conditional_false(compiler, &index_second);
 
-    bb_intbytes8(compiler->buffer, 0);
     store_var(compiler, ForIter_get_var(node)->name, ForIter_get_var(node)->name_len);
 
     visit(compiler, ForIter_get_body(node));
-    bb_add_byte(compiler->buffer, GOTO);
-    bb_intbytes8(compiler->buffer, index_start);
-    bb_rewrite_intbytes8(compiler->buffer, index_second, compiler->buffer->count - index_second - 8);
+
+    goto_index(compiler, index_start);
+
+    exit_conditional_false(compiler, &index_second);
+
     bb_add_byte(compiler->buffer, ENDFOR);
     exit_scope(compiler);
 
@@ -413,15 +422,17 @@ static void visit_While(Compiler *const compiler, const Node *const node) {
     add_checkpoint(compiler, index_start);
     visit(compiler, While_get_cond(node));
     add_checkpoint(compiler, compiler->code->count + compiler->buffer->count);
-    bb_add_byte(compiler->buffer, BRF_8);
-    int64_t index_second = compiler->buffer->count;
-    bb_intbytes8(compiler->buffer, 0);
+
+    int64_t index_second;
+    enter_conditional_false(compiler, &index_second);
     enter_scope(compiler);
+
     visit(compiler, While_get_body(node));
-    bb_add_byte(compiler->buffer, GOTO);
-    bb_intbytes8(compiler->buffer, index_start);
-    bb_rewrite_intbytes8(compiler->buffer, index_second, compiler->buffer->count - index_second - 8);
+
+    goto_index(compiler, index_start);
+
     exit_scope(compiler);
+    exit_conditional_false(compiler, &index_second);
 
     rm_checkpoint(compiler);
     rm_checkpoint(compiler);
@@ -433,8 +444,7 @@ static void visit_Break(Compiler *const compiler, const Node *const node) {
         exit(EXIT_FAILURE);
     }
     bb_add_byte(compiler->buffer, BCONST_F);
-    bb_add_byte(compiler->buffer, GOTO);
-    bb_intbytes8(compiler->buffer, break_checkpoint(compiler));
+    goto_index(compiler, break_checkpoint(compiler));
 }
 
 static void visit_Continue(Compiler *const compiler, const Node *const node) {
@@ -442,25 +452,29 @@ static void visit_Continue(Compiler *const compiler, const Node *const node) {
         puts("SyntaxError: continue outside of loop.");
         exit(EXIT_FAILURE);
     }
-    bb_add_byte(compiler->buffer, GOTO);
-    bb_intbytes8(compiler->buffer, continue_checkpoint(compiler));
+    goto_index(compiler, continue_checkpoint(compiler));
 }
 
 static void visit_If(Compiler *const compiler, const Node *const node) {
     visit(compiler, node->children[0]);
-    bb_add_byte(compiler->buffer, BRF_8);
-    int64_t index_then = compiler->buffer->count;
-    bb_intbytes8(compiler->buffer, 0);
+
+    int64_t index_then;
+    enter_conditional_false(compiler, &index_then);
     enter_scope(compiler);
+
     visit(compiler, node->children[1]);
-    exit_scope(compiler);
+
     int64_t index_else = 0;
+
     if (node->children[2] != NULL) {
         bb_add_byte(compiler->buffer, BR_8);
         index_else = compiler->buffer->count;
         bb_intbytes8(compiler->buffer, 0);
     }
-    bb_rewrite_intbytes8(compiler->buffer, index_then, compiler->buffer->count-index_then-8);
+
+    exit_scope(compiler);
+    exit_conditional_false(compiler, &index_then);
+
     if (node->children[2] != NULL) {
         enter_scope(compiler);
         visit(compiler, node->children[2]);
@@ -499,14 +513,18 @@ static void visit_Const(Compiler *const compiler, const Node *const node) {
 
 static void visit_TriOp(Compiler *const compiler, const Node *const node) {
     visit(compiler, node->children[0]);
-    bb_add_byte(compiler->buffer, BRF_8);
-    int64_t index_l = compiler->buffer->count;
-    bb_intbytes8(compiler->buffer, 0);
+
+    int64_t index_l;
+    enter_conditional_false(compiler, &index_l);
+
     visit(compiler, node->children[1]);
+
     bb_add_byte(compiler->buffer, BR_8);
     int64_t index_r = compiler->buffer->count;
     bb_intbytes8(compiler->buffer, 0);
-    bb_rewrite_intbytes8(compiler->buffer, index_l, compiler->buffer->count-index_l-8);
+
+    exit_conditional_false(compiler, &index_l);
+
     visit(compiler, node->children[2]);
     bb_rewrite_intbytes8(compiler->buffer, index_r, compiler->buffer->count-index_r-8);
 }
@@ -536,12 +554,13 @@ static void visit_BinOp(Compiler *const compiler, const Node *const node) {
     } else if (node->type == T_DAMP) {   // and operator
         visit(compiler, node->children[0]);
         bb_add_byte(compiler->buffer, DUP);
-        bb_add_byte(compiler->buffer, BRF_8);
-        int64_t index = compiler->buffer->count;
-        bb_intbytes8(compiler->buffer, 0);
+
+        int64_t index;
+        enter_conditional_false(compiler, &index);
+
         bb_add_byte(compiler->buffer, POP);
         visit(compiler, node->children[1]);
-        bb_rewrite_intbytes8(compiler->buffer, index, compiler->buffer->count-index-8);
+        exit_conditional_false(compiler, &index);
         return;
     }
     // all other operators follow the same pattern of visiting one child then the other.
@@ -647,7 +666,7 @@ static void visit_UnOp(Compiler *const compiler, const Node *const node) {
 
 static void visit_Assign(Compiler *const compiler, const Node *const node) {
     if (!contains_var(compiler, node->name, node->name_len)) {
-        printf("unknown variable in line %d: %s\n", compiler->parser->lex->line, node->name);
+        printf("unknown variable in line %" PRId64 ": %s\n", compiler->parser->lex->line, node->name);
     }
     visit(compiler, node->children[0]);
     bb_add_byte(compiler->buffer, DUP);
@@ -656,7 +675,7 @@ static void visit_Assign(Compiler *const compiler, const Node *const node) {
 
 static void visit_Var(Compiler *const compiler, const Node *const node) {
     if (!contains_var(compiler, node->name, node->name_len)) {
-        printf("unknown variable in line %d: %s\n", compiler->parser->lex->line, node->name);
+        printf("unknown variable in line %" PRId64": %s\n", compiler->parser->lex->line, node->name);
         exit(EXIT_FAILURE);
     }
 
