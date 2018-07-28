@@ -62,6 +62,7 @@ void vm_del(VM *vm){
     free(vm->globals);                   // TODO: free these properly
     free(vm->stack);                     // TODO: free these properly
 
+    rcptr_dec(vm->code);
     //ht_del_string_int(vm->builtins_htable[0]);
     ht_del_string_int(vm->builtins_htable[1]);
     ht_del_string_int(vm->builtins_htable[2]);

@@ -444,53 +444,64 @@ static void YASLKeywords(Lexer *lex) {
 
     if (strlen("let") == lex->val_len && !memcmp(lex->value, "let", lex->val_len)) {
         lex->type = T_LET;
-        lex->value = realloc(lex->value, 0);
+        free(lex->value);
+        lex->value = NULL;
     } else if (strlen("const") == lex->val_len && !memcmp(lex->value, "const", lex->val_len)) {
         lex->type = T_CONST;
-        lex->value = realloc(lex->value, 0);
+        free(lex->value);
+        lex->value = NULL;
     } else if (strlen("print") == lex->val_len && !memcmp(lex->value, "print", lex->val_len)) {
         lex->type = T_PRINT;
-        //lex->value = realloc(lex->value, 0);
+        free(lex->value);
+        lex->value = NULL;
     } else if (strlen("else") == lex->val_len && !memcmp(lex->value, "else", lex->val_len)) {
         lex->type = T_ELSE;
-        lex->value = realloc(lex->value, 0);
+        free(lex->value);
+        lex->value = NULL;
     } else if (strlen("if") == lex->val_len && !memcmp(lex->value, "if", lex->val_len)) {
         lex->type = T_IF;
-        lex->value = realloc(lex->value, 0);
+        free(lex->value);
+        lex->value = NULL;
     } else if (strlen("elseif") == lex->val_len && !memcmp(lex->value, "elseif", lex->val_len)) {
         lex->type = T_ELSEIF;
-        lex->value = realloc(lex->value, 0);
-    } else if (strlen("for") == lex->val_len && !memcmp(lex->value, "for", lex->val_len)) {
-        lex->type = T_FOR;
-        lex->value = realloc(lex->value, 0);
+        free(lex->value);
+        lex->value = NULL;
     } else if (strlen("in") == lex->val_len && !memcmp(lex->value, "in", lex->val_len)) {
         lex->type = T_IN;
-        lex->value = realloc(lex->value, 0);
+        free(lex->value);
+        lex->value = NULL;
     } else if (strlen("while") == lex->val_len && !memcmp(lex->value, "while", lex->val_len)) {
         lex->type = T_WHILE;
-        lex->value = realloc(lex->value, 0);
+        free(lex->value);
+        lex->value = NULL;
     } else if (strlen("for") == lex->val_len && !memcmp(lex->value, "for", lex->val_len)) {
         lex->type = T_FOR;
-        lex->value = realloc(lex->value, 0);
+        free(lex->value);
+        lex->value = NULL;
     } else if (strlen("break") == lex->val_len && !memcmp(lex->value, "break", lex->val_len)) {
         lex->type = T_BREAK;
-        lex->value = realloc(lex->value, 0);
+        free(lex->value);
+        lex->value = NULL;
     } else if (strlen("continue") == lex->val_len && !memcmp(lex->value, "continue", lex->val_len)) {
         lex->type = T_CONT;
-        lex->value = realloc(lex->value, 0);
+        free(lex->value);
+        lex->value = NULL;
     } else if (strlen("true") == lex->val_len && !memcmp(lex->value, "true", lex->val_len)) {
         lex->type = T_BOOL;
     } else if (strlen("false") == lex->val_len && !memcmp(lex->value, "false", lex->val_len)) {
         lex->type = T_BOOL;
     } else if (strlen("undef") == lex->val_len && !memcmp(lex->value, "undef", lex->val_len)) {
         lex->type = T_UNDEF;
-        lex->value = realloc(lex->value, 0);
+        free(lex->value);
+        lex->value = NULL;
     } else if (strlen("fn") == lex->val_len && !memcmp(lex->value, "fn", lex->val_len)) {
         lex->type = T_FN;
-        lex->value = realloc(lex->value, 0);
+        free(lex->value);
+        lex->value = NULL;
     } else if (strlen("return") == lex->val_len && !memcmp(lex->value, "return", lex->val_len)) {
         lex->type = T_RET;
-        lex->value = realloc(lex->value, 0);
+        free(lex->value);
+        lex->value = NULL;
     }
 }
 
