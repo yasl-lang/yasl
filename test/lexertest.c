@@ -1,10 +1,7 @@
 #include <lexer.h>
 #include <compiler/lexer/lexer.h>
 #include <color.h>
-
-
-#define SETUP_YATS() \
-    static int __YASL_TESTS_FAILED__ = 0
+#include "yats.h"
 
 SETUP_YATS();
 
@@ -21,15 +18,6 @@ SETUP_YATS();
             gettok(lex);\
             ASSERT_TOK_EQ(tok, (lex)->type);\
         } while(0)
-
-Lexer *setup_lexer(char *file_contents) {
-    FILE *fptr = fopen("dump.ysl", "w");
-    fwrite(file_contents, 1, strlen(file_contents), fptr);
-    fseek(fptr, 0, SEEK_SET);
-    fclose(fptr);
-    fptr = fopen("dump.ysl", "r");
-    return lex_new(fptr);
-}
 
 void test_semi(void) {
     Lexer *lex = setup_lexer(";");
@@ -549,7 +537,7 @@ void test_blockcomment(void) {
     ASSERT_EATTOK(T_EOF, lex);
 }
 
-int main() {
+int lexertest(void) {
     test_int();
     test_string();
     test_division();
