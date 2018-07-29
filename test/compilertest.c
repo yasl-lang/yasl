@@ -29,12 +29,15 @@ SETUP_YATS();
     }\
 } while(0)
 
-#define ASSERT_GEN_BC_EQ(expected) do{\
+#define ASSERT_GEN_BC_EQ(expected, fc) do{\
+    remove("dump.yb");\
+    setup_compiler(fc);\
     FILE *file = fopen("dump.yb", "rb");\
     int64_t size = getsize(file);\
     unsigned char actual[size];\
     fread(actual, sizeof(char), size, file);\
     ASSERT_BC_EQ(expected, actual);\
+    fclose(file);\
 } while(0)
 
 static int64_t getsize(FILE *file) {
@@ -44,22 +47,100 @@ static int64_t getsize(FILE *file) {
     return size;
 }
 
+// NOTE: these tests depend on the endianess of the system, so they may fail on big endian systems.
 
-static void test_print() {
+/// Literals
+////////////////////////////////////////////////////////////////////////////////
+
+static void test_undef() {
+    unsigned char expected[] = {
+            0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            NCONST,
+            POP,
+            HALT
+    };
+    ASSERT_GEN_BC_EQ(expected, "undef;");
+}
+
+static void test_true() {
+    unsigned char expected[] = {
+            0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            BCONST_T,
+            POP,
+            HALT
+    };
+    ASSERT_GEN_BC_EQ(expected, "true;");
+}
+
+static void test_false() {
+    unsigned char expected[] = {
+            0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            BCONST_F,
+            POP,
+            HALT
+    };
+    ASSERT_GEN_BC_EQ(expected, "false;");
+}
+
+static void test_bin() {
+    unsigned char expected[] = {
+            0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            ICONST,
+            0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            POP,
+            HALT
+    };
+    ASSERT_GEN_BC_EQ(expected, "0b11;");
+}
+
+static void test_oct() {
+    unsigned char expected[] = {
+            0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            ICONST,
+            0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            POP,
+            HALT
+    };
+    ASSERT_GEN_BC_EQ(expected, "0o12;");
+}
+
+static void test_dec() {
     unsigned char expected[]  = {
             0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             ICONST,
             0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            PRINT,
+            POP,
             HALT
     };
-    setup_compiler("print 10;");
-    ASSERT_GEN_BC_EQ(expected);
+    ASSERT_GEN_BC_EQ(expected, "10;");
+}
+
+static void test_hex() {
+    unsigned char expected[] = {
+            0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            ICONST,
+            0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            POP,
+            HALT
+    };
+    ASSERT_GEN_BC_EQ(expected, "0x10;");
 }
 
 int compilertest() {
-    test_print();
+    test_undef();
+    test_true();
+    test_false();
+    test_bin();
+    test_oct();
+    test_dec();
+    test_hex();
 
     return __YASL_TESTS_FAILED__;
 }

@@ -141,7 +141,7 @@ void test_enum(void) {
     ASSERT_EATTOK(T_EOF, lex);
 }
 
-void test_print(void) {
+void test_dec(void) {
     Lexer *lex = setup_lexer("print");
     ASSERT_EATTOK(T_PRINT, lex);
     ASSERT_EATTOK(T_EOF, lex);
@@ -562,7 +562,7 @@ int lexertest(void) {
     test_fn();
     test_return();
     // test_enum();
-    test_print();
+    test_dec();
     test_lpar();
     test_rpar();
     test_lsqb();
