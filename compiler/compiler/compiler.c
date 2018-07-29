@@ -213,6 +213,7 @@ void compile(Compiler *const compiler) {
             node_del(node);
     }
     bb_rewrite_intbytes8(compiler->header, 0, compiler->header->count);
+    bb_rewrite_intbytes8(compiler->header, 8, 0x00);   // TODO: put num globals here eventually.
 
     int i = 0;
     /*YASL_DEBUG_LOG("%s\n", "magic number");
