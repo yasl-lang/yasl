@@ -7,7 +7,7 @@
 //#define peof(parser) (parser->lex->type == T_EOF)
 
 typedef struct {
-    Lexer *lex;
+    Lexer *lex; /* OWN */
 } Parser;
 
 int peof(const Parser *parser);

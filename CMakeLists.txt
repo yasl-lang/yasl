@@ -75,8 +75,22 @@ add_executable(YASL
         opcode.h)
 
 add_executable(YASLTEST
+        test/yats.c
+        test/yasl_test.c
         test/lexertest.c
+        test/compilertest.c
         compiler/lexer/lexer.c
-        compiler/lexer/lexer.h)
+        compiler/compiler/compiler.c
+        compiler/parser/parser.c
+        compiler/ast/ast.c
+        hashtable/hashtable.c
+        interpreter/YASL_Object/YASL_Object.c
+        bytebuffer/bytebuffer.c
+        interpreter/YASL_string/YASL_string.c
+        interpreter/YASL_string/refcountptr.c
+        interpreter/list/list.c
+        prime/prime.c
+        compiler/compiler/env/env.c)
 
 target_link_libraries(YASL m)
+target_link_libraries(YASLTEST m)

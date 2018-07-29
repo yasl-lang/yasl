@@ -4,8 +4,7 @@
 #include <stdlib.h>
 //#include "../list/list.h"
 #include "../YASL_string/YASL_string.h"
-#define FALSEY(v)  (v.type == Y_UNDEF || (v.type == Y_BOOL && v.value.ival == 0) || (v.type == Y_STR && yasl_string_len(v.value.sval) == 0))  // returns true iff v is a falsey value
-#define DVAL(v)  (*((double*)&v.value))
+
 #define TRUE_C   ((YASL_Object) {Y_BOOL, 1})
 #define FALSE_C  ((YASL_Object) {Y_BOOL, 0})
 #define UNDEF_C  ((YASL_Object) {Y_UNDEF, 0})
@@ -45,6 +44,7 @@ typedef struct {
     double value;
 } FloatConstant;
 
+int isfalsey(YASL_Object v);
 YASL_Object isequal(YASL_Object a, YASL_Object b);
 int print(YASL_Object a);
 

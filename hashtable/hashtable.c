@@ -142,7 +142,7 @@ void ht_insert(Hash_t* hashtable, const YASL_Object key, const YASL_Object value
     while (curr_item != NULL) {
         if (curr_item != &TOMBSTONE) {
             //puts("checking equality");
-            if (!FALSEY(isequal(*curr_item->key, *item->key))) {
+            if (!isfalsey(isequal(*curr_item->key, *item->key))) {
                 del_item(curr_item);
                 hashtable->items[index] = item;
                 return;
@@ -173,7 +173,7 @@ YASL_Object* ht_search(const Hash_t *const hashtable, const YASL_Object key) {
     Item_t* item = hashtable->items[index];
     int i = 1;
     while (item != NULL) {
-        if (!FALSEY(isequal(*item->key, key))) {
+        if (!isfalsey(isequal(*item->key, key))) {
             return item->value;
         }
         index = get_hash(key, hashtable->size, i++);
@@ -205,7 +205,7 @@ void ht_rm(Hash_t *hashtable, YASL_Object key) {
     int i = 1;
     while (item != NULL) {
         if (item != &TOMBSTONE) {
-            if (!FALSEY(isequal(*item->key, key))) {
+            if (!isfalsey(isequal(*item->key, key))) {
                 del_item(item);
                 hashtable->items[index] = &TOMBSTONE;
             }

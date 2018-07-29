@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
         exit(1);
     } */
 
-    buffer = malloc((file_len+1)*sizeof(char));
+    buffer = malloc((file_len+1)*sizeof(char));  // NOT OWN
     fread(buffer, file_len, 1, file_ptr);
     entry_point = *((int64_t*)buffer);
     num_globals = *((int64_t*)buffer+1);
@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
                     256);   // params to be reserved, should be num_globals
     vm_run(vm);
     vm_del(vm);
-    free(buffer);
     fclose(file_ptr);
+    free(name);
     return 0;
 };

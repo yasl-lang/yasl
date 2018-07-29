@@ -6,6 +6,12 @@
 #include <functions.h>
 #include <interpreter/YASL_string/YASL_string.h>
 #include <hashtable/hashtable.h>
+#include <interpreter/YASL_string/refcountptr.h>
+
+#define LOOPSTACK_PUSH(vm, val) vm->loopstack->stack[++vm->loopstack->sp] = val
+#define LOOPSTACK_PEEK(vm) vm->loopstack->stack[vm->loopstack->sp]
+#define LOOPSTACK_POP(vm) vm->loopstack->sp--
+#define LOOPSTACK_INDEX(vm) vm->loopstack->indices[vm->loopstack->sp]
 
 static LoopStack *loopstack_new(void) {
     LoopStack *ls = malloc(sizeof(LoopStack));
@@ -56,6 +62,7 @@ void vm_del(VM *vm){
     free(vm->globals);                   // TODO: free these properly
     free(vm->stack);                     // TODO: free these properly
 
+    rcptr_dec(vm->code);
     //ht_del_string_int(vm->builtins_htable[0]);
     ht_del_string_int(vm->builtins_htable[1]);
     ht_del_string_int(vm->builtins_htable[2]);
@@ -68,10 +75,197 @@ void vm_del(VM *vm){
 
     free(vm->loopstack->stack);
     free(vm->loopstack->indices);
+    free(vm->loopstack);
 
     free(vm);
 }
 
+void vm_push(VM *vm, YASL_Object val) {
+    vm->stack[++vm->sp] = val;
+}
+
+YASL_Object vm_pop(VM *vm) {
+    return vm->stack[vm->sp--];
+}
+
+YASL_Object vm_peek(VM *vm) {
+    return vm->stack[vm->sp];
+}
+
+int64_t vm_read_int64_t(VM *vm) {
+    int64_t val;
+    memcpy(&val, vm->code.ptr + vm->pc, sizeof( int64_t));
+    vm->pc += sizeof (int64_t);
+    return val;
+}
+
+int64_t bor(int64_t left, int64_t right) {
+    return left | right;
+}
+
+int64_t bxor(int64_t left, int64_t right) {
+    return left ^ right;
+}
+
+int64_t band(int64_t left, int64_t right) {
+    return left & right;
+}
+
+int64_t shift_left(int64_t left, int64_t right) {
+    return left << right;
+}
+
+int64_t shift_right(int64_t left, int64_t right) {
+    return left >> right;
+}
+
+int64_t modulo(int64_t left, int64_t right) {
+    return left % right;
+}
+
+int64_t idiv(int64_t left, int64_t right) {
+    return left / right;
+}
+
+void vm_int_binop(VM *vm, int64_t (*op)(int64_t, int64_t), char *opstr) {
+    YASL_Object b = POP(vm);
+    YASL_Object a = PEEK(vm);
+    if (a.type == Y_INT64 && b.type == Y_INT64) {
+        PEEK(vm).value.ival = op(a.value.ival, b.value.ival);
+        return;
+    } else {
+        printf("TypeError: %s not supported for operands of types %s and %s.\n",
+               opstr,
+               YASL_TYPE_NAMES[a.type],
+               YASL_TYPE_NAMES[b.type]);
+        exit(EXIT_FAILURE);
+    }
+}
+
+int64_t int_add(int64_t left, int64_t right) {
+    return left + right;
+}
+
+double float_add(double left, double right) {
+    return left + right;
+}
+
+int64_t int_sub(int64_t left, int64_t right) {
+    return left - right;
+}
+
+double float_sub(double left, double right) {
+    return left - right;
+}
+
+int64_t int_mul(int64_t left, int64_t right) {
+    return left * right;
+}
+
+double float_mul(double left, double right) {
+    return left * right;
+}
+
+int64_t int_pow(int64_t left, int64_t right) {
+    return (int64_t)pow(left, right);
+}
+
+void vm_num_binop(VM *vm, int64_t (*int_op)(int64_t, int64_t), double (*float_op)(double, double), char *opstr) {
+    YASL_Object right = vm_pop(vm);
+    YASL_Object left = vm_peek(vm);
+    if (left.type == Y_INT64 && right.type == Y_INT64) {
+        PEEK(vm).value.ival = int_op(left.value.ival, right.value.ival);
+    } else if (left.type == Y_FLOAT64 && right.type == Y_FLOAT64) {
+        PEEK(vm).value.dval = float_op(left.value.dval, right.value.dval);
+    } else if (left.type == Y_FLOAT64 && right.type == Y_INT64) {
+        PEEK(vm).value.dval = float_op(left.value.dval, right.value.ival);
+    } else if (left.type == Y_INT64 && right.type == Y_FLOAT64) {
+        PEEK(vm).type = Y_FLOAT64;
+        PEEK(vm).value.dval = float_op(left.value.ival, right.value.dval);
+    } else {
+        printf("TypeError: %s not supported for operands of types %s and %s.\n",
+               opstr,
+               YASL_TYPE_NAMES[left.type],
+               YASL_TYPE_NAMES[right.type]);
+        exit(EXIT_FAILURE);
+    }
+}
+
+void vm_fdiv(VM *vm) {
+    YASL_Object right = vm_pop(vm);
+    YASL_Object left = vm_peek(vm);
+    if (left.type == Y_INT64 && right.type == Y_INT64) {
+        PEEK(vm).value.dval = (double)left.value.ival / (double)right.value.ival;
+        PEEK(vm).type = Y_FLOAT64;
+    }
+    else if (left.type == Y_FLOAT64 && right.type == Y_FLOAT64) {
+        PEEK(vm).value.dval = left.value.dval / right.value.dval;
+    }
+    else if (left.type == Y_INT64 && right.type == Y_FLOAT64) {
+        PEEK(vm).value.dval = (double)left.value.ival / right.value.dval;
+        PEEK(vm).type = Y_FLOAT64;
+    }
+    else if (left.type == Y_FLOAT64 && right.type == Y_INT64) {
+        PEEK(vm).value.dval = left.value.dval / (double)right.value.ival;
+    }
+    else {
+        printf("TypeError: / not supported for operands of types %s and %s.\n",
+               YASL_TYPE_NAMES[left.type],
+               YASL_TYPE_NAMES[right.type]);
+        exit(EXIT_FAILURE);
+    }
+}
+
+void vm_pow(VM *vm) {
+    YASL_Object right = vm_pop(vm);
+    YASL_Object left  = vm_peek(vm);
+    if (left.type == Y_INT64 && right.type == Y_INT64 && right.value.ival < 0) {
+        PEEK(vm).value.dval = pow(left.value.ival, right.value.ival);
+        PEEK(vm).type = Y_FLOAT64;
+    } else {
+        vm->sp++;
+        vm_num_binop(vm, &int_pow, &pow, "**");
+    }
+}
+
+int64_t bnot(int64_t val) {
+    return ~val;
+}
+
+void vm_int_unop(VM *vm, int64_t (*op)(int64_t), char *opstr) {
+    YASL_Object a = PEEK(vm);
+    if (a.type == Y_INT64) {
+        PEEK(vm).value.ival = op(a.value.ival);
+        return;
+    } else {
+        printf("TypeError: %s not supported for operand of type %s.\n",
+               opstr,
+               YASL_TYPE_NAMES[a.type]);
+        exit(EXIT_FAILURE);
+    }
+}
+
+int64_t int_neg(int64_t expr) {
+    return -expr;
+}
+
+double float_neg(double expr) {
+    return -expr;
+}
+
+void vm_num_unop(VM *vm, int64_t (*int_op)(int64_t), double (*float_op)(double), char *opstr) {
+    YASL_Object expr = vm_peek(vm);
+    if (expr.type == Y_INT64) {
+        PEEK(vm).value.ival = int_op(expr.value.ival);
+    } else if (expr.type == Y_FLOAT64) {
+        PEEK(vm).value.dval = float_op(expr.value.dval);
+    } else {
+        printf("TypeError: %s not supported for operand of type %s.\n",
+               opstr,
+               YASL_TYPE_NAMES[expr.type]);
+        exit(EXIT_FAILURE);
+    }
+}
 
 void vm_run(VM *vm){
     while (1) {
@@ -97,8 +291,7 @@ void vm_run(VM *vm){
             case ICONST_3:
             case ICONST_4:
             case ICONST_5:
-                vm->stack[++vm->sp].type = Y_INT64;
-                vm->stack[vm->sp].value.ival  = opcode - 0x04;
+                vm_push(vm, (YASL_Object) {Y_INT64, opcode - 0x04});
                 break;
             case DCONST_0:    // TODO: make sure no changes to opcodes ruin this
             case DCONST_1:
@@ -108,203 +301,77 @@ void vm_run(VM *vm){
                 memcpy(&vm->stack[vm->sp].value, &d, sizeof(double));
                 break;
             case DCONST:        // constants have native endianness
-                memcpy(&c, vm->code.ptr + vm->pc, sizeof c);
-                vm->pc += sizeof c;
-                PUSH(vm, ((YASL_Object) {Y_FLOAT64, c}));
+                c = vm_read_int64_t(vm);
+                vm_push(vm, (YASL_Object){Y_FLOAT64, c});
                 break;
             case ICONST:        // constants have native endianness
-                memcpy(&c, vm->code.ptr + vm->pc, sizeof c);
-                vm->pc += sizeof c;
-                PUSH(vm, ((YASL_Object) {Y_INT64, c}));
+                c = vm_read_int64_t(vm);
+                vm_push(vm, (YASL_Object) { Y_INT64, c });
                 break;
             case BCONST_F:
             case BCONST_T:
-                vm->stack[++vm->sp].type = Y_BOOL;
-                vm->stack[vm->sp].value.ival  = opcode & 0x01;
+                vm_push(vm, (YASL_Object) { Y_BOOL, opcode & 0x01 });
                 break;
             case NCONST:
-                vm->stack[++vm->sp].type = Y_UNDEF;
-                vm->stack[vm->sp].value.ival  = 0x00;
+                vm_push(vm, (YASL_Object) {Y_UNDEF, 0x00 });
                 break;
             case FCONST:
-                memcpy(&c, vm->code.ptr + vm->pc, sizeof c);
-                vm->pc += sizeof c;
-                PUSH(vm, ((YASL_Object) {Y_FN, c}));
+                c = vm_read_int64_t(vm);
+                vm_push(vm, (YASL_Object) {Y_FN, c});
                 break;
             case BOR:
-                b = POP(vm);
-                a = PEEK(vm);
-                if (a.type == Y_INT64 && b.type == Y_INT64) {
-                    PEEK(vm).value.ival = a.value.ival | b.value.ival;
-                    break;
-                } else {
-                    printf("TypeError: | not supported for operands of types %s and %s.\n",
-                           YASL_TYPE_NAMES[a.type],
-                           YASL_TYPE_NAMES[b.type]);
-                    return;
-                }
+                vm_int_binop(vm, &bor, "|");
+                break;
             case BXOR:
-                b = POP(vm);
-                a = PEEK(vm);
-                if (a.type == Y_INT64 && b.type == Y_INT64) {
-                    PEEK(vm).value.ival = a.value.ival ^ b.value.ival;
-                    break;
-                } else {
-                    printf("TypeError: binary ~ not supported for operands of types %s and %s.\n",
-                           YASL_TYPE_NAMES[a.type],
-                           YASL_TYPE_NAMES[b.type]);
-                    return;
-                }
+                vm_int_binop(vm, &bxor, "^");
+                break;
             case BAND:
-                b = POP(vm);
-                a = PEEK(vm);
-                if (a.type == Y_INT64 && b.type == Y_INT64) {
-                    PEEK(vm).value.ival = a.value.ival & b.value.ival;
-                    break;
-                } else {
-                    printf("TypeError: & not supported for operands of types %s and %s.\n",
-                           YASL_TYPE_NAMES[a.type],
-                           YASL_TYPE_NAMES[b.type]);
-                    return;
-                }
+                vm_int_binop(vm, &band, "&");
+                break;
             case BNOT:
-                a = PEEK(vm);
-                if (a.type == Y_INT64) {
-                    PEEK(vm).value.ival = ~a.value.ival;
-                    break;
-                } else {
-                    printf("TypeError: unary ~ not supported for operand of type %s.\n",
-                           YASL_TYPE_NAMES[a.type]);
-                    return;
-                }
+                vm_int_unop(vm, &bnot, "^");
+                break;
             case BSL:
-                b = POP(vm);
-                a = PEEK(vm);
-                if (a.type == Y_INT64 && b.type == Y_INT64) {
-                    PEEK(vm).value.ival = a.value.ival << b.value.ival;
-                    break;
-                } else {
-                    printf("TypeError: << not supported for operands of types %s and %s.\n",
-                           YASL_TYPE_NAMES[a.type],
-                           YASL_TYPE_NAMES[b.type]);
-                    return;
-                }
+                vm_int_binop(vm, &shift_left, "<<");
+                break;
             case BSR:
-                b = POP(vm);
-                a = PEEK(vm);
-                if (a.type == Y_INT64 && b.type == Y_INT64) {
-                    PEEK(vm).value.ival = (uint64_t)a.value.ival >> (uint64_t)b.value.ival;
-                    break;
-                } else {
-                    printf("TypeError: >> not supported for operands of types %s and %s.\n",
-                           YASL_TYPE_NAMES[a.type],
-                           YASL_TYPE_NAMES[b.type]);
-                    return;
-                }
+                vm_int_binop(vm, &shift_right, ">>");
+                break;
             case ADD:
-                b = vm->stack[vm->sp--];
-                a = vm->stack[vm->sp--];
-                BINOP(vm, a, b, ADD, "+");
+                vm_num_binop(vm, &int_add, &float_add, "+");
                 break;
             case MUL:
-                b = vm->stack[vm->sp--];
-                a = vm->stack[vm->sp--];
-                BINOP(vm, a, b, MUL, "*");
+                vm_num_binop(vm, &int_mul, &float_mul, "*");
                 break;
             case SUB:
-                b = vm->stack[vm->sp--];
-                a = vm->stack[vm->sp--];
-                BINOP(vm, a, b, SUB, "binary -");
+                vm_num_binop(vm, &int_sub, &float_sub, "-");
                 break;
-            case FDIV:    // handled differently because we always convert to float
-                b = vm->stack[vm->sp--];
-                a = vm->stack[vm->sp--];
-                if (a.type == Y_INT64 && b.type == Y_INT64) {
-                    d = (double)a.value.ival / (double)b.value.ival;
-                }
-                else if (a.type == Y_FLOAT64 && b.type == Y_INT64) {
-                    d = a.value.dval / (double)b.value.ival;
-                }
-                else if (a.type == Y_INT64 && b.type == Y_FLOAT64) {
-                    d = (double)a.value.ival / b.value.dval;
-                }
-                else if (a.type == Y_FLOAT64 && b.type == Y_FLOAT64) {
-                    d = a.value.dval / b.value.dval;
-                }
-                else {
-                    printf("TypeError: / not supported for operands of types %s and %s.\n",
-                           YASL_TYPE_NAMES[a.type],
-                           YASL_TYPE_NAMES[b.type]);
-                    return;
-                }
-                vm->stack[++vm->sp].type = Y_FLOAT64;
-                memcpy(&vm->stack[vm->sp].value, &d, sizeof(d));
+            case FDIV:
+                vm_fdiv(vm);   // handled differently because we always convert to float
                 break;
             case IDIV:
-                b = POP(vm);
-                a = PEEK(vm);
-                if (a.type == Y_INT64 && b.type == Y_INT64) {
-                    PEEK(vm).value.ival = a.value.ival / b.value.ival;
+                if (vm_peek(vm).type == Y_INT64 && vm_peek(vm).value.ival == 0) {
+                    vm_fdiv(vm);
                     break;
-                } else {
-                    printf("TypeError: // not supported for operands of types %s and %s.\n",
-                           YASL_TYPE_NAMES[a.type],
-                           YASL_TYPE_NAMES[b.type]);
-                    return;
                 }
+                vm_int_binop(vm, &idiv, "//");
+                break;
             case MOD:
                 // TODO: handle undefined C behaviour for negative numbers.
-                b = vm->stack[vm->sp--];
-                a = vm->stack[vm->sp];
-                if (a.type != Y_INT64 || b.type != Y_INT64) {
-                    printf("TypeError: %% not supported for operands of types %s and %s.\n",
-                           YASL_TYPE_NAMES[a.type],
-                           YASL_TYPE_NAMES[b.type]);
-                    return;
-                }
-                vm->stack[vm->sp].value.ival = a.value.ival % b.value.ival;
+                vm_int_binop(vm, &modulo, "%");
                 break;
             case EXP:
-                b = POP(vm);
-                a = POP(vm);
-                if (a.type == Y_INT64 && b.type == Y_INT64 && b.value.ival < 0) {
-                    d = pow((double)a.value.ival, (double)b.value.ival);
-                    DPUSH(vm, d);
-                    break;
-                }
-                BINOP(vm, a, b, EXP, "**");
+                vm_pow(vm);
                 break;
             case NEG:
-                a = vm->stack[vm->sp];
-                if (a.type == Y_INT64) {
-                    vm->stack[vm->sp].value.ival = -a.value.ival;
-                    break;
-                }
-                else if (a.type == Y_FLOAT64) {
-                    memcpy(&d, &vm->stack[vm->sp].value, sizeof(double));
-                    d = -d;
-                    memcpy(&vm->stack[vm->sp].value, &d, sizeof(double));
-                    break;
-                }
-                else {
-                    printf("TypeError: unary - not supported for operand of type %s.\n",
-                           YASL_TYPE_NAMES[a.type]);
-                    return;
-                }
+                vm_num_unop(vm, &int_neg, &float_neg, "-");
+                break;
             case NOT:
-                a = PEEK(vm);
-                if (a.type == Y_BOOL) {
-                    vm->stack[vm->sp].value.ival ^= 1;    // flip the last bit
-                    break;
-                }
-                else if (a.type == Y_UNDEF) {
-                    break;
-                }
-                else {
-                    printf("TypeError: ! not supported for operand of type %s.\n",
-                           YASL_TYPE_NAMES[a.type]);
-                    return;
-                }
+            {
+                YASL_Object tmp = (YASL_Object) { .type = Y_BOOL, .value.ival = isfalsey(vm_pop(vm))};
+                vm_push(vm, tmp);
+                break;
+            }
             case LEN:
                 v = vm->stack[vm->sp];
                 if (v.type == Y_STR) {
@@ -321,8 +388,8 @@ void vm_run(VM *vm){
                 vm->stack[vm->sp].type = Y_INT64;
                 break;
             case CNCT:
-                b = POP(vm);
-                a = PEEK(vm);
+                b = vm_pop(vm);
+                a = vm_peek(vm);
                 if (a.type == Y_STR && b.type == Y_STR) {
                     size = yasl_string_len(a.value.sval) + yasl_string_len(b.value.sval);
                     char *ptr = malloc(size);
@@ -344,34 +411,13 @@ void vm_run(VM *vm){
                     }
                     break;
                 }
-                printf("TypeError: || not supported for operands of types %s and %s.\n",
+                printf("TypeError: ~ not supported for operands of types %s and %s.\n",
                        YASL_TYPE_NAMES[a.type],
                        YASL_TYPE_NAMES[b.type]);
                 return;
-            /* case HARD_CNCT:
-                b = POP(vm);
-                a = PEEK(vm);
-                if (a.type != Y_STR || b.type != Y_STR) {
-                    puts("||| should have coerced to strings, aborting.");
-                    return;
-                }
-                if (yasl_string_len(b.value.sval) == 0) break;
-                if (yasl_string_len(a.value.sval) == 0) {
-                    PEEK(vm) = b;
-                    break;
-                }
-                size = yasl_string_len(a.value.sval) + yasl_string_len(b.value.sval) + 1;
-                ptr = str_new_sized(size);
-                PEEK(vm).value.sval = ptr; //ew_sized_string8(size);
-                PEEK(vm).value.sval->start = 0;
-                PEEK(vm).value.sval->end = size;
-                memcpy(((String_t*)ptr)->str.ptr, (a.value.sval)->str.ptr, yasl_string_len(a.value.sval));
-                (PEEK(vm).value.sval)->str.ptr[yasl_string_len(a.value.sval)] = ' ';
-                memcpy(((String_t*)ptr)->str.ptr + yasl_string_len(a.value.sval) + 1, (b.value.sval)->str.ptr, yasl_string_len(b.value.sval));
-                break; */
             case GT:
-                b = POP(vm);
-                a = POP(vm);
+                b = vm_pop(vm);
+                a = vm_pop(vm);
                 if ((a.type != Y_INT64 && a.type != Y_FLOAT64) ||
                     (b.type != Y_INT64 && b.type != Y_FLOAT64)) {
                     printf("TypeError: < and > not supported for operand of types %s and %s.\n",
@@ -382,8 +428,8 @@ void vm_run(VM *vm){
                 COMP(vm, a, b, GT, ">");
                 break;
             case GE:
-                b = POP(vm);
-                a = POP(vm);
+                b = vm_pop(vm);
+                a = vm_pop(vm);
                 if ((a.type != Y_INT64 && a.type != Y_FLOAT64) ||
                     (b.type != Y_INT64 && b.type != Y_FLOAT64)) {
                     printf("TypeError: <= and >= not supported for operand of types %s and %s.\n",
@@ -394,13 +440,13 @@ void vm_run(VM *vm){
                 COMP(vm, a, b, GE, ">=");
                 break;
             case EQ:
-                b = POP(vm);
-                a = PEEK(vm);
+                b = vm_pop(vm);
+                a = vm_peek(vm);
                 vm->stack[vm->sp] = (vm, isequal(a, b));
                 break;
             case ID:
-                b = POP(vm);
-                a = PEEK(vm);
+                b = vm_pop(vm);
+                a = vm_peek(vm);
                 vm->stack[vm->sp].value.ival = a.type == b.type && a.value.ival == b.value.ival;
                 vm->stack[vm->sp].type = Y_BOOL;
                 break;
@@ -427,47 +473,48 @@ void vm_run(VM *vm){
             }
             case NEWLIST: {
                 List_t *ls = ls_new();
-                while (PEEK(vm).type != Y_END) {
-                    ls_append(ls, POP(vm));
+                while (vm_peek(vm).type != Y_END) {
+                    ls_append(ls, vm_pop(vm));
                 }
-                POP(vm);
+                ls_reverse(ls);
+                vm_pop(vm);
                 vm->stack[++vm->sp].type = Y_LIST;
                 vm->stack[vm->sp].value.lval = ls;
                 break;
             }
             case INITFOR:
-                vm->loopstack->stack[++vm->loopstack->sp] = POP(vm);
-                vm->loopstack->indices[vm->loopstack->sp] = 0;
+                LOOPSTACK_PUSH(vm, POP(vm));
+                LOOPSTACK_INDEX(vm) = 0;
                 break;
             case ENDFOR:
+                LOOPSTACK_POP(vm);
                 vm->loopstack->sp--;
                 break;
             case ITER_1:
-                // NOTE: only supports lists currently
-                switch (vm->loopstack->stack[vm->loopstack->sp].type) {
+                switch (LOOPSTACK_PEEK(vm).type) {
                     case Y_LIST:
-                        if (vm->loopstack->stack[vm->loopstack->sp].value.lval->count <= vm->loopstack->indices[vm->loopstack->sp]) {
+                        if (LOOPSTACK_PEEK(vm).value.lval->count <= LOOPSTACK_INDEX(vm)) {
                             BPUSH(vm, 0);
                         } else {
-                            PUSH(vm, vm->loopstack->stack[vm->loopstack->sp].value.lval->items[vm->loopstack->indices[vm->loopstack->sp]++]); //.value.lval->items;
+                            PUSH(vm, LOOPSTACK_PEEK(vm).value.lval->items[LOOPSTACK_INDEX(vm)++]); //.value.lval->items;
                             BPUSH(vm, 1);
                         }
                         break;
                     case Y_TABLE:
-                        while ((vm->loopstack->stack[vm->loopstack->sp].value.mval->items[vm->loopstack->indices[vm->loopstack->sp]] == &TOMBSTONE ||
-                                vm->loopstack->stack[vm->loopstack->sp].value.mval->items[vm->loopstack->indices[vm->loopstack->sp]] == NULL) &&
-                                vm->loopstack->stack[vm->loopstack->sp].value.mval->size > vm->loopstack->indices[vm->loopstack->sp]) {
-                            vm->loopstack->indices[vm->loopstack->sp]++;
+                        while ((LOOPSTACK_PEEK(vm).value.mval->items[LOOPSTACK_INDEX(vm)] == &TOMBSTONE ||
+                                LOOPSTACK_PEEK(vm).value.mval->items[LOOPSTACK_INDEX(vm)] == NULL) &&
+                                LOOPSTACK_PEEK(vm).value.mval->size > LOOPSTACK_INDEX(vm)) {
+                            LOOPSTACK_INDEX(vm)++;
                         }
-                        if (vm->loopstack->stack[vm->loopstack->sp].value.mval->size <= vm->loopstack->indices[vm->loopstack->sp]) {
+                        if (LOOPSTACK_PEEK(vm).value.mval->size <= LOOPSTACK_INDEX(vm)) {
                             BPUSH(vm, 0);
                             break;
                         }
-                        PUSH(vm, *vm->loopstack->stack[vm->loopstack->sp].value.mval->items[vm->loopstack->indices[vm->loopstack->sp]++]->key); //.value.lval->items;
+                        PUSH(vm, *LOOPSTACK_PEEK(vm).value.mval->items[LOOPSTACK_INDEX(vm)++]->key); //.value.lval->items;
                         BPUSH(vm, 1);
                         break;
                     default:
-                        printf("object of type %s is not iterable.\n", YASL_TYPE_NAMES[vm->loopstack->stack[vm->loopstack->sp].type]);
+                        printf("object of type %s is not iterable.\n", YASL_TYPE_NAMES[LOOPSTACK_PEEK(vm).type]);
                         exit(EXIT_FAILURE);
                 }
                 break;
@@ -487,25 +534,23 @@ void vm_run(VM *vm){
                 vm->stack[vm->sp] = b;
                 break;
             case GOTO:
-                memcpy(&c, vm->code.ptr + vm->pc, sizeof c);
+                c = vm_read_int64_t(vm);
                 vm->pc = c + (vm->pc < vm->pc0 ? 16 : vm->pc0);
                 break;
             case BR_8:
-                memcpy(&c, vm->code.ptr + vm->pc, sizeof c);
-                vm->pc += sizeof c;
+                c = vm_read_int64_t(vm);
                 vm->pc += c;
                 break;
             case BRF_8:
-                memcpy(&c, vm->code.ptr + vm->pc, sizeof c);
-                vm->pc += sizeof c;
-                v = vm->stack[vm->sp--];
-                if (FALSEY(v)) vm->pc += c;
+                c = vm_read_int64_t(vm);
+                v = vm_pop(vm);
+                if (isfalsey(v)) vm->pc += c;
                 break;
             case BRT_8:
                 memcpy(&c, vm->code.ptr + vm->pc, sizeof c);
                 vm->pc += sizeof c;
                 v = vm->stack[vm->sp--];
-                if (!(FALSEY(v))) vm->pc += c;
+                if (!(isfalsey(v))) vm->pc += c;
                 break;
             case BRN_8:
                 memcpy(&c, vm->code.ptr + vm->pc, sizeof(c));
@@ -569,7 +614,7 @@ void vm_run(VM *vm){
                 YASL_Object *result = ht_search(vm->builtins_htable[index], key);
                 if (result == NULL) {
                     printf("%s\n", YASL_TYPE_NAMES[index]);
-                    puts("Not foundsdadsadsasds");
+                    puts("Not found.");
                     exit(1);
                 } else {
                     PUSH(vm, *result);

@@ -1,16 +1,9 @@
 #include <lexer.h>
 #include <compiler/lexer/lexer.h>
 #include <color.h>
+#include "yats.h"
 
-#define ASSERT_EQ(left, right) do {\
-            if ((left) == (right)) {\
-                printf(K_GRN "assert passed in %s: line %d" K_END "\n", __func__, __LINE__);\
-            } else {\
-                printf(K_RED "assert failed in %s: line %d" K_END "\n", __func__, __LINE__);\
-            }\
-        } while(0)
-
-static int __YASL_TESTS_FAILED__ = 0;
+SETUP_YATS();
 
 #define ASSERT_TOK_EQ(left, right) do {\
     if (left == right) {\
@@ -25,15 +18,6 @@ static int __YASL_TESTS_FAILED__ = 0;
             gettok(lex);\
             ASSERT_TOK_EQ(tok, (lex)->type);\
         } while(0)
-
-Lexer *setup_lexer(char *file_contents) {
-    FILE *fptr = fopen("dump.ysl", "w");
-    fwrite(file_contents, 1, strlen(file_contents), fptr);
-    fseek(fptr, 0, SEEK_SET);
-    fclose(fptr);
-    fptr = fopen("dump.ysl", "r");
-    return lex_new(fptr);
-}
 
 void test_semi(void) {
     Lexer *lex = setup_lexer(";");
@@ -157,7 +141,7 @@ void test_enum(void) {
     ASSERT_EATTOK(T_EOF, lex);
 }
 
-void test_print(void) {
+void test_dec(void) {
     Lexer *lex = setup_lexer("print");
     ASSERT_EATTOK(T_PRINT, lex);
     ASSERT_EATTOK(T_EOF, lex);
@@ -482,6 +466,13 @@ void test_colon(void) {
     ASSERT_EATTOK(T_EOF, lex);
 }
 
+void test_dcolon(void) {
+    Lexer *lex = setup_lexer("::");
+    ASSERT_EATTOK(T_DCOLON, lex);
+    ASSERT_EATTOK(T_EOF, lex);
+}
+
+
 void test_big_arrow(void) {
     Lexer *lex = setup_lexer("=>");
     ASSERT_EATTOK(T_BIG_ARR, lex);
@@ -546,7 +537,7 @@ void test_blockcomment(void) {
     ASSERT_EATTOK(T_EOF, lex);
 }
 
-int main() {
+int lexertest(void) {
     test_int();
     test_string();
     test_division();
@@ -571,7 +562,7 @@ int main() {
     test_fn();
     test_return();
     // test_enum();
-    test_print();
+    test_dec();
     test_lpar();
     test_rpar();
     test_lsqb();
@@ -624,5 +615,9 @@ int main() {
     test_qmark();
     test_dqmark();
     test_dqmarkeq();
+    test_colon();
+    test_dcolon();
+    test_small_arrow();
+    test_big_arrow();
     return __YASL_TESTS_FAILED__;
 }

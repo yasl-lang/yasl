@@ -86,8 +86,8 @@ typedef struct {
 	YASL_Object* globals;          // variables, see "constant.c" for details on YASL_Object.
 	YASL_Object* stack;            // stack
 	rcptr code;                 // bytecode
-	int pc;                     // program counter
-    int pc0;                    // initial value for pc
+	int64_t pc;                     // program counter
+    int64_t pc0;                    // initial value for pc
 	int sp;                     // stack pointer
 	int fp;                     // frame pointer
 	Hash_t **builtins_htable;   // htable of builtin methods

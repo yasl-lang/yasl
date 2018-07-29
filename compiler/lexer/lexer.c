@@ -11,7 +11,6 @@ static int isodigit(int c) {
 }
 
 char lex_getchar(Lexer *lex) {
-    //printf("last char was %c (%x)\n", lex->c, lex->c);
     return lex->c = fgetc(lex->file);
 }
 
@@ -40,12 +39,8 @@ static int lex_eatinlinecomments(Lexer *lex) {
     return 0;
 }
 
-int lex_eatblockcomments(Lexer *lex) {
-    return 0;
-}
-
 static int lex_eatint(Lexer *lex, char separator, int (*isvaliddigit)(int)) {
-    int i = 0;
+    size_t i = 0;
     lex->value[i++] = '0';
     lex->value[i++] = separator;
     lex_getchar(lex);
@@ -142,6 +137,7 @@ static int lex_eatstring(Lexer *lex) {
 
 void gettok(Lexer *lex) {
     YASL_TRACE_LOG("getting token from line %d\n", lex->line);
+    lex->value = NULL;
     char c1, c2, c3, c4;
     int last;
     lex_getchar(lex);
@@ -426,6 +422,15 @@ static Token YASLToken_OneChar(char c1) {
     }
 }
 
+static int matches_keyword(Lexer *lex, char *string) {
+    return strlen(string) == lex->val_len && !memcmp(lex->value, string, lex->val_len);
+}
+
+static void set_keyword(Lexer *lex, Token type) {
+    lex->type = type;
+    free(lex->value);
+}
+
 static void YASLKeywords(Lexer *lex) {
     /* keywords:
      *  let
@@ -446,56 +451,24 @@ static void YASLKeywords(Lexer *lex) {
      *  return
      */
 
-    if (strlen("let") == lex->val_len && !memcmp(lex->value, "let", lex->val_len)) {
-        lex->type = T_LET;
-        lex->value = realloc(lex->value, 0);
-    } else if (strlen("const") == lex->val_len && !memcmp(lex->value, "const", lex->val_len)) {
-        lex->type = T_CONST;
-        lex->value = realloc(lex->value, 0);
-    } else if (strlen("print") == lex->val_len && !memcmp(lex->value, "print", lex->val_len)) {
-        lex->type = T_PRINT;
-        lex->value = realloc(lex->value, 0);
-    } else if (strlen("else") == lex->val_len && !memcmp(lex->value, "else", lex->val_len)) {
-        lex->type = T_ELSE;
-        lex->value = realloc(lex->value, 0);
-    } else if (strlen("if") == lex->val_len && !memcmp(lex->value, "if", lex->val_len)) {
-        lex->type = T_IF;
-        lex->value = realloc(lex->value, 0);
-    } else if (strlen("elseif") == lex->val_len && !memcmp(lex->value, "elseif", lex->val_len)) {
-        lex->type = T_ELSEIF;
-        lex->value = realloc(lex->value, 0);
-    } else if (strlen("for") == lex->val_len && !memcmp(lex->value, "for", lex->val_len)) {
-        lex->type = T_FOR;
-        lex->value = realloc(lex->value, 0);
-    } else if (strlen("in") == lex->val_len && !memcmp(lex->value, "in", lex->val_len)) {
-        lex->type = T_IN;
-        lex->value = realloc(lex->value, 0);
-    } else if (strlen("while") == lex->val_len && !memcmp(lex->value, "while", lex->val_len)) {
-        lex->type = T_WHILE;
-        lex->value = realloc(lex->value, 0);
-    } else if (strlen("for") == lex->val_len && !memcmp(lex->value, "for", lex->val_len)) {
-        lex->type = T_FOR;
-        lex->value = realloc(lex->value, 0);
-    } else if (strlen("break") == lex->val_len && !memcmp(lex->value, "break", lex->val_len)) {
-        lex->type = T_BREAK;
-        lex->value = realloc(lex->value, 0);
-    } else if (strlen("continue") == lex->val_len && !memcmp(lex->value, "continue", lex->val_len)) {
-        lex->type = T_CONT;
-        lex->value = realloc(lex->value, 0);
-    } else if (strlen("true") == lex->val_len && !memcmp(lex->value, "true", lex->val_len)) {
-        lex->type = T_BOOL;
-    } else if (strlen("false") == lex->val_len && !memcmp(lex->value, "false", lex->val_len)) {
-        lex->type = T_BOOL;
-    } else if (strlen("undef") == lex->val_len && !memcmp(lex->value, "undef", lex->val_len)) {
-        lex->type = T_UNDEF;
-        lex->value = realloc(lex->value, 0);
-    } else if (strlen("fn") == lex->val_len && !memcmp(lex->value, "fn", lex->val_len)) {
-        lex->type = T_FN;
-        lex->value = realloc(lex->value, 0);
-    } else if (strlen("return") == lex->val_len && !memcmp(lex->value, "return", lex->val_len)) {
-        lex->type = T_RET;
-        lex->value = realloc(lex->value, 0);
-    }
+
+
+    if (matches_keyword(lex, "break")) set_keyword(lex, T_BREAK);
+    else if (matches_keyword(lex, "const")) set_keyword(lex, T_CONST);
+    else if (matches_keyword(lex, "continue")) set_keyword(lex, T_CONT);
+    else if (matches_keyword(lex, "else")) set_keyword(lex, T_ELSE);
+    else if (matches_keyword(lex, "elseif")) set_keyword(lex, T_ELSEIF);
+    else if (matches_keyword(lex, "fn")) set_keyword(lex, T_FN);
+    else if (matches_keyword(lex, "for")) set_keyword(lex, T_FOR);
+    else if (matches_keyword(lex, "if")) set_keyword(lex, T_IF);
+    else if (matches_keyword(lex, "in")) set_keyword(lex, T_IN);
+    else if (matches_keyword(lex, "let")) set_keyword(lex, T_LET);
+    else if (matches_keyword(lex, "print")) set_keyword(lex, T_PRINT);
+    else if (matches_keyword(lex, "return")) set_keyword(lex, T_RET);
+    else if (matches_keyword(lex, "undef")) set_keyword(lex, T_UNDEF);
+    else if (matches_keyword(lex, "while")) set_keyword(lex, T_WHILE);
+    // NOTE: special case for bools
+    else if (matches_keyword(lex, "true") || matches_keyword(lex, "false")) lex->type = T_BOOL;
 }
 
 // Note: keep in sync with token.h
@@ -582,7 +555,7 @@ const char *YASL_TOKEN_NAMES[] = {
         "->"            // SMALL_ARR
 };
 
-Lexer *lex_new(FILE *file) {
+Lexer *lex_new(FILE *file /* OWN */) {
     Lexer *lex = malloc(sizeof(Lexer));
     lex->line = 1;
     lex->value = NULL;
@@ -594,6 +567,5 @@ Lexer *lex_new(FILE *file) {
 
 void lex_del(Lexer *lex) {
     fclose(lex->file);
-    free(lex->value);
     free(lex);
 }

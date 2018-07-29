@@ -60,9 +60,16 @@ int list_search(VM* vm) {
     YASL_Object index = UNDEF_C;
     int i;
     for (i = 0; i < haystack.value.lval->count; i++) {
-        if (!FALSEY(isequal(haystack.value.lval->items[i], needle)))
+        if (!isfalsey(isequal(haystack.value.lval->items[i], needle)))
             index = (YASL_Object) { .type = Y_INT64, .value.ival = i };
     }
     PUSH(vm, index);
+    return 0;
+}
+
+int list_reverse(VM *vm) {
+    ASSERT_TYPE(vm, Y_LIST, "list.reverse");
+    List_t *ls = POP(vm).value.lval;
+    ls_reverse(ls);
     return 0;
 }

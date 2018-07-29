@@ -1,6 +1,7 @@
 #include <compiler/lexer/lexer.h>
 #include "../lexer/lexer.h"
 #include "parser.h"
+#include <inttypes.h>
 
 int peof(const Parser *const parser) {
     return parser->lex->type == T_EOF;
@@ -80,8 +81,7 @@ static Node *parse_program(const Parser *const parser) {
 static Node *parse_fn(const Parser *const parser) {
     YASL_TRACE_LOG("parsing fn in line %d\n", parser->lex->line);
     eattok(parser, T_FN);
-    char *name = malloc(parser->lex->val_len);
-    memcpy(name, parser->lex->value, parser->lex->val_len);
+    char *name = parser->lex->value;
     int64_t name_len = parser->lex->val_len;
     eattok(parser, T_ID);
     eattok(parser, T_LPAR);
@@ -107,16 +107,14 @@ static Node *parse_let(const Parser *const parser) {
     eattok(parser, T_LET);
     if (curtok(parser) == T_CONST) {
         eattok(parser, T_CONST);
-        char *name = malloc(parser->lex->val_len);
-        memcpy(name, parser->lex->value, parser->lex->val_len);
+        char *name = parser->lex->value;
         int64_t name_len = parser->lex->val_len;
         eattok(parser, T_ID);
         eattok(parser, T_EQ);
         Node *expr = parse_expr(parser);
         return new_Const(name, name_len, expr, parser->lex->line);
     } else {
-        char *name = malloc(parser->lex->val_len);
-        memcpy(name, parser->lex->value, parser->lex->val_len);
+        char *name = parser->lex->value;
         int64_t name_len = parser->lex->val_len;
         eattok(parser, T_ID);
         if (curtok(parser) != T_EQ) return new_Let(name, name_len, NULL, parser->lex->line);
@@ -242,11 +240,11 @@ static Node *parse_expr(const Parser *const parser) {
 static Node *parse_assign(const Parser *const parser) {
     YASL_TRACE_LOG("parsing = in line %d\n", parser->lex->line);
     Node *cur_node = parse_ternary(parser);
-    if (curtok(parser) == T_EQ) { // || curtok(parser) == T_DLT)
+    if (curtok(parser) == T_EQ) {
         eattok(parser, T_EQ);
         if (cur_node->nodetype == N_VAR) {
             Node *assign_node = new_Assign(cur_node->name, cur_node->name_len, parse_assign(parser), parser->lex->line);
-            node_del(cur_node);
+            free(cur_node);
             return assign_node;
         } else if (cur_node->nodetype == N_GET) {
             Node *left = cur_node->children[0];
@@ -264,7 +262,11 @@ static Node *parse_assign(const Parser *const parser) {
     } else if (tok_isaugmented(curtok(parser))) {
         Token op = eattok(parser, curtok(parser)) - 1; // relies on enum
         if (cur_node->nodetype == N_VAR) {
-            return new_Assign(cur_node->name, cur_node->name_len, new_BinOp(op, cur_node, parse_assign(parser), parser->lex->line), parser->lex->line);
+            char *name = cur_node->name;
+            int64_t name_len = cur_node->name_len;
+            Node *tmp = node_clone(cur_node);
+            free(cur_node);
+            return new_Assign(name, name_len, new_BinOp(op, tmp, parse_assign(parser), parser->lex->line), parser->lex->line);
         } else if (cur_node->nodetype == N_GET) {
             Node *left = cur_node->children[0];
             Node *block = new_Body(parser->lex->line);
@@ -517,22 +519,20 @@ static Node *parse_constant(const Parser *const parser) {
         case T_IF:
         case T_ELSEIF:
         case T_ELSE:
-            printf("ParsingError in line %d: expected expression, got `%s`\n", parser->lex->line, YASL_TOKEN_NAMES[curtok(parser)]);
+            printf("ParsingError in line %" PRId64 ": expected expression, got `%s`\n", parser->lex->line, YASL_TOKEN_NAMES[curtok(parser)]);
             exit(EXIT_FAILURE);
         default:
-            printf("ParsingError: Invalid expression in line %d (%s).\n", parser->lex->line, YASL_TOKEN_NAMES[curtok(parser)]);
+            printf("ParsingError: Invalid expression in line %" PRId64 " (%s).\n", parser->lex->line, YASL_TOKEN_NAMES[curtok(parser)]);
             exit(EXIT_FAILURE);
     }
 }
 
 static Node *parse_id(const Parser *const parser) {
-    char *name = malloc(parser->lex->val_len);
-    memcpy(name, parser->lex->value, parser->lex->val_len);
+    char *name = parser->lex->value;
     int64_t name_len = parser->lex->val_len;
     eattok(parser, T_ID);
     YASL_TRACE_LOG("%s\n", "Parsing variable");
     Node *cur_node = new_Var(name, name_len, parser->lex->line);
-    free(name);
     return cur_node;
 }
 
@@ -575,20 +575,18 @@ static Node *parse_string(const Parser *const parser) {
 static Node *parse_collection(const Parser *const parser) {
     eattok(parser, T_LSQB);
     Node *keys = new_Body(parser->lex->line);
-    Node *vals = new_Body(parser->lex->line); // free if we have list.
 
     // empty table
-    if (curtok(parser) == T_BIG_ARR) {
+    if (curtok(parser) == T_COLON) {
         YASL_TRACE_LOG("%s\n", "Parsing table");
-        eattok(parser, T_BIG_ARR);
+        eattok(parser, T_COLON);
         eattok(parser, T_RSQB);
-        return new_Table(keys, vals, parser->lex->line);
+        return new_Table(keys, parser->lex->line);
     }
 
     // empty list
     if (curtok(parser) == T_RSQB) {
         YASL_TRACE_LOG("%s\n", "Parsing list");
-        node_del(vals);
         eattok(parser, T_RSQB);
         return new_List(keys, parser->lex->line);
     }
@@ -596,28 +594,62 @@ static Node *parse_collection(const Parser *const parser) {
     body_append(keys, parse_expr(parser));
 
     // non-empty table
-    if (curtok(parser) == T_BIG_ARR) {
+    if (curtok(parser) == T_COLON) {
         YASL_TRACE_LOG("%s\n", "Parsing table");
-        eattok(parser, T_BIG_ARR);
-        body_append(vals, parse_expr(parser));
+        eattok(parser, T_COLON);
+        body_append(keys, parse_expr(parser));
+
+        if (curtok(parser) == T_FOR) {
+            puts("table comp");
+            eattok(parser, T_FOR);
+            eattok(parser, T_LET);
+            Node *var = parse_id(parser);
+            eattok(parser, T_IN);
+            Node *collection = parse_expr(parser);
+            Node *cond = NULL;
+            if (curtok(parser) == T_IF) {
+                eattok(parser, T_IF);
+                cond = parse_expr(parser);
+            }
+            eattok(parser, T_RSQB);
+            Node *table_comp = new_TableComp(cond ? new_If(cond, keys/*->children[0]*/, NULL, parser->lex->line) : keys/*->children[0]*/, var, collection, parser->lex->line);
+            //free(keys);
+            return table_comp;
+        }
         while (curtok(parser) == T_COMMA) {
             eattok(parser, T_COMMA);
             body_append(keys, parse_expr(parser));
-            eattok(parser, T_BIG_ARR);
-            body_append(vals, parse_expr(parser));
+            eattok(parser, T_COLON);
+            body_append(keys, parse_expr(parser));
         }
         eattok(parser, T_RSQB);
-        return new_Table(keys, vals, parser->lex->line);
+        return new_Table(keys, parser->lex->line);
     }
 
     // non-empty list
-    node_del(vals);
-    while (curtok(parser) == T_COMMA) {
-        YASL_TRACE_LOG("%s\n", "Parsing list");
-        eattok(parser, T_COMMA);
-        body_append(keys, parse_expr(parser));
+    if (curtok(parser) == T_FOR) {
+        puts("non-empty list");
+        eattok(parser, T_FOR);
+        eattok(parser, T_LET);
+        Node *var = parse_id(parser);
+        eattok(parser, T_IN);
+        Node *collection = parse_expr(parser);
+        Node *cond = NULL;
+        if (curtok(parser) == T_IF) {
+            eattok(parser, T_IF);
+            cond = parse_expr(parser);
+        }
+        eattok(parser, T_RSQB);
+        Node *table_comp = new_ListComp(cond ? new_If(cond, keys->children[0], NULL, parser->lex->line) : keys->children[0], var, collection, parser->lex->line);
+        free(keys);
+        return table_comp;
+    } else {
+        while (curtok(parser) == T_COMMA) {
+            YASL_TRACE_LOG("%s\n", "Parsing list");
+            eattok(parser, T_COMMA);
+            body_append(keys, parse_expr(parser));
+        }
+        eattok(parser, T_RSQB);
+        return new_List(keys, parser->lex->line);
     }
-    eattok(parser, T_RSQB);
-    return new_List(keys, parser->lex->line);
-
 }
