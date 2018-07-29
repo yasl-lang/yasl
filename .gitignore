@@ -11,3 +11,4 @@ YASL
 # Generated
 dump.ysl
 *.yb
+*.o
