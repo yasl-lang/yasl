@@ -444,7 +444,37 @@ static void test_concat() {
     ASSERT_GEN_BC_EQ(expected,"2 ~ 1;");
 }
 
+static void test_and() {
+    unsigned char expected[] = {
+            0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            BCONST_T,
+            DUP,
+            BRF_8,
+            0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            POP,
+            BCONST_F,
+            POP,
+            HALT
+    };
+    ASSERT_GEN_BC_EQ(expected,"true && false;");
+}
 
+static void test_or() {
+    unsigned char expected[] = {
+            0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            BCONST_T,
+            DUP,
+            BRT_8,
+            0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            POP,
+            BCONST_F,
+            POP,
+            HALT
+    };
+    ASSERT_GEN_BC_EQ(expected,"true || false;");
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -471,17 +501,16 @@ int compilertest() {
     test_fdiv();
     test_idiv();
     test_mod();
-
     test_add();
     test_sub();
-
     test_bshl();
     test_bshr();
     test_band();
     test_bxor();
     test_bor();
-
     test_concat();
+    test_and();
+    test_or();
 
     return __YASL_TESTS_FAILED__;
 }
