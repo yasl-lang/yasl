@@ -24,6 +24,7 @@ Compiler *compiler_new(Parser *const parser, char *const name) {
 
     compiler->functions = ht_new();
     compiler->functions_locals_len = ht_new();
+    compiler->current_function = NULL;
     compiler->offset = 0;
     compiler->strings = ht_new();
     compiler->parser = parser;
@@ -85,8 +86,15 @@ static void enter_scope(Compiler *const compiler) {
 }
 
 static void exit_scope(Compiler *const compiler) {
-    if (compiler->current_function != NULL) compiler->locals = compiler->locals->parent;
-    else compiler->globals = compiler->globals->parent;
+    if (compiler->current_function != NULL) {
+        Env_t *tmp = compiler->locals;
+        compiler->locals = compiler->locals->parent;
+        env_del_current_only(tmp);
+    } else {
+        Env_t *tmp = compiler->globals;
+        compiler->globals = compiler->globals->parent;
+        env_del_current_only(tmp);
+    }
     // TODO: deal with memory leaks
 }
 

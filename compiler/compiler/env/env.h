@@ -14,6 +14,7 @@ typedef struct Env_s Env_t;
 
 Env_t *env_new(Env_t *env);
 void env_del(Env_t *env);
+void env_del_current_only(Env_t *env);
 
 int64_t env_len(Env_t *env);
 int env_contains_cur_scope(Env_t *env, char *name, int64_t name_len);

@@ -14,6 +14,11 @@ Env_t *env_new(Env_t *parent) {
 
 void env_del(Env_t *env) {
     if (env->parent != NULL) env_del(env->parent);
+    free(env->parent);
+    env_del_current_only(env);
+}
+
+void env_del_current_only(Env_t *env) {
     int i;
     for (i = 0; i < env->vars->size; i++) {
         Item_t* item = env->vars->items[i];
@@ -26,9 +31,7 @@ void env_del(Env_t *env) {
     }
     free(env->vars->items);
     free(env->vars);
-    free(env->parent);
     free(env);
-
 }
 
 int64_t env_len(Env_t *env) {
@@ -45,6 +48,7 @@ int env_contains_cur_scope(Env_t *env, char *name, int64_t name_len) {
     YASL_Object key = (YASL_Object) { .value.sval = string, .type = Y_STR };
 
     YASL_Object *value = ht_search(env->vars, key);
+    str_del(key.value.sval);
     if (value == NULL) {
         return 0;
     }
@@ -61,6 +65,7 @@ int env_contains(Env_t *env, char *name, int64_t name_len) {
     YASL_Object key = (YASL_Object) { .value.sval = string, .type = Y_STR };
 
     YASL_Object *value = ht_search(env->vars, key);
+    str_del(key.value.sval);
     if (value == NULL && env->parent == NULL) {
         return 0;
     }
@@ -78,6 +83,7 @@ int64_t env_get(Env_t *env, char *name, int64_t name_len) {
     YASL_Object key = (YASL_Object) { .value.sval = string, .type = Y_STR };
 
     YASL_Object *value = ht_search(env->vars, key);
+    str_del(key.value.sval);
     if (value == NULL && env->parent == NULL) {
         printf("error in env_get with key: ");
         print(key);

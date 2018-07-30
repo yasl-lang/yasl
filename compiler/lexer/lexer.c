@@ -81,7 +81,7 @@ static int lex_eatop(Lexer *lex) {
     last = YASLToken_ThreeChars(c1, c2, c3);
     if (last != -1) {
         lex->type = last;
-        lex->value = realloc(lex->value, 0);
+        free(lex->value); // = realloc(lex->value, 0);
         return 1;
     }
     fseek(lex->file, -1, SEEK_CUR);
@@ -90,7 +90,7 @@ static int lex_eatop(Lexer *lex) {
     last = YASLToken_TwoChars(c1, c2);
     if (last != -1) {
         lex->type = last;
-        lex->value = realloc(lex->value, 0);
+        free(lex->value); // = realloc(lex->value, 0);
         return 1;
     }
     fseek(lex->file, -1, SEEK_CUR);
@@ -99,7 +99,7 @@ static int lex_eatop(Lexer *lex) {
     last = YASLToken_OneChar(c1);
     if (last != -1) {
         lex->type = last;
-        lex->value = realloc(lex->value, 0);
+        free(lex->value); // = realloc(lex->value, 0);
         return 1;
     }
     return 0;
