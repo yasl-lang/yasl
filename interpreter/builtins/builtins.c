@@ -179,6 +179,7 @@ Hash_t* str_builtins() {
 Hash_t* list_builtins() {
     Hash_t* ht = ht_new();
     ht_insert_string_int(ht, "append", strlen("append"), (int64_t)&list_append);
+    ht_insert_string_int(ht, "pop", strlen("pop"), (int64_t)&list_pop);
     ht_insert_string_int(ht, "__get",  strlen("__get"),  (int64_t)&list___get);
     ht_insert_string_int(ht, "__set",  strlen("__set"),  (int64_t)&list___set);
     ht_insert_string_int(ht, "search", strlen("search"), (int64_t)&list_search);

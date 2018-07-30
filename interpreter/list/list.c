@@ -82,7 +82,7 @@ YASL_Object ls_search(List_t* ls, int64_t index) {
 
 void ls_reverse(List_t *ls) {
     int64_t i;
-    for(i = 0; i <= ls->count/2; i++) {
+    for(i = 0; i < ls->count/2; i++) {
         YASL_Object tmp = ls->items[i];
         ls->items[i] = ls->items[ls->count-i-1];
         ls->items[ls->count-i-1] = tmp;

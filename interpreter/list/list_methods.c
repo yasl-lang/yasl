@@ -53,6 +53,17 @@ int list_append(VM* vm) {
     return 0;
 }
 
+int list_pop(VM* vm) {
+    ASSERT_TYPE(vm, Y_LIST, "list.pop");
+    YASL_Object ls  = POP(vm);
+    if (ls.value.lval->count == 0) {
+        puts("cannot pop from empty list.");
+        exit(EXIT_FAILURE);
+    }
+    PUSH(vm, ls.value.lval->items[--ls.value.lval->count]);
+    return 0;
+}
+
 int list_search(VM* vm) {
     ASSERT_TYPE(vm, Y_LIST, "list.search");
     YASL_Object haystack = POP(vm);

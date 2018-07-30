@@ -192,7 +192,7 @@ YASL_Object *ht_search_string_int(const Hash_t *const hashtable, char *key, int6
     YASL_Object object = (YASL_Object) { .value.sval = string, .type = Y_STR };
 
     YASL_Object *result = ht_search(hashtable, object);
-
+    str_del(string);
     return result;
 
 }
