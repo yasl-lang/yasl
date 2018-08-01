@@ -15,10 +15,12 @@ typedef enum Opcode {
             DCONST_0  = 0x0B, // push 0.0 onto stack
             DCONST_1  = 0x0C, // push 1.0 onto stack
             DCONST_2  = 0x0D, // push 2.0 onto stack
-            BCONST_F  = 0x0E, // push literal false onto stack
-            BCONST_T  = 0x0F, // push literal true onto stack
-            FCONST    = 0x10, // push function literal onto stack
-            MCONST    = 0x11, // push builtin function literal onto stack
+            DCONST_N  = 0x0E, // push nan onto stack
+            DCONST_I  = 0x0F, // push inf onto stack
+            BCONST_F  = 0x10, // push literal false onto stack
+            BCONST_T  = 0x11, // push literal true onto stack
+            FCONST    = 0x12, // push function literal onto stack
+            MCONST    = 0x13, // push builtin function literal onto stack
             BOR       = 0x20, // bitwise or
             BXOR      = 0x21, // bitwise xor
             BAND      = 0x22, // bitwise and

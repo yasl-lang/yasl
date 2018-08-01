@@ -1,4 +1,3 @@
-#include <interpreter/YASL_string/refcountptr.h>
 #include <interpreter/YASL_string/YASL_string.h>
 #include <interpreter/YASL_Object/YASL_Object.h>
 #include "env.h"
@@ -40,9 +39,9 @@ int64_t env_len(Env_t *env) {
 
 int env_contains_cur_scope(Env_t *env, char *name, int64_t name_len) {
     String_t *string = malloc(sizeof(String_t));
-    char *tmp = malloc(name_len);
+    unsigned char *tmp = malloc(name_len);
     memcpy(tmp, name, name_len);
-    string->str = rcptr_new(tmp);
+    string->str = tmp;
     string->start = 0;
     string->end = name_len;
     YASL_Object key = (YASL_Object) { .value.sval = string, .type = Y_STR };
@@ -57,9 +56,9 @@ int env_contains_cur_scope(Env_t *env, char *name, int64_t name_len) {
 
 int env_contains(Env_t *env, char *name, int64_t name_len) {
     String_t *string = malloc(sizeof(String_t));
-    char *tmp = malloc(name_len);
+    unsigned char *tmp = malloc(name_len);
     memcpy(tmp, name, name_len);
-    string->str = rcptr_new(tmp);
+    string->str = tmp;
     string->start = 0;
     string->end = name_len;
     YASL_Object key = (YASL_Object) { .value.sval = string, .type = Y_STR };
@@ -75,9 +74,9 @@ int env_contains(Env_t *env, char *name, int64_t name_len) {
 
 int64_t env_get(Env_t *env, char *name, int64_t name_len) {
     String_t *string = malloc(sizeof(String_t));
-    char *tmp = malloc(name_len);
+    unsigned char *tmp = malloc(name_len);
     memcpy(tmp, name, name_len);
-    string->str = rcptr_new(tmp);
+    string->str = tmp;
     string->start = 0;
     string->end = name_len;
     YASL_Object key = (YASL_Object) { .value.sval = string, .type = Y_STR };
@@ -95,9 +94,9 @@ int64_t env_get(Env_t *env, char *name, int64_t name_len) {
 
 void env_decl_var(Env_t *env, char *name, int64_t name_len) {
     String_t *string = malloc(sizeof(String_t));
-    char *tmp = malloc(name_len);
+    unsigned char *tmp = malloc(name_len);
     memcpy(tmp, name, name_len);
-    string->str = rcptr_new(tmp);
+    string->str = tmp;
     string->start = 0;
     string->end = name_len;
     YASL_Object key = (YASL_Object) { .value.sval = string, .type = Y_STR };

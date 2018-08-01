@@ -20,7 +20,7 @@ int table___set(VM *vm) {
     Hash_t* ht = POP(vm).value.mval;
     YASL_Object val = POP(vm);
     YASL_Object key = POP(vm);
-    if (key.type == Y_LIST || key.type == Y_TABLE) {
+    if (yasl_type_equals(key.type, Y_LIST) || yasl_type_equals(key.type, Y_TABLE)) {
         printf("Error: unable to use mutable object of type %x as key.\n", key.type);
         return -1;
     }

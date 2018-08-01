@@ -102,7 +102,7 @@ void ls_print_h(List_t* ls, ByteBuffer *seen) {
     }
     printf("[");
     while (i < ls->count) {
-        if (ls->items[i].type == Y_LIST) {
+        if (yasl_type_equals(ls->items[i].type, Y_LIST)) {
             if (isvalueinarray(ls->items[i].value.ival, (int64_t*)seen->bytes, seen->count/sizeof(int64_t))) {
                 printf("[...]");
             } else {
@@ -110,7 +110,7 @@ void ls_print_h(List_t* ls, ByteBuffer *seen) {
                 bb_intbytes8(seen, ls->items[i].value.ival);
                 ls_print_h(ls->items[i].value.lval, seen);
             }
-        } else if (ls->items[i].type == Y_TABLE) {
+        } else if (yasl_type_equals(ls->items[i].type, Y_TABLE)) {
             if (isvalueinarray(ls->items[i].value.ival, (int64_t*)seen->bytes, seen->count/sizeof(int64_t))) {
                 printf("[...->...]");
             } else {

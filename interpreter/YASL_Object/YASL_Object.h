@@ -17,8 +17,11 @@ typedef enum {
     Y_INT64,
     Y_BOOL,
     Y_STR,
+    Y_STR_W,
     Y_LIST,
+    Y_LIST_W,
     Y_TABLE,
+    Y_TABLE_W,
     Y_FILE,
     Y_FN,
     Y_BFN
@@ -26,6 +29,11 @@ typedef enum {
 
 struct List_s;
 struct Hash_s;
+
+typedef struct {
+    uint64_t refs;
+    uint64_t weak_refs;
+} RefCount;
 
 typedef struct {
     YASL_Types type;
@@ -37,6 +45,7 @@ typedef struct {
         struct Hash_s *mval;
         FILE *fval;
     } value;
+    RefCount* ref_counter;
 } YASL_Object;
 
 typedef struct {
@@ -47,8 +56,12 @@ typedef struct {
 int isfalsey(YASL_Object v);
 YASL_Object isequal(YASL_Object a, YASL_Object b);
 int print(YASL_Object a);
+int yasl_type_equals(YASL_Types a, YASL_Types b);
 
-const char *YASL_TYPE_NAMES[10];
+void inc_ref(YASL_Object *v);
+void dec_ref(YASL_Object *v);
+
+const char *YASL_TYPE_NAMES[13];
 
 #define ASSERT_TYPE(vm, expected_type, name) do {\
                     if (vm->stack[vm->sp].type != expected_type) {\

@@ -1,6 +1,5 @@
 #include <interpreter/YASL_Object/YASL_Object.h>
 #include <debug.h>
-#include <interpreter/YASL_string/refcountptr.h>
 #include "file_methods.h"
 
 int file_close(VM* vm) {
@@ -38,7 +37,7 @@ int file_write(VM* vm) {
     }
     // TODO: don't rely on C-strings for writing
     char *buffer = malloc(yasl_string_len(str.value.sval)+1);
-    memcpy(buffer, (str.value.sval)->str.ptr, yasl_string_len(str.value.sval));
+    memcpy(buffer, (str.value.sval)->str, yasl_string_len(str.value.sval));
     buffer[yasl_string_len(str.value.sval)] = '\0';
     if (fprintf(fileh.value.fval, "%s", buffer) < 0) {
         YASL_DEBUG_LOG("%s\n", "error writing to file.");

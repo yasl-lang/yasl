@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.9.2)
 project(YASL C)
 
 set(CMAKE_C_STANDARD 11)
-set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 include_directories(.)
 include_directories(compiler)
@@ -67,8 +67,6 @@ add_executable(YASL
         interpreter/YASL_string/str_methods.h
         interpreter/YASL_string/YASL_string.c
         interpreter/YASL_string/YASL_string.h
-        interpreter/YASL_string/refcountptr.c
-        interpreter/YASL_string/refcountptr.h
         prime/prime.c
         prime/prime.h
         functions.h
@@ -87,7 +85,6 @@ add_executable(YASLTEST
         interpreter/YASL_Object/YASL_Object.c
         bytebuffer/bytebuffer.c
         interpreter/YASL_string/YASL_string.c
-        interpreter/YASL_string/refcountptr.c
         interpreter/list/list.c
         prime/prime.c
         compiler/compiler/env/env.c)

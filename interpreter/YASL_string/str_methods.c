@@ -43,7 +43,7 @@ int str_toupper(VM *vm) {
     char curr;
     char *ptr;
     while (i < length) {
-        curr = (a.value.sval)->str.ptr[i];
+        curr = (a.value.sval)->str[i];
         if (0x61 <= curr && curr < 0x7B) {
             ptr[i++] = curr & ~0x20;
         } else {
@@ -62,7 +62,7 @@ int str_tolower(VM *vm) {
     char curr;
     char *ptr;
     while (i < length) {
-        curr = (a.value.sval)->str.ptr[i];
+        curr = (a.value.sval)->str[i];
         if (0x41 <= curr && curr < 0x5B) {
             ptr[i++] = curr | 0x20;
         } else {
@@ -80,7 +80,7 @@ int str_isalnum(VM* vm) {
     int64_t i = 0;
     char curr;
     while (i < length) {
-        curr = (a.value.sval)->str.ptr[i++];
+        curr = (a.value.sval)->str[i++];
         if (curr < 0x30 || (0x3A <= curr && curr < 0x41) || (0x5B <= curr && curr < 0x61) || (0x7B <= curr)) {
             vm->stack[++vm->sp] = FALSE_C;
             return 0;
@@ -97,7 +97,7 @@ int str_isal(VM* vm) {
     int64_t i = 0;
     char curr;
     while (i < length) {
-        curr = ((a.value.sval)->str.ptr[i++]);
+        curr = ((a.value.sval)->str[i++]);
         if (curr < 0x41 || (0x5B <= curr && curr < 0x61) || (0x7B <= curr)) {
             vm->stack[++vm->sp] = FALSE_C;
             return 0;
@@ -114,7 +114,7 @@ int str_isnum(VM* vm) {
     int64_t i = 0;
     char curr;
     while (i < length) {
-        curr = (a.value.sval)->str.ptr[i++];
+        curr = (a.value.sval)->str[i++];
         if (curr < 0x30 || 0x3A <= curr) {
             vm->stack[++vm->sp] = FALSE_C;
             return 0;
@@ -132,7 +132,7 @@ int str_isspace(VM* vm) {
     int64_t i = 0;
     char curr;
     while (i < length) {
-        curr = (a.value.sval)->str.ptr[i++];
+        curr = (a.value.sval)->str[i++];
         if (curr <= 0x08 || (0x0D < curr && curr != 0x20 && curr != 0x85 && curr != 0xA0)) {
             vm->stack[++vm->sp] = FALSE_C;
             return 0;
@@ -156,7 +156,7 @@ int str_startswith(VM* vm) {
     }
     int64_t i = 0;
     while (i < yasl_string_len(needle.value.sval)) {
-        if ((haystack.value.sval)->str.ptr[i] != (needle.value.sval)->str.ptr[i]) {
+        if ((haystack.value.sval)->str[i] != (needle.value.sval)->str[i]) {
             vm->stack[++vm->sp] = FALSE_C;
             return 0;
         }
@@ -180,8 +180,8 @@ int str_endswith(VM* vm) {
     }
     int64_t i = 0;
     while (i < yasl_string_len(needle.value.sval)) {
-        if ((haystack.value.sval)->str.ptr[i + yasl_string_len(haystack.value.sval) - yasl_string_len(needle.value.sval)]
-                != (needle.value.sval)->str.ptr[i]) {
+        if ((haystack.value.sval)->str[i + yasl_string_len(haystack.value.sval) - yasl_string_len(needle.value.sval)]
+                != (needle.value.sval)->str[i]) {
             vm->stack[++vm->sp] = FALSE_C;
             return 0;
         }
@@ -223,8 +223,8 @@ int str_split(VM* vm) {
     int64_t end=0, start=0;
     List_t* result = ls_new();
     while (end + yasl_string_len(needle.value.sval) <= yasl_string_len(haystack.value.sval)) {
-        if (!memcmp((haystack.value.sval)->str.ptr+end,
-                    (needle.value.sval)->str.ptr,
+        if (!memcmp((haystack.value.sval)->str+end,
+                    (needle.value.sval)->str,
                     yasl_string_len(needle.value.sval))) {
             ls_append(result, (YASL_Object) {Y_STR, (int64_t) str_new_sized_from_mem(start, end, haystack.value.sval->str)});
             end += yasl_string_len(needle.value.sval);
@@ -249,8 +249,8 @@ int str_ltrim(VM *vm) {
     }
     int64_t start=0;
     while(yasl_string_len(haystack.value.sval) - start >= yasl_string_len(needle.value.sval) &&
-          !memcmp(haystack.value.sval->str.ptr + start,
-                  needle.value.sval->str.ptr,
+          !memcmp(haystack.value.sval->str + start,
+                  needle.value.sval->str,
                   yasl_string_len(needle.value.sval))) {
         start += yasl_string_len(needle.value.sval);
     }
@@ -271,8 +271,8 @@ int str_rtrim(VM *vm) {
     }
     int64_t end = yasl_string_len(haystack.value.sval);
     while(end >= yasl_string_len(needle.value.sval) &&
-          !memcmp(haystack.value.sval->str.ptr + end - yasl_string_len(needle.value.sval),
-                  needle.value.sval->str.ptr,
+          !memcmp(haystack.value.sval->str + end - yasl_string_len(needle.value.sval),
+                  needle.value.sval->str,
                   yasl_string_len(needle.value.sval))) {
         end -= yasl_string_len(needle.value.sval);
     }
@@ -293,16 +293,16 @@ int str_trim(VM *vm) {
 
     int64_t start=0;
     while(yasl_string_len(haystack.value.sval) - start >= yasl_string_len(needle.value.sval) &&
-          !memcmp(haystack.value.sval->str.ptr + start,
-                  needle.value.sval->str.ptr,
+          !memcmp(haystack.value.sval->str + start,
+                  needle.value.sval->str,
                   yasl_string_len(needle.value.sval))) {
         start += yasl_string_len(needle.value.sval);
     }
 
     int64_t end = yasl_string_len(haystack.value.sval);
     while(end >= yasl_string_len(needle.value.sval) &&
-          !memcmp(haystack.value.sval->str.ptr + end - yasl_string_len(needle.value.sval),
-                  needle.value.sval->str.ptr,
+          !memcmp(haystack.value.sval->str + end - yasl_string_len(needle.value.sval),
+                  needle.value.sval->str,
                   yasl_string_len(needle.value.sval))) {
         end -= yasl_string_len(needle.value.sval);
     }

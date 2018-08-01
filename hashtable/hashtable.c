@@ -1,5 +1,4 @@
 #include "hashtable.h"
-#include "refcountptr.h"
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -11,11 +10,11 @@
 
 static int hash_function(const YASL_Object s, const int a, const int m) {
     long hash = 0;
-    if (s.type == Y_STR) {
+    if (yasl_type_equals(s.type, Y_STR)) {
         const int64_t len_s = yasl_string_len(s.value.sval);
         int i;
         for (i = 0; i < len_s; i++) {
-            hash += (long)pow(a, len_s - (i+1)) * ((s.value.sval)->str.ptr[i + s.value.sval->start]);
+            hash += (long)pow(a, len_s - (i+1)) * ((s.value.sval)->str[i + s.value.sval->start]);
             hash = hash % m;
         }
         return (int)hash;
@@ -38,7 +37,7 @@ static Item_t* new_item(const YASL_Object k, const YASL_Object v) {
     item->key->value   = k.value;
     item->value->type  = v.type;
     item->value->value = v.value;
-    /*if (v.type == Y_STR) {
+    /*if (yasl_type_equals(v.type, Y_STR)) {
         item->key.type = v.type;
         int64_t len_v = *((int64_t*)v->value);
         //printf("%" PRId64 "\n", len_v);
@@ -158,9 +157,9 @@ void ht_insert(Hash_t* hashtable, const YASL_Object key, const YASL_Object value
 
 void ht_insert_string_int(Hash_t *hashtable, char *key, int64_t key_len, int64_t val) {
     String_t *string = malloc(sizeof(String_t));
-    char *tmp = malloc(key_len);
+    unsigned char *tmp = malloc(key_len);
     memcpy(tmp, key, key_len);
-    string->str = rcptr_new(tmp);
+    string->str = tmp;
     string->start = 0;
     string->end = key_len;
     ht_insert(hashtable,
@@ -184,9 +183,9 @@ YASL_Object* ht_search(const Hash_t *const hashtable, const YASL_Object key) {
 
 YASL_Object *ht_search_string_int(const Hash_t *const hashtable, char *key, int64_t key_len) {
     String_t *string = malloc(sizeof(String_t));
-    char *tmp = malloc(key_len);
+    unsigned char *tmp = malloc(key_len);
     memcpy(tmp, key, key_len);
-    string->str = rcptr_new(tmp);
+    string->str = tmp;
     string->start = 0;
     string->end = key_len;
     YASL_Object object = (YASL_Object) { .value.sval = string, .type = Y_STR };
@@ -225,7 +224,7 @@ void ht_print_h(const Hash_t *const ht, ByteBuffer* seen) {
     int i = 0;
     int64_t *new_seen;
     if (ht->count == 0) {
-        printf("[->]");
+        printf("[:]");
         return;
     }
     printf("[");
@@ -237,7 +236,7 @@ void ht_print_h(const Hash_t *const ht, ByteBuffer* seen) {
             continue;
         }
         print(*item->key);
-        printf("->");
+        printf(":");
         if (item->value->type == Y_LIST) {
             if (isvalueinarray(item->value->value.ival, (int64_t*)seen->bytes, seen->count/sizeof(int64_t))) {
                 printf("[...]");
@@ -248,7 +247,7 @@ void ht_print_h(const Hash_t *const ht, ByteBuffer* seen) {
             }
         } else if (item->value->type == Y_TABLE) {
             if (isvalueinarray(item->value->value.ival, (int64_t*)seen->bytes, seen->count/sizeof(int64_t))) {
-                printf("[...->...]");
+                printf("[...:...]");
             } else {
                 bb_intbytes8(seen, (int64_t)ht);
                 bb_intbytes8(seen, ht->items[i]->value->value.ival);

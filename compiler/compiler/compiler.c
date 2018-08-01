@@ -724,8 +724,12 @@ static void visit_Undef(Compiler *const compiler, const Node *const node) {
 
 static void visit_Float(Compiler *const compiler, const Node *const node) {
     YASL_TRACE_LOG("float64: %s\n", node->name);
-    bb_add_byte(compiler->buffer, DCONST);
-    bb_floatbytes8(compiler->buffer, strtod(node->name, (char**)NULL));
+    if (strlen("nan") == node->name_len && !memcmp(node->name, "nan", node->name_len)) bb_add_byte(compiler->buffer, DCONST_N);
+    else if (strlen("inf") == node->name_len && !memcmp(node->name, "inf", node->name_len)) bb_add_byte(compiler->buffer, DCONST_I);
+    else {
+        bb_add_byte(compiler->buffer, DCONST);
+        bb_floatbytes8(compiler->buffer, strtod(node->name, (char**)NULL));
+    }
 }
 
 static void visit_Integer(Compiler *const compiler, const Node *const node) {

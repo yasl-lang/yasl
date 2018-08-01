@@ -8,11 +8,11 @@
 
 int yasl_print(VM* vm) {
     YASL_Object v = vm->stack[vm->sp--];    // pop value from top of the stack ...
-    if (v.type == Y_LIST) {
+    if (yasl_type_equals(v.type, Y_LIST)) {
         ls_print(v.value.lval);
         printf("\n");
         return 0;
-    } else if (v.type == Y_TABLE) {
+    } else if (yasl_type_equals(v.type, Y_TABLE)) {
         ht_print(v.value.mval);
         printf("\n");
         return 0;
@@ -56,7 +56,7 @@ int yasl_open(VM* vm) {     //TODO: fix bug relating to file pointer
         return -1;
     }
     char *buffer = malloc(yasl_string_len(str.value.sval) + 1);
-    memcpy(buffer, (str.value.sval)->str.ptr, yasl_string_len(str.value.sval));
+    memcpy(buffer, (str.value.sval)->str, yasl_string_len(str.value.sval));
     buffer[str.value.sval->end - str.value.sval->start] = '\0';
     char *mode = malloc(str.value.sval->end - str.value.sval->start + 1);
     memcpy(mode, yasl_string_len(mode_str.value.sval), yasl_string_len(str.value.sval));
@@ -104,10 +104,10 @@ int yasl_popen(VM* vm) {     //TODO: fix bug relating to file pointer
         return -1;
     }
     char *buffer = malloc(yasl_string_len(str.value.sval) + 1);
-    memcpy(buffer, (str.value.sval)->str.ptr, yasl_string_len(str.value.sval));
+    memcpy(buffer, (str.value.sval)->str, yasl_string_len(str.value.sval));
     buffer[yasl_string_len(str.value.sval)] = '\0';
     char *mode = malloc(yasl_string_len(mode_str.value.sval) + 1);
-    memcpy(mode, (mode_str.value.sval)->str.ptr, yasl_string_len(mode_str.value.sval));
+    memcpy(mode, (mode_str.value.sval)->str, yasl_string_len(mode_str.value.sval));
     mode[yasl_string_len(mode_str.value.sval)] = '\0';
 
     FILE *f;  // r, w, a, r+, w+, a+
