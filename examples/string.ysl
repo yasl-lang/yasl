@@ -1,5 +1,5 @@
-print 'yasl'::upcase()
-print 'yasl'::downcase()
+print 'yasl'::toupper()
+print 'yasl'::tolower()
 
 print 'yasl'::isalnum()
 print 'yasl'::isal()

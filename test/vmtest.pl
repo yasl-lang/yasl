@@ -1,6 +1,24 @@
 require "yasl_test.pl";
 
+# Unary Operators
+assert_output("print -10\n", "-10\n", 0);
+assert_output("print #'YASL'\n", "4\n", 0);
+assert_output("print !true\n", "false\n", 0);
+assert_output("print !false\n", "true\n", 0);
+assert_output("print ^0b00000000\n", "-1\n", 0);
 
+# Binary Operators
+assert_output("print 2 ** 4\n", "16\n", 0);
+assert_output("print 2 ** -1\n", "0.5\n", 0);
+assert_output("print -2 ** -1\n", "-0.5\n", 0);
+
+assert_output("print 5 * 6\n", "30\n", 0);
+assert_output("print 5 / 2\n", "2.5\n", 0);
+assert_output("print 6 // 2\n", "3\n", 0);
+assert_output("print 5 % 2\n", "1\n", 0);
+
+assert_output("print 10 + 12\n", "22\n", 0);
+assert_output("print 3.5 - 2\n", "1.5\n", 0);
 
 # String Methods
 assert_output("print 'yasl'::tobool()\n", "true\n", 0);
