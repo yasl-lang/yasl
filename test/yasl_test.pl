@@ -4,18 +4,18 @@ use warnings;
 my $__YASL_TESTS_FAILED__ = 0;
 
 sub assert_output {
-    my ($package, $filename, $line) = caller;
+    my (undef, $filename, $line) = caller;
     my ($string, $exp_out, $exp_stat) = @_;
     my $RED = "\x1B[31m";
     my $END = "\x1B[0m";
-    my $debug_dump = '../cmake-build-debug/dump.ysl';
-    my $debug_yasl = '../cmake-build-debug/YASL';
+    my $debug_dump = '/dump.ysl';
+    my $debug_yasl = '/YASL';
 
-    open(my $fh, '>', $debug_dump) or die "Could not open file $debug_dump";
+    open(my $fh, '>', '..' . $debug_dump) or die "Could not open file $debug_dump";
     print $fh "$string";
     close $fh;
 
-    my $output = `$debug_yasl $debug_dump`;
+    my $output = `"..$debug_yasl" "..$debug_dump"`;
     my $status = $?;
     my $exitcode = !($output eq $exp_out && $status == $exp_stat) || 0;
 
