@@ -7,3 +7,10 @@ The Makefile included is slightly out of date, but should work with minor change
 
 ## Running YASL Code
 A YASL script can be run using `./YASL`. This will search in the current directory (same directory as `YASL`) for a file named `sample.ysl`, and compile then vm_run it.
+
+## Testing
+
+```bash
+$> chmod +x tests
+$> ./tests
+```
