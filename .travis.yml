@@ -12,3 +12,6 @@ before_script:
 script: 
   - ./YASLTEST                    # run c tests
   - ( cd test ; perl vmtest.pl )  # run perl tests
+
+notifications: 
+  email: false 
