@@ -1,0 +1,33 @@
+#!/bin/sh
+
+printf "====================\n"
+printf "Building...\n"
+cmake .
+make YASL
+EXEC_BUILD_OUTPUT=$?
+make YASLTEST
+TEST_BUILD_OUTPUT=$?
+if [ $EXEC_BUILD_OUTPUT$TEST_BUILD_OUTPUT != 00 ]; then
+  printf "Build failed\n"
+  exit 1
+fi
+printf "Build successful\n\n"
+
+printf "====================\n"
+printf "Running C tests...\n"
+./YASLTEST
+C_TESTS_OUTPUT=$?
+printf "C tests exited with code $C_TESTS_OUTPUT\n\n"
+
+printf "====================\n"
+printf "Running Perl tests...\n"
+( cd test ; perl vmtest.pl )
+PERL_TESTS_OUTPUT=$?
+printf "Perl tests exited with code $PERL_TESTS_OUTPUT\n\n"
+
+printf "====================\n"
+[ $C_TESTS_OUTPUT$PERL_TESTS_OUTPUT = 00 ]
+TESTS_EXIT=$?
+printf "Tests exited with code $TESTS_EXIT\n"
+
+exit $TESTS_EXIT

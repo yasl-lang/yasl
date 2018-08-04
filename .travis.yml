@@ -4,8 +4,14 @@ compiler:
   - clang
   - gcc
 
-script: 
+before_script:
   - cmake .
-  - make YASL # attempt to build binary
+  - make YASL
   - make YASLTEST
-  - ./YASLTEST
+
+script: 
+  - ./YASLTEST                    # run c tests
+  - ( cd test ; perl vmtest.pl )  # run perl tests
+
+notifications: 
+  email: false 
