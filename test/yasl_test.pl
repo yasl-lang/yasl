@@ -8,12 +8,14 @@ sub assert_output {
     my ($string, $exp_out, $exp_stat) = @_;
     my $RED = "\x1B[31m";
     my $END = "\x1B[0m";
+    my $debug_dump = '../cmake-build-debug/dump.ysl';
+    my $debug_yasl = '../cmake-build-debug/YASL';
 
-    open(my $fh, '>', '../cmake-build-debug/dump.ysl') or die "Could not open file";
+    open(my $fh, '>', $debug_dump) or die "Could not open file $debug_dump";
     print $fh "$string";
     close $fh;
 
-    my $output = `../cmake-build-debug/YASL ../cmake-build-debug/dump.ysl`;
+    my $output = `$debug_yasl $debug_dump`;
     my $status = $?;
     my $exitcode = !($output eq $exp_out && $status == $exp_stat) || 0;
 
