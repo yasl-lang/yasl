@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-my $__YASL_TESTS_FAILED__ = 0;
+our $__YASL_TESTS_FAILED__ = 0;
 
 sub assert_output {
     my (undef, $filename, $line) = caller;
