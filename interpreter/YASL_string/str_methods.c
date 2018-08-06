@@ -1,4 +1,5 @@
 #include <interpreter/YASL_Object/YASL_Object.h>
+#include <bytebuffer/bytebuffer.h>
 #include "str_methods.h"
 #include "YASL_string.h"
 
@@ -16,6 +17,17 @@ int str___get(VM *vm) {
         if (index.value.ival >= 0) PUSH(vm, ((YASL_Object){Y_STR, (int64_t) str_new_sized_from_mem(index.value.ival, index.value.ival + 1, str->str)}));
         else PUSH(vm, ((YASL_Object){Y_STR, (int64_t) str_new_sized_from_mem(index.value.ival + yasl_string_len(str), index.value.ival + yasl_string_len(str) + 1, str->str)}));
     }
+    return 0;
+}
+
+int str_contains(VM *vm) {
+    ASSERT_TYPE(vm, Y_STR, "str.contains");
+    YASL_Object haystack = POP(vm);
+    ASSERT_TYPE(vm, Y_STR, "str.contains");
+    YASL_Object needle = POP(vm);
+
+    int64_t index = str_find_index(haystack.value.sval, needle.value.sval);
+    vm->stack[++vm->sp] = (index != -1) ? TRUE_C : FALSE_C;
     return 0;
 }
 
@@ -194,6 +206,43 @@ int str_endswith(VM* vm) {
     return 0;
 }
 
+int str_replace(VM* vm) {
+    ASSERT_TYPE(vm, Y_STR, "str.replace");
+    YASL_Object str = POP(vm);
+    ASSERT_TYPE(vm, Y_STR, "str.replace");
+    YASL_Object search_str = POP(vm);
+    ASSERT_TYPE(vm, Y_STR, "str.replace");
+    YASL_Object replace_str = POP(vm);
+
+    unsigned char* str_ptr = str.value.sval->str+str.value.sval->start;
+    int64_t str_len = yasl_string_len(str.value.sval);
+    unsigned char* search_str_ptr = search_str.value.sval->str+search_str.value.sval->start;
+    int64_t search_len = yasl_string_len(search_str.value.sval);
+    unsigned char* replace_str_ptr = replace_str.value.sval->str+replace_str.value.sval->start;
+    if (search_len < 1) {
+        printf("Error: str.replace(...) expected search string with length at least 1\n");
+        return -1;
+    }
+
+    ByteBuffer *buff = bb_new(yasl_string_len(str.value.sval));
+    unsigned int i = 0;
+    while (i < str_len) {
+        if(search_len <= str_len-i && memcmp(str_ptr+i, search_str_ptr, search_len) == 0) {
+            bb_append(buff, replace_str_ptr, yasl_string_len(replace_str.value.sval));
+            i += search_len;
+        } else {
+            bb_add_byte(buff, str_ptr[i++]);
+        }
+    }
+
+    unsigned char *new_str = malloc(buff->count);
+    memcpy(new_str, buff->bytes, buff->count);
+    vm->stack[++vm->sp] = (YASL_Object){Y_STR, str_new_sized(buff->count, new_str)};
+
+    bb_del(buff);
+    return 0;
+}
+
 int str_search(VM* vm) {
     ASSERT_TYPE(vm, Y_STR, "str.search");
     YASL_Object haystack = POP(vm);
@@ -201,10 +250,6 @@ int str_search(VM* vm) {
     if (needle.type != Y_STR) {
         printf("Error: str.search(...) expected type %x as first argument, got type %x\n", Y_STR, needle.type);
         return -1;
-    }
-    if ((yasl_string_len(haystack.value.sval) < yasl_string_len(needle.value.sval))) {
-        vm->stack[++vm->sp] = (YASL_Object) {Y_UNDEF, 0};
-        return 0;
     }
     int64_t index = str_find_index(haystack.value.sval, needle.value.sval);
     if (index != -1) vm->stack[++vm->sp] = (YASL_Object) {Y_INT64, index };

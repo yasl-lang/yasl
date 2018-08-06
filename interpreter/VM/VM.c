@@ -22,13 +22,13 @@ static LoopStack *loopstack_new(void) {
 
 static Hash_t **builtins_htable_new(void) {
     Hash_t **ht = malloc(sizeof(Hash_t*) * NUM_TYPES);
-    ht[1] = float64_builtins();
-    ht[2] = int64_builtins();
-    ht[3] = bool_builtins();
-    ht[4] = str_builtins();
-    ht[5] = list_builtins();
-    ht[6] = table_builtins();
-    ht[7] = file_builtins();
+    ht[Y_FLOAT64] = float64_builtins();
+    ht[Y_INT64] = int64_builtins();
+    ht[Y_BOOL] = bool_builtins();
+    ht[Y_STR] = str_builtins();
+    ht[Y_LIST] = list_builtins();
+    ht[Y_TABLE] = table_builtins();
+    ht[Y_FILE] = file_builtins();
 
     return ht;
 }
@@ -63,13 +63,13 @@ void vm_del(VM *vm){
 
     free(vm->code);
     //ht_del_string_int(vm->builtins_htable[0]);
-    ht_del_string_int(vm->builtins_htable[1]);
-    ht_del_string_int(vm->builtins_htable[2]);
-    ht_del_string_int(vm->builtins_htable[3]);
-    ht_del_string_int(vm->builtins_htable[4]);
-    ht_del_string_int(vm->builtins_htable[5]);
-    ht_del_string_int(vm->builtins_htable[6]);
-    ht_del_string_int(vm->builtins_htable[7]);
+    ht_del_string_int(vm->builtins_htable[Y_FLOAT64]);
+    ht_del_string_int(vm->builtins_htable[Y_INT64]);
+    ht_del_string_int(vm->builtins_htable[Y_BOOL]);
+    ht_del_string_int(vm->builtins_htable[Y_STR]);
+    ht_del_string_int(vm->builtins_htable[Y_LIST]);
+    ht_del_string_int(vm->builtins_htable[Y_TABLE]);
+    ht_del_string_int(vm->builtins_htable[Y_FILE]);
     free(vm->builtins_htable);
 
     free(vm->loopstack->stack);

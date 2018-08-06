@@ -11,3 +11,8 @@ print 'yasl'::endswith('y')
 
 print 'yasl'::search('l')
 print 'yasl'::split('a')
+
+print 'yasl'::contains('sl')
+print 'yasl'::contains('yasll')
+
+print 'yasl'::replace('as', 'e')::replace('l', 'llo')

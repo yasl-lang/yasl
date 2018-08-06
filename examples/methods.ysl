@@ -1,5 +1,18 @@
-$$ for loop
-$$ .split: str -> list
-for x <- "the quick brown fox jumps over the lazy dog".split(" ") {
+" for loop
+" .split: str -> list
+for let x in 'the quick brown fox jumps over the lazy dog'::split(' ') {
     print x
 }
+
+let x = [1,2,3]
+let y = x::copy()
+
+y::append(4)
+y::extend(x)
+
+print x
+print y
+
+let str = 'hello there puppy dog'
+
+print str::contains('there puppy dog')
