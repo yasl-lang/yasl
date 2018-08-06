@@ -1,4 +1,6 @@
 #include <interpreter/YASL_string/YASL_string.h>
+#include <string.h>
+#include <color.h>
 #include "YASL_Object.h"
 
 
@@ -18,6 +20,26 @@ const char *YASL_TYPE_NAMES[] = {
     "fn",       // Y_FN
     "mn"        // Y_BFN
 };
+
+YASL_Object YASL_Undef(void) {
+    return (YASL_Object) { .type = Y_UNDEF, .value.ival = 0 };
+}
+YASL_Object YASL_Float(double value) {
+    return (YASL_Object) { .type = Y_FLOAT64, .value.dval = value };
+}
+YASL_Object YASL_Integer(int64_t value) {
+    return (YASL_Object) { .type = Y_INT64, .value.ival = value };
+}
+YASL_Object YASL_Boolean(int value) {
+    return (YASL_Object) { .type = Y_BOOL, .value.ival = value };
+}
+
+YASL_Object YASL_String(String_t *str) {
+    return (YASL_Object) { .type = Y_STR, .value.sval = str };
+}
+
+//YASL_Object YASL_List();
+//YASL_Object YASL_Table();
 
 int yasl_type_equals(YASL_Types a, YASL_Types b) {
     if (a == Y_STR_W || a == Y_LIST_W || a == Y_TABLE_W) a -= 1;
@@ -154,67 +176,4 @@ int print(YASL_Object v) {
             return -1;
     }
     return 0;
-}
-
-static void inc_weak_ref(YASL_Object *v) {
-    v->ref_counter->weak_refs++;
-}
-
-static void inc_strong_ref(YASL_Object *v) {
-    v->ref_counter->refs++;
-}
-
-void inc_ref(YASL_Object *v) {
-    switch (v->type) {
-        case Y_STR:
-        case Y_LIST:
-        case Y_TABLE:
-            inc_strong_ref(v);
-            break;
-        case Y_STR_W:
-        case Y_LIST_W:
-        case Y_TABLE_W:
-            inc_weak_ref(v);
-            break;
-        default:
-            break;
-    }
-}
-
-static void delete_object(YASL_Object *v);
-
-static void dec_weak_ref(YASL_Object *v) {
-
-}
-
-void dec_strong_ref(YASL_Object *v) {
-    if(--v->ref_counter->refs) return;
-
-    switch(v->type) {
-        case Y_STR:
-            str_del(v->value.sval);
-            break;
-        default:
-            puts("NoT IMPELemented");
-            exit(EXIT_FAILURE);
-    }
-
-
-}
-
-void dec_ref(YASL_Object *v) {
-    switch (v->type) {
-        case Y_STR:
-        case Y_LIST:
-        case Y_TABLE:
-            dec_strong_ref(v);
-            break;
-        case Y_STR_W:
-        case Y_LIST_W:
-        case Y_TABLE_W:
-            dec_weak_ref(v);
-            break;
-        default:
-            break;
-    }
 }

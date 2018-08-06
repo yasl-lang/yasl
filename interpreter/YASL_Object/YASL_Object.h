@@ -31,11 +31,6 @@ struct List_s;
 struct Hash_s;
 
 typedef struct {
-    uint64_t refs;
-    uint64_t weak_refs;
-} RefCount;
-
-typedef struct {
     YASL_Types type;
     union {
         int64_t ival;
@@ -45,13 +40,13 @@ typedef struct {
         struct Hash_s *mval;
         FILE *fval;
     } value;
-    RefCount* ref_counter;
 } YASL_Object;
 
-typedef struct {
-    char type;
-    double value;
-} FloatConstant;
+YASL_Object YASL_Undef(void);
+YASL_Object YASL_Float(double value);
+YASL_Object YASL_Integer(int64_t value);
+YASL_Object YASL_Boolean(int value);
+YASL_Object YASL_String(String_t *str);
 
 int isfalsey(YASL_Object v);
 YASL_Object isequal(YASL_Object a, YASL_Object b);

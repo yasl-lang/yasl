@@ -8,13 +8,13 @@ int str___get(VM *vm) {
     YASL_Object index = POP(vm);
     if (index.type != Y_INT64) {
         return -1;
-        PUSH(vm, UNDEF_C);
+        vm_push(vm, UNDEF_C);
     } else if (index.value.ival < -yasl_string_len(str) || index.value.ival >= yasl_string_len(str)) {
         return -1;
-        PUSH(vm, UNDEF_C);
+        vm_push(vm, UNDEF_C);
     } else {
-        if (index.value.ival >= 0) PUSH(vm, ((YASL_Object){Y_STR, (int64_t) str_new_sized_from_mem(index.value.ival, index.value.ival + 1, str->str)}));
-        else PUSH(vm, ((YASL_Object){Y_STR, (int64_t) str_new_sized_from_mem(index.value.ival + yasl_string_len(str), index.value.ival + yasl_string_len(str) + 1, str->str)}));
+        if (index.value.ival >= 0) vm_push(vm, ((YASL_Object){Y_STR, (int64_t) str_new_sized_from_mem(index.value.ival, index.value.ival + 1, str->str)}));
+        else vm_push(vm, ((YASL_Object){Y_STR, (int64_t) str_new_sized_from_mem(index.value.ival + yasl_string_len(str), index.value.ival + yasl_string_len(str) + 1, str->str)}));
     }
     return 0;
 }
@@ -260,7 +260,7 @@ int str_ltrim(VM *vm) {
         start += yasl_string_len(needle.value.sval);
     }
 
-    PUSH(vm, ((YASL_Object) {Y_STR, (int64_t) str_new_sized_from_mem(start, yasl_string_len(haystack.value.sval),
+    vm_push(vm, ((YASL_Object) {Y_STR, (int64_t) str_new_sized_from_mem(start, yasl_string_len(haystack.value.sval),
                                                                    haystack.value.sval->str)}));
 
     return 0;
@@ -282,7 +282,7 @@ int str_rtrim(VM *vm) {
         end -= yasl_string_len(needle.value.sval);
     }
 
-    PUSH(vm, ((YASL_Object) {Y_STR, (int64_t) str_new_sized_from_mem(haystack.value.sval->start, end, haystack.value.sval->str)}));
+    vm_push(vm, ((YASL_Object) {Y_STR, (int64_t) str_new_sized_from_mem(haystack.value.sval->start, end, haystack.value.sval->str)}));
 
     return 0;
 }
@@ -312,7 +312,7 @@ int str_trim(VM *vm) {
         end -= yasl_string_len(needle.value.sval);
     }
 
-    PUSH(vm, ((YASL_Object) {Y_STR, (int64_t) str_new_sized_from_mem(start, end, haystack.value.sval->str)}));
+    vm_push(vm, ((YASL_Object) {Y_STR, (int64_t) str_new_sized_from_mem(start, end, haystack.value.sval->str)}));
 
     return 0;
 }

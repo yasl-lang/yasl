@@ -19,10 +19,13 @@ typedef struct Hash_s {
     int64_t base_size;
     int64_t count;
     Item_t** items;
+    RefCount *rc;
 } Hash_t;
 
 Hash_t* ht_new(void);
 Hash_t* ht_new_sized(const int base_size);
+void ht_del_data(Hash_t *hashtable);
+void ht_del_rc(Hash_t *hashtable);
 void ht_del_string_int(Hash_t *hashtable);
 void ht_insert(Hash_t *const hashtable, YASL_Object key, YASL_Object value);
 void ht_insert_string_int(Hash_t *const hashtable, char *key, int64_t key_len, int64_t val);

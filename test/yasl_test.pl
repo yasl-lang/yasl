@@ -4,8 +4,9 @@ use warnings;
 our $__YASL_TESTS_FAILED__ = 0;
 
 sub assert_output {
-    my (undef, $filename, $line) = caller;
     my ($string, $exp_out, $exp_stat) = @_;
+    my (undef, $filename, $line) = caller;
+
     my $RED = "\x1B[31m";
     my $END = "\x1B[0m";
     my $debug_dump = '/dump.ysl';
@@ -29,7 +30,5 @@ sub assert_output {
     $__YASL_TESTS_FAILED__ ||= $exitcode;
     return $exitcode;
 }
-
-# print assert_output("print 'thiabaud'::toupper()\n", "THABAUD\n", 0);
 
 1;

@@ -11,6 +11,6 @@ int bool_tostr(VM *vm) {
         string = str_new_sized(strlen("true"), "true");
         sprintf(string->str, "%s", "true");
     }
-    PUSH(vm, ((YASL_Object){Y_STR, (int64_t)string}));
+    vm_push(vm, ((YASL_Object){Y_STR, (int64_t)string}));
     return 0;
 }

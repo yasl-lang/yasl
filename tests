@@ -2,10 +2,10 @@
 
 printf "====================\n"
 printf "Building...\n"
-cmake .
-make YASL
+cmake --build .
+# make YASL
 EXEC_BUILD_OUTPUT=$?
-make YASLTEST
+# make YASLTEST
 TEST_BUILD_OUTPUT=$?
 if [ $EXEC_BUILD_OUTPUT$TEST_BUILD_OUTPUT != 00 ]; then
   printf "Build failed\n"

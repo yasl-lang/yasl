@@ -13,11 +13,11 @@ int list___get(VM *vm) {
     } else {
         if (index.value.ival >= 0) {
             POP(vm);
-            PUSH(vm, ls->items[index.value.ival]);
+            vm_push(vm, ls->items[index.value.ival]);
         }
         else {
             POP(vm);
-            PUSH(vm, ls->items[index.value.ival + ls->count]);
+            vm_push(vm, ls->items[index.value.ival + ls->count]);
         }
     }
     return 0;
@@ -30,15 +30,15 @@ int list___set(VM* vm) {
     YASL_Object index = POP(vm);
     if (index.type != Y_INT64) {
         return -1;
-        PUSH(vm, UNDEF_C);
+        vm_push(vm, UNDEF_C);
     } else if (index.value.ival < -ls->count || index.value.ival >= ls->count) {
         printf("IndexError\n");
         return -1;
-        PUSH(vm, UNDEF_C);
+        vm_push(vm, UNDEF_C);
     } else {
         if (index.value.ival >= 0) ls->items[index.value.ival] = value;
         else ls->items[index.value.ival + ls->count] = value;
-        PUSH(vm, value);
+        vm_push(vm, value);
     }
     return 0;
 }
@@ -49,7 +49,7 @@ int list_append(VM* vm) {
     YASL_Object ls  = POP(vm);
     YASL_Object val = POP(vm);
     ls_append(ls.value.lval, val);
-    PUSH(vm, UNDEF_C);
+    vm_push(vm, UNDEF_C);
     return 0;
 }
 
@@ -60,7 +60,7 @@ int list_pop(VM* vm) {
         puts("cannot pop from empty list.");
         exit(EXIT_FAILURE);
     }
-    PUSH(vm, ls.value.lval->items[--ls.value.lval->count]);
+    vm_push(vm, ls.value.lval->items[--ls.value.lval->count]);
     return 0;
 }
 
@@ -74,7 +74,7 @@ int list_search(VM* vm) {
         if (!isfalsey(isequal(haystack.value.lval->items[i], needle)))
             index = (YASL_Object) { .type = Y_INT64, .value.ival = i };
     }
-    PUSH(vm, index);
+    vm_push(vm, index);
     return 0;
 }
 
@@ -82,5 +82,6 @@ int list_reverse(VM *vm) {
     ASSERT_TYPE(vm, Y_LIST, "list.reverse");
     List_t *ls = POP(vm).value.lval;
     ls_reverse(ls);
+    vm_push(vm, YASL_Undef());
     return 0;
 }

@@ -20,11 +20,16 @@ int isvalueinarray(int64_t val, int64_t *arr, int size){
     return 0;
 }
 
+YASL_Object YASL_List(List_t *ls) {
+    return (YASL_Object) { .type = Y_LIST, .value.lval = ls };
+}
+
 List_t* ls_new_sized(const int base_size) {
     List_t* ls = malloc(sizeof(List_t));
     ls->size = base_size;
     ls->count = 0;
     ls->items = malloc(sizeof(YASL_Object)*ls->size);
+    ls->rc = rc_new();
     return ls;
 }
 
@@ -32,8 +37,20 @@ List_t* ls_new(void) {
     return ls_new_sized(LS_BASESIZE);
 }
 
-void ls_del(List_t *ls) {
+void ls_del_data(List_t *ls) {
+    for (int i = 0; i < ls->count; i++) dec_ref(ls->items + i);
     free(ls->items);
+}
+
+void ls_del_rc(List_t *ls) {
+    rc_del(ls->rc);
+    free(ls);
+}
+
+void ls_del(List_t *ls) {
+    for (int i = 0; i < ls->count; i++) dec_ref(ls->items + i);
+    free(ls->items);
+    rc_del(ls->rc);
     free(ls);
 }
 

@@ -11,21 +11,15 @@
 #include <math.h>
 
 #define STACK_SIZE 256
-#define NUM_TYPES 8                                      // number of builtin types, each needs a vtable
+#define NUM_TYPES 13                                     // number of builtin types, each needs a vtable
 #define PUSH(vm, v)  (vm->stack[++vm->sp] = v)           // push value onto stack
 #define POP(vm)      (vm->stack[vm->sp--])               // pop value from top of stack
 #define PEEK(vm)     (vm->stack[vm->sp])                 // pop value from top of stack
-#define BPUSH(vm, v) (PUSH(vm, ((YASL_Object) {Y_BOOL, v})))  //push boolean v onto stack
+#define BPUSH(vm, v) (vm_push(vm, YASL_Boolean(v)))  //push boolean v onto stack
 
 
 #define BUFFER_SIZE 256
 #define NCODE(vm)    (vm->code[vm->pc++])     // get next bytecode
-#define IPUSH(vm, v) (PUSH(vm, ((YASL_Object) {Y_INT64, v})))  //push integer v onto stack
-#define IPOP(vm)     (((vm->stack)[vm->sp--])->value)      // get int from top of stack
-#define IVAL(v)      (*((int64_t*)&v->value))
-#define DPUSH(vm, v) (((FloatConstant*)vm->stack)[++vm->sp] = (FloatConstant) {Y_FLOAT64, v}) // push double v onto stack
-#define LEN_C(v)     (*((int64_t*)v->value))
-#define NPUSH(vm)    (PUSH(vm, ((YASL_Object) {UNDEF, 0})))   //push nil onto stack
 #define ADD(a, b)    (a + b)
 #define DIV(a, b)    (a / b)
 #define SUB(a, b)    (a - b)
@@ -84,6 +78,7 @@ typedef struct {
 
 typedef struct {
 	YASL_Object *globals;          // variables, see "constant.c" for details on YASL_Object.
+    int64_t num_globals;
 	YASL_Object *stack;            // stack
 	unsigned char *code;           // bytecode
 	int64_t pc;                    // program counter
@@ -99,6 +94,8 @@ VM* vm_new(unsigned char *code,    // pointer to bytecode
            int datasize);       // total params size required to perform a program operations
 
 void vm_del(VM *vm);
+
+void vm_push(VM *vm, YASL_Object val);
 
 void vm_run(VM *vm);
 

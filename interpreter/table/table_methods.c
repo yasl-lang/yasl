@@ -10,7 +10,7 @@ int table___get(VM *vm) {
     if (result == NULL) return -1;
     else {
         POP(vm);
-        PUSH(vm, *result);
+        vm_push(vm, *result);
     }
     return 0;
 }
@@ -25,7 +25,7 @@ int table___set(VM *vm) {
         return -1;
     }
     ht_insert(ht, key, val);
-    PUSH(vm, val);
+    vm_push(vm, val);
     return 0;
 }
 

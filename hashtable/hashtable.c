@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <interpreter/YASL_Object/YASL_Object.h>
 #include <interpreter/YASL_string/YASL_string.h>
+#include <color.h>
 
 #define HT_BASESIZE 30
 
@@ -37,6 +38,8 @@ static Item_t* new_item(const YASL_Object k, const YASL_Object v) {
     item->key->value   = k.value;
     item->value->type  = v.type;
     item->value->value = v.value;
+    inc_ref(item->value);
+    inc_ref(item->key);
     /*if (yasl_type_equals(v.type, Y_STR)) {
         item->key.type = v.type;
         int64_t len_v = *((int64_t*)v->value);
@@ -60,7 +63,8 @@ Hash_t* ht_new_sized(const int base_size) {
     ht->base_size = base_size;
     ht->size = next_prime(ht->base_size);
     ht->count = 0;
-    ht->items = calloc((size_t)ht->size, sizeof(Hash_t*));
+    ht->items = calloc((size_t)ht->size, sizeof(Item_t*));
+    ht->rc = rc_new();
     return ht;
 }
 
@@ -72,11 +76,31 @@ void del_hash(Hash_t* hashtable) {
     int i;
     for (i = 0; i < hashtable->size; i++) {
         Item_t* item = hashtable->items[i];
-        if (item != NULL) {
+        if (item != NULL && item != &TOMBSTONE) {
+            del_item(item);
+        }
+    }
+    rc_del(hashtable->rc);
+    free(hashtable->items);
+    free(hashtable);
+}
+
+void ht_del_data(Hash_t* hashtable) {
+    int i;
+    for (i = 0; i < hashtable->size; i++) {
+        Item_t* item = hashtable->items[i];
+        if (item != NULL && item != &TOMBSTONE) {
+            dec_ref(item->key);
+            dec_ref(item->value);
             del_item(item);
         }
     }
     free(hashtable->items);
+    //free(hashtable);
+}
+
+void ht_del_rc(Hash_t* hashtable) {
+    rc_del(hashtable->rc);
     free(hashtable);
 }
 
@@ -91,6 +115,7 @@ void ht_del_string_int(Hash_t *hashtable) {
             free(item);
         }
     }
+    rc_del(hashtable->rc);
     free(hashtable->items);
     free(hashtable);
 }
@@ -140,7 +165,6 @@ void ht_insert(Hash_t* hashtable, const YASL_Object key, const YASL_Object value
     int i = 1;
     while (curr_item != NULL) {
         if (curr_item != &TOMBSTONE) {
-            //puts("checking equality");
             if (!isfalsey(isequal(*curr_item->key, *item->key))) {
                 del_item(curr_item);
                 hashtable->items[index] = item;
@@ -156,12 +180,7 @@ void ht_insert(Hash_t* hashtable, const YASL_Object key, const YASL_Object value
 }
 
 void ht_insert_string_int(Hash_t *hashtable, char *key, int64_t key_len, int64_t val) {
-    String_t *string = malloc(sizeof(String_t));
-    unsigned char *tmp = malloc(key_len);
-    memcpy(tmp, key, key_len);
-    string->str = tmp;
-    string->start = 0;
-    string->end = key_len;
+    String_t *string = str_new_sized(key_len, copy_char_buffer(key_len, key));
     ht_insert(hashtable,
               (YASL_Object) { .type = Y_STR, .value.sval = string},
               (YASL_Object) { .type = Y_BFN, .value.ival = val});
@@ -182,12 +201,7 @@ YASL_Object* ht_search(const Hash_t *const hashtable, const YASL_Object key) {
 }
 
 YASL_Object *ht_search_string_int(const Hash_t *const hashtable, char *key, int64_t key_len) {
-    String_t *string = malloc(sizeof(String_t));
-    unsigned char *tmp = malloc(key_len);
-    memcpy(tmp, key, key_len);
-    string->str = tmp;
-    string->start = 0;
-    string->end = key_len;
+    String_t *string = str_new_sized(key_len, copy_char_buffer(key_len, key));
     YASL_Object object = (YASL_Object) { .value.sval = string, .type = Y_STR };
 
     YASL_Object *result = ht_search(hashtable, object);
