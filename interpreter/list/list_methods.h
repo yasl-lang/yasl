@@ -13,6 +13,10 @@ int list___set(VM *vm);
 
 int list_append(VM *vm);
 
+int list_copy(VM *vm);
+
+int list_extend(VM *vm);
+
 int list_pop(VM* vm);
 
 int list_search(VM *vm);

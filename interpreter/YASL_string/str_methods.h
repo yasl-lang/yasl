@@ -9,6 +9,8 @@
 
 int str___get(VM *vm);
 
+int str_contains(VM *vm);
+
 int str_tobool(VM *vm);
 
 int str_tostr(VM *vm);
@@ -28,6 +30,8 @@ int str_isspace(VM* vm);
 int str_startswith(VM* vm);
 
 int str_endswith(VM* vm);
+
+int str_replace(VM* vm);
 
 int str_search(VM* vm);
 
