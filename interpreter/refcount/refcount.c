@@ -19,9 +19,9 @@ void rc_del(RefCount *rc) {
 }
 
 static void inc_weak_ref(YASL_Object *v) {
-    printf(K_GRN "inc_weak(%s): ", YASL_TYPE_NAMES[v->type]);
-    print(*v);
-    puts(K_END);
+    //printf(K_GRN "inc_weak(%s): ", YASL_TYPE_NAMES[v->type]);
+    //print(*v);
+    //puts(K_END);
     switch (v->type) {
         case Y_STR_W:
             v->value.sval->rc->weak_refs++;
@@ -39,9 +39,9 @@ static void inc_weak_ref(YASL_Object *v) {
 }
 
 static void inc_strong_ref(YASL_Object *v) {
-    printf(K_GRN "inc_strong(%s): ", YASL_TYPE_NAMES[v->type]);
-    print(*v);
-    puts(K_END);
+    //printf(K_GRN "inc_strong(%s): ", YASL_TYPE_NAMES[v->type]);
+    //print(*v);
+    //puts(K_END);
     switch (v->type) {
         case Y_STR:
             v->value.sval->rc->refs++;
@@ -76,9 +76,9 @@ void inc_ref(YASL_Object *v) {
 }
 
 static void dec_weak_ref(YASL_Object *v) {
-    printf(K_RED "dec_weak(%s): ", YASL_TYPE_NAMES[v->type]);
-    print(*v);
-    puts(K_END);
+    //printf(K_RED "dec_weak(%s): ", YASL_TYPE_NAMES[v->type]);
+    //print(*v);
+    //puts(K_END);
     switch(v->type) {
         case Y_STR_W:
             if (--(v->value.sval->rc->weak_refs) || v->value.sval->rc->refs) return;
@@ -100,9 +100,9 @@ static void dec_weak_ref(YASL_Object *v) {
 }
 
 void dec_strong_ref(YASL_Object *v) {
-    printf(K_RED "dec_strong(%s): ", YASL_TYPE_NAMES[v->type]);
-    print(*v);
-    puts(K_END);
+    //printf(K_RED "dec_strong(%s): ", YASL_TYPE_NAMES[v->type]);
+    //print(*v);
+    //puts(K_END);
     switch(v->type) {
         case Y_STR:
             if (--(v->value.sval->rc->refs)) return;

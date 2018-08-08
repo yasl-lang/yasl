@@ -37,7 +37,7 @@ int str_tostr(VM *vm) {
 
 int str_toupper(VM *vm) {
     ASSERT_TYPE(vm, Y_STR, "str.toupper");
-    YASL_Object a = PEEK(vm);
+    YASL_Object a = POP(vm);
     int64_t length = yasl_string_len(a.value.sval);
     int64_t i = 0;
     unsigned char curr;
@@ -52,13 +52,13 @@ int str_toupper(VM *vm) {
         }
     }
 
-    vm->stack[vm->sp].value.sval = str_new_sized(length, ptr);
+    vm_push(vm, YASL_String(str_new_sized(length, ptr)));
     return 0;
 }
 
 int str_tolower(VM *vm) {
     ASSERT_TYPE(vm, Y_STR, "str.tolower");
-    YASL_Object a = PEEK(vm);
+    YASL_Object a = POP(vm);
     int64_t length = yasl_string_len(a.value.sval);
     int64_t i = 0;
     unsigned char curr;
@@ -72,7 +72,7 @@ int str_tolower(VM *vm) {
             ptr[i++] = curr;
         }
     }
-    vm->stack[vm->sp].value.sval = str_new_sized(length, ptr);
+    vm_push(vm, YASL_String(str_new_sized(length, ptr)));
     return 0;
 }
 

@@ -476,7 +476,6 @@ void vm_run(VM *vm){
                 while(PEEK(vm).type != Y_END) {
                     YASL_Object value = POP(vm);
                     YASL_Object key = POP(vm);
-                    puts("inserting");
                     ht_insert(ht, key, value);
                 }
                 vm_pop(vm);
