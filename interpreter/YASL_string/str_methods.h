@@ -13,6 +13,8 @@ int str_tobool(VM *vm);
 
 int str_tostr(VM *vm);
 
+int str_tofloat64(VM *vm);
+
 int str_toupper(VM *vm);
 
 int str_tolower(VM *vm);

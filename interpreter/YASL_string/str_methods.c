@@ -1,6 +1,7 @@
 #include <interpreter/YASL_Object/YASL_Object.h>
 #include "str_methods.h"
 #include "YASL_string.h"
+#include <ctype.h>
 
 int str___get(VM *vm) {
     ASSERT_TYPE(vm, Y_STR, "str.__get");
@@ -16,6 +17,40 @@ int str___get(VM *vm) {
         if (index.value.ival >= 0) vm_push(vm, ((YASL_Object){Y_STR, (int64_t) str_new_sized_from_mem(index.value.ival, index.value.ival + 1, str->str)}));
         else vm_push(vm, ((YASL_Object){Y_STR, (int64_t) str_new_sized_from_mem(index.value.ival + yasl_string_len(str), index.value.ival + yasl_string_len(str) + 1, str->str)}));
     }
+    return 0;
+}
+
+int isvaliddouble(const char *str) {
+	long len = strlen(str);
+	int hasdot = 0;
+	for (int i = 0; i < strlen(str); i++) {
+		if (!isdigit(str[i]) && str[i] != '.' || hasdot && str[i] == '.') {
+			return 0;
+		}
+		if (str[i] == '.') hasdot = 1;
+	}
+	return hasdot && isdigit(str[len-1]) && isdigit(str[0]);
+}
+
+double parsedouble(const char *str) {
+	if (!strcmp(str, "inf") || !strcmp(str, "+inf")) return 1.0 / 0.0;
+	else if (!strcmp(str, "-inf")) return -1.0 / 0.0;
+	else if (str[0] == '-' && isvaliddouble(str+1))
+		return -strtod(str+1, NULL);
+	else if (str[0] == '+' && isvaliddouble(str+1))
+		return +strtod(str+1, NULL);
+	else if (isvaliddouble(str))	return strtod(str, NULL);
+	return 0.0 / 0.0;
+}
+
+int str_tofloat64(VM *vm) {
+    ASSERT_TYPE(vm, Y_STR, "str.tofloat64");
+    String_t *str = POP(vm).value.sval;
+    char *buffer = malloc(yasl_string_len(str) + 1);
+    memcpy(buffer, str->str + str->start, yasl_string_len(str));
+    buffer[yasl_string_len(str)] = '\0';
+    vm_push(vm, YASL_Float(parsedouble(buffer)));
+    free(buffer);
     return 0;
 }
 

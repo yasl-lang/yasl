@@ -143,6 +143,8 @@ int print(YASL_Object v) {
             printf("undef");
             break;
         case Y_STR:
+            //printf("str (before print): %s\n", v.value.sval->str);
+            //printf("vm->stack[vm->sp]: %x (%d, %d)\n", v.value.ival, v.value.sval->rc->refs, v.value.sval->rc->weak_refs);
             for (i = 0; i < yasl_string_len(v.value.sval); i++) {
                 printf("%c", (v.value.sval)->str[i + v.value.sval->start]);
             }

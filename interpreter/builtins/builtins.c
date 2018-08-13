@@ -56,10 +56,10 @@ int yasl_open(VM* vm) {     //TODO: fix bug relating to file pointer
         return -1;
     }
     char *buffer = malloc(yasl_string_len(str.value.sval) + 1);
-    memcpy(buffer, (str.value.sval)->str, yasl_string_len(str.value.sval));
+    memcpy(buffer, (str.value.sval)->str + str.value.sval->start, yasl_string_len(str.value.sval));
     buffer[str.value.sval->end - str.value.sval->start] = '\0';
     char *mode = malloc(str.value.sval->end - str.value.sval->start + 1);
-    memcpy(mode, yasl_string_len(mode_str.value.sval), yasl_string_len(str.value.sval));
+    memcpy(mode, mode_str.value.sval->str + mode_str.value.sval->start, yasl_string_len(str.value.sval));
     mode[yasl_string_len(mode_str.value.sval)] = '\0';
 
     FILE *f;  // r, w, a, r+, w+, a+
@@ -85,8 +85,14 @@ int yasl_open(VM* vm) {     //TODO: fix bug relating to file pointer
         printf("Error: invalid second argument: %s\n", mode);
         return -1;
     }
-    vm->stack[++vm->sp].value.fval = f;
-    vm->stack[vm->sp].type = Y_FILE;
+    // TODO: handle error properly
+    if (!f)perror("fopen");
+
+    free(buffer);
+    free(mode);
+    vm_push(vm, (YASL_Object) { .type = Y_FILE, .value.fval = f});
+    //vm->stack[++vm->sp].value.fval = f;
+    //vm->stack[vm->sp].type = Y_FILE;
     YASL_DEBUG_LOG("%s\n", "file opened successfully.");
     return 0;
 }
@@ -157,10 +163,11 @@ Hash_t* bool_builtins() {
 
 Hash_t* str_builtins() {
     Hash_t* ht = ht_new();
+    ht_insert_string_int(ht, "tofloat64",  strlen("tofloat64"),  (int64_t)&str_tofloat64);
     ht_insert_string_int(ht, "tobool",     strlen("tobool"),     (int64_t)&str_tobool);
     ht_insert_string_int(ht, "tostr",      strlen("tostr"),      (int64_t)&str_tostr);
-    ht_insert_string_int(ht, "toupper",    strlen("toupper"),    (int64_t) &str_toupper);
-    ht_insert_string_int(ht, "tolower",    strlen("tolower"),    (int64_t) &str_tolower);
+    ht_insert_string_int(ht, "toupper",    strlen("toupper"),    (int64_t)&str_toupper);
+    ht_insert_string_int(ht, "tolower",    strlen("tolower"),    (int64_t)&str_tolower);
     ht_insert_string_int(ht, "isalnum",    strlen("isalnum"),    (int64_t)&str_isalnum);
     ht_insert_string_int(ht, "isal",       strlen("isal"),       (int64_t)&str_isal);
     ht_insert_string_int(ht, "isnum",      strlen("isnum"),      (int64_t)&str_isnum);

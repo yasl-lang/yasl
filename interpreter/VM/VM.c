@@ -54,7 +54,7 @@ VM* vm_new(unsigned char *code,    // pointer to bytecode
     return vm;
 }
 
-void vm_del(VM *vm){
+void vm_del(VM *vm) {
     for (int i = 0; i < STACK_SIZE; i++) dec_ref(&vm->stack[i]);
     for (int i = 0; i < vm->num_globals; i++) dec_ref(&vm->globals[i]);
 
@@ -291,7 +291,8 @@ void vm_run(VM *vm){
         int64_t c;
         double d;
         void* ptr;
-        // printf("\nopcode: %x\n", opcode);
+        // printf("vm->sp: %d\n", vm->sp);
+        // printf("opcode: %x\n", opcode);
         /* printf("tpye is: %s\n", YASL_TYPE_NAMES[PEEK(vm).type]);
         print(PEEK(vm));
          */
@@ -535,8 +536,9 @@ void vm_run(VM *vm){
                 vm_push(vm, (YASL_Object) {.type = Y_END });
                 break;
             case DUP:
-                vm->stack[vm->sp+1] = vm->stack[vm->sp];
-                vm->sp++;
+                vm_push(vm, vm_peek(vm));
+                //vm->stack[vm->sp+1] = vm->stack[vm->sp];
+                //vm->sp++;
                 break;
             case SWAP:
                 a = vm->stack[vm->sp];
@@ -574,8 +576,13 @@ void vm_run(VM *vm){
                 break;
             case GSTORE_1:
                 addr = vm->code[vm->pc++];
+                //puts(K_BLU "object is");
+                //print(vm->globals[addr]);
+                //printf(K_END);
+                //print(vm->globals[addr]);
                 dec_ref(&vm->globals[addr]);
                 vm->globals[addr] = vm->stack[vm->sp--];
+                //print(vm->globals[addr]);
                 inc_ref(&vm->globals[addr]);
                 break;
             case LLOAD_1:

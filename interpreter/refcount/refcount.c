@@ -45,6 +45,7 @@ static void inc_strong_ref(YASL_Object *v) {
     switch (v->type) {
         case Y_STR:
             v->value.sval->rc->refs++;
+            //printf(K_MAG "after : %d\n" K_END, v->value.sval->rc->refs);
             break;
         case Y_LIST:
             v->value.lval->rc->refs++;
@@ -105,6 +106,7 @@ void dec_strong_ref(YASL_Object *v) {
     //puts(K_END);
     switch(v->type) {
         case Y_STR:
+            //printf(K_MAG "after : %d\n" K_END, v->value.sval->rc->refs - 1);
             if (--(v->value.sval->rc->refs)) return;
             str_del_data(v->value.sval);
             if (v->value.sval->rc->weak_refs) return;
