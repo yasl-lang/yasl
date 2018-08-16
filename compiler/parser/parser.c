@@ -116,8 +116,9 @@ static Node *parse_let(const Parser *const parser) {
     } else {
         char *name = parser->lex->value;
         int64_t name_len = parser->lex->val_len;
+        int64_t line = parser->lex->line;
         eattok(parser, T_ID);
-        if (curtok(parser) != T_EQ) return new_Let(name, name_len, NULL, parser->lex->line);
+        if (curtok(parser) != T_EQ) return new_Let(name, name_len, NULL, line);
         eattok(parser, T_EQ);
         return new_Let(name, name_len, parse_expr(parser), parser->lex->line);
     }
@@ -220,7 +221,7 @@ static Node *parse_if(const Parser *const parser) {
             body_append(else_block, parse_program(parser));
             if (curtok(parser) == T_SEMI) eattok(parser, T_SEMI);
             else if (curtok(parser) != T_RBRC) {
-                printf("ParsingError: expected newline or `}`, got `%s`.\n", YASL_TOKEN_NAMES[curtok(parser)]);
+                printf("ParsingError: in line %d: expected newline or `}`, got `%s`.\n", parser->lex->line, YASL_TOKEN_NAMES[curtok(parser)]);
                 exit(EXIT_FAILURE);
             }
         }
@@ -255,7 +256,7 @@ static Node *parse_assign(const Parser *const parser) {
             free(cur_node);
             return new_Set(left, block->children[0], block->children[1], parser->lex->line);
         } else {
-            puts("Invalid lvalue.");
+            printf("SyntaxError: in line %d: invalid lvalue.\n", parser->lex->line);
             exit(EXIT_FAILURE);
         }
      // TODO: add indexing case
@@ -276,7 +277,7 @@ static Node *parse_assign(const Parser *const parser) {
             free(cur_node);
             return new_Set(left, block->children[0], block->children[1], parser->lex->line);
         } else {
-            puts("Invalid lvalue.");
+            printf("SyntaxError: in line %d: invalid lvalue.\n", parser->lex->line);
             exit(EXIT_FAILURE);
         }
         // TODO: add indexing case
@@ -301,7 +302,7 @@ static Node *parse_ternary(const Parser *const parser) {
 }
 
 static Node *parse_or(const Parser *const parser) {
-    YASL_TRACE_LOG("parsing or in line %d\n", parser->lex->line);
+    YASL_TRACE_LOG("parsing || in line %d\n", parser->lex->line);
     Node *cur_node = parse_and(parser);
     while (curtok(parser) == T_DBAR) {
         eattok(parser, T_DBAR);
@@ -311,7 +312,7 @@ static Node *parse_or(const Parser *const parser) {
 }
 
 static Node *parse_and(const Parser *const parser) {
-    YASL_TRACE_LOG("parsing and in line %d\n", parser->lex->line);
+    YASL_TRACE_LOG("parsing && in line %d\n", parser->lex->line);
     Node *cur_node = parse_equals(parser);
     while (curtok(parser) == T_DAMP) {
         eattok(parser, T_DAMP);
@@ -343,7 +344,7 @@ static Node *parse_comparator(const Parser *const parser) {
 }
 
 static Node *parse_concat(const Parser *const parser) {
-    YASL_TRACE_LOG("parsing || in line %d\n", parser->lex->line);
+    YASL_TRACE_LOG("parsing ~ in line %d\n", parser->lex->line);
     Node *cur_node = parse_bor(parser);
     if (curtok(parser) == T_TILDE) {
         eattok(parser, T_TILDE);
@@ -442,7 +443,8 @@ static Node *parse_call(const Parser *const parser) {
             eattok(parser, T_DCOLON);
             Node *right = parse_constant(parser);
             if (right->nodetype != N_VAR) {
-                puts("Invalid method call.");
+                printf("SyntaxError: in line %d: Invalid method call.\n", parser->lex->line);
+                exit(EXIT_FAILURE);
             }
 
             Node *block = new_Body(parser->lex->line);
@@ -471,8 +473,8 @@ static Node *parse_call(const Parser *const parser) {
                 right->nodetype = N_STR;
                 cur_node = new_Get(cur_node, right, parser->lex->line);
             } else {
-                puts("failled)");
-                exit(1);
+                printf("SyntaxError: in line %d: Invalid member access.\n", parser->lex->line);
+                exit(EXIT_FAILURE);
             }
         } else if (curtok(parser) == T_LSQB) {
             eattok(parser, T_LSQB);
@@ -530,9 +532,10 @@ static Node *parse_constant(const Parser *const parser) {
 static Node *parse_id(const Parser *const parser) {
     char *name = parser->lex->value;
     int64_t name_len = parser->lex->val_len;
+    int64_t line = parser->lex->line;
     eattok(parser, T_ID);
     YASL_TRACE_LOG("%s\n", "Parsing variable");
-    Node *cur_node = new_Var(name, name_len, parser->lex->line);
+    Node *cur_node = new_Var(name, name_len, line);
     return cur_node;
 }
 
@@ -600,7 +603,6 @@ static Node *parse_collection(const Parser *const parser) {
         body_append(keys, parse_expr(parser));
 
         if (curtok(parser) == T_FOR) {
-            puts("table comp");
             eattok(parser, T_FOR);
             eattok(parser, T_LET);
             Node *var = parse_id(parser);
@@ -613,7 +615,6 @@ static Node *parse_collection(const Parser *const parser) {
             }
             eattok(parser, T_RSQB);
             Node *table_comp = new_TableComp(cond ? new_If(cond, keys/*->children[0]*/, NULL, parser->lex->line) : keys/*->children[0]*/, var, collection, parser->lex->line);
-            //free(keys);
             return table_comp;
         }
         while (curtok(parser) == T_COMMA) {
@@ -628,7 +629,6 @@ static Node *parse_collection(const Parser *const parser) {
 
     // non-empty list
     if (curtok(parser) == T_FOR) {
-        puts("non-empty list");
         eattok(parser, T_FOR);
         eattok(parser, T_LET);
         Node *var = parse_id(parser);

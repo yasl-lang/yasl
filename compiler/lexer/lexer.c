@@ -283,7 +283,7 @@ void gettok(Lexer *lex) {
     }
 
     // identifiers and keywords
-    if (isalpha(c1)) {                           // identifiers and keywords
+    if (isalpha(c1) || c1 == '_') {                           // identifiers and keywords
         lex->val_len = 6;
         lex->value = realloc(lex->value, lex->val_len);
         int i = 0;
@@ -295,9 +295,10 @@ void gettok(Lexer *lex) {
                 lex->val_len *= 2;
                 lex->value = realloc(lex->value, lex->val_len);
             }
-        } while (!feof(lex->file) && isalnum(c1));
+        } while (!feof(lex->file) && (isalnum(c1) || c1 == '_'));
         if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
-        lex->value = realloc(lex->value, lex->val_len = i);
+        lex->value = realloc(lex->value, 1 + (lex->val_len = i));
+        lex->value[lex->val_len] = '\0';
         lex->type = T_ID;
         YASLKeywords(lex);          // keywords
         return;
