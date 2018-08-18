@@ -82,7 +82,6 @@ void vm_del(VM *vm) {
 }
 
 #define LOOPSTACK_PEEK(vm) vm->loopstack->stack[vm->loopstack->sp]
-#define LOOPSTACK_POP(vm) vm->loopstack->sp--
 #define LOOPSTACK_INDEX(vm) vm->loopstack->indices[vm->loopstack->sp]
 
 void vm_loopstack_push(VM *vm, YASL_Object val) {
@@ -292,7 +291,7 @@ void vm_run(VM *vm){
         double d;
         void* ptr;
         // printf("vm->sp: %d\n", vm->sp);
-        // printf("opcode: %x\n", opcode);
+        // printf("opcode: %x\n\n", opcode);
         /* printf("tpye is: %s\n", YASL_TYPE_NAMES[PEEK(vm).type]);
         print(PEEK(vm));
          */
@@ -494,12 +493,10 @@ void vm_run(VM *vm){
                 break;
             }
             case INITFOR:
-                puts("INITFOR");
                 vm_loopstack_push(vm, POP(vm));
                 LOOPSTACK_INDEX(vm) = 0;
                 break;
             case ENDFOR:
-                LOOPSTACK_POP(vm);
                 vm->loopstack->sp--;
                 break;
             case ITER_1:

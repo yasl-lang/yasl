@@ -141,7 +141,7 @@ static inline int64_t get_index(int64_t value) {
     return is_const(value) ? ~value : value;
 }
 
-static void load_var(const Compiler *const compiler, char *name, int64_t name_len) {
+static void load_var(const Compiler *const compiler, char *name, int64_t name_len, int64_t line) {
     if (env_contains(compiler->locals, name, name_len)) {
         bb_add_byte(compiler->buffer, GLOAD_1);
         bb_add_byte(compiler->buffer, get_index(env_get(compiler->locals, name, name_len)));
@@ -152,16 +152,16 @@ static void load_var(const Compiler *const compiler, char *name, int64_t name_le
         bb_add_byte(compiler->buffer, GLOAD_1);
         bb_add_byte(compiler->buffer, get_index(env_get(compiler->globals, name, name_len)));  // TODO: handle size
     } else {
-        printf("undeclared variable %s.\n", name);
+        printf("NameError: in line %" PRId64 ": undeclared variable %s.\n", line, name);
         exit(EXIT_FAILURE);
     }
 }
 
-static void store_var(const Compiler *const compiler, char *name, int64_t name_len) {
+static void store_var(const Compiler *const compiler, char *name, int64_t name_len, int64_t line) {
     if (env_contains(compiler->locals, name, name_len)) {
         int64_t index = env_get(compiler->locals, name, name_len);
         if (is_const(index)) {
-            printf("cannot assign to constant %s", name);
+            printf("ConstantError: in line %" PRId64 ": cannot assign to constant %s", line, name);
             exit(EXIT_FAILURE);
         }
         bb_add_byte(compiler->buffer, GSTORE_1);
@@ -169,21 +169,21 @@ static void store_var(const Compiler *const compiler, char *name, int64_t name_l
     } else if (env_contains(compiler->params, name, name_len)) {
         int64_t index = env_get(compiler->params, name, name_len);
         if (is_const(index)) {
-            printf("cannot assign to constant %s", name);
+            printf("ConstantError: in line %" PRId64 ": cannot assign to constant %s", line, name);
             exit(EXIT_FAILURE);
         }
         bb_add_byte(compiler->buffer, LSTORE_1);
         bb_add_byte(compiler->buffer, index); // TODO: handle size
-    } else if (env_contains(compiler->globals, name, name_len)){
+    } else if (env_contains(compiler->globals, name, name_len)) {
         int64_t index = env_get(compiler->globals, name, name_len);
         if (is_const(index)) {
-            printf("cannot assign to constant %s", name);
+            printf("ConstantError: in line %" PRId64 ": cannot assign to constant %s", line, name);
             exit(EXIT_FAILURE);
         }
         bb_add_byte(compiler->buffer, GSTORE_1);
         bb_add_byte(compiler->buffer, index);  // TODO: handle size
     } else {
-        printf("undeclared variable %s.\n", name);
+        printf("NameError: in line %" PRId64 ": undeclared variable %s.\n", line, name);
         exit(EXIT_FAILURE);
     }
 }
@@ -256,7 +256,7 @@ static void visit_ExprStmt(Compiler *const compiler, const Node *const node) {
 
 static void visit_FunctionDecl(Compiler *const compiler, const Node *const node) {
     if (compiler->current_function != NULL) {
-        puts("Illegal function declaration outside global scope.");
+        printf("Illegal function declaration outside global scope, in line %d.\n", node->line);
         exit(EXIT_FAILURE);
     }
 
@@ -300,7 +300,7 @@ static void visit_FunctionDecl(Compiler *const compiler, const Node *const node)
     bb_add_byte(compiler->buffer, FCONST);
     bb_intbytes8(compiler->buffer, fn_val);
 
-    store_var(compiler, node->name, node->name_len);
+    store_var(compiler, node->name, node->name_len, node->line);
 }
 
 static void visit_Call(Compiler *const compiler, const Node *const node) {
@@ -371,7 +371,7 @@ static void visit_ListComp(Compiler *const compiler, const Node *const node) {
     int64_t index_second;
     enter_conditional_false(compiler, &index_second);
 
-    store_var(compiler, ListComp_get_var(node)->name, ListComp_get_var(node)->name_len);
+    store_var(compiler, ListComp_get_var(node)->name, ListComp_get_var(node)->name_len, node->line);
 
     visit(compiler, ListComp_get_expr(node));
     goto_index(compiler, index_start);
@@ -387,9 +387,14 @@ static void visit_TableComp(Compiler *const compiler, const Node *const node) {
     enter_scope(compiler);
 
     bb_add_byte(compiler->buffer, END);
-    decl_var(compiler, TableComp_get_var(node)->name, TableComp_get_var(node)->name_len);
+    if (node->children[1]->nodetype == N_LETITER) {
+        decl_var(compiler, node->children[1]->children[0]->name, node->children[1]->children[0]->name_len);
+    } else if (!contains_var(compiler, node->children[1]->children[0]->name, node->children[1]->children[0]->name_len)){
+        printf("NameError: in line %" PRId64 ": undeclared variable %s.\n", node->children[1]->children[0]->line, node->children[1]->children[0]->name);
+        exit(EXIT_FAILURE);
+    }
 
-    visit(compiler, TableComp_get_collection(node));
+    visit(compiler, node->children[1]->children[1]);
 
     bb_add_byte(compiler->buffer, INITFOR);
 
@@ -400,10 +405,10 @@ static void visit_TableComp(Compiler *const compiler, const Node *const node) {
     int64_t index_second;
     enter_conditional_false(compiler, &index_second);
 
-    store_var(compiler, TableComp_get_var(node)->name, TableComp_get_var(node)->name_len);
+    store_var(compiler, node->children[1]->children[0]->name, node->children[1]->children[0]->name_len, node->line);
 
-    visit(compiler, TableComp_get_key_value(node)->children[1]);
     visit(compiler, TableComp_get_key_value(node)->children[0]);
+    visit(compiler, TableComp_get_key_value(node)->children[1]);
 
     goto_index(compiler, index_start);
 
@@ -422,11 +427,16 @@ static void visit_ForIter(Compiler *const compiler, const Node *const node) {
      */
     enter_scope(compiler);
 
-    decl_var(compiler, ForIter_get_var(node)->name, ForIter_get_var(node)->name_len);
-
-    visit(compiler, ForIter_get_collection(node));
+    visit(compiler, node->children[0]->children[1]);
 
     bb_add_byte(compiler->buffer, INITFOR);
+
+    if (node->children[0]->nodetype == N_LETITER) {
+        decl_var(compiler, node->children[0]->children[0]->name, node->children[0]->children[0]->name_len);
+    } else if (!contains_var(compiler, node->children[0]->children[0]->name, node->children[0]->children[0]->name_len)){
+        printf("NameError: in line %" PRId64 ": undeclared variable %s.\n", node->children[0]->children[0]->line, node->children[0]->children[0]->name);
+        exit(EXIT_FAILURE);
+    }
 
     int64_t index_start = compiler->code->count + compiler->buffer->count;
     add_checkpoint(compiler, index_start);
@@ -438,7 +448,8 @@ static void visit_ForIter(Compiler *const compiler, const Node *const node) {
     int64_t index_second;
     enter_conditional_false(compiler, &index_second);
 
-    store_var(compiler, ForIter_get_var(node)->name, ForIter_get_var(node)->name_len);
+
+    store_var(compiler, node->children[0]->children[0]->name, node->children[0]->children[0]->name_len, node->line);
 
     visit(compiler, ForIter_get_body(node));
 
@@ -476,7 +487,7 @@ static void visit_While(Compiler *const compiler, const Node *const node) {
 
 static void visit_Break(Compiler *const compiler, const Node *const node) {
     if (compiler->checkpoints_count == 0) {
-        puts("SyntaxError: break outside of loop.");
+        printf("SyntaxError: in line %d: break outside of loop.\n", node->line);
         exit(EXIT_FAILURE);
     }
     bb_add_byte(compiler->buffer, BCONST_F);
@@ -485,7 +496,7 @@ static void visit_Break(Compiler *const compiler, const Node *const node) {
 
 static void visit_Continue(Compiler *const compiler, const Node *const node) {
     if (compiler->checkpoints_count == 0) {
-        puts("SyntaxError: continue outside of loop.");
+        printf("SyntaxError: in line %d: continue outside of loop.\n", node->line);
         exit(EXIT_FAILURE);
     }
     goto_index(compiler, continue_checkpoint(compiler));
@@ -535,7 +546,7 @@ static void declare_with_let_or_const(Compiler *const compiler, const Node *cons
     if (node->children[0] != NULL) visit(compiler, Let_get_expr(node));
     else bb_add_byte(compiler->buffer, NCONST);
 
-    store_var(compiler, node->name, node->name_len);
+    store_var(compiler, node->name, node->name_len, node->line);
 }
 
 static void visit_Let(Compiler *const compiler, const Node *const node) {
@@ -702,20 +713,15 @@ static void visit_UnOp(Compiler *const compiler, const Node *const node) {
 
 static void visit_Assign(Compiler *const compiler, const Node *const node) {
     if (!contains_var(compiler, node->name, node->name_len)) {
-        printf("unknown variable in line %" PRId64 ": %s\n", compiler->parser->lex->line, node->name);
+        //printf("unknown variable in line %" PRId64 ": %s\n", compiler->parser->lex->line, node->name);
     }
     visit(compiler, node->children[0]);
     bb_add_byte(compiler->buffer, DUP);
-    store_var(compiler, node->name, node->name_len);
+    store_var(compiler, node->name, node->name_len, node->line);
 }
 
 static void visit_Var(Compiler *const compiler, const Node *const node) {
-    if (!contains_var(compiler, node->name, node->name_len)) {
-        printf("unknown variable in line %" PRId64": %s\n", compiler->parser->lex->line, node->name);
-        exit(EXIT_FAILURE);
-    }
-
-    load_var(compiler, node->name, node->name_len);
+    load_var(compiler, node->name, node->name_len, node->line);
 }
 
 static void visit_Undef(Compiler *const compiler, const Node *const node) {
@@ -804,6 +810,8 @@ static void (*jumptable[])(Compiler *const, const Node *const) = {
         &visit_Call,
         &visit_Set,
         &visit_Get,
+        NULL,
+        NULL,
         &visit_ListComp,
         &visit_TableComp,
         &visit_ForIter,

@@ -51,6 +51,7 @@ static Node *parse_program(const Parser *const parser) {
     //YASL_DEBUG_LOG("parse. type: %s, ", YASL_TOKEN_NAMES[curtok(parser)]);
     //YASL_DEBUG_LOG("value: %s\n", parser->lex->value);
     YASL_TRACE_LOG("parsing statement in line %d\n", parser->lex->line);
+    int64_t line;
     switch (curtok(parser)) {
         case T_PRINT:
             eattok(parser, T_PRINT);
@@ -63,11 +64,13 @@ static Node *parse_program(const Parser *const parser) {
         case T_FOR: return parse_for(parser);
         case T_WHILE: return parse_while(parser);
         case T_BREAK:
+            line = parser->lex->line;
             eattok(parser, T_BREAK);
-            return new_Break(parser->lex->line);
+            return new_Break(line);
         case T_CONT:
+            line = parser->lex->line;
             eattok(parser, T_CONT);
-            return new_Continue(parser->lex->line);
+            return new_Continue(line);
         case T_LBRC: return parse_block(parser);
         case T_IF: return parse_if(parser);
         case T_ELSEIF:
@@ -140,18 +143,34 @@ static Node *parse_block(const Parser *const parser) {
     return block;
 }
 
+static Node *parse_iterate(const Parser *const parser) {
+    int64_t line = parser->lex->line;
+    if (curtok(parser) == T_LET) {
+        eattok(parser, T_LET);
+        Node *var = parse_id(parser);
+        eattok(parser, T_COLON);
+        Node *collection = parse_expr(parser);
+        return new_LetIter(var, collection, line);
+    }
+    Node *var = parse_id(parser);
+    eattok(parser, T_COLON);
+    Node *collection = parse_expr(parser);
+    return new_Iter(var, collection, line);
+}
+
 static Node *parse_for(const Parser *const parser) {
     /* Currently only implements case:
      *
      * for let x in y { ... }
      *
      */
+
     eattok(parser, T_FOR);
-    eattok(parser, T_LET);
-    Node *var = parse_id(parser);
-    eattok(parser, T_IN);
-    Node *collection = parse_expr(parser);
+
+    Node *iter = parse_iterate(parser);
+
     eattok(parser, T_LBRC);
+
     Node *body = new_Body(parser->lex->line);
     while (curtok(parser) != T_RBRC && curtok(parser) != T_EOF) {
         body_append(body, parse_program(parser));
@@ -162,7 +181,7 @@ static Node *parse_for(const Parser *const parser) {
         }
     }
     eattok(parser, T_RBRC);
-    return new_ForIter(var, collection, body, parser->lex->line);
+    return new_ForIter(iter, body, parser->lex->line);
 }
 
 static Node *parse_while(const Parser *const parser) {
@@ -604,17 +623,19 @@ static Node *parse_collection(const Parser *const parser) {
 
         if (curtok(parser) == T_FOR) {
             eattok(parser, T_FOR);
-            eattok(parser, T_LET);
-            Node *var = parse_id(parser);
-            eattok(parser, T_IN);
-            Node *collection = parse_expr(parser);
+            Node *iter = parse_iterate(parser);
+
+            //eattok(parser, T_LET);
+            //Node *var = parse_id(parser);
+            //eattok(parser, T_COLON);
+            //Node *collection = parse_expr(parser);
             Node *cond = NULL;
-            if (curtok(parser) == T_IF) {
-                eattok(parser, T_IF);
-                cond = parse_expr(parser);
-            }
+            //if (curtok(parser) == T_IF) {
+            //    eattok(parser, T_IF);
+            //    cond = parse_expr(parser);
+            //}
             eattok(parser, T_RSQB);
-            Node *table_comp = new_TableComp(cond ? new_If(cond, keys/*->children[0]*/, NULL, parser->lex->line) : keys/*->children[0]*/, var, collection, parser->lex->line);
+            Node *table_comp = new_TableComp(cond ? new_If(cond, keys, NULL, parser->lex->line) : keys, iter, parser->lex->line);
             return table_comp;
         }
         while (curtok(parser) == T_COMMA) {
@@ -632,15 +653,16 @@ static Node *parse_collection(const Parser *const parser) {
         eattok(parser, T_FOR);
         eattok(parser, T_LET);
         Node *var = parse_id(parser);
-        eattok(parser, T_IN);
+        eattok(parser, T_COLON);
         Node *collection = parse_expr(parser);
         Node *cond = NULL;
-        if (curtok(parser) == T_IF) {
-            eattok(parser, T_IF);
-            cond = parse_expr(parser);
-        }
+        //if (curtok(parser) == T_IF) {
+        //    eattok(parser, T_IF);
+        //    cond = parse_expr(parser);
+        //}
         eattok(parser, T_RSQB);
         Node *table_comp = new_ListComp(cond ? new_If(cond, keys->children[0], NULL, parser->lex->line) : keys->children[0], var, collection, parser->lex->line);
+        free(keys->children);
         free(keys);
         return table_comp;
     } else {
