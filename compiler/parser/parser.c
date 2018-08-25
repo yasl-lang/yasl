@@ -222,9 +222,9 @@ static Node *parse_for(const Parser *const parser) {
         }
         eattok(parser, T_RBRC);
         Node *outer_body = new_Body(parser->lex->line);
-        Node *block = new_Block(outer_body, parser->lex->line);
         body_append(outer_body, iter);
-        body_append(outer_body, new_While(cond, body, post, parser->lex->line));
+        body_append(outer_body, new_While(cond, body, new_ExprStmt(post, parser->lex->line), parser->lex->line));
+        Node *block = new_Block(outer_body, parser->lex->line);
         return block;
     }
 }

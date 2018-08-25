@@ -290,8 +290,10 @@ void vm_run(VM *vm){
         int64_t c;
         double d;
         void* ptr;
-        // printf("vm->sp: %d\n", vm->sp);
-        // printf("opcode: %x\n\n", opcode);
+        // printf("vm->pc, opcode: %x, %x\n", vm->pc - vm->pc0, opcode);
+        //printf("pc: %d\n\n", vm->pc);
+        //print(vm->stack[vm->sp]);
+        //puts("\n");
         /* printf("tpye is: %s\n", YASL_TYPE_NAMES[PEEK(vm).type]);
         print(PEEK(vm));
          */
@@ -432,6 +434,10 @@ void vm_run(VM *vm){
             case GT:
                 b = vm_pop(vm);
                 a = vm_pop(vm);
+                printf(K_RED);
+                print(a);
+                print(b);
+                printf(K_END);
                 if ((a.type != Y_INT64 && a.type != Y_FLOAT64) ||
                     (b.type != Y_INT64 && b.type != Y_FLOAT64)) {
                     printf("TypeError: < and > not supported for operand of types %s and %s.\n",
@@ -550,7 +556,9 @@ void vm_run(VM *vm){
                 break;
             case BR_8:
                 c = vm_read_int64_t(vm);
+                //printf(K_MAG "-%x (%x)" K_END "\n", -c, c);
                 vm->pc += c;
+                //printf("old pc: %x, new pc: %x\n", vm->pc - c - vm->pc0, vm->pc - vm->pc0);
                 break;
             case BRF_8:
                 c = vm_read_int64_t(vm);

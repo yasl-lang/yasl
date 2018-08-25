@@ -188,6 +188,12 @@ static void store_var(const Compiler *const compiler, char *name, int64_t name_l
     }
 }
 
+static int contains_var_in_current_scope(const Compiler *const compiler, char *name, int64_t name_len) {
+    return compiler->current_function ?
+    env_contains_cur_scope(compiler->locals, name, name_len) :
+    env_contains_cur_scope(compiler->globals, name, name_len);
+}
+
 static int contains_var(const Compiler *const compiler, char *name, int64_t name_len) {
     return env_contains(compiler->globals, name, name_len) ||
            env_contains(compiler->params, name, name_len) ||
@@ -231,11 +237,17 @@ void compile(Compiler *const compiler) {
 
     YASL_DEBUG_LOG("%s\n", "header");
     for (i = 0; i < compiler->header->count; i++) {
-        YASL_DEBUG_LOG("%02x\n", compiler->header->bytes[i]);
+        if (i % 16 == 15)
+            YASL_DEBUG_LOG("%02x\n", compiler->header->bytes[i]);
+        else
+            YASL_DEBUG_LOG("%02x ", compiler->header->bytes[i]);
     }
     YASL_DEBUG_LOG("%s\n", "entry point");
     for (i = 0; i < compiler->code->count; i++) {
-        YASL_DEBUG_LOG("%02x\n", compiler->code->bytes[i]);
+        if (i % 16 == 15)
+            YASL_DEBUG_LOG("%02x\n", compiler->code->bytes[i]);
+        else
+            YASL_DEBUG_LOG("%02x ", compiler->code->bytes[i]);
     }
     YASL_DEBUG_LOG("%02x\n", HALT);
     FILE *fp = fopen(compiler->name, "wb");
@@ -261,7 +273,7 @@ static void visit_FunctionDecl(Compiler *const compiler, const Node *const node)
     }
 
     // declare var
-    if (!contains_var(compiler, node->name, node->name_len)) {
+    if (!contains_var_in_current_scope(compiler, node->name, node->name_len)) {
         decl_var(compiler, node->name, node->name_len);
     }
 
@@ -465,22 +477,26 @@ static void visit_ForIter(Compiler *const compiler, const Node *const node) {
 }
 
 static void visit_While(Compiler *const compiler, const Node *const node) {
-    int64_t index_start = compiler->code->count + compiler->buffer->count;
+    int64_t index_start = compiler->buffer->count;
+    printf(K_RED "%x" K_END "\n", index_start);
 
+    //int64_t index_start = compiler->code->count + compiler->buffer->count;
+
+
+    bb_add_byte(compiler->buffer, BR_8);
+    int64_t index = compiler->buffer->count;
+    bb_intbytes8(compiler->buffer, 0);
     if (node->children[2] != NULL) {
-        index_start += 9;
-        bb_add_byte(compiler->buffer, BR_8);
-        int64_t index = compiler->buffer->count;
-        bb_intbytes8(compiler->buffer, 0);
         visit(compiler, node->children[2]);
-        bb_rewrite_intbytes8(compiler->buffer, index, compiler->buffer->count-index-8);
     }
+    bb_rewrite_intbytes8(compiler->buffer, index, compiler->buffer->count-index-8);
 
     add_checkpoint(compiler, index_start);
 
     visit(compiler, While_get_cond(node));
 
-    add_checkpoint(compiler, compiler->code->count + compiler->buffer->count);
+    printf(K_BLU "%x" K_END "\n", compiler->buffer->count);
+    add_checkpoint(compiler, compiler->buffer->count);
 
     int64_t index_second;
     enter_conditional_false(compiler, &index_second);
@@ -488,7 +504,9 @@ static void visit_While(Compiler *const compiler, const Node *const node) {
 
     visit(compiler, While_get_body(node));
 
-    goto_index(compiler, index_start);
+    bb_add_byte(compiler->buffer, BR_8);
+    bb_intbytes8(compiler->buffer, index_start - compiler->buffer->count);
+    //goto_index(compiler, index_start);
 
     exit_scope(compiler);
     exit_conditional_false(compiler, &index_second);
@@ -503,7 +521,11 @@ static void visit_Break(Compiler *const compiler, const Node *const node) {
         exit(EXIT_FAILURE);
     }
     bb_add_byte(compiler->buffer, BCONST_F);
-    goto_index(compiler, break_checkpoint(compiler));
+    bb_add_byte(compiler->buffer, BR_8);
+    printf(K_BLU "-%x, %x, %x" K_END "\n", compiler->buffer->count - break_checkpoint(compiler),
+           break_checkpoint(compiler), compiler->buffer->count);
+    bb_intbytes8(compiler->buffer, break_checkpoint(compiler) - compiler->buffer->count - 8);
+    // goto_index(compiler, break_checkpoint(compiler));
 }
 
 static void visit_Continue(Compiler *const compiler, const Node *const node) {
@@ -511,7 +533,11 @@ static void visit_Continue(Compiler *const compiler, const Node *const node) {
         printf("SyntaxError: in line %d: continue outside of loop.\n", node->line);
         exit(EXIT_FAILURE);
     }
-    goto_index(compiler, continue_checkpoint(compiler));
+    bb_add_byte(compiler->buffer, BR_8);
+    printf(K_RED "-%x, %x, %x" K_END "\n", compiler->buffer->count - continue_checkpoint(compiler),
+            continue_checkpoint(compiler), compiler->buffer->count);
+    bb_intbytes8(compiler->buffer, continue_checkpoint(compiler) - compiler->buffer->count);
+   // goto_index(compiler, continue_checkpoint(compiler));
 }
 
 static void visit_If(Compiler *const compiler, const Node *const node) {
@@ -548,7 +574,7 @@ static void visit_Print(Compiler *const compiler, const Node *const node) {
 }
 
 static void declare_with_let_or_const(Compiler *const compiler, const Node *const node) {
-    if (contains_var(compiler, node->name, node->name_len)) {
+    if (contains_var_in_current_scope(compiler, node->name, node->name_len)) {
         printf("Illegal redeclaration of %s in line %d.\n", node->name, node->line);
         exit(EXIT_FAILURE);
     }
