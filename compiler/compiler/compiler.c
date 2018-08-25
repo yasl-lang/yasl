@@ -466,8 +466,20 @@ static void visit_ForIter(Compiler *const compiler, const Node *const node) {
 
 static void visit_While(Compiler *const compiler, const Node *const node) {
     int64_t index_start = compiler->code->count + compiler->buffer->count;
+
+    if (node->children[2] != NULL) {
+        index_start += 9;
+        bb_add_byte(compiler->buffer, BR_8);
+        int64_t index = compiler->buffer->count;
+        bb_intbytes8(compiler->buffer, 0);
+        visit(compiler, node->children[2]);
+        bb_rewrite_intbytes8(compiler->buffer, index, compiler->buffer->count-index-8);
+    }
+
     add_checkpoint(compiler, index_start);
+
     visit(compiler, While_get_cond(node));
+
     add_checkpoint(compiler, compiler->code->count + compiler->buffer->count);
 
     int64_t index_second;

@@ -169,8 +169,8 @@ Node *While_get_body(const Node *const node) {
     return node->children[1];
 }
 
-Node *new_While(Node *cond, Node *body, int line) {
-    return new_Node_2(N_WHILE, T_UNKNOWN, cond, body, NULL, 0, line);
+Node *new_While(Node *cond, Node *body, Node *post, int line) {
+    return new_Node_3(N_WHILE, T_UNKNOWN, cond, body, post, NULL, 0, line);
 }
 
 Node *new_Break(int line) {

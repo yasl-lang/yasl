@@ -456,7 +456,8 @@ void vm_run(VM *vm){
             case EQ:
                 b = vm_pop(vm);
                 a = vm_peek(vm);
-                vm->stack[vm->sp] = (vm, isequal(a, b));
+                vm_push(vm, isequal(a, b));
+                //vm->stack[vm->sp] = (vm, isequal(a, b));
                 break;
             case ID:
                 b = vm_pop(vm);

@@ -17,6 +17,7 @@ Token eattok(const Parser *const parser, const Token token);
 Node *parse(const Parser *const parser);
 
 static Node *parse_program(const Parser *const parser);
+static Node *parse_const(const Parser *const parser);
 static Node *parse_let(const Parser *const parser);
 static Node *parse_fn(const Parser *const parser);
 static Node *parse_block(const Parser *const parser);

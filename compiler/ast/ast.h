@@ -89,7 +89,7 @@ Node *ForIter_get_body(const Node *const node);
 Node *new_ForIter(Node *iter, Node *body, int line);
 Node *While_get_cond(const Node *const node);
 Node *While_get_body(const Node *const node);
-Node *new_While(Node *cond, Node *body, int line);
+Node *new_While(Node *cond, Node *body, Node *post, int line);
 Node *new_Break(int line);
 Node *new_Continue(int line);
 Node *If_get_cond(Node *node);
