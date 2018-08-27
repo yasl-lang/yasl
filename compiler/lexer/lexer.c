@@ -369,6 +369,7 @@ static Token YASLToken_TwoChars(char c1, char c2) {
         case '<': switch(c2) {
                 case '=': return T_LTEQ;
                 case '<': return T_DLT;
+                case '-': return T_LEFT_ARR;
                 default: return T_UNKNOWN;
         }
         case '>': switch(c2) {
@@ -452,7 +453,13 @@ static void YASLKeywords(Lexer *lex) {
      *  return
      */
 
-
+    if (matches_keyword(lex, "enum")) {
+        puts("enum is an unused reserved word and cannot be used.");
+        exit(EXIT_FAILURE);
+    } else if (matches_keyword(lex, "yield")) {
+        puts("yield is an unused reserved word and cannot be used.");
+        exit(EXIT_FAILURE);
+    }
 
     if (matches_keyword(lex, "break")) set_keyword(lex, T_BREAK);
     else if (matches_keyword(lex, "const")) set_keyword(lex, T_CONST);
@@ -554,7 +561,8 @@ const char *YASL_TOKEN_NAMES[] = {
         ":",            // COLON,
         "::",           // DCOLON,
         "=>",           // BIG_ARR,
-        "->"            // SMALL_ARR
+        "->",           // SMALL_ARR
+        "<-",           // LEFT_ARR
 };
 
 Lexer *lex_new(FILE *file /* OWN */) {

@@ -157,7 +157,7 @@ static Node *parse_let_iterate_or_let(const Parser *const parser) {
         Node *expr = parse_expr(parser);
         return new_Let(name, name_len, expr, line);
     } else {
-        eattok(parser, T_COLON);
+        eattok(parser, T_LEFT_ARR);
         Node *expr = parse_expr(parser);
         return new_LetIter(new_Var(name, name_len, line), expr, line);
     }
@@ -168,12 +168,12 @@ static Node *parse_iterate(const Parser *const parser) {
     if (curtok(parser) == T_LET) {
         eattok(parser, T_LET);
         Node *var = parse_id(parser);
-        eattok(parser, T_COLON);
+        eattok(parser, T_LEFT_ARR);
         Node *collection = parse_expr(parser);
         return new_LetIter(var, collection, line);
     }
     Node *var = parse_id(parser);
-    eattok(parser, T_COLON);
+    eattok(parser, T_LEFT_ARR);
     Node *collection = parse_expr(parser);
     return new_Iter(var, collection, line);
 }
@@ -698,7 +698,7 @@ static Node *parse_collection(const Parser *const parser) {
         eattok(parser, T_FOR);
         eattok(parser, T_LET);
         Node *var = parse_id(parser);
-        eattok(parser, T_COLON);
+        eattok(parser, T_LEFT_ARR);
         Node *collection = parse_expr(parser);
         Node *cond = NULL;
         //if (curtok(parser) == T_IF) {

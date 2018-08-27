@@ -142,8 +142,8 @@ int64_t idiv(int64_t left, int64_t right) {
 }
 
 void vm_int_binop(VM *vm, int64_t (*op)(int64_t, int64_t), char *opstr) {
-    YASL_Object b = POP(vm);
-    YASL_Object a = PEEK(vm);
+    YASL_Object b = vm_pop(vm);
+    YASL_Object a = vm_pop(vm);
     if (yasl_type_equals(a.type, Y_INT64) && yasl_type_equals(b.type, Y_INT64)) {
         vm_push(vm, YASL_Integer(op(a.value.ival, b.value.ival)));
         return;
@@ -290,6 +290,7 @@ void vm_run(VM *vm){
         int64_t c;
         double d;
         void* ptr;
+        //printf("vm->sp, opcode: %d, %x\n", vm->sp, opcode);
         // printf("vm->pc, opcode: %x, %x\n", vm->pc - vm->pc0, opcode);
         //printf("pc: %d\n\n", vm->pc);
         //print(vm->stack[vm->sp]);
@@ -299,7 +300,7 @@ void vm_run(VM *vm){
          */
         switch (opcode) {   // decode
             case HALT: return;  // stop the program
-            case NOP: break;    // pass
+            case NOP: puts("Slide"); break;    // pass
             case ICONST_M1:     // TODO: make sure no changes to opcodes ruin this
             case ICONST_0:
             case ICONST_1:
@@ -434,10 +435,6 @@ void vm_run(VM *vm){
             case GT:
                 b = vm_pop(vm);
                 a = vm_pop(vm);
-                printf(K_RED);
-                print(a);
-                print(b);
-                printf(K_END);
                 if ((a.type != Y_INT64 && a.type != Y_FLOAT64) ||
                     (b.type != Y_INT64 && b.type != Y_FLOAT64)) {
                     printf("TypeError: < and > not supported for operand of types %s and %s.\n",
@@ -461,7 +458,7 @@ void vm_run(VM *vm){
                 break;
             case EQ:
                 b = vm_pop(vm);
-                a = vm_peek(vm);
+                a = vm_pop(vm);
                 vm_push(vm, isequal(a, b));
                 //vm->stack[vm->sp] = (vm, isequal(a, b));
                 break;
@@ -602,7 +599,7 @@ void vm_run(VM *vm){
             case CALL_8:
                 if (yasl_type_equals(vm_peek(vm).type, Y_FN)) {
                     offset = NCODE(vm);
-                    addr = POP(vm).value.ival;
+                    addr = vm_pop(vm).value.ival;
                     vm_push(vm, ((YASL_Object) {offset, vm->fp}));  // store previous frame ptr;
                     vm_push(vm, ((YASL_Object) {offset, vm->pc}));  // store pc addr
                     vm->fp = vm->sp;
@@ -615,7 +612,7 @@ void vm_run(VM *vm){
                     break;
                 } else if (yasl_type_equals(vm_peek(vm).type, Y_BFN)) {
                     offset = NCODE(vm);
-                    addr = POP(vm).value.ival;
+                    addr = vm_pop(vm).value.ival;
                     if (((int (*)(VM*))addr)(vm)) {
                         printf("ERROR: invalid argument type(s) to builtin function.\n");
                         return;

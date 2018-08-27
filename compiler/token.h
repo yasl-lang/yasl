@@ -151,5 +151,6 @@ typedef enum {
     T_COLON,
     T_DCOLON,
     T_BIG_ARR,
-    T_SMALL_ARR
+    T_SMALL_ARR,
+    T_LEFT_ARR,
 } Token;
