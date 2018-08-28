@@ -1,3 +1,3 @@
 #pragma once
 
-int test_unop(void);
+int unoptest(void);

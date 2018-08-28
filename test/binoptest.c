@@ -215,7 +215,7 @@ static void test_or() {
     ASSERT_GEN_BC_EQ(expected,"true || false;");
 }
 
-int test_binop(void) {
+int binoptest(void) {
     test_mul();
     test_fdiv();
     test_idiv();

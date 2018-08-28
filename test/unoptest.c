@@ -56,7 +56,7 @@ static void test_bnot() {
     ASSERT_GEN_BC_EQ(expected, "^0x00;");
 }
 
-int test_unop(void) {
+int unoptest(void) {
     test_len();
     test_neg();
     test_not();

@@ -59,6 +59,7 @@ add_executable(YASLTEST
         test/binoptest.c
         test/unoptest.c
         test/literaltest.c
+        test/iftest.c
         compiler/lexer/lexer.c
         compiler/compiler/compiler.c
         compiler/parser/parser.c
