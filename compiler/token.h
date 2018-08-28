@@ -109,6 +109,7 @@ typedef enum {
     T_MINUS,
     T_MINUSEQ,
     T_HASH,
+    T_AT,
     T_BANG,
     T_BANGEQ,
     T_BANGDEQ,

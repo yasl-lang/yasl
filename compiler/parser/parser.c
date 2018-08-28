@@ -481,7 +481,7 @@ static Node *parse_multiply(const Parser *const parser) {
 static Node *parse_unary(const Parser *const parser) {
     YASL_TRACE_LOG("parsing ! in line %d\n", parser->lex->line);
     if (curtok(parser) == T_PLUS || curtok(parser) == T_MINUS || curtok(parser) == T_BANG ||
-     curtok(parser) == T_CARET ||curtok(parser) == T_HASH) {
+     curtok(parser) == T_CARET ||curtok(parser) == T_AT) {
         Token op = eattok(parser, curtok(parser));
         return new_UnOp(op, parse_unary(parser), parser->lex->line);
     } else {

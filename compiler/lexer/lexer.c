@@ -35,7 +35,7 @@ static int lex_eatwhitespace(Lexer *lex) {
 }
 
 static int lex_eatinlinecomments(Lexer *lex) {
-    if ('"' == lex->c) while (!feof(lex->file) && lex_getchar(lex) != '\n') {}
+    if ('#' == lex->c) while (!feof(lex->file) && lex_getchar(lex) != '\n') {}
     return 0;
 }
 
@@ -55,6 +55,7 @@ static int lex_eatint(Lexer *lex, char separator, int (*isvaliddigit)(int)) {
             lex->val_len *= 2;
             lex->value = realloc(lex->value, lex->val_len);
         }
+        // while (lex->c == '_') lex_getchar(lex);
     } while (!feof(lex->file) && (*isvaliddigit)(lex->c));
     if (i == lex->val_len) lex->value = realloc(lex->value, i + 1);
     lex->value[i] = '\0';
@@ -161,7 +162,7 @@ void gettok(Lexer *lex) {
     }
 
     // whitespace and comments.
-    while (!feof(lex->file) && (lex->c == ' ' || lex->c == '\n' || lex->c == '\t') || lex->c == '"' || lex->c == '/') {
+    while (!feof(lex->file) && (lex->c == ' ' || lex->c == '\n' || lex->c == '\t') || lex->c == '#' || lex->c == '/') {
         // white space
         if (lex_eatwhitespace(lex)) return;
 
@@ -283,7 +284,7 @@ void gettok(Lexer *lex) {
     }
 
     // identifiers and keywords
-    if (isalpha(c1) || c1 == '_') {                           // identifiers and keywords
+    if (isalpha(c1) || c1 == '_' || c1 == '$') {                           // identifiers and keywords
         lex->val_len = 6;
         lex->value = realloc(lex->value, lex->val_len);
         int i = 0;
@@ -295,7 +296,7 @@ void gettok(Lexer *lex) {
                 lex->val_len *= 2;
                 lex->value = realloc(lex->value, lex->val_len);
             }
-        } while (!feof(lex->file) && (isalnum(c1) || c1 == '_'));
+        } while (!feof(lex->file) && (isalnum(c1) || c1 == '_' || c1 == '$'));
         if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
         lex->value = realloc(lex->value, 1 + (lex->val_len = i));
         lex->value[lex->val_len] = '\0';
@@ -408,6 +409,7 @@ static Token YASLToken_OneChar(char c1) {
         case '+': return T_PLUS;
         case '-': return T_MINUS;
         case '#': return T_HASH;
+        case '@': return T_AT;
         case '!': return T_BANG;
         case '~': return T_TILDE;
         case '*': return T_STAR;
@@ -458,6 +460,9 @@ static void YASLKeywords(Lexer *lex) {
         exit(EXIT_FAILURE);
     } else if (matches_keyword(lex, "yield")) {
         puts("yield is an unused reserved word and cannot be used.");
+        exit(EXIT_FAILURE);
+    } else if (matches_keyword(lex, "do")) {
+        puts("do is an unused reserved word and cannot be used.");
         exit(EXIT_FAILURE);
     }
 
@@ -519,6 +524,7 @@ const char *YASL_TOKEN_NAMES[] = {
         "-",            // MINUS,
         "-=",           // MINUSEQ,
         "#",            // HASH,
+        "@",            // AT,
         "!",            // BANG,
         "!=",           // BANGEQ,
         "!==",          // BANGDEQ,

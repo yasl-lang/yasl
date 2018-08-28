@@ -733,7 +733,7 @@ static void visit_UnOp(Compiler *const compiler, const Node *const node) {
         case T_CARET:
             bb_add_byte(compiler->buffer, BNOT);
             break;
-        case T_HASH:
+        case T_AT:
             bb_add_byte(compiler->buffer, LEN);
             break;
         default:
