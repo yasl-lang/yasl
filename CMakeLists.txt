@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.9.2)
 project(YASL C)
 
 set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_C_STANDARD 89)
+set(CMAKE_C_STANDARD 99)
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 include_directories(.)
@@ -61,6 +61,8 @@ add_executable(YASLTEST
         test/literaltest.c
         test/iftest.c
         test/whiletest.c
+        test/fortest.c
+        test/foreachtest.c
         compiler/lexer/lexer.c
         compiler/compiler/compiler.c
         compiler/parser/parser.c

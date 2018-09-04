@@ -7,6 +7,8 @@
 #include "literaltest.h"
 #include "iftest.h"
 #include "whiletest.h"
+#include "fortest.h"
+#include "foreachtest.h"
 
 #define RUN(test) __YASL_TESTS_FAILED__ |= test()
 
@@ -22,6 +24,8 @@ int compilertest() {
     RUN(binoptest);
     RUN(iftest);
     RUN(whiletest);
+    RUN(fortest);
+    RUN(foreachtest);
 
     return __YASL_TESTS_FAILED__;
 }
