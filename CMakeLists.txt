@@ -69,6 +69,7 @@ add_executable(YASLTEST
         compiler/parser/parser.c
         compiler/ast/ast.c
         hashtable/hashtable.c
+        interpreter/float/float64.c
         interpreter/YASL_Object/YASL_Object.c
         bytebuffer/bytebuffer.c
         interpreter/YASL_string/YASL_string.c
