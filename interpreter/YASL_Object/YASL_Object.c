@@ -2,9 +2,9 @@
 #include <string.h>
 #include <color.h>
 #include <interpreter/float/float64_methods.h>
-#include "interpreter/float/float64.h"
 #include "YASL_Object.h"
 
+char *float64_to_str(double d);
 
 // Keep up to date with the YASL_Types
 const char *YASL_TYPE_NAMES[] = {
