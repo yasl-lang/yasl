@@ -1,6 +1,8 @@
 #include <interpreter/YASL_string/YASL_string.h>
 #include <string.h>
 #include <color.h>
+#include <interpreter/float/float64_methods.h>
+#include "interpreter/float/float64.h"
 #include "YASL_Object.h"
 
 
@@ -136,7 +138,8 @@ int print(YASL_Object v) {
             //printf("int64: %" PRId64 "\n", v.value);
             break;
         case Y_FLOAT64:
-            printf("%f", *((double*)&v.value));
+            printf("%s", float64_to_str(v.value.dval));
+            //printf("%f", *((double*)&v.value));
             //printf("float64: %f\n", *((double*)&v.value));
             break;
         case Y_BOOL:

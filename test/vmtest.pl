@@ -2,7 +2,7 @@ require "yasl_test.pl";
 
 # Unary Operators
 assert_output("print -10\n", "-10\n", 0);
-assert_output("print #'YASL'\n", "4\n", 0);
+assert_output("print \@'YASL'\n", "4\n", 0);
 assert_output("print !true\n", "false\n", 0);
 assert_output("print !false\n", "true\n", 0);
 assert_output("print ^0b00000000\n", "-1\n", 0);

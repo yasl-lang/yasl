@@ -40,6 +40,7 @@ add_executable(YASL
         interpreter/builtins/builtins.c
         interpreter/file/file_methods.c
         interpreter/float/float64_methods.c
+        interpreter/float/float64.c
         interpreter/integer/int64_methods.c
         interpreter/list/list.c
         interpreter/list/list_methods.c

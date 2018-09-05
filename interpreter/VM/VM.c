@@ -229,8 +229,9 @@ void vm_fdiv(VM *vm) {
 
 void vm_pow(VM *vm) {
     YASL_Object right = vm_pop(vm);
-    YASL_Object left  = vm_pop(vm);
+    YASL_Object left  = vm_peek(vm);
     if (yasl_type_equals(left.type, Y_INT64) && yasl_type_equals(right.type, Y_INT64) && right.value.ival < 0) {
+        vm_pop(vm);
         vm_push(vm, YASL_Float(pow(left.value.ival, right.value.ival)));
     } else {
         vm->sp++;
