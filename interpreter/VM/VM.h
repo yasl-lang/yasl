@@ -95,6 +95,7 @@ VM* vm_new(unsigned char *code,    // pointer to bytecode
 
 void vm_del(VM *vm);
 
+YASL_Object vm_pop(VM *vm);
 void vm_push(VM *vm, YASL_Object val);
 
 void vm_run(VM *vm);

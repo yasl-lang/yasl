@@ -38,6 +38,10 @@ YASL_Object YASL_String(String_t *str) {
     return (YASL_Object) { .type = Y_STR, .value.sval = str };
 }
 
+YASL_Object YASL_Table(struct Hash_s *ht) {
+    return (YASL_Object) { .type = Y_TABLE, .value.mval = ht };
+}
+
 //YASL_Object YASL_List();
 //YASL_Object YASL_Table();
 

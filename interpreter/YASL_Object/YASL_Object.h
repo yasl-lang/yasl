@@ -47,6 +47,7 @@ YASL_Object YASL_Float(double value);
 YASL_Object YASL_Integer(int64_t value);
 YASL_Object YASL_Boolean(int value);
 YASL_Object YASL_String(String_t *str);
+YASL_Object YASL_Table(struct Hash_s *ht);
 
 int isfalsey(YASL_Object v);
 YASL_Object isequal(YASL_Object a, YASL_Object b);

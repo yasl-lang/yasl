@@ -3,20 +3,21 @@
 
 int list___get(VM *vm) {
     ASSERT_TYPE(vm, Y_LIST, "list.__get");
-    List_t *ls = POP(vm).value.lval;
+    List_t *ls = vm_pop(vm).value.lval;
     YASL_Object index = PEEK(vm);
-    if (index.type != Y_INT64) {
+    if (!yasl_type_equals(index.type, Y_INT64)) {
+        // printf("TypeError: cannot index list with non-integer\n");
         return -1;
     } else if (index.value.ival < -ls->count || index.value.ival >= ls->count) {
         printf("IndexError\n");
         return -1;
     } else {
         if (index.value.ival >= 0) {
-            POP(vm);
+            vm_pop(vm);
             vm_push(vm, ls->items[index.value.ival]);
         }
         else {
-            POP(vm);
+            vm_pop(vm);
             vm_push(vm, ls->items[index.value.ival + ls->count]);
         }
     }
@@ -25,10 +26,11 @@ int list___get(VM *vm) {
 
 int list___set(VM* vm) {
     ASSERT_TYPE(vm, Y_LIST, "list.__set");
-    List_t *ls = POP(vm).value.lval;
-    YASL_Object value = POP(vm);
-    YASL_Object index = POP(vm);
+    List_t *ls = vm_pop(vm).value.lval;
+    YASL_Object value = vm_pop(vm);
+    YASL_Object index = vm_pop(vm);
     if (index.type != Y_INT64) {
+        printf("TypeError: cannot index list with non-integer\n");
         return -1;
         vm_push(vm, UNDEF_C);
     } else if (index.value.ival < -ls->count || index.value.ival >= ls->count) {
@@ -36,26 +38,26 @@ int list___set(VM* vm) {
         return -1;
         vm_push(vm, UNDEF_C);
     } else {
-        if (index.value.ival >= 0) ls->items[index.value.ival] = value;
-        else ls->items[index.value.ival + ls->count] = value;
+        if (index.value.ival >= 0) ls_insert(ls, index.value.ival, value); //  ls->items[index.value.ival] = value;
+        else ls_insert(ls, index.value.ival + ls->count, value); //ls->items[index.value.ival + ls->count] = value;
         vm_push(vm, value);
     }
     return 0;
 }
 
 
-int list_append(VM* vm) {
-    ASSERT_TYPE(vm, Y_LIST, "list.append");
-    YASL_Object ls  = POP(vm);
-    YASL_Object val = POP(vm);
+int list_push(VM *vm) {
+    ASSERT_TYPE(vm, Y_LIST, "list.push");
+    YASL_Object ls  = vm_pop(vm);
+    YASL_Object val = vm_pop(vm);
     ls_append(ls.value.lval, val);
-    vm_push(vm, UNDEF_C);
+    vm_push(vm, ls);
     return 0;
 }
 
 int list_pop(VM* vm) {
     ASSERT_TYPE(vm, Y_LIST, "list.pop");
-    YASL_Object ls  = POP(vm);
+    YASL_Object ls  = vm_pop(vm);
     if (ls.value.lval->count == 0) {
         puts("cannot pop from empty list.");
         exit(EXIT_FAILURE);
@@ -66,8 +68,8 @@ int list_pop(VM* vm) {
 
 int list_search(VM* vm) {
     ASSERT_TYPE(vm, Y_LIST, "list.search");
-    YASL_Object haystack = POP(vm);
-    YASL_Object needle = POP(vm);
+    YASL_Object haystack = vm_pop(vm);
+    YASL_Object needle = vm_pop(vm);
     YASL_Object index = UNDEF_C;
     int i;
     for (i = 0; i < haystack.value.lval->count; i++) {
@@ -80,7 +82,7 @@ int list_search(VM* vm) {
 
 int list_reverse(VM *vm) {
     ASSERT_TYPE(vm, Y_LIST, "list.reverse");
-    List_t *ls = POP(vm).value.lval;
+    List_t *ls = vm_pop(vm).value.lval;
     ls_reverse(ls);
     vm_push(vm, YASL_Undef());
     return 0;

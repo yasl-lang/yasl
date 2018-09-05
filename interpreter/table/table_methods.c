@@ -4,12 +4,12 @@
 
 int table___get(VM *vm) {
     ASSERT_TYPE(vm, Y_TABLE, "table.__get");
-    Hash_t* ht = POP(vm).value.mval;
+    Hash_t* ht = vm_pop(vm).value.mval;
     YASL_Object key = PEEK(vm);
     YASL_Object *result = ht_search(ht, key);
     if (result == NULL) return -1;
     else {
-        POP(vm);
+        vm_pop(vm);
         vm_push(vm, *result);
     }
     return 0;
@@ -17,9 +17,9 @@ int table___get(VM *vm) {
 
 int table___set(VM *vm) {
     ASSERT_TYPE(vm, Y_TABLE, "table.__set");
-    Hash_t* ht = POP(vm).value.mval;
-    YASL_Object val = POP(vm);
-    YASL_Object key = POP(vm);
+    Hash_t* ht = vm_pop(vm).value.mval;
+    YASL_Object val = vm_pop(vm);
+    YASL_Object key = vm_pop(vm);
     if (yasl_type_equals(key.type, Y_LIST) || yasl_type_equals(key.type, Y_TABLE)) {
         printf("Error: unable to use mutable object of type %x as key.\n", key.type);
         return -1;
@@ -31,7 +31,7 @@ int table___set(VM *vm) {
 
 int table_keys(VM *vm) {
     ASSERT_TYPE(vm, Y_TABLE, "table.keys");
-    YASL_Object ht = POP(vm);
+    YASL_Object ht = vm_pop(vm);
     List_t* ls = ls_new();
     int64_t i;
     Item_t* item;
@@ -41,13 +41,13 @@ int table_keys(VM *vm) {
             ls_append(ls, *(item->key));
         }
     }
-    vm->stack[++vm->sp] = (YASL_Object) {Y_LIST, (int64_t)ls};
+    vm_push(vm, YASL_List(ls));
     return 0;
 }
 
 int table_values(VM *vm) {
     ASSERT_TYPE(vm, Y_TABLE, "table.values");
-    YASL_Object ht = POP(vm);
+    YASL_Object ht = vm_pop(vm);
     List_t* ls = ls_new();
     int64_t i;
     Item_t* item;
@@ -57,7 +57,7 @@ int table_values(VM *vm) {
             ls_append(ls, *(item->value));
         }
     }
-    vm->stack[++vm->sp] = (YASL_Object) {Y_LIST, (int64_t)ls};
+    vm_push(vm, YASL_List(ls));
     return 0;
 }
 
@@ -72,6 +72,6 @@ int table_clone(VM *vm) {
             ht_insert(new_ht, *item->key, *item->value);
         }
     }
-    vm->stack[++vm->sp] = (YASL_Object) {Y_TABLE, (int64_t)new_ht};
+    vm_push(vm, YASL_Table(new_ht));
     return 0;
 }

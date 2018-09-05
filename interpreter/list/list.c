@@ -84,11 +84,13 @@ void ls_insert(List_t* ls, const int64_t index, const YASL_Object value) {
     if (ls->count >= ls->size) ls_resize_up(ls);
     ls->items[index] = value;
     ls->count++;
+    inc_ref(&value);
 }
 
 void ls_append(List_t* ls, const YASL_Object value) {
     if (ls->count >= ls->size) ls_resize_up(ls);
     ls->items[ls->count++] = value;
+    inc_ref(&value);
 }
 
 YASL_Object ls_search(List_t* ls, int64_t index) {
