@@ -164,7 +164,6 @@ Hash_t* bool_builtins() {
 Hash_t* str_builtins() {
     Hash_t* ht = ht_new();
     ht_insert_string_int(ht, "tofloat64",  strlen("tofloat64"),  (int64_t)&str_tofloat64);
-    ht_insert_string_int(ht, "contains",   strlen("contains"),   (int64_t)&str_contains);
     ht_insert_string_int(ht, "isalnum",    strlen("isalnum"),    (int64_t)&str_isalnum);
     ht_insert_string_int(ht, "isal",       strlen("isal"),       (int64_t)&str_isal);
     ht_insert_string_int(ht, "isnum",      strlen("isnum"),      (int64_t)&str_isnum);
@@ -188,7 +187,7 @@ Hash_t* str_builtins() {
 Hash_t* list_builtins() {
     Hash_t* ht = ht_new();
     ht_insert_string_int(ht, "push", strlen("push"), (int64_t) &list_push);
-    ht_insert_string_int(ht, "append", strlen("append"), (int64_t)&list_append);
+    ht_insert_string_int(ht, "push", strlen("push"), (int64_t)&list_push);
     ht_insert_string_int(ht, "copy", strlen("copy"), (int64_t)&list_copy);
     ht_insert_string_int(ht, "extend", strlen("extend"), (int64_t)&list_extend);
     ht_insert_string_int(ht, "pop", strlen("pop"), (int64_t)&list_pop);
