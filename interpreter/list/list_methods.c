@@ -55,6 +55,35 @@ int list_push(VM *vm) {
     return 0;
 }
 
+int list_copy(VM *vm) {
+    ASSERT_TYPE(vm, Y_LIST, "list.copy");
+    YASL_Object ls = POP(vm);
+    List_t *new_ls = ls_new_sized(ls.value.lval->size);
+    new_ls->count = ls.value.lval->count;
+    memcpy(new_ls->items, ls.value.lval->items, new_ls->count*sizeof(YASL_Object));
+
+    YASL_Object* yasl_list = malloc(sizeof(YASL_Object));
+    yasl_list->type = Y_LIST;
+    yasl_list->value.lval = new_ls;
+
+    PUSH(vm, *yasl_list);
+    return 0;
+}
+
+int list_extend(VM *vm) {
+    ASSERT_TYPE(vm, Y_LIST, "list.extend");
+    YASL_Object ls  = POP(vm);
+    ASSERT_TYPE(vm, Y_LIST, "list.extend");
+    YASL_Object extend_ls = POP(vm);
+
+    struct List_s *exls = extend_ls.value.lval;
+    for(unsigned int i = 0; i < exls->count; i++) {
+        ls_append(ls.value.lval, exls->items[i]);
+    }
+    PUSH(vm, UNDEF_C);
+    return 0;
+}
+
 int list_pop(VM* vm) {
     ASSERT_TYPE(vm, Y_LIST, "list.pop");
     YASL_Object ls  = vm_pop(vm);

@@ -3,9 +3,9 @@
  * int64: 64 bit signed integer
  * float64: IEEE double precision floating point number
  * bool: Boolean
- * str8: ascii string
+ * str: ascii string
  * list: ordered collection of objects of arbitrary size, indexed by natural numbers
- * map : unordered collection of objects of arbitrary size, indexed by arbitrary objects */
+ * table: unordered collection of objects of arbitrary size, indexed by arbitrary objects */
 
 /* a few more types that are useful to define:
  * any: any type
@@ -28,7 +28,7 @@ print 1.0
 print false
 print true
 
-# str8
+# str
 print ''
 print 'YASL'
 
@@ -36,7 +36,7 @@ print 'YASL'
 print []
 print ['Y', 'A', 'S', 'L']
 
-# map
+# table
 print [:]
 print ['C':1972]
 
