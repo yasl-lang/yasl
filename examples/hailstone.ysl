@@ -1,10 +1,11 @@
-let i = 123456789
-while i > 1 {
-  print i
-  if i % 2 > 0 {
-    i = 3*i+1
-  } else {
-    i = i//2
-  }
+for let i <- [1234567] {
+    while i > 1 {
+      if i % 2 > 0 {
+        i = 3*i+1
+      } else {
+        i //= 2
+      }
+      print i
+    }
 }
 print i

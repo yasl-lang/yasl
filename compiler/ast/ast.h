@@ -15,6 +15,8 @@ typedef enum {
     N_CALL,
     N_SET,
     N_GET,
+    N_LETITER,
+    N_ITER,
     N_LISTCOMP,
     N_TABLECOMP,
     N_FORITER,
@@ -75,21 +77,19 @@ Node *new_Get(Node *collection, Node *value, int line);
 Node *Call_get_params(Node *node);
 Node *Call_get_object(Node *node);
 Node *new_Call(Node *params, Node *object, int line);
+Node *new_LetIter(Node *var, Node *collection, int line);
+Node *new_Iter(Node *var, Node *collection, int line);
 Node *ListComp_get_expr(const Node *const node);
 Node *ListComp_get_var(const Node *const node);
 Node *ListComp_get_collection(const Node *const node);
 Node *new_ListComp(Node *expr, Node *var, Node *collection, int line);
 Node *TableComp_get_key_value(const Node *const node);
-Node *TableComp_get_var(const Node *const node);
-Node *TableComp_get_collection(const Node *const node);
-Node *new_TableComp(Node *expr, Node *var, Node *collection, int line);
-Node *ForIter_get_var(const Node *const node);
-Node *ForIter_get_collection(const Node *const node);
+Node *new_TableComp(Node *expr, Node *iter, int line);
 Node *ForIter_get_body(const Node *const node);
-Node *new_ForIter(Node *var, Node *collection, Node *body, int line);
+Node *new_ForIter(Node *iter, Node *body, int line);
 Node *While_get_cond(const Node *const node);
 Node *While_get_body(const Node *const node);
-Node *new_While(Node *cond, Node *body, int line);
+Node *new_While(Node *cond, Node *body, Node *post, int line);
 Node *new_Break(int line);
 Node *new_Continue(int line);
 Node *If_get_cond(Node *node);

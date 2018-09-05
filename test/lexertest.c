@@ -231,9 +231,9 @@ void test_minuseq(void) {
     ASSERT_EATTOK(T_EOF, lex);
 }
 
-void test_hash(void) {
-    Lexer *lex = setup_lexer("#");
-    ASSERT_EATTOK(T_HASH, lex);
+void test_at(void) {
+    Lexer *lex = setup_lexer("@");
+    ASSERT_EATTOK(T_AT, lex);
     ASSERT_EATTOK(T_EOF, lex);
 }
 
@@ -577,7 +577,7 @@ int lexertest(void) {
     test_pluseq();
     test_minus();
     test_minuseq();
-    test_hash();
+    test_at();
     test_bang();
     test_bangeq();
     test_bangdeq();

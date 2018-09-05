@@ -1,4 +1,10 @@
 #include "yats.h"
+#include "compiler/ast/ast.h"
+#include "compiler/parser/parser.h"
+#include <compiler/compiler/compiler.h>
+#include <color.h>
+#include "yats.h"
+#include "compilertest.h"
 
 Lexer *setup_lexer(char *file_contents) {
     FILE *fptr = fopen("dump.ysl", "w");
@@ -7,4 +13,19 @@ Lexer *setup_lexer(char *file_contents) {
     fclose(fptr);
     fptr = fopen("dump.ysl", "r");
     return lex_new(fptr);
+}
+
+
+void setup_compiler(char *file_contents) {
+    Parser *parser = parser_new(setup_lexer(file_contents));
+    Compiler *compiler = compiler_new(parser, "dump.yb");
+    compile(compiler);
+    compiler_del(compiler);
+}
+
+int64_t getsize(FILE *file) {
+    fseek(file, 0, SEEK_END);
+    int64_t size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    return size;
 }

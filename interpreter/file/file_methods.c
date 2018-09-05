@@ -78,7 +78,7 @@ int file_readline(VM* vm) {
     int ch;
     size_t len = 0;
     size_t size = 10;
-    char *str = realloc(NULL, sizeof(char)*size);
+    unsigned char *str = malloc(sizeof(unsigned char)*size);
 
     if (!str) return -1; // ERROR
     while(EOF!=(ch=fgetc(f)) && ch != '\n'){
@@ -89,8 +89,9 @@ int file_readline(VM* vm) {
         }
     }
     str = realloc(str, sizeof(char)*len);
-    vm->stack[++vm->sp].value.sval = str_new_sized(len, str);
-    vm->stack[vm->sp].type = Y_STR;
+    //printf("str (after readline): %s\n", str);
+    vm_push(vm, YASL_String(str_new_sized(len, str)));
+    //printf("vm->stack[vm->sp]: %x (%d, %d)\n", vm->stack[vm->sp].value.ival, vm->stack[vm->sp].value.sval->rc->refs, vm->stack[vm->sp].value.sval->rc->weak_refs);
     YASL_DEBUG_LOG("%s\n", "successfully readline from file.");
     return 0;
 }

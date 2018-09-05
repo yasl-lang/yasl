@@ -1,8 +1,15 @@
 #include "YASL_string.h"
 #include <string.h>
+#include <stdio.h>
 
 int64_t yasl_string_len(const String_t *const str) {
     return str->end - str->start;
+}
+
+unsigned char *copy_char_buffer(const int64_t size, const unsigned char *const ptr) {
+    unsigned char *tmp = malloc(size);
+    memcpy(tmp, ptr, size);
+    return tmp;
 }
 
 String_t* str_new_sized(const int64_t base_size, unsigned char *ptr) {
@@ -11,6 +18,7 @@ String_t* str_new_sized(const int64_t base_size, unsigned char *ptr) {
     str->end = base_size;
     str->str = ptr;
     str->from_mem = 0;
+    str->rc = rc_new();
     return str;
 }
 
@@ -20,15 +28,28 @@ String_t* str_new_sized_from_mem(const int64_t start, const int64_t end, unsigne
     str->end = end;
     str->str = mem;
     str->from_mem = 1;
+    str->rc = rc_new();
     return str;
 }
 
 //TODO: add new string constructor that takes address of string as second param.
 
-void str_del(String_t *str8) {
-    if(!str8->from_mem) free(str8->str);
-    free(str8);
+void str_del_data(String_t *str) {
+    if(!str->from_mem) free(str->str);
 }
+
+void str_del_rc(String_t *str) {
+    rc_del(str->rc);
+    free(str);
+
+}
+
+void str_del(String_t *str) {
+    if(!str->from_mem) free(str->str);
+    rc_del(str->rc);
+    free(str);
+}
+
 
 int64_t str_find_index(const String_t *haystack, const String_t *needle) {
     // TODO: implement non-naive algorithm for string search.

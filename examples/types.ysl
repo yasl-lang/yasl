@@ -3,40 +3,40 @@
  * int64: 64 bit signed integer
  * float64: IEEE double precision floating point number
  * bool: Boolean
- * str8: ascii string
+ * str: ascii string
  * list: ordered collection of objects of arbitrary size, indexed by natural numbers
- * map : unordered collection of objects of arbitrary size, indexed by arbitrary objects $/
+ * table: unordered collection of objects of arbitrary size, indexed by arbitrary objects */
 
- * a few more types that are useful to define:
+/* a few more types that are useful to define:
  * any: any type
  * a | b: either type a or type b
  * ?a = undef | a
  * num = int64 | float64 */
 
-" undef
+# undef
 print undef
 
-" int64
+# int64
 print 0
 print 1
 
-" float64
+# float64
 print 0.0
 print 1.0
 
-" bool
+# bool
 print false
 print true
 
-" str8
+# str
 print ''
 print 'YASL'
 
-" list
+# list
 print []
 print ['Y', 'A', 'S', 'L']
 
-" table
+# table
 print [:]
 print ['C':1972]
 

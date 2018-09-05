@@ -2,6 +2,7 @@
 #include <bytebuffer/bytebuffer.h>
 #include "str_methods.h"
 #include "YASL_string.h"
+#include <ctype.h>
 
 int str___get(VM *vm) {
     ASSERT_TYPE(vm, Y_STR, "str.__get");
@@ -9,25 +10,48 @@ int str___get(VM *vm) {
     YASL_Object index = POP(vm);
     if (index.type != Y_INT64) {
         return -1;
-        PUSH(vm, UNDEF_C);
+        vm_push(vm, UNDEF_C);
     } else if (index.value.ival < -yasl_string_len(str) || index.value.ival >= yasl_string_len(str)) {
         return -1;
-        PUSH(vm, UNDEF_C);
+        vm_push(vm, UNDEF_C);
     } else {
-        if (index.value.ival >= 0) PUSH(vm, ((YASL_Object){Y_STR, (int64_t) str_new_sized_from_mem(index.value.ival, index.value.ival + 1, str->str)}));
-        else PUSH(vm, ((YASL_Object){Y_STR, (int64_t) str_new_sized_from_mem(index.value.ival + yasl_string_len(str), index.value.ival + yasl_string_len(str) + 1, str->str)}));
+        if (index.value.ival >= 0) vm_push(vm, ((YASL_Object){Y_STR, (int64_t) str_new_sized_from_mem(index.value.ival, index.value.ival + 1, str->str)}));
+        else vm_push(vm, ((YASL_Object){Y_STR, (int64_t) str_new_sized_from_mem(index.value.ival + yasl_string_len(str), index.value.ival + yasl_string_len(str) + 1, str->str)}));
     }
     return 0;
 }
 
-int str_contains(VM *vm) {
-    ASSERT_TYPE(vm, Y_STR, "str.contains");
-    YASL_Object haystack = POP(vm);
-    ASSERT_TYPE(vm, Y_STR, "str.contains");
-    YASL_Object needle = POP(vm);
+int isvaliddouble(const char *str) {
+	long len = strlen(str);
+	int hasdot = 0;
+	for (int i = 0; i < strlen(str); i++) {
+		if (!isdigit(str[i]) && str[i] != '.' || hasdot && str[i] == '.') {
+			return 0;
+		}
+		if (str[i] == '.') hasdot = 1;
+	}
+	return hasdot && isdigit(str[len-1]) && isdigit(str[0]);
+}
 
-    int64_t index = str_find_index(haystack.value.sval, needle.value.sval);
-    vm->stack[++vm->sp] = (index != -1) ? TRUE_C : FALSE_C;
+double parsedouble(const char *str) {
+	if (!strcmp(str, "inf") || !strcmp(str, "+inf")) return 1.0 / 0.0;
+	else if (!strcmp(str, "-inf")) return -1.0 / 0.0;
+	else if (str[0] == '-' && isvaliddouble(str+1))
+		return -strtod(str+1, NULL);
+	else if (str[0] == '+' && isvaliddouble(str+1))
+		return +strtod(str+1, NULL);
+	else if (isvaliddouble(str))	return strtod(str, NULL);
+	return 0.0 / 0.0;
+}
+
+int str_tofloat64(VM *vm) {
+    ASSERT_TYPE(vm, Y_STR, "str.tofloat64");
+    String_t *str = POP(vm).value.sval;
+    char *buffer = malloc(yasl_string_len(str) + 1);
+    memcpy(buffer, str->str + str->start, yasl_string_len(str));
+    buffer[yasl_string_len(str)] = '\0';
+    vm_push(vm, YASL_Float(parsedouble(buffer)));
+    free(buffer);
     return 0;
 }
 
@@ -49,7 +73,7 @@ int str_tostr(VM *vm) {
 
 int str_toupper(VM *vm) {
     ASSERT_TYPE(vm, Y_STR, "str.toupper");
-    YASL_Object a = PEEK(vm);
+    YASL_Object a = POP(vm);
     int64_t length = yasl_string_len(a.value.sval);
     int64_t i = 0;
     unsigned char curr;
@@ -64,13 +88,13 @@ int str_toupper(VM *vm) {
         }
     }
 
-    vm->stack[vm->sp].value.sval = str_new_sized(length, ptr);
+    vm_push(vm, YASL_String(str_new_sized(length, ptr)));
     return 0;
 }
 
 int str_tolower(VM *vm) {
     ASSERT_TYPE(vm, Y_STR, "str.tolower");
-    YASL_Object a = PEEK(vm);
+    YASL_Object a = POP(vm);
     int64_t length = yasl_string_len(a.value.sval);
     int64_t i = 0;
     unsigned char curr;
@@ -84,7 +108,7 @@ int str_tolower(VM *vm) {
             ptr[i++] = curr;
         }
     }
-    vm->stack[vm->sp].value.sval = str_new_sized(length, ptr);
+    vm_push(vm, YASL_String(str_new_sized(length, ptr)));
     return 0;
 }
 
@@ -305,7 +329,7 @@ int str_ltrim(VM *vm) {
         start += yasl_string_len(needle.value.sval);
     }
 
-    PUSH(vm, ((YASL_Object) {Y_STR, (int64_t) str_new_sized_from_mem(start, yasl_string_len(haystack.value.sval),
+    vm_push(vm, ((YASL_Object) {Y_STR, (int64_t) str_new_sized_from_mem(start, yasl_string_len(haystack.value.sval),
                                                                    haystack.value.sval->str)}));
 
     return 0;
@@ -327,7 +351,7 @@ int str_rtrim(VM *vm) {
         end -= yasl_string_len(needle.value.sval);
     }
 
-    PUSH(vm, ((YASL_Object) {Y_STR, (int64_t) str_new_sized_from_mem(haystack.value.sval->start, end, haystack.value.sval->str)}));
+    vm_push(vm, ((YASL_Object) {Y_STR, (int64_t) str_new_sized_from_mem(haystack.value.sval->start, end, haystack.value.sval->str)}));
 
     return 0;
 }
@@ -357,7 +381,7 @@ int str_trim(VM *vm) {
         end -= yasl_string_len(needle.value.sval);
     }
 
-    PUSH(vm, ((YASL_Object) {Y_STR, (int64_t) str_new_sized_from_mem(start, end, haystack.value.sval->str)}));
+    vm_push(vm, ((YASL_Object) {Y_STR, (int64_t) str_new_sized_from_mem(start, end, haystack.value.sval->str)}));
 
     return 0;
 }

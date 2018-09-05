@@ -20,6 +20,9 @@ assert_output("print 5 % 2\n", "1\n", 0);
 assert_output("print 10 + 12\n", "22\n", 0);
 assert_output("print 3.5 - 2\n", "1.5\n", 0);
 
+assert_output("print 1 || 2\n", "1\n", 0);
+assert_output("print 1 && 2\n", "2\n", 0);
+
 # String Methods
 assert_output("print 'yasl'::tobool()\n", "true\n", 0);
 assert_output("print ''::tobool()\n", "false\n", 0);

@@ -109,6 +109,7 @@ typedef enum {
     T_MINUS,
     T_MINUSEQ,
     T_HASH,
+    T_AT,
     T_BANG,
     T_BANGEQ,
     T_BANGDEQ,
@@ -151,5 +152,6 @@ typedef enum {
     T_COLON,
     T_DCOLON,
     T_BIG_ARR,
-    T_SMALL_ARR
+    T_SMALL_ARR,
+    T_LEFT_ARR,
 } Token;

@@ -1,13 +1,14 @@
 /* for all control flow, the following values are falsey (all others are truthy):
  * false
  * undef
- * "" (empty string)
+ * '' (empty string)
+ * nan
  */
 
 let x = undef
 let i = 0
 
-" if statements:
+# if statements:
 if x === true {
     print 'x is true'
 } elseif x === false {
@@ -16,33 +17,41 @@ if x === true {
     print 'x is not a boolean'
 }
 
+## Expressions
 
-" `and` and `or` short circuit, and return either the left or right value:
+# `&&` and `||` short circuit, and return either the left or right value:
 print x && true
 print x || true
 
 
-" `?:` works as expected:
+# `?:` works as expected:
 let name = 'YASL'
 print name::startswith('A') ? 'starts with A' :
       name::startswith('T') ? 'starts with T' :
       name::startswith('Y') ? 'starts with Y' :
-      'I dont recognise that letter'
+      'i do not recognise that letter'
 
 
-" `??` returns the right value iff the left is undef, else returns the left value.
-" used to set default values for variables.
+# `??` returns the right value iff the left is undef, else returns the left value.
+# used to set default values for variables.
+
 print undef ?? 'default'
 print 'YASL' ?? 'default'
 
+## Loops (note that `continue` and `break` also work as expected
 
-" while loops:
+# while loops:
 while i < 10 {
     print i
-    i = i + 1
+    i += 1
 }
 
-" for loops:
-for let letter in ['Y', 'A', 'S', 'L'] {
+# numeric for loops:
+for let i = 0; i < 10; i += 1 {
+    print i
+}
+
+# iterative for loops:
+for let letter <- ['Y', 'A', 'S', 'L'] {
     print letter
 }

@@ -1,53 +1,54 @@
-" any, any, any -> any
+# any, any, any -> any
 print false ? 'TRUE' : 'FALSE'
 
-" any, any -> any
+# any, any -> any
 print undef ?? true
 
-" any, any -> any
+# any, any -> any
 print 'C' || 'not C'
 
-" any, any -> any
-print 'NOT_ME' && 'YASL'
+# any, any -> any
+print '' && 'YASL'
 
-" any, any -> any
+# any, any -> any
 print 1 == 1.0
 print 1 != 1.0
 print 1 === 1.0
 print 1 !== 1.0
 
-" any, any -> any
+
+# any, any -> any
 print 1 < 1.0
 print 1 > 1.0
 print 1 <= 1.0
 print 1 >= 1.0
 
-" str8, str8 -> str8
-print 'Hello' && 'World'
+# str8, str8 -> str8
+print 'Hello' ~ 'World'
 
-" num, num -> num
+# num, num -> num
 print 1 + 1
 print 1 - 0.0
 
-" num, num -> num
+# num, num -> num
 print 1 * 1.0
 
-" num, num -> float64
+# num, num -> float64
 print 5 / 2
 
-" int64, int64 -> int64
+# int64, int64 -> int64
 print 5 % 2
 print 5 // 2
 
-" num -> num
+# num -> num
 print -1.0
 print +2
 
-" bool? -> bool?
+# any -> bool
 print !false
 print !true
 print !undef
 
-" list | map -> int64
-print [1,2,3]
-print ['YASL':2017]
+# list | map | str -> int64
+print @[1,2,3]
+print @['YASL'->2017]

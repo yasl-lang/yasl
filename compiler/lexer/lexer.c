@@ -35,7 +35,7 @@ static int lex_eatwhitespace(Lexer *lex) {
 }
 
 static int lex_eatinlinecomments(Lexer *lex) {
-    if ('"' == lex->c) while (!feof(lex->file) && lex_getchar(lex) != '\n') {}
+    if ('#' == lex->c) while (!feof(lex->file) && lex_getchar(lex) != '\n') {}
     return 0;
 }
 
@@ -55,6 +55,7 @@ static int lex_eatint(Lexer *lex, char separator, int (*isvaliddigit)(int)) {
             lex->val_len *= 2;
             lex->value = realloc(lex->value, lex->val_len);
         }
+        // while (lex->c == '_') lex_getchar(lex);
     } while (!feof(lex->file) && (*isvaliddigit)(lex->c));
     if (i == lex->val_len) lex->value = realloc(lex->value, i + 1);
     lex->value[i] = '\0';
@@ -144,7 +145,7 @@ void gettok(Lexer *lex) {
     c1 = lex->c;
 
     // hash-bang
-    if (lex->line == 1 && c1 == '#') {
+    /*if (lex->line == 1 && c1 == '#') {
         lex_getchar(lex);
         c1 = lex->c;
         if (c1 == '!') {
@@ -158,10 +159,10 @@ void gettok(Lexer *lex) {
         }
         lex_getchar(lex);
         c1 = lex->c;
-    }
+    }*/
 
     // whitespace and comments.
-    while (!feof(lex->file) && (lex->c == ' ' || lex->c == '\n' || lex->c == '\t') || lex->c == '"' || lex->c == '/') {
+    while (!feof(lex->file) && (lex->c == ' ' || lex->c == '\n' || lex->c == '\t') || lex->c == '#' || lex->c == '/') {
         // white space
         if (lex_eatwhitespace(lex)) return;
 
@@ -283,7 +284,7 @@ void gettok(Lexer *lex) {
     }
 
     // identifiers and keywords
-    if (isalpha(c1)) {                           // identifiers and keywords
+    if (isalpha(c1) || c1 == '_' || c1 == '$') {                           // identifiers and keywords
         lex->val_len = 6;
         lex->value = realloc(lex->value, lex->val_len);
         int i = 0;
@@ -295,9 +296,10 @@ void gettok(Lexer *lex) {
                 lex->val_len *= 2;
                 lex->value = realloc(lex->value, lex->val_len);
             }
-        } while (!feof(lex->file) && isalnum(c1));
+        } while (!feof(lex->file) && (isalnum(c1) || c1 == '_' || c1 == '$'));
         if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
-        lex->value = realloc(lex->value, lex->val_len = i);
+        lex->value = realloc(lex->value, 1 + (lex->val_len = i));
+        lex->value[lex->val_len] = '\0';
         lex->type = T_ID;
         YASLKeywords(lex);          // keywords
         return;
@@ -368,6 +370,7 @@ static Token YASLToken_TwoChars(char c1, char c2) {
         case '<': switch(c2) {
                 case '=': return T_LTEQ;
                 case '<': return T_DLT;
+                case '-': return T_LEFT_ARR;
                 default: return T_UNKNOWN;
         }
         case '>': switch(c2) {
@@ -406,6 +409,7 @@ static Token YASLToken_OneChar(char c1) {
         case '+': return T_PLUS;
         case '-': return T_MINUS;
         case '#': return T_HASH;
+        case '@': return T_AT;
         case '!': return T_BANG;
         case '~': return T_TILDE;
         case '*': return T_STAR;
@@ -451,7 +455,85 @@ static void YASLKeywords(Lexer *lex) {
      *  return
      */
 
-
+    if (matches_keyword(lex, "enum")) {
+        puts("enum is an unused reserved word and cannot be used.");
+        exit(EXIT_FAILURE);
+    } else if (matches_keyword(lex, "yield")) {
+        puts("yield is an unused reserved word and cannot be used.");
+        exit(EXIT_FAILURE);
+    } else if (matches_keyword(lex, "do")) {
+        puts("do is an unused reserved word and cannot be used.");
+        exit(EXIT_FAILURE);
+    } else if (matches_keyword(lex, "use")) {
+        puts("use is an unused reserved word and cannot be used.");
+        exit(EXIT_FAILURE);
+    } else if (matches_keyword(lex, "require")) {
+        puts("require is an unused reserved word and cannot be used.");
+        exit(EXIT_FAILURE);
+    } else if (matches_keyword(lex, "import")) {
+        puts("import is an unused reserved word and cannot be used.");
+        exit(EXIT_FAILURE);
+    } else if (matches_keyword(lex, "include")) {
+        puts("include is an unused reserved word and cannot be used.");
+        exit(EXIT_FAILURE);
+    } else if (matches_keyword(lex, "volatile")) {
+        puts("volatile is an unused reserved word and cannot be used.");
+        exit(EXIT_FAILURE);
+    } else if (matches_keyword(lex, "extern")) {
+        puts("extern is an unused reserved word and cannot be used.");
+        exit(EXIT_FAILURE);
+    } else if (matches_keyword(lex, "static")) {
+        puts("static is an unused reserved word and cannot be used.");
+        exit(EXIT_FAILURE);
+    } else if (matches_keyword(lex, "interface")) {
+        puts("interface is an unused reserved word and cannot be used.");
+        exit(EXIT_FAILURE);
+    } else if (matches_keyword(lex, "await")) {
+        puts("await is an unused reserved word and cannot be used.");
+        exit(EXIT_FAILURE);
+    } else if (matches_keyword(lex, "async")) {
+        puts("async is an unused reserved word and cannot be used.");
+        exit(EXIT_FAILURE);
+    } else if (matches_keyword(lex, "of")) {
+        puts("of is an unused reserved word and cannot be used.");
+        exit(EXIT_FAILURE);
+    } else if (matches_keyword(lex, "del")) {
+        puts("del is an unused reserved word and cannot be used.");
+        exit(EXIT_FAILURE);
+    } else if (matches_keyword(lex, "delete")) {
+        puts("delete is an unused reserved word and cannot be used.");
+        exit(EXIT_FAILURE);
+    } else if (matches_keyword(lex, "new")) {
+        puts("new is an unused reserved word and cannot be used.");
+        exit(EXIT_FAILURE);
+    } else if (matches_keyword(lex, "clone")) {
+        puts("clone is an unused reserved word and cannot be used.");
+        exit(EXIT_FAILURE);
+    } else if (matches_keyword(lex, "self")) {
+        puts("self is an unused reserved word and cannot be used.");
+        exit(EXIT_FAILURE);
+    } else if (matches_keyword(lex, "frozen")) {
+        puts("frozen is an unused reserved word and cannot be used.");
+        exit(EXIT_FAILURE);
+    } else if (matches_keyword(lex, "as")) {
+        puts("as is an unused reserved word and cannot be used.");
+        exit(EXIT_FAILURE);
+    } else if (matches_keyword(lex, "operator")) {
+        puts("operator is an unused reserved word and cannot be used.");
+        exit(EXIT_FAILURE);
+    } else if (matches_keyword(lex, "ref")) {
+        puts("ref is an unused reserved word and cannot be used.");
+        exit(EXIT_FAILURE);
+    } else if (matches_keyword(lex, "weakref")) {
+        puts("weakref is an unused reserved word and cannot be used.");
+        exit(EXIT_FAILURE);
+    } else if (matches_keyword(lex, "foreach")) {
+        puts("foreach is an unused reserved word and cannot be used.");
+        exit(EXIT_FAILURE);
+    } else if (matches_keyword(lex, "null")) {
+        puts("null is an unused reserved word and cannot be used.");
+        exit(EXIT_FAILURE);
+    }
 
     if (matches_keyword(lex, "break")) set_keyword(lex, T_BREAK);
     else if (matches_keyword(lex, "const")) set_keyword(lex, T_CONST);
@@ -511,6 +593,7 @@ const char *YASL_TOKEN_NAMES[] = {
         "-",            // MINUS,
         "-=",           // MINUSEQ,
         "#",            // HASH,
+        "@",            // AT,
         "!",            // BANG,
         "!=",           // BANGEQ,
         "!==",          // BANGDEQ,
@@ -553,7 +636,8 @@ const char *YASL_TOKEN_NAMES[] = {
         ":",            // COLON,
         "::",           // DCOLON,
         "=>",           // BIG_ARR,
-        "->"            // SMALL_ARR
+        "->",           // SMALL_ARR
+        "<-",           // LEFT_ARR
 };
 
 Lexer *lex_new(FILE *file /* OWN */) {

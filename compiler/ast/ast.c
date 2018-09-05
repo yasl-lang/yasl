@@ -133,16 +133,16 @@ Node *TableComp_get_key_value(const Node *const node) {
     return node->children[0];
 }
 
-Node *TableComp_get_var(const Node *const node) {
-    return node->children[1];
+Node *new_TableComp(Node *expr, Node *iter, int line) {
+    return new_Node_2(N_TABLECOMP, T_UNKNOWN, expr, iter, NULL, 0, line);
 }
 
-Node *TableComp_get_collection(const Node *const node) {
-    return node->children[2];
+Node *new_LetIter(Node *var, Node *collection, int line) {
+    return new_Node_2(N_LETITER, T_UNKNOWN, var, collection, NULL, 0, line);
 }
 
-Node *new_TableComp(Node *expr, Node *var, Node *collection, int line) {
-    return new_Node_3(N_TABLECOMP, T_UNKNOWN, expr, var, collection, NULL, 0, line);
+Node *new_Iter(Node *var, Node *collection, int line) {
+    return new_Node_2(N_ITER, T_UNKNOWN, var, collection, NULL, 0, line);
 }
 
 Node *ForIter_get_var(const Node *const node) {
@@ -154,11 +154,11 @@ Node *ForIter_get_collection(const Node *const node) {
 }
 
 Node *ForIter_get_body(const Node *const node) {
-    return node->children[2];
+    return node->children[1];
 }
 
-Node *new_ForIter(Node *var, Node *collection, Node *body, int line) {
-    return new_Node_3(N_FORITER, T_UNKNOWN, var, collection, body, NULL, 0, line);
+Node *new_ForIter(Node *iter, Node *body, int line) {
+    return new_Node_2(N_FORITER, T_UNKNOWN, iter, body, NULL, 0, line);
 }
 
 Node *While_get_cond(const Node *const node) {
@@ -169,8 +169,8 @@ Node *While_get_body(const Node *const node) {
     return node->children[1];
 }
 
-Node *new_While(Node *cond, Node *body, int line) {
-    return new_Node_2(N_WHILE, T_UNKNOWN, cond, body, NULL, 0, line);
+Node *new_While(Node *cond, Node *body, Node *post, int line) {
+    return new_Node_3(N_WHILE, T_UNKNOWN, cond, body, post, NULL, 0, line);
 }
 
 Node *new_Break(int line) {

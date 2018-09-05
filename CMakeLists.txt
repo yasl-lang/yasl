@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.9.2)
 project(YASL C)
 
-set(CMAKE_C_STANDARD 11)
+set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_C_STANDARD 99)
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 include_directories(.)
@@ -29,54 +30,39 @@ include_directories(test)
 add_executable(YASL
         main.c
         compiler/ast/ast.c
-        compiler/ast/ast.h
         bytebuffer/bytebuffer.c
-        bytebuffer/bytebuffer.h
         compiler/compiler/compiler.c
-        compiler/compiler/compiler.h
         compiler/compiler/env/env.c
-        compiler/compiler/env/env.h
         compiler/lexer/lexer.c
-        compiler/lexer/lexer.h
         compiler/parser/parser.c
-        compiler/parser/parser.h
-        compiler/token.h
         hashtable/hashtable.c
-        hashtable/hashtable.h
         interpreter/boolean/bool_methods.c
-        interpreter/boolean/bool_methods.h
         interpreter/builtins/builtins.c
-        interpreter/builtins/builtins.h
         interpreter/file/file_methods.c
-        interpreter/file/file_methods.h
         interpreter/float/float64_methods.c
-        interpreter/float/float64_methods.h
         interpreter/integer/int64_methods.c
-        interpreter/integer/int64_methods.h
         interpreter/list/list.c
-        interpreter/list/list.h
         interpreter/list/list_methods.c
-        interpreter/list/list_methods.h
         interpreter/table/table_methods.c
-        interpreter/table/table_methods.h
         interpreter/VM/VM.c
-        interpreter/VM/VM.h
         interpreter/YASL_Object/YASL_Object.c
-        interpreter/YASL_Object/YASL_Object.h
+        interpreter/refcount/refcount.c
         interpreter/YASL_string/str_methods.c
-        interpreter/YASL_string/str_methods.h
         interpreter/YASL_string/YASL_string.c
-        interpreter/YASL_string/YASL_string.h
-        prime/prime.c
-        prime/prime.h
-        functions.h
-        opcode.h)
+        prime/prime.c)
 
 add_executable(YASLTEST
         test/yats.c
         test/yasl_test.c
         test/lexertest.c
         test/compilertest.c
+        test/binoptest.c
+        test/unoptest.c
+        test/literaltest.c
+        test/iftest.c
+        test/whiletest.c
+        test/fortest.c
+        test/foreachtest.c
         compiler/lexer/lexer.c
         compiler/compiler/compiler.c
         compiler/parser/parser.c
@@ -85,6 +71,7 @@ add_executable(YASLTEST
         interpreter/YASL_Object/YASL_Object.c
         bytebuffer/bytebuffer.c
         interpreter/YASL_string/YASL_string.c
+        interpreter/refcount/refcount.c
         interpreter/list/list.c
         prime/prime.c
         compiler/compiler/env/env.c)
