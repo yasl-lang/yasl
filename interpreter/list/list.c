@@ -82,6 +82,7 @@ static void ls_resize_down(List_t* ls) {
 
 void ls_insert(List_t* ls, const int64_t index, const YASL_Object value) {
     if (ls->count >= ls->size) ls_resize_up(ls);
+    dec_ref(ls->items+index);
     ls->items[index] = value;
     ls->count++;
     inc_ref(&value);

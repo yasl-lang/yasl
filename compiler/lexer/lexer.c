@@ -467,17 +467,11 @@ static void YASLKeywords(Lexer *lex) {
     } else if (matches_keyword(lex, "use")) {
         puts("use is an unused reserved word and cannot be used.");
         exit(EXIT_FAILURE);
+    } else if (matches_keyword(lex, "no")) {
+        puts("no is an unused reserved word and cannot be used.");
+        exit(EXIT_FAILURE);
     } else if (matches_keyword(lex, "require")) {
         puts("require is an unused reserved word and cannot be used.");
-        exit(EXIT_FAILURE);
-    } else if (matches_keyword(lex, "import")) {
-        puts("import is an unused reserved word and cannot be used.");
-        exit(EXIT_FAILURE);
-    } else if (matches_keyword(lex, "include")) {
-        puts("include is an unused reserved word and cannot be used.");
-        exit(EXIT_FAILURE);
-    } else if (matches_keyword(lex, "volatile")) {
-        puts("volatile is an unused reserved word and cannot be used.");
         exit(EXIT_FAILURE);
     } else if (matches_keyword(lex, "extern")) {
         puts("extern is an unused reserved word and cannot be used.");
@@ -487,51 +481,6 @@ static void YASLKeywords(Lexer *lex) {
         exit(EXIT_FAILURE);
     } else if (matches_keyword(lex, "interface")) {
         puts("interface is an unused reserved word and cannot be used.");
-        exit(EXIT_FAILURE);
-    } else if (matches_keyword(lex, "await")) {
-        puts("await is an unused reserved word and cannot be used.");
-        exit(EXIT_FAILURE);
-    } else if (matches_keyword(lex, "async")) {
-        puts("async is an unused reserved word and cannot be used.");
-        exit(EXIT_FAILURE);
-    } else if (matches_keyword(lex, "of")) {
-        puts("of is an unused reserved word and cannot be used.");
-        exit(EXIT_FAILURE);
-    } else if (matches_keyword(lex, "del")) {
-        puts("del is an unused reserved word and cannot be used.");
-        exit(EXIT_FAILURE);
-    } else if (matches_keyword(lex, "delete")) {
-        puts("delete is an unused reserved word and cannot be used.");
-        exit(EXIT_FAILURE);
-    } else if (matches_keyword(lex, "new")) {
-        puts("new is an unused reserved word and cannot be used.");
-        exit(EXIT_FAILURE);
-    } else if (matches_keyword(lex, "clone")) {
-        puts("clone is an unused reserved word and cannot be used.");
-        exit(EXIT_FAILURE);
-    } else if (matches_keyword(lex, "self")) {
-        puts("self is an unused reserved word and cannot be used.");
-        exit(EXIT_FAILURE);
-    } else if (matches_keyword(lex, "frozen")) {
-        puts("frozen is an unused reserved word and cannot be used.");
-        exit(EXIT_FAILURE);
-    } else if (matches_keyword(lex, "as")) {
-        puts("as is an unused reserved word and cannot be used.");
-        exit(EXIT_FAILURE);
-    } else if (matches_keyword(lex, "operator")) {
-        puts("operator is an unused reserved word and cannot be used.");
-        exit(EXIT_FAILURE);
-    } else if (matches_keyword(lex, "ref")) {
-        puts("ref is an unused reserved word and cannot be used.");
-        exit(EXIT_FAILURE);
-    } else if (matches_keyword(lex, "weakref")) {
-        puts("weakref is an unused reserved word and cannot be used.");
-        exit(EXIT_FAILURE);
-    } else if (matches_keyword(lex, "foreach")) {
-        puts("foreach is an unused reserved word and cannot be used.");
-        exit(EXIT_FAILURE);
-    } else if (matches_keyword(lex, "null")) {
-        puts("null is an unused reserved word and cannot be used.");
         exit(EXIT_FAILURE);
     }
 
