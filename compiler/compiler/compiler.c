@@ -13,8 +13,9 @@ Compiler *compiler_new(Parser *const parser, char *const name) {
     Compiler *compiler = malloc(sizeof(Compiler));
 
     compiler->globals = env_new(NULL);
-    compiler->params = env_new(NULL);
-    compiler->locals = env_new(NULL);
+    compiler->params = NULL;
+    compiler->locals = NULL;
+    //printf("%p, %p, %p\n", &compiler->globals, &compiler->params, &compiler->locals);
     env_decl_var(compiler->globals, "stdin", strlen("stdin"));
     env_decl_var(compiler->globals, "stdout", strlen("stdout"));
     env_decl_var(compiler->globals, "stderr", strlen("stderr"));
@@ -143,12 +144,15 @@ static inline int64_t get_index(int64_t value) {
 
 static void load_var(const Compiler *const compiler, char *name, int64_t name_len, int64_t line) {
     if (env_contains(compiler->locals, name, name_len)) {
+        //printf("found %s in locals\n", name);
         bb_add_byte(compiler->buffer, GLOAD_1);
         bb_add_byte(compiler->buffer, get_index(env_get(compiler->locals, name, name_len)));
     } else if (env_contains(compiler->params, name, name_len)) {
+        //printf("found %s in params\n", name);
         bb_add_byte(compiler->buffer, LLOAD_1);
         bb_add_byte(compiler->buffer, get_index(env_get(compiler->params, name, name_len))); // TODO: handle size
     } else if (env_contains(compiler->globals, name, name_len)){
+        //printf("found %s in globals\n", name);
         bb_add_byte(compiler->buffer, GLOAD_1);
         bb_add_byte(compiler->buffer, get_index(env_get(compiler->globals, name, name_len)));  // TODO: handle size
     } else {
@@ -201,8 +205,14 @@ static int contains_var(const Compiler *const compiler, char *name, int64_t name
 }
 
 static void decl_var(Compiler *const compiler, char *name, int64_t name_len) {
-    if (NULL != compiler->current_function) env_decl_var(compiler->locals, name, name_len);
-    else env_decl_var(compiler->globals, name, name_len);
+    if (NULL != compiler->current_function) {
+        //printf("declaring %s in locals\n", name);
+        env_decl_var(compiler->locals, name, name_len);
+    }
+    else {
+        //printf("declaring %s in globals\n", name);
+        env_decl_var(compiler->globals, name, name_len);
+    }
 }
 
 static void make_const(Compiler * const compiler, char *name, int64_t name_len) {
@@ -285,6 +295,8 @@ static void visit_FunctionDecl(Compiler *const compiler, const Node *const node)
     compiler->offset = node->children[0]->children_len;
     //YASL_DEBUG_LOG("compiler->offset is: %d\n", compiler->offset);
 
+    compiler->params = env_new(compiler->params);
+
     enter_scope(compiler);
 
     int64_t i;
@@ -307,6 +319,9 @@ static void visit_FunctionDecl(Compiler *const compiler, const Node *const node)
     compiler->buffer->count = 0;
 
     exit_scope(compiler);
+    Env_t *tmp = compiler->params->parent;
+    env_del_current_only(compiler->params);
+    compiler->params = tmp;
     compiler->current_function = NULL;
 
     bb_add_byte(compiler->buffer, FCONST);
@@ -654,6 +669,9 @@ static void visit_BinOp(Compiler *const compiler, const Node *const node) {
         case T_AMP:
             bb_add_byte(compiler->buffer, BAND);
             break;
+        case T_AMPCARET:
+            bb_add_byte(compiler->buffer, BANDNOT);
+            break;
         case T_DEQ:
             bb_add_byte(compiler->buffer, EQ);
             break;
@@ -743,8 +761,10 @@ static void visit_UnOp(Compiler *const compiler, const Node *const node) {
 }
 
 static void visit_Assign(Compiler *const compiler, const Node *const node) {
+    printf("assigning to %s\n", node->name);
     if (!contains_var(compiler, node->name, node->name_len)) {
-        //printf("unknown variable in line %" PRId64 ": %s\n", compiler->parser->lex->line, node->name);
+        printf("unknown variable in line %" PRId64 ": %s\n", compiler->parser->lex->line, node->name);
+        exit(EXIT_FAILURE);
     }
     visit(compiler, node->children[0]);
     bb_add_byte(compiler->buffer, DUP);

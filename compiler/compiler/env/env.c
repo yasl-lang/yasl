@@ -10,7 +10,8 @@ Env_t *env_new(Env_t *parent) {
 }
 
 void env_del(Env_t *env) {
-    if (env->parent != NULL) env_del(env->parent);
+    if (env == NULL) return;
+    env_del(env->parent);
     free(env->parent);
     env_del_current_only(env);
 }
@@ -33,7 +34,8 @@ void env_del_current_only(Env_t *env) {
 }
 
 int64_t env_len(Env_t *env) {
-    return env->vars->count + (env->parent == NULL ? 0 : env_len(env->parent));
+    if (env == NULL) return 0;
+    return env->vars->count + env_len(env->parent);
 }
 
 int env_contains_cur_scope(Env_t *env, char *name, int64_t name_len) {
@@ -49,6 +51,7 @@ int env_contains_cur_scope(Env_t *env, char *name, int64_t name_len) {
 }
 
 int env_contains(Env_t *env, char *name, int64_t name_len) {
+    if (env == NULL) return 0;
     String_t *string = str_new_sized(name_len, copy_char_buffer(name_len, name));
     YASL_Object key = (YASL_Object) { .value.sval = string, .type = Y_STR };
 

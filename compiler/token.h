@@ -70,6 +70,7 @@
 
 // NOTE: make sure that augmented version of operand is directly after regular version for all operants.
 // parser.c uses this
+// NOTE: keep up to date with array names in lexer.c
 typedef enum {
     T_UNKNOWN = -1,
     T_EOF,      // 0x00
@@ -142,6 +143,8 @@ typedef enum {
     T_AMPEQ,
     T_DAMP,
     T_DAMPEQ,
+    T_AMPCARET,
+    T_AMPCARETEQ,
     T_BAR,
     T_BAREQ,
     T_DBAR,

@@ -323,10 +323,10 @@ static Token YASLToken_ThreeChars(char c1, char c2, char c3) {
         case '!': switch(c2) { case '=': switch(c3) { case '=': return T_BANGDEQ; default: return T_UNKNOWN;} }
         case '*': switch(c2) { case '*': switch(c3) { case '=': return T_DSTAREQ; default: return T_UNKNOWN;} }
         case '/': switch(c2) { case '/': switch(c3) { case '=': return T_DSLASHEQ; default: return T_UNKNOWN;} }
-        case '&': switch(c2) { case '&': switch(c3) {
-                        case '=': return T_DAMPEQ;
-                        default: return T_UNKNOWN;
-        } }
+        case '&': switch(c2) {
+            case '&': switch(c3) { case '=': return T_DAMPEQ; default: return T_UNKNOWN; }
+            case '^': switch(c3) { case '=': return T_AMPCARETEQ; default: return T_UNKNOWN; }
+        }
         case '|': switch(c2) { case '|': switch(c3) {
             case '=': return T_DBAREQ;
             default: return T_UNKNOWN;
@@ -381,6 +381,7 @@ static Token YASLToken_TwoChars(char c1, char c2) {
         case '&': switch(c2) {
             case '=': return T_AMPEQ;
             case '&': return T_DAMP;
+            case '^': return T_AMPCARET;
             default: return T_UNKNOWN;
         }
         case '|': switch(c2) {
@@ -575,6 +576,8 @@ const char *YASL_TOKEN_NAMES[] = {
         "&=",           // AMPEQ,
         "&&",           // DAMP,
         "&&=",          // DAMPEQ,
+        "&^",           // AMPCARET,
+        "&^=",          // AMPCARETEQ,
         "|",            // BAR,
         "|=",           // BAREQ,
         "||",           // DBAR,

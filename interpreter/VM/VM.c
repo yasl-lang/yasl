@@ -125,6 +125,10 @@ int64_t band(int64_t left, int64_t right) {
     return left & right;
 }
 
+int64_t bandnot(int64_t left, int64_t right) {
+    return left & ~right;
+}
+
 int64_t shift_left(int64_t left, int64_t right) {
     return left << right;
 }
@@ -346,6 +350,9 @@ void vm_run(VM *vm){
                 break;
             case BAND:
                 vm_int_binop(vm, &band, "&");
+                break;
+            case BANDNOT:
+                vm_int_binop(vm, &bandnot, "&^");
                 break;
             case BNOT:
                 vm_int_unop(vm, &bnot, "^");

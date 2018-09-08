@@ -24,9 +24,10 @@ typedef enum Opcode {
             BOR       = 0x20, // bitwise or
             BXOR      = 0x21, // bitwise xor
             BAND      = 0x22, // bitwise and
-            BNOT      = 0x23, // bit negation
-            BSL       = 0x24, // bitwise left shift
-            BSR       = 0x25, // bitwise right shift
+            BANDNOT   = 0x23, // bitwise and, with bitwise not on right operand
+            BNOT      = 0x24, // bit negation
+            BSL       = 0x25, // bitwise left shift
+            BSR       = 0x26, // bitwise right shift
             INITFOR   = 0x30, // initialises for-loop in VM
             ENDFOR    = 0x32, // end for-loop in VM
             ITER_1    = 0x33, // iterate to next, 1 var

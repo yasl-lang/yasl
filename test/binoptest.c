@@ -138,6 +138,21 @@ static void test_band() {
     ASSERT_GEN_BC_EQ(expected,"8 & 2;");
 }
 
+static void test_bandnot() {
+    unsigned char expected[] = {
+            0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            ICONST,
+            0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            ICONST,
+            0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            BANDNOT,
+            POP,
+            HALT
+    };
+    ASSERT_GEN_BC_EQ(expected,"8 &^ 2;");
+}
+
 static void test_bxor() {
     unsigned char expected[] = {
             0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -225,6 +240,7 @@ int binoptest(void) {
     test_bshl();
     test_bshr();
     test_band();
+    test_bandnot();
     test_bxor();
     test_bor();
     test_concat();

@@ -15,7 +15,7 @@ static inline int tok_isaugmented(const Token t) {
     // ??=
     return t == T_CARETEQ || t == T_STAREQ || t == T_SLASHEQ || t == T_DSLASHEQ ||
            t == T_MOD || t == T_PLUSEQ || t == T_MINUSEQ || t == T_DGTEQ || t == T_DLTEQ ||
-           t == T_DBAREQ || t == T_DAMPEQ || t == T_TILDEEQ || t == T_AMPEQ || t == T_DSTAREQ || t == T_BAREQ ||
+           t == T_DBAREQ || t == T_DAMPEQ || t == T_TILDEEQ || t == T_AMPEQ || t == T_AMPCARETEQ || t == T_DSTAREQ || t == T_BAREQ ||
            t == T_DQMARKEQ;
 }
 
@@ -440,9 +440,9 @@ static Node *parse_bxor(const Parser *const parser) {
 static Node *parse_band(const Parser *const parser) {
     YASL_TRACE_LOG("parsing & in line %d\n", parser->lex->line);
     Node *cur_node = parse_bshift(parser);
-    while (curtok(parser) == T_AMP) {
-        eattok(parser, T_AMP);
-        cur_node = new_BinOp(T_AMP, cur_node, parse_bshift(parser), parser->lex->line);
+    while (curtok(parser) == T_AMP || curtok(parser) == T_AMPCARET) {
+        Token op = eattok(parser, curtok(parser));
+        cur_node = new_BinOp(op, cur_node, parse_bshift(parser), parser->lex->line);
     }
     return cur_node;
 }

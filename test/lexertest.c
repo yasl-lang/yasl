@@ -405,6 +405,18 @@ void test_ampeq(void) {
     ASSERT_EATTOK(T_EOF, lex);
 }
 
+void test_ampcaret(void) {
+    Lexer *lex = setup_lexer("&^");
+    ASSERT_EATTOK(T_AMPCARET, lex);
+    ASSERT_EATTOK(T_EOF, lex);
+}
+
+void test_ampcareteq(void) {
+    Lexer *lex = setup_lexer("&^=");
+    ASSERT_EATTOK(T_AMPCARETEQ, lex);
+    ASSERT_EATTOK(T_EOF, lex);
+}
+
 void test_damp(void) {
     Lexer *lex = setup_lexer("&&");
     ASSERT_EATTOK(T_DAMP, lex);
@@ -606,6 +618,8 @@ int lexertest(void) {
     test_teq();
     test_amp();
     test_ampeq();
+    test_ampcaret();
+    test_ampcareteq();
     test_damp();
     test_dampeq();
     test_bar();
