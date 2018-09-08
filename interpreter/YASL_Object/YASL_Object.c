@@ -137,11 +137,12 @@ int print(YASL_Object v) {
             printf("%" PRId64 "", v.value.ival);
             //printf("int64: %" PRId64 "\n", v.value);
             break;
-        case Y_FLOAT64:
-            printf("%s", float64_to_str(v.value.dval));
-            //printf("%f", *((double*)&v.value));
-            //printf("float64: %f\n", *((double*)&v.value));
+        case Y_FLOAT64: {
+            char *tmp = float64_to_str(v.value.dval);
+            printf("%s", tmp);
+            free(tmp);
             break;
+        }
         case Y_BOOL:
             if (v.value.ival == 0) printf("false");
             else printf("true");

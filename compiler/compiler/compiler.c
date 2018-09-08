@@ -77,11 +77,6 @@ void compiler_del(Compiler *compiler) {
 };
 
 static void enter_scope(Compiler *const compiler) {
-    /*if self.current_fn is not None:
-    self.params = Env(self.params)
-    else:
-    self.globals = Env(self.globals)    */
-    // TODO: deal with params
     if (compiler->current_function != NULL) compiler->locals = env_new(compiler->locals);
     else compiler->globals = env_new(compiler->globals);
 }
@@ -96,7 +91,6 @@ static void exit_scope(Compiler *const compiler) {
         compiler->globals = compiler->globals->parent;
         env_del_current_only(tmp);
     }
-    // TODO: deal with memory leaks
 }
 
 static inline void enter_conditional_false(Compiler *const compiler, int64_t *index) {
