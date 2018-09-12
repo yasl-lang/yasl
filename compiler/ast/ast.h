@@ -82,7 +82,7 @@ Node *new_Iter(Node *var, Node *collection, int line);
 Node *ListComp_get_expr(const Node *const node);
 Node *ListComp_get_var(const Node *const node);
 Node *ListComp_get_collection(const Node *const node);
-Node *new_ListComp(Node *expr, Node *var, Node *collection, int line);
+Node *new_ListComp(Node *expr, Node *iter, int line);
 Node *TableComp_get_key_value(const Node *const node);
 Node *new_TableComp(Node *expr, Node *iter, int line);
 Node *ForIter_get_body(const Node *const node);

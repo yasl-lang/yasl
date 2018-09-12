@@ -219,17 +219,17 @@ void gettok(Lexer *lex) {
         c2 = fgetc(lex->file);
 
         // hex literal
-        if (c1 == '0' && c2 == 'x'){            // hexadecimal literal
+        if (c1 == '0' && (c2 == 'x' || c2 == 'X')) {            // hexadecimal literal
             if (lex_eatint(lex, 'x', &isxdigit)) return;
         }
 
         // binary literal
-        if (c1 == '0' && c2 == 'b') {
+        if (c1 == '0' && (c2 == 'b' || c2 == 'B')) {
             if (lex_eatint(lex, 'b', &isbdigit)) return;
         }
 
         // octal literal
-        if (c1 == '0' && c2 == 'o') {
+        if (c1 == '0' && (c2 == 'c' || c2 == 'C')) {
             if (lex_eatint(lex, 'o', &isodigit)) return;
         }
 

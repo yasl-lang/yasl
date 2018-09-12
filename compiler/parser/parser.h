@@ -48,4 +48,5 @@ static Node *parse_float(const Parser *const parser);
 static Node *parse_integer(const Parser *const parser);
 static Node *parse_boolean(const Parser *const parser);
 static Node *parse_string(const Parser *const parser);
+static Node *parse_table(const Parser *const parser);
 static Node *parse_collection(const Parser *const parser);

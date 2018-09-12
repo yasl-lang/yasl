@@ -370,32 +370,39 @@ static void visit_Block(Compiler *const compiler, const Node *const node) {
     exit_scope(compiler);
 }
 
-static inline void goto_index(Compiler *const compiler, int64_t index) {
-    bb_add_byte(compiler->buffer, GOTO);
-    bb_intbytes8(compiler->buffer, index);
+static inline void branch_back(Compiler *const compiler, int64_t index) {
+    bb_add_byte(compiler->buffer, BR_8);
+    bb_intbytes8(compiler->buffer, index - compiler->buffer->count - 8);
 }
 
 static void visit_ListComp(Compiler *const compiler, const Node *const node) {
     enter_scope(compiler);
 
     bb_add_byte(compiler->buffer, END);
-    decl_var(compiler, ListComp_get_var(node)->name, ListComp_get_var(node)->name_len);
 
-    visit(compiler, ListComp_get_collection(node));
+    visit(compiler, node->children[1]->children[1]);
 
     bb_add_byte(compiler->buffer, INITFOR);
 
-    int64_t index_start = compiler->code->count + compiler->buffer->count;
+    if (node->children[1]->nodetype == N_LETITER) {
+        decl_var(compiler, node->children[1]->children[0]->name, node->children[1]->children[0]->name_len);
+    } else if (!contains_var(compiler, node->children[1]->children[0]->name, node->children[1]->children[0]->name_len)){
+        printf("NameError: in line %" PRId64 ": undeclared variable %s.\n", node->children[1]->children[0]->line, node->children[1]->children[0]->name);
+        exit(EXIT_FAILURE);
+    }
+
+    int64_t index_start = compiler->buffer->count;
 
     bb_add_byte(compiler->buffer, ITER_1);
 
     int64_t index_second;
     enter_conditional_false(compiler, &index_second);
 
-    store_var(compiler, ListComp_get_var(node)->name, ListComp_get_var(node)->name_len, node->line);
+    store_var(compiler, node->children[1]->children[0]->name, node->children[1]->children[0]->name_len, node->line);
 
     visit(compiler, ListComp_get_expr(node));
-    goto_index(compiler, index_start);
+
+    branch_back(compiler, index_start);
 
     exit_conditional_false(compiler, &index_second);
 
@@ -408,6 +415,11 @@ static void visit_TableComp(Compiler *const compiler, const Node *const node) {
     enter_scope(compiler);
 
     bb_add_byte(compiler->buffer, END);
+
+    visit(compiler, node->children[1]->children[1]);
+
+    bb_add_byte(compiler->buffer, INITFOR);
+
     if (node->children[1]->nodetype == N_LETITER) {
         decl_var(compiler, node->children[1]->children[0]->name, node->children[1]->children[0]->name_len);
     } else if (!contains_var(compiler, node->children[1]->children[0]->name, node->children[1]->children[0]->name_len)){
@@ -415,11 +427,7 @@ static void visit_TableComp(Compiler *const compiler, const Node *const node) {
         exit(EXIT_FAILURE);
     }
 
-    visit(compiler, node->children[1]->children[1]);
-
-    bb_add_byte(compiler->buffer, INITFOR);
-
-    int64_t index_start = compiler->code->count + compiler->buffer->count;
+    int64_t index_start = compiler->buffer->count;
 
     bb_add_byte(compiler->buffer, ITER_1);
 
@@ -431,7 +439,7 @@ static void visit_TableComp(Compiler *const compiler, const Node *const node) {
     visit(compiler, TableComp_get_key_value(node)->children[0]);
     visit(compiler, TableComp_get_key_value(node)->children[1]);
 
-    goto_index(compiler, index_start);
+    branch_back(compiler, index_start);
 
     exit_conditional_false(compiler, &index_second);
 
@@ -474,9 +482,7 @@ static void visit_ForIter(Compiler *const compiler, const Node *const node) {
 
     visit(compiler, ForIter_get_body(node));
 
-    bb_add_byte(compiler->buffer, BR_8);
-    bb_intbytes8(compiler->buffer, index_start - compiler->buffer->count - 8);
-
+    branch_back(compiler, index_start);
 
     exit_conditional_false(compiler, &index_second);
 
@@ -513,8 +519,7 @@ static void visit_While(Compiler *const compiler, const Node *const node) {
 
     visit(compiler, While_get_body(node));
 
-    bb_add_byte(compiler->buffer, BR_8);
-    bb_intbytes8(compiler->buffer, index_start - compiler->buffer->count - 8);
+    branch_back(compiler, index_start);
 
     exit_scope(compiler);
     exit_conditional_false(compiler, &index_second);
@@ -529,8 +534,9 @@ static void visit_Break(Compiler *const compiler, const Node *const node) {
         exit(EXIT_FAILURE);
     }
     bb_add_byte(compiler->buffer, BCONST_F);
-    bb_add_byte(compiler->buffer, BR_8);
-    bb_intbytes8(compiler->buffer, break_checkpoint(compiler) - compiler->buffer->count - 8);
+    branch_back(compiler, break_checkpoint(compiler));
+    // bb_add_byte(compiler->buffer, BR_8);
+    // bb_intbytes8(compiler->buffer, break_checkpoint(compiler) - compiler->buffer->count - 8);
 }
 
 static void visit_Continue(Compiler *const compiler, const Node *const node) {
@@ -538,8 +544,7 @@ static void visit_Continue(Compiler *const compiler, const Node *const node) {
         printf("SyntaxError: in line %d: continue outside of loop.\n", node->line);
         exit(EXIT_FAILURE);
     }
-    bb_add_byte(compiler->buffer, BR_8);
-    bb_intbytes8(compiler->buffer, continue_checkpoint(compiler) - compiler->buffer->count - 8);
+    branch_back(compiler, continue_checkpoint(compiler));
 }
 
 static void visit_If(Compiler *const compiler, const Node *const node) {
@@ -755,7 +760,6 @@ static void visit_UnOp(Compiler *const compiler, const Node *const node) {
 }
 
 static void visit_Assign(Compiler *const compiler, const Node *const node) {
-    printf("assigning to %s\n", node->name);
     if (!contains_var(compiler, node->name, node->name_len)) {
         printf("unknown variable in line %" PRId64 ": %s\n", compiler->parser->lex->line, node->name);
         exit(EXIT_FAILURE);

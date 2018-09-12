@@ -125,8 +125,8 @@ Node *ListComp_get_collection(const Node *const node) {
     return node->children[2];
 }
 
-Node *new_ListComp(Node *expr, Node *var, Node *collection, int line) {
-    return new_Node_3(N_LISTCOMP, T_UNKNOWN, expr, var, collection, NULL, 0, line);
+Node *new_ListComp(Node *expr, Node *iter, int line) {
+    return new_Node_2(N_LISTCOMP, T_UNKNOWN, expr, iter, NULL, 0, line);
 }
 
 Node *TableComp_get_key_value(const Node *const node) {

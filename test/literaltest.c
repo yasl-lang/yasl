@@ -57,7 +57,7 @@ static void test_oct() {
             POP,
             HALT
     };
-    ASSERT_GEN_BC_EQ(expected, "0o12;");
+    ASSERT_GEN_BC_EQ(expected, "0c12;");
 }
 
 static void test_dec() {
