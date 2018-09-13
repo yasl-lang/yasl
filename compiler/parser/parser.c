@@ -662,15 +662,14 @@ static Node *parse_table(const Parser *const parser) {
             eattok(parser, T_FOR);
             Node *iter = parse_iterate(parser);
 
-            /*
             Node *cond = NULL;
             if (curtok(parser) == T_IF) {
                 eattok(parser, T_IF);
                 cond = parse_expr(parser);
             }
-            */
+
             eattok(parser, T_RBRC);
-            Node *table_comp = new_TableComp(keys, iter, parser->lex->line);
+            Node *table_comp = new_TableComp(keys, iter, cond, parser->lex->line);
             return table_comp;
         }
         while (curtok(parser) == T_COMMA) {
@@ -702,15 +701,15 @@ static Node *parse_collection(const Parser *const parser) {
     if (curtok(parser) == T_FOR) {
         eattok(parser, T_FOR);
         Node *iter = parse_iterate(parser);
-        /*
+
         Node *cond = NULL;
         if (curtok(parser) == T_IF) {
             eattok(parser, T_IF);
             cond = parse_expr(parser);
         }
-        */
+
         eattok(parser, T_RSQB);
-        Node *table_comp = new_ListComp(keys->children[0], iter, parser->lex->line);
+        Node *table_comp = new_ListComp(keys->children[0], iter, cond, parser->lex->line);
         free(keys->children);
         free(keys);
         return table_comp;

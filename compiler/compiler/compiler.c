@@ -400,7 +400,19 @@ static void visit_ListComp(Compiler *const compiler, const Node *const node) {
 
     store_var(compiler, node->children[1]->children[0]->name, node->children[1]->children[0]->name_len, node->line);
 
-    visit(compiler, ListComp_get_expr(node));
+    if (node->children[2]) {
+        int64_t index_third;
+        visit(compiler, node->children[2]);
+        enter_conditional_false(compiler, &index_third);
+
+        visit(compiler, ListComp_get_expr(node));
+
+        exit_conditional_false(compiler, &index_third);
+    } else {
+        visit(compiler, ListComp_get_expr(node));
+    }
+
+    // visit(compiler, ListComp_get_expr(node));
 
     branch_back(compiler, index_start);
 
@@ -436,8 +448,19 @@ static void visit_TableComp(Compiler *const compiler, const Node *const node) {
 
     store_var(compiler, node->children[1]->children[0]->name, node->children[1]->children[0]->name_len, node->line);
 
-    visit(compiler, TableComp_get_key_value(node)->children[0]);
-    visit(compiler, TableComp_get_key_value(node)->children[1]);
+    if (node->children[2]) {
+        int64_t index_third;
+        visit(compiler, node->children[2]);
+        enter_conditional_false(compiler, &index_third);
+
+        visit(compiler, TableComp_get_key_value(node)->children[0]);
+        visit(compiler, TableComp_get_key_value(node)->children[1]);
+
+        exit_conditional_false(compiler, &index_third);
+    } else {
+        visit(compiler, TableComp_get_key_value(node)->children[0]);
+        visit(compiler, TableComp_get_key_value(node)->children[1]);
+    }
 
     branch_back(compiler, index_start);
 
