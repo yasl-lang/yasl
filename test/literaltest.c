@@ -153,7 +153,7 @@ static void test_table() {
             POP,
             HALT
     };
-    ASSERT_GEN_BC_EQ(expected, "[0:'zero', 1:'one'];");
+    ASSERT_GEN_BC_EQ(expected, "{0:'zero', 1:'one'};");
 }
 
 int literaltest(void) {
