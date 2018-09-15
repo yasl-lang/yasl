@@ -57,7 +57,7 @@ static void test_oct() {
             POP,
             HALT
     };
-    ASSERT_GEN_BC_EQ(expected, "0o12;");
+    ASSERT_GEN_BC_EQ(expected, "0c12;");
 }
 
 static void test_dec() {
@@ -153,7 +153,7 @@ static void test_table() {
             POP,
             HALT
     };
-    ASSERT_GEN_BC_EQ(expected, "[0:'zero', 1:'one'];");
+    ASSERT_GEN_BC_EQ(expected, "{0:'zero', 1:'one'};");
 }
 
 int literaltest(void) {

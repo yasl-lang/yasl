@@ -238,10 +238,10 @@ void ht_print_h(const Hash_t *const ht, ByteBuffer* seen) {
     int i = 0;
     int64_t *new_seen;
     if (ht->count == 0) {
-        printf("[:]");
+        printf("{}");
         return;
     }
-    printf("[");
+    printf("{");
     Item_t* item = NULL;
     while (i < ht->size) {
         item = ht->items[i];
@@ -261,7 +261,7 @@ void ht_print_h(const Hash_t *const ht, ByteBuffer* seen) {
             }
         } else if (item->value->type == Y_TABLE) {
             if (isvalueinarray(item->value->value.ival, (int64_t*)seen->bytes, seen->count/sizeof(int64_t))) {
-                printf("[...:...]");
+                printf("{...}");
             } else {
                 bb_intbytes8(seen, (int64_t)ht);
                 bb_intbytes8(seen, ht->items[i]->value->value.ival);
@@ -273,5 +273,5 @@ void ht_print_h(const Hash_t *const ht, ByteBuffer* seen) {
         printf(", ");
         i++;
     }
-    printf("\b\b]");
+    printf("\b\b}");
 }

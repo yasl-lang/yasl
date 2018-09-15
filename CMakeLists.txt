@@ -64,6 +64,7 @@ add_executable(YASLTEST
         test/whiletest.c
         test/fortest.c
         test/foreachtest.c
+        test/comprehensiontest.c
         compiler/lexer/lexer.c
         compiler/compiler/compiler.c
         compiler/parser/parser.c
