@@ -1,0 +1,12 @@
+/* The challenge is to find all the pairs of two integers in an unsorted array ls that sum up to a given number t. */
+
+fn $2sum(ls, t) {
+  const mapped_values = { t - val : val for let val <- ls }
+  for let val <- ls {
+    if mapped_values[val] !== undef {
+      print val
+      print mapped_values[val]
+      break
+    }
+  }
+}
