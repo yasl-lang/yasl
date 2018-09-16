@@ -1,4 +1,6 @@
-/* The challenge is to find all the pairs of two integers in an unsorted array ls that sum up to a given number t. */
+/* The challenge is to find all the pairs of two integers in an unsorted array `ls` that sum up to a given number `t`.
+ * This can be done in linear time in the length of `ls`, as shown below.
+ */
 
 fn $2sum(ls, t) {
   const mapped_values = { t - val : val for let val <- ls }
@@ -10,3 +12,5 @@ fn $2sum(ls, t) {
     }
   }
 }
+
+$2sum([1, 2, 13, 4, 5], 17)
