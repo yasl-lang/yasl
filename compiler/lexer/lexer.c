@@ -474,15 +474,6 @@ static void YASLKeywords(Lexer *lex) {
     } else if (matches_keyword(lex, "require")) {
         puts("require is an unused reserved word and cannot be used.");
         exit(EXIT_FAILURE);
-    } else if (matches_keyword(lex, "extern")) {
-        puts("extern is an unused reserved word and cannot be used.");
-        exit(EXIT_FAILURE);
-    } else if (matches_keyword(lex, "static")) {
-        puts("static is an unused reserved word and cannot be used.");
-        exit(EXIT_FAILURE);
-    } else if (matches_keyword(lex, "interface")) {
-        puts("interface is an unused reserved word and cannot be used.");
-        exit(EXIT_FAILURE);
     }
 
     if (matches_keyword(lex, "break")) set_keyword(lex, T_BREAK);

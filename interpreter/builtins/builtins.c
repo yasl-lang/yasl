@@ -201,7 +201,7 @@ Hash_t* table_builtins() {
     Hash_t* ht = ht_new();
     ht_insert_string_int(ht, "keys",   strlen("keys"),   (int64_t) &table_keys);
     ht_insert_string_int(ht, "values", strlen("values"), (int64_t) &table_values);
-    ht_insert_string_int(ht, "clone",  strlen("clone"),  (int64_t) &table_clone);
+    ht_insert_string_int(ht, "copy",  strlen("copy"),  (int64_t) &table_clone);
     ht_insert_string_int(ht, "__get",  strlen("__get"),  (int64_t) &table___get);
     ht_insert_string_int(ht, "__set",  strlen("__set"),  (int64_t) &table___set);
     return ht;
