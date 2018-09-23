@@ -27,6 +27,7 @@ typedef struct {
     char *value;    // NOT OWN
     size_t val_len;
     int64_t line;
+    int status;
 } Lexer;
 
 static Token YASLToken_FourChars(char c1, char c2, char c3, char c4);

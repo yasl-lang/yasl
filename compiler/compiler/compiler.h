@@ -26,8 +26,9 @@ typedef struct {
     int64_t checkpoints_count;
     int64_t checkpoints_size;
     char *current_function;
+    int status;
 } Compiler;
 
 Compiler *compiler_new(Parser *const parser, char *const name);
 void compiler_del(Compiler *compiler);
-void compile(Compiler *const compiler);
+int compile(Compiler *const compiler);

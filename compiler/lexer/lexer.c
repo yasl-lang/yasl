@@ -1,6 +1,7 @@
 #include <debug.h>
 #include "lexer.h"
 #include "../token.h"
+#include "../../yasl_error.h"
 
 static int isbdigit(int c) {
     return c == '0' || c == '1';
@@ -8,6 +9,13 @@ static int isbdigit(int c) {
 
 static int isodigit(int c) {
     return '0' <= c && c < '8';
+}
+
+static void lex_error(Lexer *lex) {
+    free(lex->value);
+    lex->value = NULL;
+    lex->type = T_UNKNOWN;
+    lex->status = YASL_SYNTAX_ERROR;
 }
 
 char lex_getchar(Lexer *lex) {
@@ -45,8 +53,9 @@ static int lex_eatint(Lexer *lex, char separator, int (*isvaliddigit)(int)) {
     lex->value[i++] = separator;
     lex_getchar(lex);
     if (!(*isvaliddigit)(lex->c)) {
-        printf("Invalid int64 literal in line %d\n", lex->line);
-        exit(EXIT_FAILURE);
+        printf("SyntaxError: Invalid int64 literal in line %d.\n", lex->line);
+        lex_error(lex);
+        return 1;
     }
     do {
         lex->value[i++] = lex->c;
@@ -126,8 +135,9 @@ static int lex_eatstring(Lexer *lex) {
         lex->value = realloc(lex->value, lex->val_len = i);
 
         if (feof(lex->file)) {
-            puts("LexingError: unclosed string literal.");
-            exit(EXIT_FAILURE);
+            printf("LexingError: unclosed string literal in line %d.\n", lex->line);
+            lex_error(lex);
+            return 1;
         }
 
         return 1;
@@ -184,8 +194,9 @@ void gettok(Lexer *lex) {
                     c2 = fgetc(lex->file);
                 }
                 if (feof(lex->file)) {
-                    puts("LexingError: unclosed block comment.");
-                    exit(EXIT_FAILURE);
+                    printf("SyntaxError: unclosed block comment in line %d.\n", lex->line);
+                    lex_error(lex);
+                    return;
                 }
                 if (addsemi && ispotentialend(lex)) {
                     lex->type = T_SEMI;
@@ -311,8 +322,8 @@ void gettok(Lexer *lex) {
     // operators
     if (lex_eatop(lex)) return;
 
-    printf("LexingError: unknown lexeme in line %d: `%c` (0x%x)\n", lex->line, lex->c, lex->c);
-    exit(EXIT_FAILURE);
+    printf("SyntaxError: unknown character in line %d: `%c` (0x%x).\n", lex->line, lex->c, lex->c);
+    lex_error(lex);
 }
 
 static Token YASLToken_ThreeChars(char c1, char c2, char c3) {
@@ -457,23 +468,29 @@ static void YASLKeywords(Lexer *lex) {
      */
 
     if (matches_keyword(lex, "enum")) {
-        puts("enum is an unused reserved word and cannot be used.");
-        exit(EXIT_FAILURE);
+        printf("enum is an unused reserved word and cannot be used (line %d).\n", lex->line);
+        lex_error(lex);
+        return;
     } else if (matches_keyword(lex, "yield")) {
-        puts("yield is an unused reserved word and cannot be used.");
-        exit(EXIT_FAILURE);
+        printf("yield is an unused reserved word and cannot be used (line %d).\n", lex->line);
+        lex_error(lex);
+        return;
     } else if (matches_keyword(lex, "do")) {
-        puts("do is an unused reserved word and cannot be used.");
-        exit(EXIT_FAILURE);
+        printf("do is an unused reserved word and cannot be used (line %d).\n", lex->line);
+        lex_error(lex);
+        return;
     } else if (matches_keyword(lex, "use")) {
-        puts("use is an unused reserved word and cannot be used.");
-        exit(EXIT_FAILURE);
+        printf("use is an unused reserved word and cannot be used (line %d).\n", lex->line);
+        lex_error(lex);
+        return;
     } else if (matches_keyword(lex, "no")) {
-        puts("no is an unused reserved word and cannot be used.");
-        exit(EXIT_FAILURE);
+        printf("no is an unused reserved word and cannot be used (line %d).\n", lex->line);
+        lex_error(lex);
+        return;
     } else if (matches_keyword(lex, "require")) {
-        puts("require is an unused reserved word and cannot be used.");
-        exit(EXIT_FAILURE);
+        printf("require is an unused reserved word and cannot be used (line %d).\n", lex->line);
+        lex_error(lex);
+        return;
     }
 
     if (matches_keyword(lex, "break")) set_keyword(lex, T_BREAK);
@@ -590,6 +607,7 @@ Lexer *lex_new(FILE *file /* OWN */) {
     lex->val_len = 0;
     lex->file = file;
     lex->type = T_UNKNOWN;
+    lex->status = YASL_SUCCESS;
     return lex;
 }
 

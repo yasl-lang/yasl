@@ -49,9 +49,13 @@ int main(int argc, char** argv) {
     fseek(fp, 0, SEEK_SET);
     Parser *parser = parser_new(lex_new(fp));
     Compiler *compiler = compiler_new(parser, name);
-    compile(compiler);
+    int exit_code = compile(compiler);
     compiler_del(compiler);
     YASL_DEBUG_LOG("%s\n", "end of compilation");
+    if (exit_code) {
+        free(name);
+        return exit_code;
+    }
 
     file_ptr = fopen(name, "rb");
     if (file_ptr == NULL) {
