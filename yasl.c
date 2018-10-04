@@ -67,6 +67,7 @@ int YASL_setglobal(struct YASL_State *S, char *name) {
 
     // S->vm->globals = realloc(S->vm->globals, num_globals * sizeof(YASL_Object));
 
+    inc_ref(&S->vm->stack[S->vm->sp]);
     S->vm->globals[index] = vm_pop(S->vm);
 }
 
@@ -89,7 +90,9 @@ int YASL_pushboolean(struct YASL_State *S, int value) {
 
 
 int YASL_pushcstring(struct YASL_State *S, char *value) {
-    vm_push(S->vm, YASL_String(str_new_sized_from_mem(0, strlen(value), value)));
+    unsigned char *tmp = malloc(strlen(value) + 1);
+    memcpy(tmp, value, strlen(value) + 1);
+    vm_push(S->vm, YASL_String(str_new_sized(strlen(tmp), tmp)));
 }
 
 /*
