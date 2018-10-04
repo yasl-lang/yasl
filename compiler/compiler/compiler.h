@@ -11,12 +11,10 @@
 
 typedef struct {
     Parser *parser;
-    char *name;
     Env_t *globals;
     Env_t *params;
     Env_t *locals;
     Hash_t *functions;
-    Hash_t *functions_locals_len;
     int64_t offset;
     Hash_t *strings;
     ByteBuffer *buffer;
@@ -25,10 +23,9 @@ typedef struct {
     int64_t *checkpoints;
     int64_t checkpoints_count;
     int64_t checkpoints_size;
-    char *current_function;
     int status;
 } Compiler;
 
-Compiler *compiler_new(Parser *const parser, char *const name);
+Compiler *compiler_new(Parser *const parser);
 void compiler_del(Compiler *compiler);
-int compile(Compiler *const compiler);
+char *compile(Compiler *const compiler);

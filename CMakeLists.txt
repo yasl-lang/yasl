@@ -28,6 +28,7 @@ include_directories(prime)
 include_directories(test)
 
 add_executable(YASL
+        yasl.c
         main.c
         compiler/ast/ast.c
         bytebuffer/bytebuffer.c
@@ -79,5 +80,31 @@ add_executable(YASLTEST
         prime/prime.c
         compiler/compiler/env/env.c)
 
+add_library(yaslapi
+        yasl.c
+        compiler/ast/ast.c
+        bytebuffer/bytebuffer.c
+        compiler/compiler/compiler.c
+        compiler/compiler/env/env.c
+        compiler/lexer/lexer.c
+        compiler/parser/parser.c
+        hashtable/hashtable.c
+        interpreter/boolean/bool_methods.c
+        interpreter/builtins/builtins.c
+        interpreter/file/file_methods.c
+        interpreter/float/float64_methods.c
+        interpreter/float/float64.c
+        interpreter/integer/int64_methods.c
+        interpreter/list/list.c
+        interpreter/list/list_methods.c
+        interpreter/table/table_methods.c
+        interpreter/VM/VM.c
+        interpreter/YASL_Object/YASL_Object.c
+        interpreter/refcount/refcount.c
+        interpreter/YASL_string/str_methods.c
+        interpreter/YASL_string/YASL_string.c
+        prime/prime.c)
+
 target_link_libraries(YASL m)
 target_link_libraries(YASLTEST m)
+target_link_libraries(yaslapi m)

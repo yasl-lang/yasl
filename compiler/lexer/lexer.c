@@ -154,23 +154,6 @@ void gettok(Lexer *lex) {
     lex_getchar(lex);
     c1 = lex->c;
 
-    // hash-bang
-    /*if (lex->line == 1 && c1 == '#') {
-        lex_getchar(lex);
-        c1 = lex->c;
-        if (c1 == '!') {
-            while (!feof(lex->file) && fgetc(lex->file) != '\n') {}
-            lex->line++;
-        } else if (feof(lex->file)) {
-            lex->type = T_HASH;
-            return;
-        } else {
-            fseek(lex->file, -2, SEEK_CUR);
-        }
-        lex_getchar(lex);
-        c1 = lex->c;
-    }*/
-
     // whitespace and comments.
     while (!feof(lex->file) && (lex->c == ' ' || lex->c == '\n' || lex->c == '\t') || lex->c == '#' || lex->c == '/') {
         // white space

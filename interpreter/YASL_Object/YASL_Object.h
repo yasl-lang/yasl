@@ -30,7 +30,7 @@ typedef enum {
 struct List_s;
 struct Hash_s;
 
-typedef struct {
+typedef struct YASL_Object {
     YASL_Types type;
     union {
         int64_t ival;

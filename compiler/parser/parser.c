@@ -103,6 +103,7 @@ static Node *parse_program(Parser *const parser) {
 static Node *parse_fn(Parser *const parser) {
     YASL_TRACE_LOG("parsing fn in line %d\n", parser->lex->line);
     eattok(parser, T_FN);
+    int64_t line = parser->lex->line;
     char *name = parser->lex->value;
     int64_t name_len = parser->lex->val_len;
     eattok(parser, T_ID);
@@ -121,7 +122,11 @@ static Node *parse_fn(Parser *const parser) {
         eattok(parser, T_SEMI);
     }
     eattok(parser, T_RBRC);
-    return new_FnDecl(block, body, name, name_len, parser->lex->line);
+
+    char *name2 = malloc(name_len);
+    memcpy(name2, name, name_len);
+    // return new_FnDecl(block, body, name, name_len, parser->lex->line);
+    return new_Let(name, name_len, new_FnDecl(block, body, name2, name_len, parser->lex->line), line);
 }
 
 static Node *parse_const(Parser *const parser) {
@@ -323,10 +328,11 @@ static Node *parse_expr(Parser *const parser) {
 static Node *parse_assign(Parser *const parser) {
     YASL_TRACE_LOG("parsing = in line %d\n", parser->lex->line);
     Node *cur_node = parse_ternary(parser);
+    int64_t line = parser->lex->line;
     if (curtok(parser) == T_EQ) {
         eattok(parser, T_EQ);
         if (cur_node->nodetype == N_VAR) {
-            Node *assign_node = new_Assign(cur_node->name, cur_node->name_len, parse_assign(parser), parser->lex->line);
+            Node *assign_node = new_Assign(cur_node->name, cur_node->name_len, parse_assign(parser), line);
             free(cur_node);
             return assign_node;
         } else if (cur_node->nodetype == N_GET) {
@@ -336,9 +342,9 @@ static Node *parse_assign(Parser *const parser) {
             body_append(block, parse_expr(parser));
             free(cur_node->children);
             free(cur_node);
-            return new_Set(left, block->children[0], block->children[1], parser->lex->line);
+            return new_Set(left, block->children[0], block->children[1], line);
         } else {
-            printf("SyntaxError: in line %d: invalid lvalue.\n", parser->lex->line);
+            printf("SyntaxError: in line %d: invalid lvalue.\n", line);
             return handle_error(parser);
         }
      // TODO: add indexing case
@@ -349,17 +355,17 @@ static Node *parse_assign(Parser *const parser) {
             int64_t name_len = cur_node->name_len;
             Node *tmp = node_clone(cur_node);
             free(cur_node);
-            return new_Assign(name, name_len, new_BinOp(op, tmp, parse_assign(parser), parser->lex->line), parser->lex->line);
+            return new_Assign(name, name_len, new_BinOp(op, tmp, parse_assign(parser), line), line);
         } else if (cur_node->nodetype == N_GET) {
             Node *left = cur_node->children[0];
             Node *block = new_Body(parser->lex->line);
             body_append(block, cur_node->children[1]);
-            body_append(block, new_BinOp(op, node_clone(cur_node), parse_expr(parser), parser->lex->line));
+            body_append(block, new_BinOp(op, node_clone(cur_node), parse_expr(parser), line));
             free(cur_node->children);
             free(cur_node);
-            return new_Set(left, block->children[0], block->children[1], parser->lex->line);
+            return new_Set(left, block->children[0], block->children[1], line);
         } else {
-            printf("SyntaxError: in line %d: invalid lvalue.\n", parser->lex->line);
+            printf("SyntaxError: in line %d: invalid lvalue.\n", line);
             return handle_error(parser);
         }
     }
