@@ -19,8 +19,11 @@ const char *YASL_TYPE_NAMES[] = {
     "table",    // Y_TABLE,
     "table",    // Y_TABLE_W,
     "file",     // Y_FILE,
-    "fn",       // Y_FN
-    "mn"        // Y_BFN
+    "fn",       // Y_FN,
+    "mn",       // Y_BFN,
+    "userptr",  // Y_USERPTR,
+    "userdata", // Y_USERDATA,
+    "userdata", // Y_USERDATA_W
 };
 
 YASL_Object YASL_Undef(void) {
@@ -42,6 +45,10 @@ YASL_Object YASL_String(String_t *str) {
 
 YASL_Object YASL_Table(struct Hash_s *ht) {
     return (YASL_Object) { .type = Y_TABLE, .value.mval = ht };
+}
+
+YASL_Object YASL_UserPointer(void *userpointer) {
+    return (YASL_Object) { .type = Y_USERPTR, .value.pval = userpointer };
 }
 
 //YASL_Object YASL_List();
@@ -180,6 +187,9 @@ int print(YASL_Object v) {
             break;
         case Y_BFN:
             printf("<mn: %" PRIx64 ">", v.value.ival);
+            break;
+        case Y_USERPTR:
+            printf("0x%0*" PRIx64, (int)sizeof(void*), v.value.ival);
             break;
         default:
             printf("Error, unknown type: %x", v.type);

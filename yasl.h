@@ -98,6 +98,14 @@ int YASL_pushstring(struct YASL_State *S, char *value, int64_t size);
 int YASL_pushcfunction(struct YASL_State *S, int (*value)(struct YASL_State *));
 
 /**
+ * Pushes a user-pointer onto the stack
+ * @param S the YASL_State onto which to push the user-pointer.
+ * @param userpointer the user-pointer to push onto the stack.
+ * @return 0 on success, else error code.
+ */
+int YASL_pushuserpointer(struct YASL_State *S, void *userpointer);
+
+/**
  * Checks if given YASL_Object is undef.
  * @param obj the given YASL_Object.
  * @return true if the given YASL_Object is undef, else false.
