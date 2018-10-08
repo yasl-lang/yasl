@@ -28,6 +28,7 @@ static Node *parse_if(Parser *const parser);
 static Node *parse_expr(Parser *const parser);
 static Node *parse_assign(Parser *const parser);
 static Node *parse_ternary(Parser *const parser);
+static Node *parse_undef_or(Parser *const parser);
 static Node *parse_or(Parser *const parser);
 static Node *parse_and(Parser *const parser);
 static Node *parse_bor(Parser *const parser);

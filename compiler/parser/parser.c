@@ -374,11 +374,8 @@ static Node *parse_assign(Parser *const parser) {
 
 static Node *parse_ternary(Parser *const parser) {
     YASL_TRACE_LOG("parsing ?: in line %d\n", parser->lex->line);
-    Node *cur_node = parse_or(parser);
-    if (curtok(parser) == T_DQMARK) {
-        eattok(parser, T_DQMARK);
-        return new_BinOp(T_DQMARK, cur_node, parse_ternary(parser), parser->lex->line);
-    } else if (curtok(parser) == T_QMARK) {
+    Node *cur_node = parse_undef_or(parser);
+    if (curtok(parser) == T_QMARK) {
         eattok(parser, T_QMARK);
         Node *left = parse_ternary(parser);
         eattok(parser, T_COLON);
@@ -388,12 +385,22 @@ static Node *parse_ternary(Parser *const parser) {
     return cur_node;
 }
 
+static Node *parse_undef_or(Parser *const parser) {
+    YASL_TRACE_LOG("parsing ?? in line %d\n", parser->lex->line);
+    Node *cur_node = parse_or(parser);
+    if (curtok(parser) == T_DQMARK) {
+        eattok(parser, T_DQMARK);
+        return new_BinOp(T_DQMARK, cur_node, parse_undef_or(parser), parser->lex->line);
+    }
+    return cur_node;
+}
+
 static Node *parse_or(Parser *const parser) {
     YASL_TRACE_LOG("parsing || in line %d\n", parser->lex->line);
     Node *cur_node = parse_and(parser);
-    while (curtok(parser) == T_DBAR) {
+    if (curtok(parser) == T_DBAR) {
         eattok(parser, T_DBAR);
-        cur_node = new_BinOp(T_DBAR, cur_node, parse_and(parser), parser->lex->line);
+        return new_BinOp(T_DBAR, cur_node, parse_or(parser), parser->lex->line);
     }
     return cur_node;
 }
@@ -401,9 +408,9 @@ static Node *parse_or(Parser *const parser) {
 static Node *parse_and(Parser *const parser) {
     YASL_TRACE_LOG("parsing && in line %d\n", parser->lex->line);
     Node *cur_node = parse_equals(parser);
-    while (curtok(parser) == T_DAMP) {
+    if (curtok(parser) == T_DAMP) {
         eattok(parser, T_DAMP);
-        cur_node = new_BinOp(T_DAMP, cur_node, parse_equals(parser), parser->lex->line);
+        return new_BinOp(T_DAMP, cur_node, parse_and(parser), parser->lex->line);
     }
     return cur_node;
 }
