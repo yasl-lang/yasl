@@ -24,13 +24,16 @@ typedef enum {
     Y_TABLE_W,
     Y_FILE,
     Y_FN,
-    Y_BFN
+    Y_BFN,
+    Y_USERPTR,
+    Y_USERDATA,
+    Y_USERDATA_W,
 } YASL_Types;
 
 struct List_s;
 struct Hash_s;
 
-typedef struct {
+typedef struct YASL_Object {
     YASL_Types type;
     union {
         int64_t ival;
@@ -39,6 +42,7 @@ typedef struct {
         struct List_s *lval;
         struct Hash_s *mval;
         FILE *fval;
+        void *pval;
     } value;
 } YASL_Object;
 
@@ -48,6 +52,7 @@ YASL_Object YASL_Integer(int64_t value);
 YASL_Object YASL_Boolean(int value);
 YASL_Object YASL_String(String_t *str);
 YASL_Object YASL_Table(struct Hash_s *ht);
+YASL_Object YASL_UserPointer(void *userdata);
 
 int isfalsey(YASL_Object v);
 YASL_Object isequal(YASL_Object a, YASL_Object b);
@@ -57,7 +62,7 @@ int yasl_type_equals(YASL_Types a, YASL_Types b);
 void inc_ref(YASL_Object *v);
 void dec_ref(YASL_Object *v);
 
-const char *YASL_TYPE_NAMES[13];
+const char *YASL_TYPE_NAMES[16];
 
 #define ASSERT_TYPE(vm, expected_type, name) do {\
                     if (vm->stack[vm->sp].type != expected_type) {\

@@ -64,6 +64,9 @@ void inc_ref(YASL_Object *v) {
         case Y_STR:
         case Y_LIST:
         case Y_TABLE:
+            //puts(K_GRN "inc" K_END);
+            //print(*v);
+            //printf("\n%d++\n", v->value.sval->rc->refs);
             inc_strong_ref(v);
             break;
         case Y_STR_W:
@@ -135,6 +138,9 @@ void dec_ref(YASL_Object *v) {
         case Y_STR:
         case Y_LIST:
         case Y_TABLE:
+            //puts(K_RED "dec" K_END);
+            //print(*v);
+            //printf("\n%d--\n", v->value.sval->rc->refs);
             dec_strong_ref(v);
             break;
         case Y_STR_W:

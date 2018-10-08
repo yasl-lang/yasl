@@ -292,7 +292,7 @@ void vm_run(VM *vm){
         int64_t c;
         double d;
         void* ptr;
-        //printf("vm->sp, opcode: %d, %x\n", vm->sp, opcode);
+        //printf("----------------\nvm->sp, opcode: %d, 0x%x\n", vm->sp, opcode);
         // printf("vm->pc, opcode: %x, %x\n", vm->pc - vm->pc0, opcode);
         //printf("pc: %d\n\n", vm->pc);
         //print(vm->stack[vm->sp]);
@@ -300,6 +300,9 @@ void vm_run(VM *vm){
         /* printf("tpye is: %s\n", YASL_TYPE_NAMES[PEEK(vm).type]);
         print(PEEK(vm));
          */
+        //print(vm->globals[6]);
+        //printf("\n%p\n", (void*)vm->globals[6].value.sval->str);
+        //printf("%p\n", (void*)vm->globals[6].value.sval);
         switch (opcode) {   // decode
             case HALT: return;  // stop the program
             case NOP: puts("Slide"); break;    // pass

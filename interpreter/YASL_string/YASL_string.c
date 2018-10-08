@@ -23,6 +23,8 @@ String_t* str_new_sized(const int64_t base_size, unsigned char *ptr) {
 }
 
 String_t* str_new_sized_from_mem(const int64_t start, const int64_t end, unsigned char *mem) {
+    // puts("adsdas");
+    //printf("start, end, mem: %d, %d, %s\n", start, end, mem);
     String_t* str = malloc(sizeof(String_t));
     str->start = start;
     str->end = end;

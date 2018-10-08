@@ -266,6 +266,7 @@ Node *new_Table(Node *keys, int line) {
 }
 
 void node_del(Node *node) {
+    if (!node) return;
     while(node->children_len-- > 0)
         if (node->children[node->children_len] != NULL)
             node_del(node->children[node->children_len]);
