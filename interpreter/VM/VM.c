@@ -7,6 +7,7 @@
 #include <interpreter/YASL_string/YASL_string.h>
 #include <hashtable/hashtable.h>
 #include <color.h>
+#include "operator_names.h"
 
 static LoopStack *loopstack_new(void) {
     LoopStack *ls = malloc(sizeof(LoopStack));
@@ -145,12 +146,29 @@ int64_t idiv(int64_t left, int64_t right) {
     return left / right;
 }
 
-void vm_int_binop(VM *vm, int64_t (*op)(int64_t, int64_t), char *opstr) {
+void vm_int_binop(VM *vm, int64_t (*op)(int64_t, int64_t), char *opstr, char *overload_name) {
     YASL_Object b = vm_pop(vm);
     YASL_Object a = vm_pop(vm);
     if (yasl_type_equals(a.type, Y_INT64) && yasl_type_equals(b.type, Y_INT64)) {
         vm_push(vm, YASL_Integer(op(a.value.ival, b.value.ival)));
         return;
+    }  else if (yasl_type_equals(a.type, Y_TABLE)) {
+        YASL_Object key = YASL_String(str_new_sized_from_mem(0, strlen(overload_name), overload_name));
+        YASL_Object *result = ht_search(a.value.mval, key);
+        if (result && yasl_type_equals(result->type, Y_FN)) {
+            vm->sp += 2;
+
+            int offset = 2;
+            int addr = result->value.ival;
+            vm_push(vm, ((YASL_Object) {offset, vm->fp}));  // store previous frame ptr;
+            vm_push(vm, ((YASL_Object) {offset, vm->pc}));  // store pc addr
+            vm->fp = vm->sp;
+
+            vm->sp += offset + 1; // + 2
+            vm->pc = addr + 2;
+        } else {
+            printf("TypeError: %s is not callable (type %s).\n", overload_name, YASL_TYPE_NAMES[result->type]);
+        }
     } else {
         printf("TypeError: %s not supported for operands of types %s and %s.\n",
                opstr,
@@ -188,7 +206,11 @@ int64_t int_pow(int64_t left, int64_t right) {
     return (int64_t)pow(left, right);
 }
 
-void vm_num_binop(VM *vm, int64_t (*int_op)(int64_t, int64_t), double (*float_op)(double, double), char *opstr) {
+void vm_num_binop(
+        VM *vm, int64_t (*int_op)(int64_t, int64_t),
+        double (*float_op)(double, double),
+        const char *const opstr,
+        const char *const overload_name) {
     YASL_Object right = vm_pop(vm);
     YASL_Object left = vm_pop(vm);
     if (yasl_type_equals(left.type, Y_INT64) && yasl_type_equals(right.type, Y_INT64)) {
@@ -199,7 +221,24 @@ void vm_num_binop(VM *vm, int64_t (*int_op)(int64_t, int64_t), double (*float_op
         vm_push(vm, YASL_Float(float_op(left.value.dval, right.value.ival)));
     } else if (yasl_type_equals(left.type, Y_INT64) && yasl_type_equals(right.type, Y_FLOAT64)) {
         vm_push(vm, YASL_Float(float_op(left.value.ival, right.value.dval)));
-   } else {
+    } else if (yasl_type_equals(left.type, Y_TABLE)) {
+        YASL_Object key = YASL_String(str_new_sized_from_mem(0, strlen(overload_name), overload_name));
+        YASL_Object *result = ht_search(left.value.mval, key);
+        if (result && yasl_type_equals(result->type, Y_FN)) {
+            vm->sp += 2;
+
+            int offset = 2;
+            int addr = result->value.ival;
+            vm_push(vm, ((YASL_Object) {offset, vm->fp}));  // store previous frame ptr;
+            vm_push(vm, ((YASL_Object) {offset, vm->pc}));  // store pc addr
+            vm->fp = vm->sp;
+
+            vm->sp += offset + 1; // + 2
+            vm->pc = addr + 2;
+        } else {
+            printf("TypeError: %s is not callable (type %s).\n", overload_name, YASL_TYPE_NAMES[result->type]);
+        }
+    } else {
         printf("TypeError: %s not supported for operands of types %s and %s.\n",
                opstr,
                YASL_TYPE_NAMES[left.type],
@@ -209,6 +248,7 @@ void vm_num_binop(VM *vm, int64_t (*int_op)(int64_t, int64_t), double (*float_op
 }
 
 void vm_fdiv(VM *vm) {
+    char *overload_name = OP_BIN_FDIV;
     YASL_Object right = vm_pop(vm);
     YASL_Object left = vm_pop(vm);
     if (yasl_type_equals(left.type, Y_INT64) && yasl_type_equals(right.type, Y_INT64)) {
@@ -222,8 +262,24 @@ void vm_fdiv(VM *vm) {
     }
     else if (yasl_type_equals(left.type, Y_FLOAT64) && yasl_type_equals(right.type, Y_INT64)) {
         vm_push(vm, YASL_Float(left.value.dval / (double)right.value.ival));
-    }
-    else {
+    }  else if (yasl_type_equals(left.type, Y_TABLE)) {
+        YASL_Object key = YASL_String(str_new_sized_from_mem(0, strlen(overload_name), overload_name));
+        YASL_Object *result = ht_search(left.value.mval, key);
+        if (result && yasl_type_equals(result->type, Y_FN)) {
+            vm->sp += 2;
+
+            int offset = 2;
+            int addr = result->value.ival;
+            vm_push(vm, ((YASL_Object) {offset, vm->fp}));  // store previous frame ptr;
+            vm_push(vm, ((YASL_Object) {offset, vm->pc}));  // store pc addr
+            vm->fp = vm->sp;
+
+            vm->sp += offset + 1; // + 2
+            vm->pc = addr + 2;
+        } else {
+            printf("TypeError: %s is not callable (type %s).\n", overload_name, YASL_TYPE_NAMES[result->type]);
+        }
+    } else {
         printf("TypeError: / not supported for operands of types %s and %s.\n",
                YASL_TYPE_NAMES[left.type],
                YASL_TYPE_NAMES[right.type]);
@@ -239,7 +295,7 @@ void vm_pow(VM *vm) {
         vm_push(vm, YASL_Float(pow(left.value.ival, right.value.ival)));
     } else {
         vm->sp++;
-        vm_num_binop(vm, &int_pow, &pow, "**");
+        vm_num_binop(vm, &int_pow, &pow, "**", OP_BIN_POWER);
     }
 }
 
@@ -346,34 +402,34 @@ void vm_run(VM *vm){
                 vm_push(vm, (YASL_Object) {Y_FN, c});
                 break;
             case BOR:
-                vm_int_binop(vm, &bor, "|");
+                vm_int_binop(vm, &bor, "|", OP_BIN_BAR);
                 break;
             case BXOR:
-                vm_int_binop(vm, &bxor, "^");
+                vm_int_binop(vm, &bxor, "^", OP_BIN_CARET);
                 break;
             case BAND:
-                vm_int_binop(vm, &band, "&");
+                vm_int_binop(vm, &band, "&", OP_BIN_AMP);
                 break;
             case BANDNOT:
-                vm_int_binop(vm, &bandnot, "&^");
+                vm_int_binop(vm, &bandnot, "&^", OP_BIN_AMPCARET);
                 break;
             case BNOT:
                 vm_int_unop(vm, &bnot, "^");
                 break;
             case BSL:
-                vm_int_binop(vm, &shift_left, "<<");
+                vm_int_binop(vm, &shift_left, "<<", OP_BIN_SHL);
                 break;
             case BSR:
-                vm_int_binop(vm, &shift_right, ">>");
+                vm_int_binop(vm, &shift_right, ">>", OP_BIN_SHR);
                 break;
             case ADD:
-                vm_num_binop(vm, &int_add, &float_add, "+");
+                vm_num_binop(vm, &int_add, &float_add, "+", OP_BIN_PLUS);
                 break;
             case MUL:
-                vm_num_binop(vm, &int_mul, &float_mul, "*");
+                vm_num_binop(vm, &int_mul, &float_mul, "*", OP_BIN_TIMES);
                 break;
             case SUB:
-                vm_num_binop(vm, &int_sub, &float_sub, "-");
+                vm_num_binop(vm, &int_sub, &float_sub, "-", OP_BIN_MINUS);
                 break;
             case FDIV:
                 vm_fdiv(vm);   // handled differently because we always convert to float
@@ -383,11 +439,11 @@ void vm_run(VM *vm){
                     vm_fdiv(vm);
                     break;
                 }
-                vm_int_binop(vm, &idiv, "//");
+                vm_int_binop(vm, &idiv, "//", OP_BIN_IDIV);
                 break;
             case MOD:
                 // TODO: handle undefined C behaviour for negative numbers.
-                vm_int_binop(vm, &modulo, "%");
+                vm_int_binop(vm, &modulo, "%", OP_BIN_MOD);
                 break;
             case EXP:
                 vm_pow(vm);
