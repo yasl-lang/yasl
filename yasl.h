@@ -121,6 +121,13 @@ int YASL_pushobject(struct YASL_State *S, struct YASL_Object *obj);
 struct YASL_Object *YASL_Table(void);
 
 struct YASL_Object *YASL_Integer(int64_t);
+struct YASL_Object *YASL_Undef(void);
+struct YASL_Object *YASL_Float(double value);
+struct YASL_Object *YASL_Boolean(int value);
+struct YASL_Object *YASL_UserPointer(void *userdata);
+struct YASL_Object *YASL_Function(int64_t index);
+struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *));
+
 /**
  * inserts a key-value pair into the given table
  * @param table the YASL_Table into which to insert the key-value pair
