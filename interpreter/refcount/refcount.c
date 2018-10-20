@@ -18,7 +18,7 @@ void rc_del(RefCount *rc) {
     free(rc);
 }
 
-static void inc_weak_ref(YASL_Object *v) {
+static void inc_weak_ref(struct YASL_Object *v) {
     //printf(K_GRN "inc_weak(%s): ", YASL_TYPE_NAMES[v->type]);
     //print(*v);
     //puts(K_END);
@@ -38,7 +38,7 @@ static void inc_weak_ref(YASL_Object *v) {
     }
 }
 
-static void inc_strong_ref(YASL_Object *v) {
+static void inc_strong_ref(struct YASL_Object *v) {
     //printf(K_GRN "inc_strong(%s): ", YASL_TYPE_NAMES[v->type]);
     //print(*v);
     //puts(K_END);
@@ -59,7 +59,7 @@ static void inc_strong_ref(YASL_Object *v) {
     }
 }
 
-void inc_ref(YASL_Object *v) {
+void inc_ref(struct YASL_Object *v) {
     switch (v->type) {
         case Y_STR:
         case Y_LIST:
@@ -79,7 +79,7 @@ void inc_ref(YASL_Object *v) {
     }
 }
 
-static void dec_weak_ref(YASL_Object *v) {
+static void dec_weak_ref(struct YASL_Object *v) {
     //printf(K_RED "dec_weak(%s): ", YASL_TYPE_NAMES[v->type]);
     //print(*v);
     //puts(K_END);
@@ -100,10 +100,10 @@ static void dec_weak_ref(YASL_Object *v) {
             puts("NoT IMPELemented");
             exit(EXIT_FAILURE);
     }
-    *v = YASL_Undef();
+    // TODO: set to undef
 }
 
-void dec_strong_ref(YASL_Object *v) {
+void dec_strong_ref(struct YASL_Object *v) {
     //printf(K_RED "dec_strong(%s): ", YASL_TYPE_NAMES[v->type]);
     //print(*v);
     //puts(K_END);
@@ -133,7 +133,7 @@ void dec_strong_ref(YASL_Object *v) {
     }
 }
 
-void dec_ref(YASL_Object *v) {
+void dec_ref(struct YASL_Object *v) {
     switch (v->type) {
         case Y_STR:
         case Y_LIST:

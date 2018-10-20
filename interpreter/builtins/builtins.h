@@ -15,10 +15,10 @@
 #include "../file/file_methods.h"
 #include "../list/list_methods.h"
 
-int yasl_print(VM* vm);
+int yasl_print(struct VM* vm);
 
-int yasl_input(VM* vm);
+int yasl_input(struct VM* vm);
 
-int yasl_open(VM* vm);
+int yasl_open(struct VM* vm);
 
-int yasl_popen(VM *vm);
+int yasl_popen(struct VM *vm);

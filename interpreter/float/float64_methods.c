@@ -3,14 +3,14 @@
 #include "float64_methods.h"
 #include "float64.h"
 
-int float64_toint64(VM* vm) {
+int float64_toint64(struct VM* vm) {
     ASSERT_TYPE(vm, Y_FLOAT64, "float.toint64");
-    YASL_Object a = vm_pop(vm);
+    struct YASL_Object a = vm_pop(vm);
     vm_push(vm, YASL_Integer((int64_t)a.value.dval));
     return 0;
 }
 
-int float64_tostr(VM *vm) {
+int float64_tostr(struct VM *vm) {
     ASSERT_TYPE(vm, Y_FLOAT64, "float.tostr");
     double val = vm_pop(vm).value.dval;
     char *ptr = float64_to_str(val);

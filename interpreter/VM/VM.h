@@ -71,15 +71,15 @@
                             BPUSH(vm, c);})
 
 typedef struct {
-    YASL_Object *stack;
+    struct YASL_Object *stack;
     int64_t *indices;
     int sp;
 } LoopStack;
 
-typedef struct {
-	YASL_Object *globals;          // variables, see "constant.c" for details on YASL_Object.
+struct VM{
+	struct YASL_Object *globals;          // variables, see "constant.c" for details on YASL_Object.
     int64_t num_globals;
-	YASL_Object *stack;            // stack
+	struct YASL_Object *stack;            // stack
 	unsigned char *code;           // bytecode
 	int64_t pc;                    // program counter
     int64_t pc0;                   // initial value for pc
@@ -87,18 +87,18 @@ typedef struct {
 	int fp;                     // frame pointer
 	Hash_t **builtins_htable;   // htable of builtin methods
     LoopStack *loopstack;
-} VM;
+};
 
-VM* vm_new(unsigned char *code,    // pointer to bytecode
+struct VM* vm_new(unsigned char *code,    // pointer to bytecode
            int pc0,             // address of instruction to be executed first -- entrypoint
            int datasize);       // total params size required to perform a program operations
 
-void vm_del(VM *vm);
+void vm_del(struct VM *vm);
 
-YASL_Object vm_pop(VM *vm);
-void vm_push(VM *vm, YASL_Object val);
+struct YASL_Object vm_pop(struct VM *vm);
+void vm_push(struct VM *vm, struct YASL_Object *val);
 
-void vm_run(VM *vm);
+void vm_run(struct VM *vm);
 
 Hash_t* float64_builtins(void);
 Hash_t* int64_builtins(void);

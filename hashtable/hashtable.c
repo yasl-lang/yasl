@@ -9,7 +9,7 @@
 
 #define HT_BASESIZE 30
 
-static int hash_function(const YASL_Object s, const int a, const int m) {
+static int hash_function(const struct YASL_Object s, const int a, const int m) {
     long hash = 0;
     if (yasl_type_equals(s.type, Y_STR)) {
         const int64_t len_s = yasl_string_len(s.value.sval);
@@ -24,16 +24,16 @@ static int hash_function(const YASL_Object s, const int a, const int m) {
     }
 }
 
-static int get_hash(const YASL_Object s, const int num_buckets, const int attempt) {
+static int get_hash(const struct YASL_Object s, const int num_buckets, const int attempt) {
     const int hash_a = hash_function(s, PRIME_A, num_buckets);
     const int hash_b = hash_function(s, PRIME_B, num_buckets);
     return (hash_a + (attempt * (hash_b + 1))) % num_buckets;
 }
 
-static Item_t* new_item(const YASL_Object k, const YASL_Object v) {
+static Item_t* new_item(const struct YASL_Object k, const struct YASL_Object v) {
     Item_t* item = malloc(sizeof(Item_t));
-    item->key = malloc(sizeof(YASL_Object));
-    item->value = malloc(sizeof(YASL_Object));
+    item->key = malloc(sizeof(struct YASL_Object));
+    item->value = malloc(sizeof(struct YASL_Object));
     item->key->type    = k.type;
     item->key->value   = k.value;
     item->value->type  = v.type;
@@ -156,7 +156,7 @@ static void ht_resize_down(Hash_t* ht) {
     ht_resize(ht, new_size);
 }
 
-void ht_insert(Hash_t* hashtable, const YASL_Object key, const YASL_Object value) {
+void ht_insert(Hash_t* hashtable, const struct YASL_Object key, const struct YASL_Object value) {
     const int load = hashtable->count * 100 / hashtable->size;
     if (load > 70) ht_resize_up(hashtable);
     Item_t* item = new_item(key, value);
@@ -182,11 +182,11 @@ void ht_insert(Hash_t* hashtable, const YASL_Object key, const YASL_Object value
 void ht_insert_string_int(Hash_t *hashtable, char *key, int64_t key_len, int64_t val) {
     String_t *string = str_new_sized(key_len, copy_char_buffer(key_len, key));
     ht_insert(hashtable,
-              (YASL_Object) { .type = Y_STR, .value.sval = string},
-              (YASL_Object) { .type = Y_BFN, .value.ival = val});
+              (struct YASL_Object) { .type = Y_STR, .value.sval = string},
+              (struct YASL_Object) { .type = Y_BFN, .value.ival = val});
 }
 
-YASL_Object* ht_search(const Hash_t *const hashtable, const YASL_Object key) {
+struct YASL_Object* ht_search(const Hash_t *const hashtable, const struct YASL_Object key) {
     int index = get_hash(key, hashtable->size, 0);
     Item_t* item = hashtable->items[index];
     int i = 1;
@@ -200,17 +200,17 @@ YASL_Object* ht_search(const Hash_t *const hashtable, const YASL_Object key) {
     return NULL;
 }
 
-YASL_Object *ht_search_string_int(const Hash_t *const hashtable, char *key, int64_t key_len) {
+struct YASL_Object *ht_search_string_int(const Hash_t *const hashtable, char *key, int64_t key_len) {
     String_t *string = str_new_sized(key_len, copy_char_buffer(key_len, key));
-    YASL_Object object = (YASL_Object) { .value.sval = string, .type = Y_STR };
+    struct YASL_Object object = (struct YASL_Object) { .value.sval = string, .type = Y_STR };
 
-    YASL_Object *result = ht_search(hashtable, object);
+    struct YASL_Object *result = ht_search(hashtable, object);
     str_del(string);
     return result;
 
 }
 
-void ht_rm(Hash_t *hashtable, YASL_Object key) {
+void ht_rm(Hash_t *hashtable, struct YASL_Object key) {
     const int load = hashtable->count * 100 / hashtable->size;
     if (load < 10) ht_resize_down(hashtable);
     int index = get_hash(key, hashtable->size, 0);

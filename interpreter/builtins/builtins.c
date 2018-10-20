@@ -6,8 +6,8 @@
 
 #include "builtins.h"
 
-int yasl_print(VM* vm) {
-    YASL_Object v = vm->stack[vm->sp--];    // pop value from top of the stack ...
+int yasl_print(struct VM* vm) {
+    struct YASL_Object v = vm->stack[vm->sp--];    // pop value from top of the stack ...
     if (yasl_type_equals(v.type, Y_LIST)) {
         ls_print(v.value.lval);
         printf("\n");
@@ -22,7 +22,7 @@ int yasl_print(VM* vm) {
     return return_value;
 }
 
-int yasl_input(VM* vm) {
+int yasl_input(struct VM* vm) {
     print(POP(vm));
     printf("\n");
     int ch;
@@ -44,9 +44,9 @@ int yasl_input(VM* vm) {
     return 0;
 }
 
-int yasl_open(VM* vm) {     //TODO: fix bug relating to file pointer
-    YASL_Object str = POP(vm);
-    YASL_Object mode_str = POP(vm);
+int yasl_open(struct VM* vm) {     //TODO: fix bug relating to file pointer
+    struct YASL_Object str = POP(vm);
+    struct YASL_Object mode_str = POP(vm);
     if (mode_str.type != Y_STR) {
         printf("Error: open(...) expected type %s as second argument, got type %s\n", YASL_TYPE_NAMES[Y_STR], YASL_TYPE_NAMES[str.type]);
         return -1;
@@ -90,17 +90,18 @@ int yasl_open(VM* vm) {     //TODO: fix bug relating to file pointer
 
     free(buffer);
     free(mode);
-    vm_push(vm, (YASL_Object) { .type = Y_FILE, .value.fval = f});
-    //vm->stack[++vm->sp].value.fval = f;
-    //vm->stack[vm->sp].type = Y_FILE;
+    struct YASL_Object *file = malloc(sizeof(struct YASL_Object));
+    file->type = Y_FILE;
+    file->value.fval = f;
+    vm_push(vm, file);
     YASL_DEBUG_LOG("%s\n", "file opened successfully.");
     return 0;
 }
 
 
-int yasl_popen(VM* vm) {     //TODO: fix bug relating to file pointer
-    YASL_Object str = POP(vm);
-    YASL_Object mode_str = POP(vm);
+int yasl_popen(struct VM* vm) {     //TODO: fix bug relating to file pointer
+    struct YASL_Object str = POP(vm);
+    struct YASL_Object mode_str = POP(vm);
     if (mode_str.type != Y_STR) {
         printf("Error: popen(...) expected type %x as second argument, got type %x\n", Y_STR, str.type);
         return -1;

@@ -2,7 +2,7 @@
 #include <debug.h>
 #include "file_methods.h"
 
-int file_close(VM* vm) {
+int file_close(struct VM* vm) {
     ASSERT_TYPE(vm, Y_FILE, "file.close");
     FILE *f = (POP(vm).value.fval);
     if (fclose(f)) {
@@ -15,7 +15,7 @@ int file_close(VM* vm) {
     return 0;
 }
 
-int file_pclose(VM* vm) {
+int file_pclose(struct VM* vm) {
     ASSERT_TYPE(vm, Y_FILE, "file.pclose");
     FILE *f = (POP(vm).value.fval);
     if (pclose(f)) {
@@ -27,10 +27,10 @@ int file_pclose(VM* vm) {
     return 0;
 }
 
-int file_write(VM* vm) {
+int file_write(struct VM* vm) {
     ASSERT_TYPE(vm, Y_FILE, "file.write");
-    YASL_Object fileh = POP(vm);
-    YASL_Object str = POP(vm);
+    struct YASL_Object fileh = POP(vm);
+    struct YASL_Object str = POP(vm);
     if (str.type != Y_STR) {
         printf("Error: file.write expected type %s as first argument, got type %s\n", YASL_TYPE_NAMES[Y_STR], YASL_TYPE_NAMES[str.type]);
         return -1;
@@ -50,7 +50,7 @@ int file_write(VM* vm) {
     return 0;
 }
 
-int file_read(VM* vm) {
+int file_read(struct VM* vm) {
     ASSERT_TYPE(vm, Y_FILE, "file.read");
     FILE* f = (POP(vm).value.fval);
     int ch;
@@ -72,7 +72,7 @@ int file_read(VM* vm) {
     return 0;
 }
 
-int file_readline(VM* vm) {
+int file_readline(struct VM* vm) {
     ASSERT_TYPE(vm, Y_FILE, "file.readline");
     FILE* f = (POP(vm).value.fval);
     int ch;

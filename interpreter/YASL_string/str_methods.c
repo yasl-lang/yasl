@@ -4,19 +4,20 @@
 #include "YASL_string.h"
 #include <ctype.h>
 
-int str___get(VM *vm) {
+int str___get(struct VM *vm) {
     ASSERT_TYPE(vm, Y_STR, "str.__get");
     String_t *str = POP(vm).value.sval;
-    YASL_Object index = POP(vm);
+    struct YASL_Object index = POP(vm);
     if (index.type != Y_INT64) {
         return -1;
-        vm_push(vm, UNDEF_C);
+        vm_push(vm, YASL_Undef());
     } else if (index.value.ival < -yasl_string_len(str) || index.value.ival >= yasl_string_len(str)) {
         return -1;
-        vm_push(vm, UNDEF_C);
+        vm_push(vm, YASL_Undef());
     } else {
-        if (index.value.ival >= 0) vm_push(vm, ((YASL_Object){Y_STR, (int64_t) str_new_sized_from_mem(index.value.ival, index.value.ival + 1, str->str)}));
-        else vm_push(vm, ((YASL_Object){Y_STR, (int64_t) str_new_sized_from_mem(index.value.ival + yasl_string_len(str), index.value.ival + yasl_string_len(str) + 1, str->str)}));
+        if (index.value.ival >= 0)
+            vm_push(vm, YASL_String(str_new_sized_from_mem(index.value.ival, index.value.ival + 1, str->str)));
+        else vm_push(vm, YASL_String(str_new_sized_from_mem(index.value.ival + yasl_string_len(str), index.value.ival + yasl_string_len(str) + 1, str->str)));
     }
     return 0;
 }
@@ -44,7 +45,7 @@ double parsedouble(const char *str) {
 	return 0.0 / 0.0;
 }
 
-int str_tofloat64(VM *vm) {
+int str_tofloat64(struct VM *vm) {
     ASSERT_TYPE(vm, Y_STR, "str.tofloat64");
     String_t *str = POP(vm).value.sval;
     char *buffer = malloc(yasl_string_len(str) + 1);
@@ -55,9 +56,9 @@ int str_tofloat64(VM *vm) {
     return 0;
 }
 
-int str_tobool(VM* vm) {
+int str_tobool(struct VM* vm) {
     ASSERT_TYPE(vm, Y_STR, "str.tobool");
-    YASL_Object a = POP(vm);
+    struct YASL_Object a = POP(vm);
     if (yasl_string_len(a.value.sval) == 0) {
         vm->stack[++vm->sp] = FALSE_C;
     } else {
@@ -66,14 +67,14 @@ int str_tobool(VM* vm) {
     return 0;
 }
 
-int str_tostr(VM *vm) {
+int str_tostr(struct VM *vm) {
     ASSERT_TYPE(vm, Y_STR, "str.tostr");
     return 0;
 }
 
-int str_toupper(VM *vm) {
+int str_toupper(struct VM *vm) {
     ASSERT_TYPE(vm, Y_STR, "str.toupper");
-    YASL_Object a = POP(vm);
+    struct YASL_Object a = POP(vm);
     int64_t length = yasl_string_len(a.value.sval);
     int64_t i = 0;
     unsigned char curr;
@@ -92,9 +93,9 @@ int str_toupper(VM *vm) {
     return 0;
 }
 
-int str_tolower(VM *vm) {
+int str_tolower(struct VM *vm) {
     ASSERT_TYPE(vm, Y_STR, "str.tolower");
-    YASL_Object a = POP(vm);
+    struct YASL_Object a = POP(vm);
     int64_t length = yasl_string_len(a.value.sval);
     int64_t i = 0;
     unsigned char curr;
@@ -112,9 +113,9 @@ int str_tolower(VM *vm) {
     return 0;
 }
 
-int str_isalnum(VM* vm) {
+int str_isalnum(struct VM* vm) {
     ASSERT_TYPE(vm, Y_STR, "str.isalnum");
-    YASL_Object a = POP(vm);
+    struct YASL_Object a = POP(vm);
     int64_t length = yasl_string_len(a.value.sval);
     int64_t i = 0;
     char curr;
@@ -129,9 +130,9 @@ int str_isalnum(VM* vm) {
     return 0;
 }
 
-int str_isal(VM* vm) {
+int str_isal(struct VM* vm) {
     ASSERT_TYPE(vm, Y_STR, "str.isal");
-    YASL_Object a = POP(vm);
+    struct YASL_Object a = POP(vm);
     int64_t length = yasl_string_len(a.value.sval);
     int64_t i = 0;
     char curr;
@@ -146,9 +147,9 @@ int str_isal(VM* vm) {
     return 0;
 }
 
-int str_isnum(VM* vm) {
+int str_isnum(struct VM* vm) {
     ASSERT_TYPE(vm, Y_STR, "str.isnum");
-    YASL_Object a = POP(vm);
+    struct YASL_Object a = POP(vm);
     int64_t length = yasl_string_len(a.value.sval);
     int64_t i = 0;
     char curr;
@@ -164,9 +165,9 @@ int str_isnum(VM* vm) {
 
 }
 
-int str_isspace(VM* vm) {
+int str_isspace(struct VM* vm) {
     ASSERT_TYPE(vm, Y_STR, "str.isspace");
-    YASL_Object a = POP(vm);
+    struct YASL_Object a = POP(vm);
     int64_t length = yasl_string_len(a.value.sval);
     int64_t i = 0;
     char curr;
@@ -181,10 +182,10 @@ int str_isspace(VM* vm) {
     return 0;
 }
 
-int str_startswith(VM* vm) {
+int str_startswith(struct VM* vm) {
     ASSERT_TYPE(vm, Y_STR, "str.startswith");
-    YASL_Object haystack = POP(vm);
-    YASL_Object needle = POP(vm);
+    struct YASL_Object haystack = POP(vm);
+    struct YASL_Object needle = POP(vm);
     if (needle.type != Y_STR) {
         printf("Error: str.startswith(...) expected type %x as first argument, got type %x\n", Y_STR, needle.type);
         return -1;
@@ -205,10 +206,10 @@ int str_startswith(VM* vm) {
     return 0;
 }
 
-int str_endswith(VM* vm) {
+int str_endswith(struct VM* vm) {
     ASSERT_TYPE(vm, Y_STR, "str.endswith");
-    YASL_Object haystack = POP(vm);
-    YASL_Object needle = POP(vm);
+    struct YASL_Object haystack = POP(vm);
+    struct YASL_Object needle = POP(vm);
     if (needle.type != Y_STR) {
         printf("Error: str.startswith(...) expected type %x as first argument, got type %x\n", Y_STR, needle.type);
         return -1;
@@ -230,13 +231,13 @@ int str_endswith(VM* vm) {
     return 0;
 }
 
-int str_replace(VM* vm) {
+int str_replace(struct VM* vm) {
     ASSERT_TYPE(vm, Y_STR, "str.replace");
-    YASL_Object str = POP(vm);
+    struct YASL_Object str = POP(vm);
     ASSERT_TYPE(vm, Y_STR, "str.replace");
-    YASL_Object search_str = POP(vm);
+    struct YASL_Object search_str = POP(vm);
     ASSERT_TYPE(vm, Y_STR, "str.replace");
-    YASL_Object replace_str = POP(vm);
+    struct YASL_Object replace_str = POP(vm);
 
     unsigned char* str_ptr = str.value.sval->str+str.value.sval->start;
     int64_t str_len = yasl_string_len(str.value.sval);
@@ -261,32 +262,32 @@ int str_replace(VM* vm) {
 
     unsigned char *new_str = malloc(buff->count);
     memcpy(new_str, buff->bytes, buff->count);
-    vm->stack[++vm->sp] = (YASL_Object){Y_STR, str_new_sized(buff->count, new_str)};
+    vm->stack[++vm->sp] = (struct YASL_Object){Y_STR, str_new_sized(buff->count, new_str)};
 
     bb_del(buff);
     return 0;
 }
 
-int str_search(VM* vm) {
+int str_search(struct VM* vm) {
     ASSERT_TYPE(vm, Y_STR, "str.search");
-    YASL_Object haystack = POP(vm);
-    YASL_Object needle = POP(vm);
+    struct YASL_Object haystack = POP(vm);
+    struct YASL_Object needle = POP(vm);
     if (needle.type != Y_STR) {
         printf("Error: str.search(...) expected type %x as first argument, got type %x\n", Y_STR, needle.type);
         return -1;
     }
     int64_t index = str_find_index(haystack.value.sval, needle.value.sval);
-    if (index != -1) vm->stack[++vm->sp] = (YASL_Object) {Y_INT64, index };
-    else vm->stack[++vm->sp] = (YASL_Object) {Y_UNDEF, 0};
+    if (index != -1) vm->stack[++vm->sp] = (struct YASL_Object) {Y_INT64, index };
+    else vm->stack[++vm->sp] = (struct YASL_Object) {Y_UNDEF, 0};
     return 0;
 }
 
 // TODO: fix all of these
 
-int str_split(VM* vm) {
+int str_split(struct VM* vm) {
     ASSERT_TYPE(vm, Y_STR, "str.split");
-    YASL_Object haystack = POP(vm);
-    YASL_Object needle = POP(vm);
+    struct YASL_Object haystack = POP(vm);
+    struct YASL_Object needle = POP(vm);
     if (needle.type != Y_STR) {
         printf("Error: str.split(...) expected type %x as first argument, got type %x\n", Y_STR, needle.type);
         return -1;
@@ -300,23 +301,23 @@ int str_split(VM* vm) {
         if (!memcmp(haystack.value.sval->str + haystack.value.sval->start + end,
                     needle.value.sval->str + needle.value.sval->start,
                     yasl_string_len(needle.value.sval))) {
-            ls_append(result, (YASL_Object) {Y_STR, (int64_t) str_new_sized_from_mem(start + haystack.value.sval->start, end + haystack.value.sval->start, haystack.value.sval->str)});
+            ls_append(result, (struct YASL_Object) {Y_STR, (int64_t) str_new_sized_from_mem(start + haystack.value.sval->start, end + haystack.value.sval->start, haystack.value.sval->str)});
             end += yasl_string_len(needle.value.sval);
             start = end;
         } else {
             end++;
         }
     }
-    ls_append(result, (YASL_Object)
+    ls_append(result, (struct YASL_Object)
             {Y_STR, (int64_t) str_new_sized_from_mem(start + haystack.value.sval->start, end + haystack.value.sval->start, haystack.value.sval->str)});
-    vm->stack[++vm->sp] = (YASL_Object) {Y_LIST, (int64_t)result};
+    vm->stack[++vm->sp] = (struct YASL_Object) {Y_LIST, (int64_t)result};
     return 0;
 }
 
-int str_ltrim(VM *vm) {
+int str_ltrim(struct VM *vm) {
     ASSERT_TYPE(vm, Y_STR, "str.ltrim");
-    YASL_Object haystack = POP(vm);
-    YASL_Object needle = POP(vm);
+    struct YASL_Object haystack = POP(vm);
+    struct YASL_Object needle = POP(vm);
     if (needle.type != Y_STR) {
         printf("Error: str.ltrim(...) expected type %x as second argument, got type %x\n", Y_STR, needle.type);
         return -1;
@@ -329,16 +330,16 @@ int str_ltrim(VM *vm) {
         start += yasl_string_len(needle.value.sval);
     }
 
-    vm_push(vm, ((YASL_Object) {Y_STR, (int64_t) str_new_sized_from_mem(start, yasl_string_len(haystack.value.sval),
-                                                                   haystack.value.sval->str)}));
+    vm_push(vm, YASL_String(str_new_sized_from_mem(start, yasl_string_len(haystack.value.sval),
+                                                                   haystack.value.sval->str)));
 
     return 0;
 }
 
-int str_rtrim(VM *vm) {
+int str_rtrim(struct VM *vm) {
     ASSERT_TYPE(vm, Y_STR, "str.rtrim");
-    YASL_Object haystack = POP(vm);
-    YASL_Object needle = POP(vm);
+    struct YASL_Object haystack = POP(vm);
+    struct YASL_Object needle = POP(vm);
     if (needle.type != Y_STR) {
         printf("Error: str.rtrim(...) expected type %x as second argument, got type %x\n", Y_STR, needle.type);
         return -1;
@@ -351,15 +352,15 @@ int str_rtrim(VM *vm) {
         end -= yasl_string_len(needle.value.sval);
     }
 
-    vm_push(vm, ((YASL_Object) {Y_STR, (int64_t) str_new_sized_from_mem(haystack.value.sval->start, end, haystack.value.sval->str)}));
+    vm_push(vm, YASL_String(str_new_sized_from_mem(haystack.value.sval->start, end, haystack.value.sval->str)));
 
     return 0;
 }
 
-int str_trim(VM *vm) {
+int str_trim(struct VM *vm) {
     ASSERT_TYPE(vm, Y_STR, "str.trim");
-    YASL_Object haystack = POP(vm);
-    YASL_Object needle = POP(vm);
+    struct YASL_Object haystack = POP(vm);
+    struct YASL_Object needle = POP(vm);
     if (needle.type != Y_STR) {
         printf("Error: str.trim(...) expected type %x as first argument, got type %x\n", Y_STR, needle.type);
         return -1;
@@ -381,7 +382,7 @@ int str_trim(VM *vm) {
         end -= yasl_string_len(needle.value.sval);
     }
 
-    vm_push(vm, ((YASL_Object) {Y_STR, (int64_t) str_new_sized_from_mem(start, end, haystack.value.sval->str)}));
+    vm_push(vm, YASL_String(str_new_sized_from_mem(start, end, haystack.value.sval->str)));
 
     return 0;
 }

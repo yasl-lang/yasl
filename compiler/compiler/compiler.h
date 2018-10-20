@@ -9,7 +9,7 @@
 #include "env/env.h"
 #include "../../debug.h"
 
-typedef struct {
+struct Compiler {
     Parser *parser;
     Env_t *globals;
     Env_t *params;
@@ -24,8 +24,8 @@ typedef struct {
     int64_t checkpoints_count;
     int64_t checkpoints_size;
     int status;
-} Compiler;
+};
 
-Compiler *compiler_new(Parser *const parser);
-void compiler_del(Compiler *compiler);
-char *compile(Compiler *const compiler);
+struct Compiler *compiler_new(Parser *const parser);
+void compiler_del(struct Compiler *compiler);
+char *compile(struct Compiler *const compiler);

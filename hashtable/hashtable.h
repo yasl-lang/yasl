@@ -8,8 +8,8 @@
 #define LEN(v) (*((int64_t*)v.value))
 
 typedef struct {
-    YASL_Object* key;
-    YASL_Object* value;
+    struct YASL_Object* key;
+    struct YASL_Object* value;
 } Item_t;
 
 static Item_t TOMBSTONE = {0, 0};
@@ -27,10 +27,10 @@ Hash_t* ht_new_sized(const int base_size);
 void ht_del_data(Hash_t *hashtable);
 void ht_del_rc(Hash_t *hashtable);
 void ht_del_string_int(Hash_t *hashtable);
-void ht_insert(Hash_t *const hashtable, YASL_Object key, YASL_Object value);
+void ht_insert(Hash_t *const hashtable, struct YASL_Object key, struct YASL_Object value);
 void ht_insert_string_int(Hash_t *const hashtable, char *key, int64_t key_len, int64_t val);
-YASL_Object* ht_search(const Hash_t *const hashtable, YASL_Object key);
-YASL_Object *ht_search_string_int(const Hash_t *const hashtable, char *key, int64_t key_len);
-void ht_rm(Hash_t *hashtable, YASL_Object key);
+struct YASL_Object* ht_search(const Hash_t *const hashtable, struct YASL_Object key);
+struct YASL_Object *ht_search_string_int(const Hash_t *const hashtable, char *key, int64_t key_len);
+void ht_rm(Hash_t *hashtable, struct YASL_Object key);
 void ht_print(const Hash_t *const ht);
 void ht_print_h(const Hash_t *const ht, ByteBuffer* seen);

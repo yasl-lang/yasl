@@ -4,6 +4,7 @@
 #include "inttypes.h"
 
 struct YASL_State;
+struct YASL_Object;
 
 /**
  * initialises a new YASL_State for usage, or NULL on failure.
@@ -104,6 +105,30 @@ int YASL_pushcfunction(struct YASL_State *S, int (*value)(struct YASL_State *));
  * @return 0 on success, else error code.
  */
 int YASL_pushuserpointer(struct YASL_State *S, void *userpointer);
+
+/**
+ * Pushes an arbitrary YASL_Object onto the stack.
+ * @param S the YASL_State onto which to push the user-pointer.
+ * @param obj the YASL_Object to push onto the stack.
+ * @return 0 on succes, else error code.
+ */
+int YASL_pushobject(struct YASL_State *S, struct YASL_Object *obj);
+
+/**
+ * Makes a new YASL_Table
+ * @return the YASL_Table
+ */
+struct YASL_Object *YASL_Table(void);
+
+struct YASL_Object *YASL_Integer(int64_t);
+/**
+ * inserts a key-value pair into the given table
+ * @param table the YASL_Table into which to insert the key-value pair
+ * @param key the key of the key-value pair
+ * @param value the value of the key-value pair
+ * @return 0 on success, else error code
+ */
+int YASL_Table_set(struct YASL_Object *table, struct YASL_Object *key, struct YASL_Object *value);
 
 /**
  * Checks if given YASL_Object is undef.

@@ -5,9 +5,11 @@
 //#include "../list/list.h"
 #include "../YASL_string/YASL_string.h"
 
-#define TRUE_C   ((YASL_Object) {Y_BOOL, 1})
-#define FALSE_C  ((YASL_Object) {Y_BOOL, 0})
-#define UNDEF_C  ((YASL_Object) {Y_UNDEF, 0})
+#define UNDEF_C ((struct YASL_Object) { .type = Y_UNDEF, .value.ival = 0 })
+#define FALSE_C ((struct YASL_Object) { .type = Y_BOOL, .value.ival = 0 })
+#define TRUE_C ((struct YASL_Object) { .type = Y_BOOL, .value.ival = 1 })
+
+struct YASL_State;
 
 //Keep up to date with the YASL_TYPE_NAMES
 typedef enum {
@@ -25,6 +27,7 @@ typedef enum {
     Y_FILE,
     Y_FN,
     Y_BFN,
+    Y_CFN,
     Y_USERPTR,
     Y_USERDATA,
     Y_USERDATA_W,
@@ -33,7 +36,7 @@ typedef enum {
 struct List_s;
 struct Hash_s;
 
-typedef struct YASL_Object {
+struct YASL_Object {
     YASL_Types type;
     union {
         int64_t ival;
@@ -44,23 +47,25 @@ typedef struct YASL_Object {
         FILE *fval;
         void *pval;
     } value;
-} YASL_Object;
+};
 
-YASL_Object YASL_Undef(void);
-YASL_Object YASL_Float(double value);
-YASL_Object YASL_Integer(int64_t value);
-YASL_Object YASL_Boolean(int value);
-YASL_Object YASL_String(String_t *str);
-YASL_Object YASL_Table(struct Hash_s *ht);
-YASL_Object YASL_UserPointer(void *userdata);
+struct YASL_Object *YASL_Undef(void);
+struct YASL_Object *YASL_Float(double value);
+struct YASL_Object *YASL_Integer(int64_t value);
+struct YASL_Object *YASL_Boolean(int value);
+struct YASL_Object *YASL_String(String_t *str);
+struct YASL_Object *YASL_Table(void);
+struct YASL_Object *YASL_UserPointer(void *userdata);
+struct YASL_Object *YASL_Function(int64_t index);
+struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *));
 
-int isfalsey(YASL_Object v);
-YASL_Object isequal(YASL_Object a, YASL_Object b);
-int print(YASL_Object a);
+int isfalsey(struct YASL_Object v);
+struct YASL_Object isequal(struct YASL_Object a, struct YASL_Object b);
+int print(struct YASL_Object a);
 int yasl_type_equals(YASL_Types a, YASL_Types b);
 
-void inc_ref(YASL_Object *v);
-void dec_ref(YASL_Object *v);
+void inc_ref(struct YASL_Object *v);
+void dec_ref(struct YASL_Object *v);
 
 const char *YASL_TYPE_NAMES[16];
 

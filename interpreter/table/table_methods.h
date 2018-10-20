@@ -7,12 +7,12 @@
 #include "../../hashtable/hashtable.h"
 #include "../list/list.h"
 
-int table___get(VM *vm);
+int table___get(struct VM *vm);
 
-int table___set(VM *vm);
+int table___set(struct VM *vm);
 
-int table_keys(VM *vm);
+int table_keys(struct VM *vm);
 
-int table_values(VM *vm);
+int table_values(struct VM *vm);
 
-int table_clone(VM *vm);
+int table_clone(struct VM *vm);

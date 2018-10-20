@@ -337,12 +337,11 @@ static Node *parse_assign(Parser *const parser) {
             return assign_node;
         } else if (cur_node->nodetype == N_GET) {
             Node *left = cur_node->children[0];
-            Node *block = new_Body(parser->lex->line);
-            body_append(block, cur_node->children[1]);
-            body_append(block, parse_expr(parser));
+            Node *key = cur_node->children[1];
+            Node *val = parse_expr(parser);
             free(cur_node->children);
             free(cur_node);
-            return new_Set(left, block->children[0], block->children[1], line);
+            return new_Set(left, key, val, line);
         } else {
             printf("SyntaxError: in line %d: invalid lvalue.\n", line);
             return handle_error(parser);

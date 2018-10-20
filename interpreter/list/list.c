@@ -20,15 +20,18 @@ int isvalueinarray(int64_t val, int64_t *arr, int size){
     return 0;
 }
 
-YASL_Object YASL_List(List_t *ls) {
-    return (YASL_Object) { .type = Y_LIST, .value.lval = ls };
+struct YASL_Object *YASL_List(List_t *ls) {
+    struct YASL_Object *list = malloc(sizeof(struct YASL_Object));
+    list->type = Y_LIST;
+    list->value.lval = ls;
+    return list;
 }
 
 List_t* ls_new_sized(const int base_size) {
     List_t* ls = malloc(sizeof(List_t));
     ls->size = base_size;
     ls->count = 0;
-    ls->items = malloc(sizeof(YASL_Object)*ls->size);
+    ls->items = malloc(sizeof(struct YASL_Object)*ls->size);
     ls->rc = rc_new();
     return ls;
 }
@@ -63,7 +66,7 @@ static void ls_resize(List_t* ls, const int base_size) {
     }
     ls->size = new_ls->size;
 
-    YASL_Object* tmp_items = ls->items;
+    struct YASL_Object* tmp_items = ls->items;
     ls->items = new_ls->items;
     new_ls->items = tmp_items;
 
@@ -80,7 +83,7 @@ static void ls_resize_down(List_t* ls) {
     ls_resize(ls, new_size);
 }
 
-void ls_insert(List_t* ls, const int64_t index, const YASL_Object value) {
+void ls_insert(List_t* ls, const int64_t index, const struct YASL_Object value) {
     if (ls->count >= ls->size) ls_resize_up(ls);
     dec_ref(ls->items+index);
     ls->items[index] = value;
@@ -88,14 +91,14 @@ void ls_insert(List_t* ls, const int64_t index, const YASL_Object value) {
     inc_ref(&value);
 }
 
-void ls_append(List_t* ls, const YASL_Object value) {
+void ls_append(List_t* ls, const struct YASL_Object value) {
     if (ls->count >= ls->size) ls_resize_up(ls);
     ls->items[ls->count++] = value;
     inc_ref(&value);
 }
 
-YASL_Object ls_search(List_t* ls, int64_t index) {
-    if (index < -ls->count || index >= ls->count) return UNDEF_C;
+struct YASL_Object ls_search(List_t* ls, int64_t index) {
+    if (index < -ls->count || index >= ls->count) return (struct YASL_Object) { .type = Y_UNDEF, .value.ival = 0 };
     else if (0 <= index) return ls->items[index];
     else return ls->items[ls->count+index];
 }
@@ -103,7 +106,7 @@ YASL_Object ls_search(List_t* ls, int64_t index) {
 void ls_reverse(List_t *ls) {
     int64_t i;
     for(i = 0; i < ls->count/2; i++) {
-        YASL_Object tmp = ls->items[i];
+        struct YASL_Object tmp = ls->items[i];
         ls->items[i] = ls->items[ls->count-i-1];
         ls->items[ls->count-i-1] = tmp;
     }

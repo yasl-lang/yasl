@@ -26,33 +26,67 @@ const char *YASL_TYPE_NAMES[] = {
     "userdata", // Y_USERDATA_W
 };
 
-YASL_Object YASL_Undef(void) {
-    return (YASL_Object) { .type = Y_UNDEF, .value.ival = 0 };
+struct YASL_Object *YASL_Undef(void) {
+    struct YASL_Object *undef = malloc(sizeof(struct YASL_Object));
+    undef->type = Y_UNDEF;
+    undef->value.ival = 0;
+    return undef;
 }
-YASL_Object YASL_Float(double value) {
-    return (YASL_Object) { .type = Y_FLOAT64, .value.dval = value };
-}
-YASL_Object YASL_Integer(int64_t value) {
-    return (YASL_Object) { .type = Y_INT64, .value.ival = value };
-}
-YASL_Object YASL_Boolean(int value) {
-    return (YASL_Object) { .type = Y_BOOL, .value.ival = value };
-}
-
-YASL_Object YASL_String(String_t *str) {
-    return (YASL_Object) { .type = Y_STR, .value.sval = str };
+struct YASL_Object *YASL_Float(double value) {
+    struct YASL_Object *num = malloc(sizeof(struct YASL_Object));
+    num->type = Y_FLOAT64;
+    num->value.dval = value;
+    return num;
 }
 
-YASL_Object YASL_Table(struct Hash_s *ht) {
-    return (YASL_Object) { .type = Y_TABLE, .value.mval = ht };
+struct YASL_Object *YASL_Integer(int64_t value) {
+    struct YASL_Object *integer = malloc(sizeof(struct YASL_Object));
+    integer->type = Y_INT64;
+    integer->value.ival = value;
+    return integer;
 }
 
-YASL_Object YASL_UserPointer(void *userpointer) {
-    return (YASL_Object) { .type = Y_USERPTR, .value.pval = userpointer };
+struct YASL_Object *YASL_Boolean(int value) {
+    struct YASL_Object *boolean = malloc(sizeof(struct YASL_Object));
+    boolean->type = Y_BOOL;
+    boolean->value.ival = value;
+    return boolean;
 }
 
-//YASL_Object YASL_List();
-//YASL_Object YASL_Table();
+struct YASL_Object *YASL_String(String_t *str) {
+    struct YASL_Object *string = malloc(sizeof(struct YASL_Object));
+    string->type = Y_STR;
+    string->value.sval = str;
+    return string;
+}
+
+struct YASL_Object *YASL_Table() {
+    struct YASL_Object *table = malloc(sizeof(struct YASL_Object));
+    table->type = Y_TABLE;
+    table->value.mval = ht_new();
+    return table;
+}
+
+struct YASL_Object *YASL_UserPointer(void *userpointer) {
+    struct YASL_Object *userptr = malloc(sizeof(struct YASL_Object));
+    userptr->type = Y_USERPTR;
+    userptr->value.pval = userpointer;
+    return userptr;
+}
+
+struct YASL_Object *YASL_Function(int64_t index) {
+    struct YASL_Object *fn = malloc(sizeof(struct YASL_Object));
+    fn->type = Y_FN;
+    fn->value.ival = index;
+    return fn;
+}
+
+struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *)) {
+    struct YASL_Object *fn = malloc(sizeof(struct YASL_Object));
+    fn->type = Y_CFN;
+    fn->value.pval = value;
+    return fn;
+}
 
 int yasl_type_equals(YASL_Types a, YASL_Types b) {
     if (a == Y_STR_W || a == Y_LIST_W || a == Y_TABLE_W) a -= 1;
@@ -60,7 +94,7 @@ int yasl_type_equals(YASL_Types a, YASL_Types b) {
     return a == b;
 }
 
-int isfalsey(YASL_Object v) {
+int isfalsey(struct YASL_Object v) {
     // TODO: add NaN as falsey
     return (
             yasl_type_equals(v.type, Y_UNDEF) ||
@@ -70,7 +104,7 @@ int isfalsey(YASL_Object v) {
     );
 }
 
-YASL_Object isequal(YASL_Object a, YASL_Object b) {
+struct YASL_Object isequal(struct YASL_Object a, struct YASL_Object b) {
         if (yasl_type_equals(a.type, Y_UNDEF) || yasl_type_equals(b.type, Y_UNDEF)) {
             return UNDEF_C;
         }
@@ -133,11 +167,11 @@ YASL_Object isequal(YASL_Object a, YASL_Object b) {
                 printf("== and != not supported for operands of types %x and %x.\n", a.type, b.type);
                 return UNDEF_C;
             }
-            return (YASL_Object) {Y_BOOL, c};
+            return (struct YASL_Object) {Y_BOOL, c};
         }
 }
 
-int print(YASL_Object v) {
+int print(struct YASL_Object v) {
     int64_t i;
     switch (v.type) {
         case Y_INT64:

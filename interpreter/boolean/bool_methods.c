@@ -1,6 +1,6 @@
 #include "bool_methods.h"
 
-int bool_tostr(VM *vm) {
+int bool_tostr(struct VM *vm) {
     ASSERT_TYPE(vm, Y_BOOL, "bool.tostr");
     int64_t val = vm_pop(vm).value.ival;
     String_t* string;
