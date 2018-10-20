@@ -7,10 +7,6 @@ static int isbdigit(int c) {
     return c == '0' || c == '1';
 }
 
-static int isodigit(int c) {
-    return '0' <= c && c < '8';
-}
-
 static void lex_error(Lexer *lex) {
     free(lex->value);
     lex->value = NULL;
@@ -220,11 +216,6 @@ void gettok(Lexer *lex) {
         // binary literal
         if (c1 == '0' && (c2 == 'b' || c2 == 'B')) {
             if (lex_eatint(lex, 'b', &isbdigit)) return;
-        }
-
-        // octal literal
-        if (c1 == '0' && (c2 == 'c' || c2 == 'C')) {
-            if (lex_eatint(lex, 'o', &isodigit)) return;
         }
 
         // rewind, because we don't have an octal, hex, or binary number.
