@@ -3,6 +3,7 @@
 #include <color.h>
 #include <interpreter/float/float64_methods.h>
 #include "YASL_Object.h"
+//#include <interpreter/userdata/userdata.h>
 
 char *float64_to_str(double d);
 
@@ -60,6 +61,8 @@ struct YASL_Object *YASL_String(String_t *str) {
     return string;
 }
 
+
+
 struct YASL_Object *YASL_Table() {
     struct YASL_Object *table = malloc(sizeof(struct YASL_Object));
     table->type = Y_TABLE;
@@ -72,6 +75,13 @@ struct YASL_Object *YASL_UserPointer(void *userpointer) {
     userptr->type = Y_USERPTR;
     userptr->value.pval = userpointer;
     return userptr;
+}
+
+struct YASL_Object *YASL_UserData(void *userdata, int tag) {
+    struct YASL_Object *obj = malloc(sizeof(struct YASL_Object));
+    obj->type = Y_USERDATA;
+    obj->value.uval = ud_new(userdata, tag);
+    return obj;
 }
 
 struct YASL_Object *YASL_Function(int64_t index) {

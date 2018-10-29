@@ -71,10 +71,12 @@ typedef enum Opcode {
             LSTORE_1  = 0xF5, // store top of stack as local at addr
             GLOAD_1   = 0xF6, // load global from addr
             LLOAD_1   = 0xF7, // load local from addr
-            RET       = 0xF8, // return from function
-            CALL_8    = 0xF9, // function call (# of parameters (1 byte), addr (8 bytes), # of params (1 byte))
-            RCALL_8   = 0xFA, // tail recursive function call
-            BCALL_8   = 0xFB, // built-in function call
-            MCALL_8   = 0xFC, // method call
+            INIT_CALL = 0xF8,
+            CALL      = 0xF9,
+            RET       = 0xFA, // return from function
+            CALL_8    = 0xFB, // function call (# of parameters (1 byte), addr (8 bytes), # of params (1 byte))
+            RCALL_8   = 0xFC, // tail recursive function call
+            //BCALL_8   = 0xFB, // built-in function call
+            //MCALL_8   = 0xFC, // method call
             PRINT     = 0xFF, // print
 } Opcode;

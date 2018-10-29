@@ -2,6 +2,8 @@
 #include <interpreter/VM/VM.h>
 #include <interpreter/table/table_methods.h>
 #include <interpreter/YASL_Object/YASL_Object.h>
+#include <interpreter/YASL_string/YASL_string.h>
+#include <interpreter/userdata/userdata.h>
 #include "yasl.h"
 #include "yasl_state.h"
 #include "compiler.h"
@@ -116,6 +118,10 @@ int YASL_pushobject(struct YASL_State *S, struct YASL_Object *obj) {
     return YASL_SUCCESS;
 }
 
+struct YASL_Object *YASL_popobject(struct YASL_State *S) {
+    return &S->vm->stack[S->vm->sp--];
+}
+
 int YASL_Table_set(struct YASL_Object *table, struct YASL_Object *key, struct YASL_Object *value) {
     if (!table || !key || !value) return YASL_ERROR;
 
@@ -125,62 +131,95 @@ int YASL_Table_set(struct YASL_Object *table, struct YASL_Object *key, struct YA
     ht_insert(table->value.mval, *key, *value);
 }
 
- /*
+struct YASL_Object *YASL_LiteralString(char *str) {
+    return YASL_String(str_new_sized_from_mem(0, strlen(str), str));
+}
 
-int YASL_isundef(YASL_Object *obj);
-
-
-int YASL_isboolean(YASL_Object *obj);
-
-
-int YASL_isdouble(YASL_Object *obj);
+struct YASL_Object *YASL_CString(char *str) {
+    return YASL_String(str_new_sized(str, strlen(str)));
+}
 
 
-int YASL_isinteger(YASL_Object *obj);
+
+int YASL_isundef(struct YASL_Object *obj) {
+    return obj->type != Y_UNDEF;
+}
 
 
-int YASL_isstring(YASL_Object *obj);
+int YASL_isboolean(struct YASL_Object *obj) {
+    return obj->type != Y_BOOL;
+}
 
 
-int YASL_islist(YASL_Object *obj);
+int YASL_isdouble(struct YASL_Object *obj) {
+    return obj->type != Y_FLOAT64;
+}
 
 
-int YASL_istable(YASL_Object *obj);
+int YASL_isinteger(struct YASL_Object *obj) {
+    return obj->type != Y_INT64;
+}
+
+int YASL_isstring(struct YASL_Object *obj) {
+    return obj->type != Y_STR && obj->type != Y_STR_W;
+}
+
+int YASL_islist(struct YASL_Object *obj) {
+    return obj->type != Y_LIST && obj->type != Y_LIST_W;
+}
+
+int YASL_istable(struct YASL_Object *obj) {
+    return obj->type != Y_TABLE && obj->type != Y_TABLE_W;
+}
+
+int YASL_isfunction(struct YASL_Object *obj);
 
 
-int YASL_isfunction(YASL_Object *obj);
+int YASL_iscfunction(struct YASL_Object *obj);
 
 
-int YASL_iscfunction(YASL_Object *obj);
+int YASL_isuserdata(struct YASL_Object *obj, int tag) {
+    return obj->type != Y_USERDATA && obj->type != Y_USERDATA_W && obj->value.uval->tag != tag;
+}
 
 
-int YASL_isuserdata(YASL_Object *obj);
+int YASL_isuserpointer(struct YASL_Object *obj);
 
 
-int YASL_isuserpointer(YASL_Object *obj);
+int YASL_getboolean(struct YASL_Object *obj);
 
 
-int YASL_getboolean(YASL_Object *obj);
+double YASL_getdouble(struct YASL_Object *obj);
 
 
-double YASL_getdouble(YASL_Object *obj);
+int64_t YASL_getinteger(struct YASL_Object *obj);
 
 
-int64_t YASL_getinteger(YASL_Object *obj);
+char *YASL_getcstring(struct YASL_Object *obj) {
+    if (YASL_isstring(obj) != YASL_SUCCESS) return NULL;
+
+    char *tmp = malloc(yasl_string_len(obj->value.sval) + 1);
+
+    memcpy(tmp, obj->value.sval->str + obj->value.sval->start, yasl_string_len(obj->value.sval));
+    tmp[yasl_string_len(obj->value.sval)] = '\0';
+
+    return tmp;
+}
 
 
-char *YASL_getcstring(YASL_Object *obj);
+char *YASL_getstring(struct YASL_Object *obj);
 
 
-char *YASL_getstring(YASL_Object *obj);
+// int (*)(struct YASL_State) *YASL_getcfunction(struct YASL_Object *obj);
 
 
-int (*)(struct YASL_State) *YASL_getcfunction(YASL_Object *obj);
+void *YASL_getuserdata(struct YASL_Object *obj) {
+    if (obj->type == Y_USERDATA || obj->type == Y_USERDATA_W) {
+        return obj->value.uval->data;
+    }
+    return NULL;
+}
 
 
-void *YASL_getuserdata(YASL_Object *obj);
+void *YASL_getuserpointer(struct YASL_Object *obj);
 
-
-void *YASL_getuserpointer(YASL_Object *obj);
-
- */

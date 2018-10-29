@@ -51,6 +51,7 @@ add_executable(YASL
         interpreter/refcount/refcount.c
         interpreter/YASL_string/str_methods.c
         interpreter/YASL_string/YASL_string.c
+        interpreter/userdata/userdata.c
         prime/prime.c)
 
 add_executable(YASLTEST
@@ -77,6 +78,7 @@ add_executable(YASLTEST
         interpreter/YASL_string/YASL_string.c
         interpreter/refcount/refcount.c
         interpreter/list/list.c
+        interpreter/userdata/userdata.c
         prime/prime.c
         compiler/compiler/env/env.c)
 
@@ -103,6 +105,7 @@ add_library(yaslapi
         interpreter/refcount/refcount.c
         interpreter/YASL_string/str_methods.c
         interpreter/YASL_string/YASL_string.c
+        interpreter/userdata/userdata.c
         prime/prime.c)
 
 target_link_libraries(YASL m)
