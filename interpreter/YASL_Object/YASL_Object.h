@@ -35,6 +35,7 @@ typedef enum {
 
 struct List_s;
 struct Hash_s;
+struct UserData_s;
 
 struct YASL_Object {
     YASL_Types type;
@@ -44,6 +45,7 @@ struct YASL_Object {
         String_t *sval;
         struct List_s *lval;
         struct Hash_s *mval;
+        struct UserData_s *uval;
         FILE *fval;
         void *pval;
     } value;

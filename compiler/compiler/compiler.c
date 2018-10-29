@@ -339,10 +339,17 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const Node *cons
 
 static void visit_Call(struct Compiler *const compiler, const Node *const node) {
     YASL_TRACE_LOG("Visit Call: %s\n", node->name);
+    visit(compiler, node->children[1]);
+    bb_add_byte(compiler->buffer, INIT_CALL);
+    visit_Body(compiler, node->children[0]);
+    bb_add_byte(compiler->buffer, CALL);
+    /*
     visit_Body_reverse(compiler, node->children[0]);
+
     visit(compiler, node->children[1]);
     bb_add_byte(compiler->buffer, CALL_8);
     bb_add_byte(compiler->buffer, node->children[0]->children_len);
+*/
 }
 
 static void visit_Return(struct Compiler *const compiler, const Node *const node) {

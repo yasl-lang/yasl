@@ -81,6 +81,8 @@ int YASL_pushboolean(struct YASL_State *S, int value);
  */
 int YASL_pushcstring(struct YASL_State *S, char *value);
 
+int YASL_pushliteralstring(struct YASL_State *S, char *value);
+
 /**
  * Pushes a string of given size onto the stack.
  * @param S the YASL_State onto which to push the string.
@@ -114,6 +116,8 @@ int YASL_pushuserpointer(struct YASL_State *S, void *userpointer);
  */
 int YASL_pushobject(struct YASL_State *S, struct YASL_Object *obj);
 
+struct YASL_Object *YASL_popobject(struct YASL_State *S);
+
 /**
  * Makes a new YASL_Table
  * @return the YASL_Table
@@ -124,7 +128,10 @@ struct YASL_Object *YASL_Integer(int64_t);
 struct YASL_Object *YASL_Undef(void);
 struct YASL_Object *YASL_Float(double value);
 struct YASL_Object *YASL_Boolean(int value);
+struct YASL_Object *YASL_LiteralString(char *str);
+struct YASL_Object *YASL_CString(char *str);
 struct YASL_Object *YASL_UserPointer(void *userdata);
+struct YASL_Object *YASL_UserData(void *userdata, int tag);
 struct YASL_Object *YASL_Function(int64_t index);
 struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *));
 
@@ -142,130 +149,130 @@ int YASL_Table_set(struct YASL_Object *table, struct YASL_Object *key, struct YA
  * @param obj the given YASL_Object.
  * @return true if the given YASL_Object is undef, else false.
  */
-//int YASL_isundef(YASL_Object *obj);
+int YASL_isundef(struct YASL_Object *obj);
 
 /**
  * Checks if given YASL_Object is boolean.
  * @param obj the given YASL_Object.
  * @return true if the given YASL_Object is boolean, else false.
  */
-//int YASL_isboolean(YASL_Object *obj);
+int YASL_isboolean(struct YASL_Object *obj);
 
 /**
  * Checks if given YASL_Object is double.
  * @param obj the given YASL_Object.
  * @return true if the given YASL_Object is double, else false.
  */
-//int YASL_isdouble(YASL_Object *obj);
+int YASL_isdouble(struct YASL_Object *obj);
 
 /**
  * Checks if given YASL_Object is integer.
  * @param obj the given YASL_Object.
  * @return true if the given YASL_Object is integer, else false.
  */
-//int YASL_isinteger(YASL_Object *obj);
+int YASL_isinteger(struct YASL_Object *obj);
 
 /**
  * Checks if given YASL_Object is string.
  * @param obj the given YASL_Object.
  * @return true if the given YASL_Object is string, else false.
  */
-//int YASL_isstring(YASL_Object *obj);
+int YASL_isstring(struct YASL_Object *obj);
 
 /**
  * Checks if given YASL_Object is list.
  * @param obj the given YASL_Object.
  * @return true if the given YASL_Object is list, else false.
  */
-//int YASL_islist(YASL_Object *obj);
+int YASL_islist(struct YASL_Object *obj);
 
 /**
  * Checks if given YASL_Object is table.
  * @param obj the given YASL_Object.
  * @return true if the given YASL_Object is table, else false.
  */
-//int YASL_istable(YASL_Object *obj);
+int YASL_istable(struct YASL_Object *obj);
 
 /**
  * Checks if given YASL_Object is function.
  * @param obj the given YASL_Object.
  * @return true if the given YASL_Object is function, else false.
  */
-//int YASL_isfunction(YASL_Object *obj);
+int YASL_isfunction(struct YASL_Object *obj);
 
 /**
  * Checks if given YASL_Object is C function.
  * @param obj the given YASL_Object.
  * @return true if the given YASL_Object is a C function, else false.
  */
-//int YASL_iscfunction(YASL_Object *obj);
+int YASL_iscfunction(struct YASL_Object *obj);
 
 /**
  * Checks if given YASL_Object is userdata.
  * @param obj the given YASL_Object.
  * @return true if the given YASL_Object is userdata, else false.
  */
-//int YASL_isuserdata(YASL_Object *obj);
+int YASL_isuserdata(struct YASL_Object *obj, int tag);
 
 /**
  * Checks if given YASL_Object is userpointer.
  * @param obj the given YASL_Object.
  * @return true if the given YASL_Object is userpointer, else false.
  */
-//int YASL_isuserpointer(YASL_Object *obj);
+int YASL_isuserpointer(struct YASL_Object *obj);
 
 /**
  * Retrieves the boolean value of the YASL_Object.
  * @param obj the given YASL_Object.
  * @return the boolean value of the given YASL_Object, or false if the YASL_Object doesn't have type bool.
  */
-//int YASL_getboolean(YASL_Object *obj);
+int YASL_getboolean(struct YASL_Object *obj);
 
 /**
  * Retrieves the double value of the YASL_Object.
  * @param obj the given YASL_Object.
  * @return the double value of the given YASL_Object, or 0.0 if the YASL_Object doesn't have type double.
  */
-//double YASL_getdouble(YASL_Object *obj);
+double YASL_getdouble(struct YASL_Object *obj);
 
 /**
  * Retrieves the integer value of the YASL_Object.
  * @param obj the given YASL_Object.
  * @return the integer value of the given YASL_Object, or 0 if the YASL_Object doesn't have type integer.
  */
-//int64_t YASL_getinteger(YASL_Object *obj);
+int64_t YASL_getinteger(struct YASL_Object *obj);
 
 /**
  * Retrieves the null-terminated string value of the YASL_Object.
  * @param obj the given YASL_Object.
  * @return the null-terminated string value of the given YASL_Object, or NULL if the YASL_Object doesn't have type string.
  */
-//char *YASL_getcstring(YASL_Object *obj);
+char *YASL_getcstring(struct YASL_Object *obj);
 
 /**
  * Retrieves the string value of the YASL_Object.
  * @param obj the given YASL_Object.
  * @return the string value of the given YASL_Object, or NULL if the YASL_Object doesn't have type string.
  */
-//char *YASL_getstring(YASL_Object *obj);
+char *YASL_getstring(struct YASL_Object *obj);
 
 /**
  * Retrieves the C function value of the YASL_Object.
  * @param obj the given YASL_Object.
  * @return the C function value of the given YASL_Object, or NULL if the YASL_Object doesn't have type C function.
  */
-//int (*)(struct YASL_State) *YASL_getcfunction(YASL_Object *obj);
+//int (*)(struct YASL_State) *YASL_getcfunction(struct YASL_Object *obj);
 
 /**
  * Retrieves the userdata value of the YASL_Object.
  * @param obj the given YASL_Object.
  * @return the userdata value of the given YASL_Object, or NULL if the YASL_Object doesn't have type userdata.
  */
-//void *YASL_getuserdata(YASL_Object *obj);
+void *YASL_getuserdata(struct YASL_Object *obj);
 
 /**
  * Retrieves the userpointer value of the YASL_Object.
  * @param obj the given YASL_Object.
  * @return the userpointer value of the given YASL_Object, or NULL if the YASL_Object doesn't have type userpointer.
  */
-//void *YASL_getuserpointer(YASL_Object *obj);
+void *YASL_getuserpointer(struct YASL_Object *obj);
