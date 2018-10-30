@@ -44,7 +44,8 @@ struct VM* vm_new(unsigned char *code,    // pointer to bytecode
     vm->code = code;
     vm->pc = pc0;
     vm->pc0 = vm->pc;
-    vm->fp = 0;
+    vm->fp = -1;
+    vm->lp = -1;
     vm->sp = -1;
     vm->globals = calloc(sizeof(struct YASL_Object), datasize);
 
@@ -587,37 +588,40 @@ void vm_run(struct VM *vm){
                 break;
             }
             case INITFOR:
-                vm_loopstack_push(vm, POP(vm));
-                LOOPSTACK_INDEX(vm) = 0;
+                vm_push(vm, YASL_Integer(0));
+                vm_push(vm, YASL_Integer(vm->lp));
+                vm->lp = vm->sp - 2;
                 break;
             case ENDFOR:
-                vm->loopstack->sp--;
+                vm->lp = vm_pop(vm).value.ival;
+                vm_pop(vm);
+                vm_pop(vm);
                 break;
             case ITER_1:
-                switch (LOOPSTACK_PEEK(vm).type) {
+                switch (vm->stack[vm->lp].type) {
                     case Y_LIST:
-                        if (LOOPSTACK_PEEK(vm).value.lval->count <= LOOPSTACK_INDEX(vm)) {
-                            BPUSH(vm, 0);
+                        if (vm->stack[vm->lp].value.lval->count <= vm->stack[vm->lp + 1].value.ival) {
+                            vm_push(vm, YASL_Boolean(0));
                         } else {
-                            vm_push(vm, &LOOPSTACK_PEEK(vm).value.lval->items[LOOPSTACK_INDEX(vm)++]); //.value.lval->items;
-                            BPUSH(vm, 1);
+                            vm_push(vm, &vm->stack[vm->lp].value.lval->items[vm->stack[vm->lp + 1].value.ival++]);
+                            vm_push(vm, YASL_Boolean(1));
                         }
                         break;
                     case Y_TABLE:
-                        while ((LOOPSTACK_PEEK(vm).value.mval->items[LOOPSTACK_INDEX(vm)] == &TOMBSTONE ||
-                                LOOPSTACK_PEEK(vm).value.mval->items[LOOPSTACK_INDEX(vm)] == NULL) &&
-                                LOOPSTACK_PEEK(vm).value.mval->size > LOOPSTACK_INDEX(vm)) {
-                            LOOPSTACK_INDEX(vm)++;
+                        while ((vm->stack[vm->lp].value.mval->items[vm->stack[vm->lp + 1].value.ival] == &TOMBSTONE ||
+                                vm->stack[vm->lp].value.mval->items[vm->stack[vm->lp + 1].value.ival] == NULL
+                        ) && vm->stack[vm->lp].value.mval->size > vm->stack[vm->lp + 1].value.ival) {
+                            vm->stack[vm->lp + 1].value.ival++;
                         }
-                        if (LOOPSTACK_PEEK(vm).value.mval->size <= LOOPSTACK_INDEX(vm)) {
-                            BPUSH(vm, 0);
+                        if (vm->stack[vm->lp].value.mval->size <= vm->stack[vm->lp + 1].value.ival) {
+                            vm_push(vm, YASL_Boolean(0));
                             break;
                         }
-                        vm_push(vm, LOOPSTACK_PEEK(vm).value.mval->items[LOOPSTACK_INDEX(vm)++]->key); //.value.lval->items;
-                        BPUSH(vm, 1);
+                        vm_push(vm, vm->stack[vm->lp].value.mval->items[vm->stack[vm->lp + 1].value.ival++]->key);
+                        vm_push(vm, YASL_Boolean(1));
                         break;
                     default:
-                        printf("object of type %s is not iterable.\n", YASL_TYPE_NAMES[LOOPSTACK_PEEK(vm).type]);
+                        printf("object of type %s is not iterable.\n", YASL_TYPE_NAMES[vm->stack[vm->lp].type]);
                         exit(EXIT_FAILURE);
                 }
                 break;
