@@ -43,20 +43,6 @@
                             }\
                             BPUSH(vm, c);})
 
-typedef struct {
-    struct YASL_Object *stack;
-    int64_t *indices;
-    int sp;
-} LoopStack;
-
-typedef struct {
-    struct YASL_Object *stack;
-    int64_t *fp;
-    int64_t *sp;
-    int fsp;
-    int index;
-} FunctionStack;
-
 struct VM{
 	struct YASL_Object *globals;          // variables, see "constant.c" for details on YASL_Object.
     int64_t num_globals;
@@ -68,8 +54,6 @@ struct VM{
 	int fp;                     // frame pointer
     int lp;                     // foreach pointer
 	Hash_t **builtins_htable;   // htable of builtin methods
-    LoopStack *loopstack;
-    FunctionStack *functionstack;
 };
 
 struct VM* vm_new(unsigned char *code,    // pointer to bytecode

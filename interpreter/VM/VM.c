@@ -16,14 +16,6 @@ static struct YASL_Object *YASL_End() {
 }
 #include "operator_names.h"
 
-static LoopStack *loopstack_new(void) {
-    LoopStack *ls = malloc(sizeof(LoopStack));
-    ls->indices = malloc(sizeof(int64_t)*6);
-    ls->stack = calloc(6, sizeof(struct YASL_Object));
-    ls->sp = -1;
-    return ls;
-}
-
 static Hash_t **builtins_htable_new(void) {
     Hash_t **ht = malloc(sizeof(Hash_t*) * NUM_TYPES);
     ht[Y_FLOAT64] = float64_builtins();
@@ -61,7 +53,6 @@ struct VM* vm_new(unsigned char *code,    // pointer to bytecode
 
 
     vm->builtins_htable = builtins_htable_new();
-    vm->loopstack = loopstack_new();
     return vm;
 }
 
@@ -85,22 +76,7 @@ void vm_del(struct VM *vm) {
     ht_del_string_int(vm->builtins_htable[Y_FILE]);
     free(vm->builtins_htable);
 
-    for (int i = 0; i < 6; i++) dec_ref(&vm->loopstack->stack[i]);
-    free(vm->loopstack->stack);
-    free(vm->loopstack->indices);
-    free(vm->loopstack);
-
     free(vm);
-}
-
-#define LOOPSTACK_PEEK(vm) (vm->loopstack->stack[vm->loopstack->sp])
-#define LOOPSTACK_INDEX(vm) (vm->loopstack->indices[vm->loopstack->sp])
-
-void vm_loopstack_push(struct VM *vm, struct YASL_Object val) {
-    vm->loopstack->sp++;
-    dec_ref(vm->loopstack->stack + vm->loopstack->sp);
-    vm->loopstack->stack[vm->loopstack->sp] = val;
-    inc_ref(vm->loopstack->stack + vm->loopstack->sp);
 }
 
 void vm_push(struct VM *vm, struct YASL_Object *val) {
