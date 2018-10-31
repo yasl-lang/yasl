@@ -22,116 +22,6 @@ int yasl_print(struct VM* vm) {
     return return_value;
 }
 
-int yasl_input(struct VM* vm) {
-    print(POP(vm));
-    printf("\n");
-    int ch;
-    size_t len = 0;
-    size_t size = 10;
-    char *str = realloc(NULL, sizeof(char)*size);
-
-    if (!str) return -1; // ERROR
-    while(EOF!=(ch=fgetc(stdin)) && ch != '\n'){
-        str[len++]=ch;
-        if(len==size){
-            str = realloc(str, sizeof(char)*(size+=16));
-            if(!str)return -1; // ERROR
-        }
-    }
-    str = realloc(str, sizeof(char)*len);
-    vm->stack[++vm->sp].value.sval = str_new_sized(len, str);
-    vm->stack[vm->sp].type = Y_STR;
-    return 0;
-}
-
-int yasl_open(struct VM* vm) {     //TODO: fix bug relating to file pointer
-    struct YASL_Object str = POP(vm);
-    struct YASL_Object mode_str = POP(vm);
-    if (mode_str.type != Y_STR) {
-        printf("Error: open(...) expected type %s as second argument, got type %s\n", YASL_TYPE_NAMES[Y_STR], YASL_TYPE_NAMES[str.type]);
-        return -1;
-    }
-    if (str.type != Y_STR) {
-        printf("Error: open(...) expected type %s as first argument, got type %s\n", YASL_TYPE_NAMES[Y_STR], YASL_TYPE_NAMES[str.type]);
-        return -1;
-    }
-    char *buffer = malloc(yasl_string_len(str.value.sval) + 1);
-    memcpy(buffer, (str.value.sval)->str + str.value.sval->start, yasl_string_len(str.value.sval));
-    buffer[str.value.sval->end - str.value.sval->start] = '\0';
-    char *mode = malloc(str.value.sval->end - str.value.sval->start + 1);
-    memcpy(mode, mode_str.value.sval->str + mode_str.value.sval->start, yasl_string_len(str.value.sval));
-    mode[yasl_string_len(mode_str.value.sval)] = '\0';
-
-    FILE *f;  // r, w, a, r+, w+, a+
-    if (!strcmp(mode, "r")) {
-        f = fopen(buffer, "r");
-    } else if (!strcmp(mode, "w")) {
-        f = fopen(buffer, "w");
-    } else if (!strcmp(mode, "a")) {
-        f = fopen(buffer, "a");
-    } else if (!strcmp(mode, "r+")) {
-        f = fopen(buffer, "r+");
-    } else if (!strcmp(mode, "w+")) {
-        f = fopen(buffer, "w+");
-    } else if (!strcmp(mode, "a+")) {
-        f = fopen(buffer, "a+");
-    } else if (!strcmp(mode, "rb")) {
-        f = fopen(buffer, "rb");
-    } else if (!strcmp(mode, "wb")) {
-        f = fopen(buffer, "wb");
-    } else if (!strcmp(mode, "ab")) {
-        f = fopen(buffer, "ab");
-    } else {
-        printf("Error: invalid second argument: %s\n", mode);
-        return -1;
-    }
-    // TODO: handle error properly
-    if (!f)perror("fopen");
-
-    free(buffer);
-    free(mode);
-    struct YASL_Object *file = malloc(sizeof(struct YASL_Object));
-    file->type = Y_FILE;
-    file->value.fval = f;
-    vm_push(vm, file);
-    YASL_DEBUG_LOG("%s\n", "file opened successfully.");
-    return 0;
-}
-
-
-int yasl_popen(struct VM* vm) {     //TODO: fix bug relating to file pointer
-    struct YASL_Object str = POP(vm);
-    struct YASL_Object mode_str = POP(vm);
-    if (mode_str.type != Y_STR) {
-        printf("Error: popen(...) expected type %x as second argument, got type %x\n", Y_STR, str.type);
-        return -1;
-    }
-    if (str.type != Y_STR) {
-        printf("Error: popen(...) expected type %x as first argument, got type %x\n", Y_STR, str.type);
-        return -1;
-    }
-    char *buffer = malloc(yasl_string_len(str.value.sval) + 1);
-    memcpy(buffer, (str.value.sval)->str, yasl_string_len(str.value.sval));
-    buffer[yasl_string_len(str.value.sval)] = '\0';
-    char *mode = malloc(yasl_string_len(mode_str.value.sval) + 1);
-    memcpy(mode, (mode_str.value.sval)->str, yasl_string_len(mode_str.value.sval));
-    mode[yasl_string_len(mode_str.value.sval)] = '\0';
-
-    FILE *f;  // r, w, a, r+, w+, a+
-    if (!strcmp(mode, "r")) {
-        f = popen(buffer, "r");
-    } else if (!strcmp(mode, "w")) {
-        f = popen(buffer, "w");
-    } else {
-        printf("Error: invalid second argument: %s\n", mode);
-        return -1;
-    }
-    vm->stack[++vm->sp].value.fval = f;
-    vm->stack[vm->sp].type = Y_FILE;
-    YASL_DEBUG_LOG("%s\n", "process opened successfully.");
-    return 0;
-}
-
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *                                                                                                                   *
  *                                                                                                                   *
@@ -205,16 +95,6 @@ Hash_t* table_builtins() {
     ht_insert_string_int(ht, "copy",  strlen("copy"),  (int64_t) &table_clone);
     ht_insert_string_int(ht, "__get",  strlen("__get"),  (int64_t) &table___get);
     ht_insert_string_int(ht, "__set",  strlen("__set"),  (int64_t) &table___set);
-    return ht;
-}
-
-Hash_t* file_builtins() {
-    Hash_t* ht = ht_new();
-    ht_insert_string_int(ht, "close",    strlen("close"),    (int64_t)&file_close);
-    ht_insert_string_int(ht, "pclose",   strlen("pclose"),   (int64_t)&file_pclose);
-    ht_insert_string_int(ht, "read",     strlen("read"),     (int64_t)&file_read);
-    ht_insert_string_int(ht, "write",    strlen("write"),    (int64_t)&file_write);
-    ht_insert_string_int(ht, "readline", strlen("readline"), (int64_t)&file_readline);
     return ht;
 }
 

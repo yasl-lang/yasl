@@ -19,7 +19,6 @@ const char *YASL_TYPE_NAMES[] = {
     "list",     // Y_LIST_W,
     "table",    // Y_TABLE,
     "table",    // Y_TABLE_W,
-    "file",     // Y_FILE,
     "fn",       // Y_FN,
     "mn",       // Y_BFN,
     "userptr",  // Y_USERPTR,
@@ -215,17 +214,6 @@ int print(struct YASL_Object v) {
             //ls_print((List_t*)v.value);
             // printf("<list %" PRIx64 ">", v.value);
             break; */
-        case Y_FILE:
-            if (v.value.fval == stdin) {
-                printf("stdin");
-            } else if (v.value.fval == stdout) {
-                printf("stdout");
-            } else if (v.value.fval == stderr) {
-                printf("stderr");
-            } else {
-                printf("<file %" PRIx64 ">", v.value.ival);
-            }
-            break;
         case Y_FN:
             printf("<fn: %" PRIx64 ">", v.value.ival);
             break;

@@ -24,7 +24,6 @@ static Hash_t **builtins_htable_new(void) {
     ht[Y_STR] = str_builtins();
     ht[Y_LIST] = list_builtins();
     ht[Y_TABLE] = table_builtins();
-    ht[Y_FILE] = file_builtins();
 
     return ht;
 }
@@ -42,12 +41,6 @@ struct VM* vm_new(unsigned char *code,    // pointer to bytecode
     vm->globals = calloc(sizeof(struct YASL_Object), datasize);
 
     vm->num_globals = datasize;
-    vm->globals[0] = (struct YASL_Object) {Y_FILE, (int64_t)stdin};
-    vm->globals[1] = (struct YASL_Object) {Y_FILE, (int64_t)stdout};
-    vm->globals[2] = (struct YASL_Object) {Y_FILE, (int64_t)stderr};
-    vm->globals[3] = (struct YASL_Object) {Y_BFN,  (int64_t)&yasl_open};
-    vm->globals[4] = (struct YASL_Object) {Y_BFN,  (int64_t)&yasl_popen};
-    vm->globals[5] = (struct YASL_Object) {Y_BFN,  (int64_t)&yasl_input};
 
     vm->stack = calloc(sizeof(struct YASL_Object), STACK_SIZE);
 
@@ -73,7 +66,6 @@ void vm_del(struct VM *vm) {
     ht_del_string_int(vm->builtins_htable[Y_STR]);
     ht_del_string_int(vm->builtins_htable[Y_LIST]);
     ht_del_string_int(vm->builtins_htable[Y_TABLE]);
-    ht_del_string_int(vm->builtins_htable[Y_FILE]);
     free(vm->builtins_htable);
 
     free(vm);

@@ -16,7 +16,6 @@ include_directories(compiler/parser)
 include_directories(hashtable)
 include_directories(interpreter/boolean)
 include_directories(interpreter/builtins)
-include_directories(interpreter/file)
 include_directories(interpreter/float)
 include_directories(interpreter/integer)
 include_directories(interpreter/list)
@@ -39,7 +38,6 @@ add_executable(YASL
         hashtable/hashtable.c
         interpreter/boolean/bool_methods.c
         interpreter/builtins/builtins.c
-        interpreter/file/file_methods.c
         interpreter/float/float64_methods.c
         interpreter/float/float64.c
         interpreter/integer/int64_methods.c
@@ -93,7 +91,6 @@ add_library(yaslapi
         hashtable/hashtable.c
         interpreter/boolean/bool_methods.c
         interpreter/builtins/builtins.c
-        interpreter/file/file_methods.c
         interpreter/float/float64_methods.c
         interpreter/float/float64.c
         interpreter/integer/int64_methods.c
