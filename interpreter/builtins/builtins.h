@@ -12,7 +12,6 @@
 #include "../integer/int64_methods.h"
 #include "../boolean/bool_methods.h"
 #include "interpreter/table/table_methods.h"
-#include "../file/file_methods.h"
 #include "../list/list_methods.h"
 
 int yasl_print(struct VM* vm);

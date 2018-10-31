@@ -24,7 +24,6 @@ typedef enum {
     Y_LIST_W,
     Y_TABLE,
     Y_TABLE_W,
-    Y_FILE,
     Y_FN,
     Y_BFN,
     Y_CFN,
@@ -69,7 +68,7 @@ int yasl_type_equals(YASL_Types a, YASL_Types b);
 void inc_ref(struct YASL_Object *v);
 void dec_ref(struct YASL_Object *v);
 
-const char *YASL_TYPE_NAMES[16];
+const char *YASL_TYPE_NAMES[15];
 
 #define ASSERT_TYPE(vm, expected_type, name) do {\
                     if (vm->stack[vm->sp].type != expected_type) {\

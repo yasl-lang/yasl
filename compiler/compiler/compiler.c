@@ -16,13 +16,6 @@ struct Compiler *compiler_new(Parser *const parser) {
     compiler->globals = env_new(NULL);
     compiler->params = NULL;
     compiler->locals = NULL;
-    //printf("%p, %p, %p\n", &compiler->globals, &compiler->params, &compiler->locals);
-    env_decl_var(compiler->globals, "stdin", strlen("stdin"));
-    env_decl_var(compiler->globals, "stdout", strlen("stdout"));
-    env_decl_var(compiler->globals, "stderr", strlen("stderr"));
-    env_decl_var(compiler->globals, "open", strlen("open"));
-    env_decl_var(compiler->globals, "popen", strlen("popen"));
-    env_decl_var(compiler->globals, "input", strlen("input"));
 
     compiler->functions = ht_new();
     compiler->offset = 0;
