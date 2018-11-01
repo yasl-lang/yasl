@@ -68,8 +68,8 @@ static Node *parse_program(Parser *const parser) {
     YASL_TRACE_LOG("parsing statement in line %d\n", parser->lex->line);
     int64_t line;
     switch (curtok(parser)) {
-        case T_PRINT:
-            eattok(parser, T_PRINT);
+        case T_ECHO:
+            eattok(parser, T_ECHO);
             return new_Print(parse_expr(parser), parser->lex->line);
         case T_FN: return parse_fn(parser);
         case T_RET:
@@ -510,7 +510,7 @@ static Node *parse_multiply(Parser *const parser) {
 static Node *parse_unary(Parser *const parser) {
     YASL_TRACE_LOG("parsing ! in line %d\n", parser->lex->line);
     if (curtok(parser) == T_PLUS || curtok(parser) == T_MINUS || curtok(parser) == T_BANG ||
-     curtok(parser) == T_CARET ||curtok(parser) == T_AT) {
+     curtok(parser) == T_CARET ||curtok(parser) == T_LEN) {
         Token op = eattok(parser, curtok(parser));
         return new_UnOp(op, parse_unary(parser), parser->lex->line);
     } else {
@@ -605,7 +605,7 @@ static Node *parse_constant(Parser *const parser) {
         case T_BOOL: return parse_boolean(parser);
         case T_UNDEF: return parse_undef(parser);
         // handle invalid expressions with sensible error messages.
-        case T_PRINT:
+        case T_ECHO:
         case T_FN:
         case T_LET:
         case T_WHILE:

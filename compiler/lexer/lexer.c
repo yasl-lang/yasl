@@ -395,7 +395,7 @@ static Token YASLToken_OneChar(char c1) {
         case '+': return T_PLUS;
         case '-': return T_MINUS;
         case '#': return T_HASH;
-        case '@': return T_AT;
+        //case '@': return T_AT;
         case '!': return T_BANG;
         case '~': return T_TILDE;
         case '*': return T_STAR;
@@ -477,10 +477,11 @@ static void YASLKeywords(Lexer *lex) {
     else if (matches_keyword(lex, "if")) set_keyword(lex, T_IF);
     else if (matches_keyword(lex, "in")) set_keyword(lex, T_IN);
     else if (matches_keyword(lex, "let")) set_keyword(lex, T_LET);
-    else if (matches_keyword(lex, "print")) set_keyword(lex, T_PRINT);
+    else if (matches_keyword(lex, "echo")) set_keyword(lex, T_ECHO);
     else if (matches_keyword(lex, "return")) set_keyword(lex, T_RET);
     else if (matches_keyword(lex, "undef")) set_keyword(lex, T_UNDEF);
     else if (matches_keyword(lex, "while")) set_keyword(lex, T_WHILE);
+    else if (matches_keyword(lex, "len")) set_keyword(lex, T_LEN);
     // NOTE: special case for bools and floats
     else if (matches_keyword(lex, "nan") || matches_keyword(lex, "inf")) lex->type = T_FLOAT64;
     else if (matches_keyword(lex, "true") || matches_keyword(lex, "false")) lex->type = T_BOOL;
@@ -509,7 +510,8 @@ const char *YASL_TOKEN_NAMES[] = {
         "fn",           // T_FN,
         "return",       // T_RET,
         "enum",         // T_ENUM,
-        "print",        // T_PRINT,
+        "echo",         // T_PRINT,
+        "len",
         "(",            // LPAR,
         ")",            // RPAR,
         "[",            // LSQB,
