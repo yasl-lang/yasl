@@ -2,6 +2,7 @@
 #include <string.h>
 #include <color.h>
 #include <interpreter/float/float64_methods.h>
+#include <interpreter/userdata/userdata.h>
 #include "YASL_Object.h"
 //#include <interpreter/userdata/userdata.h>
 
@@ -90,10 +91,12 @@ struct YASL_Object *YASL_Function(int64_t index) {
     return fn;
 }
 
-struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *)) {
+struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *), int num_args) {
     struct YASL_Object *fn = malloc(sizeof(struct YASL_Object));
     fn->type = Y_CFN;
-    fn->value.pval = value;
+    fn->value.pval = malloc(sizeof(struct CFunction_s));
+    fn->value.cval->value = value;
+    fn->value.cval->num_args = num_args;
     return fn;
 }
 

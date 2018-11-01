@@ -35,6 +35,10 @@ typedef enum {
 struct List_s;
 struct Hash_s;
 struct UserData_s;
+struct CFunction_s {
+    int num_args;
+    int (*value)(struct YASL_State *);
+};
 
 struct YASL_Object {
     YASL_Types type;
@@ -45,6 +49,7 @@ struct YASL_Object {
         struct List_s *lval;
         struct Hash_s *mval;
         struct UserData_s *uval;
+        struct CFunction_s *cval;
         FILE *fval;
         void *pval;
     } value;
@@ -58,7 +63,7 @@ struct YASL_Object *YASL_String(String_t *str);
 struct YASL_Object *YASL_Table(void);
 struct YASL_Object *YASL_UserPointer(void *userdata);
 struct YASL_Object *YASL_Function(int64_t index);
-struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *));
+struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *), int num_args);
 
 int isfalsey(struct YASL_Object v);
 struct YASL_Object isequal(struct YASL_Object a, struct YASL_Object b);

@@ -108,8 +108,8 @@ int YASL_pushstring(struct YASL_State *S, char *value, int64_t size) {
     vm_push(S->vm, YASL_String(str_new_sized(value, size)));
 }
 
-int YASL_pushcfunction(struct YASL_State *S, int (*value)(struct YASL_State *)) {
-    vm_push(S->vm, YASL_CFunction(value));
+int YASL_pushcfunction(struct YASL_State *S, int (*value)(struct YASL_State *), int num_args) {
+    vm_push(S->vm, YASL_CFunction(value, num_args));
 }
 
 int YASL_pushobject(struct YASL_State *S, struct YASL_Object *obj) {

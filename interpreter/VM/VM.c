@@ -658,12 +658,8 @@ void vm_run(struct VM *vm){
                     exit(EXIT_FAILURE);
                 }
 
-                //print(vm->stack[vm->sp]);
-                //printf("vm->sp: %d\n", vm->sp);
-                c = vm->sp;
                 vm_push(vm, YASL_Integer(vm->fp));
                 vm_push(vm, YASL_Integer(vm->fp));
-                //printf("vm->sp - 2: %d\n", vm->sp - 2);
                 vm->fp = vm->sp - 2;
                 break;
 
@@ -683,16 +679,21 @@ void vm_run(struct VM *vm){
 
                     vm->pc = vm->stack[vm->fp].value.ival + 2;
                 } else if (vm->stack[vm->fp].type == Y_CFN) {
-                    addr = vm->stack[vm->fp].value.ival;
+                    while (vm->sp - (vm->fp + 2) < vm->stack[vm->fp].value.cval->num_args) {
+                        vm_push(vm, YASL_Undef());
+                    }
+
+                    while (vm->sp - (vm->fp + 2) > vm->stack[vm->fp].value.cval->num_args) {
+                        vm_pop(vm);
+                    }
+
                     struct YASL_State *state = malloc(sizeof(struct YASL_State));
                     state->vm = vm;
-                    if (((int (*)(struct YASL_State*)) addr)(state)) {
+                    if (vm->stack[vm->fp].value.cval->value(state)) {
                         printf("ERROR: invalid argument type(s) to builtin function.\n");
                         return;
                     };
-                } else {
-                    printf("TypeError: %s is not callable.", YASL_TYPE_NAMES[PEEK(vm).type]);
-                    exit(EXIT_FAILURE);
+                    free(state);
                 }
                 break;
             case RET:
