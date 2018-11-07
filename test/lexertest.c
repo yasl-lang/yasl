@@ -142,8 +142,8 @@ void test_enum(void) {
 }
 
 void test_dec(void) {
-    Lexer *lex = setup_lexer("print");
-    ASSERT_EATTOK(T_PRINT, lex);
+    Lexer *lex = setup_lexer("echo");
+    ASSERT_EATTOK(T_ECHO, lex);
     ASSERT_EATTOK(T_EOF, lex);
 }
 
@@ -232,8 +232,8 @@ void test_minuseq(void) {
 }
 
 void test_at(void) {
-    Lexer *lex = setup_lexer("@");
-    ASSERT_EATTOK(T_AT, lex);
+    Lexer *lex = setup_lexer("len");
+    ASSERT_EATTOK(T_LEN, lex);
     ASSERT_EATTOK(T_EOF, lex);
 }
 
@@ -539,7 +539,7 @@ void test_blockcomment(void) {
     ASSERT_EATTOK(T_GT, lex);
     ASSERT_EATTOK(T_INT64, lex);
     ASSERT_EATTOK(T_LBRC, lex);
-    ASSERT_EATTOK(T_PRINT, lex);
+    ASSERT_EATTOK(T_ECHO, lex);
     ASSERT_EATTOK(T_ID, lex);
     ASSERT_EATTOK(T_SEMI, lex);
     ASSERT_EATTOK(T_ID, lex);

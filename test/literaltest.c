@@ -48,18 +48,6 @@ static void test_bin() {
     ASSERT_GEN_BC_EQ(expected, "0b11;");
 }
 
-static void test_oct() {
-    unsigned char expected[] = {
-            0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            ICONST,
-            0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            POP,
-            HALT
-    };
-    ASSERT_GEN_BC_EQ(expected, "0c12;");
-}
-
 static void test_dec() {
     unsigned char expected[]  = {
             0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -161,7 +149,6 @@ int literaltest(void) {
     test_true();
     test_false();
     test_bin();
-    test_oct();
     test_dec();
     test_hex();
     test_float();

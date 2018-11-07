@@ -28,7 +28,7 @@ static void test_len() {
             POP,
             HALT
     };
-    ASSERT_GEN_BC_EQ(expected, "@'YASL';");
+    ASSERT_GEN_BC_EQ(expected, "len'YASL';");
 }
 
 static void test_not() {

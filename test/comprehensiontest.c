@@ -20,9 +20,9 @@ static void test_tablecomp_noif() {
             ITER_1,
             BRF_8,
             0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            GSTORE_1, 0x06,
-            GLOAD_1, 0x06,
-            GLOAD_1, 0x06,
+            GSTORE_1, 0x00,
+            GLOAD_1, 0x00,
+            GLOAD_1, 0x00,
             NEG,
             BR_8,
             0xE6, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -31,7 +31,7 @@ static void test_tablecomp_noif() {
             PRINT,
             HALT
     };
-    ASSERT_GEN_BC_EQ(expected,"print {i:-i for let i <- [1,2,3]};");
+    ASSERT_GEN_BC_EQ(expected,"echo {i:-i for let i <- [1,2,3]};");
 }
 
 static void test_tablecomp() {
@@ -51,8 +51,8 @@ static void test_tablecomp() {
             ITER_1,
             BRF_8,
             0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            GSTORE_1, 0x06,
-            GLOAD_1, 0x06,
+            GSTORE_1, 0x00,
+            GLOAD_1, 0x00,
             ICONST,
             0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             MOD,
@@ -62,8 +62,8 @@ static void test_tablecomp() {
             NOT,
             BRF_8,
             0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            GLOAD_1, 0x06,
-            GLOAD_1, 0x06,
+            GLOAD_1, 0x00,
+            GLOAD_1, 0x00,
             NEG,
             BR_8,
             0xC6, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -72,7 +72,7 @@ static void test_tablecomp() {
             PRINT,
             HALT
     };
-    ASSERT_GEN_BC_EQ(expected,"print {i:-i for let i <- [1,2,3] if i % 2 != 0};");
+    ASSERT_GEN_BC_EQ(expected,"echo {i:-i for let i <- [1,2,3] if i % 2 != 0};");
 }
 
 static void test_listcomp_noif() {
@@ -92,8 +92,8 @@ static void test_listcomp_noif() {
             ITER_1,
             BRF_8,
             0x0E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            GSTORE_1, 0x06,
-            GLOAD_1, 0x06,
+            GSTORE_1, 0x00,
+            GLOAD_1, 0x00,
             NEG,
             BR_8,
             0xE8, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -102,7 +102,7 @@ static void test_listcomp_noif() {
             PRINT,
             HALT
     };
-    ASSERT_GEN_BC_EQ(expected,"print [-i for let i <- [1,2,3]];");
+    ASSERT_GEN_BC_EQ(expected,"echo [-i for let i <- [1,2,3]];");
 }
 
 static void test_listcomp() {
@@ -122,8 +122,8 @@ static void test_listcomp() {
             ITER_1,
             BRF_8,
             0x2E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            GSTORE_1, 0x06,
-            GLOAD_1, 0x06,
+            GSTORE_1, 0x00,
+            GLOAD_1, 0x00,
             ICONST,
             0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             MOD,
@@ -133,7 +133,7 @@ static void test_listcomp() {
             NOT,
             BRF_8,
             0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            GLOAD_1, 0x06,
+            GLOAD_1, 0x00,
             NEG,
             BR_8,
             0xC8, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -142,7 +142,7 @@ static void test_listcomp() {
             PRINT,
             HALT
     };
-    ASSERT_GEN_BC_EQ(expected,"print [-i for let i <- [1,2,3] if i % 2 != 0];");
+    ASSERT_GEN_BC_EQ(expected,"echo [-i for let i <- [1,2,3] if i % 2 != 0];");
 }
 
 int comprehensiontest(void) {
