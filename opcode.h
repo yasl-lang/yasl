@@ -74,7 +74,6 @@ typedef enum Opcode {
             INIT_CALL = 0xF8,
             CALL      = 0xF9,
             RET       = 0xFA, // return from function
-            CALL_8    = 0xFB, // function call (# of parameters (1 byte), addr (8 bytes), # of params (1 byte))
             RCALL_8   = 0xFC, // tail recursive function call
             //BCALL_8   = 0xFB, // built-in function call
             //MCALL_8   = 0xFC, // method call

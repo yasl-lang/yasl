@@ -179,11 +179,21 @@ void ht_insert(Hash_t* hashtable, const struct YASL_Object key, const struct YAS
     hashtable->count++;
 }
 
+void ht_insert_cstring_cfunction(Hash_t *ht, char *key, int (*addr)(struct YASL_State *), int num_args) {
+    String_t *string = str_new_sized(strlen(key), copy_char_buffer(strlen(key), key));
+    struct CFunction_s *fn = malloc(sizeof(struct CFunction_s));
+    fn->value = addr;
+    fn->num_args = num_args;
+    ht_insert(ht,
+              (struct YASL_Object) { .type = Y_STR, .value.sval = string },
+              (struct YASL_Object) { .type = Y_CFN, .value.cval = fn});
+}
+
 void ht_insert_string_int(Hash_t *hashtable, char *key, int64_t key_len, int64_t val) {
     String_t *string = str_new_sized(key_len, copy_char_buffer(key_len, key));
     ht_insert(hashtable,
               (struct YASL_Object) { .type = Y_STR, .value.sval = string},
-              (struct YASL_Object) { .type = Y_BFN, .value.ival = val});
+              (struct YASL_Object) { .type = Y_INT64, .value.ival = val});
 }
 
 struct YASL_Object* ht_search(const Hash_t *const hashtable, const struct YASL_Object key) {

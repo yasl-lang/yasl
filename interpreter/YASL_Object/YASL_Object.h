@@ -25,7 +25,6 @@ typedef enum {
     Y_TABLE,
     Y_TABLE_W,
     Y_FN,
-    Y_BFN,
     Y_CFN,
     Y_USERPTR,
     Y_USERDATA,

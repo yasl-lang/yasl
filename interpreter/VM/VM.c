@@ -655,6 +655,9 @@ void vm_run(struct VM *vm){
             case INIT_CALL:
                 if (vm_peek(vm).type != Y_FN && vm_peek(vm).type != Y_CFN) {
                     printf("TypeError: %s is not callable.", YASL_TYPE_NAMES[PEEK(vm).type]);
+                    printf("`");
+                    print(PEEK(vm));
+                    printf("`\n");
                     exit(EXIT_FAILURE);
                 }
 
@@ -705,63 +708,6 @@ void vm_run(struct VM *vm){
                 vm_pop(vm);
                 vm_push(vm, &v);
                 break;
-            case CALL_8:
-
-
-                if (yasl_type_equals(vm_peek(vm).type, Y_FN)) {
-                    offset = NCODE(vm);
-                    addr = vm_pop(vm).value.ival;
-
-                    struct YASL_Object a = ((struct YASL_Object) {offset, vm->fp});
-                    struct YASL_Object b = ((struct YASL_Object) {offset, vm->pc});
-                    vm_push(vm, &a);  // store previous frame ptr;
-                    vm_push(vm, &b);  // store pc addr
-                    vm->fp = vm->sp;
-
-
-
-                    /*
-                    while (vm->code[addr] > offset) {
-                        vm_push(vm, YASL_Undef());
-                    }
-                     */
-
-                    /*
-                    while (vm->code[addr] < offset) {
-                        vm_pop(vm);
-                    }
-                     */
-
-
-                    if (vm->code[addr] != offset) {
-                        puts("CallError: wrong number params.");
-                    }
-                    offset = vm->code[addr+1];
-                    vm->sp += offset + 1; // + 2
-                    vm->pc = addr + 2;
-                    break;
-                } else if (yasl_type_equals(vm_peek(vm).type, Y_BFN)) {
-                    offset = NCODE(vm);
-                    addr = vm_pop(vm).value.ival;
-                    if (((int (*)(struct VM*)) addr)(vm)) {
-                        printf("ERROR: invalid argument type(s) to builtin function.\n");
-                        return;
-                    };
-                    break;
-                } else if (yasl_type_equals(vm_peek(vm).type, Y_CFN)) {
-                    offset = NCODE(vm);
-                    addr = vm_pop(vm).value.ival;
-                    struct YASL_State *state = malloc(sizeof(struct YASL_State));
-                    state->vm = vm;
-                    if (((int (*)(struct YASL_State*)) addr)(state)) {
-                        printf("ERROR: invalid argument type(s) to builtin function.\n");
-                        return;
-                    };
-                    break;
-                } else {
-                    printf("TypeError: %s is not callable.", YASL_TYPE_NAMES[PEEK(vm).type]);
-                    exit(EXIT_FAILURE);
-                }
             case GET:
             {
                 int index = vm_peek(vm).type;
@@ -817,7 +763,6 @@ void vm_run(struct VM *vm){
                 break;*/
             case POP:
                 vm_pop(vm);
-                // --vm->sp;
                 break;
             case PRINT:
                 yasl_print(vm);

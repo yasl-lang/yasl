@@ -73,4 +73,3 @@ Hash_t* bool_builtins(void);
 Hash_t* str_builtins(void);
 Hash_t* list_builtins(void);
 Hash_t* table_builtins(void);
-Hash_t* file_builtins(void);

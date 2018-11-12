@@ -210,18 +210,18 @@ int print(struct YASL_Object v) {
                 printf("%c", (v.value.sval)->str[i + v.value.sval->start]);
             }
             break;
-        /* case Y_TABLE:
-            printf("<hash %" PRIx64 ">", v.value);
-            break; */
-        /* case Y_LIST:
+        case Y_TABLE:
+            printf("<table %" PRIx64 ">", v.value);
+            break;
+        case Y_LIST:
             //ls_print((List_t*)v.value);
-            // printf("<list %" PRIx64 ">", v.value);
-            break; */
+            printf("<list %" PRIx64 ">", v.value);
+            break;
         case Y_FN:
             printf("<fn: %" PRIx64 ">", v.value.ival);
             break;
-        case Y_BFN:
-            printf("<mn: %" PRIx64 ">", v.value.ival);
+        case Y_CFN:
+            printf("<fn: %" PRIx64 ">", v.value.cval->value);
             break;
         case Y_USERPTR:
             printf("0x%0*" PRIx64, (int)sizeof(void*), v.value.ival);
