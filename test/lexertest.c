@@ -9,7 +9,7 @@ SETUP_YATS();
     if (left == right) {\
         /*printf(K_GRN "assert passed in %s: line %d" K_END "\n", __func__, __LINE__);*/\
     } else {\
-        printf(K_RED "assert failed in %s: line %d: `%s` =/= `%s`" K_END "\n", __func__, __LINE__, YASL_TOKEN_NAMES[left], YASL_TOKEN_NAMES[right]);\
+        printf(K_RED "assert failed in %s (in %s): line %d: `%s` =/= `%s`" K_END "\n", __FILE__, __func__, __LINE__, YASL_TOKEN_NAMES[left], YASL_TOKEN_NAMES[right]);\
         __YASL_TESTS_FAILED__ = 1;\
     }\
 } while(0)
@@ -478,13 +478,6 @@ void test_colon(void) {
     ASSERT_EATTOK(T_EOF, lex);
 }
 
-void test_dcolon(void) {
-    Lexer *lex = setup_lexer("::");
-    ASSERT_EATTOK(T_DCOLON, lex);
-    ASSERT_EATTOK(T_EOF, lex);
-}
-
-
 void test_big_arrow(void) {
     Lexer *lex = setup_lexer("=>");
     ASSERT_EATTOK(T_BIG_ARR, lex);
@@ -630,7 +623,6 @@ int lexertest(void) {
     test_dqmark();
     test_dqmarkeq();
     test_colon();
-    test_dcolon();
     test_small_arrow();
     test_big_arrow();
     return __YASL_TESTS_FAILED__;

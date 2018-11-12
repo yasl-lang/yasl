@@ -531,9 +531,9 @@ static Node *parse_power(Parser *const parser) {
 static Node *parse_call(Parser *const parser) {
     Node *cur_node = parse_constant(parser);
     while (curtok(parser) == T_LSQB || curtok(parser) == T_DOT ||
-           curtok(parser) == T_LPAR || curtok(parser) == T_DCOLON) {
-        if (curtok(parser) == T_DCOLON) {
-            eattok(parser, T_DCOLON);
+           curtok(parser) == T_LPAR || curtok(parser) == T_SMALL_ARR) {
+        if (curtok(parser) == T_SMALL_ARR) {
+            eattok(parser, T_SMALL_ARR);
             Node *right = parse_constant(parser);
             if (right->nodetype != N_VAR) {
                 printf("SyntaxError: in line %d: Invalid method call.\n", parser->lex->line);

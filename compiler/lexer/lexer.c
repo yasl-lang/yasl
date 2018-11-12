@@ -374,7 +374,6 @@ static Token YASLToken_TwoChars(char c1, char c2) {
                 case '|': return T_DBAR;
                 default: return T_UNKNOWN;
         }
-        case ':': switch(c2) { case ':': return T_DCOLON; default: return T_UNKNOWN; }
         case '?': switch(c2) { case '?': return T_DQMARK; default: return T_UNKNOWN;}
     }
     return T_UNKNOWN;
