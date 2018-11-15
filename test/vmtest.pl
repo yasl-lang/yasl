@@ -91,19 +91,27 @@ assert_output("let x = [1, 2, 4]\n" .
 assert_output("let x = [1, 2, 3, 4, 5]\n" .
               "x->reverse()\n" .
               "for let e <- x { echo e; }\n", "5\n4\n3\n2\n1\n", 0);
+assert_output("let x = [1, 2, 3]\n" .
+              "x[1] = 0\n" .
+              "for let e <- x { echo e; }\n", "1\n0\n3\n", 0);
+assert_output("let x = [1, 2, 3]\n" . 
+              "echo x[0]\n" .
+              "echo x[1]\n" .
+              "echo x[2]\n", "1\n2\n3\n", 0);
  
 # Table Methods
 assert_output("let x = {1:'one', 2:'two', 3:'three'}\n" .
               "for let e <- x->keys() { echo e; }\n", "3\n1\n2\n", 0);
 assert_output("let x = {1:'one', 2:'two', 3:'three'}\n" .
               "for let e <- x->values() { echo e; }\n", "three\none\ntwo\n", 0);
+assert_output("let x = {1:'one', 2:'two', 3:'three'}\n" .
+              "x[1] = 'un'\n" .
+              "echo x[1]\n" .
+              "for let e <- x { echo e; }\n", "un\n3\n1\n2\n", 0);
 
-
-
-
-
-
-
+assert_output("let x = {1:'one', 2:'two', 3:'three'}\n" .
+              "x[1] = 'un'\n" .
+              "for let e <- x->values() { echo e; }\n", "three\nun\ntwo\n", 0);
 
 
 
