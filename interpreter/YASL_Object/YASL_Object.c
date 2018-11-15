@@ -176,7 +176,7 @@ struct YASL_Object isequal(struct YASL_Object a, struct YASL_Object b) {
             } else if (yasl_type_equals(a.type, Y_FLOAT64) && yasl_type_equals(b.type, Y_FLOAT64)) {
                 c = a.value.dval == b.value.dval;
             } else {
-                printf("== and != not supported for operands of types %x and %x.\n", a.type, b.type);
+                // printf("== and != not supported for operands of types %x and %x.\n", a.type, b.type);
                 return UNDEF_C;
             }
             return (struct YASL_Object) {Y_BOOL, c};

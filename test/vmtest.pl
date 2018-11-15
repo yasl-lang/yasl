@@ -74,4 +74,47 @@ assert_output("echo 'YYAYYY'->trim('Y')\n", "A\n", 0);
 assert_output("echo 'YASL'->__get(3)\n", "L\n", 0); 
 assert_output("echo 'YASL'->__get(-1)\n", "L\n", 0);
 
+# List Methods
+assert_output("let x = [0]\n" .
+              "x->push(1)\n" . 
+              "for let e <- x { echo e; }\n", "0\n1\n", 0);
+assert_output("let x = [1, 2, 3]\n" .
+           "echo x->pop()\n" .
+           "for let e <- x { echo e; }\n", "3\n1\n2\n", 0);
+assert_output("let x = [1, 2, 3]\n" .
+              "x->extend([4, 5, 6])\n" .
+              "for let e <- x { echo e; }\n", "1\n2\n3\n4\n5\n6\n", 0);
+assert_output("let x = [1, 2, 3]\n" .
+              "echo x->search(4)\n", "undef\n", 0);
+assert_output("let x = [1, 2, 4]\n" .
+              "echo x->search(4)\n", "2\n", 0);
+assert_output("let x = [1, 2, 3, 4, 5]\n" .
+              "x->reverse()\n" .
+              "for let e <- x { echo e; }\n", "5\n4\n3\n2\n1\n", 0);
+ 
+# Table Methods
+assert_output("let x = {1:'one', 2:'two', 3:'three'}\n" .
+              "for let e <- x->keys() { echo e; }\n", "3\n1\n2\n", 0);
+assert_output("let x = {1:'one', 2:'two', 3:'three'}\n" .
+              "for let e <- x->values() { echo e; }\n", "three\none\ntwo\n", 0);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 exit $__YASL_TESTS_FAILED__;

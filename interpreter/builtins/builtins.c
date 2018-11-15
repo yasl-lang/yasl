@@ -77,24 +77,24 @@ Hash_t* str_builtins() {
 
 Hash_t* list_builtins() {
     Hash_t* ht = ht_new();
-    ht_insert_string_int(ht, "push", strlen("push"), (int64_t)&list_push);
-    ht_insert_string_int(ht, "copy", strlen("copy"), (int64_t)&list_copy);
-    ht_insert_string_int(ht, "extend", strlen("extend"), (int64_t)&list_extend);
-    ht_insert_string_int(ht, "pop", strlen("pop"), (int64_t)&list_pop);
-    ht_insert_string_int(ht, "__get",  strlen("__get"),  (int64_t)&list___get);
-    ht_insert_string_int(ht, "__set",  strlen("__set"),  (int64_t)&list___set);
-    ht_insert_string_int(ht, "search", strlen("search"), (int64_t)&list_search);
-    ht_insert_string_int(ht, "reverse", strlen("reverse"), (int64_t)&list_reverse);
+    ht_insert_cstring_cfunction(ht, "push", &list_push, 2);
+    ht_insert_cstring_cfunction(ht, "copy", &list_copy, 1);
+    ht_insert_cstring_cfunction(ht, "extend", &list_extend, 2);
+    ht_insert_cstring_cfunction(ht, "pop", &list_pop, 1);
+    ht_insert_cstring_cfunction(ht, "__get", &list___get, 2);
+    ht_insert_cstring_cfunction(ht, "__set", &list___set, 3);
+    ht_insert_cstring_cfunction(ht, "search", &list_search, 2);
+    ht_insert_cstring_cfunction(ht, "reverse", &list_reverse, 1);
     return ht;
 }
 
 Hash_t* table_builtins() {
     Hash_t* ht = ht_new();
-    ht_insert_string_int(ht, "keys",   strlen("keys"),   (int64_t) &table_keys);
-    ht_insert_string_int(ht, "values", strlen("values"), (int64_t) &table_values);
-    ht_insert_string_int(ht, "copy",  strlen("copy"),  (int64_t) &table_clone);
-    ht_insert_string_int(ht, "__get",  strlen("__get"),  (int64_t) &table___get);
-    ht_insert_string_int(ht, "__set",  strlen("__set"),  (int64_t) &table___set);
+    ht_insert_cstring_cfunction(ht, "keys", &table_keys, 1);
+    ht_insert_cstring_cfunction(ht, "values", &table_values, 1);
+    ht_insert_cstring_cfunction(ht, "copy", &table_clone, 1);
+    ht_insert_cstring_cfunction(ht, "__get", &table___get, 2);
+    ht_insert_cstring_cfunction(ht, "__set", &table___set, 3);
     return ht;
 }
 

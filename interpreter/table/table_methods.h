@@ -7,12 +7,12 @@
 #include "../../hashtable/hashtable.h"
 #include "../list/list.h"
 
-int table___get(struct VM *vm);
+int table___get(struct YASL_State *S);
 
-int table___set(struct VM *vm);
+int table___set(struct YASL_State *S);
 
-int table_keys(struct VM *vm);
+int table_keys(struct YASL_State *S);
 
-int table_values(struct VM *vm);
+int table_values(struct YASL_State *S);
 
-int table_clone(struct VM *vm);
+int table_clone(struct YASL_State *S);

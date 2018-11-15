@@ -708,15 +708,26 @@ void vm_run(struct VM *vm){
                 vm_pop(vm);
                 vm_push(vm, &v);
                 break;
-            case GET:
-            {
+            case GET: {
+                struct YASL_State *S = malloc(sizeof(struct YASL_State));
+                S->vm = vm;
+                vm->sp--;
                 int index = vm_peek(vm).type;
                 if (yasl_type_equals(vm_peek(vm).type, Y_LIST)) {
-                    if (!list___get(vm)) break;
+                    vm->sp++;
+                    if (!list___get(S)) {
+                        free(S);
+                        break;
+                    }
                 } else if (yasl_type_equals(vm_peek(vm).type, Y_TABLE)) {
-                    if (!table___get(vm)) break;
+                    vm->sp++;
+                    if (!table___get(S)) {
+                        free(S);
+                        break;
+                    }
                 } else {
-                    vm_pop(vm);
+                    vm->sp++;
+                    //vm_pop(vm);
                 }
 
                 struct YASL_Object key = vm_pop(vm);
@@ -729,18 +740,27 @@ void vm_run(struct VM *vm){
                 } else {
                     vm_push(vm, result);
                 }
+                free(S);
                 break;
             }
-            case SET:
+            case SET: {
+                struct YASL_State *S = malloc(sizeof(struct YASL_State));
+                S->vm = vm;
+                vm->sp -= 2;
                 if (yasl_type_equals(vm_peek(vm).type, Y_LIST)) {
-                    list___set(vm);
+                    vm->sp += 2;
+                    list___set(S);
                 } else if (yasl_type_equals(vm_peek(vm).type, Y_TABLE)) {
-                    table___set(vm);
+                    vm->sp += 2;
+                    table___set(S);
                 } else {
+                    vm->sp += 2;
                     printf("object of type %s is immutable.", YASL_TYPE_NAMES[vm_peek(vm).type]);
                     exit(EXIT_FAILURE);
                 }
+                free(S);
                 break;
+            }
             case RCALL_8:
                 offset = NCODE(vm);
                 int i;

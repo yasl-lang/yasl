@@ -367,15 +367,15 @@ static void visit_Return(struct Compiler *const compiler, const Node *const node
 
 static void visit_Set(struct Compiler *const compiler, const Node *const node) {
     // TODO: fix order here by changing VM
+    visit(compiler, node->children[0]);
     visit(compiler, node->children[1]);
     visit(compiler, node->children[2]);
-    visit(compiler, node->children[0]);
     bb_add_byte(compiler->buffer, SET);
 }
 
 static void visit_Get(struct Compiler *const compiler, const Node *const node) {
-    visit(compiler, node->children[1]);
     visit(compiler, node->children[0]);
+    visit(compiler, node->children[1]);
     bb_add_byte(compiler->buffer, GET);
 }
 
