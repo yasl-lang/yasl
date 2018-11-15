@@ -490,10 +490,6 @@ void vm_run(struct VM *vm){
             case GT:
                 b = vm_pop(vm);
                 a = vm_pop(vm);
-                print(a);
-                puts("");
-                print(b);
-                puts("");
                 if ((a.type != Y_INT64 && a.type != Y_FLOAT64) ||
                     (b.type != Y_INT64 && b.type != Y_FLOAT64)) {
                     printf("TypeError: < and > not supported for operand of types %s and %s.\n",

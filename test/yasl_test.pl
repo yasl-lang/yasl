@@ -16,7 +16,7 @@ sub assert_output {
     print $fh "$string";
     close $fh;
 
-    my $output = `"..$debug_yasl" "..$debug_dump"`;
+    my $output = qx/"..$debug_yasl" "..$debug_dump"/;
     my $status = $?;
     my $exitcode = !($output eq $exp_out && $status == $exp_stat) || 0;
 

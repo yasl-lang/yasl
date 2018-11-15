@@ -23,6 +23,46 @@ assert_output("echo 3.5 - 2\n", "1.5\n", 0);
 assert_output("echo 1 || 2\n", "1\n", 0);
 assert_output("echo 1 && 2\n", "2\n", 0);
 
+# Ternary Operator
+assert_output("echo true ? 1 : 0\n", "1\n", 0);
+assert_output("echo false ? 1 : 0\n", "0\n", 0);
+
+# If Statements
+assert_output(qq"let x = true
+                 if x { echo 1; } else { echo 0; };",
+              "1\n", 0);
+assert_output(qq"let x = false
+                 if x { echo 1; } else { echo 0; };",
+              "0\n", 0);
+assert_output(qq"let x = 1
+                 if x > 0 { echo '+'; } elseif x < 0 { echo '-'; } else { echo '0'; };",
+              "+\n", 0);
+assert_output(qq"let x = -1
+                 if x > 0 { echo '+'; } elseif x < 0 { echo '-'; } else { echo '0'; };",
+              "-\n", 0);
+assert_output(qq"let x = 0
+                 if x > 0 { echo '+'; } elseif x < 0 { echo '-'; } else { echo '0'; };",
+              "0\n", 0);
+
+# While Loops
+assert_output(qq"let n = 10
+                 while n > 0 { echo n; n -= 1; };",
+              "10\n9\n8\n7\n6\n5\n4\n3\n2\n1\n", 0);
+
+# Numeric For Loops
+assert_output(qq"for let n = 10; n > 0; n -= 1 { echo n; };",
+              "10\n9\n8\n7\n6\n5\n4\n3\n2\n1\n", 0);
+
+# Iterative For Loops
+assert_output(qq"for let i <- [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] { echo i; };",
+              "10\n9\n8\n7\n6\n5\n4\n3\n2\n1\n", 0);
+              
+# Functions
+assert_output(qq"fn add(a, b) { return a + b; }
+                 echo add(10, 11);",
+              "21\n", 0);
+              
+
 # Integer Methods
 assert_output("echo 2->tofloat64()\n", "2.0\n", 0);
 assert_output("echo 5->tostr()\n", "5\n", 0);
@@ -75,43 +115,42 @@ assert_output("echo 'YASL'->__get(3)\n", "L\n", 0);
 assert_output("echo 'YASL'->__get(-1)\n", "L\n", 0);
 
 # List Methods
-assert_output("let x = [0]\n" .
-              "x->push(1)\n" . 
-              "for let e <- x { echo e; }\n", "0\n1\n", 0);
-assert_output("let x = [1, 2, 3]\n" .
-           "echo x->pop()\n" .
-           "for let e <- x { echo e; }\n", "3\n1\n2\n", 0);
-assert_output("let x = [1, 2, 3]\n" .
-              "x->extend([4, 5, 6])\n" .
-              "for let e <- x { echo e; }\n", "1\n2\n3\n4\n5\n6\n", 0);
-assert_output("let x = [1, 2, 3]\n" .
-              "echo x->search(4)\n", "undef\n", 0);
-assert_output("let x = [1, 2, 4]\n" .
-              "echo x->search(4)\n", "2\n", 0);
-assert_output("let x = [1, 2, 3, 4, 5]\n" .
-              "x->reverse()\n" .
-              "for let e <- x { echo e; }\n", "5\n4\n3\n2\n1\n", 0);
-assert_output("let x = [1, 2, 3]\n" .
-              "x[1] = 0\n" .
-              "for let e <- x { echo e; }\n", "1\n0\n3\n", 0);
-assert_output("let x = [1, 2, 3]\n" . 
-              "echo x[0]\n" .
-              "echo x[1]\n" .
-              "echo x[2]\n", "1\n2\n3\n", 0);
+assert_output(qq"let x = [0]
+                 x->push(1) 
+                 for let e <- x { echo e; }\n", "0\n1\n", 0);
+assert_output(qq"let x = [1, 2, 3]
+               echo x->pop()
+               for let e <- x { echo e; }\n", "3\n1\n2\n", 0);
+assert_output(qq"let x = [1, 2, 3]
+                 x->extend([4, 5, 6])
+                 for let e <- x { echo e; }\n", "1\n2\n3\n4\n5\n6\n", 0);
+assert_output(qq"let x = [1, 2, 3]
+                 echo x->search(4)\n", "undef\n", 0);
+assert_output(qq"let x = [1, 2, 4]
+                 echo x->search(4)\n", "2\n", 0);
+assert_output(qq"let x = [1, 2, 3, 4, 5]
+                 x->reverse()
+                 for let e <- x { echo e; }\n", "5\n4\n3\n2\n1\n", 0);
+assert_output(qq"let x = [1, 2, 3]
+                 x[1] = 0
+                 for let e <- x { echo e; }\n", "1\n0\n3\n", 0);
+assert_output(qq"let x = [1, 2, 3] 
+                 echo x[0]
+                 echo x[1]
+                 echo x[2]\n", "1\n2\n3\n", 0);
  
 # Table Methods
-assert_output("let x = {1:'one', 2:'two', 3:'three'}\n" .
-              "for let e <- x->keys() { echo e; }\n", "3\n1\n2\n", 0);
-assert_output("let x = {1:'one', 2:'two', 3:'three'}\n" .
-              "for let e <- x->values() { echo e; }\n", "three\none\ntwo\n", 0);
-assert_output("let x = {1:'one', 2:'two', 3:'three'}\n" .
-              "x[1] = 'un'\n" .
-              "echo x[1]\n" .
-              "for let e <- x { echo e; }\n", "un\n3\n1\n2\n", 0);
-
-assert_output("let x = {1:'one', 2:'two', 3:'three'}\n" .
-              "x[1] = 'un'\n" .
-              "for let e <- x->values() { echo e; }\n", "three\nun\ntwo\n", 0);
+assert_output(qq"let x = {1:'one', 2:'two', 3:'three'}
+                 for let e <- x->keys() { echo e; }\n", "3\n1\n2\n", 0);
+assert_output(qq"let x = {1:'one', 2:'two', 3:'three'}
+                 for let e <- x->values() { echo e; }\n", "three\none\ntwo\n", 0);
+assert_output(qq"let x = {1:'one', 2:'two', 3:'three'}
+                 x[1] = 'un'
+                 echo x[1]
+                 for let e <- x { echo e; }\n", "un\n3\n1\n2\n", 0);
+assert_output(qq"let x = {1:'one', 2:'two', 3:'three'}
+                 x[1] = 'un'
+                 for let e <- x->values() { echo e; }\n", "three\nun\ntwo\n", 0);
 
 
 
