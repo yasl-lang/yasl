@@ -48,19 +48,38 @@ assert_output(qq"let x = 0
 assert_output(qq"let n = 10
                  while n > 0 { echo n; n -= 1; };",
               "10\n9\n8\n7\n6\n5\n4\n3\n2\n1\n", 0);
+assert_output(qq"let n = 10
+                 while n > 0 { if n == 5 { n -= 1; continue; }; echo n; n -= 1; };",
+              "10\n9\n8\n7\n6\n4\n3\n2\n1\n", 0);
+assert_output(qq"let n = 10
+                 while n > 0 { if n == 5 { break; }; echo n; n -= 1; };",
+              "10\n9\n8\n7\n6\n", 0);
 
 # Numeric For Loops
 assert_output(qq"for let n = 10; n > 0; n -= 1 { echo n; };",
               "10\n9\n8\n7\n6\n5\n4\n3\n2\n1\n", 0);
+assert_output(qq"for let n = 10; n > 0; n -= 1 { if n == 5 { continue; }; echo n; };",
+              "10\n9\n8\n7\n6\n4\n3\n2\n1\n", 0);
+assert_output(qq"for let n = 10; n > 0; n -= 1 { if n == 5 { break; }; echo n; };",
+              "10\n9\n8\n7\n6\n", 0);
 
 # Iterative For Loops
 assert_output(qq"for let i <- [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] { echo i; };",
               "10\n9\n8\n7\n6\n5\n4\n3\n2\n1\n", 0);
-              
+assert_output(qq"for let i <- [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] { if i == 5 { continue; }; echo i; };",
+              "10\n9\n8\n7\n6\n4\n3\n2\n1\n", 0);
+assert_output(qq"for let i <- [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] { if i == 5 { break; };  echo i; };",
+              "10\n9\n8\n7\n6\n", 0);
+
 # Functions
 assert_output(qq"fn add(a, b) { return a + b; }
                  echo add(10, 11);",
               "21\n", 0);
+assert_output(qq"let x = 10
+                 fn add(a, b) { let sum = a + b; return sum; }
+                 echo add(10, 11)
+                 echo x;",
+              "21\n10\n", 0);
               
 
 # Integer Methods
@@ -131,6 +150,7 @@ assert_output(qq"let x = [1, 2, 4]
 assert_output(qq"let x = [1, 2, 3, 4, 5]
                  x->reverse()
                  for let e <- x { echo e; }\n", "5\n4\n3\n2\n1\n", 0);
+assert_output(qq"for let e <- [1, 2, 3]->copy() { echo e; };", "1\n2\n3\n", 0);
 assert_output(qq"let x = [1, 2, 3]
                  x[1] = 0
                  for let e <- x { echo e; }\n", "1\n0\n3\n", 0);
@@ -151,7 +171,8 @@ assert_output(qq"let x = {1:'one', 2:'two', 3:'three'}
 assert_output(qq"let x = {1:'one', 2:'two', 3:'three'}
                  x[1] = 'un'
                  for let e <- x->values() { echo e; }\n", "three\nun\ntwo\n", 0);
-
+assert_output(qq"let x = {1:'one', 2:'two', 3:'three'};
+                 for let e <- x->copy() { echo e; echo x[e]; };", "3\nthree\n2\ntwo\n1\none\n", 0);
 
 
 
