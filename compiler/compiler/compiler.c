@@ -15,7 +15,6 @@ struct Compiler *compiler_new(Parser *const parser) {
 
     compiler->globals = env_new(NULL);
     compiler->params = NULL;
-    compiler->locals = NULL;
 
     compiler->functions = ht_new();
     compiler->offset = 0;
@@ -60,7 +59,6 @@ void compiler_del(struct Compiler *compiler) {
     compiler_tables_del(compiler);
     env_del(compiler->globals);
     env_del(compiler->params);
-    env_del(compiler->locals);
     parser_del(compiler->parser);
     compiler_buffers_del(compiler);
     free(compiler->checkpoints);
@@ -72,14 +70,14 @@ static void handle_error(struct Compiler *const compiler) {
 }
 
 static void enter_scope(struct Compiler *const compiler) {
-    if (compiler->params != NULL) compiler->locals = env_new(compiler->locals);
+    if (compiler->params != NULL) compiler->params = env_new(compiler->params);
     else compiler->globals = env_new(compiler->globals);
 }
 
 static void exit_scope(struct Compiler *const compiler) {
     if (compiler->params != NULL) {
-        Env_t *tmp = compiler->locals;
-        compiler->locals = compiler->locals->parent;
+        Env_t *tmp = compiler->params;
+        compiler->params = compiler->params->parent;
         env_del_current_only(tmp);
     } else {
         Env_t *tmp = compiler->globals;
@@ -132,11 +130,7 @@ static inline int64_t get_index(int64_t value) {
 }
 
 static void load_var(const struct Compiler *const compiler, char *name, int64_t name_len, int64_t line) {
-    if (env_contains(compiler->locals, name, name_len)) {
-        //printf("found %s in locals\n", name);
-        bb_add_byte(compiler->buffer, GLOAD_1);
-        bb_add_byte(compiler->buffer, get_index(env_get(compiler->locals, name, name_len)));
-    } else if (env_contains(compiler->params, name, name_len)) {
+    if (env_contains(compiler->params, name, name_len)) {
         //printf("found %s in params\n", name);
         bb_add_byte(compiler->buffer, LLOAD_1);
         bb_add_byte(compiler->buffer, get_index(env_get(compiler->params, name, name_len))); // TODO: handle size
@@ -152,16 +146,7 @@ static void load_var(const struct Compiler *const compiler, char *name, int64_t 
 }
 
 static void store_var(const struct Compiler *const compiler, char *name, int64_t name_len, int64_t line) {
-    if (env_contains(compiler->locals, name, name_len)) {
-        int64_t index = env_get(compiler->locals, name, name_len);
-        if (is_const(index)) {
-            printf("ConstantError: in line %" PRId64 ": cannot assign to constant %s", line, name);
-            handle_error(compiler);
-            return;
-        }
-        bb_add_byte(compiler->buffer, GSTORE_1);
-        bb_add_byte(compiler->buffer, index);
-    } else if (env_contains(compiler->params, name, name_len)) {
+    if (env_contains(compiler->params, name, name_len)) {
         int64_t index = env_get(compiler->params, name, name_len);
         if (is_const(index)) {
             printf("ConstantError: in line %" PRId64 ": cannot assign to constant %s", line, name);
@@ -188,20 +173,19 @@ static void store_var(const struct Compiler *const compiler, char *name, int64_t
 
 static int contains_var_in_current_scope(const struct Compiler *const compiler, char *name, int64_t name_len) {
     return compiler->params ?
-    env_contains_cur_scope(compiler->locals, name, name_len) :
+    env_contains_cur_scope(compiler->params, name, name_len) :
     env_contains_cur_scope(compiler->globals, name, name_len);
 }
 
 static int contains_var(const struct Compiler *const compiler, char *name, int64_t name_len) {
     return env_contains(compiler->globals, name, name_len) ||
-           env_contains(compiler->params, name, name_len) ||
-            env_contains(compiler->locals, name, name_len);
+           env_contains(compiler->params, name, name_len);
 }
 
 static void decl_var(struct Compiler *const compiler, char *name, int64_t name_len) {
     if (NULL != compiler->params) {
         //printf("declaring %s in locals\n", name);
-        env_decl_var(compiler->locals, name, name_len);
+        env_decl_var(compiler->params, name, name_len);
     }
     else {
         //printf("declaring %s in globals\n", name);
@@ -210,12 +194,8 @@ static void decl_var(struct Compiler *const compiler, char *name, int64_t name_l
 }
 
 static void make_const(struct Compiler * const compiler, char *name, int64_t name_len) {
-    if (NULL != compiler->params) env_make_const(compiler->locals, name, name_len);
+    if (NULL != compiler->params) env_make_const(compiler->params, name, name_len);
     else env_make_const(compiler->globals, name, name_len);
-}
-
-static void decl_param(struct Compiler *const compiler, char *name, int64_t name_len) {
-    env_decl_var(compiler->params, name, name_len);
 }
 
 char *compile(struct Compiler *const compiler) {
@@ -305,7 +285,7 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const Node *cons
 
     int64_t i;
     for (i = 0; i < node->children[0]->children_len; i++) {
-        decl_param(compiler, node->children[0]->children[i]->name, node->children[0]->children[i]->name_len);
+        decl_var(compiler, node->children[0]->children[i]->name, node->children[0]->children[i]->name_len);
     }
 
     bb_add_byte(compiler->buffer, node->children[0]->children_len);

@@ -13,7 +13,6 @@ struct Compiler {
     Parser *parser;
     Env_t *globals;
     Env_t *params;
-    Env_t *locals;
     Hash_t *functions;
     int64_t offset;
     Hash_t *strings;
