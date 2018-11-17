@@ -129,7 +129,7 @@ static inline int64_t get_index(int64_t value) {
     return is_const(value) ? ~value : value;
 }
 
-static void load_var(const struct Compiler *const compiler, char *name, int64_t name_len, int64_t line) {
+static void load_var(struct Compiler *const compiler, char *name, int64_t name_len, int64_t line) {
     if (env_contains(compiler->params, name, name_len)) {
         //printf("found %s in params\n", name);
         bb_add_byte(compiler->buffer, LLOAD_1);
@@ -145,7 +145,7 @@ static void load_var(const struct Compiler *const compiler, char *name, int64_t 
     }
 }
 
-static void store_var(const struct Compiler *const compiler, char *name, int64_t name_len, int64_t line) {
+static void store_var(struct Compiler *const compiler, char *name, int64_t name_len, int64_t line) {
     if (env_contains(compiler->params, name, name_len)) {
         int64_t index = env_get(compiler->params, name, name_len);
         if (is_const(index)) {
@@ -198,7 +198,7 @@ static void make_const(struct Compiler * const compiler, char *name, int64_t nam
     else env_make_const(compiler->globals, name, name_len);
 }
 
-char *compile(struct Compiler *const compiler) {
+unsigned char *compile(struct Compiler *const compiler) {
     Node *node;
     gettok(compiler->parser->lex);
     while (!peof(compiler->parser)) {
@@ -252,7 +252,7 @@ char *compile(struct Compiler *const compiler) {
     //fwrite(magic_number, 1, YASL_MAG_NUM_SIZE, fp);
     //fwrite(compiler->header->bytes, 1, compiler->header->count, fp);
     //fwrite(compiler->code->bytes, 1, compiler->code->count, fp);
-    char *bytecode = malloc(compiler->code->count + compiler->header->count + 1);    // NOT OWN
+    unsigned char *bytecode = malloc(compiler->code->count + compiler->header->count + 1);    // NOT OWN
     memcpy(bytecode, compiler->header->bytes, compiler->header->count);
     memcpy(bytecode + compiler->header->count, compiler->code->bytes, compiler->code->count);
     bytecode[compiler->code->count + compiler->header->count] = HALT;

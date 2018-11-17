@@ -27,4 +27,4 @@ struct Compiler {
 
 struct Compiler *compiler_new(Parser *const parser);
 void compiler_del(struct Compiler *compiler);
-char *compile(struct Compiler *const compiler);
+unsigned char *compile(struct Compiler *const compiler);
