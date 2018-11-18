@@ -556,18 +556,27 @@ void vm_run(struct VM *vm){
                 vm_push(vm, YASL_Integer(vm->lp));
                 vm->lp = vm->sp - 2;
                 break;
+            case ENDCOMP:
+                a = vm_pop(vm);
+                vm->lp = vm_pop(vm).value.ival;
+                vm_pop(vm);
+                vm_pop(vm);
+                vm_push(vm, &a);
+                break;
             case ENDFOR:
                 vm->lp = vm_pop(vm).value.ival;
                 vm_pop(vm);
                 vm_pop(vm);
                 break;
             case ITER_1:
+                //print(vm->stack[vm->lp]);
                 switch (vm->stack[vm->lp].type) {
                     case Y_LIST:
                         if (vm->stack[vm->lp].value.lval->count <= vm->stack[vm->lp + 1].value.ival) {
                             vm_push(vm, YASL_Boolean(0));
                         } else {
                             vm_push(vm, &vm->stack[vm->lp].value.lval->items[vm->stack[vm->lp + 1].value.ival++]);
+                            //print(vm->stack[vm->sp]);
                             vm_push(vm, YASL_Boolean(1));
                         }
                         break;

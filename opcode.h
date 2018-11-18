@@ -29,6 +29,7 @@ typedef enum Opcode {
             BSL       = 0x25, // bitwise left shift
             BSR       = 0x26, // bitwise right shift
             INITFOR   = 0x30, // initialises for-loop in VM
+            ENDCOMP   = 0x31,
             ENDFOR    = 0x32, // end for-loop in VM
             ITER_1    = 0x33, // iterate to next, 1 var
             ITER_2    = 0x35, // iterate to next, 2 var

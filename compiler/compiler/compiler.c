@@ -373,11 +373,11 @@ static inline void branch_back(struct Compiler *const compiler, int64_t index) {
 static void visit_ListComp(struct Compiler *const compiler, const Node *const node) {
     enter_scope(compiler);
 
-    bb_add_byte(compiler->buffer, END);
-
     visit(compiler, node->children[1]->children[1]);
 
     bb_add_byte(compiler->buffer, INITFOR);
+
+    bb_add_byte(compiler->buffer, END);
 
     if (node->children[1]->nodetype == N_LETITER) {
         decl_var(compiler, node->children[1]->children[0]->name, node->children[1]->children[0]->name_len);
@@ -415,19 +415,19 @@ static void visit_ListComp(struct Compiler *const compiler, const Node *const no
 
     exit_conditional_false(compiler, &index_second);
 
-    bb_add_byte(compiler->buffer, ENDFOR);
     bb_add_byte(compiler->buffer, NEWLIST);
+
+    bb_add_byte(compiler->buffer, ENDCOMP);
     exit_scope(compiler);
 }
 
 static void visit_TableComp(struct Compiler *const compiler, const Node *const node) {
     enter_scope(compiler);
 
-    bb_add_byte(compiler->buffer, END);
-
     visit(compiler, node->children[1]->children[1]);
 
     bb_add_byte(compiler->buffer, INITFOR);
+    bb_add_byte(compiler->buffer, END);
 
     if (node->children[1]->nodetype == N_LETITER) {
         decl_var(compiler, node->children[1]->children[0]->name, node->children[1]->children[0]->name_len);
@@ -465,8 +465,9 @@ static void visit_TableComp(struct Compiler *const compiler, const Node *const n
 
     exit_conditional_false(compiler, &index_second);
 
-    bb_add_byte(compiler->buffer, ENDFOR);
     bb_add_byte(compiler->buffer, NEWTABLE);
+    bb_add_byte(compiler->buffer, ENDCOMP);
+
     exit_scope(compiler);
 }
 
