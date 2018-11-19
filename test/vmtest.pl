@@ -2,8 +2,13 @@ require "yasl_test.pl";
 
 # Literals
 assert_output("echo 0x10\n", "16\n", 0);
+assert_output("echo 0b1010\n", "10\n", 0);
 
 # Comprehensions
+assert_output(qq"for let i <- [x*2 for let x <- [1, 2, 3]] {
+                    echo i;
+                 }\n",
+              "2\n4\n6\n", 0);
 assert_output(qq"for let i <- [x*2 for let x <- [1, 2, 3, 4, 5, 6] if x % 2 == 0] {
                     echo i;
                  }\n",
@@ -14,6 +19,13 @@ assert_output(qq"let x = { x*2:-x for let x <- [1, 2, 3, 4] if x % 2 == 0}
                       echo x[i]
                  }\n",
               "8\n-4\n4\n-2\n", 0);
+assert_output(qq"let x = { x*2:-x for let x <- [1, 2, 3]}
+                 for let i <- x {
+                      echo i
+                      echo x[i]
+                 }\n",
+              "6\n-3\n2\n-1\n4\n-2\n", 0);
+
 
 # Unary Operators
 assert_output("echo -10\n", "-10\n", 0);
