@@ -27,6 +27,22 @@ const char *YASL_TYPE_NAMES[] = {
     "userdata", // Y_USERDATA_W
 };
 
+struct CFunction_s *new_cfn(int (*value)(struct YASL_State *), int num_args) {
+    struct CFunction_s *fn = malloc(sizeof(struct CFunction_s));
+    fn->value = value;
+    fn->num_args = num_args;
+    fn->rc = rc_new();
+    return fn;
+}
+
+void cfn_del_data(struct CFunction_s *cfn) {
+}
+
+void cfn_del_rc(struct CFunction_s *cfn) {
+    rc_del(cfn->rc);
+    free(cfn);
+}
+
 struct YASL_Object *YASL_Undef(void) {
     struct YASL_Object *undef = malloc(sizeof(struct YASL_Object));
     undef->type = Y_UNDEF;

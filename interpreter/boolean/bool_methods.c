@@ -10,6 +10,6 @@ int bool_tostr(struct YASL_State *S) {
     } else {
         string = str_new_sized(strlen("true"), copy_char_buffer(strlen("true"), "true"));
     }
-    vm_push(S->vm, YASL_String(string));
+    vm_push(S->vm, YASL_STR(string)); // YASL_String(string));
     return 0;
 }

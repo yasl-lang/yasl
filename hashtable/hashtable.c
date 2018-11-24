@@ -6,6 +6,7 @@
 #include <interpreter/YASL_Object/YASL_Object.h>
 #include <interpreter/YASL_string/YASL_string.h>
 #include <color.h>
+#include <interpreter/refcount/refcount.h>
 
 #define HT_BASESIZE 30
 
@@ -73,21 +74,7 @@ Hash_t* ht_new() {
 }
 
 void del_hash(Hash_t* hashtable) {
-    int i;
-    for (i = 0; i < hashtable->size; i++) {
-        Item_t* item = hashtable->items[i];
-        if (item != NULL && item != &TOMBSTONE) {
-            del_item(item);
-        }
-    }
-    rc_del(hashtable->rc);
-    free(hashtable->items);
-    free(hashtable);
-}
-
-void ht_del_data(Hash_t* hashtable) {
-    int i;
-    for (i = 0; i < hashtable->size; i++) {
+    for (size_t i = 0; i < hashtable->size; i++) {
         Item_t* item = hashtable->items[i];
         if (item != NULL && item != &TOMBSTONE) {
             dec_ref(item->key);
@@ -96,11 +83,45 @@ void ht_del_data(Hash_t* hashtable) {
         }
     }
     free(hashtable->items);
-    //free(hashtable);
+    rc_del(hashtable->rc);
+    free(hashtable);
+}
+
+void ht_del_data(Hash_t* hashtable) {
+    for (size_t i = 0; i < hashtable->size; i++) {
+        Item_t* item = hashtable->items[i];
+        if (item != NULL && item != &TOMBSTONE) {
+            dec_ref(item->key);
+            dec_ref(item->value);
+            del_item(item);
+        }
+    }
+    free(hashtable->items);
 }
 
 void ht_del_rc(Hash_t* hashtable) {
     rc_del(hashtable->rc);
+    free(hashtable);
+}
+
+void ht_del_cstring_cfn(Hash_t *hashtable) {
+    for (size_t i = 0; i < hashtable->size; i++) {
+        Item_t* item = hashtable->items[i];
+        if (item != NULL) {
+            // printf("%d\n", item->value->value.cval->rc->refs);
+            // printf("%d\n", item->key->value.sval->rc->refs);
+            dec_ref(item->key);
+            dec_ref(item->value);
+            // str_del(item->key->value.sval);
+            //dec_ref(item->value);
+            //free(item->value->value.cval);
+            free(item->key);
+            free(item->value);
+            free(item);
+        }
+    }
+    rc_del(hashtable->rc);
+    free(hashtable->items);
     free(hashtable);
 }
 
@@ -110,6 +131,7 @@ void ht_del_string_int(Hash_t *hashtable) {
         Item_t* item = hashtable->items[i];
         if (item != NULL) {
             str_del(item->key->value.sval);
+            dec_ref(item->value);
             free(item->key);
             free(item->value);
             free(item);
@@ -181,12 +203,7 @@ void ht_insert(Hash_t* hashtable, const struct YASL_Object key, const struct YAS
 
 void ht_insert_cstring_cfunction(Hash_t *ht, char *key, int (*addr)(struct YASL_State *), int num_args) {
     String_t *string = str_new_sized(strlen(key), copy_char_buffer(strlen(key), key));
-    struct CFunction_s *fn = malloc(sizeof(struct CFunction_s));
-    fn->value = addr;
-    fn->num_args = num_args;
-    ht_insert(ht,
-              (struct YASL_Object) { .type = Y_STR, .value.sval = string },
-              (struct YASL_Object) { .type = Y_CFN, .value.cval = fn});
+    ht_insert(ht, YASL_STR(string), YASL_CFN(addr, num_args));
 }
 
 void ht_insert_string_int(Hash_t *hashtable, char *key, int64_t key_len, int64_t val) {

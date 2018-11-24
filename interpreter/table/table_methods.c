@@ -1,4 +1,5 @@
 #include <interpreter/YASL_Object/YASL_Object.h>
+#include <hashtable/hashtable.h>
 #include "table_methods.h"
 #include "hashtable.h"
 #include "yasl_state.h"
@@ -9,12 +10,11 @@ int table___get(struct YASL_State *S) {
     Hash_t* ht = vm_pop(S->vm).value.mval;
     struct YASL_Object *result = ht_search(ht, key);
     if (result == NULL) {
-        vm_push(S->vm, &key);
+        vm_push(S->vm, key);
         return -1;
     }
     else {
-        //vm_pop(S->vm);
-        vm_push(S->vm, result);
+        vm_push(S->vm, *result);
     }
     return 0;
 }
@@ -30,7 +30,7 @@ int table___set(struct YASL_State *S) {
         return -1;
     }
     ht_insert(ht, key, val);
-    vm_push(S->vm, &val);
+    vm_push(S->vm, val);
     return 0;
 }
 
@@ -46,7 +46,7 @@ int table_keys(struct YASL_State *S) {
             ls_append(ls, *(item->key));
         }
     }
-    vm_push(S->vm, YASL_List(ls));
+    vm_push(S->vm, YASL_LIST(ls));
     return 0;
 }
 
@@ -62,24 +62,23 @@ int table_values(struct YASL_State *S) {
             ls_append(ls, *(item->value));
         }
     }
-    vm_push(S->vm, YASL_List(ls));
+    vm_push(S->vm, YASL_LIST(ls));
     return 0;
 }
 
 int table_clone(struct YASL_State *S) {
     ASSERT_TYPE(S->vm, Y_TABLE, "table.clone");
-    Hash_t* ht = POP(S->vm).value.mval;
+    Hash_t* ht = vm_pop(S->vm).value.mval;
     Hash_t* new_ht = ht_new_sized(ht->base_size);
-    int i;
-    for (i = 0; i < ht->size; i++) {
+    for (size_t i = 0; i < ht->size; i++) {
         Item_t* item = ht->items[i];
         if (item != NULL && item != &TOMBSTONE) {
+            inc_ref(item->key);
+            inc_ref(item->value);
             ht_insert(new_ht, *item->key, *item->value);
         }
     }
-    struct YASL_Object *hashtable = malloc(sizeof(struct YASL_Object));
-    hashtable->type = Y_TABLE;
-    hashtable->value.mval = new_ht;
-    vm_push(S->vm, hashtable);
+
+    vm_push(S->vm, YASL_TBL(new_ht));
     return 0;
 }

@@ -77,44 +77,45 @@ int YASL_setglobal(struct YASL_State *S, char *name) {
 
 
 int YASL_pushundef(struct YASL_State *S) {
-    vm_push(S->vm, YASL_Undef());
+    vm_push(S->vm, YASL_UNDEF());
 }
 
 int YASL_pushfloat(struct YASL_State *S, double value) {
-    vm_push(S->vm, YASL_Float(value));
+    vm_push(S->vm, YASL_FLOAT(value));
 }
 
 int YASL_pushinteger(struct YASL_State *S, int64_t value) {
-    vm_push(S->vm, YASL_Integer(value));
+    vm_push(S->vm, YASL_INT(value));
 }
 
 int YASL_pushboolean(struct YASL_State *S, int value) {
-    vm_push(S->vm, YASL_Boolean(value));
+    vm_push(S->vm, YASL_BOOL(value));
 }
 
 int YASL_pushliteralstring(struct YASL_State *S, char *value) {
-    vm_push(S->vm, YASL_String(str_new_sized_from_mem(0, strlen(value), value)));
+    vm_push(S->vm, YASL_STR(str_new_sized_from_mem(0, strlen(value), value)));
 }
 
 int YASL_pushcstring(struct YASL_State *S, char *value) {
-    vm_push(S->vm, YASL_String(str_new_sized(strlen(value), value)));
+    vm_push(S->vm, YASL_STR(str_new_sized(strlen(value), value)));
 }
 
 int YASL_pushuserpointer(struct YASL_State *S, void *userpointer) {
-    vm_push(S->vm, YASL_UserPointer(userpointer));
+    vm_push(S->vm, YASL_USERPTR(userpointer));
 }
 
 int YASL_pushstring(struct YASL_State *S, char *value, int64_t size) {
-    vm_push(S->vm, YASL_String(str_new_sized(size, value)));
+    vm_push(S->vm, YASL_STR(str_new_sized(size, value)));
 }
 
 int YASL_pushcfunction(struct YASL_State *S, int (*value)(struct YASL_State *), int num_args) {
-    vm_push(S->vm, YASL_CFunction(value, num_args));
+    vm_push(S->vm, YASL_CFN(value, num_args));
 }
 
 int YASL_pushobject(struct YASL_State *S, struct YASL_Object *obj) {
     if (!obj) return YASL_ERROR;
-    vm_push(S->vm, obj);
+    vm_push(S->vm, *obj);
+    free(obj);
     return YASL_SUCCESS;
 }
 

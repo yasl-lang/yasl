@@ -21,11 +21,11 @@ int list___get(struct YASL_State *S) {
     } else {
         if (index.value.ival >= 0) {
             vm_pop(S->vm);
-            vm_push(S->vm, &ls->items[index.value.ival]);
+            vm_push(S->vm, ls->items[index.value.ival]);
         }
         else {
             vm_pop(S->vm);
-            vm_push(S->vm, &ls->items[index.value.ival + ls->count]);
+            vm_push(S->vm, ls->items[index.value.ival + ls->count]);
         }
     }
     return 0;
@@ -39,15 +39,15 @@ int list___set(struct YASL_State *S) {
     if (index.type != Y_INT64) {
         printf("TypeError: cannot index list with non-integer\n");
         return -1;
-        vm_push(S->vm, YASL_Undef());
+        vm_push(S->vm, YASL_UNDEF());
     } else if (index.value.ival < -ls->count || index.value.ival >= ls->count) {
         printf("IndexError\n");
         return -1;
-        vm_push(S->vm, YASL_Undef());
+        vm_push(S->vm, YASL_UNDEF());
     } else {
         if (index.value.ival >= 0) /* ls_insert(ls, index.value.ival, value); /*/  ls->items[index.value.ival] = value;
         else /* ls_insert(ls, index.value.ival + ls->count, value); /*/ ls->items[index.value.ival + ls->count] = value;
-        vm_push(S->vm, &value);
+        vm_push(S->vm, value);
     }
     return 0;
 }
@@ -87,7 +87,7 @@ int list_extend(struct YASL_State *S) {
     for(unsigned int i = 0; i < exls->count; i++) {
         ls_append(ls.value.lval, exls->items[i]);
     }
-    vm_push(S->vm, YASL_Undef());
+    vm_push(S->vm, YASL_UNDEF());
     return 0;
 }
 
@@ -98,7 +98,7 @@ int list_pop(struct YASL_State *S) {
         puts("cannot pop from empty list.");
         exit(EXIT_FAILURE);
     }
-    vm_push(S->vm, &ls.value.lval->items[--ls.value.lval->count]);
+    vm_push(S->vm, ls.value.lval->items[--ls.value.lval->count]);
     return 0;
 }
 
@@ -106,11 +106,11 @@ int list_search(struct YASL_State *S) {
     struct YASL_Object needle = vm_pop(S->vm);
     ASSERT_TYPE(S->vm, Y_LIST, "list.search");
     struct YASL_Object haystack = vm_pop(S->vm);
-    struct YASL_Object *index = YASL_Undef();
+    struct YASL_Object index = YASL_UNDEF();
     int i;
     for (i = 0; i < haystack.value.lval->count; i++) {
         if (!isfalsey(isequal(haystack.value.lval->items[i], needle)))
-            index = YASL_Integer(i);
+            index = YASL_INT(i);
     }
     vm_push(S->vm, index);
     return 0;
@@ -120,6 +120,6 @@ int list_reverse(struct YASL_State *S) {
     ASSERT_TYPE(S->vm, Y_LIST, "list.reverse");
     List_t *ls = vm_pop(S->vm).value.lval;
     ls_reverse(ls);
-    vm_push(S->vm, YASL_Undef());
+    vm_push(S->vm, YASL_UNDEF());
     return 0;
 }

@@ -11,14 +11,14 @@ int str___get(struct YASL_State *S) {
     String_t *str = POP(S->vm).value.sval;
     if (index.type != Y_INT64) {
         return -1;
-        vm_push(S->vm, YASL_Undef());
+        vm_push(S->vm, YASL_UNDEF());
     } else if (index.value.ival < -yasl_string_len(str) || index.value.ival >= yasl_string_len(str)) {
         return -1;
-        vm_push(S->vm, YASL_Undef());
+        vm_push(S->vm, YASL_UNDEF());
     } else {
         if (index.value.ival >= 0)
-            vm_push(S->vm, YASL_String(str_new_sized_from_mem(str->start + index.value.ival, str->start + index.value.ival + 1, str->str)));
-        else vm_push(S->vm, YASL_String(str_new_sized_from_mem(str->start + index.value.ival + yasl_string_len(str), str->start + index.value.ival + yasl_string_len(str) + 1, str->str)));
+            vm_push(S->vm, YASL_STR(str_new_sized_from_mem(str->start + index.value.ival, str->start + index.value.ival + 1, str->str)));
+        else vm_push(S->vm, YASL_STR(str_new_sized_from_mem(str->start + index.value.ival + yasl_string_len(str), str->start + index.value.ival + yasl_string_len(str) + 1, str->str)));
     }
     return 0;
 }
@@ -52,7 +52,7 @@ int str_tofloat64(struct YASL_State *S) {
     char *buffer = malloc(yasl_string_len(str) + 1);
     memcpy(buffer, str->str + str->start, yasl_string_len(str));
     buffer[yasl_string_len(str)] = '\0';
-    vm_push(S->vm, YASL_Float(parsedouble(buffer)));
+    vm_push(S->vm, YASL_FLOAT(parsedouble(buffer)));
     free(buffer);
     return 0;
 }
@@ -90,7 +90,7 @@ int str_toupper(struct YASL_State *S) {
         }
     }
 
-    vm_push(S->vm, YASL_String(str_new_sized(length, ptr)));
+    vm_push(S->vm, YASL_STR(str_new_sized(length, ptr)));
     return 0;
 }
 
@@ -110,7 +110,7 @@ int str_tolower(struct YASL_State *S) {
             ptr[i++] = curr;
         }
     }
-    vm_push(S->vm, YASL_String(str_new_sized(length, ptr)));
+    vm_push(S->vm, YASL_STR(str_new_sized(length, ptr)));
     return 0;
 }
 
@@ -331,7 +331,7 @@ int str_ltrim(struct YASL_State *S) {
         start += yasl_string_len(needle.value.sval);
     }
 
-    vm_push(S->vm, YASL_String(str_new_sized_from_mem(haystack.value.sval->start + start, haystack.value.sval->start + yasl_string_len(haystack.value.sval),
+    vm_push(S->vm, YASL_STR(str_new_sized_from_mem(haystack.value.sval->start + start, haystack.value.sval->start + yasl_string_len(haystack.value.sval),
                                                                    haystack.value.sval->str)));
 
     return 0;
@@ -353,7 +353,7 @@ int str_rtrim(struct YASL_State *S) {
         end -= yasl_string_len(needle.value.sval);
     }
 
-    vm_push(S->vm, YASL_String(str_new_sized_from_mem(haystack.value.sval->start, haystack.value.sval->start + end, haystack.value.sval->str)));
+    vm_push(S->vm, YASL_STR(str_new_sized_from_mem(haystack.value.sval->start, haystack.value.sval->start + end, haystack.value.sval->str)));
 
     return 0;
 }
@@ -383,7 +383,7 @@ int str_trim(struct YASL_State *S) {
         end -= yasl_string_len(needle.value.sval);
     }
 
-    vm_push(S->vm, YASL_String(str_new_sized_from_mem(haystack.value.sval->start + start, haystack.value.sval->start + end, haystack.value.sval->str)));
+    vm_push(S->vm, YASL_STR(str_new_sized_from_mem(haystack.value.sval->start + start, haystack.value.sval->start + end, haystack.value.sval->str)));
 
     return 0;
 }

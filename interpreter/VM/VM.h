@@ -15,7 +15,7 @@
 #define PUSH(vm, v)  (vm->stack[++vm->sp] = v)           // push value onto stack
 #define POP(vm)      (vm->stack[vm->sp--])               // pop value from top of stack
 #define PEEK(vm)     (vm->stack[vm->sp])                 // pop value from top of stack
-#define BPUSH(vm, v) (vm_push(vm, YASL_Boolean(v)))  //push boolean v onto stack
+#define BPUSH(vm, v) (vm_push(vm, YASL_BOOL(v)))  //push boolean v onto stack
 
 
 #define BUFFER_SIZE 256
@@ -63,7 +63,7 @@ struct VM* vm_new(unsigned char *code,    // pointer to bytecode
 void vm_del(struct VM *vm);
 
 struct YASL_Object vm_pop(struct VM *vm);
-void vm_push(struct VM *vm, struct YASL_Object *val);
+void vm_push(struct VM *vm, struct YASL_Object val);
 
 void vm_run(struct VM *vm);
 

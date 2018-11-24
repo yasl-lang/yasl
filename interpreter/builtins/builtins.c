@@ -3,6 +3,7 @@
 #include <debug.h>
 #include <interpreter/YASL_Object/YASL_Object.h>
 #include <interpreter/YASL_string/YASL_string.h>
+#include <interpreter/refcount/refcount.h>
 
 #include "builtins.h"
 

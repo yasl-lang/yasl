@@ -53,6 +53,9 @@ static void inc_strong_ref(struct YASL_Object *v) {
         case Y_TABLE:
             v->value.mval->rc->refs++;
             break;
+        case Y_CFN:
+            v->value.cval->rc->refs++;
+            break;
         default:
             puts("NOt Implemented");
             break;
@@ -64,6 +67,7 @@ void inc_ref(struct YASL_Object *v) {
         case Y_STR:
         case Y_LIST:
         case Y_TABLE:
+        case Y_CFN:
             //puts(K_GRN "inc" K_END);
             //print(*v);
             //printf("\n%d++\n", v->value.sval->rc->refs);
@@ -127,6 +131,12 @@ void dec_strong_ref(struct YASL_Object *v) {
             if (v->value.mval->rc->weak_refs) return;
             ht_del_rc(v->value.mval);
             break;
+        case Y_CFN:
+            if (--(v->value.cval->rc->refs)) return;
+            cfn_del_data(v->value.cval);
+            if (v->value.cval->rc->weak_refs) return;
+            cfn_del_rc(v->value.cval);
+            break;
         default:
             puts("NoT IMPELemented");
             exit(EXIT_FAILURE);
@@ -138,10 +148,12 @@ void dec_ref(struct YASL_Object *v) {
         case Y_STR:
         case Y_LIST:
         case Y_TABLE:
+        case Y_CFN:
             //puts(K_RED "dec" K_END);
             //print(*v);
-            //printf("\n%d--\n", v->value.sval->rc->refs);
+            //printf("\n%d--\n", v->value.cval->rc->refs);
             dec_strong_ref(v);
+            //printf("\n%d--\n", v->value.cval->rc->refs);
             break;
         case Y_STR_W:
         case Y_LIST_W:
