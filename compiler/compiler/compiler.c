@@ -15,7 +15,6 @@ struct Compiler *compiler_new(Parser *const parser) {
 
     compiler->globals = env_new(NULL);
     compiler->params = NULL;
-    compiler->locals = NULL;
 
     compiler->functions = ht_new();
     compiler->offset = 0;
@@ -60,7 +59,6 @@ void compiler_del(struct Compiler *compiler) {
     compiler_tables_del(compiler);
     env_del(compiler->globals);
     env_del(compiler->params);
-    env_del(compiler->locals);
     parser_del(compiler->parser);
     compiler_buffers_del(compiler);
     free(compiler->checkpoints);
@@ -72,14 +70,14 @@ static void handle_error(struct Compiler *const compiler) {
 }
 
 static void enter_scope(struct Compiler *const compiler) {
-    if (compiler->params != NULL) compiler->locals = env_new(compiler->locals);
+    if (compiler->params != NULL) compiler->params = env_new(compiler->params);
     else compiler->globals = env_new(compiler->globals);
 }
 
 static void exit_scope(struct Compiler *const compiler) {
     if (compiler->params != NULL) {
-        Env_t *tmp = compiler->locals;
-        compiler->locals = compiler->locals->parent;
+        Env_t *tmp = compiler->params;
+        compiler->params = compiler->params->parent;
         env_del_current_only(tmp);
     } else {
         Env_t *tmp = compiler->globals;
@@ -131,12 +129,8 @@ static inline int64_t get_index(int64_t value) {
     return is_const(value) ? ~value : value;
 }
 
-static void load_var(const struct Compiler *const compiler, char *name, int64_t name_len, int64_t line) {
-    if (env_contains(compiler->locals, name, name_len)) {
-        //printf("found %s in locals\n", name);
-        bb_add_byte(compiler->buffer, GLOAD_1);
-        bb_add_byte(compiler->buffer, get_index(env_get(compiler->locals, name, name_len)));
-    } else if (env_contains(compiler->params, name, name_len)) {
+static void load_var(struct Compiler *const compiler, char *name, int64_t name_len, int64_t line) {
+    if (env_contains(compiler->params, name, name_len)) {
         //printf("found %s in params\n", name);
         bb_add_byte(compiler->buffer, LLOAD_1);
         bb_add_byte(compiler->buffer, get_index(env_get(compiler->params, name, name_len))); // TODO: handle size
@@ -151,17 +145,8 @@ static void load_var(const struct Compiler *const compiler, char *name, int64_t 
     }
 }
 
-static void store_var(const struct Compiler *const compiler, char *name, int64_t name_len, int64_t line) {
-    if (env_contains(compiler->locals, name, name_len)) {
-        int64_t index = env_get(compiler->locals, name, name_len);
-        if (is_const(index)) {
-            printf("ConstantError: in line %" PRId64 ": cannot assign to constant %s", line, name);
-            handle_error(compiler);
-            return;
-        }
-        bb_add_byte(compiler->buffer, GSTORE_1);
-        bb_add_byte(compiler->buffer, index);
-    } else if (env_contains(compiler->params, name, name_len)) {
+static void store_var(struct Compiler *const compiler, char *name, int64_t name_len, int64_t line) {
+    if (env_contains(compiler->params, name, name_len)) {
         int64_t index = env_get(compiler->params, name, name_len);
         if (is_const(index)) {
             printf("ConstantError: in line %" PRId64 ": cannot assign to constant %s", line, name);
@@ -188,20 +173,19 @@ static void store_var(const struct Compiler *const compiler, char *name, int64_t
 
 static int contains_var_in_current_scope(const struct Compiler *const compiler, char *name, int64_t name_len) {
     return compiler->params ?
-    env_contains_cur_scope(compiler->locals, name, name_len) :
+    env_contains_cur_scope(compiler->params, name, name_len) :
     env_contains_cur_scope(compiler->globals, name, name_len);
 }
 
 static int contains_var(const struct Compiler *const compiler, char *name, int64_t name_len) {
     return env_contains(compiler->globals, name, name_len) ||
-           env_contains(compiler->params, name, name_len) ||
-            env_contains(compiler->locals, name, name_len);
+           env_contains(compiler->params, name, name_len);
 }
 
 static void decl_var(struct Compiler *const compiler, char *name, int64_t name_len) {
     if (NULL != compiler->params) {
         //printf("declaring %s in locals\n", name);
-        env_decl_var(compiler->locals, name, name_len);
+        env_decl_var(compiler->params, name, name_len);
     }
     else {
         //printf("declaring %s in globals\n", name);
@@ -210,15 +194,11 @@ static void decl_var(struct Compiler *const compiler, char *name, int64_t name_l
 }
 
 static void make_const(struct Compiler * const compiler, char *name, int64_t name_len) {
-    if (NULL != compiler->params) env_make_const(compiler->locals, name, name_len);
+    if (NULL != compiler->params) env_make_const(compiler->params, name, name_len);
     else env_make_const(compiler->globals, name, name_len);
 }
 
-static void decl_param(struct Compiler *const compiler, char *name, int64_t name_len) {
-    env_decl_var(compiler->params, name, name_len);
-}
-
-char *compile(struct Compiler *const compiler) {
+unsigned char *compile(struct Compiler *const compiler) {
     Node *node;
     gettok(compiler->parser->lex);
     while (!peof(compiler->parser)) {
@@ -272,7 +252,7 @@ char *compile(struct Compiler *const compiler) {
     //fwrite(magic_number, 1, YASL_MAG_NUM_SIZE, fp);
     //fwrite(compiler->header->bytes, 1, compiler->header->count, fp);
     //fwrite(compiler->code->bytes, 1, compiler->code->count, fp);
-    char *bytecode = malloc(compiler->code->count + compiler->header->count + 1);    // NOT OWN
+    unsigned char *bytecode = malloc(compiler->code->count + compiler->header->count + 1);    // NOT OWN
     memcpy(bytecode, compiler->header->bytes, compiler->header->count);
     memcpy(bytecode + compiler->header->count, compiler->code->bytes, compiler->code->count);
     bytecode[compiler->code->count + compiler->header->count] = HALT;
@@ -305,7 +285,7 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const Node *cons
 
     int64_t i;
     for (i = 0; i < node->children[0]->children_len; i++) {
-        decl_param(compiler, node->children[0]->children[i]->name, node->children[0]->children[i]->name_len);
+        decl_var(compiler, node->children[0]->children[i]->name, node->children[0]->children[i]->name_len);
     }
 
     bb_add_byte(compiler->buffer, node->children[0]->children_len);
@@ -367,15 +347,15 @@ static void visit_Return(struct Compiler *const compiler, const Node *const node
 
 static void visit_Set(struct Compiler *const compiler, const Node *const node) {
     // TODO: fix order here by changing VM
+    visit(compiler, node->children[0]);
     visit(compiler, node->children[1]);
     visit(compiler, node->children[2]);
-    visit(compiler, node->children[0]);
     bb_add_byte(compiler->buffer, SET);
 }
 
 static void visit_Get(struct Compiler *const compiler, const Node *const node) {
-    visit(compiler, node->children[1]);
     visit(compiler, node->children[0]);
+    visit(compiler, node->children[1]);
     bb_add_byte(compiler->buffer, GET);
 }
 
@@ -393,11 +373,11 @@ static inline void branch_back(struct Compiler *const compiler, int64_t index) {
 static void visit_ListComp(struct Compiler *const compiler, const Node *const node) {
     enter_scope(compiler);
 
-    bb_add_byte(compiler->buffer, END);
-
     visit(compiler, node->children[1]->children[1]);
 
     bb_add_byte(compiler->buffer, INITFOR);
+
+    bb_add_byte(compiler->buffer, END);
 
     if (node->children[1]->nodetype == N_LETITER) {
         decl_var(compiler, node->children[1]->children[0]->name, node->children[1]->children[0]->name_len);
@@ -435,19 +415,19 @@ static void visit_ListComp(struct Compiler *const compiler, const Node *const no
 
     exit_conditional_false(compiler, &index_second);
 
-    bb_add_byte(compiler->buffer, ENDFOR);
     bb_add_byte(compiler->buffer, NEWLIST);
+
+    bb_add_byte(compiler->buffer, ENDCOMP);
     exit_scope(compiler);
 }
 
 static void visit_TableComp(struct Compiler *const compiler, const Node *const node) {
     enter_scope(compiler);
 
-    bb_add_byte(compiler->buffer, END);
-
     visit(compiler, node->children[1]->children[1]);
 
     bb_add_byte(compiler->buffer, INITFOR);
+    bb_add_byte(compiler->buffer, END);
 
     if (node->children[1]->nodetype == N_LETITER) {
         decl_var(compiler, node->children[1]->children[0]->name, node->children[1]->children[0]->name_len);
@@ -485,8 +465,9 @@ static void visit_TableComp(struct Compiler *const compiler, const Node *const n
 
     exit_conditional_false(compiler, &index_second);
 
-    bb_add_byte(compiler->buffer, ENDFOR);
     bb_add_byte(compiler->buffer, NEWTABLE);
+    bb_add_byte(compiler->buffer, ENDCOMP);
+
     exit_scope(compiler);
 }
 
@@ -797,7 +778,7 @@ static void visit_UnOp(struct Compiler *const compiler, const Node *const node) 
         case T_CARET:
             bb_add_byte(compiler->buffer, BNOT);
             break;
-        case T_AT:
+        case T_LEN:
             bb_add_byte(compiler->buffer, LEN);
             break;
         default:

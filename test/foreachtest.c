@@ -43,8 +43,8 @@ static void test_continue() {
             ITER_1,
             BRF_8,
             0x2C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            GSTORE_1, 0x06,
-            GLOAD_1, 0x06,
+            GSTORE_1, 0x00,
+            GLOAD_1, 0x00,
             ICONST,
             0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             EQ,
@@ -52,14 +52,14 @@ static void test_continue() {
             0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             BR_8,
             0xD6, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-            GLOAD_1, 0x06,
+            GLOAD_1, 0x00,
             PRINT,
             BR_8,
             0xCA, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
             ENDFOR,
             HALT
     };
-    ASSERT_GEN_BC_EQ(expected,"for let i <- [0, 1, 2, 3, 4, 5] { if i == 5 { continue; }; print i; };");
+    ASSERT_GEN_BC_EQ(expected,"for let i <- [0, 1, 2, 3, 4, 5] { if i == 5 { continue; }; echo i; };");
 }
 
 static void test_break() {
@@ -84,8 +84,8 @@ static void test_break() {
             ITER_1,
             BRF_8,
             0x2D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            GSTORE_1, 0x06,
-            GLOAD_1, 0x06,
+            GSTORE_1, 0x00,
+            GLOAD_1, 0x00,
             ICONST,
             0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             EQ,
@@ -94,14 +94,14 @@ static void test_break() {
             BCONST_F,
             BR_8,
             0xD6, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-            GLOAD_1, 0x06,
+            GLOAD_1, 0x00,
             PRINT,
             BR_8,
             0xC9, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
             ENDFOR,
             HALT
     };
-    ASSERT_GEN_BC_EQ(expected,"for let i <- [0, 1, 2, 3, 4, 5] { if i == 5 { break; }; print i; };");
+    ASSERT_GEN_BC_EQ(expected,"for let i <- [0, 1, 2, 3, 4, 5] { if i == 5 { break; }; echo i; };");
 }
 
 int foreachtest(void) {

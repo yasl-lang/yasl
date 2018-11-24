@@ -13,7 +13,6 @@ struct Compiler {
     Parser *parser;
     Env_t *globals;
     Env_t *params;
-    Env_t *locals;
     Hash_t *functions;
     int64_t offset;
     Hash_t *strings;
@@ -28,4 +27,4 @@ struct Compiler {
 
 struct Compiler *compiler_new(Parser *const parser);
 void compiler_del(struct Compiler *compiler);
-char *compile(struct Compiler *const compiler);
+unsigned char *compile(struct Compiler *const compiler);

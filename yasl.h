@@ -98,7 +98,7 @@ int YASL_pushstring(struct YASL_State *S, char *value, int64_t size);
  * @param value the function pointer to be pushed onto the stack.
  * @return 0 on success, else error code.
  */
-int YASL_pushcfunction(struct YASL_State *S, int (*value)(struct YASL_State *));
+int YASL_pushcfunction(struct YASL_State *S, int (*value)(struct YASL_State *), int num_args);
 
 /**
  * Pushes a user-pointer onto the stack
@@ -133,7 +133,7 @@ struct YASL_Object *YASL_CString(char *str);
 struct YASL_Object *YASL_UserPointer(void *userdata);
 struct YASL_Object *YASL_UserData(void *userdata, int tag);
 struct YASL_Object *YASL_Function(int64_t index);
-struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *));
+struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *), int num_args);
 
 /**
  * inserts a key-value pair into the given table

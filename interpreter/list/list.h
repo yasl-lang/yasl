@@ -5,10 +5,10 @@
 #include "../../hashtable/hashtable.h"
 
 typedef struct List_s {
+    RefCount *rc;
     int size;
     int count;
     struct YASL_Object* items;
-    RefCount *rc;
 } List_t;
 
 struct YASL_Object *YASL_List(List_t *ls);

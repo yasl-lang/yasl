@@ -5,4 +5,4 @@
 #include "../../opcode.h"
 #include "../YASL_Object/YASL_Object.h"
 
-int bool_tostr(struct VM *vm);
+int bool_tostr(struct YASL_State *S);

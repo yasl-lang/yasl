@@ -7,8 +7,8 @@
 
 typedef struct {
     unsigned char *bytes;
-    int64_t size;
-    int64_t count;
+    size_t size;
+    size_t count;
 } ByteBuffer;
 
 ByteBuffer *bb_new(int64_t size);

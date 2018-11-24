@@ -68,7 +68,7 @@
  */
 
 
-// NOTE: make sure that augmented version of operand is directly after regular version for all operants.
+// NOTE: make sure that augmented version of operand is directly after regular version for all operands.
 // parser.c uses this
 // NOTE: keep up to date with array names in lexer.c
 typedef enum {
@@ -94,7 +94,8 @@ typedef enum {
     T_FN,
     T_RET,
     T_ENUM,
-    T_PRINT,
+    T_ECHO,
+    T_LEN,
     T_LPAR,
     T_RPAR,
     T_LSQB,

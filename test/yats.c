@@ -16,11 +16,19 @@ Lexer *setup_lexer(char *file_contents) {
 }
 
 
-void setup_compiler(char *file_contents) {
+char *setup_compiler(char *file_contents) {
     Parser *parser = parser_new(setup_lexer(file_contents));
-    Compiler *compiler = compiler_new(parser, "dump.yb");
-    compile(compiler);
+    struct Compiler *compiler = compiler_new(parser);
+    char *bytecode = compile(compiler);
+    FILE *f = fopen("dump.yb", "wb");
+    if (bytecode == NULL) {
+        fputc(HALT, f);
+    } else {
+        fwrite(bytecode, 1, compiler->code->count + compiler->header->count + 1, f);
+    }
+    fclose(f);
     compiler_del(compiler);
+    return bytecode;
 }
 
 int64_t getsize(FILE *file) {

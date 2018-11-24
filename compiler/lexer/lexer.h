@@ -30,7 +30,6 @@ typedef struct {
     int status;
 } Lexer;
 
-static Token YASLToken_FourChars(char c1, char c2, char c3, char c4);
 static Token YASLToken_ThreeChars(char c1, char c2, char c3);
 static Token YASLToken_TwoChars(char c1, char c2);
 static Token YASLToken_OneChar(char c1);
@@ -40,4 +39,4 @@ Lexer *lex_new(FILE *file);
 void lex_del(Lexer *lex);
 void gettok(Lexer *lex);
 
-const char *YASL_TOKEN_NAMES[84];
+const char *YASL_TOKEN_NAMES[85];

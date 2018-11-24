@@ -45,10 +45,10 @@ struct Node_s {
     AST nodetype;
     Token type;
     struct Node_s **children;
-    int64_t children_len;
+    size_t children_len;
     char* name;
-    int64_t name_len;
-    int line;
+    size_t name_len;
+    size_t line;
 };
 
 typedef struct Node_s Node;

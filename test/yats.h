@@ -25,7 +25,7 @@
 
 #define ASSERT_GEN_BC_EQ(expected, fc) do{\
     remove("dump.yb");\
-    setup_compiler(fc);\
+    char *bytecode = setup_compiler(fc);\
     FILE *file = fopen("dump.yb", "rb");\
     int64_t size = getsize(file);\
     unsigned char actual[size];\
@@ -35,5 +35,5 @@
 } while(0)
 
 Lexer *setup_lexer(char *file_contents);
-void setup_compiler(char *file_contents);
+char *setup_compiler(char *file_contents);
 int64_t getsize(FILE *file);

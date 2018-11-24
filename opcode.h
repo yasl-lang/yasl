@@ -29,6 +29,7 @@ typedef enum Opcode {
             BSL       = 0x25, // bitwise left shift
             BSR       = 0x26, // bitwise right shift
             INITFOR   = 0x30, // initialises for-loop in VM
+            ENDCOMP   = 0x31,
             ENDFOR    = 0x32, // end for-loop in VM
             ITER_1    = 0x33, // iterate to next, 1 var
             ITER_2    = 0x35, // iterate to next, 2 var
@@ -74,7 +75,6 @@ typedef enum Opcode {
             INIT_CALL = 0xF8,
             CALL      = 0xF9,
             RET       = 0xFA, // return from function
-            CALL_8    = 0xFB, // function call (# of parameters (1 byte), addr (8 bytes), # of params (1 byte))
             RCALL_8   = 0xFC, // tail recursive function call
             //BCALL_8   = 0xFB, // built-in function call
             //MCALL_8   = 0xFC, // method call

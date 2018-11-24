@@ -2,6 +2,7 @@
 #include <string.h>
 #include <color.h>
 #include <interpreter/float/float64_methods.h>
+#include <interpreter/userdata/userdata.h>
 #include "YASL_Object.h"
 //#include <interpreter/userdata/userdata.h>
 
@@ -25,6 +26,22 @@ const char *YASL_TYPE_NAMES[] = {
     "userdata", // Y_USERDATA,
     "userdata", // Y_USERDATA_W
 };
+
+struct CFunction_s *new_cfn(int (*value)(struct YASL_State *), int num_args) {
+    struct CFunction_s *fn = malloc(sizeof(struct CFunction_s));
+    fn->value = value;
+    fn->num_args = num_args;
+    fn->rc = rc_new();
+    return fn;
+}
+
+void cfn_del_data(struct CFunction_s *cfn) {
+}
+
+void cfn_del_rc(struct CFunction_s *cfn) {
+    rc_del(cfn->rc);
+    free(cfn);
+}
 
 struct YASL_Object *YASL_Undef(void) {
     struct YASL_Object *undef = malloc(sizeof(struct YASL_Object));
@@ -90,10 +107,12 @@ struct YASL_Object *YASL_Function(int64_t index) {
     return fn;
 }
 
-struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *)) {
+struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *), int num_args) {
     struct YASL_Object *fn = malloc(sizeof(struct YASL_Object));
     fn->type = Y_CFN;
-    fn->value.pval = value;
+    fn->value.pval = malloc(sizeof(struct CFunction_s));
+    fn->value.cval->value = value;
+    fn->value.cval->num_args = num_args;
     return fn;
 }
 
@@ -173,7 +192,7 @@ struct YASL_Object isequal(struct YASL_Object a, struct YASL_Object b) {
             } else if (yasl_type_equals(a.type, Y_FLOAT64) && yasl_type_equals(b.type, Y_FLOAT64)) {
                 c = a.value.dval == b.value.dval;
             } else {
-                printf("== and != not supported for operands of types %x and %x.\n", a.type, b.type);
+                // printf("== and != not supported for operands of types %x and %x.\n", a.type, b.type);
                 return UNDEF_C;
             }
             return (struct YASL_Object) {Y_BOOL, c};
@@ -207,18 +226,18 @@ int print(struct YASL_Object v) {
                 printf("%c", (v.value.sval)->str[i + v.value.sval->start]);
             }
             break;
-        /* case Y_TABLE:
-            printf("<hash %" PRIx64 ">", v.value);
-            break; */
-        /* case Y_LIST:
+        case Y_TABLE:
+            printf("<table %" PRIx64 ">", v.value);
+            break;
+        case Y_LIST:
             //ls_print((List_t*)v.value);
-            // printf("<list %" PRIx64 ">", v.value);
-            break; */
+            printf("<list %" PRIx64 ">", v.value);
+            break;
         case Y_FN:
             printf("<fn: %" PRIx64 ">", v.value.ival);
             break;
-        case Y_BFN:
-            printf("<mn: %" PRIx64 ">", v.value.ival);
+        case Y_CFN:
+            printf("<fn: %" PRIx64 ">", v.value.cval->value);
             break;
         case Y_USERPTR:
             printf("0x%0*" PRIx64, (int)sizeof(void*), v.value.ival);

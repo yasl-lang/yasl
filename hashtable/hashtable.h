@@ -15,19 +15,21 @@ typedef struct {
 static Item_t TOMBSTONE = {0, 0};
 
 typedef struct Hash_s {
+    RefCount *rc;
     int64_t size;
     int64_t base_size;
     int64_t count;
     Item_t** items;
-    RefCount *rc;
 } Hash_t;
 
 Hash_t* ht_new(void);
 Hash_t* ht_new_sized(const int base_size);
 void ht_del_data(Hash_t *hashtable);
 void ht_del_rc(Hash_t *hashtable);
+void ht_del_cstring_cfn(Hash_t *hashtable);
 void ht_del_string_int(Hash_t *hashtable);
 void ht_insert(Hash_t *const hashtable, struct YASL_Object key, struct YASL_Object value);
+void ht_insert_cstring_cfunction(Hash_t *ht, char *key, int (*addr)(struct YASL_State *), int num_args);
 void ht_insert_string_int(Hash_t *const hashtable, char *key, int64_t key_len, int64_t val);
 struct YASL_Object* ht_search(const Hash_t *const hashtable, struct YASL_Object key);
 struct YASL_Object *ht_search_string_int(const Hash_t *const hashtable, char *key, int64_t key_len);

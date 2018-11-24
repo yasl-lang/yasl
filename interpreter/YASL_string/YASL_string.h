@@ -5,11 +5,11 @@
 #include <interpreter/refcount/refcount.h>
 
 typedef struct {
+    RefCount* rc;
     unsigned char *str;
     int64_t start;
     int64_t end;
     int from_mem;
-    RefCount* rc;
 } String_t;
 
 // typedef String_t YASL_str;
