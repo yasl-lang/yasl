@@ -1,3 +1,4 @@
 *.h linguist-language=C
 *.c linguist-language=C
 *.py linguist-language=Python
+*.pl linguist-language=Perl
