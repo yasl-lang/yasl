@@ -14,7 +14,7 @@ static void lex_error(Lexer *lex) {
     lex->status = YASL_SYNTAX_ERROR;
 }
 
-char lex_getchar(Lexer *lex) {
+int lex_getchar(Lexer *lex) {
     return lex->c = fgetc(lex->file);
 }
 
@@ -120,6 +120,12 @@ static int lex_eatstring(Lexer *lex) {
 
         lex_getchar(lex);
         while (lex->c != STR_DELIM && !feof(lex->file)) {
+            if (lex->c == '\n') {
+                printf("LexingError: unclosed string literal in line %d.\n", lex->line);
+                lex_error(lex);
+                return 1;
+            }
+
             if (lex->c == '\\') {
                 lex_getchar(lex);
                 switch (lex->c) {
@@ -192,6 +198,7 @@ static int lex_eatrawstring(Lexer *lex) {
 
         lex_getchar(lex);
         while (lex->c != RAW_STR_DELIM && !feof(lex->file)) {
+            if (lex->c == '\n') lex->line++;
             lex->value[i++] = lex->c;
             lex_getchar(lex);
             if (i == lex->val_len) {

@@ -3,6 +3,10 @@ require "yasl_test.pl";
 # Literals
 assert_output("echo 0x10\n", "16\n", 0);
 assert_output("echo 0b1010\n", "10\n", 0);
+assert_output(q+echo 'escapes\a\b\f\n\r\t\v\0\'\\\\'+,
+              "escapes\a\b\f\n\r\t\v\0'\\", 0);
+assert_output(q+echo `no escapes\a\b\f\n\r\t\v\0\'\\\\`+,
+              '\a\b\f\n\r\t\v\0\\\'\\\\', 0);
 
 # Comprehensions
 assert_output(qq"for let i <- [x*2 for let x <- [1, 2, 3]] {
@@ -107,12 +111,10 @@ assert_output(qq"let x = 10
                  echo add(10, 11)
                  echo x;",
               "21\n10\n", 0);
-              
 
 # Integer Methods
 assert_output("echo 2->tofloat64()\n", "2.0\n", 0);
 assert_output("echo 5->tostr()\n", "5\n", 0);
-
 
 # Float Methods
 assert_output("echo 2.1->toint64()\n", "2\n", 0);
@@ -121,7 +123,6 @@ assert_output("echo 5.7->tostr()\n", "5.7\n", 0);
 # Boolean Methods
 assert_output("echo true->tostr()\n", "true\n", 0);
 assert_output("echo false->tostr()\n", "false\n", 0);
-
 
 # String Methods
 assert_output("echo 'yasl'->tobool()\n", "true\n", 0);
@@ -200,16 +201,6 @@ assert_output(qq"let x = {1:'one', 2:'two', 3:'three'}
                  for let e <- x->values() { echo e; }\n", "three\nun\ntwo\n", 0);
 assert_output(qq"let x = {1:'one', 2:'two', 3:'three'};
                  for let e <- x->copy() { echo e; echo x[e]; };", "3\nthree\n2\ntwo\n1\none\n", 0);
-
-
-
-
-
-
-
-
-
-
 
 
 exit $__YASL_TESTS_FAILED__;
