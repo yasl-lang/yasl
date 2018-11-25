@@ -54,6 +54,10 @@ assert_output("echo 3.5 - 2\n", "1.5\n", 0);
 assert_output("echo 1 || 2\n", "1\n", 0);
 assert_output("echo 1 && 2\n", "2\n", 0);
 
+assert_output("echo 'str1' == 'str2'\n", "false\n", 0);
+assert_output("echo 'str1' == 'str12'\n", "false\n", 0);
+assert_output("echo 'str1' == 'str1'\n", "false\n", 0);
+
 # Ternary Operator
 assert_output("echo true ? 1 : 0\n", "1\n", 0);
 assert_output("echo false ? 1 : 0\n", "0\n", 0);

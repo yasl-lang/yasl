@@ -133,8 +133,8 @@ int isfalsey(struct YASL_Object v) {
 }
 
 struct YASL_Object isequal(struct YASL_Object a, struct YASL_Object b) {
-        if (yasl_type_equals(a.type, Y_UNDEF) || yasl_type_equals(b.type, Y_UNDEF)) {
-            return UNDEF_C;
+        if (yasl_type_equals(a.type, Y_UNDEF) && yasl_type_equals(b.type, Y_UNDEF)) {
+            return TRUE_C;
         }
         switch(a.type) {
         case Y_BOOL:
@@ -167,14 +167,9 @@ struct YASL_Object isequal(struct YASL_Object a, struct YASL_Object b) {
                 if (yasl_string_len(a.value.sval) != yasl_string_len(b.value.sval)) {
                     return FALSE_C;
                 } else {
-                    int i = 0;
-                    while (i < yasl_string_len(a.value.sval)) {
-                        if ((a.value.sval)->str[i+a.value.sval->start] != (b.value.sval)->str[i+b.value.sval->start]) {
-                            return FALSE_C;
-                        }
-                        i++;
-                    }
-                    return TRUE_C;
+                    return memcmp(a.value.sval->str + a.value.sval->start,
+                             b.value.sval->str + b.value.sval->start,
+                             yasl_string_len(a.value.sval)) ? FALSE_C : TRUE_C;
                 }
             }
             return FALSE_C;
