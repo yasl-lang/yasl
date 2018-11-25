@@ -491,6 +491,10 @@ void vm_run(struct VM *vm){
             case GT:
                 b = vm_pop(vm);
                 a = vm_pop(vm);
+                if (a.type == Y_STR && b.type == Y_STR) {
+                    vm_push(vm, YASL_BOOL(yasl_string_cmp(a.value.sval, b.value.sval) > 0));
+                    break;
+                }
                 if ((a.type != Y_INT64 && a.type != Y_FLOAT64) ||
                     (b.type != Y_INT64 && b.type != Y_FLOAT64)) {
                     printf("TypeError: < and > not supported for operand of types %s and %s.\n",
@@ -503,6 +507,11 @@ void vm_run(struct VM *vm){
             case GE:
                 b = vm_pop(vm);
                 a = vm_pop(vm);
+                if (a.type == Y_STR && b.type == Y_STR) {
+                    //printf("%d\n", yasl_string_cmp(a.value.sval, b.value.sval));
+                    vm_push(vm, YASL_BOOL(yasl_string_cmp(a.value.sval, b.value.sval) >= 0));
+                    break;
+                }
                 if ((a.type != Y_INT64 && a.type != Y_FLOAT64) ||
                     (b.type != Y_INT64 && b.type != Y_FLOAT64)) {
                     printf("TypeError: <= and >= not supported for operand of types %s and %s.\n",

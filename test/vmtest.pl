@@ -3,10 +3,13 @@ require "yasl_test.pl";
 # Literals
 assert_output("echo 0x10\n", "16\n", 0);
 assert_output("echo 0b1010\n", "10\n", 0);
-assert_output(q+echo 'escapes\a\b\f\n\r\t\v\0\'\\\\'+,
-              "escapes\a\b\f\n\r\t\v\0'\\", 0);
-assert_output(q+echo `no escapes\a\b\f\n\r\t\v\0\'\\\\`+,
-              '\a\b\f\n\r\t\v\0\\\'\\\\', 0);
+assert_output(q+echo '\ttab'
+               +,
+              "\ttab\n", 0);
+assert_output(q+echo `no escapes\a\b\f\n\r\t\v\0\'\\\\`
+               +,
+              'no escapes\a\b\f\n\r\t\v\0\\\'\\\\
+', 0);
 
 # Comprehensions
 assert_output(qq"for let i <- [x*2 for let x <- [1, 2, 3]] {
@@ -54,9 +57,24 @@ assert_output("echo 3.5 - 2\n", "1.5\n", 0);
 assert_output("echo 1 || 2\n", "1\n", 0);
 assert_output("echo 1 && 2\n", "2\n", 0);
 
+assert_output("echo 'str1' < 'str2'\n", "true\n", 0);
+assert_output("echo 'str1' > 'str2'\n", "false\n", 0);
+assert_output("echo 'str1' <= 'str2'\n", "true\n", 0);
+assert_output("echo 'str1' >= 'str2'\n", "false\n", 0);
+
+assert_output("echo 'str1' < 'str12'\n", "true\n", 0);
+assert_output("echo 'str1' <= 'str12'\n", "true\n", 0);
+assert_output("echo 'str1' >= 'str12'\n", "false\n", 0);
+assert_output("echo 'str1' > 'str12'\n", "false\n", 0);
+
+assert_output("echo 'str1' > 'str1'\n", "false\n", 0);
+assert_output("echo 'str1' < 'str1'\n", "false\n", 0);
+assert_output("echo 'str1' >= 'str1'\n", "true\n", 0);
+assert_output("echo 'str1' <= 'str1'\n", "true\n", 0);
+
 assert_output("echo 'str1' == 'str2'\n", "false\n", 0);
 assert_output("echo 'str1' == 'str12'\n", "false\n", 0);
-assert_output("echo 'str1' == 'str1'\n", "false\n", 0);
+assert_output("echo 'str1' == 'str1'\n", "true\n", 0);
 
 # Ternary Operator
 assert_output("echo true ? 1 : 0\n", "1\n", 0);
