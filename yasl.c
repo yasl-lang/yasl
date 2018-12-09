@@ -132,6 +132,14 @@ int YASL_Table_set(struct YASL_Object *table, struct YASL_Object *key, struct YA
     ht_insert(table->value.mval, *key, *value);
 }
 
+int YASL_UserData_gettag(struct YASL_Object *obj) {
+    return obj->value.uval->tag;
+}
+
+void *YASL_UserData_getdata(struct YASL_Object *obj) {
+    return obj->value.uval->data;
+}
+
 struct YASL_Object *YASL_LiteralString(char *str) {
     return YASL_String(str_new_sized_from_mem(0, strlen(str), str));
 }
@@ -180,7 +188,10 @@ int YASL_iscfunction(struct YASL_Object *obj);
 
 
 int YASL_isuserdata(struct YASL_Object *obj, int tag) {
-    return obj->type != Y_USERDATA && obj->type != Y_USERDATA_W && obj->value.uval->tag != tag;
+    if (YASL_ISUSERDATA(*obj) && obj->value.uval->tag == tag) {
+        return YASL_SUCCESS;
+    }
+    return YASL_ERROR;
 }
 
 

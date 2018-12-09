@@ -4,6 +4,6 @@ struct Compiler;
 struct VM;
 
 struct YASL_State {
-    struct Compiler *compiler;
     struct VM *vm;
+    struct Compiler *compiler;
 };

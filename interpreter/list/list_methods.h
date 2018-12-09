@@ -1,6 +1,6 @@
 #pragma once
 
-struct VM;
+struct YASL_State;
 
 int list___get(struct YASL_State *S);
 

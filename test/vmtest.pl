@@ -3,6 +3,13 @@ require "yasl_test.pl";
 # Literals
 assert_output("echo 0x10\n", "16\n", 0);
 assert_output("echo 0b1010\n", "10\n", 0);
+assert_output(q+echo '\ttab'
+               +,
+              "\ttab\n", 0);
+assert_output(q+echo `no escapes\a\b\f\n\r\t\v\0\'\\\\`
+               +,
+              'no escapes\a\b\f\n\r\t\v\0\\\'\\\\
+', 0);
 
 # Comprehensions
 assert_output(qq"for let i <- [x*2 for let x <- [1, 2, 3]] {
@@ -49,6 +56,25 @@ assert_output("echo 3.5 - 2\n", "1.5\n", 0);
 
 assert_output("echo 1 || 2\n", "1\n", 0);
 assert_output("echo 1 && 2\n", "2\n", 0);
+
+assert_output("echo 'str1' < 'str2'\n", "true\n", 0);
+assert_output("echo 'str1' > 'str2'\n", "false\n", 0);
+assert_output("echo 'str1' <= 'str2'\n", "true\n", 0);
+assert_output("echo 'str1' >= 'str2'\n", "false\n", 0);
+
+assert_output("echo 'str1' < 'str12'\n", "true\n", 0);
+assert_output("echo 'str1' <= 'str12'\n", "true\n", 0);
+assert_output("echo 'str1' >= 'str12'\n", "false\n", 0);
+assert_output("echo 'str1' > 'str12'\n", "false\n", 0);
+
+assert_output("echo 'str1' > 'str1'\n", "false\n", 0);
+assert_output("echo 'str1' < 'str1'\n", "false\n", 0);
+assert_output("echo 'str1' >= 'str1'\n", "true\n", 0);
+assert_output("echo 'str1' <= 'str1'\n", "true\n", 0);
+
+assert_output("echo 'str1' == 'str2'\n", "false\n", 0);
+assert_output("echo 'str1' == 'str12'\n", "false\n", 0);
+assert_output("echo 'str1' == 'str1'\n", "true\n", 0);
 
 # Ternary Operator
 assert_output("echo true ? 1 : 0\n", "1\n", 0);
@@ -107,12 +133,10 @@ assert_output(qq"let x = 10
                  echo add(10, 11)
                  echo x;",
               "21\n10\n", 0);
-              
 
 # Integer Methods
 assert_output("echo 2->tofloat64()\n", "2.0\n", 0);
 assert_output("echo 5->tostr()\n", "5\n", 0);
-
 
 # Float Methods
 assert_output("echo 2.1->toint64()\n", "2\n", 0);
@@ -121,7 +145,6 @@ assert_output("echo 5.7->tostr()\n", "5.7\n", 0);
 # Boolean Methods
 assert_output("echo true->tostr()\n", "true\n", 0);
 assert_output("echo false->tostr()\n", "false\n", 0);
-
 
 # String Methods
 assert_output("echo 'yasl'->tobool()\n", "true\n", 0);
@@ -146,7 +169,8 @@ assert_output("echo 'YASL'->replace('T', 'S')\n", "YASL\n", 0);
 assert_output("echo 'YASL'->replace('SL', '')\n", "YA\n", 0);
 assert_output("echo 'YASL'->search('A')\n", "1\n", 0);
 assert_output("echo 'YASL'->search('0')\n", "undef\n", 0);
-assert_output("echo len 'the quick brown fox'->split(' ')\n", "4\n", 0); 
+assert_output("echo len 'the quick brown fox'->split(' ')\n", "4\n", 0);
+assert_output("for let x <- 'the quick brown fox'->split(' ') { echo x; };", "the\nquick\nbrown\nfox\n", 0);
 assert_output("echo len 'the quick brown fox'->split('0')\n", "1\n", 0);
 assert_output("echo 'YAY'->ltrim('Y')\n", "AY\n", 0);
 assert_output("echo 'YYYYAY'->ltrim('Y')\n", "AY\n", 0);
@@ -201,15 +225,14 @@ assert_output(qq"let x = {1:'one', 2:'two', 3:'three'}
 assert_output(qq"let x = {1:'one', 2:'two', 3:'three'};
                  for let e <- x->copy() { echo e; echo x[e]; };", "3\nthree\n2\ntwo\n1\none\n", 0);
 
-
-
-
-
-
-
-
-
-
-
+# General
+assert_output(qq"let x = []
+                 let i = 0
+                 while i < 1000000 {
+                     x->push(i)
+                     i += 1
+                 };",
+              "",
+              0);
 
 exit $__YASL_TESTS_FAILED__;

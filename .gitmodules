@@ -1,3 +1,6 @@
 [submodule "interpreter/pattern/Patterns"]
 	path = interpreter/pattern/Patterns
 	url = https://github.com/CoffeeTableEspresso/Patterns.git
+[submodule "std-io"]
+	path = std-io
+	url = https://github.com/yasl-lang/std-io.git

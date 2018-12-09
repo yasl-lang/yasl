@@ -19,6 +19,7 @@ one of the keywords break, or continue
 one of the delimiters ), ], or }
 */
 #define STR_DELIM '\''
+#define RAW_STR_DELIM '`'
 
 typedef struct {
     FILE *file;     // OWN

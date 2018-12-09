@@ -1,10 +1,11 @@
-#include <interpreter/YASL_string/YASL_string.h>
-#include <string.h>
-#include <color.h>
-#include <interpreter/float/float64_methods.h>
-#include <interpreter/userdata/userdata.h>
 #include "YASL_Object.h"
-//#include <interpreter/userdata/userdata.h>
+
+#include <string.h>
+
+#include "YASL_string.h"
+#include "hashtable.h"
+#include "float64_methods.h"
+#include "userdata.h"
 
 char *float64_to_str(double d);
 
@@ -77,8 +78,6 @@ struct YASL_Object *YASL_String(String_t *str) {
     return string;
 }
 
-
-
 struct YASL_Object *YASL_Table() {
     struct YASL_Object *table = malloc(sizeof(struct YASL_Object));
     table->type = Y_TABLE;
@@ -113,33 +112,28 @@ struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *), int num_ar
     fn->value.pval = malloc(sizeof(struct CFunction_s));
     fn->value.cval->value = value;
     fn->value.cval->num_args = num_args;
+    fn->value.cval->rc = rc_new();
     return fn;
-}
-
-int yasl_type_equals(YASL_Types a, YASL_Types b) {
-    if (a == Y_STR_W || a == Y_LIST_W || a == Y_TABLE_W) a -= 1;
-    if (b == Y_STR_W || b == Y_LIST_W || b == Y_TABLE_W) b -= 1;
-    return a == b;
 }
 
 int isfalsey(struct YASL_Object v) {
     // TODO: add NaN as falsey
     return (
-            yasl_type_equals(v.type, Y_UNDEF) ||
-            (yasl_type_equals(v.type, Y_BOOL) && v.value.ival == 0) ||
-            (yasl_type_equals(v.type, Y_STR) && yasl_string_len(v.value.sval) == 0) ||
-            (yasl_type_equals(v.type, Y_FLOAT64) && v.value.dval != v.value.dval)
+            YASL_ISUNDEF(v) ||
+            (YASL_ISBOOL(v) && YASL_GETBOOL(v) == 0) ||
+            (YASL_ISSTR(v) && yasl_string_len(YASL_GETSTR(v)) == 0) ||
+            (YASL_ISFLOAT(v) && YASL_GETFLOAT(v) != YASL_GETFLOAT(v))
     );
 }
 
 struct YASL_Object isequal(struct YASL_Object a, struct YASL_Object b) {
-        if (yasl_type_equals(a.type, Y_UNDEF) || yasl_type_equals(b.type, Y_UNDEF)) {
-            return UNDEF_C;
+        if (YASL_ISUNDEF(a) && YASL_ISUNDEF(b)) {
+            return TRUE_C;
         }
         switch(a.type) {
         case Y_BOOL:
-            if (yasl_type_equals(b.type, Y_BOOL)) {
-                if (a.value.ival == b.value.ival) {
+            if (YASL_ISBOOL(b)) {
+                if (YASL_GETBOOL(a) == YASL_GETBOOL(b)) {
                     return TRUE_C;
                 } else {
                     return FALSE_C;
@@ -149,48 +143,43 @@ struct YASL_Object isequal(struct YASL_Object a, struct YASL_Object b) {
             }
         case Y_TABLE:
         case Y_TABLE_W:
-            if (yasl_type_equals(b.type, Y_TABLE)) {
+            if (YASL_ISTBL(b)) {
                 puts("Warning: comparison of hashes currently is not implemented.");
                 return UNDEF_C;
             }
             return FALSE_C;
         case Y_LIST:
         case Y_LIST_W:
-            if (yasl_type_equals(b.type, Y_LIST)) {
+            if (YASL_ISLIST(b)) {
                 puts("Warning: comparison of lists currently is not implemented.");
                 return UNDEF_C;
             }
             return FALSE_C;
         case Y_STR:
         case Y_STR_W:
-            if (yasl_type_equals(b.type, Y_STR)) {
-                if (yasl_string_len(a.value.sval) != yasl_string_len(b.value.sval)) {
+            if (YASL_ISSTR(b)) {
+                if (yasl_string_len(YASL_GETSTR(a)) != yasl_string_len(YASL_GETSTR(b))) {
                     return FALSE_C;
                 } else {
-                    int i = 0;
-                    while (i < yasl_string_len(a.value.sval)) {
-                        if ((a.value.sval)->str[i+a.value.sval->start] != (b.value.sval)->str[i+b.value.sval->start]) {
-                            return FALSE_C;
-                        }
-                        i++;
-                    }
-                    return TRUE_C;
+                    return memcmp(YASL_GETSTR(a)->str + YASL_GETSTR(a)->start,
+                                  YASL_GETSTR(b)->str + YASL_GETSTR(b)->start,
+                             yasl_string_len(YASL_GETSTR(a))) ? FALSE_C : TRUE_C;
                 }
             }
             return FALSE_C;
         default:
-            if (yasl_type_equals(b.type, Y_BOOL) || yasl_type_equals(b.type, Y_TABLE)) {
+            if (YASL_ISBOOL(b) || YASL_ISTBL(b)) {
                 return FALSE_C;
             }
             int c;
-            if (yasl_type_equals(a.type, Y_INT64) && yasl_type_equals(b.type, Y_INT64)) {
-                c = a.value.ival == b.value.ival;
-            } else if (yasl_type_equals(a.type, Y_FLOAT64) && yasl_type_equals(b.type, Y_INT64)) {
-                c = a.value.dval == (double)b.value.ival;
-            } else if (yasl_type_equals(a.type, Y_INT64) && yasl_type_equals(b.type, Y_FLOAT64)) {
-                c = (double)a.value.ival == b.value.dval;
-            } else if (yasl_type_equals(a.type, Y_FLOAT64) && yasl_type_equals(b.type, Y_FLOAT64)) {
-                c = a.value.dval == b.value.dval;
+            if (YASL_ISINT(a) && YASL_ISINT(b)) {
+                c = YASL_GETINT(a) == YASL_GETINT(b);
+            } else if (YASL_ISFLOAT(a) && YASL_ISINT(b)) {
+                c = YASL_GETFLOAT(a) == (double)YASL_GETINT(b);
+            } else if (YASL_ISINT(a) && YASL_ISFLOAT(b)) {
+                c = (double)YASL_GETINT(a) == YASL_GETFLOAT(b);
+            } else if (YASL_ISFLOAT(a) && YASL_ISFLOAT(b)) {
+                c = YASL_GETFLOAT(a) == YASL_GETFLOAT(b);
             } else {
                 // printf("== and != not supported for operands of types %x and %x.\n", a.type, b.type);
                 return UNDEF_C;
@@ -203,27 +192,25 @@ int print(struct YASL_Object v) {
     int64_t i;
     switch (v.type) {
         case Y_INT64:
-            printf("%" PRId64 "", v.value.ival);
+            printf("%" PRId64 "", YASL_GETINT(v));
             //printf("int64: %" PRId64 "\n", v.value);
             break;
         case Y_FLOAT64: {
-            char *tmp = float64_to_str(v.value.dval);
+            char *tmp = float64_to_str(YASL_GETFLOAT(v));
             printf("%s", tmp);
             free(tmp);
             break;
         }
         case Y_BOOL:
-            if (v.value.ival == 0) printf("false");
+            if (YASL_GETBOOL(v) == 0) printf("false");
             else printf("true");
             break;
         case Y_UNDEF:
             printf("undef");
             break;
         case Y_STR:
-            //printf("str (before print): %s\n", v.value.sval->str);
-            //printf("vm->stack[vm->sp]: %x (%d, %d)\n", v.value.ival, v.value.sval->rc->refs, v.value.sval->rc->weak_refs);
-            for (i = 0; i < yasl_string_len(v.value.sval); i++) {
-                printf("%c", (v.value.sval)->str[i + v.value.sval->start]);
+            for (i = 0; i < yasl_string_len(YASL_GETSTR(v)); i++) {
+                printf("%c", YASL_GETSTR(v)->str[i + YASL_GETSTR(v)->start]);
             }
             break;
         case Y_TABLE:
@@ -234,13 +221,13 @@ int print(struct YASL_Object v) {
             printf("<list %" PRIx64 ">", v.value);
             break;
         case Y_FN:
-            printf("<fn: %" PRIx64 ">", v.value.ival);
+            printf("<fn: %" PRIx64 ">", YASL_GETFN(v));
             break;
         case Y_CFN:
             printf("<fn: %" PRIx64 ">", v.value.cval->value);
             break;
         case Y_USERPTR:
-            printf("0x%0*" PRIx64, (int)sizeof(void*), v.value.ival);
+            printf("0x%0*" PRIx64, (int)sizeof(void*), YASL_GETUSERPTR(v));
             break;
         default:
             printf("Error, unknown type: %x", v.type);

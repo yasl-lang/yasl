@@ -1,9 +1,22 @@
 #include "YASL_string.h"
+
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 int64_t yasl_string_len(const String_t *const str) {
     return str->end - str->start;
+}
+
+int64_t yasl_string_cmp(const String_t *const left, const String_t *const right) {
+    if (yasl_string_len(left) == yasl_string_len(right)) {
+        return memcmp(left->str + left->start, right->str + right->start, yasl_string_len(left));
+    } else if (yasl_string_len(left) < yasl_string_len(right)) {
+        int64_t tmp = memcmp(left->str + left->start, right->str + right->start, yasl_string_len(left));
+        return tmp ? tmp : -1;
+    } else {
+        return memcmp(left->str + left->start, right->str + right->start, yasl_string_len(right)) || 1;
+    }
 }
 
 unsigned char *copy_char_buffer(const int64_t size, const unsigned char *const ptr) {
@@ -37,7 +50,7 @@ String_t* str_new_sized_from_mem(const int64_t start, const int64_t end, unsigne
 //TODO: add new string constructor that takes address of string as second param.
 
 void str_del_data(String_t *str) {
-    if(!str->from_mem) free(str->str);
+    // if(!str->from_mem) free(str->str);
 }
 
 void str_del_rc(String_t *str) {

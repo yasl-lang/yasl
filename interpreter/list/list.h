@@ -1,8 +1,7 @@
 #pragma once
 
-#include <bytebuffer/bytebuffer.h>
-#include "../YASL_Object/YASL_Object.h"
-#include "../../hashtable/hashtable.h"
+#include "refcount.h"
+#include "bytebuffer.h"
 
 typedef struct List_s {
     RefCount *rc;
