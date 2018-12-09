@@ -22,6 +22,29 @@
 #define YASL_FN(f) ((struct YASL_Object) { .type = Y_FN, .value.ival = f })
 #define YASL_CFN(f, n) ((struct YASL_Object) { .type = Y_CFN, .value.cval = new_cfn(f, n) })
 
+#define YASL_ISUNDEF(v) ((v).type == Y_UNDEF)
+#define YASL_ISFLOAT(v) ((v).type == Y_FLOAT64)
+#define YASL_ISINT(v) ((v).type == Y_INT64)
+#define YASL_ISBOOL(v) ((v).type == Y_BOOL)
+#define YASL_ISSTR(v) ((v).type == Y_STR)
+#define YASL_ISLIST(v) ((v).type == Y_LIST)
+#define YASL_ISTBL(v) ((v).type == Y_TABLE)
+#define YASL_ISUSERDATA(v) ((v).type == Y_USERDATA)
+#define YASL_ISUSERPTR(v) ((v).type == Y_USERPTR)
+#define YASL_ISFN(v) ((v).type == Y_FN)
+#define YASL_ISCFN(v) ((v).type == Y_CFN)
+
+#define YASL_GETFLOAT(v) ((v).value.dval)
+#define YASL_GETINT(v) ((v).value.ival)
+#define YASL_GETBOOL(v) ((v).value.ival)
+#define YASL_GETSTR(v) ((v).value.sval)
+#define YASL_GETLIST(v) ((v).value.lval)
+#define YASL_GETTBL(v) ((v).value.mval)
+#define YASL_GETUSERDATA(v) ((v).value.uval)
+#define YASL_GETUSERPTR(v) ((v).value.pval)
+#define YASL_GETFN(v) ((v).value.ival)
+#define YASL_GETCFN(v) ((v).value.cval)
+
 struct YASL_State;
 
 //Keep up to date with the YASL_TYPE_NAMES
@@ -84,7 +107,7 @@ struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *), int num_ar
 int isfalsey(struct YASL_Object v);
 struct YASL_Object isequal(struct YASL_Object a, struct YASL_Object b);
 int print(struct YASL_Object a);
-int yasl_type_equals(YASL_Types a, YASL_Types b);
+// int yasl_type_equals(YASL_Types a, YASL_Types b);
 
 void inc_ref(struct YASL_Object *v);
 void dec_ref(struct YASL_Object *v);

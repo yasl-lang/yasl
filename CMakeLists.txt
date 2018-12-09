@@ -24,6 +24,7 @@ include_directories(interpreter/table)
 include_directories(interpreter/VM)
 include_directories(interpreter/YASL_Object)
 include_directories(interpreter/YASL_string)
+include_directories(std-io)
 include_directories(prime)
 include_directories(test)
 
@@ -51,7 +52,8 @@ add_executable(YASL
         interpreter/YASL_string/str_methods.c
         interpreter/YASL_string/YASL_string.c
         interpreter/userdata/userdata.c
-        prime/prime.c)
+        prime/prime.c
+        std-io/yasl-std-io.c)
 
 add_executable(YASLTEST
         test/yats.c

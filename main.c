@@ -3,6 +3,8 @@
 #include <string.h>
 #include "yasl.h"
 
+#include <yasl-std-io.h>
+
 #define VERSION "v0.2.0"
 
 int main(int argc, char** argv) {
@@ -24,6 +26,8 @@ int main(int argc, char** argv) {
         }
 
         struct YASL_State *S = YASL_newstate(argv[1]);
+
+        YASL_load_io(S);
 
         if (!S) {
             puts("ERROR: cannot open file.");

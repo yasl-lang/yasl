@@ -48,7 +48,7 @@ String_t* str_new_sized_from_mem(const int64_t start, const int64_t end, unsigne
 //TODO: add new string constructor that takes address of string as second param.
 
 void str_del_data(String_t *str) {
-    if(!str->from_mem) free(str->str);
+    // if(!str->from_mem) free(str->str);
 }
 
 void str_del_rc(String_t *str) {

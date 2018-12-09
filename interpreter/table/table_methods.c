@@ -25,7 +25,7 @@ int table___set(struct YASL_State *S) {
     ASSERT_TYPE(S->vm, Y_TABLE, "table.__set");
     Hash_t* ht = vm_pop(S->vm).value.mval;
 
-    if (yasl_type_equals(key.type, Y_LIST) || yasl_type_equals(key.type, Y_TABLE)) {
+    if (YASL_ISLIST(key) || YASL_ISTBL(key)) {
         printf("Error: unable to use mutable object of type %x as key.\n", key.type);
         return -1;
     }

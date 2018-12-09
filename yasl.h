@@ -132,6 +132,8 @@ struct YASL_Object *YASL_LiteralString(char *str);
 struct YASL_Object *YASL_CString(char *str);
 struct YASL_Object *YASL_UserPointer(void *userdata);
 struct YASL_Object *YASL_UserData(void *userdata, int tag);
+int YASL_UserData_gettag(struct YASL_Object *obj);
+void *YASL_UserData_getdata(struct YASL_Object *obj);
 struct YASL_Object *YASL_Function(int64_t index);
 struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *), int num_args);
 

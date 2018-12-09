@@ -11,7 +11,7 @@ int list___get(struct YASL_State *S) {
     struct YASL_Object index = vm_pop(S->vm);
     ASSERT_TYPE(S->vm, Y_LIST, "list.__get");
     List_t *ls = PEEK(S->vm).value.lval;
-    if (!yasl_type_equals(index.type, Y_INT64)) {
+    if (!YASL_ISINT(index)) {
         // printf("TypeError: cannot index list with non-integer\n");
         S->vm->sp++;
         return -1;

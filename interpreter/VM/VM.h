@@ -10,7 +10,7 @@
 #include <string.h>
 #include <math.h>
 
-#define STACK_SIZE 256
+#define STACK_SIZE 100024
 #define NUM_TYPES 13                                     // number of builtin types, each needs a vtable
 #define PUSH(vm, v)  (vm->stack[++vm->sp] = v)           // push value onto stack
 #define POP(vm)      (vm->stack[vm->sp--])               // pop value from top of stack

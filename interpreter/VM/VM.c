@@ -137,13 +137,13 @@ int64_t idiv(int64_t left, int64_t right) {
 void vm_int_binop(struct VM *vm, int64_t (*op)(int64_t, int64_t), char *opstr, char *overload_name) {
     struct YASL_Object b = vm_pop(vm);
     struct YASL_Object a = vm_pop(vm);
-    if (yasl_type_equals(a.type, Y_INT64) && yasl_type_equals(b.type, Y_INT64)) {
+    if (YASL_ISINT(a) && YASL_ISINT(b)) {
         vm_push(vm, YASL_INT(op(a.value.ival, b.value.ival)));
         return;
-    }  else if (yasl_type_equals(a.type, Y_TABLE)) {
+    }  else if (YASL_ISTBL(a)) {
         struct YASL_Object *key = YASL_String(str_new_sized_from_mem(0, strlen(overload_name), overload_name));
         struct YASL_Object *result = ht_search(a.value.mval, *key);
-        if (result && yasl_type_equals(result->type, Y_FN)) {
+        if (result && YASL_ISFN(*result)) {
             vm->sp += 2;
 
             int offset = 2;
@@ -203,18 +203,18 @@ void vm_num_binop(
         const char *const overload_name) {
     struct YASL_Object right = vm_pop(vm);
     struct YASL_Object left = vm_pop(vm);
-    if (yasl_type_equals(left.type, Y_INT64) && yasl_type_equals(right.type, Y_INT64)) {
+    if (YASL_ISINT(left) && YASL_ISINT(right)) {
         vm_push(vm, YASL_INT(int_op(left.value.ival, right.value.ival)));
-    } else if (yasl_type_equals(left.type, Y_FLOAT64) && yasl_type_equals(right.type, Y_FLOAT64)) {
+    } else if (YASL_ISFLOAT(left) && YASL_ISFLOAT(right)) {
         vm_push(vm, YASL_FLOAT(float_op(left.value.dval, right.value.dval)));
-    } else if (yasl_type_equals(left.type, Y_FLOAT64) && yasl_type_equals(right.type, Y_INT64)) {
+    } else if (YASL_ISFLOAT(left) && YASL_ISINT(right)) {
         vm_push(vm, YASL_FLOAT(float_op(left.value.dval, right.value.ival)));
-    } else if (yasl_type_equals(left.type, Y_INT64) && yasl_type_equals(right.type, Y_FLOAT64)) {
+    } else if (YASL_ISINT(left) && YASL_ISFLOAT(right)) {
         vm_push(vm, YASL_FLOAT(float_op(left.value.ival, right.value.dval)));
-    } else if (yasl_type_equals(left.type, Y_TABLE)) {
+    } else if (YASL_ISTBL(left)) {
         struct YASL_Object *key = YASL_String(str_new_sized_from_mem(0, strlen(overload_name), overload_name));
         struct YASL_Object *result = ht_search(left.value.mval, *key);
-        if (result && yasl_type_equals(result->type, Y_FN)) {
+        if (result && YASL_ISFN(*result)) {
             vm->sp += 2;
 
             int offset = 2;
@@ -243,21 +243,21 @@ void vm_fdiv(struct VM *vm) {
     char *overload_name = OP_BIN_FDIV;
     struct YASL_Object right = vm_pop(vm);
     struct YASL_Object left = vm_pop(vm);
-    if (yasl_type_equals(left.type, Y_INT64) && yasl_type_equals(right.type, Y_INT64)) {
+    if (YASL_ISINT(left) && YASL_ISINT(right)) {
         vm_push(vm, YASL_FLOAT((double)left.value.ival / (double)right.value.ival));
     }
-    else if (yasl_type_equals(left.type, Y_FLOAT64) && yasl_type_equals(right.type, Y_FLOAT64)) {
+    else if (YASL_ISFLOAT(left) && YASL_ISFLOAT(right)) {
         vm_push(vm, YASL_FLOAT(left.value.dval / right.value.dval));
     }
-    else if (yasl_type_equals(left.type, Y_INT64) && yasl_type_equals(right.type, Y_FLOAT64)) {
+    else if (YASL_ISINT(left) && YASL_ISFLOAT(right)) {
         vm_push(vm, YASL_FLOAT((double)left.value.ival / right.value.dval));
     }
-    else if (yasl_type_equals(left.type, Y_FLOAT64) && yasl_type_equals(right.type, Y_INT64)) {
+    else if (YASL_ISFLOAT(left) && YASL_ISINT(right)) {
         vm_push(vm, YASL_FLOAT(left.value.dval / (double)right.value.ival));
-    }  else if (yasl_type_equals(left.type, Y_TABLE)) {
+    }  else if (YASL_ISTBL(left)) {
         struct YASL_Object *key = YASL_String(str_new_sized_from_mem(0, strlen(overload_name), overload_name));
         struct YASL_Object *result = ht_search(left.value.mval, *key);
-        if (result && yasl_type_equals(result->type, Y_FN)) {
+        if (result && YASL_ISFN(*result)) {
             vm->sp += 2;
 
             int offset = 2;
@@ -284,7 +284,7 @@ void vm_fdiv(struct VM *vm) {
 void vm_pow(struct VM *vm) {
     struct YASL_Object right = vm_pop(vm);
     struct YASL_Object left  = vm_peek(vm);
-    if (yasl_type_equals(left.type, Y_INT64) && yasl_type_equals(right.type, Y_INT64) && right.value.ival < 0) {
+    if (YASL_ISINT(left) && YASL_ISINT(right) && right.value.ival < 0) {
         vm_pop(vm);
         vm_push(vm, YASL_FLOAT(pow(left.value.ival, right.value.ival)));
     } else {
@@ -299,7 +299,7 @@ int64_t bnot(int64_t val) {
 
 void vm_int_unop(struct VM *vm, int64_t (*op)(int64_t), char *opstr) {
     struct YASL_Object a = PEEK(vm);
-    if (yasl_type_equals(a.type, Y_INT64)) {
+    if (YASL_ISINT(a)) {
         PEEK(vm).value.ival = op(a.value.ival);
         return;
     } else {
@@ -320,9 +320,9 @@ double float_neg(double expr) {
 
 void vm_num_unop(struct VM *vm, int64_t (*int_op)(int64_t), double (*float_op)(double), char *opstr) {
     struct YASL_Object expr = vm_pop(vm);
-    if (yasl_type_equals(expr.type, Y_INT64)) {
+    if (YASL_ISINT(expr)) {
         vm_push(vm, YASL_INT(int_op(expr.value.ival)));
-    } else if (yasl_type_equals(expr.type, Y_FLOAT64)) {
+    } else if (YASL_ISFLOAT(expr)) {
         vm_push(vm, YASL_FLOAT(float_op(expr.value.dval)));
     } else {
         printf("TypeError: %s not supported for operand of type %s.\n",
@@ -428,7 +428,7 @@ void vm_run(struct VM *vm){
                 vm_fdiv(vm);   // handled differently because we always convert to float
                 break;
             case IDIV:
-                if (yasl_type_equals(vm_peek(vm).type, Y_INT64) && vm_peek(vm).value.ival == 0) {
+                if (YASL_ISINT(vm_peek(vm)) && vm_peek(vm).value.ival == 0) {
                     vm_fdiv(vm);
                     break;
                 }
@@ -449,11 +449,11 @@ void vm_run(struct VM *vm){
                 break;
             case LEN:
                 v = vm_pop(vm);
-                if (yasl_type_equals(v.type, Y_STR)) {
+                if (YASL_ISSTR(v)) {
                     vm_push(vm, YASL_INT(yasl_string_len(v.value.sval)));
-                } else if (yasl_type_equals(v.type, Y_TABLE)) {
+                } else if (YASL_ISTBL(v)) {
                     vm_push(vm, YASL_INT(v.value.mval->count));
-                } else if (yasl_type_equals(v.type, Y_LIST)) {
+                } else if (YASL_ISLIST(v)) {
                     vm_push(vm, YASL_INT(v.value.lval->count));
                 } else {
                     printf("TypeError: # not supported for operand of type %s.\n",
@@ -464,14 +464,14 @@ void vm_run(struct VM *vm){
             case CNCT:
                 b = vm_pop(vm);
                 a = vm_pop(vm);
-                if (yasl_type_equals(a.type, Y_STR) && yasl_type_equals(b.type, Y_STR)) {
+                if (YASL_ISSTR(a) && YASL_ISSTR(b)) {
                     size = yasl_string_len(a.value.sval) + yasl_string_len(b.value.sval);
                     char *ptr = malloc(size);
                     memcpy(ptr, (a.value.sval)->str + a.value.sval->start, yasl_string_len(a.value.sval));
                     memcpy(ptr + yasl_string_len(a.value.sval), (b.value.sval)->str + b.value.sval->start, yasl_string_len(b.value.sval));
                     vm_push(vm, YASL_STR(str_new_sized(size, ptr)));
                     break;
-                } else if (yasl_type_equals(a.type, Y_LIST) && yasl_type_equals(b.type, Y_LIST)) {
+                } else if (YASL_ISLIST(a) && YASL_ISLIST(b)) {
                     size = a.value.lval->count + b.value.lval->count;
                     ptr = ls_new_sized(size);
                     vm_push(vm, YASL_LIST(ptr));
@@ -527,10 +527,10 @@ void vm_run(struct VM *vm){
                 v = isequal(a, b);
                 vm_push(vm, v);
                 break;
-            case ID:
+            case ID: // TODO: clean-up
                 b = vm_pop(vm);
                 a = vm_pop(vm);
-                vm_push(vm, YASL_BOOL(yasl_type_equals(a.type, b.type) && a.value.ival == b.value.ival));
+                vm_push(vm, YASL_BOOL(a.type == b.type && a.value.ival == b.value.ival));
                 break;
             case NEWSTR:
                 addr = vm_read_int64_t(vm);
@@ -683,7 +683,7 @@ void vm_run(struct VM *vm){
                 break;
 
             case CALL:
-                if (vm->stack[vm->fp].type == Y_FN) {
+                if (YASL_ISFN(vm->stack[vm->fp])) {
                     vm->stack[vm->fp+1].value.ival = vm->pc;
 
                     while (vm->sp - (vm->fp + 2) < vm->code[vm->stack[vm->fp].value.ival]) {
@@ -697,7 +697,7 @@ void vm_run(struct VM *vm){
                     vm->sp += vm->code[vm->stack[vm->fp].value.ival + 1];
 
                     vm->pc = vm->stack[vm->fp].value.ival + 2;
-                } else if (vm->stack[vm->fp].type == Y_CFN) {
+                } else if (YASL_ISCFN(vm->stack[vm->fp])) {
                     while (vm->sp - (vm->fp + 2) < vm->stack[vm->fp].value.cval->num_args) {
                         vm_push(vm, YASL_UNDEF());
                     }
@@ -706,13 +706,19 @@ void vm_run(struct VM *vm){
                         vm_pop(vm);
                     }
 
-                    struct YASL_State *state = malloc(sizeof(struct YASL_State));
-                    state->vm = vm;
-                    if (vm->stack[vm->fp].value.cval->value(state)) {
+
+                    if (vm->stack[vm->fp].value.cval->value(&vm)) {
                         printf("ERROR: invalid argument type(s) to builtin function.\n");
                         return;
                     };
-                    free(state);
+
+
+                    v = vm_pop(vm);
+                    vm->sp = vm->fp + 2;
+                    vm->fp = vm_pop(vm).value.ival;
+                    vm_pop(vm);
+                    vm_pop(vm);
+                    vm_push(vm, v);
                 }
                 break;
             case RET:
@@ -725,20 +731,16 @@ void vm_run(struct VM *vm){
                 vm_push(vm, v);
                 break;
             case GET: {
-                struct YASL_State *S = malloc(sizeof(struct YASL_State));
-                S->vm = vm;
                 vm->sp--;
                 int index = vm_peek(vm).type;
-                if (yasl_type_equals(vm_peek(vm).type, Y_LIST)) {
+                if (YASL_ISLIST(vm_peek(vm))) {
                     vm->sp++;
-                    if (!list___get(S)) {
-                        free(S);
+                    if (!list___get(&vm)) {
                         break;
                     }
-                } else if (yasl_type_equals(vm_peek(vm).type, Y_TABLE)) {
+                } else if (YASL_ISTBL(vm_peek(vm))) {
                     vm->sp++;
-                    if (!table___get(S)) {
-                        free(S);
+                    if (!table___get(&vm)) {
                         break;
                     }
                 } else {
@@ -748,6 +750,7 @@ void vm_run(struct VM *vm){
 
                 struct YASL_Object key = vm_pop(vm);
                 struct YASL_Object *result = ht_search(vm->builtins_htable[index], key);
+                vm_pop(vm);
                 if (result == NULL) {
                     vm_push(vm, YASL_UNDEF());
                     // printf("%s\n", YASL_TYPE_NAMES[index]);
@@ -756,25 +759,21 @@ void vm_run(struct VM *vm){
                 } else {
                     vm_push(vm, *result);
                 }
-                free(S);
                 break;
             }
             case SET: {
-                struct YASL_State *S = malloc(sizeof(struct YASL_State));
-                S->vm = vm;
                 vm->sp -= 2;
-                if (yasl_type_equals(vm_peek(vm).type, Y_LIST)) {
+                if (YASL_ISLIST(vm_peek(vm))) {
                     vm->sp += 2;
-                    list___set(S);
-                } else if (yasl_type_equals(vm_peek(vm).type, Y_TABLE)) {
+                    list___set(&vm);
+                } else if (YASL_ISTBL(vm_peek(vm))) {
                     vm->sp += 2;
-                    table___set(S);
+                    table___set(&vm);
                 } else {
                     vm->sp += 2;
                     printf("object of type %s is immutable.", YASL_TYPE_NAMES[vm_peek(vm).type]);
                     exit(EXIT_FAILURE);
                 }
-                free(S);
                 break;
             }
             case RCALL_8:

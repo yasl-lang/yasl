@@ -113,6 +113,7 @@ struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *), int num_ar
     fn->value.pval = malloc(sizeof(struct CFunction_s));
     fn->value.cval->value = value;
     fn->value.cval->num_args = num_args;
+    fn->value.cval->rc = rc_new();
     return fn;
 }
 

@@ -12,7 +12,7 @@
 
 static int hash_function(const struct YASL_Object s, const int a, const int m) {
     long hash = 0;
-    if (yasl_type_equals(s.type, Y_STR)) {
+    if (YASL_ISSTR(s)) {
         const int64_t len_s = yasl_string_len(s.value.sval);
         int i;
         for (i = 0; i < len_s; i++) {
@@ -201,8 +201,8 @@ void ht_insert(Hash_t* hashtable, const struct YASL_Object key, const struct YAS
     hashtable->count++;
 }
 
-void ht_insert_cstring_cfunction(Hash_t *ht, char *key, int (*addr)(struct YASL_State *), int num_args) {
-    String_t *string = str_new_sized(strlen(key), copy_char_buffer(strlen(key), key));
+void ht_insert_literalcstring_cfunction(Hash_t *ht, char *key, int (*addr)(struct YASL_State *), int num_args) {
+    String_t *string = str_new_sized(strlen(key), key);
     ht_insert(ht, YASL_STR(string), YASL_CFN(addr, num_args));
 }
 
