@@ -1,9 +1,7 @@
 #pragma once
 
-#include "../YASL_Object/YASL_Object.h"
-#include "../../opcode.h"
-#include "../../hashtable/hashtable.h"
-#include "../YASL_string/YASL_string.h"
+#include "hashtable/hashtable.h"
+#include "yasl_conf.h"
 
 #include <inttypes.h>
 #include <stdio.h>
@@ -12,8 +10,6 @@
 
 #define STACK_SIZE 100024
 #define NUM_TYPES 13                                     // number of builtin types, each needs a vtable
-#define PUSH(vm, v)  (vm->stack[++vm->sp] = v)           // push value onto stack
-#define POP(vm)      (vm->stack[vm->sp--])               // pop value from top of stack
 #define PEEK(vm)     (vm->stack[vm->sp])                 // pop value from top of stack
 #define BPUSH(vm, v) (vm_push(vm, YASL_BOOL(v)))  //push boolean v onto stack
 
@@ -28,10 +24,10 @@
                                 c = f(a.value.ival, b.value.ival);\
                             }\
                             else if (a.type == Y_FLOAT64 && b.type == Y_INT64) {\
-                                c = f(a.value.dval, (double)b.value.ival);\
+                                c = f(a.value.dval, (yasl_float)b.value.ival);\
                             }\
                             else if (a.type == Y_INT64 && b.type == Y_FLOAT64) {\
-                                c = f((double)a.value.ival, (b).value.dval);\
+                                c = f((yasl_float)a.value.ival, (b).value.dval);\
                             }\
                             else if (a.type == Y_FLOAT64 && b.type == Y_FLOAT64) {\
                                 c = f(a.value.dval, (b).value.dval);\
@@ -45,11 +41,11 @@
 
 struct VM{
 	struct YASL_Object *globals;          // variables, see "constant.c" for details on YASL_Object.
-    int64_t num_globals;
+    size_t num_globals;
 	struct YASL_Object *stack;            // stack
 	unsigned char *code;           // bytecode
-	int64_t pc;                    // program counter
-    int64_t pc0;                   // initial value for pc
+	size_t pc;                    // program counter
+    size_t pc0;                   // initial value for pc
 	int sp;                     // stack pointer
 	int fp;                     // frame pointer
     int lp;                     // foreach pointer

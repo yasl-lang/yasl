@@ -1,10 +1,10 @@
-#include <stdlib.h>
-#include <interpreter/YASL_Object/YASL_Object.h>
-#include <interpreter/YASL_string/YASL_string.h>
-#include <interpreter/list/list.h>
-#include <color.h>
 #include "refcount.h"
 
+#include <stdlib.h>
+
+#include "YASL_Object.h"
+#include "list.h"
+#include "hashtable.h"
 
 
 RefCount *rc_new(void) {

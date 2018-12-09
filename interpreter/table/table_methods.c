@@ -1,19 +1,23 @@
-#include <interpreter/YASL_Object/YASL_Object.h>
-#include <hashtable/hashtable.h>
 #include "table_methods.h"
-#include "hashtable.h"
+
+#include <stdio.h>
+
 #include "yasl_state.h"
+#include "VM.h"
+#include "YASL_Object.h"
 
 int table___get(struct YASL_State *S) {
     struct YASL_Object key = vm_pop(S->vm);
     ASSERT_TYPE(S->vm, Y_TABLE, "table.__get");
-    Hash_t* ht = vm_pop(S->vm).value.mval;
+    Hash_t* ht = YASL_GETTBL(PEEK(S->vm));
     struct YASL_Object *result = ht_search(ht, key);
     if (result == NULL) {
-        vm_push(S->vm, key);
+        S->vm->sp++;  // TODO: fix this
+        //vm_push(S->vm, key);
         return -1;
     }
     else {
+        vm_pop(S->vm);
         vm_push(S->vm, *result);
     }
     return 0;
@@ -23,9 +27,9 @@ int table___set(struct YASL_State *S) {
     struct YASL_Object val = vm_pop(S->vm);
     struct YASL_Object key = vm_pop(S->vm);
     ASSERT_TYPE(S->vm, Y_TABLE, "table.__set");
-    Hash_t* ht = vm_pop(S->vm).value.mval;
+    Hash_t* ht = YASL_GETTBL(vm_pop(S->vm));
 
-    if (YASL_ISLIST(key) || YASL_ISTBL(key)) {
+    if (YASL_ISLIST(key) || YASL_ISTBL(key) || YASL_ISUSERDATA(key)) {
         printf("Error: unable to use mutable object of type %x as key.\n", key.type);
         return -1;
     }
@@ -36,12 +40,12 @@ int table___set(struct YASL_State *S) {
 
 int table_keys(struct YASL_State *S) {
     ASSERT_TYPE(S->vm, Y_TABLE, "table.keys");
-    struct YASL_Object ht = vm_pop(S->vm);
+    Hash_t *ht = YASL_GETTBL(vm_pop(S->vm));
     List_t* ls = ls_new();
     int64_t i;
     Item_t* item;
-    for (i = 0; i < (ht.value.mval)->size; i++) {
-        item = (ht.value.mval)->items[i];
+    for (i = 0; i < ht->size; i++) {
+        item = ht->items[i];
         if (item != NULL && item != &TOMBSTONE) {
             ls_append(ls, *(item->key));
         }
@@ -52,12 +56,12 @@ int table_keys(struct YASL_State *S) {
 
 int table_values(struct YASL_State *S) {
     ASSERT_TYPE(S->vm, Y_TABLE, "table.values");
-    struct YASL_Object ht = vm_pop(S->vm);
+    Hash_t *ht = YASL_GETTBL(vm_pop(S->vm));
     List_t* ls = ls_new();
     int64_t i;
     Item_t* item;
-    for (i = 0; i < (ht.value.mval)->size; i++) {
-        item = (ht.value.mval)->items[i];
+    for (i = 0; i < ht->size; i++) {
+        item = ht->items[i];
         if (item != NULL && item != &TOMBSTONE) {
             ls_append(ls, *(item->value));
         }
@@ -68,7 +72,7 @@ int table_values(struct YASL_State *S) {
 
 int table_clone(struct YASL_State *S) {
     ASSERT_TYPE(S->vm, Y_TABLE, "table.clone");
-    Hash_t* ht = vm_pop(S->vm).value.mval;
+    Hash_t* ht = YASL_GETTBL(vm_pop(S->vm));
     Hash_t* new_ht = ht_new_sized(ht->base_size);
     for (size_t i = 0; i < ht->size; i++) {
         Item_t* item = ht->items[i];

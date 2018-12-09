@@ -1,14 +1,14 @@
 #pragma once
 
-#include "interpreter/refcount/refcount.h"
+#include "refcount.h"
 
 struct Hash_s;
 
 typedef struct UserData_s {
+    RefCount *rc;
     int tag;
     //struct Hash_s *mt;
     void *data;
-    RefCount *rc;
 } UserData_t;
 
 

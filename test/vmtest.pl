@@ -169,7 +169,8 @@ assert_output("echo 'YASL'->replace('T', 'S')\n", "YASL\n", 0);
 assert_output("echo 'YASL'->replace('SL', '')\n", "YA\n", 0);
 assert_output("echo 'YASL'->search('A')\n", "1\n", 0);
 assert_output("echo 'YASL'->search('0')\n", "undef\n", 0);
-assert_output("echo len 'the quick brown fox'->split(' ')\n", "4\n", 0); 
+assert_output("echo len 'the quick brown fox'->split(' ')\n", "4\n", 0);
+assert_output("for let x <- 'the quick brown fox'->split(' ') { echo x; };", "the\nquick\nbrown\nfox\n", 0);
 assert_output("echo len 'the quick brown fox'->split('0')\n", "1\n", 0);
 assert_output("echo 'YAY'->ltrim('Y')\n", "AY\n", 0);
 assert_output("echo 'YYYYAY'->ltrim('Y')\n", "AY\n", 0);
@@ -224,5 +225,14 @@ assert_output(qq"let x = {1:'one', 2:'two', 3:'three'}
 assert_output(qq"let x = {1:'one', 2:'two', 3:'three'};
                  for let e <- x->copy() { echo e; echo x[e]; };", "3\nthree\n2\ntwo\n1\none\n", 0);
 
+# General
+assert_output(qq"let x = []
+                 let i = 0
+                 while i < 1000000 {
+                     x->push(i)
+                     i += 1
+                 };",
+              "",
+              0);
 
 exit $__YASL_TESTS_FAILED__;

@@ -1,11 +1,6 @@
 #pragma once
 
-#include <stdio.h>
-#include <string.h>
-#include "../VM/VM.h"
-#include "../../opcode.h"
-#include "../YASL_Object/YASL_Object.h"
-#include "../list/list.h"
+struct YASL_State;
 
 int str___get(struct YASL_State *S);
 

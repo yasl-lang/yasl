@@ -1,11 +1,6 @@
 #pragma once
 
-#include <stdio.h>
-#include <string.h>
-#include "../VM/VM.h"
-#include "../../opcode.h"
-#include "../YASL_Object/YASL_Object.h"
-
+struct YASL_State;
 
 int int64_tofloat64(struct YASL_State *S);
 

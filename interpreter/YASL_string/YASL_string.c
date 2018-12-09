@@ -1,6 +1,8 @@
 #include "YASL_string.h"
+
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 int64_t yasl_string_len(const String_t *const str) {
     return str->end - str->start;

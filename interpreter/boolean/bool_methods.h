@@ -1,8 +1,5 @@
 #pragma once
 
-#include <stdio.h>
-#include "../VM/VM.h"
-#include "../../opcode.h"
-#include "../YASL_Object/YASL_Object.h"
+struct YASL_State;
 
 int bool_tostr(struct YASL_State *S);

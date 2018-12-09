@@ -1,9 +1,6 @@
 #pragma once
 
-#include <stdio.h>
-#include <stdlib.h>
-//#include "../list/list.h"
-#include "../YASL_string/YASL_string.h"
+#include "YASL_string.h"
 
 #define UNDEF_C ((struct YASL_Object) { .type = Y_UNDEF, .value.ival = 0 })
 #define FALSE_C ((struct YASL_Object) { .type = Y_BOOL, .value.ival = 0 })
@@ -115,8 +112,8 @@ void dec_ref(struct YASL_Object *v);
 const char *YASL_TYPE_NAMES[15];
 
 #define ASSERT_TYPE(vm, expected_type, name) do {\
-                    if (vm->stack[vm->sp].type != expected_type) {\
+                    if ((vm)->stack[(vm)->sp].type != (expected_type)) {\
                         printf("%s(...) expected first argument of type %s, got %s.\n", \
-                                name, YASL_TYPE_NAMES[expected_type], YASL_TYPE_NAMES[vm->stack[vm->sp].type] );\
+                                name, YASL_TYPE_NAMES[expected_type], YASL_TYPE_NAMES[(vm)->stack[(vm)->sp].type] );\
                     }\
                 } while(0)

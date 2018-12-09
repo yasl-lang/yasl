@@ -1,13 +1,7 @@
-#include <inttypes.h>
-#include  <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <interpreter/YASL_Object/YASL_Object.h>
 #include "list.h"
-#include "../YASL_Object/YASL_Object.h"
-#include <bytebuffer.h>
-#include <bytebuffer/bytebuffer.h>
+
+#include "YASL_Object.h"
+#include "hashtable.h"
 
 #define LS_BASESIZE 4
 

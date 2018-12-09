@@ -1,8 +1,8 @@
 #pragma once
 
 #include <inttypes.h>
-#include <stdlib.h>
-#include <interpreter/refcount/refcount.h>
+
+#include "refcount.h"
 
 typedef struct {
     RefCount* rc;

@@ -1,23 +1,15 @@
-#include <inttypes.h>
-#include <string.h>
-#include <debug.h>
-#include <interpreter/YASL_Object/YASL_Object.h>
-#include <interpreter/YASL_string/YASL_string.h>
-#include <interpreter/refcount/refcount.h>
-
 #include "builtins.h"
 
+#include "str_methods.h"
+#include "float64_methods.h"
+#include "int64_methods.h"
+#include "bool_methods.h"
+#include "table_methods.h"
+#include "list_methods.h"
+#include "VM.h"
+
 int yasl_print(struct VM* vm) {
-    struct YASL_Object v = vm->stack[vm->sp--];    // pop value from top of the stack ...
-    /*if (yasl_type_equals(v.type, Y_LIST)) {
-        ls_print(v.value.lval);
-        printf("\n");
-        return 0;
-    } else if (yasl_type_equals(v.type, Y_TABLE)) {
-        ht_print(v.value.mval);
-        printf("\n");
-        return 0;
-    }*/
+    struct YASL_Object v = vm_pop(vm);
     int return_value = print(v);
     printf("\n");
     return return_value;
