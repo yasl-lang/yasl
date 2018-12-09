@@ -8,7 +8,6 @@
 #include <color.h>
 #include <interpreter/refcount/refcount.h>
 #include <stdint.h>
-#include <stdint-gcc.h>
 #include <interpreter/table/table_methods.h>
 #include <interpreter/list/list_methods.h>
 #include "yasl_state.h"
