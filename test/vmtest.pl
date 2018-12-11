@@ -10,6 +10,11 @@ assert_output(q+echo `no escapes\a\b\f\n\r\t\v\0\'\\\\`
                +,
               'no escapes\a\b\f\n\r\t\v\0\\\'\\\\
 ', 0);
+assert_output(q+let $x = 10
+                let $y = 12
+                echo "$x is #{$x->tostr()}, #{$y->tostr()}.";+,
+              "\$x is 10, 12.\n",
+              0);
 
 # Comprehensions
 assert_output(qq"for let i <- [x*2 for let x <- [1, 2, 3]] {

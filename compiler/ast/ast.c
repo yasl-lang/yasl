@@ -233,19 +233,19 @@ Node *new_Undef(size_t line) {
     return new_Node_0(N_UNDEF, T_UNKNOWN, NULL, 0, line);
 }
 
-Node *new_Float(char *value, int len, size_t line) {
+Node *new_Float(char *value, size_t len, size_t line) {
     return new_Node_0(N_FLOAT64, T_UNKNOWN, value, len, line);
 }
 
-Node *new_Integer(char *value, int len, size_t line) {
+Node *new_Integer(char *value, size_t len, size_t line) {
     return new_Node_0(N_INT64, T_UNKNOWN, value, len, line);
 }
 
-Node *new_Boolean(char *value, int len, size_t line) {
+Node *new_Boolean(char *value, size_t len, size_t line) {
     return new_Node_0(N_BOOL, T_UNKNOWN, value, len, line);
 }
 
-Node *new_String(char *value, int len, size_t line) {
+Node *new_String(char *value, size_t len, size_t line) {
     return new_Node_0(N_STR, T_UNKNOWN, value, len, line);
 }
 
