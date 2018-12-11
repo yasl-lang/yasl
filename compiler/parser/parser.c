@@ -693,7 +693,7 @@ static Node *parse_string(Parser *const parser) {
         // eattok(parser, T_RBRC);
         cur_node = new_BinOp(T_TILDE, cur_node, expr, parser->lex->line);
         eattok(parser, T_RBRC);
-        lex_eatstringbody(parser->lex);
+        lex_eatinterpstringbody(parser->lex);
         Node *str = new_String(parser->lex->value, parser->lex->val_len, parser->lex->line);
         cur_node = new_BinOp(T_TILDE, cur_node, str, parser->lex->line);
     }

@@ -115,14 +115,59 @@ static int lex_eatop(Lexer *lex) {
     return 0;
 }
 
-int lex_eatstringbody(Lexer *lex) {
+#define HANDLE_ESCAPES(lex, i) do {\
+    switch ((lex)->c) {\
+        case 'a': \
+            (lex)->value[(i)++] = '\a';\
+            break;\
+        case 'b':\
+            (lex)->value[(i)++] = '\b';\
+            break;\
+        case 'f':\
+            (lex)->value[(i)++] = '\f';\
+            break;\
+        case 'n':\
+            (lex)->value[(i)++] = '\n';\
+            break;\
+        case 'r':\
+            (lex)->value[(i)++] = '\r';\
+            break;\
+        case 't':\
+            (lex)->value[(i)++] = '\t';\
+            break;\
+        case 'v':\
+            (lex)->value[(i)++] = '\v';\
+            break;\
+        case '0':\
+            (lex)->value[(i)++] = '\0';\
+            break;\
+        case STR_DELIM:\
+            (lex)->value[(i)++] = STR_DELIM;\
+            break;\
+        case INTERP_STR_DELIM:\
+            (lex)->value[(i)++] = INTERP_STR_DELIM;\
+            break;\
+        case INTERP_STR_PLACEHOLDER:\
+            (lex)->value[(i)++] = INTERP_STR_PLACEHOLDER;\
+            break;\
+        case '\\':\
+            (lex)->value[(i)++] = '\\';\
+            break;\
+        default:\
+            printf("LexingError: unclosed string literal in line %zd.\n", (lex)->line);\
+            lex_error(lex);\
+            return 1;\
+    }\
+} while(0);
+
+int lex_eatinterpstringbody(Lexer *lex) {
     lex->val_len = 6;
     lex->value = realloc(lex->value, lex->val_len);
     size_t i = 0;
     lex->type = T_STR;
 
     while (lex->c != INTERP_STR_DELIM &&  lex->c != INTERP_STR_PLACEHOLDER && !feof(lex->file)) {
-        if (lex->c == '\n') {
+       if (lex->c == '\n') {
             printf("LexingError: unclosed string literal in line %zd.\n", lex->line);
             lex_error(lex);
             return 1;
@@ -130,42 +175,7 @@ int lex_eatstringbody(Lexer *lex) {
 
         if (lex->c == '\\') {
             lex_getchar(lex);
-            switch (lex->c) {
-                case 'a':
-                    lex->value[i++] = '\a';
-                    break;
-                case 'b':
-                    lex->value[i++] = '\b';
-                    break;
-                case 'f':
-                    lex->value[i++] = '\f';
-                    break;
-                case 'n':
-                    lex->value[i++] = '\n';
-                    break;
-                case 'r':
-                    lex->value[i++] = '\r';
-                    break;
-                case 't':
-                    lex->value[i++] = '\t';
-                    break;
-                case 'v':
-                    lex->value[i++] = '\v';
-                    break;
-                case '0':
-                    lex->value[i++] = '\0';
-                    break;
-                case '\'':
-                    lex->value[i++] = '\'';
-                    break;
-                case '\\':
-                    lex->value[i++] = '\\';
-                    break;
-                default:
-                    printf("LexingError: unclosed string literal in line %zd.\n", lex->line);
-                    lex_error(lex);
-                    return 1;
-            }
+            HANDLE_ESCAPES(lex, i);
         } else {
             lex->value[i++] = lex->c;
         }
@@ -184,7 +194,6 @@ int lex_eatstringbody(Lexer *lex) {
         lex->mode = L_NORMAL;
     }
 
-    //lex_getchar(lex);
     lex->value = realloc(lex->value, lex->val_len = i);
 
     if (feof(lex->file)) {
@@ -213,42 +222,7 @@ int lex_eatinterpstring(Lexer *lex) {
 
             if (lex->c == '\\') {
                 lex_getchar(lex);
-                switch (lex->c) {
-                    case 'a':
-                        lex->value[i++] = '\a';
-                        break;
-                    case 'b':
-                        lex->value[i++] = '\b';
-                        break;
-                    case 'f':
-                        lex->value[i++] = '\f';
-                        break;
-                    case 'n':
-                        lex->value[i++] = '\n';
-                        break;
-                    case 'r':
-                        lex->value[i++] = '\r';
-                        break;
-                    case 't':
-                        lex->value[i++] = '\t';
-                        break;
-                    case 'v':
-                        lex->value[i++] = '\v';
-                        break;
-                    case '0':
-                        lex->value[i++] = '\0';
-                        break;
-                    case '\'':
-                        lex->value[i++] = '\'';
-                        break;
-                    case '\\':
-                        lex->value[i++] = '\\';
-                        break;
-                    default:
-                        printf("LexingError: unclosed string literal in line %zd.\n", lex->line);
-                        lex_error(lex);
-                        return 1;
-                }
+                HANDLE_ESCAPES(lex, i);
             } else {
                 lex->value[i++] = lex->c;
             }
@@ -299,42 +273,7 @@ static int lex_eatstring(Lexer *lex) {
 
             if (lex->c == '\\') {
                 lex_getchar(lex);
-                switch (lex->c) {
-                    case 'a':
-                        lex->value[i++] = '\a';
-                        break;
-                    case 'b':
-                        lex->value[i++] = '\b';
-                        break;
-                    case 'f':
-                        lex->value[i++] = '\f';
-                        break;
-                    case 'n':
-                        lex->value[i++] = '\n';
-                        break;
-                    case 'r':
-                        lex->value[i++] = '\r';
-                        break;
-                    case 't':
-                        lex->value[i++] = '\t';
-                        break;
-                    case 'v':
-                        lex->value[i++] = '\v';
-                        break;
-                    case '0':
-                        lex->value[i++] = '\0';
-                        break;
-                    case '\'':
-                        lex->value[i++] = '\'';
-                        break;
-                    case '\\':
-                        lex->value[i++] = '\\';
-                        break;
-                    default:
-                        printf("LexingError: unclosed string literal in line %zd.\n", lex->line);
-                        lex_error(lex);
-                        return 1;
-                }
+                HANDLE_ESCAPES(lex, i);
             } else {
                 lex->value[i++] = lex->c;
             }
@@ -401,7 +340,7 @@ void gettok(Lexer *lex) {
     c1 = lex->c;
 
     // whitespace and comments.
-    while (!feof(lex->file) && (lex->c == ' ' || lex->c == '\n' || lex->c == '\t') || lex->c == '#' || lex->c == '/') {
+    while ((!feof(lex->file) && (lex->c == ' ' || lex->c == '\n' || lex->c == '\t')) || lex->c == '#' || lex->c == '/') {
         // white space
         if (lex_eatwhitespace(lex)) return;
 

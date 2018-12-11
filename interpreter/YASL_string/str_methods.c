@@ -58,7 +58,7 @@ int isvaliddouble(const char *str) {
 	long len = strlen(str);
 	int hasdot = 0;
 	for (size_t i = 0; i < strlen(str); i++) {
-		if (!isdigit(str[i]) && str[i] != '.' || hasdot && str[i] == '.') {
+		if ((!isdigit(str[i]) && str[i] != '.') || (hasdot && str[i] == '.')) {
 			return 0;
 		}
 		if (str[i] == '.') hasdot = 1;
