@@ -57,7 +57,7 @@ int str_slice(struct YASL_State *S) {
 int isvaliddouble(const char *str) {
 	long len = strlen(str);
 	int hasdot = 0;
-	for (int i = 0; i < strlen(str); i++) {
+	for (size_t i = 0; i < strlen(str); i++) {
 		if (!isdigit(str[i]) && str[i] != '.' || hasdot && str[i] == '.') {
 			return 0;
 		}
@@ -136,8 +136,8 @@ int str_toupper(struct YASL_State *S) {
     String_t *a = YASL_GETSTR(vm_pop(S->vm));
     int64_t length = yasl_string_len(a);
     int64_t i = 0;
-    unsigned char curr;
-    unsigned char *ptr = malloc(length);
+    char curr;
+    char *ptr = malloc(length);
 
     while (i < length) {
         curr = a->str[i + a->start];
@@ -157,8 +157,8 @@ int str_tolower(struct YASL_State *S) {
     String_t *a = YASL_GETSTR(vm_pop(S->vm));
     int64_t length = yasl_string_len(a);
     int64_t i = 0;
-    unsigned char curr;
-    unsigned char *ptr = malloc(length);
+    char curr;
+    char *ptr = malloc(length);
 
     while (i < length) {
         curr = a->str[i + a->start];
@@ -229,9 +229,9 @@ int str_isspace(struct YASL_State *S) {
     String_t *a = YASL_GETSTR(vm_pop(S->vm));
     int64_t length = yasl_string_len(a);
     int64_t i = 0;
-    char curr;
+    unsigned char curr;
     while (i < length) {
-        curr = (a)->str[i++ + a->start];
+        curr = (unsigned char)((a)->str[i++ + a->start]);
         if (curr <= 0x08 || (0x0D < curr && curr != 0x20 && curr != 0x85 && curr != 0xA0)) {
             vm_push(S->vm, YASL_BOOL(0));
             return 0;
@@ -294,18 +294,18 @@ int str_replace(struct YASL_State *S) {
     ASSERT_TYPE(S->vm, Y_STR, "str.replace");
     String_t *str = YASL_GETSTR(vm_pop(S->vm));
 
-    unsigned char* str_ptr = str->str+str->start;
-    int64_t str_len = yasl_string_len(str);
-    unsigned char* search_str_ptr = search_str->str+search_str->start;
-    int64_t search_len = yasl_string_len(search_str);
-    unsigned char* replace_str_ptr = replace_str->str+replace_str->start;
+    unsigned char* str_ptr = (unsigned char*)str->str+str->start;
+    size_t str_len = (size_t)yasl_string_len(str);
+    char* search_str_ptr = search_str->str+search_str->start;
+    size_t search_len = (size_t)yasl_string_len(search_str);
+    unsigned char* replace_str_ptr = (unsigned char*)replace_str->str+replace_str->start;
     if (search_len < 1) {
         printf("Error: str.replace(...) expected search string with length at least 1\n");
         return -1;
     }
 
     ByteBuffer *buff = bb_new(yasl_string_len(str));
-    unsigned int i = 0;
+    size_t i = 0;
     while (i < str_len) {
         if(search_len <= str_len-i && memcmp(str_ptr+i, search_str_ptr, search_len) == 0) {
             bb_append(buff, replace_str_ptr, yasl_string_len(replace_str));
@@ -315,7 +315,7 @@ int str_replace(struct YASL_State *S) {
         }
     }
 
-    unsigned char *new_str = malloc(buff->count);
+    char *new_str = malloc(buff->count);
     memcpy(new_str, buff->bytes, buff->count);
     vm_push(S->vm, YASL_STR(str_new_sized(buff->count, new_str)));
 
@@ -359,8 +359,7 @@ int str_split(struct YASL_State *S) {
             end++;
         }
     }
-    ls_append(result, (struct YASL_Object)
-            {Y_STR, (int64_t) str_new_sized_from_mem(start + haystack->start, end + haystack->start, haystack->str)});
+    ls_append(result, YASL_STR(str_new_sized_from_mem(start + haystack->start, end + haystack->start, haystack->str)));
     vm_push(S->vm, YASL_LIST(result));
     return 0;
 }

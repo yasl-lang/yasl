@@ -40,6 +40,7 @@ int list___set(struct YASL_State *S) {
         vm_push(S->vm, YASL_UNDEF());
         return -1;
     } else if (YASL_GETINT(index) < -ls->count || YASL_GETINT(index) >= ls->count) {
+        printf("%d || %d\n", YASL_GETINT(index) < -ls->count, YASL_GETINT(index) >= ls->count);
         printf("IndexError\n");
         vm_push(S->vm, YASL_UNDEF());
         return -1;

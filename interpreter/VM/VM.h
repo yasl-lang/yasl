@@ -19,7 +19,7 @@
 
 #define GT(a, b) ((a) > (b))
 #define GE(a, b) ((a) >= (b))
-#define COMP(vm, a, b, f, str)  ({\
+#define COMP(vm, a, b, f, str)  do {\
                             if (a.type == Y_INT64 && b.type == Y_INT64) {\
                                 c = f(a.value.ival, b.value.ival);\
                             }\
@@ -37,7 +37,7 @@
                                         YASL_TYPE_NAMES[a.type], YASL_TYPE_NAMES[b.type]);\
                                 return;\
                             }\
-                            BPUSH(vm, c);})
+                            BPUSH(vm, c);} while(0);
 
 struct VM{
 	struct YASL_Object *globals;          // variables, see "constant.c" for details on YASL_Object.

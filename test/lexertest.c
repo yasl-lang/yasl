@@ -467,7 +467,7 @@ void test_dqmark(void) {
 }
 
 void test_dqmarkeq(void) {
-    Lexer *lex = setup_lexer("??=");
+    Lexer *lex = setup_lexer("?\?=");
     ASSERT_EATTOK(T_DQMARKEQ, lex);
     ASSERT_EATTOK(T_EOF, lex);
 }

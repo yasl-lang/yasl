@@ -126,8 +126,7 @@ void ht_del_cstring_cfn(Hash_t *hashtable) {
 }
 
 void ht_del_string_int(Hash_t *hashtable) {
-    int i;
-    for (i = 0; i < hashtable->size; i++) {
+    for (size_t i = 0; i < hashtable->size; i++) {
         Item_t* item = hashtable->items[i];
         if (item != NULL) {
             str_del(item->key->value.sval);
@@ -145,8 +144,7 @@ void ht_del_string_int(Hash_t *hashtable) {
 static void ht_resize(Hash_t* ht, const int base_size) {
     if (base_size < HT_BASESIZE) return;
     Hash_t* new_ht = ht_new_sized(base_size);
-    int i;
-    for (i = 0; i < ht->size; i++) {
+    for (size_t i = 0; i < ht->size; i++) {
         Item_t* item = ht->items[i];
         if (item != NULL && item != &TOMBSTONE) {
             ht_insert(new_ht, *item->key, *item->value);
@@ -262,7 +260,7 @@ void ht_print(const Hash_t *const  ht) {
 }
 
 void ht_print_h(const Hash_t *const ht, ByteBuffer* seen) {
-    int i = 0;
+    size_t i = 0;
     int64_t *new_seen;
     if (ht->count == 0) {
         printf("{}");

@@ -184,7 +184,7 @@ struct YASL_Object isequal(struct YASL_Object a, struct YASL_Object b) {
                 // printf("== and != not supported for operands of types %x and %x.\n", a.type, b.type);
                 return UNDEF_C;
             }
-            return (struct YASL_Object) {Y_BOOL, c};
+            return (struct YASL_Object) { .type = Y_BOOL, .value.ival = c};
         }
 }
 
@@ -214,20 +214,20 @@ int print(struct YASL_Object v) {
             }
             break;
         case Y_TABLE:
-            printf("<table %" PRIx64 ">", v.value);
+            printf("<table %p>", (void*)YASL_GETTBL(v));
             break;
         case Y_LIST:
             //ls_print((List_t*)v.value);
-            printf("<list %" PRIx64 ">", v.value);
+            printf("<list %p>", (void*)YASL_GETLIST(v));
             break;
         case Y_FN:
-            printf("<fn: %" PRIx64 ">", YASL_GETFN(v));
+            printf("<fn: %p>", (void*)YASL_GETFN(v));
             break;
         case Y_CFN:
-            printf("<fn: %" PRIx64 ">", v.value.cval->value);
+            printf("<fn: %p>", (void*)(*(char**)&v.value.cval->value));
             break;
         case Y_USERPTR:
-            printf("0x%0*" PRIx64, (int)sizeof(void*), YASL_GETUSERPTR(v));
+            printf("0x%p", YASL_GETUSERPTR(v));
             break;
         default:
             printf("Error, unknown type: %x", v.type);

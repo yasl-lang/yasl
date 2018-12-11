@@ -5,8 +5,8 @@
 #include <compiler/parser/parser.h>
 #include <yasl_error.h>
 #include "compiler.h"
-#define break_checkpoint(compiler)    (compiler->checkpoints[compiler->checkpoints_count-1])
-#define continue_checkpoint(compiler) (compiler->checkpoints[compiler->checkpoints_count-2])
+#define break_checkpoint(compiler)    ((compiler)->checkpoints[(compiler)->checkpoints_count-1])
+#define continue_checkpoint(compiler) ((compiler)->checkpoints[(compiler)->checkpoints_count-2])
 
 
 
@@ -42,7 +42,7 @@ struct Compiler *compiler_new(Parser *const parser) {
     compiler->checkpoints_count = 0;
     compiler->code = bb_new(16);
     return compiler;
-};
+}
 
 void compiler_tables_del(struct Compiler *compiler) {
     ht_del_string_int(compiler->strings);
@@ -63,7 +63,7 @@ void compiler_del(struct Compiler *compiler) {
     compiler_buffers_del(compiler);
     free(compiler->checkpoints);
     free(compiler);
-};
+}
 
 static void handle_error(struct Compiler *const compiler) {
     compiler->status = YASL_SYNTAX_ERROR;
@@ -108,14 +108,16 @@ static void rm_checkpoint(struct Compiler *compiler) {
 
 static void visit(struct Compiler *const compiler, const Node *const node);
 
+/*
 static void visit_Body_reverse(struct Compiler *const compiler, const Node *const node) {
-    for (int i = node->children_len - 1; i  >= 0; i--) {
+    for (size_t i = node->children_len - 1; i >= 0; i--) {
         visit(compiler, node->children[i]);
     }
 }
+*/
 
 static void visit_Body(struct Compiler *const compiler, const Node *const node) {
-    for (int i = 0; i < node->children_len; i++) {
+    for (size_t i = 0; i < node->children_len; i++) {
         visit(compiler, node->children[i]);
     }
 }
@@ -224,21 +226,20 @@ unsigned char *compile(struct Compiler *const compiler) {
     bb_rewrite_intbytes8(compiler->header, 0, compiler->header->count);
     bb_rewrite_intbytes8(compiler->header, 8, 0x00);   // TODO: put num globals here eventually.
 
-    int i = 0;
     /*YASL_DEBUG_LOG("%s\n", "magic number");
     for (i = 0; i < 7; i++) {
         YASL_DEBUG_LOG("%02x\n", magic_number[i]);
     } */
 
     YASL_DEBUG_LOG("%s\n", "header");
-    for (i = 0; i < compiler->header->count; i++) {
+    for (size_t i = 0; i < compiler->header->count; i++) {
         if (i % 16 == 15)
             YASL_DEBUG_LOG("%02x\n", compiler->header->bytes[i]);
         else
             YASL_DEBUG_LOG("%02x ", compiler->header->bytes[i]);
     }
     YASL_DEBUG_LOG("%s\n", "entry point");
-    for (i = 0; i < compiler->code->count; i++) {
+    for (size_t i = 0; i < compiler->code->count; i++) {
         if (i % 16 == 15)
             YASL_DEBUG_LOG("%02x\n", compiler->code->bytes[i]);
         else
@@ -268,7 +269,7 @@ static void visit_ExprStmt(struct Compiler *const compiler, const Node *const no
 
 static void visit_FunctionDecl(struct Compiler *const compiler, const Node *const node) {
     if (compiler->params != NULL) {
-        printf("Illegal function declaration outside global scope, in line %d.\n", node->line);
+        printf("Illegal function declaration outside global scope, in line %zd.\n", node->line);
         handle_error(compiler);
         return;
     }
@@ -283,8 +284,7 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const Node *cons
 
     enter_scope(compiler);
 
-    int64_t i;
-    for (i = 0; i < node->children[0]->children_len; i++) {
+    for (size_t i = 0; i < node->children[0]->children_len; i++) {
         decl_var(compiler, node->children[0]->children[i]->name, node->children[0]->children[i]->name_len);
     }
 
@@ -555,7 +555,7 @@ static void visit_While(struct Compiler *const compiler, const Node *const node)
 
 static void visit_Break(struct Compiler *const compiler, const Node *const node) {
     if (compiler->checkpoints_count == 0) {
-        printf("SyntaxError: in line %d: break outside of loop.\n", node->line);
+        printf("SyntaxError: in line %zd: break outside of loop.\n", node->line);
         handle_error(compiler);
         return;
     }
@@ -567,7 +567,7 @@ static void visit_Break(struct Compiler *const compiler, const Node *const node)
 
 static void visit_Continue(struct Compiler *const compiler, const Node *const node) {
     if (compiler->checkpoints_count == 0) {
-        printf("SyntaxError: in line %d: continue outside of loop.\n", node->line);
+        printf("SyntaxError: in line %zd: continue outside of loop.\n", node->line);
         handle_error(compiler);
         return;
     }
@@ -609,7 +609,7 @@ static void visit_Print(struct Compiler *const compiler, const Node *const node)
 
 static void declare_with_let_or_const(struct Compiler *const compiler, const Node *const node) {
     if (contains_var_in_current_scope(compiler, node->name, node->name_len)) {
-        printf("Illegal redeclaration of %s in line %d.\n", node->name, node->line);
+        printf("Illegal redeclaration of %s in line %zd.\n", node->name, node->line);
         handle_error(compiler);
         return;
     }
@@ -789,7 +789,7 @@ static void visit_UnOp(struct Compiler *const compiler, const Node *const node) 
 
 static void visit_Assign(struct Compiler *const compiler, const Node *const node) {
     if (!contains_var(compiler, node->name, node->name_len)) {
-        printf("NameError: in line %d: undeclared variable %s.\n", node->line, node->name);
+        printf("NameError: in line %zd: undeclared variable %s.\n", node->line, node->name);
         handle_error(compiler);
         return;
     }
@@ -852,7 +852,7 @@ static void visit_String(struct Compiler *const compiler, const Node *const node
         YASL_DEBUG_LOG("%s\n", "caching string");
         ht_insert_string_int(compiler->strings, node->name, node->name_len, compiler->header->count);
         bb_intbytes8(compiler->header, node->name_len);
-        bb_append(compiler->header, node->name, node->name_len);
+        bb_append(compiler->header, (unsigned char*)node->name, node->name_len);
     }
 
     value = ht_search_string_int(compiler->strings, node->name, node->name_len);

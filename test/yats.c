@@ -16,10 +16,10 @@ Lexer *setup_lexer(char *file_contents) {
 }
 
 
-char *setup_compiler(char *file_contents) {
+unsigned char *setup_compiler(char *file_contents) {
     Parser *parser = parser_new(setup_lexer(file_contents));
     struct Compiler *compiler = compiler_new(parser);
-    char *bytecode = compile(compiler);
+    unsigned char *bytecode = compile(compiler);
     FILE *f = fopen("dump.yb", "wb");
     if (bytecode == NULL) {
         fputc(HALT, f);

@@ -16,7 +16,7 @@ void bb_del(ByteBuffer *const bb) {
 void bb_add_byte(ByteBuffer  *const bb, const unsigned char byte) {
     if (bb->size <= bb->count) bb->bytes = realloc(bb->bytes, bb->size = bb->count*2);
     bb->bytes[bb->count++] = byte;
-};
+}
 
 
 void bb_append(ByteBuffer *const bb, const unsigned char *const bytes, const int64_t bytes_len) {
@@ -24,7 +24,7 @@ void bb_append(ByteBuffer *const bb, const unsigned char *const bytes, const int
     memcpy(bb->bytes + bb->count, bytes, bytes_len);
     //printf("copied: %s\n", bb->bytes + bb->count);
     bb->count += bytes_len;
-};
+}
 
 void bb_floatbytes8(ByteBuffer *const bb, const double value) {
     if (bb->size < bb->count + sizeof(double)) bb->bytes = realloc(bb->bytes, bb->size = (bb->count+sizeof(double))*2);

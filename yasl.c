@@ -37,7 +37,8 @@ int YASL_execute(struct YASL_State *S) {
     if (!bc) return S->compiler->status;
 
     int64_t entry_point = *((int64_t*)bc);
-    int64_t num_globals = *((int64_t*)bc+1);
+    // TODO: use this in VM.
+    // int64_t num_globals = *((int64_t*)bc+1);
 
     S->vm->pc0 = S->vm->pc = entry_point;
     S->vm->code = bc;
@@ -73,43 +74,53 @@ int YASL_setglobal(struct YASL_State *S, char *name) {
     S->vm->globals[index] = vm_pop(S->vm);
     inc_ref(S->vm->globals + index);
 
+    return YASL_SUCCESS;
 }
 
 
 int YASL_pushundef(struct YASL_State *S) {
     vm_push(S->vm, YASL_UNDEF());
+    return YASL_SUCCESS;
 }
 
 int YASL_pushfloat(struct YASL_State *S, double value) {
     vm_push(S->vm, YASL_FLOAT(value));
+    return YASL_SUCCESS;
 }
 
 int YASL_pushinteger(struct YASL_State *S, int64_t value) {
     vm_push(S->vm, YASL_INT(value));
+    return YASL_SUCCESS;
 }
 
 int YASL_pushboolean(struct YASL_State *S, int value) {
     vm_push(S->vm, YASL_BOOL(value));
+    return YASL_SUCCESS;
 }
 
 int YASL_pushliteralstring(struct YASL_State *S, char *value) {
     vm_push(S->vm, YASL_STR(str_new_sized_from_mem(0, strlen(value), value)));
+    return YASL_SUCCESS;
 }
 
 int YASL_pushcstring(struct YASL_State *S, char *value) {
     vm_push(S->vm, YASL_STR(str_new_sized(strlen(value), value)));
+    return YASL_SUCCESS;
 }
 
 int YASL_pushuserpointer(struct YASL_State *S, void *userpointer) {
     vm_push(S->vm, YASL_USERPTR(userpointer));
+    return YASL_SUCCESS;
 }
 
 int YASL_pushstring(struct YASL_State *S, char *value, int64_t size) {
     vm_push(S->vm, YASL_STR(str_new_sized(size, value)));
+    return YASL_SUCCESS;
 }
 
 int YASL_pushcfunction(struct YASL_State *S, int (*value)(struct YASL_State *), int num_args) {
     vm_push(S->vm, YASL_CFN(value, num_args));
+    return YASL_SUCCESS;
 }
 
 int YASL_pushobject(struct YASL_State *S, struct YASL_Object *obj) {
@@ -130,6 +141,8 @@ int YASL_Table_set(struct YASL_Object *table, struct YASL_Object *key, struct YA
     if (table->type != Y_TABLE)
         return YASL_ERROR;
     ht_insert(table->value.mval, *key, *value);
+
+    return YASL_SUCCESS;
 }
 
 int YASL_UserData_gettag(struct YASL_Object *obj) {

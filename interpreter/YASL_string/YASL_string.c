@@ -19,13 +19,13 @@ int64_t yasl_string_cmp(const String_t *const left, const String_t *const right)
     }
 }
 
-unsigned char *copy_char_buffer(const int64_t size, const unsigned char *const ptr) {
-    unsigned char *tmp = malloc(size);
+char *copy_char_buffer(const int64_t size, const char *const ptr) {
+    char *tmp = malloc(size);
     memcpy(tmp, ptr, size);
     return tmp;
 }
 
-String_t* str_new_sized(const int64_t base_size, unsigned char *ptr) {
+String_t* str_new_sized(const int64_t base_size, char *ptr) {
     String_t* str = malloc(sizeof(String_t));
     str->start = 0;
     str->end = base_size;
@@ -35,7 +35,7 @@ String_t* str_new_sized(const int64_t base_size, unsigned char *ptr) {
     return str;
 }
 
-String_t* str_new_sized_from_mem(const int64_t start, const int64_t end, unsigned char *mem) {
+String_t* str_new_sized_from_mem(const int64_t start, const int64_t end, char *mem) {
     // puts("adsdas");
     //printf("start, end, mem: %d, %d, %s\n", start, end, mem);
     String_t* str = malloc(sizeof(String_t));
@@ -70,8 +70,8 @@ int64_t str_find_index(const String_t *haystack, const String_t *needle) {
     // TODO: implement non-naive algorithm for string search.
     if (yasl_string_len(haystack) < yasl_string_len(needle)) return -1;
     int64_t i = 0;
-    unsigned char* hayStr = haystack->str + haystack->start;
-    unsigned char* needleStr = needle->str + needle->start;
+    char* hayStr = haystack->str + haystack->start;
+    char* needleStr = needle->str + needle->start;
     while (i <= yasl_string_len(haystack) - yasl_string_len(needle)) {
         if (!memcmp(hayStr + i, needleStr, yasl_string_len(needle))) return i;
         i++;
