@@ -4,6 +4,7 @@
 #include <metadata.h>
 #include <compiler/parser/parser.h>
 #include <yasl_error.h>
+#include <yasl_include.h>
 #include "compiler.h"
 #define break_checkpoint(compiler)    ((compiler)->checkpoints[(compiler)->checkpoints_count-1])
 #define continue_checkpoint(compiler) ((compiler)->checkpoints[(compiler)->checkpoints_count-2])
@@ -131,27 +132,25 @@ static inline int64_t get_index(int64_t value) {
     return is_const(value) ? ~value : value;
 }
 
-static void load_var(struct Compiler *const compiler, char *name, int64_t name_len, int64_t line) {
+static void load_var(struct Compiler *const compiler, char *name, int64_t name_len, size_t line) {
     if (env_contains(compiler->params, name, name_len)) {
-        //printf("found %s in params\n", name);
         bb_add_byte(compiler->buffer, LLOAD_1);
         bb_add_byte(compiler->buffer, get_index(env_get(compiler->params, name, name_len))); // TODO: handle size
     } else if (env_contains(compiler->globals, name, name_len)){
-        //printf("found %s in globals\n", name);
         bb_add_byte(compiler->buffer, GLOAD_1);
         bb_add_byte(compiler->buffer, get_index(env_get(compiler->globals, name, name_len)));  // TODO: handle size
     } else {
-        printf("NameError: in line %" PRId64 ": undeclared variable %s.\n", line, name);
+        YASL_PRINT_ERROR_UNDECLARED_VAR(name, line);
         handle_error(compiler);
         return;
     }
 }
 
-static void store_var(struct Compiler *const compiler, char *name, int64_t name_len, int64_t line) {
+static void store_var(struct Compiler *const compiler, char *name, size_t name_len, size_t line) {
     if (env_contains(compiler->params, name, name_len)) {
         int64_t index = env_get(compiler->params, name, name_len);
         if (is_const(index)) {
-            printf("ConstantError: in line %" PRId64 ": cannot assign to constant %s", line, name);
+            YASL_PRINT_ERROR_CONSTANT(name, line);
             handle_error(compiler);
             return;
         }
@@ -160,14 +159,14 @@ static void store_var(struct Compiler *const compiler, char *name, int64_t name_
     } else if (env_contains(compiler->globals, name, name_len)) {
         int64_t index = env_get(compiler->globals, name, name_len);
         if (is_const(index)) {
-            printf("ConstantError: in line %" PRId64 ": cannot assign to constant %s", line, name);
+            YASL_PRINT_ERROR_CONSTANT(name, line);
             handle_error(compiler);
             return;
         }
         bb_add_byte(compiler->buffer, GSTORE_1);
         bb_add_byte(compiler->buffer, index);  // TODO: handle size
     } else {
-        printf("NameError: in line %" PRId64 ": undeclared variable %s.\n", line, name);
+        YASL_PRINT_ERROR_UNDECLARED_VAR(name, line);
         handle_error(compiler);
         return;
     }
@@ -186,11 +185,9 @@ static int contains_var(const struct Compiler *const compiler, char *name, int64
 
 static void decl_var(struct Compiler *const compiler, char *name, int64_t name_len) {
     if (NULL != compiler->params) {
-        //printf("declaring %s in locals\n", name);
         env_decl_var(compiler->params, name, name_len);
     }
     else {
-        //printf("declaring %s in globals\n", name);
         env_decl_var(compiler->globals, name, name_len);
     }
 }
@@ -208,7 +205,6 @@ unsigned char *compile(struct Compiler *const compiler) {
             node = parse(compiler->parser);
             eattok(compiler->parser, T_SEMI);
             compiler->status |= compiler->parser->status;
-            // printf("status: %d\n", compiler->parser->status);
             if (!compiler->parser->status) {
                 visit(compiler, node);
                 bb_append(compiler->code, compiler->buffer->bytes, compiler->buffer->count);
@@ -269,7 +265,7 @@ static void visit_ExprStmt(struct Compiler *const compiler, const Node *const no
 
 static void visit_FunctionDecl(struct Compiler *const compiler, const Node *const node) {
     if (compiler->params != NULL) {
-        printf("Illegal function declaration outside global scope, in line %zd.\n", node->line);
+        YASL_PRINT_ERROR_SYNTAX("Illegal function declaration outside global scope, in line %zd.\n", node->line);
         handle_error(compiler);
         return;
     }
@@ -382,13 +378,13 @@ static void visit_ListComp(struct Compiler *const compiler, const Node *const no
     if (node->children[1]->nodetype == N_LETITER) {
         decl_var(compiler, node->children[1]->children[0]->name, node->children[1]->children[0]->name_len);
     } else if (!contains_var(compiler, node->children[1]->children[0]->name, node->children[1]->children[0]->name_len)){
-        printf("NameError: in line %" PRId64 ": undeclared variable %s.\n", node->children[1]->children[0]->line, node->children[1]->children[0]->name);
+        YASL_PRINT_ERROR_UNDECLARED_VAR(node->children[1]->children[0]->name, node->children[1]->children[0]->line);
         handle_error(compiler);
         exit_scope(compiler);
         return;
     }
 
-    int64_t index_start = compiler->buffer->count;
+    size_t index_start = compiler->buffer->count;
 
     bb_add_byte(compiler->buffer, ITER_1);
 
@@ -432,7 +428,7 @@ static void visit_TableComp(struct Compiler *const compiler, const Node *const n
     if (node->children[1]->nodetype == N_LETITER) {
         decl_var(compiler, node->children[1]->children[0]->name, node->children[1]->children[0]->name_len);
     } else if (!contains_var(compiler, node->children[1]->children[0]->name, node->children[1]->children[0]->name_len)){
-        printf("NameError: in line %" PRId64 ": undeclared variable %s.\n", node->children[1]->children[0]->line, node->children[1]->children[0]->name);
+        YASL_PRINT_ERROR_UNDECLARED_VAR(node->children[1]->children[0]->name, node->children[1]->children[0]->line);
         handle_error(compiler);
         exit_scope(compiler);
         return;
@@ -486,7 +482,7 @@ static void visit_ForIter(struct Compiler *const compiler, const Node *const nod
     if (node->children[0]->nodetype == N_LETITER) {
         decl_var(compiler, node->children[0]->children[0]->name, node->children[0]->children[0]->name_len);
     } else if (!contains_var(compiler, node->children[0]->children[0]->name, node->children[0]->children[0]->name_len)){
-        printf("NameError: in line %" PRId64 ": undeclared variable %s.\n", node->children[0]->children[0]->line, node->children[0]->children[0]->name);
+        YASL_PRINT_ERROR_UNDECLARED_VAR(node->children[0]->children[0]->name, node->children[0]->children[0]->line);
         handle_error(compiler);
         exit_scope(compiler);
         return;
@@ -555,7 +551,7 @@ static void visit_While(struct Compiler *const compiler, const Node *const node)
 
 static void visit_Break(struct Compiler *const compiler, const Node *const node) {
     if (compiler->checkpoints_count == 0) {
-        printf("SyntaxError: in line %zd: break outside of loop.\n", node->line);
+        YASL_PRINT_ERROR_SYNTAX("break outside of loop (line %zd).\n", node->line);
         handle_error(compiler);
         return;
     }
@@ -567,7 +563,7 @@ static void visit_Break(struct Compiler *const compiler, const Node *const node)
 
 static void visit_Continue(struct Compiler *const compiler, const Node *const node) {
     if (compiler->checkpoints_count == 0) {
-        printf("SyntaxError: in line %zd: continue outside of loop.\n", node->line);
+        YASL_PRINT_ERROR_SYNTAX("continue outside of loop (line %zd).\n", node->line);
         handle_error(compiler);
         return;
     }
@@ -609,7 +605,7 @@ static void visit_Print(struct Compiler *const compiler, const Node *const node)
 
 static void declare_with_let_or_const(struct Compiler *const compiler, const Node *const node) {
     if (contains_var_in_current_scope(compiler, node->name, node->name_len)) {
-        printf("Illegal redeclaration of %s in line %zd.\n", node->name, node->line);
+        YASL_PRINT_ERROR_SYNTAX("Illegal redeclaration of %s in line %zd.\n", node->name, node->line);
         handle_error(compiler);
         return;
     }
@@ -789,7 +785,7 @@ static void visit_UnOp(struct Compiler *const compiler, const Node *const node) 
 
 static void visit_Assign(struct Compiler *const compiler, const Node *const node) {
     if (!contains_var(compiler, node->name, node->name_len)) {
-        printf("NameError: in line %zd: undeclared variable %s.\n", node->line, node->name);
+        YASL_PRINT_ERROR_UNDECLARED_VAR(node->name, node->line);
         handle_error(compiler);
         return;
     }

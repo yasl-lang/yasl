@@ -1,7 +1,9 @@
-#include <debug.h>
 #include "lexer.h"
-#include "../token.h"
-#include "../../yasl_error.h"
+
+#include "debug.h"
+#include "token.h"
+#include "yasl_error.h"
+#include "yasl_include.h"
 
 static Token YASLToken_ThreeChars(char c1, char c2, char c3);
 static Token YASLToken_TwoChars(char c1, char c2);
@@ -54,7 +56,7 @@ static int lex_eatint(Lexer *lex, char separator, int (*isvaliddigit)(int)) {
     lex->value[i++] = separator;
     lex_getchar(lex);
     if (!(*isvaliddigit)(lex->c)) {
-        printf("SyntaxError: Invalid int64 literal in line %zd.\n", lex->line);
+        YASL_PRINT_ERROR_SYNTAX("Invalid int64 literal in line %zd.\n", lex->line);
         lex_error(lex);
         return 1;
     }
@@ -154,7 +156,7 @@ static int lex_eatop(Lexer *lex) {
             (lex)->value[(i)++] = '\\';\
             break;\
         default:\
-            printf("LexingError: unclosed string literal in line %zd.\n", (lex)->line);\
+            YASL_PRINT_ERROR_SYNTAX("Unclosed string literal in line %zd.\n", (lex)->line);\
             lex_error(lex);\
             return 1;\
     }\
@@ -168,7 +170,7 @@ int lex_eatinterpstringbody(Lexer *lex) {
 
     while (lex->c != INTERP_STR_DELIM &&  lex->c != INTERP_STR_PLACEHOLDER && !feof(lex->file)) {
        if (lex->c == '\n') {
-            printf("LexingError: unclosed string literal in line %zd.\n", lex->line);
+           YASL_PRINT_ERROR_SYNTAX("Unclosed string literal in line %zd.\n", lex->line);
             lex_error(lex);
             return 1;
         }
@@ -197,7 +199,7 @@ int lex_eatinterpstringbody(Lexer *lex) {
     lex->value = realloc(lex->value, lex->val_len = i);
 
     if (feof(lex->file)) {
-        printf("LexingError: unclosed string literal in line %zd.\n", lex->line);
+        YASL_PRINT_ERROR_SYNTAX("Unclosed string literal in line %zd.\n", lex->line);
         lex_error(lex);
         return 1;
     }
@@ -215,7 +217,7 @@ int lex_eatinterpstring(Lexer *lex) {
         lex_getchar(lex);
         while (lex->c != INTERP_STR_DELIM &&  lex->c != INTERP_STR_PLACEHOLDER && !feof(lex->file)) {
             if (lex->c == '\n') {
-                printf("LexingError: unclosed string literal in line %zd.\n", lex->line);
+                YASL_PRINT_ERROR_SYNTAX("Unclosed string literal in line %zd.\n", lex->line);
                 lex_error(lex);
                 return 1;
             }
@@ -245,7 +247,7 @@ int lex_eatinterpstring(Lexer *lex) {
         lex->value = realloc(lex->value, lex->val_len = i);
 
         if (feof(lex->file)) {
-            printf("LexingError: unclosed string literal in line %zd.\n", lex->line);
+            YASL_PRINT_ERROR_SYNTAX("Unclosed string literal in line %zd.\n", lex->line);
             lex_error(lex);
             return 1;
         }
@@ -266,7 +268,7 @@ static int lex_eatstring(Lexer *lex) {
         lex_getchar(lex);
         while (lex->c != STR_DELIM && !feof(lex->file)) {
             if (lex->c == '\n') {
-                printf("LexingError: unclosed string literal in line %zd.\n", lex->line);
+                YASL_PRINT_ERROR_SYNTAX("Unclosed string literal in line %zd.\n", lex->line);
                 lex_error(lex);
                 return 1;
             }
@@ -287,7 +289,7 @@ static int lex_eatstring(Lexer *lex) {
         lex->value = realloc(lex->value, lex->val_len = i);
 
         if (feof(lex->file)) {
-            printf("LexingError: unclosed string literal in line %zd.\n", lex->line);
+            YASL_PRINT_ERROR_SYNTAX("Unclosed string literal in line %zd.\n", lex->line);
             lex_error(lex);
             return 1;
         }
@@ -320,7 +322,7 @@ static int lex_eatrawstring(Lexer *lex) {
         lex->value = realloc(lex->value, lex->val_len = i);
 
         if (feof(lex->file)) {
-            printf("LexingError: unclosed string literal in line %zd.\n", lex->line);
+            YASL_PRINT_ERROR_SYNTAX("Unclosed string literal in line %zd.\n", lex->line);
             lex_error(lex);
             return 1;
         }
@@ -362,7 +364,7 @@ void gettok(Lexer *lex) {
                     c2 = fgetc(lex->file);
                 }
                 if (feof(lex->file)) {
-                    printf("SyntaxError: unclosed block comment in line %zd.\n", lex->line);
+                    YASL_PRINT_ERROR_SYNTAX("Unclosed block comment in line %zd.\n", lex->line);
                     lex_error(lex);
                     return;
                 }
@@ -490,7 +492,7 @@ void gettok(Lexer *lex) {
     // operators
     if (lex_eatop(lex)) return;
 
-    printf("SyntaxError: unknown character in line %zd: `%c` (0x%x).\n", lex->line, lex->c, lex->c);
+    YASL_PRINT_ERROR_SYNTAX("Unknown character in line %zd: `%c` (0x%x).\n", lex->line, lex->c, lex->c);
     lex_error(lex);
 }
 
@@ -635,27 +637,27 @@ static void YASLKeywords(Lexer *lex) {
      */
 
     if (matches_keyword(lex, "enum")) {
-        printf("enum is an unused reserved word and cannot be used (line %zd).\n", lex->line);
+        YASL_PRINT_ERROR_SYNTAX("enum is an unused reserved word and cannot be used (line %zd).\n", lex->line);
         lex_error(lex);
         return;
     } else if (matches_keyword(lex, "yield")) {
-        printf("yield is an unused reserved word and cannot be used (line %zd).\n", lex->line);
+        YASL_PRINT_ERROR_SYNTAX("yield is an unused reserved word and cannot be used (line %zd).\n", lex->line);
         lex_error(lex);
         return;
     } else if (matches_keyword(lex, "do")) {
-        printf("do is an unused reserved word and cannot be used (line %zd).\n", lex->line);
+        YASL_PRINT_ERROR_SYNTAX("do is an unused reserved word and cannot be used (line %zd).\n", lex->line);
         lex_error(lex);
         return;
     } else if (matches_keyword(lex, "use")) {
-        printf("use is an unused reserved word and cannot be used (line %zd).\n", lex->line);
+        YASL_PRINT_ERROR_SYNTAX("use is an unused reserved word and cannot be used (line %zd).\n", lex->line);
         lex_error(lex);
         return;
     } else if (matches_keyword(lex, "no")) {
-        printf("no is an unused reserved word and cannot be used (line %zd).\n", lex->line);
+        YASL_PRINT_ERROR_SYNTAX("no is an unused reserved word and cannot be used (line %zd).\n", lex->line);
         lex_error(lex);
         return;
     } else if (matches_keyword(lex, "require")) {
-        printf("require is an unused reserved word and cannot be used (line %zd).\n", lex->line);
+        YASL_PRINT_ERROR_SYNTAX("require is an unused reserved word and cannot be used (line %zd).\n", lex->line);
         lex_error(lex);
         return;
     }
