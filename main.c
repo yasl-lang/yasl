@@ -5,7 +5,7 @@
 
 #include <yasl-std-io.h>
 
-#define VERSION "v0.2.0"
+#define VERSION "v0.2.1"
 
 int main(int argc, char** argv) {
     if (argc > 2) {
@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
                  "options:\n"
                  "\t-h: this menu\n"
                  "\t-V: print current version\n"
-                 "\tfile: name of file containing script\n"
+                 "\tfile: name of file containing script"
             );
             exit(EXIT_SUCCESS);
         } else if (!strcmp(argv[1], "-V")) {

@@ -4,7 +4,7 @@
 #include <compiler/compiler/compiler.h>
 #include <color.h>
 #include "yats.h"
-#include "compilertest.h"
+#include "test/test_compiler/compilertest.h"
 
 Lexer *setup_lexer(char *file_contents) {
     FILE *fptr = fopen("dump.ysl", "w");
