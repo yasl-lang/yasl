@@ -10,7 +10,7 @@ sub assert_output {
     my $RED = "\x1B[31m";
     my $END = "\x1B[0m";
 
-    my $output = qx+$string+;
+    my $output = qx+../$string+;
     my $status = $?;
     my $exitcode = !($output eq $exp_out && $status == $exp_stat) || 0;
 
@@ -25,8 +25,8 @@ sub assert_output {
     return $exitcode;
 }
 
-assert_output("../YASL -V", "YASL v0.2.1\n", 0);
-assert_output("../YASL -h",
+assert_output("YASL -V", "YASL v0.2.1\n", 0);
+assert_output("YASL -h",
               "usage: yasl [option] [file]\n" .
               "options:\n" .
               "\t-h: this menu\n" .

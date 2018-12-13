@@ -65,6 +65,8 @@ void vm_del(struct VM *vm) {
     ht_del_cstring_cfn(vm->builtins_htable[Y_TABLE]);
     free(vm->builtins_htable);
 
+
+
     free(vm);
 }
 

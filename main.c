@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "yasl.h"
 
-#include <yasl-std-io.h>
+#include "yasl.h"
+#include "yasl-std-io.h"
 
 #define VERSION "v0.2.1"
 
@@ -27,12 +27,12 @@ int main(int argc, char** argv) {
 
         struct YASL_State *S = YASL_newstate(argv[1]);
 
-        YASL_load_io(S);
-
         if (!S) {
             puts("ERROR: cannot open file.");
             exit(EXIT_FAILURE);
         }
+
+        YASL_load_io(S);
 
         YASL_execute(S);
 
