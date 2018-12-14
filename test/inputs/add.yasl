@@ -1,0 +1,7 @@
+# simple function to add two numbers
+
+fn add(a, b) {
+    return a + b
+}
+
+echo add(1, 12)

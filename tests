@@ -13,31 +13,31 @@ if [ $EXEC_BUILD_OUTPUT$TEST_BUILD_OUTPUT != 00 ]; then
 fi
 printf "Build successful\n\n"
 
-printf "====================\n"
+printf "========================================\n"
 printf "Running compiler tests...\n"
 ./YASLTEST
 C_TESTS_OUTPUT=$?
 printf "Compiler tests exited with code $C_TESTS_OUTPUT\n\n"
 
-printf "====================\n"
+printf "========================================\n"
 printf "Running VM tests...\n"
 ( cd test ; perl vmtest.pl )
 VM_TESTS_OUTPUT=$?
 printf "VM tests exited with code $VM_TESTS_OUTPUT\n\n"
 
-printf "====================\n"
+printf "========================================\n"
 printf "Running CLI tests...\n"
 ( cd test ; perl clitest.pl )
 CLI_TESTS_OUTPUT=$?
 printf "CLI tests exited with code $CLI_TESTS_OUTPUT\n\n"
 
-printf "====================\n"
+printf "========================================\n"
 printf "Running memory tests...\n"
 ( cd test ; perl memtest.pl )
 MEM_TESTS_OUTPUT=$?
 printf "Memory tests exited with code $MEM_TESTS_OUTPUT\n\n"
 
-printf "====================\n"
+printf "========================================\n"
 [ $C_TESTS_OUTPUT$VM_TESTS_OUTPUT$CLI_TESTS_OUTPUT$MEM_TESTS_OUTPUT = 0000 ]
 TESTS_EXIT=$?
 printf "Tests exited with code $TESTS_EXIT\n"

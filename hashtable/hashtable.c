@@ -54,6 +54,8 @@ static Item_t* new_item(const struct YASL_Object k, const struct YASL_Object v) 
 }
 
 static void del_item(Item_t* item) {
+    dec_ref(item->key);
+    dec_ref(item->value);
     free(item->key);
     free(item->value);
     free(item);
@@ -91,8 +93,8 @@ void ht_del_data(Hash_t* hashtable) {
     for (size_t i = 0; i < hashtable->size; i++) {
         Item_t* item = hashtable->items[i];
         if (item != NULL && item != &TOMBSTONE) {
-            dec_ref(item->key);
-            dec_ref(item->value);
+            // dec_ref(item->key);
+            // dec_ref(item->value);
             del_item(item);
         }
     }
@@ -186,6 +188,8 @@ void ht_insert(Hash_t* hashtable, const struct YASL_Object key, const struct YAS
     while (curr_item != NULL) {
         if (curr_item != &TOMBSTONE) {
             if (!isfalsey(isequal(*curr_item->key, *item->key))) {
+                // dec_ref(item->key);
+                // dec_ref(item->value);
                 del_item(curr_item);
                 hashtable->items[index] = item;
                 return;

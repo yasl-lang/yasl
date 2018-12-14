@@ -11,18 +11,21 @@ sub assert_output {
     my $RED = "\x1B[31m";
     my $END = "\x1B[0m";
 
-    my $output = qx+valgrind --error-exitcode=1 --leak-check=full ../YASL inputs/$string+;
+    my $output = qx+valgrind --error-exitcode=1 --leak-check=full ../YASL $string 2>/dev/null+;
     my $status = $?;
     my $exitcode = ($status != $exp_stat) || 0;
 
     if ($status != $exp_stat) {
-        print $RED . "exitcode assert failed in $filename (line $line): $status =/= $exp_stat" . $END . "\n";
+        print $RED . "memory leak in $string." . $END . "\n";
     }
 
     $__MEM_TESTS_FAILED__ ||= $exitcode;
     return $exitcode;
 }
 
-assert_output('simple.yasl', 0);
+while (defined(my $file = glob 'inputs/*.yasl')) {
+    # print "Testing $file for leaks...\n";
+    assert_output($file, 0);
+}
 
 exit $__MEM_TESTS_FAILED__;

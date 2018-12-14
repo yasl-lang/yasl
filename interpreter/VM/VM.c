@@ -675,10 +675,11 @@ void vm_run(struct VM *vm){
 
                 vm_push(vm, YASL_INT(vm->fp));
                 vm_push(vm, YASL_INT(vm->fp));
-                vm->fp = vm->sp - 2;
+                vm->next_fp = vm->sp - 2;
                 break;
 
             case CALL:
+                vm->fp = vm->next_fp;
                 if (YASL_ISFN(vm->stack[vm->fp])) {
                     vm->stack[vm->fp+1].value.ival = vm->pc;
 
@@ -711,6 +712,8 @@ void vm_run(struct VM *vm){
                     vm_pop(vm);
                     vm_pop(vm);
                     vm_push(vm, v);
+                } else {
+                    exit(EXIT_FAILURE);
                 }
                 break;
             case RET:

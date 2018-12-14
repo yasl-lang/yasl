@@ -48,6 +48,7 @@ struct VM{
     size_t pc0;                   // initial value for pc
 	int sp;                     // stack pointer
 	int fp;                     // frame pointer
+    int next_fp;
     int lp;                     // foreach pointer
 	Hash_t **builtins_htable;   // htable of builtin methods
 };
