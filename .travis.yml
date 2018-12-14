@@ -4,6 +4,12 @@ compiler:
   - clang
   - gcc
 
+before_script:
+  - cmake .
+  - make YASL
+  - make YASLTEST
+  - make yaslapi
+
 script:
   - ./tests 
 
