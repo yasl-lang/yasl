@@ -611,6 +611,11 @@ static Node *parse_call(Parser *const parser) {
 
 static Node *parse_constant(Parser *const parser) {
     switch (curtok(parser)) {
+        case T_DOT:
+            eattok(parser, T_DOT);
+            Node *cur_node = new_String(parser->lex->value, parser->lex->val_len, parser->lex->line);
+            eattok(parser, T_ID);
+            return cur_node;
         case T_ID: return parse_id(parser);
         case T_LPAR:
             eattok(parser, T_LPAR);

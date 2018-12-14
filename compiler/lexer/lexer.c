@@ -476,6 +476,12 @@ void gettok(Lexer *lex) {
         if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
         lex->value = realloc(lex->value, 1 + (lex->val_len = i));
         lex->value[lex->val_len] = '\0';
+
+        if (lex->type == T_DOT || lex->type == T_SMALL_ARR) {
+            lex->type = T_ID;
+            return;
+        }
+
         lex->type = T_ID;
         YASLKeywords(lex);          // keywords
         return;
