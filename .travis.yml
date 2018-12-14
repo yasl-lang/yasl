@@ -4,14 +4,8 @@ compiler:
   - clang
   - gcc
 
-before_script:
-  - cmake .
-  - make YASL
-  - make YASLTEST
-
-script: 
-  - ./YASLTEST                    # run c tests
-  - ( cd test ; perl vmtest.pl )  # run perl tests
+script:
+  - ./tests 
 
 notifications: 
   email: false 
