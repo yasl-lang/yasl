@@ -17,8 +17,7 @@ void env_del(Env_t *env) {
 }
 
 void env_del_current_only(Env_t *env) {
-    int i;
-    for (i = 0; i < env->vars->size; i++) {
+    for (size_t i = 0; i < env->vars->size; i++) {
         Item_t* item = env->vars->items[i];
         if (item != NULL) {
             str_del(item->key->value.sval);

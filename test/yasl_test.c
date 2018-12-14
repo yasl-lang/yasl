@@ -1,5 +1,5 @@
-#include "lexertest.h"
-#include "compilertest.h"
+#include "test/test_lexer/lexertest.h"
+#include "test/test_compiler/compilertest.h"
 
 int main() {
     int failed = 0;

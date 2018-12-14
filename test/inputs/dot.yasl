@@ -1,0 +1,7 @@
+echo .special_name
+
+let x = {}
+
+x.for = 10
+
+echo x.for

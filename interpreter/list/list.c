@@ -72,12 +72,14 @@ static void ls_resize_up(List_t* ls) {
     ls_resize(ls, new_size);
 }
 
+/*
 static void ls_resize_down(List_t* ls) {
     const int new_size = ls->size / 2;
     ls_resize(ls, new_size);
 }
+*/
 
-void ls_insert(List_t* ls, const int64_t index, const struct YASL_Object value) {
+void ls_insert(List_t* ls, const int64_t index, struct YASL_Object value) {
     if (ls->count >= ls->size) ls_resize_up(ls);
     dec_ref(ls->items+index);
     ls->items[index] = value;
@@ -85,7 +87,7 @@ void ls_insert(List_t* ls, const int64_t index, const struct YASL_Object value) 
     inc_ref(&value);
 }
 
-void ls_append(List_t* ls, const struct YASL_Object value) {
+void ls_append(List_t* ls, struct YASL_Object value) {
     if (ls->count >= ls->size) ls_resize_up(ls);
     ls->items[ls->count++] = value;
     inc_ref(&value);

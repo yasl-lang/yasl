@@ -13,14 +13,14 @@ struct Compiler {
     Env_t *globals;
     Env_t *params;
     Hash_t *functions;
-    int64_t offset;
+    size_t offset;
     Hash_t *strings;
     ByteBuffer *buffer;
     ByteBuffer *header;
     ByteBuffer *code;
-    int64_t *checkpoints;
-    int64_t checkpoints_count;
-    int64_t checkpoints_size;
+    size_t *checkpoints;
+    size_t checkpoints_count;
+    size_t checkpoints_size;
     int status;
 };
 

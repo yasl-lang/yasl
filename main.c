@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "yasl.h"
+#include "yasl-std-io.h"
 
-#include <yasl-std-io.h>
-
-#define VERSION "v0.2.0"
+#define VERSION "v0.2.1"
 
 int main(int argc, char** argv) {
     if (argc > 2) {
@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
                  "options:\n"
                  "\t-h: this menu\n"
                  "\t-V: print current version\n"
-                 "\tfile: name of file containing script\n"
+                 "\tfile: name of file containing script"
             );
             exit(EXIT_SUCCESS);
         } else if (!strcmp(argv[1], "-V")) {
@@ -27,12 +27,12 @@ int main(int argc, char** argv) {
 
         struct YASL_State *S = YASL_newstate(argv[1]);
 
-        YASL_load_io(S);
-
         if (!S) {
             puts("ERROR: cannot open file.");
             exit(EXIT_FAILURE);
         }
+
+        YASL_load_io(S);
 
         YASL_execute(S);
 

@@ -8,10 +8,15 @@ before_script:
   - cmake .
   - make YASL
   - make YASLTEST
+  - make yaslapi
 
-script: 
-  - ./YASLTEST                    # run c tests
-  - ( cd test ; perl vmtest.pl )  # run perl tests
+script:
+  - ./tests 
 
+addons:
+  apt:
+    packages:
+      - valgrind
+      
 notifications: 
   email: false 

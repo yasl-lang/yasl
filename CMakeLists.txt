@@ -3,7 +3,7 @@ project(YASL C)
 
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_C_STANDARD 99)
-#set(CMAKE_C_FLAGS "-Wall -Wextra -pedantic -Werror")
+#set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-newline-eof -Wno-unused-variable -Wno-unused-parameter -pedantic -Werror")
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 include_directories(.)
@@ -58,18 +58,18 @@ add_executable(YASL
         std-io/yasl-std-io.c)
 
 add_executable(YASLTEST
-        test/yats.c
+        test/test_compiler/yats.c
         test/yasl_test.c
-        test/lexertest.c
-        test/compilertest.c
-        test/binoptest.c
-        test/unoptest.c
-        test/literaltest.c
-        test/iftest.c
-        test/whiletest.c
-        test/fortest.c
-        test/foreachtest.c
-        test/comprehensiontest.c
+        test/test_lexer/lexertest.c
+        test/test_compiler/compilertest.c
+        test/test_compiler/binoptest.c
+        test/test_compiler/unoptest.c
+        test/test_compiler/literaltest.c
+        test/test_compiler/iftest.c
+        test/test_compiler/whiletest.c
+        test/test_compiler/fortest.c
+        test/test_compiler/foreachtest.c
+        test/test_compiler/comprehensiontest.c
         compiler/lexer/lexer.c
         compiler/compiler/compiler.c
         compiler/parser/parser.c
