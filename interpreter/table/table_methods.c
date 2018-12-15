@@ -42,9 +42,8 @@ int table_keys(struct YASL_State *S) {
     ASSERT_TYPE(S->vm, Y_TABLE, "table.keys");
     Hash_t *ht = YASL_GETTBL(vm_pop(S->vm));
     List_t* ls = ls_new();
-    int64_t i;
     Item_t* item;
-    for (i = 0; i < ht->size; i++) {
+    for (size_t i = 0; i < ht->size; i++) {
         item = ht->items[i];
         if (item != NULL && item != &TOMBSTONE) {
             ls_append(ls, *(item->key));
@@ -58,9 +57,8 @@ int table_values(struct YASL_State *S) {
     ASSERT_TYPE(S->vm, Y_TABLE, "table.values");
     Hash_t *ht = YASL_GETTBL(vm_pop(S->vm));
     List_t* ls = ls_new();
-    int64_t i;
     Item_t* item;
-    for (i = 0; i < ht->size; i++) {
+    for (size_t i = 0; i < ht->size; i++) {
         item = ht->items[i];
         if (item != NULL && item != &TOMBSTONE) {
             ls_append(ls, *(item->value));

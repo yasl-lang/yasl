@@ -5,8 +5,8 @@
 
 typedef struct List_s {
     RefCount *rc;
-    int size;
-    int count;
+    int64_t size;
+    int64_t count;
     struct YASL_Object* items;
 } List_t;
 

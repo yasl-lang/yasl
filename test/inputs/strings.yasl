@@ -1,0 +1,8 @@
+# test strings are collected
+
+let x = 'x'
+
+x = 'X'
+
+x = '$'
+

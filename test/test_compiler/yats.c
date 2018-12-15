@@ -4,7 +4,7 @@
 #include <compiler/compiler/compiler.h>
 #include <color.h>
 #include "yats.h"
-#include "compilertest.h"
+#include "test/test_compiler/compilertest.h"
 
 Lexer *setup_lexer(char *file_contents) {
     FILE *fptr = fopen("dump.ysl", "w");
@@ -16,10 +16,10 @@ Lexer *setup_lexer(char *file_contents) {
 }
 
 
-char *setup_compiler(char *file_contents) {
+unsigned char *setup_compiler(char *file_contents) {
     Parser *parser = parser_new(setup_lexer(file_contents));
     struct Compiler *compiler = compiler_new(parser);
-    char *bytecode = compile(compiler);
+    unsigned char *bytecode = compile(compiler);
     FILE *f = fopen("dump.yb", "wb");
     if (bytecode == NULL) {
         fputc(HALT, f);

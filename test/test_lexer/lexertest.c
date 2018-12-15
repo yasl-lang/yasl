@@ -1,7 +1,7 @@
 #include <lexer.h>
 #include <compiler/lexer/lexer.h>
 #include <color.h>
-#include "yats.h"
+#include "test/test_compiler/yats.h"
 
 SETUP_YATS();
 
@@ -467,7 +467,7 @@ void test_dqmark(void) {
 }
 
 void test_dqmarkeq(void) {
-    Lexer *lex = setup_lexer("??=");
+    Lexer *lex = setup_lexer("?\?=");
     ASSERT_EATTOK(T_DQMARKEQ, lex);
     ASSERT_EATTOK(T_EOF, lex);
 }

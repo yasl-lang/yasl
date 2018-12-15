@@ -1,7 +1,8 @@
+#include "VM.h"
+
 #include <stdlib.h>
 #include <memory.h>
 #include "YASL_Object.h"
-#include "VM.h"
 #include "builtins.h"
 #include <interpreter/YASL_string/YASL_string.h>
 #include <hashtable/hashtable.h>
@@ -12,12 +13,6 @@
 #include <interpreter/list/list_methods.h>
 #include "yasl_state.h"
 #include "opcode.h"
-
-static struct YASL_Object *YASL_End() {
-    struct YASL_Object *end = malloc(sizeof(struct YASL_Object));
-    end->type = Y_END;
-    return end;
-}
 #include "operator_names.h"
 
 static Hash_t **builtins_htable_new(void) {
@@ -53,8 +48,8 @@ struct VM* vm_new(unsigned char *code,    // pointer to bytecode
 }
 
 void vm_del(struct VM *vm) {
-    for (int i = 0; i < STACK_SIZE; i++) dec_ref(&vm->stack[i]);
-    for (int i = 0; i < vm->num_globals; i++) dec_ref(&vm->globals[i]);
+    for (size_t i = 0; i < STACK_SIZE; i++) dec_ref(&vm->stack[i]);
+    for (size_t i = 0; i < vm->num_globals; i++) dec_ref(&vm->globals[i]);
 
     free(vm->globals);
     free(vm->stack);
@@ -69,6 +64,8 @@ void vm_del(struct VM *vm) {
     ht_del_cstring_cfn(vm->builtins_htable[Y_LIST]);
     ht_del_cstring_cfn(vm->builtins_htable[Y_TABLE]);
     free(vm->builtins_htable);
+
+
 
     free(vm);
 }
@@ -148,8 +145,8 @@ void vm_int_binop(struct VM *vm, yasl_int (*op)(yasl_int, yasl_int), char *opstr
 
             int offset = 2;
             int addr = YASL_GETINT(*result);
-            a = ((struct YASL_Object) {offset, vm->fp});
-            b = ((struct YASL_Object) {offset, vm->pc});
+            a = ((struct YASL_Object) {.type = offset, .value.ival = vm->fp});
+            b = ((struct YASL_Object) { .type = offset, .value.ival = vm->pc});
             vm_push(vm, a);  // store previous frame ptr;
             vm_push(vm, b);  // store pc addr
             vm->fp = vm->sp;
@@ -200,7 +197,7 @@ void vm_num_binop(
         struct VM *vm, yasl_int (*int_op)(yasl_int, yasl_int),
         yasl_float (*float_op)(yasl_float, yasl_float),
         const char *const opstr,
-        const char *const overload_name) {
+        char *overload_name) {
     struct YASL_Object right = vm_pop(vm);
     struct YASL_Object left = vm_pop(vm);
     if (YASL_ISINT(left) && YASL_ISINT(right)) {
@@ -219,8 +216,8 @@ void vm_num_binop(
 
             int offset = 2;
             int64_t addr = YASL_GETINT(*result);
-            struct YASL_Object a = ((struct YASL_Object) {offset, vm->fp});
-            struct YASL_Object b = ((struct YASL_Object) {offset, vm->pc});
+            struct YASL_Object a = ((struct YASL_Object) { .type = offset, .value.ival = vm->fp});
+            struct YASL_Object b = ((struct YASL_Object) { .type = offset, .value.ival =  vm->pc});
             vm_push(vm, a);  // store previous frame ptr;
             vm_push(vm, b);  // store pc addr
             vm->fp = vm->sp;
@@ -262,8 +259,8 @@ void vm_fdiv(struct VM *vm) {
 
             int offset = 2;
             int addr = YASL_GETINT(*result);
-            struct YASL_Object a = ((struct YASL_Object) {offset, vm->fp});
-            struct YASL_Object b = ((struct YASL_Object) {offset, vm->pc});
+            struct YASL_Object a = ((struct YASL_Object) { .type = offset, .value.ival =  vm->fp});
+            struct YASL_Object b = ((struct YASL_Object) { .type = offset, .value.ival =  vm->pc});
             vm_push(vm, a);  // store previous frame ptr;
             vm_push(vm, b);  // store pc addr
             vm->fp = vm->sp;
@@ -536,7 +533,7 @@ void vm_run(struct VM *vm){
                 memcpy(&size, vm->code + addr, sizeof(yasl_int));
                 addr += sizeof(yasl_int);
 
-                vm_push(vm, YASL_STR(str_new_sized_from_mem(addr, addr + size, vm->code)));
+                vm_push(vm, YASL_STR(str_new_sized_from_mem(addr, addr + size, (char*)vm->code)));
                 break;
             case NEWTABLE: {
                 struct YASL_Object *table = YASL_Table();
@@ -593,10 +590,10 @@ void vm_run(struct VM *vm){
                     case Y_TABLE:
                         while ((YASL_GETTBL(vm->stack[vm->lp])->items[YASL_GETINT(vm->stack[vm->lp + 1])] == &TOMBSTONE ||
                                 YASL_GETTBL(vm->stack[vm->lp])->items[YASL_GETINT(vm->stack[vm->lp + 1])] == NULL
-                        ) && YASL_GETTBL(vm->stack[vm->lp])->size > YASL_GETINT(vm->stack[vm->lp + 1])) {
+                        ) && YASL_GETTBL(vm->stack[vm->lp])->size > (size_t)YASL_GETINT(vm->stack[vm->lp + 1])) {
                             YASL_GETINT(vm->stack[vm->lp + 1])++;
                         }
-                        if (YASL_GETTBL(vm->stack[vm->lp])->size <= YASL_GETINT(vm->stack[vm->lp + 1])) {
+                        if (YASL_GETTBL(vm->stack[vm->lp])->size <= (size_t)YASL_GETINT(vm->stack[vm->lp + 1])) {
                             vm_push(vm, YASL_BOOL(0));
                             break;
                         }
@@ -678,10 +675,11 @@ void vm_run(struct VM *vm){
 
                 vm_push(vm, YASL_INT(vm->fp));
                 vm_push(vm, YASL_INT(vm->fp));
-                vm->fp = vm->sp - 2;
+                vm->next_fp = vm->sp - 2;
                 break;
 
             case CALL:
+                vm->fp = vm->next_fp;
                 if (YASL_ISFN(vm->stack[vm->fp])) {
                     vm->stack[vm->fp+1].value.ival = vm->pc;
 
@@ -704,7 +702,7 @@ void vm_run(struct VM *vm){
                     while (vm->sp - (vm->fp + 2) > YASL_GETCFN(vm->stack[vm->fp])->num_args) {
                         vm_pop(vm);
                     }
-                    if (YASL_GETCFN(vm->stack[vm->fp])->value(&vm)) {
+                    if (YASL_GETCFN(vm->stack[vm->fp])->value((struct YASL_State*)&vm)) {
                         printf("ERROR: invalid argument type(s) to builtin function.\n");
                         return;
                     };
@@ -714,6 +712,8 @@ void vm_run(struct VM *vm){
                     vm_pop(vm);
                     vm_pop(vm);
                     vm_push(vm, v);
+                } else {
+                    exit(EXIT_FAILURE);
                 }
                 break;
             case RET:
@@ -730,12 +730,12 @@ void vm_run(struct VM *vm){
                 int index = vm_peek(vm).type;
                 if (YASL_ISLIST(vm_peek(vm))) {
                     vm->sp++;
-                    if (!list___get(&vm)) {
+                    if (!list___get((struct YASL_State*)&vm)) {
                         break;
                     }
                 } else if (YASL_ISTBL(vm_peek(vm))) {
                     vm->sp++;
-                    if (!table___get(&vm)) {
+                    if (!table___get((struct YASL_State*)&vm)) {
                         break;
                     }
                 } else {
@@ -762,10 +762,10 @@ void vm_run(struct VM *vm){
                 vm->sp -= 2;
                 if (YASL_ISLIST(vm_peek(vm))) {
                     vm->sp += 2;
-                    list___set(&vm);
+                    list___set((struct YASL_State*)&vm);
                 } else if (YASL_ISTBL(vm_peek(vm))) {
                     vm->sp += 2;
-                    table___set(&vm);
+                    table___set((struct YASL_State*)&vm);
                 } else {
                     vm->sp += 2;
                     printf("object of type %s is immutable.", YASL_TYPE_NAMES[vm_peek(vm).type]);

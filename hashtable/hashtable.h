@@ -12,15 +12,15 @@ typedef struct {
     struct YASL_Object* value;
 } Item_t;
 
-static Item_t TOMBSTONE = {0, 0};
-
 typedef struct Hash_s {
     RefCount *rc;
-    int64_t size;
-    int64_t base_size;
-    int64_t count;
+    size_t size;
+    size_t base_size;
+    size_t count;
     Item_t** items;
 } Hash_t;
+
+static Item_t TOMBSTONE = {0, 0};
 
 Hash_t* ht_new(void);
 Hash_t* ht_new_sized(const int base_size);
