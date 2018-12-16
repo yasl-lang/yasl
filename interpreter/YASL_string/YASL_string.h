@@ -6,7 +6,7 @@
 #include "refcount.h"
 
 typedef struct {
-    RefCount* rc;
+    struct RC* rc;      // RC MUST BE THE FIRST MEMBER OF THIS STRUCT. DO NOT REARRANGE.
     char *str;
     size_t start;
     int64_t end;

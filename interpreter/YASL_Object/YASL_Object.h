@@ -68,7 +68,7 @@ struct List_s;
 struct RC_Table;
 struct UserData_s;
 struct CFunction_s {
-    RefCount *rc;
+    struct RC *rc;
     int num_args;
     int (*value)(struct YASL_State *);
 };
@@ -83,7 +83,7 @@ struct YASL_Object {
         int64_t ival;
         double dval;
         String_t *sval;
-        struct List_s *lval;
+        struct RC_List *lval;
         struct RC_Table *mval;
         struct UserData_s *uval;
         struct CFunction_s *cval;

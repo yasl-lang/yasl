@@ -41,7 +41,7 @@ int table___set(struct YASL_State *S) {
 int table_keys(struct YASL_State *S) {
     ASSERT_TYPE(S->vm, Y_TABLE, "table.keys");
     struct RC_Table *ht = YASL_GETTBL(vm_pop(S->vm));
-    List_t* ls = ls_new();
+    struct RC_List* ls = ls_new();
     Item_t* item;
     for (size_t i = 0; i < ht->table.size; i++) {
         item = ht->table.items[i];
@@ -56,7 +56,7 @@ int table_keys(struct YASL_State *S) {
 int table_values(struct YASL_State *S) {
     ASSERT_TYPE(S->vm, Y_TABLE, "table.values");
     struct RC_Table *ht = YASL_GETTBL(vm_pop(S->vm));
-    List_t* ls = ls_new();
+    struct RC_List* ls = ls_new();
     Item_t* item;
     for (size_t i = 0; i < ht->table.size; i++) {
         item = ht->table.items[i];

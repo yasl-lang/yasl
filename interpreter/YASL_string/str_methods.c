@@ -347,7 +347,7 @@ int str_split(struct YASL_State *S) {
         return -1;
     }
     int64_t end=0, start=0;
-    List_t* result = ls_new();
+    struct RC_List* result = ls_new();
     while (end + yasl_string_len(needle) <= yasl_string_len(haystack)) {
         if (!memcmp(haystack->str + haystack->start + end,
                     needle->str + needle->start,

@@ -1,15 +1,16 @@
 #pragma once
 
 #include <inttypes.h>
+#include <stdlib.h>
 
 struct YASL_Object;
 
-typedef struct {
-    uint64_t refs;
-    uint64_t weak_refs;
-} RefCount;
+struct RC {
+    size_t refs;
+    size_t weak_refs;
+};
 
-RefCount *rc_new(void);
-void rc_del(RefCount *rc);
+struct RC *rc_new(void);
+void rc_del(struct RC *rc);
 
 void dec_ref(struct YASL_Object *v);

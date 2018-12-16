@@ -5,7 +5,7 @@
 struct RC_Table;
 
 typedef struct UserData_s {
-    RefCount *rc;
+    struct RC *rc;        // DO NOT REARRANGE. RC MUST BE THE FIRST MEMBER OF THIS STRUCT.
     int tag;
     //struct RC_Table *mt;
     void *data;

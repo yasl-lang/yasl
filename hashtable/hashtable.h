@@ -21,7 +21,7 @@ struct Table {
 };
 
 struct RC_Table {
-    RefCount *rc;
+    struct RC *rc;
     struct Table table;
 };
 

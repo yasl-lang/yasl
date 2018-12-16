@@ -7,14 +7,14 @@
 #include "hashtable.h"
 
 
-RefCount *rc_new(void) {
-    RefCount *rc = malloc(sizeof(RefCount));
+struct RC *rc_new(void) {
+    struct RC *rc = malloc(sizeof(struct RC));
     rc->refs = 0;
     rc->weak_refs = 0;
     return rc;
 }
 
-void rc_del(RefCount *rc) {
+void rc_del(struct RC *rc) {
     free(rc);
 }
 
