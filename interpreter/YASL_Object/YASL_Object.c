@@ -4,7 +4,7 @@
 
 #include "YASL_string.h"
 #include "hashtable.h"
-#include "float64_methods.h"
+#include "float_methods.h"
 #include "userdata.h"
 
 char *float64_to_str(double d);

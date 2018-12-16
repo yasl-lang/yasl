@@ -93,7 +93,7 @@ int64_t parseint64(const char *str) {
     return str + len == end ? result : 0;
 }
 
-int str_tofloat64(struct YASL_State *S) {
+int str_tofloat(struct YASL_State *S) {
     ASSERT_TYPE(S->vm, Y_STR, "str.tofloat64");
     String_t *str = YASL_GETSTR(vm_pop(S->vm));
     char *buffer = malloc(yasl_string_len(str) + 1);
@@ -104,7 +104,7 @@ int str_tofloat64(struct YASL_State *S) {
     return 0;
 }
 
-int str_toint64(struct YASL_State *S) {
+int str_toint(struct YASL_State *S) {
     ASSERT_TYPE(S->vm, Y_STR, "str.toint64");
     String_t *str = YASL_GETSTR(vm_pop(S->vm));
     char *buffer = malloc(yasl_string_len(str) + 1);

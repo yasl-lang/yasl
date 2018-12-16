@@ -1,8 +1,8 @@
 #include "builtins.h"
 
 #include "str_methods.h"
-#include "float64_methods.h"
-#include "int64_methods.h"
+#include "float_methods.h"
+#include "int_methods.h"
 #include "bool_methods.h"
 #include "table_methods.h"
 #include "list_methods.h"
@@ -23,18 +23,18 @@ int yasl_print(struct VM* vm) {
  *                                                                                                                   *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-struct RC_Table* float64_builtins() {
+struct RC_Table* float_builtins() {
     struct RC_Table* ht = ht_new();
-    ht_insert_literalcstring_cfunction(ht, "toint64", &float64_toint64, 1);
-    ht_insert_literalcstring_cfunction(ht, "tostr", &float64_tostr, 1);
+    ht_insert_literalcstring_cfunction(ht, "toint", &float_toint, 1);
+    ht_insert_literalcstring_cfunction(ht, "tostr", &float_tostr, 1);
     return ht;
 }
 
 
-struct RC_Table* int64_builtins() {
+struct RC_Table* int_builtins() {
     struct RC_Table* ht = ht_new();
-    ht_insert_literalcstring_cfunction(ht, "tofloat64", &int64_tofloat64, 1);
-    ht_insert_literalcstring_cfunction(ht, "tostr", &int64_tostr, 1);
+    ht_insert_literalcstring_cfunction(ht, "tofloat", &int_tofloat, 1);
+    ht_insert_literalcstring_cfunction(ht, "tostr", &int_tostr, 1);
     return ht;
 }
 
@@ -47,8 +47,8 @@ struct RC_Table* bool_builtins() {
 
 struct RC_Table* str_builtins() {
     struct RC_Table* ht = ht_new();
-    ht_insert_literalcstring_cfunction(ht, "tofloat64", &str_tofloat64, 1);
-    ht_insert_literalcstring_cfunction(ht, "toint64", &str_toint64, 1);
+    ht_insert_literalcstring_cfunction(ht, "tofloat", &str_tofloat, 1);
+    ht_insert_literalcstring_cfunction(ht, "toint", &str_toint, 1);
     ht_insert_literalcstring_cfunction(ht, "isalnum", &str_isalnum, 1);
     ht_insert_literalcstring_cfunction(ht, "isal", &str_isal, 1);
     ht_insert_literalcstring_cfunction(ht, "isnum", &str_isnum, 1);

@@ -172,11 +172,11 @@ assert_output(qq"let x = 10
               "21\n10\n", 0);
 
 # Integer Methods
-assert_output("echo 2->tofloat64()\n", "2.0\n", 0);
+assert_output("echo 2->tofloat()\n", "2.0\n", 0);
 assert_output("echo 5->tostr()\n", "5\n", 0);
 
 # Float Methods
-assert_output("echo 2.1->toint64()\n", "2\n", 0);
+assert_output("echo 2.1->toint()\n", "2\n", 0);
 assert_output("echo 5.7->tostr()\n", "5.7\n", 0);
 
 # Boolean Methods

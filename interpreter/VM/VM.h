@@ -64,8 +64,8 @@ void vm_push(struct VM *vm, struct YASL_Object val);
 
 void vm_run(struct VM *vm);
 
-struct RC_Table* float64_builtins(void);
-struct RC_Table* int64_builtins(void);
+struct RC_Table* float_builtins(void);
+struct RC_Table* int_builtins(void);
 struct RC_Table* bool_builtins(void);
 struct RC_Table* str_builtins(void);
 struct RC_Table* list_builtins(void);

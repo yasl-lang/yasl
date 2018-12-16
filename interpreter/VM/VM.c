@@ -17,8 +17,8 @@
 
 static struct RC_Table **builtins_htable_new(void) {
     struct RC_Table **ht = malloc(sizeof(struct RC_Table*) * NUM_TYPES);
-    ht[Y_FLOAT64] = float64_builtins();
-    ht[Y_INT64] = int64_builtins();
+    ht[Y_FLOAT64] = float_builtins();
+    ht[Y_INT64] = int_builtins();
     ht[Y_BOOL] = bool_builtins();
     ht[Y_STR] = str_builtins();
     ht[Y_LIST] = list_builtins();

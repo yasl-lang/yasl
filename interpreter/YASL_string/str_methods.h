@@ -12,9 +12,9 @@ int str_tobool(struct YASL_State *S);
 
 int str_tostr(struct YASL_State *S);
 
-int str_tofloat64(struct YASL_State *S);
+int str_tofloat(struct YASL_State *S);
 
-int str_toint64(struct YASL_State *S);
+int str_toint(struct YASL_State *S);
 
 int str_toupper(struct YASL_State *S);
 
