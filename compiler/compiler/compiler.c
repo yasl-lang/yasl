@@ -109,14 +109,6 @@ static void rm_checkpoint(struct Compiler *compiler) {
 
 static void visit(struct Compiler *const compiler, const struct Node *const node);
 
-/*
-static void visit_Body_reverse(struct Compiler *const compiler, const struct Node *const node) {
-    for (size_t i = node->children_len - 1; i >= 0; i--) {
-        visit(compiler, node->children[i]);
-    }
-}
-*/
-
 static void visit_Body(struct Compiler *const compiler, const struct Node *const node) {
     for (size_t i = 0; i < node->children_len; i++) {
         visit(compiler, node->children[i]);
@@ -259,7 +251,7 @@ unsigned char *compile(struct Compiler *const compiler) {
 }
 
 static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *const node) {
-    visit(compiler, node->children[0]);
+    visit(compiler, ExprStmt_get_expr(node));
     bb_add_byte(compiler->buffer, POP);
 }
 
@@ -273,18 +265,18 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
     // start logic for function, now that we are sure it's legal to do so, and have set up.
 
     // use offset to compute offsets for params, in other functions.
-    compiler->offset = node->children[0]->children_len;
+    compiler->offset = FnDecl_get_params(node)->children_len;
     //YASL_DEBUG_LOG("compiler->offset is: %d\n", compiler->offset);
 
     compiler->params = env_new(compiler->params);
 
     enter_scope(compiler);
 
-    for (size_t i = 0; i < node->children[0]->children_len; i++) {
-        decl_var(compiler, node->children[0]->children[i]->name, node->children[0]->children[i]->name_len);
+    for (size_t i = 0; i < FnDecl_get_params(node)->children_len; i++) {
+        decl_var(compiler, FnDecl_get_params(node)->children[i]->name, FnDecl_get_params(node)->children[i]->name_len);
     }
 
-    bb_add_byte(compiler->buffer, node->children[0]->children_len);
+    bb_add_byte(compiler->buffer, FnDecl_get_params(node)->children_len);
     bb_add_byte(compiler->buffer, compiler->params->vars->table.count);
     visit_Body(compiler, node->children[1]);
 
@@ -310,25 +302,19 @@ static void visit_Call(struct Compiler *const compiler, const struct Node *const
     YASL_TRACE_LOG("Visit Call: %s\n", node->name);
     visit(compiler, node->children[1]);
     bb_add_byte(compiler->buffer, INIT_CALL);
-    visit_Body(compiler, node->children[0]);
+    visit_Body(compiler, Call_get_params(node));
     bb_add_byte(compiler->buffer, CALL);
-    /*
-    visit_Body_reverse(compiler, node->children[0]);
-
-    visit(compiler, node->children[1]);
-    bb_add_byte(compiler->buffer, CALL_8);
-    bb_add_byte(compiler->buffer, node->children[0]->children_len);
-*/
 }
 
 static void visit_Return(struct Compiler *const compiler, const struct Node *const node) {
+    YASL_TRACE_LOG("Visit Return: %s\n", node->name);
     // recursive calls.
     /*
     if (node->nodetype == N_CALL && !strcmp(compiler->current_function, node->name)) {
-        visit_Body(compiler, node->children[0]);
+        visit_Body(compiler, Return_get_expr(node));
 
         bb_add_byte(compiler->buffer, RCALL_8);
-        bb_add_byte(compiler->buffer, node->children[0]->children_len);
+        bb_add_byte(compiler->buffer, Return_get_expr(node)->children_len);
         bb_intbytes8(compiler->buffer, ht_search_string_int(compiler->functions, node->name, node->name_len)->value.ival);
         bb_add_byte(compiler->buffer, compiler->offset);
 
@@ -337,21 +323,20 @@ static void visit_Return(struct Compiler *const compiler, const struct Node *con
     */
 
     // default case.
-    visit(compiler, node->children[0]);
+    visit(compiler, Return_get_expr(node));
     bb_add_byte(compiler->buffer, RET);
 }
 
 static void visit_Set(struct Compiler *const compiler, const struct Node *const node) {
-    // TODO: fix order here by changing VM
-    visit(compiler, node->children[0]);
-    visit(compiler, node->children[1]);
-    visit(compiler, node->children[2]);
+    visit(compiler, Set_get_collection(node));
+    visit(compiler, Set_get_key(node));
+    visit(compiler, Set_get_value(node));
     bb_add_byte(compiler->buffer, SET);
 }
 
 static void visit_Get(struct Compiler *const compiler, const struct Node *const node) {
-    visit(compiler, node->children[0]);
-    visit(compiler, node->children[1]);
+    visit(compiler, Get_get_collection(node));
+    visit(compiler, Get_get_value(node));
     bb_add_byte(compiler->buffer, GET);
 }
 
@@ -612,7 +597,7 @@ static void declare_with_let_or_const(struct Compiler *const compiler, const str
 
     decl_var(compiler, node->name, node->name_len);
 
-    if (node->children[0] != NULL) visit(compiler, Let_get_expr(node));
+    if (Let_get_expr(node) != NULL) visit(compiler, Let_get_expr(node));
     else bb_add_byte(compiler->buffer, NCONST);
 
     store_var(compiler, node->name, node->name_len, node->line);
