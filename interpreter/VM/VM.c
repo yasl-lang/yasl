@@ -449,7 +449,7 @@ void vm_run(struct VM *vm){
                 if (YASL_ISSTR(v)) {
                     vm_push(vm, YASL_INT(yasl_string_len(YASL_GETSTR(v))));
                 } else if (YASL_ISTBL(v)) {
-                    vm_push(vm, YASL_INT(YASL_GETTBL(v)->count));
+                    vm_push(vm, YASL_INT(YASL_GETTBL(v)->table.count));
                 } else if (YASL_ISLIST(v)) {
                     vm_push(vm, YASL_INT(YASL_GETLIST(v)->count));
                 } else {
@@ -588,16 +588,16 @@ void vm_run(struct VM *vm){
                         }
                         break;
                     case Y_TABLE:
-                        while ((YASL_GETTBL(vm->stack[vm->lp])->items[YASL_GETINT(vm->stack[vm->lp + 1])] == &TOMBSTONE ||
-                                YASL_GETTBL(vm->stack[vm->lp])->items[YASL_GETINT(vm->stack[vm->lp + 1])] == NULL
-                        ) && YASL_GETTBL(vm->stack[vm->lp])->size > (size_t)YASL_GETINT(vm->stack[vm->lp + 1])) {
+                        while ((YASL_GETTBL(vm->stack[vm->lp])->table.items[YASL_GETINT(vm->stack[vm->lp + 1])] == &TOMBSTONE ||
+                                YASL_GETTBL(vm->stack[vm->lp])->table.items[YASL_GETINT(vm->stack[vm->lp + 1])] == NULL
+                        ) && YASL_GETTBL(vm->stack[vm->lp])->table.size > (size_t)YASL_GETINT(vm->stack[vm->lp + 1])) {
                             YASL_GETINT(vm->stack[vm->lp + 1])++;
                         }
-                        if (YASL_GETTBL(vm->stack[vm->lp])->size <= (size_t)YASL_GETINT(vm->stack[vm->lp + 1])) {
+                        if (YASL_GETTBL(vm->stack[vm->lp])->table.size <= (size_t)YASL_GETINT(vm->stack[vm->lp + 1])) {
                             vm_push(vm, YASL_BOOL(0));
                             break;
                         }
-                        vm_push(vm, *YASL_GETTBL(vm->stack[vm->lp])->items[YASL_GETINT(vm->stack[vm->lp + 1])++]->key);
+                        vm_push(vm, *YASL_GETTBL(vm->stack[vm->lp])->table.items[YASL_GETINT(vm->stack[vm->lp + 1])++]->key);
                         vm_push(vm, YASL_BOOL(1));
                         break;
                     default:

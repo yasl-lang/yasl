@@ -43,8 +43,8 @@ int table_keys(struct YASL_State *S) {
     struct RC_Table *ht = YASL_GETTBL(vm_pop(S->vm));
     List_t* ls = ls_new();
     Item_t* item;
-    for (size_t i = 0; i < ht->size; i++) {
-        item = ht->items[i];
+    for (size_t i = 0; i < ht->table.size; i++) {
+        item = ht->table.items[i];
         if (item != NULL && item != &TOMBSTONE) {
             ls_append(ls, *(item->key));
         }
@@ -58,8 +58,8 @@ int table_values(struct YASL_State *S) {
     struct RC_Table *ht = YASL_GETTBL(vm_pop(S->vm));
     List_t* ls = ls_new();
     Item_t* item;
-    for (size_t i = 0; i < ht->size; i++) {
-        item = ht->items[i];
+    for (size_t i = 0; i < ht->table.size; i++) {
+        item = ht->table.items[i];
         if (item != NULL && item != &TOMBSTONE) {
             ls_append(ls, *(item->value));
         }
@@ -71,9 +71,9 @@ int table_values(struct YASL_State *S) {
 int table_clone(struct YASL_State *S) {
     ASSERT_TYPE(S->vm, Y_TABLE, "table.clone");
     struct RC_Table* ht = YASL_GETTBL(vm_pop(S->vm));
-    struct RC_Table* new_ht = ht_new_sized(ht->base_size);
-    for (size_t i = 0; i < ht->size; i++) {
-        Item_t* item = ht->items[i];
+    struct RC_Table* new_ht = ht_new_sized(ht->table.base_size);
+    for (size_t i = 0; i < ht->table.size; i++) {
+        Item_t* item = ht->table.items[i];
         if (item != NULL && item != &TOMBSTONE) {
             inc_ref(item->key);
             inc_ref(item->value);

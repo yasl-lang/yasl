@@ -17,8 +17,8 @@ void env_del(Env_t *env) {
 }
 
 void env_del_current_only(Env_t *env) {
-    for (size_t i = 0; i < env->vars->size; i++) {
-        Item_t* item = env->vars->items[i];
+    for (size_t i = 0; i < env->vars->table.size; i++) {
+        Item_t* item = env->vars->table.items[i];
         if (item != NULL) {
             str_del(item->key->value.sval);
             free(item->key);
@@ -27,14 +27,14 @@ void env_del_current_only(Env_t *env) {
         }
     }
     free(env->vars->rc);
-    free(env->vars->items);
+    free(env->vars->table.items);
     free(env->vars);
     free(env);
 }
 
 int64_t env_len(Env_t *env) {
     if (env == NULL) return 0;
-    return env->vars->count + env_len(env->parent);
+    return env->vars->table.count + env_len(env->parent);
 }
 
 int env_contains_cur_scope(Env_t *env, char *name, int64_t name_len) {

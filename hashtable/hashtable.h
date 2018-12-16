@@ -13,12 +13,16 @@ typedef struct {
     struct YASL_Object* value;
 } Item_t;
 
-struct RC_Table {
-    RefCount *rc;
+struct Table {
     size_t size;
     size_t base_size;
     size_t count;
     Item_t **items;
+};
+
+struct RC_Table {
+    RefCount *rc;
+    struct Table table;
 };
 
 static Item_t TOMBSTONE = {0, 0};

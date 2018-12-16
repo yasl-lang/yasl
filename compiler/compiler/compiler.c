@@ -285,7 +285,7 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const Node *cons
     }
 
     bb_add_byte(compiler->buffer, node->children[0]->children_len);
-    bb_add_byte(compiler->buffer, compiler->params->vars->count);
+    bb_add_byte(compiler->buffer, compiler->params->vars->table.count);
     visit_Body(compiler, node->children[1]);
 
     int64_t fn_val = compiler->header->count;
