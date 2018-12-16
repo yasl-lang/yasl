@@ -111,6 +111,12 @@ void test_in(void) {
     ASSERT_EATTOK(T_EOF, lex);
 }
 
+void test_not_in(void) {
+    Lexer *lex = setup_lexer("!in");
+    ASSERT_EATTOK(T_BANGIN, lex);
+    ASSERT_EATTOK(T_EOF, lex);
+}
+
 void test_let(void) {
     Lexer *lex = setup_lexer("let");
     ASSERT_EATTOK(T_LET, lex);
@@ -478,9 +484,9 @@ void test_colon(void) {
     ASSERT_EATTOK(T_EOF, lex);
 }
 
-void test_big_arrow(void) {
-    Lexer *lex = setup_lexer("=>");
-    ASSERT_EATTOK(T_BIG_ARR, lex);
+void test_colon_eq(void) {
+    Lexer *lex = setup_lexer(":=");
+    ASSERT_EATTOK(T_COLONEQ, lex);
     ASSERT_EATTOK(T_EOF, lex);
 }
 
@@ -489,16 +495,6 @@ void test_small_arrow(void) {
     ASSERT_EATTOK(T_SMALL_ARR, lex);
     ASSERT_EATTOK(T_EOF, lex);
 }
-
-/*
-    T_INT64,    // 0x04
-    T_STR,      // 0x06
-    T_ID,
-    T_TBAR,
-    T_TBAREQ,
-    T_DCOLON,
-} Token;
- */
 
 void test_int(void) {
     Lexer *lex = setup_lexer("64\n");
@@ -562,6 +558,7 @@ int lexertest(void) {
     test_continue();
     test_for();
     test_in();
+    test_not_in();
     test_let();
     test_const();
     test_fn();
@@ -623,7 +620,7 @@ int lexertest(void) {
     test_dqmark();
     test_dqmarkeq();
     test_colon();
+    test_colon_eq();
     test_small_arrow();
-    test_big_arrow();
     return __YASL_TESTS_FAILED__;
 }

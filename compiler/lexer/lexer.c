@@ -507,7 +507,10 @@ static Token YASLToken_ThreeChars(char c1, char c2, char c3) {
         case '<': switch(c2) { case '<': switch(c3) { case '=': return T_DLTEQ; default: return T_UNKNOWN;} }
         case '>': switch(c2) { case '>': switch(c3) { case '=': return T_DGTEQ; default: return T_UNKNOWN;} }
         case '=': switch(c2) { case '=': switch(c3) { case '=': return T_TEQ; default: return T_UNKNOWN;} }
-        case '!': switch(c2) { case '=': switch(c3) { case '=': return T_BANGDEQ; default: return T_UNKNOWN;} }
+        case '!': switch(c2) {
+            case '=': switch(c3) { case '=': return T_BANGDEQ; default: return T_UNKNOWN;}
+            case 'i': switch(c3) { case 'n': return T_BANGIN; default: return T_UNKNOWN; }
+        }
         case '*': switch(c2) { case '*': switch(c3) { case '=': return T_DSTAREQ; default: return T_UNKNOWN;} }
         case '/': switch(c2) { case '/': switch(c3) { case '=': return T_DSLASHEQ; default: return T_UNKNOWN;} }
         case '&': switch(c2) {
@@ -525,6 +528,7 @@ static Token YASLToken_ThreeChars(char c1, char c2, char c3) {
 
 static Token YASLToken_TwoChars(char c1, char c2) {
     switch(c1) {
+        case ':': switch(c2) { case '=': return T_COLONEQ; default: return T_UNKNOWN; }
         case '^': switch(c2) { case '=': return T_CARETEQ; default: return T_UNKNOWN; };
         case '+': switch(c2) { case '=': return T_PLUSEQ; default: return T_UNKNOWN; };
         case '-': switch(c2) {
@@ -534,7 +538,6 @@ static Token YASLToken_TwoChars(char c1, char c2) {
         }
         case '=': switch(c2) {
             case '=': return T_DEQ;
-            case '>': return T_BIG_ARR;
             case '~': return T_EQTILDE;
             default: return T_UNKNOWN;
         }
@@ -577,8 +580,9 @@ static Token YASLToken_TwoChars(char c1, char c2) {
                 default: return T_UNKNOWN;
         }
         case '?': switch(c2) { case '?': return T_DQMARK; default: return T_UNKNOWN;}
+        default:
+            return T_UNKNOWN;
     }
-    return T_UNKNOWN;
 }
 
 static Token YASLToken_OneChar(char c1) {
@@ -595,7 +599,6 @@ static Token YASLToken_OneChar(char c1) {
         case '^': return T_CARET;
         case '+': return T_PLUS;
         case '-': return T_MINUS;
-        case '#': return T_HASH;
         //case '@': return T_AT;
         case '!': return T_BANG;
         case '~': return T_TILDE;
@@ -627,6 +630,7 @@ static void YASLKeywords(Lexer *lex) {
      *  let
      *  print
      *  if
+     *  in
      *  elseif
      *  else
      *  while
@@ -705,6 +709,7 @@ const char *YASL_TOKEN_NAMES[] = {
         "continue",     // T_CONT,
         "for",          // T_FOR,
         "in",           // T_IN
+        "!in",          // T_BANGIN,
         "id",           // T_ID,
         "let",          // T_LET,
         "const",        // T_CONST,
@@ -771,8 +776,7 @@ const char *YASL_TOKEN_NAMES[] = {
         "??",           // DQMARK,
         "?\?=",         // DQMARKEQ,
         ":",            // COLON,
-        "::",           // DCOLON,
-        "=>",           // BIG_ARR,
+        ":=",           // COLONEQ
         "->",           // SMALL_ARR
         "<-",           // LEFT_ARR
 };
