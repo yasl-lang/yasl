@@ -44,11 +44,11 @@ typedef enum {
 struct Node_s {
     AST nodetype;
     Token type;
-    struct Node_s **children;
-    size_t children_len;
     char* name;
     size_t name_len;
     size_t line;
+    size_t children_len;
+    struct Node_s **children;
 };
 
 typedef struct Node_s Node;

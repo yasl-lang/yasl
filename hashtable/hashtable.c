@@ -61,8 +61,8 @@ static void del_item(Item_t* item) {
     free(item);
 }
 
-Hash_t* ht_new_sized(const int base_size) {
-    Hash_t* ht = malloc(sizeof(Hash_t));
+struct RC_Table* ht_new_sized(const int base_size) {
+    struct RC_Table* ht = malloc(sizeof(struct RC_Table));
     ht->base_size = base_size;
     ht->size = next_prime(ht->base_size);
     ht->count = 0;
@@ -71,11 +71,11 @@ Hash_t* ht_new_sized(const int base_size) {
     return ht;
 }
 
-Hash_t* ht_new() {
+struct RC_Table* ht_new() {
     return ht_new_sized(HT_BASESIZE);
 }
 
-void del_hash(Hash_t* hashtable) {
+void del_hash(struct RC_Table* hashtable) {
     for (size_t i = 0; i < hashtable->size; i++) {
         Item_t* item = hashtable->items[i];
         if (item != NULL && item != &TOMBSTONE) {
@@ -89,7 +89,7 @@ void del_hash(Hash_t* hashtable) {
     free(hashtable);
 }
 
-void ht_del_data(Hash_t* hashtable) {
+void ht_del_data(struct RC_Table* hashtable) {
     for (size_t i = 0; i < hashtable->size; i++) {
         Item_t* item = hashtable->items[i];
         if (item != NULL && item != &TOMBSTONE) {
@@ -101,12 +101,12 @@ void ht_del_data(Hash_t* hashtable) {
     free(hashtable->items);
 }
 
-void ht_del_rc(Hash_t* hashtable) {
+void ht_del_rc(struct RC_Table* hashtable) {
     rc_del(hashtable->rc);
     free(hashtable);
 }
 
-void ht_del_cstring_cfn(Hash_t *hashtable) {
+void ht_del_cstring_cfn(struct RC_Table *hashtable) {
     for (size_t i = 0; i < hashtable->size; i++) {
         Item_t* item = hashtable->items[i];
         if (item != NULL) {
@@ -127,7 +127,7 @@ void ht_del_cstring_cfn(Hash_t *hashtable) {
     free(hashtable);
 }
 
-void ht_del_string_int(Hash_t *hashtable) {
+void ht_del_string_int(struct RC_Table *hashtable) {
     for (size_t i = 0; i < hashtable->size; i++) {
         Item_t* item = hashtable->items[i];
         if (item != NULL) {
@@ -143,9 +143,9 @@ void ht_del_string_int(Hash_t *hashtable) {
     free(hashtable);
 }
 
-static void ht_resize(Hash_t* ht, const int base_size) {
+static void ht_resize(struct RC_Table* ht, const int base_size) {
     if (base_size < HT_BASESIZE) return;
-    Hash_t* new_ht = ht_new_sized(base_size);
+    struct RC_Table* new_ht = ht_new_sized(base_size);
     for (size_t i = 0; i < ht->size; i++) {
         Item_t* item = ht->items[i];
         if (item != NULL && item != &TOMBSTONE) {
@@ -166,19 +166,19 @@ static void ht_resize(Hash_t* ht, const int base_size) {
     del_hash(new_ht);
 }
 
-static void ht_resize_up(Hash_t* ht) {
+static void ht_resize_up(struct RC_Table* ht) {
     puts("resize up");
     const int new_size = ht->base_size * 2;
     ht_resize(ht, new_size);
 }
 
-static void ht_resize_down(Hash_t* ht) {
+static void ht_resize_down(struct RC_Table* ht) {
     puts("resize down");
     const int new_size = ht->base_size / 2;
     ht_resize(ht, new_size);
 }
 
-void ht_insert(Hash_t* hashtable, const struct YASL_Object key, const struct YASL_Object value) {
+void ht_insert(struct RC_Table* hashtable, const struct YASL_Object key, const struct YASL_Object value) {
     const int load = hashtable->count * 100 / hashtable->size;
     if (load > 70) ht_resize_up(hashtable);
     Item_t* item = new_item(key, value);
@@ -203,19 +203,19 @@ void ht_insert(Hash_t* hashtable, const struct YASL_Object key, const struct YAS
     hashtable->count++;
 }
 
-void ht_insert_literalcstring_cfunction(Hash_t *ht, char *key, int (*addr)(struct YASL_State *), int num_args) {
+void ht_insert_literalcstring_cfunction(struct RC_Table *ht, char *key, int (*addr)(struct YASL_State *), int num_args) {
     String_t *string = str_new_sized(strlen(key), key);
     ht_insert(ht, YASL_STR(string), YASL_CFN(addr, num_args));
 }
 
-void ht_insert_string_int(Hash_t *hashtable, char *key, int64_t key_len, int64_t val) {
+void ht_insert_string_int(struct RC_Table *hashtable, char *key, int64_t key_len, int64_t val) {
     String_t *string = str_new_sized(key_len, copy_char_buffer(key_len, key));
     ht_insert(hashtable,
               (struct YASL_Object) { .type = Y_STR, .value.sval = string},
               (struct YASL_Object) { .type = Y_INT64, .value.ival = val});
 }
 
-struct YASL_Object* ht_search(const Hash_t *const hashtable, const struct YASL_Object key) {
+struct YASL_Object* ht_search(const struct RC_Table *const hashtable, const struct YASL_Object key) {
     int index = get_hash(key, hashtable->size, 0);
     Item_t* item = hashtable->items[index];
     int i = 1;
@@ -229,7 +229,7 @@ struct YASL_Object* ht_search(const Hash_t *const hashtable, const struct YASL_O
     return NULL;
 }
 
-struct YASL_Object *ht_search_string_int(const Hash_t *const hashtable, char *key, int64_t key_len) {
+struct YASL_Object *ht_search_string_int(const struct RC_Table *const hashtable, char *key, int64_t key_len) {
     String_t *string = str_new_sized(key_len, copy_char_buffer(key_len, key));
     struct YASL_Object object = (struct YASL_Object) { .value.sval = string, .type = Y_STR };
 
@@ -239,7 +239,7 @@ struct YASL_Object *ht_search_string_int(const Hash_t *const hashtable, char *ke
 
 }
 
-void ht_rm(Hash_t *hashtable, struct YASL_Object key) {
+void ht_rm(struct RC_Table *hashtable, struct YASL_Object key) {
     const int load = hashtable->count * 100 / hashtable->size;
     if (load < 10) ht_resize_down(hashtable);
     int index = get_hash(key, hashtable->size, 0);
@@ -258,12 +258,12 @@ void ht_rm(Hash_t *hashtable, struct YASL_Object key) {
     hashtable->count--;
 }
 
-void ht_print(const Hash_t *const  ht) {
+void ht_print(const struct RC_Table *const  ht) {
     ByteBuffer *seen = bb_new(sizeof(int64_t)*2);
     ht_print_h(ht, seen);
 }
 
-void ht_print_h(const Hash_t *const ht, ByteBuffer* seen) {
+void ht_print_h(const struct RC_Table *const ht, ByteBuffer* seen) {
     size_t i = 0;
     int64_t *new_seen;
     if (ht->count == 0) {

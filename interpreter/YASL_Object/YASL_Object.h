@@ -65,7 +65,7 @@ typedef enum {
 } YASL_Types;
 
 struct List_s;
-struct Hash_s;
+struct RC_Table;
 struct UserData_s;
 struct CFunction_s {
     RefCount *rc;
@@ -84,7 +84,7 @@ struct YASL_Object {
         double dval;
         String_t *sval;
         struct List_s *lval;
-        struct Hash_s *mval;
+        struct RC_Table *mval;
         struct UserData_s *uval;
         struct CFunction_s *cval;
         void *pval;

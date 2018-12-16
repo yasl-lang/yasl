@@ -23,30 +23,30 @@ int yasl_print(struct VM* vm) {
  *                                                                                                                   *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-Hash_t* float64_builtins() {
-    Hash_t* ht = ht_new();
+struct RC_Table* float64_builtins() {
+    struct RC_Table* ht = ht_new();
     ht_insert_literalcstring_cfunction(ht, "toint64", &float64_toint64, 1);
     ht_insert_literalcstring_cfunction(ht, "tostr", &float64_tostr, 1);
     return ht;
 }
 
 
-Hash_t* int64_builtins() {
-    Hash_t* ht = ht_new();
+struct RC_Table* int64_builtins() {
+    struct RC_Table* ht = ht_new();
     ht_insert_literalcstring_cfunction(ht, "tofloat64", &int64_tofloat64, 1);
     ht_insert_literalcstring_cfunction(ht, "tostr", &int64_tostr, 1);
     return ht;
 }
 
-Hash_t* bool_builtins() {
-    Hash_t* ht = ht_new();
+struct RC_Table* bool_builtins() {
+    struct RC_Table* ht = ht_new();
     ht_insert_literalcstring_cfunction(ht, "tostr", &bool_tostr, 1);
     return ht;
 }
 
 
-Hash_t* str_builtins() {
-    Hash_t* ht = ht_new();
+struct RC_Table* str_builtins() {
+    struct RC_Table* ht = ht_new();
     ht_insert_literalcstring_cfunction(ht, "tofloat64", &str_tofloat64, 1);
     ht_insert_literalcstring_cfunction(ht, "toint64", &str_toint64, 1);
     ht_insert_literalcstring_cfunction(ht, "isalnum", &str_isalnum, 1);
@@ -70,8 +70,8 @@ Hash_t* str_builtins() {
     return ht;
 }
 
-Hash_t* list_builtins() {
-    Hash_t* ht = ht_new();
+struct RC_Table* list_builtins() {
+    struct RC_Table* ht = ht_new();
     ht_insert_literalcstring_cfunction(ht, "push", &list_push, 2);
     ht_insert_literalcstring_cfunction(ht, "copy", &list_copy, 1);
     ht_insert_literalcstring_cfunction(ht, "extend", &list_extend, 2);
@@ -83,8 +83,8 @@ Hash_t* list_builtins() {
     return ht;
 }
 
-Hash_t* table_builtins() {
-    Hash_t* ht = ht_new();
+struct RC_Table* table_builtins() {
+    struct RC_Table* ht = ht_new();
     ht_insert_literalcstring_cfunction(ht, "keys", &table_keys, 1);
     ht_insert_literalcstring_cfunction(ht, "values", &table_values, 1);
     ht_insert_literalcstring_cfunction(ht, "copy", &table_clone, 1);

@@ -85,12 +85,12 @@ void env_decl_var(Env_t *env, char *name, int64_t name_len) {
     ht_insert(env->vars, key, value);
 }
 
-static Hash_t *get_closest_scope_with_var(Env_t *env, char *name, int64_t name_len) {
+static struct RC_Table *get_closest_scope_with_var(Env_t *env, char *name, int64_t name_len) {
     struct YASL_Object *key = ht_search_string_int(env->vars, name, name_len);
     return key ? env->vars : get_closest_scope_with_var(env->parent, name, name_len);
 }
 
 void env_make_const(Env_t *env, char *name, int64_t name_len) {
-    Hash_t *ht = get_closest_scope_with_var(env, name, name_len);
+    struct RC_Table *ht = get_closest_scope_with_var(env, name, name_len);
     ht_insert_string_int(ht, name, name_len, ~ht_search_string_int(ht, name, name_len)->value.ival);
 }
