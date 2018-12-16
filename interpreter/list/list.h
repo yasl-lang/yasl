@@ -6,7 +6,7 @@
 struct List {
     int64_t size;
     int64_t count;
-    struct YASL_Object* items;
+    struct YASL_Object *items;
 };
 
 struct RC_List {

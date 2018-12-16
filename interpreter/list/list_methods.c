@@ -106,8 +106,7 @@ int list_search(struct YASL_State *S) {
     ASSERT_TYPE(S->vm, Y_LIST, "list.search");
     struct RC_List *haystack = YASL_GETLIST(vm_pop(S->vm));
     struct YASL_Object index = YASL_UNDEF();
-    int i;
-    for (i = 0; i < haystack->list.count; i++) {
+    for (size_t i = 0; i < haystack->list.count; i++) {
         if (!isfalsey(isequal(haystack->list.items[i], needle)))
             index = YASL_INT(i);
     }
