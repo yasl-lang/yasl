@@ -272,4 +272,20 @@ assert_output(qq"let x = []
               "",
               0);
 
+assert_output(qq"x := 10
+                 y := x + 10
+                 echo x
+                 echo y
+                ",
+              "10\n20\n",
+              0);
+
+assert_output(qq"const x = 10
+                 const y := x + 10
+                 echo x
+                 echo y
+                ",
+              "10\n20\n",
+              0);
+
 exit $__VM_TESTS_FAILED__;

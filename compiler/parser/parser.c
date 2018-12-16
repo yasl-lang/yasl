@@ -104,6 +104,7 @@ static struct Node *parse_program(Parser *const parser) {
     //YASL_DEBUG_LOG("value: %s\n", parser->lex->value);
     YASL_TRACE_LOG("parsing statement in line %zd\n", parser->lex->line);
     size_t line;
+    struct Node *expr;
     switch (curtok(parser)) {
         case T_ECHO:
             eattok(parser, T_ECHO);
@@ -132,7 +133,21 @@ static struct Node *parse_program(Parser *const parser) {
         case T_UNKNOWN:
             parser->status = parser->lex->status;
             return NULL;
-        default: return new_ExprStmt(parse_expr(parser), parser->lex->line);
+        default:
+            line = parser->lex->line;
+            expr = parse_expr(parser);
+            if (curtok(parser) == T_COLONEQ) {
+                if (expr->nodetype != N_VAR) {
+                    YASL_PRINT_ERROR_SYNTAX("Invalid lvalue in line %zd\n", parser->lex->line);
+                    return handle_error(parser);
+                }
+                eattok(parser, T_COLONEQ);
+                struct Node *assign_node = new_Let(expr->name, expr->name_len, parse_expr(parser), line);
+                free(expr);
+                return assign_node;
+            }
+            return new_ExprStmt(expr, parser->lex->line);
+
     }
 }
 
@@ -172,7 +187,11 @@ static struct Node *parse_const(Parser *const parser) {
     size_t name_len = parser->lex->val_len;
     size_t line = parser->lex->line;
     eattok(parser, T_ID);
-    eattok(parser, T_EQ);
+    if (curtok(parser) == T_COLONEQ) {
+        eattok(parser, T_COLONEQ);
+    } else {
+        eattok(parser, T_EQ);
+    }
     struct Node *expr = parse_expr(parser);
     return new_Const(name, name_len, expr, line);
 }
