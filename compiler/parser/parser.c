@@ -714,11 +714,19 @@ static struct Node *parse_string(Parser *const parser) {
 
     while (parser->lex->mode == L_INTERP) {
         eattok(parser, T_STR);
+        //printf("1. lex->c: %c\n", parser->lex->c);
         eattok(parser, T_LBRC);
+        //printf("2. lex->c: %c\n", parser->lex->c);
         struct Node *expr = parse_expr(parser);
-        // eattok(parser, T_RBRC);
+        //printf("3. lex->c: %c\n", parser->lex->c);
         cur_node = new_BinOp(T_TILDE, cur_node, expr, parser->lex->line);
-        eattok(parser, T_RBRC);
+        //printf("4. lex->c: %c\n", parser->lex->c);
+        if (parser->lex->c == '}') {
+            //puts("dasasddas");
+            parser->lex->c = fgetc(parser->lex->file);
+        }
+        //eattok(parser, T_RBRC);
+        //printf("5. lex->c: %c\n", parser->lex->c);
         lex_eatinterpstringbody(parser->lex);
         struct Node *str = new_String(parser->lex->value, parser->lex->val_len, parser->lex->line);
         cur_node = new_BinOp(T_TILDE, cur_node, str, parser->lex->line);
