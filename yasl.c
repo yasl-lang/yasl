@@ -140,7 +140,7 @@ int YASL_Table_set(struct YASL_Object *table, struct YASL_Object *key, struct YA
     // TODO: fix this to YASL_isTable(table)
     if (table->type != Y_TABLE)
         return YASL_ERROR;
-    ht_insert(table->value.mval, *key, *value);
+    rcht_insert(table->value.mval, *key, *value);
 
     return YASL_SUCCESS;
 }

@@ -108,6 +108,7 @@ void ls_reverse(struct RC_List *ls) {
     }
 }
 
+/*
 void ls_print(struct RC_List* ls) {
     ByteBuffer *seen = bb_new(sizeof(int64_t)*2);
     ls_print_h(ls, seen);
@@ -145,3 +146,4 @@ void ls_print_h(struct RC_List* ls, ByteBuffer *seen) {
     }
     printf("\b\b]");
 }
+*/

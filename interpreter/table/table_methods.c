@@ -10,7 +10,7 @@ int table___get(struct YASL_State *S) {
     struct YASL_Object key = vm_pop(S->vm);
     ASSERT_TYPE(S->vm, Y_TABLE, "table.__get");
     struct RC_Table* ht = YASL_GETTBL(PEEK(S->vm));
-    struct YASL_Object *result = ht_search(ht, key);
+    struct YASL_Object *result = rcht_search(ht, key);
     if (result == NULL) {
         S->vm->sp++;  // TODO: fix this
         //vm_push(S->vm, key);
@@ -33,7 +33,7 @@ int table___set(struct YASL_State *S) {
         printf("Error: unable to use mutable object of type %x as key.\n", key.type);
         return -1;
     }
-    ht_insert(ht, key, val);
+    rcht_insert(ht, key, val);
     vm_push(S->vm, val);
     return 0;
 }
@@ -43,8 +43,8 @@ int table_keys(struct YASL_State *S) {
     struct RC_Table *ht = YASL_GETTBL(vm_pop(S->vm));
     struct RC_List* ls = ls_new();
     Item_t* item;
-    for (size_t i = 0; i < ht->table.size; i++) {
-        item = ht->table.items[i];
+    for (size_t i = 0; i < ht->table->size; i++) {
+        item = ht->table->items[i];
         if (item != NULL && item != &TOMBSTONE) {
             ls_append(ls, *(item->key));
         }
@@ -58,8 +58,8 @@ int table_values(struct YASL_State *S) {
     struct RC_Table *ht = YASL_GETTBL(vm_pop(S->vm));
     struct RC_List* ls = ls_new();
     Item_t* item;
-    for (size_t i = 0; i < ht->table.size; i++) {
-        item = ht->table.items[i];
+    for (size_t i = 0; i < ht->table->size; i++) {
+        item = ht->table->items[i];
         if (item != NULL && item != &TOMBSTONE) {
             ls_append(ls, *(item->value));
         }
@@ -71,13 +71,13 @@ int table_values(struct YASL_State *S) {
 int table_clone(struct YASL_State *S) {
     ASSERT_TYPE(S->vm, Y_TABLE, "table.clone");
     struct RC_Table* ht = YASL_GETTBL(vm_pop(S->vm));
-    struct RC_Table* new_ht = ht_new_sized(ht->table.base_size);
-    for (size_t i = 0; i < ht->table.size; i++) {
-        Item_t* item = ht->table.items[i];
+    struct RC_Table* new_ht = rcht_new_sized(ht->table->base_size);
+    for (size_t i = 0; i < ht->table->size; i++) {
+        Item_t* item = ht->table->items[i];
         if (item != NULL && item != &TOMBSTONE) {
             inc_ref(item->key);
             inc_ref(item->value);
-            ht_insert(new_ht, *item->key, *item->value);
+            rcht_insert(new_ht, *item->key, *item->value);
         }
     }
 
