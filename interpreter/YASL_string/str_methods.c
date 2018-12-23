@@ -355,14 +355,14 @@ int str_split(struct YASL_State *S) {
         if (!memcmp(haystack->str + haystack->start + end,
                     needle->str + needle->start,
                     yasl_string_len(needle))) {
-            ls_append(result, YASL_STR(str_new_sized_heap(start + haystack->start, end + haystack->start, haystack->str)));
+            ls_append(result->list, YASL_STR(str_new_sized_heap(start + haystack->start, end + haystack->start, haystack->str)));
             end += yasl_string_len(needle);
             start = end;
         } else {
             end++;
         }
     }
-    ls_append(result, YASL_STR(str_new_sized_heap(start + haystack->start, end + haystack->start, haystack->str)));
+    ls_append(result->list, YASL_STR(str_new_sized_heap(start + haystack->start, end + haystack->start, haystack->str)));
     vm_push(S->vm, YASL_LIST(result));
     return 0;
 }

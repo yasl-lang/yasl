@@ -54,24 +54,24 @@ void ls_del(struct RC_List *ls) {
     free(ls);
 }
 
-static void ls_resize(struct RC_List* ls, const int base_size) {
+static void ls_resize(struct List* ls, const int base_size) {
     if (base_size < LS_BASESIZE) return;
     struct RC_List* new_ls = ls_new_sized(base_size);
     int i;
-    for (i = 0; i < ls->list->size; i++) {
-        new_ls->list->items[i] = ls->list->items[i];
+    for (i = 0; i < ls->size; i++) {
+        new_ls->list->items[i] = ls->items[i];
     }
-    ls->list->size = new_ls->list->size;
+    ls->size = new_ls->list->size;
 
-    struct YASL_Object* tmp_items = ls->list->items;
-    ls->list->items = new_ls->list->items;
+    struct YASL_Object* tmp_items = ls->items;
+    ls->items = new_ls->list->items;
     new_ls->list->items = tmp_items;
 
     ls_del(new_ls);
 }
 
-static void ls_resize_up(struct RC_List* ls) {
-    const int new_size = ls->list->size * 2;
+static void ls_resize_up(struct List* ls) {
+    const int new_size = ls->size * 2;
     ls_resize(ls, new_size);
 }
 
@@ -82,32 +82,32 @@ static void ls_resize_down(struct RC_List* ls) {
 }
 */
 
-void ls_insert(struct RC_List* ls, const int64_t index, struct YASL_Object value) {
-    if (ls->list->count >= ls->list->size) ls_resize_up(ls);
-    dec_ref(ls->list->items+index);
-    ls->list->items[index] = value;
-    ls->list->count++;
+void ls_insert(struct List* ls, const int64_t index, struct YASL_Object value) {
+    if (ls->count >= ls->size) ls_resize_up(ls);
+    dec_ref(ls->items+index);
+    ls->items[index] = value;
+    ls->count++;
     inc_ref(&value);
 }
 
-void ls_append(struct RC_List* ls, struct YASL_Object value) {
-    if (ls->list->count >= ls->list->size) ls_resize_up(ls);
-    ls->list->items[ls->list->count++] = value;
+void ls_append(struct List* ls, struct YASL_Object value) {
+    if (ls->count >= ls->size) ls_resize_up(ls);
+    ls->items[ls->count++] = value;
     inc_ref(&value);
 }
 
-struct YASL_Object ls_search(struct RC_List* ls, int64_t index) {
-    if (index < -ls->list->count || index >= ls->list->count) return (struct YASL_Object) { .type = Y_UNDEF, .value.ival = 0 };
-    else if (0 <= index) return ls->list->items[index];
-    else return ls->list->items[ls->list->count+index];
+struct YASL_Object ls_search(struct List* ls, int64_t index) {
+    if (index < -ls->count || index >= ls->count) return (struct YASL_Object) { .type = Y_UNDEF, .value.ival = 0 };
+    else if (0 <= index) return ls->items[index];
+    else return ls->items[ls->count+index];
 }
 
-void ls_reverse(struct RC_List *ls) {
+void ls_reverse(struct List *ls) {
     int64_t i;
-    for(i = 0; i < ls->list->count/2; i++) {
-        struct YASL_Object tmp = ls->list->items[i];
-        ls->list->items[i] = ls->list->items[ls->list->count-i-1];
-        ls->list->items[ls->list->count-i-1] = tmp;
+    for(i = 0; i < ls->count/2; i++) {
+        struct YASL_Object tmp = ls->items[i];
+        ls->items[i] = ls->items[ls->count-i-1];
+        ls->items[ls->count-i-1] = tmp;
     }
 }
 

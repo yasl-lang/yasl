@@ -452,7 +452,7 @@ void vm_run(struct VM *vm){
                 } else if (YASL_ISTBL(v)) {
                     vm_push(vm, YASL_INT(YASL_GETTBL(v)->count));
                 } else if (YASL_ISLIST(v)) {
-                    vm_push(vm, YASL_INT(YASL_GETLIST(v)->list->count));
+                    vm_push(vm, YASL_INT(YASL_GETLIST(v)->count));
                 } else {
                     printf("TypeError: # not supported for operand of type %s.\n",
                            YASL_TYPE_NAMES[v.type]);
@@ -473,15 +473,15 @@ void vm_run(struct VM *vm){
                     //printf("vm->stack[vm->sp]: %zd\n", vm->stack[vm->sp].value.sval->rc->weak_refs);
                     break;
                 } else if (YASL_ISLIST(a) && YASL_ISLIST(b)) {
-                    size = YASL_GETLIST(a)->list->count + YASL_GETLIST(b)->list->count;
+                    size = YASL_GETLIST(a)->count + YASL_GETLIST(b)->count;
                     ptr = ls_new_sized(size);
                     vm_push(vm, YASL_LIST(ptr));
                     int i;
-                    for (i = 0; i < YASL_GETLIST(a)->list->count; i++) {
-                        ls_append(ptr, YASL_GETLIST(a)->list->items[i]);
+                    for (i = 0; i < YASL_GETLIST(a)->count; i++) {
+                        ls_append(ptr, YASL_GETLIST(a)->items[i]);
                     }
-                    for (i = 0; i < YASL_GETLIST(b)->list->count; i++) {
-                        ls_append(ptr, YASL_GETLIST(b)->list->items[i]);
+                    for (i = 0; i < YASL_GETLIST(b)->count; i++) {
+                        ls_append(ptr, YASL_GETLIST(b)->items[i]);
                     }
                     break;
                 }
@@ -555,9 +555,9 @@ void vm_run(struct VM *vm){
             case NEWLIST: {
                 struct RC_List *ls = ls_new();
                 while (vm_peek(vm).type != Y_END) {
-                    ls_append(ls, vm_pop(vm));
+                    ls_append(ls->list, vm_pop(vm));
                 }
-                ls_reverse(ls);
+                ls_reverse(ls->list);
                 vm_pop(vm);
                 vm_push(vm, YASL_LIST(ls));
                 break;
@@ -583,10 +583,10 @@ void vm_run(struct VM *vm){
                 //print(vm->stack[vm->lp]);
                 switch (vm->stack[vm->lp].type) {
                     case Y_LIST:
-                        if (YASL_GETLIST(vm->stack[vm->lp])->list->count <= YASL_GETINT(vm->stack[vm->lp + 1])) {
+                        if (YASL_GETLIST(vm->stack[vm->lp])->count <= YASL_GETINT(vm->stack[vm->lp + 1])) {
                             vm_push(vm, YASL_BOOL(0));
                         } else {
-                            vm_push(vm, YASL_GETLIST(vm->stack[vm->lp])->list->items[YASL_GETINT(vm->stack[vm->lp + 1])++]);
+                            vm_push(vm, YASL_GETLIST(vm->stack[vm->lp])->items[YASL_GETINT(vm->stack[vm->lp + 1])++]);
                             //print(vm->stack[vm->sp]);
                             vm_push(vm, YASL_BOOL(1));
                         }

@@ -46,7 +46,7 @@ int table_keys(struct YASL_State *S) {
     for (size_t i = 0; i < ht->size; i++) {
         item = ht->items[i];
         if (item != NULL && item != &TOMBSTONE) {
-            ls_append(ls, *(item->key));
+            ls_append(ls->list, *(item->key));
         }
     }
     vm_push(S->vm, YASL_LIST(ls));
@@ -61,7 +61,7 @@ int table_values(struct YASL_State *S) {
     for (size_t i = 0; i < ht->size; i++) {
         item = ht->items[i];
         if (item != NULL && item != &TOMBSTONE) {
-            ls_append(ls, *(item->value));
+            ls_append(ls->list, *(item->value));
         }
     }
     vm_push(S->vm, YASL_LIST(ls));
