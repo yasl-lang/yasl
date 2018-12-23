@@ -11,7 +11,7 @@ struct List {
 
 struct RC_List {
     struct RC *rc;      // RC MUST BE THE FIRST MEMBER OF LIST. DO NOT REARRANGE.
-    struct List list;
+    struct List *list;
 };
 
 struct YASL_Object *YASL_List(struct RC_List *ls);

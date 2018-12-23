@@ -36,7 +36,7 @@
 #define YASL_GETBOOL(v) ((v).value.ival)
 #define YASL_GETSTR(v) ((v).value.sval)
 #define YASL_GETLIST(v) ((v).value.lval)
-#define YASL_GETTBL(v) ((v).value.mval)
+#define YASL_GETTBL(v) ((v).value.mval->table)
 #define YASL_GETUSERDATA(v) ((v).value.uval)
 #define YASL_GETUSERPTR(v) ((v).value.pval)
 #define YASL_GETFN(v) ((v).value.ival)

@@ -9,8 +9,8 @@
 int table___get(struct YASL_State *S) {
     struct YASL_Object key = vm_pop(S->vm);
     ASSERT_TYPE(S->vm, Y_TABLE, "table.__get");
-    struct RC_Table* ht = YASL_GETTBL(PEEK(S->vm));
-    struct YASL_Object *result = table_search(ht->table, key);
+    struct Table* ht = YASL_GETTBL(PEEK(S->vm));
+    struct YASL_Object *result = table_search(ht, key);
     if (result == NULL) {
         S->vm->sp++;  // TODO: fix this
         //vm_push(S->vm, key);
@@ -27,24 +27,24 @@ int table___set(struct YASL_State *S) {
     struct YASL_Object val = vm_pop(S->vm);
     struct YASL_Object key = vm_pop(S->vm);
     ASSERT_TYPE(S->vm, Y_TABLE, "table.__set");
-    struct RC_Table* ht = YASL_GETTBL(vm_pop(S->vm));
+    struct Table* ht = YASL_GETTBL(vm_pop(S->vm));
 
     if (YASL_ISLIST(key) || YASL_ISTBL(key) || YASL_ISUSERDATA(key)) {
         printf("Error: unable to use mutable object of type %x as key.\n", key.type);
         return -1;
     }
-    table_insert(ht->table, key, val);
+    table_insert(ht, key, val);
     vm_push(S->vm, val);
     return 0;
 }
 
 int table_keys(struct YASL_State *S) {
     ASSERT_TYPE(S->vm, Y_TABLE, "table.keys");
-    struct RC_Table *ht = YASL_GETTBL(vm_pop(S->vm));
+    struct Table *ht = YASL_GETTBL(vm_pop(S->vm));
     struct RC_List* ls = ls_new();
     Item_t* item;
-    for (size_t i = 0; i < ht->table->size; i++) {
-        item = ht->table->items[i];
+    for (size_t i = 0; i < ht->size; i++) {
+        item = ht->items[i];
         if (item != NULL && item != &TOMBSTONE) {
             ls_append(ls, *(item->key));
         }
@@ -55,11 +55,11 @@ int table_keys(struct YASL_State *S) {
 
 int table_values(struct YASL_State *S) {
     ASSERT_TYPE(S->vm, Y_TABLE, "table.values");
-    struct RC_Table *ht = YASL_GETTBL(vm_pop(S->vm));
+    struct Table *ht = YASL_GETTBL(vm_pop(S->vm));
     struct RC_List* ls = ls_new();
     Item_t* item;
-    for (size_t i = 0; i < ht->table->size; i++) {
-        item = ht->table->items[i];
+    for (size_t i = 0; i < ht->size; i++) {
+        item = ht->items[i];
         if (item != NULL && item != &TOMBSTONE) {
             ls_append(ls, *(item->value));
         }
@@ -70,10 +70,10 @@ int table_values(struct YASL_State *S) {
 
 int table_clone(struct YASL_State *S) {
     ASSERT_TYPE(S->vm, Y_TABLE, "table.clone");
-    struct RC_Table* ht = YASL_GETTBL(vm_pop(S->vm));
-    struct RC_Table* new_ht = rcht_new_sized(ht->table->base_size);
-    for (size_t i = 0; i < ht->table->size; i++) {
-        Item_t* item = ht->table->items[i];
+    struct Table* ht = YASL_GETTBL(vm_pop(S->vm));
+    struct RC_Table* new_ht = rcht_new_sized(ht->base_size);
+    for (size_t i = 0; i < ht->size; i++) {
+        Item_t* item = ht->items[i];
         if (item != NULL && item != &TOMBSTONE) {
             inc_ref(item->key);
             inc_ref(item->value);

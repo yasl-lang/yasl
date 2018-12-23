@@ -140,7 +140,7 @@ void vm_int_binop(struct VM *vm, yasl_int (*op)(yasl_int, yasl_int), char *opstr
         return;
     }  else if (YASL_ISTBL(a)) {
         struct YASL_Object *key = YASL_String(str_new_sized_heap(0, strlen(overload_name), overload_name));
-        struct YASL_Object *result = table_search(YASL_GETTBL(a)->table, *key);
+        struct YASL_Object *result = table_search(YASL_GETTBL(a), *key);
         if (result && YASL_ISFN(*result)) {
             vm->sp += 2;
 
@@ -211,7 +211,7 @@ void vm_num_binop(
         vm_push(vm, YASL_FLOAT(float_op(YASL_GETINT(left), YASL_GETFLOAT(right))));
     } else if (YASL_ISTBL(left)) {
         struct YASL_Object *key = YASL_String(str_new_sized_heap(0, strlen(overload_name), overload_name));
-        struct YASL_Object *result = table_search(YASL_GETTBL(left)->table, *key);
+        struct YASL_Object *result = table_search(YASL_GETTBL(left), *key);
         if (result && YASL_ISFN(*result)) {
             vm->sp += 2;
 
@@ -254,7 +254,7 @@ void vm_fdiv(struct VM *vm) {
         vm_push(vm, YASL_FLOAT(YASL_GETFLOAT(left) / (yasl_float)YASL_GETINT(right)));
     }  else if (YASL_ISTBL(left)) {
         struct YASL_Object *key = YASL_String(str_new_sized_heap(0, strlen(overload_name), overload_name));
-        struct YASL_Object *result = table_search(YASL_GETTBL(left)->table, *key);
+        struct YASL_Object *result = table_search(YASL_GETTBL(left), *key);
         if (result && YASL_ISFN(*result)) {
             vm->sp += 2;
 
@@ -450,9 +450,9 @@ void vm_run(struct VM *vm){
                 if (YASL_ISSTR(v)) {
                     vm_push(vm, YASL_INT(yasl_string_len(YASL_GETSTR(v))));
                 } else if (YASL_ISTBL(v)) {
-                    vm_push(vm, YASL_INT(YASL_GETTBL(v)->table->count));
+                    vm_push(vm, YASL_INT(YASL_GETTBL(v)->count));
                 } else if (YASL_ISLIST(v)) {
-                    vm_push(vm, YASL_INT(YASL_GETLIST(v)->list.count));
+                    vm_push(vm, YASL_INT(YASL_GETLIST(v)->list->count));
                 } else {
                     printf("TypeError: # not supported for operand of type %s.\n",
                            YASL_TYPE_NAMES[v.type]);
@@ -473,15 +473,15 @@ void vm_run(struct VM *vm){
                     //printf("vm->stack[vm->sp]: %zd\n", vm->stack[vm->sp].value.sval->rc->weak_refs);
                     break;
                 } else if (YASL_ISLIST(a) && YASL_ISLIST(b)) {
-                    size = YASL_GETLIST(a)->list.count + YASL_GETLIST(b)->list.count;
+                    size = YASL_GETLIST(a)->list->count + YASL_GETLIST(b)->list->count;
                     ptr = ls_new_sized(size);
                     vm_push(vm, YASL_LIST(ptr));
                     int i;
-                    for (i = 0; i < YASL_GETLIST(a)->list.count; i++) {
-                        ls_append(ptr, YASL_GETLIST(a)->list.items[i]);
+                    for (i = 0; i < YASL_GETLIST(a)->list->count; i++) {
+                        ls_append(ptr, YASL_GETLIST(a)->list->items[i]);
                     }
-                    for (i = 0; i < YASL_GETLIST(b)->list.count; i++) {
-                        ls_append(ptr, YASL_GETLIST(b)->list.items[i]);
+                    for (i = 0; i < YASL_GETLIST(b)->list->count; i++) {
+                        ls_append(ptr, YASL_GETLIST(b)->list->items[i]);
                     }
                     break;
                 }
@@ -541,11 +541,11 @@ void vm_run(struct VM *vm){
                 break;
             case NEWTABLE: {
                 struct YASL_Object *table = YASL_Table();
-                struct RC_Table *ht = YASL_GETTBL(*table);
+                struct Table *ht = YASL_GETTBL(*table);
                 while(PEEK(vm).type != Y_END) {
                     struct YASL_Object value = vm_pop(vm);
                     struct YASL_Object key = vm_pop(vm);
-                    table_insert(ht->table, key, value);
+                    table_insert(ht, key, value);
                 }
                 vm_pop(vm);
                 vm_push(vm, *table);
@@ -583,25 +583,25 @@ void vm_run(struct VM *vm){
                 //print(vm->stack[vm->lp]);
                 switch (vm->stack[vm->lp].type) {
                     case Y_LIST:
-                        if (YASL_GETLIST(vm->stack[vm->lp])->list.count <= YASL_GETINT(vm->stack[vm->lp + 1])) {
+                        if (YASL_GETLIST(vm->stack[vm->lp])->list->count <= YASL_GETINT(vm->stack[vm->lp + 1])) {
                             vm_push(vm, YASL_BOOL(0));
                         } else {
-                            vm_push(vm, YASL_GETLIST(vm->stack[vm->lp])->list.items[YASL_GETINT(vm->stack[vm->lp + 1])++]);
+                            vm_push(vm, YASL_GETLIST(vm->stack[vm->lp])->list->items[YASL_GETINT(vm->stack[vm->lp + 1])++]);
                             //print(vm->stack[vm->sp]);
                             vm_push(vm, YASL_BOOL(1));
                         }
                         break;
                     case Y_TABLE:
-                        while ((YASL_GETTBL(vm->stack[vm->lp])->table->items[YASL_GETINT(vm->stack[vm->lp + 1])] == &TOMBSTONE ||
-                                YASL_GETTBL(vm->stack[vm->lp])->table->items[YASL_GETINT(vm->stack[vm->lp + 1])] == NULL
-                        ) && YASL_GETTBL(vm->stack[vm->lp])->table->size > (size_t)YASL_GETINT(vm->stack[vm->lp + 1])) {
+                        while ((YASL_GETTBL(vm->stack[vm->lp])->items[YASL_GETINT(vm->stack[vm->lp + 1])] == &TOMBSTONE ||
+                                YASL_GETTBL(vm->stack[vm->lp])->items[YASL_GETINT(vm->stack[vm->lp + 1])] == NULL
+                        ) && YASL_GETTBL(vm->stack[vm->lp])->size > (size_t)YASL_GETINT(vm->stack[vm->lp + 1])) {
                             YASL_GETINT(vm->stack[vm->lp + 1])++;
                         }
-                        if (YASL_GETTBL(vm->stack[vm->lp])->table->size <= (size_t)YASL_GETINT(vm->stack[vm->lp + 1])) {
+                        if (YASL_GETTBL(vm->stack[vm->lp])->size <= (size_t)YASL_GETINT(vm->stack[vm->lp + 1])) {
                             vm_push(vm, YASL_BOOL(0));
                             break;
                         }
-                        vm_push(vm, *YASL_GETTBL(vm->stack[vm->lp])->table->items[YASL_GETINT(vm->stack[vm->lp + 1])++]->key);
+                        vm_push(vm, *YASL_GETTBL(vm->stack[vm->lp])->items[YASL_GETINT(vm->stack[vm->lp + 1])++]->key);
                         vm_push(vm, YASL_BOOL(1));
                         break;
                     default:
