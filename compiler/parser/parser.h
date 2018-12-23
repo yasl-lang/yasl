@@ -15,4 +15,4 @@ int peof(const Parser *parser);
 Parser *parser_new(Lexer *lex);
 void parser_del(Parser *parser);
 Token eattok(Parser *parser, Token token);
-Node *parse(Parser *parser);
+struct Node *parse(Parser *parser);

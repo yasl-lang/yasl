@@ -1,0 +1,14 @@
+fn twosum(nums, target) {
+    x := { target - num: num for let num <- nums }
+    for let y <- nums {
+        if x[y] {
+            return "#{x[y]->tostr()} + #{y->tostr()} == #{target->tostr()}"
+        }
+    }
+    return 'not found'
+}
+
+
+echo twosum([1, 2, 5, 4, 10], 14)
+echo twosum([1, 2, 5, 4, 10], 16)
+

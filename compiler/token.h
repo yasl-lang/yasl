@@ -88,6 +88,7 @@ typedef enum {
     T_CONT,     // 0x0C
     T_FOR,      // 0x0D
     T_IN,
+    T_BANGIN,
     T_ID,
     T_LET,
     T_CONST,
@@ -154,8 +155,7 @@ typedef enum {
     T_DQMARK,
     T_DQMARKEQ,
     T_COLON,
-    T_DCOLON,
-    T_BIG_ARR,
+    T_COLONEQ,
     T_SMALL_ARR,
     T_LEFT_ARR,
 } Token;

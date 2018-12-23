@@ -99,7 +99,7 @@ int YASL_pushboolean(struct YASL_State *S, int value) {
 }
 
 int YASL_pushliteralstring(struct YASL_State *S, char *value) {
-    vm_push(S->vm, YASL_STR(str_new_sized_from_mem(0, strlen(value), value)));
+    vm_push(S->vm, YASL_STR(str_new_sized_heap(0, strlen(value), value)));
     return YASL_SUCCESS;
 }
 
@@ -140,7 +140,7 @@ int YASL_Table_set(struct YASL_Object *table, struct YASL_Object *key, struct YA
     // TODO: fix this to YASL_isTable(table)
     if (table->type != Y_TABLE)
         return YASL_ERROR;
-    ht_insert(table->value.mval, *key, *value);
+    table_insert(YASL_GETTBL(*table), *key, *value);
 
     return YASL_SUCCESS;
 }
@@ -154,7 +154,7 @@ void *YASL_UserData_getdata(struct YASL_Object *obj) {
 }
 
 struct YASL_Object *YASL_LiteralString(char *str) {
-    return YASL_String(str_new_sized_from_mem(0, strlen(str), str));
+    return YASL_String(str_new_sized_heap(0, strlen(str), str));
 }
 
 struct YASL_Object *YASL_CString(char *str) {

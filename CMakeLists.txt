@@ -3,7 +3,7 @@ project(YASL C)
 
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_C_STANDARD 99)
-#set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-newline-eof -Wno-unused-variable -Wno-unused-parameter -pedantic -Werror")
+set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-newline-eof -Wno-unused-variable -Wno-unused-parameter -pedantic -Werror")
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 include_directories(.)
@@ -42,9 +42,9 @@ add_executable(YASL
         hashtable/hashtable.c
         interpreter/boolean/bool_methods.c
         interpreter/builtins/builtins.c
-        interpreter/float/float64_methods.c
-        interpreter/float/float64.c
-        interpreter/integer/int64_methods.c
+        interpreter/float/float_methods.c
+        interpreter/float/yasl_float.c
+        interpreter/integer/int_methods.c
         interpreter/list/list.c
         interpreter/list/list_methods.c
         interpreter/table/table_methods.c
@@ -75,7 +75,7 @@ add_executable(YASLTEST
         compiler/parser/parser.c
         compiler/ast/ast.c
         hashtable/hashtable.c
-        interpreter/float/float64.c
+        interpreter/float/yasl_float.c
         interpreter/YASL_Object/YASL_Object.c
         bytebuffer/bytebuffer.c
         interpreter/YASL_string/YASL_string.c
@@ -96,9 +96,9 @@ add_library(yaslapi
         hashtable/hashtable.c
         interpreter/boolean/bool_methods.c
         interpreter/builtins/builtins.c
-        interpreter/float/float64_methods.c
-        interpreter/float/float64.c
-        interpreter/integer/int64_methods.c
+        interpreter/float/float_methods.c
+        interpreter/float/yasl_float.c
+        interpreter/integer/int_methods.c
         interpreter/list/list.c
         interpreter/list/list_methods.c
         interpreter/table/table_methods.c

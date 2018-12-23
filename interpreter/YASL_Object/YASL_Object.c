@@ -4,7 +4,7 @@
 
 #include "YASL_string.h"
 #include "hashtable.h"
-#include "float64_methods.h"
+#include "float_methods.h"
 #include "userdata.h"
 
 char *float64_to_str(double d);
@@ -81,7 +81,7 @@ struct YASL_Object *YASL_String(String_t *str) {
 struct YASL_Object *YASL_Table() {
     struct YASL_Object *table = malloc(sizeof(struct YASL_Object));
     table->type = Y_TABLE;
-    table->value.mval = ht_new();
+    table->value.mval = rcht_new();
     return table;
 }
 

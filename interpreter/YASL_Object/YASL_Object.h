@@ -35,8 +35,8 @@
 #define YASL_GETINT(v) ((v).value.ival)
 #define YASL_GETBOOL(v) ((v).value.ival)
 #define YASL_GETSTR(v) ((v).value.sval)
-#define YASL_GETLIST(v) ((v).value.lval)
-#define YASL_GETTBL(v) ((v).value.mval)
+#define YASL_GETLIST(v) ((v).value.lval->list)
+#define YASL_GETTBL(v) ((v).value.mval->table)
 #define YASL_GETUSERDATA(v) ((v).value.uval)
 #define YASL_GETUSERPTR(v) ((v).value.pval)
 #define YASL_GETFN(v) ((v).value.ival)
@@ -64,11 +64,10 @@ typedef enum {
     Y_USERDATA_W,
 } YASL_Types;
 
-struct List_s;
-struct Hash_s;
+struct RC_Table;
 struct UserData_s;
 struct CFunction_s {
-    RefCount *rc;
+    struct RC *rc;
     int num_args;
     int (*value)(struct YASL_State *);
 };
@@ -83,8 +82,8 @@ struct YASL_Object {
         int64_t ival;
         double dval;
         String_t *sval;
-        struct List_s *lval;
-        struct Hash_s *mval;
+        struct RC_List *lval;
+        struct RC_Table *mval;
         struct UserData_s *uval;
         struct CFunction_s *cval;
         void *pval;
@@ -104,7 +103,6 @@ struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *), int num_ar
 int isfalsey(struct YASL_Object v);
 struct YASL_Object isequal(struct YASL_Object a, struct YASL_Object b);
 int print(struct YASL_Object a);
-// int yasl_type_equals(YASL_Types a, YASL_Types b);
 
 void inc_ref(struct YASL_Object *v);
 void dec_ref(struct YASL_Object *v);

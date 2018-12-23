@@ -7,14 +7,14 @@
 #include "hashtable.h"
 
 
-RefCount *rc_new(void) {
-    RefCount *rc = malloc(sizeof(RefCount));
+struct RC *rc_new(void) {
+    struct RC *rc = malloc(sizeof(struct RC));
     rc->refs = 0;
     rc->weak_refs = 0;
     return rc;
 }
 
-void rc_del(RefCount *rc) {
+void rc_del(struct RC *rc) {
     free(rc);
 }
 
@@ -98,7 +98,7 @@ static void dec_weak_ref(struct YASL_Object *v) {
             break;
         case Y_TABLE_W:
             if (--(v->value.mval->rc->weak_refs) || v->value.mval->rc->refs) return;
-            ht_del_rc(v->value.mval);
+            rcht_del_rc(v->value.mval);
             break;
         default:
             puts("NoT IMPELemented");
@@ -127,9 +127,9 @@ void dec_strong_ref(struct YASL_Object *v) {
             break;
         case Y_TABLE:
             if (--(v->value.mval->rc->refs)) return;
-            ht_del_data(v->value.mval);
+            rcht_del_data(v->value.mval);
             if (v->value.mval->rc->weak_refs) return;
-            ht_del_rc(v->value.mval);
+            rcht_del_rc(v->value.mval);
             break;
         case Y_CFN:
             if (--(v->value.cval->rc->refs)) return;

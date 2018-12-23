@@ -1,38 +1,43 @@
 #pragma once
 
-#include "../prime/prime.h"
-#include "../interpreter/YASL_Object/YASL_Object.h"
-#include "../interpreter/list/list.h"
 #include <inttypes.h>
 
-#define LEN(v) (*((int64_t*)v.value))
+#include "prime.h"
+#include "YASL_Object.h"
+#include "list.h"
+
+#define LEN(v) (*((int64_t*)(v).value))
 
 typedef struct {
     struct YASL_Object* key;
     struct YASL_Object* value;
 } Item_t;
 
-typedef struct Hash_s {
-    RefCount *rc;
+struct Table {
     size_t size;
     size_t base_size;
     size_t count;
-    Item_t** items;
-} Hash_t;
+    Item_t **items;
+};
+
+struct RC_Table {
+    struct RC *rc;
+    struct Table *table;
+};
 
 static Item_t TOMBSTONE = {0, 0};
 
-Hash_t* ht_new(void);
-Hash_t* ht_new_sized(const int base_size);
-void ht_del_data(Hash_t *hashtable);
-void ht_del_rc(Hash_t *hashtable);
-void ht_del_cstring_cfn(Hash_t *hashtable);
-void ht_del_string_int(Hash_t *hashtable);
-void ht_insert(Hash_t *const hashtable, struct YASL_Object key, struct YASL_Object value);
-void ht_insert_literalcstring_cfunction(Hash_t *ht, char *key, int (*addr)(struct YASL_State *), int num_args);
-void ht_insert_string_int(Hash_t *const hashtable, char *key, int64_t key_len, int64_t val);
-struct YASL_Object* ht_search(const Hash_t *const hashtable, struct YASL_Object key);
-struct YASL_Object *ht_search_string_int(const Hash_t *const hashtable, char *key, int64_t key_len);
-void ht_rm(Hash_t *hashtable, struct YASL_Object key);
-void ht_print(const Hash_t *const ht);
-void ht_print_h(const Hash_t *const ht, ByteBuffer* seen);
+struct Table *table_new(void);
+void table_insert(struct Table *table, const struct YASL_Object key, const struct YASL_Object value);
+void table_insert_string_int(struct Table *table, char *key, int64_t key_len, int64_t val);
+void table_insert_literalcstring_cfunction(struct Table *ht, char *key, int (*addr)(struct YASL_State *), int num_args);
+struct YASL_Object* table_search(const struct Table *const table, const struct YASL_Object key);
+struct YASL_Object *table_search_string_int(const struct Table *const table, char *key, int64_t key_len);
+void table_del(struct Table *table);
+void table_del_string_int(struct Table *table);
+
+struct RC_Table* rcht_new(void);
+struct RC_Table* rcht_new_sized(const int base_size);
+void rcht_del_data(struct RC_Table *hashtable);
+void rcht_del_rc(struct RC_Table *hashtable);
+void rcht_del_cstring_cfn(struct RC_Table *hashtable);

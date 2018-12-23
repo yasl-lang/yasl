@@ -30,19 +30,17 @@ String_t* str_new_sized(const int64_t base_size, char *ptr) {
     str->start = 0;
     str->end = base_size;
     str->str = ptr;
-    str->from_mem = 0;
+    str->on_heap = 0;
     str->rc = rc_new();
     return str;
 }
 
-String_t* str_new_sized_from_mem(const int64_t start, const int64_t end, char *mem) {
-    // puts("adsdas");
-    //printf("start, end, mem: %d, %d, %s\n", start, end, mem);
+String_t* str_new_sized_heap(const int64_t start, const int64_t end, char *mem) {
     String_t* str = malloc(sizeof(String_t));
     str->start = start;
     str->end = end;
     str->str = mem;
-    str->from_mem = 1;
+    str->on_heap = 1;
     str->rc = rc_new();
     return str;
 }
@@ -50,7 +48,7 @@ String_t* str_new_sized_from_mem(const int64_t start, const int64_t end, char *m
 //TODO: add new string constructor that takes address of string as second param.
 
 void str_del_data(String_t *str) {
-    // if(!str->from_mem) free(str->str);
+    // if(!str->on_heap) free(str->str);
 }
 
 void str_del_rc(String_t *str) {
@@ -60,7 +58,7 @@ void str_del_rc(String_t *str) {
 }
 
 void str_del(String_t *str) {
-    if(!str->from_mem) free(str->str);
+    if(!str->on_heap) free(str->str);
     rc_del(str->rc);
     free(str);
 }

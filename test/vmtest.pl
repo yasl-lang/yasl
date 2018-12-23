@@ -47,6 +47,16 @@ assert_output(q+let $x = 10
                 echo "$x is #{$x->tostr()}, #{$y->tostr()}.";+,
               "\$x is 10, 12.\n",
               0);
+assert_output(q+let $x = 10
+                let $y = 12
+                echo "$x is #{$x->tostr()        }, #{$y->tostr()}";+,
+              "\$x is 10, 12\n",
+              0);
+assert_output(q+let $x = 10
+                let $y = 12
+                echo "$x is #{$x->tostr()  }#{$y->tostr()}  ";+,
+              "\$x is 1012  \n",
+              0);
 
 # Comprehensions
 assert_output(qq"for let i <- [x*2 for let x <- [1, 2, 3]] {
@@ -172,11 +182,11 @@ assert_output(qq"let x = 10
               "21\n10\n", 0);
 
 # Integer Methods
-assert_output("echo 2->tofloat64()\n", "2.0\n", 0);
+assert_output("echo 2->tofloat()\n", "2.0\n", 0);
 assert_output("echo 5->tostr()\n", "5\n", 0);
 
 # Float Methods
-assert_output("echo 2.1->toint64()\n", "2\n", 0);
+assert_output("echo 2.1->toint()\n", "2\n", 0);
 assert_output("echo 5.7->tostr()\n", "5.7\n", 0);
 
 # Boolean Methods
@@ -270,6 +280,22 @@ assert_output(qq"let x = []
                      i += 1
                  };",
               "",
+              0);
+
+assert_output(qq"x := 10
+                 y := x + 10
+                 echo x
+                 echo y
+                ",
+              "10\n20\n",
+              0);
+
+assert_output(qq"const x = 10
+                 const y := x + 10
+                 echo x
+                 echo y
+                ",
+              "10\n20\n",
               0);
 
 exit $__VM_TESTS_FAILED__;
