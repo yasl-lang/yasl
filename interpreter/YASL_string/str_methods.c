@@ -368,21 +368,22 @@ int str_split(struct YASL_State *S) {
 }
 
 int str_ltrim(struct YASL_State *S) {
-    ASSERT_TYPE(S->vm, Y_STR, "str.ltrim");
-    String_t *needle = YASL_GETSTR(vm_pop(S->vm));
-    ASSERT_TYPE(S->vm, Y_STR, "str.ltrim");
-    String_t *haystack = YASL_GETSTR(vm_pop(S->vm));
+	ASSERT_TYPE(S->vm, Y_STR, "str.ltrim");
+	String_t *needle = YASL_GETSTR(vm_pop(S->vm));
+	ASSERT_TYPE(S->vm, Y_STR, "str.ltrim");
+	String_t *haystack = YASL_GETSTR(vm_pop(S->vm));
 
-    int64_t start=0;
-    while(yasl_string_len(haystack) - start >= yasl_string_len(needle) &&
-          !memcmp(haystack->str + haystack->start + start,
-                  needle->str + needle->start,
-                  yasl_string_len(needle))) {
-        start += yasl_string_len(needle);
-    }
+	int64_t start=0;
+	while(yasl_string_len(haystack) - start >= yasl_string_len(needle) &&
+	        !memcmp(haystack->str + haystack->start + start,
+	                needle->str + needle->start,
+	                yasl_string_len(needle))) {
+	    start += yasl_string_len(needle);
+        }
 
-    vm_push(S->vm, YASL_STR(str_new_sized_heap(haystack->start + start, haystack->start + yasl_string_len(haystack),
-                                               haystack->str)));
+        vm_push(S->vm,
+                YASL_STR(str_new_sized_heap(haystack->start + start, haystack->start + yasl_string_len(haystack),
+                        haystack->str)));
 
     return 0;
 }
