@@ -73,7 +73,8 @@ struct Table *table_new_sized(const int base_size) {
 struct Table *table_new(void) {
     return table_new_sized(HT_BASESIZE);
 }
-struct Table *table_del(struct Table *table) {
+
+void table_del(struct Table *table) {
     for (size_t i = 0; i < table->size; i++) {
         Item_t* item = table->items[i];
         if (item != NULL && item != &TOMBSTONE) {
@@ -129,12 +130,6 @@ void table_del_string_int(struct Table *table) {
     free(table);
 }
 
-void rcht_del_string_int(struct RC_Table *hashtable) {
-    rc_del(hashtable->rc);
-    table_del_string_int(hashtable->table);
-    free(hashtable);
-}
-
 static void table_resize(struct Table *table, const int base_size) {
     if (base_size < HT_BASESIZE) return;
     struct Table* new_table = table_new_sized(base_size);
@@ -158,47 +153,14 @@ static void table_resize(struct Table *table, const int base_size) {
     table_del(new_table);
 }
 
-static void rcht_resize(struct RC_Table *ht, const int base_size) {
-    if (base_size < HT_BASESIZE) return;
-    struct RC_Table* new_ht = rcht_new_sized(base_size);
-    for (size_t i = 0; i < ht->table->size; i++) {
-        Item_t* item = ht->table->items[i];
-        if (item != NULL && item != &TOMBSTONE) {
-            rcht_insert(new_ht, *item->key, *item->value);
-        }    
-    }
-    ht->table->base_size = new_ht->table->base_size;
-    ht->table->count = new_ht->table->count;
-
-    const int tmp_size = ht->table->size;
-    ht->table->size = new_ht->table->size;
-    new_ht->table->size = tmp_size;
-
-    Item_t** tmp_items = ht->table->items;
-    ht->table->items = new_ht->table->items;
-    new_ht->table->items = tmp_items;
-
-    rcht_del(new_ht);
-}
-
 static void table_resize_up(struct Table *table) {
     const size_t new_size = table->base_size * 2;
     table_resize(table, new_size);
 }
 
-static void rcht_resize_up(struct RC_Table *ht) {
-    const size_t new_size = ht->table->base_size * 2;
-    rcht_resize(ht, new_size);
-}
-
 static void table_resize_down(struct Table *table) {
     const size_t new_size = table->base_size / 2;
     table_resize(table, new_size);
-}
-
-static void rcht_resize_down(struct RC_Table *ht) {
-    const size_t new_size = ht->table->base_size / 2;
-    rcht_resize(ht, new_size);
 }
 
 void table_insert(struct Table *table, const struct YASL_Object key, const struct YASL_Object value) {
@@ -224,26 +186,14 @@ void table_insert(struct Table *table, const struct YASL_Object key, const struc
     table->count++;
 }
 
-void rcht_insert(struct RC_Table *hashtable, const struct YASL_Object key, const struct YASL_Object value) {
-    table_insert(hashtable->table, key, value);
-}
-
-void rcht_insert_literalcstring_cfunction(struct RC_Table *ht, char *key, int (*addr)(struct YASL_State *),
-                                          int num_args) {
+void table_insert_literalcstring_cfunction(struct Table *ht, char *key, int (*addr)(struct YASL_State *), int num_args) {
     String_t *string = str_new_sized(strlen(key), key);
-    rcht_insert(ht, YASL_STR(string), YASL_CFN(addr, num_args));
+    table_insert(ht, YASL_STR(string), YASL_CFN(addr, num_args));
 }
 
 void table_insert_string_int(struct Table *table, char *key, int64_t key_len, int64_t val) {
     String_t *string = str_new_sized(key_len, copy_char_buffer(key_len, key));
     table_insert(table,
-                (struct YASL_Object) {.type = Y_STR, .value.sval = string},
-                (struct YASL_Object) {.type = Y_INT64, .value.ival = val});
-}
-
-void rcht_insert_string_int(struct RC_Table *hashtable, char *key, int64_t key_len, int64_t val) {
-    String_t *string = str_new_sized(key_len, copy_char_buffer(key_len, key));
-    rcht_insert(hashtable,
                 (struct YASL_Object) {.type = Y_STR, .value.sval = string},
                 (struct YASL_Object) {.type = Y_INT64, .value.ival = val});
 }
@@ -271,37 +221,23 @@ struct YASL_Object *table_search_string_int(const struct Table *const table, cha
     return result;
 }
 
-struct YASL_Object* rcht_search(const struct RC_Table *const hashtable, const struct YASL_Object key) {
-    return table_search(hashtable->table, key);
-}
-
-struct YASL_Object *rcht_search_string_int(const struct RC_Table *const hashtable, char *key, int64_t key_len) {
-    String_t *string = str_new_sized(key_len, copy_char_buffer(key_len, key));
-    struct YASL_Object object = (struct YASL_Object) { .value.sval = string, .type = Y_STR };
-
-    struct YASL_Object *result = rcht_search(hashtable, object);
-    str_del(string);
-    return result;
-
-}
-
-void rcht_rm(struct RC_Table *hashtable, struct YASL_Object key) {
-    const int load = hashtable->table->count * 100 / hashtable->table->size;
-    if (load < 10) rcht_resize_down(hashtable);
-    int index = get_hash(key, hashtable->table->size, 0);
-    Item_t* item = hashtable->table->items[index];
+void table_rm(struct Table *table, struct YASL_Object key) {
+    const int load = table->count * 100 / table->size;
+    if (load < 10) table_resize_down(table);
+    int index = get_hash(key, table->size, 0);
+    Item_t* item = table->items[index];
     int i = 1;
     while (item != NULL) {
         if (item != &TOMBSTONE) {
             if (!isfalsey(isequal(*item->key, key))) {
                 del_item(item);
-                hashtable->table->items[index] = &TOMBSTONE;
+                table->items[index] = &TOMBSTONE;
             }
         }
-        index = get_hash(key, hashtable->table->size, i++);
-        item = hashtable->table->items[index];
+        index = get_hash(key, table->size, i++);
+        item = table->items[index];
     }
-    hashtable->table->count--;
+    table->count--;
 }
 
 /*

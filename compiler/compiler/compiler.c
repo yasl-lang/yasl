@@ -17,9 +17,8 @@ struct Compiler *compiler_new(Parser *const parser) {
     compiler->globals = env_new(NULL);
     compiler->params = NULL;
 
-    compiler->functions = rcht_new();
     compiler->offset = 0;
-    compiler->strings = rcht_new();
+    compiler->strings = table_new();
     compiler->parser = parser;
     compiler->buffer = bb_new(16);
     compiler->header = bb_new(16);
@@ -46,8 +45,7 @@ struct Compiler *compiler_new(Parser *const parser) {
 }
 
 void compiler_tables_del(struct Compiler *compiler) {
-    rcht_del_string_int(compiler->strings);
-    rcht_del_string_int(compiler->functions);
+    table_del_string_int(compiler->strings);
 }
 
 static void compiler_buffers_del(const struct Compiler *const compiler) {
@@ -828,15 +826,15 @@ static void visit_Boolean(struct Compiler *const compiler, const struct Node *co
 }
 
 static void visit_String(struct Compiler *const compiler, const struct Node *const node) {
-    struct YASL_Object *value = rcht_search_string_int(compiler->strings, node->name, node->name_len);
+    struct YASL_Object *value = table_search_string_int(compiler->strings, node->name, node->name_len);
     if (value == NULL) {
         YASL_DEBUG_LOG("%s\n", "caching string");
-        rcht_insert_string_int(compiler->strings, node->name, node->name_len, compiler->header->count);
+        table_insert_string_int(compiler->strings, node->name, node->name_len, compiler->header->count);
         bb_intbytes8(compiler->header, node->name_len);
         bb_append(compiler->header, (unsigned char*)node->name, node->name_len);
     }
 
-    value = rcht_search_string_int(compiler->strings, node->name, node->name_len);
+    value = table_search_string_int(compiler->strings, node->name, node->name_len);
 
     bb_add_byte(compiler->buffer, NEWSTR);
     bb_intbytes8(compiler->buffer, value->value.ival);

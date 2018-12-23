@@ -23,73 +23,73 @@ int yasl_print(struct VM* vm) {
  *                                                                                                                   *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-struct RC_Table* float_builtins() {
-    struct RC_Table* ht = rcht_new();
-    rcht_insert_literalcstring_cfunction(ht, "toint", &float_toint, 1);
-    rcht_insert_literalcstring_cfunction(ht, "tostr", &float_tostr, 1);
-    return ht;
+struct Table* float_builtins() {
+    struct Table* table = table_new();
+    table_insert_literalcstring_cfunction(table, "toint", &float_toint, 1);
+    table_insert_literalcstring_cfunction(table, "tostr", &float_tostr, 1);
+    return table;
 }
 
 
-struct RC_Table* int_builtins() {
-    struct RC_Table* ht = rcht_new();
-    rcht_insert_literalcstring_cfunction(ht, "tofloat", &int_tofloat, 1);
-    rcht_insert_literalcstring_cfunction(ht, "tostr", &int_tostr, 1);
-    return ht;
+struct Table* int_builtins() {
+    struct Table* table = table_new();
+    table_insert_literalcstring_cfunction(table, "tofloat", &int_tofloat, 1);
+    table_insert_literalcstring_cfunction(table, "tostr", &int_tostr, 1);
+    return table;
 }
 
-struct RC_Table* bool_builtins() {
-    struct RC_Table* ht = rcht_new();
-    rcht_insert_literalcstring_cfunction(ht, "tostr", &bool_tostr, 1);
-    return ht;
+struct Table* bool_builtins() {
+    struct Table* table = table_new();
+    table_insert_literalcstring_cfunction(table, "tostr", &bool_tostr, 1);
+    return table;
 }
 
 
-struct RC_Table* str_builtins() {
-    struct RC_Table* ht = rcht_new();
-    rcht_insert_literalcstring_cfunction(ht, "tofloat", &str_tofloat, 1);
-    rcht_insert_literalcstring_cfunction(ht, "toint", &str_toint, 1);
-    rcht_insert_literalcstring_cfunction(ht, "isalnum", &str_isalnum, 1);
-    rcht_insert_literalcstring_cfunction(ht, "isal", &str_isal, 1);
-    rcht_insert_literalcstring_cfunction(ht, "isnum", &str_isnum, 1);
-    rcht_insert_literalcstring_cfunction(ht, "isspace", &str_isspace, 1);
-    rcht_insert_literalcstring_cfunction(ht, "tobool", &str_tobool, 1);
-    rcht_insert_literalcstring_cfunction(ht, "tostr", &str_tostr, 1);
-    rcht_insert_literalcstring_cfunction(ht, "toupper", &str_toupper, 1);
-    rcht_insert_literalcstring_cfunction(ht, "tolower", &str_tolower, 1);
-    rcht_insert_literalcstring_cfunction(ht, "startswith", &str_startswith, 2);
-    rcht_insert_literalcstring_cfunction(ht, "endswith", &str_endswith, 2);
-    rcht_insert_literalcstring_cfunction(ht, "replace", &str_replace, 3);
-    rcht_insert_literalcstring_cfunction(ht, "search", &str_search, 2);
-    rcht_insert_literalcstring_cfunction(ht, "slice", &str_slice, 3);
-    rcht_insert_literalcstring_cfunction(ht, "split", &str_split, 2);
-    rcht_insert_literalcstring_cfunction(ht, "ltrim", &str_ltrim, 2);
-    rcht_insert_literalcstring_cfunction(ht, "rtrim", &str_rtrim, 2);
-    rcht_insert_literalcstring_cfunction(ht, "trim", &str_trim, 2);
-    rcht_insert_literalcstring_cfunction(ht, "__get", &str___get, 2);
-    return ht;
+struct Table* str_builtins() {
+    struct Table* table = table_new();
+    table_insert_literalcstring_cfunction(table, "tofloat", &str_tofloat, 1);
+    table_insert_literalcstring_cfunction(table, "toint", &str_toint, 1);
+    table_insert_literalcstring_cfunction(table, "isalnum", &str_isalnum, 1);
+    table_insert_literalcstring_cfunction(table, "isal", &str_isal, 1);
+    table_insert_literalcstring_cfunction(table, "isnum", &str_isnum, 1);
+    table_insert_literalcstring_cfunction(table, "isspace", &str_isspace, 1);
+    table_insert_literalcstring_cfunction(table, "tobool", &str_tobool, 1);
+    table_insert_literalcstring_cfunction(table, "tostr", &str_tostr, 1);
+    table_insert_literalcstring_cfunction(table, "toupper", &str_toupper, 1);
+    table_insert_literalcstring_cfunction(table, "tolower", &str_tolower, 1);
+    table_insert_literalcstring_cfunction(table, "startswith", &str_startswith, 2);
+    table_insert_literalcstring_cfunction(table, "endswith", &str_endswith, 2);
+    table_insert_literalcstring_cfunction(table, "replace", &str_replace, 3);
+    table_insert_literalcstring_cfunction(table, "search", &str_search, 2);
+    table_insert_literalcstring_cfunction(table, "slice", &str_slice, 3);
+    table_insert_literalcstring_cfunction(table, "split", &str_split, 2);
+    table_insert_literalcstring_cfunction(table, "ltrim", &str_ltrim, 2);
+    table_insert_literalcstring_cfunction(table, "rtrim", &str_rtrim, 2);
+    table_insert_literalcstring_cfunction(table, "trim", &str_trim, 2);
+    table_insert_literalcstring_cfunction(table, "__get", &str___get, 2);
+    return table;
 }
 
-struct RC_Table* list_builtins() {
-    struct RC_Table* ht = rcht_new();
-    rcht_insert_literalcstring_cfunction(ht, "push", &list_push, 2);
-    rcht_insert_literalcstring_cfunction(ht, "copy", &list_copy, 1);
-    rcht_insert_literalcstring_cfunction(ht, "extend", &list_extend, 2);
-    rcht_insert_literalcstring_cfunction(ht, "pop", &list_pop, 1);
-    rcht_insert_literalcstring_cfunction(ht, "__get", &list___get, 2);
-    rcht_insert_literalcstring_cfunction(ht, "__set", &list___set, 3);
-    rcht_insert_literalcstring_cfunction(ht, "search", &list_search, 2);
-    rcht_insert_literalcstring_cfunction(ht, "reverse", &list_reverse, 1);
-    return ht;
+struct Table* list_builtins() {
+    struct Table* table = table_new();
+    table_insert_literalcstring_cfunction(table, "push", &list_push, 2);
+    table_insert_literalcstring_cfunction(table, "copy", &list_copy, 1);
+    table_insert_literalcstring_cfunction(table, "extend", &list_extend, 2);
+    table_insert_literalcstring_cfunction(table, "pop", &list_pop, 1);
+    table_insert_literalcstring_cfunction(table, "__get", &list___get, 2);
+    table_insert_literalcstring_cfunction(table, "__set", &list___set, 3);
+    table_insert_literalcstring_cfunction(table, "search", &list_search, 2);
+    table_insert_literalcstring_cfunction(table, "reverse", &list_reverse, 1);
+    return table;
 }
 
-struct RC_Table* table_builtins() {
-    struct RC_Table* ht = rcht_new();
-    rcht_insert_literalcstring_cfunction(ht, "keys", &table_keys, 1);
-    rcht_insert_literalcstring_cfunction(ht, "values", &table_values, 1);
-    rcht_insert_literalcstring_cfunction(ht, "copy", &table_clone, 1);
-    rcht_insert_literalcstring_cfunction(ht, "__get", &table___get, 2);
-    rcht_insert_literalcstring_cfunction(ht, "__set", &table___set, 3);
-    return ht;
+struct Table* table_builtins() {
+    struct Table* table = table_new();
+    table_insert_literalcstring_cfunction(table, "keys", &table_keys, 1);
+    table_insert_literalcstring_cfunction(table, "values", &table_values, 1);
+    table_insert_literalcstring_cfunction(table, "copy", &table_clone, 1);
+    table_insert_literalcstring_cfunction(table, "__get", &table___get, 2);
+    table_insert_literalcstring_cfunction(table, "__set", &table___set, 3);
+    return table;
 }
 

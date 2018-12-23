@@ -10,7 +10,7 @@ int table___get(struct YASL_State *S) {
     struct YASL_Object key = vm_pop(S->vm);
     ASSERT_TYPE(S->vm, Y_TABLE, "table.__get");
     struct RC_Table* ht = YASL_GETTBL(PEEK(S->vm));
-    struct YASL_Object *result = rcht_search(ht, key);
+    struct YASL_Object *result = table_search(ht->table, key);
     if (result == NULL) {
         S->vm->sp++;  // TODO: fix this
         //vm_push(S->vm, key);
@@ -33,7 +33,7 @@ int table___set(struct YASL_State *S) {
         printf("Error: unable to use mutable object of type %x as key.\n", key.type);
         return -1;
     }
-    rcht_insert(ht, key, val);
+    table_insert(ht->table, key, val);
     vm_push(S->vm, val);
     return 0;
 }
@@ -77,7 +77,7 @@ int table_clone(struct YASL_State *S) {
         if (item != NULL && item != &TOMBSTONE) {
             inc_ref(item->key);
             inc_ref(item->value);
-            rcht_insert(new_ht, *item->key, *item->value);
+            table_insert(new_ht->table, *item->key, *item->value);
         }
     }
 

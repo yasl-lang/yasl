@@ -83,7 +83,7 @@ int list_extend(struct YASL_State *S) {
     struct RC_List *ls  = YASL_GETLIST(vm_pop(S->vm));
 
     struct RC_List *exls = extend_ls;
-    for(size_t i = 0; i < exls->list.count; i++) {
+    for(int64_t i = 0; i < exls->list.count; i++) {
         ls_append(ls, exls->list.items[i]);
     }
     vm_push(S->vm, YASL_UNDEF());
@@ -106,7 +106,7 @@ int list_search(struct YASL_State *S) {
     ASSERT_TYPE(S->vm, Y_LIST, "list.search");
     struct RC_List *haystack = YASL_GETLIST(vm_pop(S->vm));
     struct YASL_Object index = YASL_UNDEF();
-    for (size_t i = 0; i < haystack->list.count; i++) {
+    for (int64_t i = 0; i < haystack->list.count; i++) {
         if (!isfalsey(isequal(haystack->list.items[i], needle)))
             index = YASL_INT(i);
     }

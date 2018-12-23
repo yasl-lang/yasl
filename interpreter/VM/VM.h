@@ -50,7 +50,7 @@ struct VM{
 	int fp;                     // frame pointer
     int next_fp;
     int lp;                     // foreach pointer
-	struct RC_Table **builtins_htable;   // htable of builtin methods
+	struct Table **builtins_htable;   // htable of builtin methods
 };
 
 struct VM* vm_new(unsigned char *code,    // pointer to bytecode
@@ -64,9 +64,9 @@ void vm_push(struct VM *vm, struct YASL_Object val);
 
 void vm_run(struct VM *vm);
 
-struct RC_Table* float_builtins(void);
-struct RC_Table* int_builtins(void);
-struct RC_Table* bool_builtins(void);
-struct RC_Table* str_builtins(void);
-struct RC_Table* list_builtins(void);
-struct RC_Table* table_builtins(void);
+struct Table* float_builtins(void);
+struct Table* int_builtins(void);
+struct Table* bool_builtins(void);
+struct Table* str_builtins(void);
+struct Table* list_builtins(void);
+struct Table* table_builtins(void);
