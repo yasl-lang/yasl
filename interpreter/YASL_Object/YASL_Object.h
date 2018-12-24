@@ -8,8 +8,8 @@
 
 #define YASL_END() ((struct YASL_Object) { .type = Y_END })
 #define YASL_UNDEF() ((struct YASL_Object) { .type = Y_UNDEF })
-#define YASL_FLOAT(d) ((struct YASL_Object) { .type = Y_FLOAT64, .value.dval = d })
-#define YASL_INT(i) ((struct YASL_Object) { .type = Y_INT64, .value.ival = i })
+#define YASL_FLOAT(d) ((struct YASL_Object) { .type = Y_FLOAT, .value.dval = d })
+#define YASL_INT(i) ((struct YASL_Object) { .type = Y_INT, .value.ival = i })
 #define YASL_BOOL(b) ((struct YASL_Object) { .type = Y_BOOL, .value.ival = b })
 #define YASL_STR(s) ((struct YASL_Object) { .type = Y_STR, .value.sval = s })
 #define YASL_LIST(l) ((struct YASL_Object) { .type = Y_LIST, .value.lval = l })
@@ -20,8 +20,8 @@
 #define YASL_CFN(f, n) ((struct YASL_Object) { .type = Y_CFN, .value.cval = new_cfn(f, n) })
 
 #define YASL_ISUNDEF(v) ((v).type == Y_UNDEF)
-#define YASL_ISFLOAT(v) ((v).type == Y_FLOAT64)
-#define YASL_ISINT(v) ((v).type == Y_INT64)
+#define YASL_ISFLOAT(v) ((v).type == Y_FLOAT)
+#define YASL_ISINT(v) ((v).type == Y_INT)
 #define YASL_ISBOOL(v) ((v).type == Y_BOOL)
 #define YASL_ISSTR(v) ((v).type == Y_STR)
 #define YASL_ISLIST(v) ((v).type == Y_LIST)
@@ -48,8 +48,8 @@ struct YASL_State;
 typedef enum {
     Y_END = -1,
     Y_UNDEF,
-    Y_FLOAT64,
-    Y_INT64,
+    Y_FLOAT,
+    Y_INT,
     Y_BOOL,
     Y_STR,
     Y_STR_W,

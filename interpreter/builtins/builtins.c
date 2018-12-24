@@ -1,5 +1,6 @@
 #include "builtins.h"
 
+#include "undef_methods.h"
 #include "str_methods.h"
 #include "float_methods.h"
 #include "int_methods.h"
@@ -22,6 +23,12 @@ int yasl_print(struct VM* vm) {
  *                                                                                                                   *
  *                                                                                                                   *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+struct Table *undef_builtins() {
+	struct Table* table = table_new();
+	table_insert_literalcstring_cfunction(table, "tostr", &undef_tostr, 1);
+	return table;
+}
 
 struct Table* float_builtins() {
     struct Table* table = table_new();
@@ -71,25 +78,27 @@ struct Table* str_builtins() {
 }
 
 struct Table* list_builtins() {
-    struct Table* table = table_new();
-    table_insert_literalcstring_cfunction(table, "push", &list_push, 2);
-    table_insert_literalcstring_cfunction(table, "copy", &list_copy, 1);
-    table_insert_literalcstring_cfunction(table, "extend", &list_extend, 2);
-    table_insert_literalcstring_cfunction(table, "pop", &list_pop, 1);
-    table_insert_literalcstring_cfunction(table, "__get", &list___get, 2);
-    table_insert_literalcstring_cfunction(table, "__set", &list___set, 3);
-    table_insert_literalcstring_cfunction(table, "search", &list_search, 2);
-    table_insert_literalcstring_cfunction(table, "reverse", &list_reverse, 1);
-    return table;
+	struct Table *table = table_new();
+	table_insert_literalcstring_cfunction(table, "push", &list_push, 2);
+	table_insert_literalcstring_cfunction(table, "copy", &list_copy, 1);
+	table_insert_literalcstring_cfunction(table, "extend", &list_extend, 2);
+	table_insert_literalcstring_cfunction(table, "pop", &list_pop, 1);
+	table_insert_literalcstring_cfunction(table, "__get", &list___get, 2);
+	table_insert_literalcstring_cfunction(table, "__set", &list___set, 3);
+	table_insert_literalcstring_cfunction(table, "tostr", &list_tostr, 1);
+	table_insert_literalcstring_cfunction(table, "search", &list_search, 2);
+	table_insert_literalcstring_cfunction(table, "reverse", &list_reverse, 1);
+	return table;
 }
 
 struct Table* table_builtins() {
-    struct Table* table = table_new();
-    table_insert_literalcstring_cfunction(table, "keys", &table_keys, 1);
-    table_insert_literalcstring_cfunction(table, "values", &table_values, 1);
-    table_insert_literalcstring_cfunction(table, "copy", &table_clone, 1);
-    table_insert_literalcstring_cfunction(table, "__get", &table___get, 2);
-    table_insert_literalcstring_cfunction(table, "__set", &table___set, 3);
-    return table;
+	struct Table *table = table_new();
+	table_insert_literalcstring_cfunction(table, "keys", &table_keys, 1);
+	table_insert_literalcstring_cfunction(table, "values", &table_values, 1);
+	table_insert_literalcstring_cfunction(table, "copy", &table_clone, 1);
+	table_insert_literalcstring_cfunction(table, "tostr", &table_tostr, 1);
+	table_insert_literalcstring_cfunction(table, "__get", &table___get, 2);
+	table_insert_literalcstring_cfunction(table, "__set", &table___set, 3);
+	return table;
 }
 

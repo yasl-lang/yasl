@@ -52,6 +52,54 @@ int list___set(struct YASL_State *S) {
     return 0;
 }
 
+int list_tostr(struct YASL_State *S) {
+	ASSERT_TYPE(S->vm, Y_LIST, "list.tostr");
+	struct List *list = YASL_GETLIST(vm_pop(S->vm));
+
+	char *string = "<list>";
+	vm_push(S->vm, YASL_STR(str_new_sized(strlen(string), string)));
+	return 0;
+}
+
+/*
+void ls_print(struct RC_List* ls) {
+    ByteBuffer *seen = bb_new(sizeof(int64_t)*2);
+    ls_print_h(ls, seen);
+}
+
+void ls_print_h(struct RC_List* ls, ByteBuffer *seen) {
+    int i = 0;
+    if (ls->list->count == 0) {
+        printf("[]");
+        return;
+    }
+    printf("[");
+    while (i < ls->list->count) {
+        if (YASL_ISLIST(ls->list->items[i])) {
+            if (isvalueinarray(ls->list->items[i].value.ival, (int64_t*)seen->bytes, seen->count/sizeof(int64_t))) {
+                printf("[...]");
+            } else {
+                bb_intbytes8(seen, (int64_t)ls);
+                bb_intbytes8(seen, ls->list->items[i].value.ival);
+                ls_print_h(ls->list->items[i].value.lval, seen);
+            }
+        } else if (YASL_ISTBL(ls->list->items[i])) {
+            if (isvalueinarray(ls->list->items[i].value.ival, (int64_t*)seen->bytes, seen->count/sizeof(int64_t))) {
+                printf("[...->...]");
+            } else {
+                bb_intbytes8(seen, (int64_t)ls);
+                bb_intbytes8(seen, ls->list->items[i].value.ival);
+                ht_print_h(ls->list->items[i].value.mval, seen);
+            }
+        } else {
+            print(ls->list->items[i]);
+        }
+        printf(", ");
+        i++;
+    }
+    printf("\b\b]");
+}
+*/
 
 int list_push(struct YASL_State *S) {
     struct YASL_Object val = vm_pop(S->vm);

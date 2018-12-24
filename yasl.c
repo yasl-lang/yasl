@@ -174,12 +174,12 @@ int YASL_isboolean(struct YASL_Object *obj) {
 
 
 int YASL_isdouble(struct YASL_Object *obj) {
-    return obj->type != Y_FLOAT64;
+    return obj->type != Y_FLOAT;
 }
 
 
 int YASL_isinteger(struct YASL_Object *obj) {
-    return obj->type != Y_INT64;
+    return obj->type != Y_INT;
 }
 
 int YASL_isstring(struct YASL_Object *obj) {

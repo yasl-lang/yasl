@@ -15,7 +15,7 @@ int str___get(struct YASL_State *S) {
     struct YASL_Object index = vm_pop(S->vm);
     ASSERT_TYPE(S->vm, Y_STR, "str.__get");
     String_t *str = YASL_GETSTR(vm_pop(S->vm));
-    if (index.type != Y_INT64) {
+    if (index.type != Y_INT) {
         return -1;
         vm_push(S->vm, YASL_UNDEF());
     } else if (YASL_GETINT(index) < -yasl_string_len(str) || YASL_GETINT(index) >= yasl_string_len(str)) {

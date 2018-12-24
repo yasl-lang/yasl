@@ -24,18 +24,27 @@ int table___get(struct YASL_State *S) {
 }
 
 int table___set(struct YASL_State *S) {
-    struct YASL_Object val = vm_pop(S->vm);
-    struct YASL_Object key = vm_pop(S->vm);
-    ASSERT_TYPE(S->vm, Y_TABLE, "table.__set");
-    struct Table* ht = YASL_GETTBL(vm_pop(S->vm));
+	struct YASL_Object val = vm_pop(S->vm);
+	struct YASL_Object key = vm_pop(S->vm);
+	ASSERT_TYPE(S->vm, Y_TABLE, "table.__set");
+	struct Table *ht = YASL_GETTBL(vm_pop(S->vm));
 
-    if (YASL_ISLIST(key) || YASL_ISTBL(key) || YASL_ISUSERDATA(key)) {
-        printf("Error: unable to use mutable object of type %x as key.\n", key.type);
-        return -1;
-    }
-    table_insert(ht, key, val);
-    vm_push(S->vm, val);
-    return 0;
+	if (YASL_ISLIST(key) || YASL_ISTBL(key) || YASL_ISUSERDATA(key)) {
+		printf("Error: unable to use mutable object of type %x as key.\n", key.type);
+		return -1;
+	}
+	table_insert(ht, key, val);
+	vm_push(S->vm, val);
+	return 0;
+}
+
+int table_tostr(struct YASL_State *S) {
+	ASSERT_TYPE(S->vm, Y_TABLE, "table.tostr");
+	struct Table *table = YASL_GETTBL(vm_pop(S->vm));
+
+	char *string = "<table>";
+	vm_push(S->vm, YASL_STR(str_new_sized(strlen(string), string)));
+	return 0;
 }
 
 int table_keys(struct YASL_State *S) {
