@@ -24,10 +24,10 @@ int str___get(struct YASL_State *S) {
     } else {
         if (YASL_GETINT(index) >= 0)
             vm_push(S->vm, YASL_STR(
-                    str_new_sized_heap(str->start + YASL_GETINT(index), str->start + YASL_GETINT(index) + 1, str->str)));
-        else vm_push(S->vm, YASL_STR(str_new_sized_heap(str->start + YASL_GETINT(index) + yasl_string_len(str),
+		    str_new_substring(str->start + YASL_GETINT(index), str->start + YASL_GETINT(index) + 1, str)));
+        else vm_push(S->vm, YASL_STR(str_new_substring(str->start + YASL_GETINT(index) + yasl_string_len(str),
                                                         str->start + YASL_GETINT(index) + yasl_string_len(str) + 1,
-                                                        str->str)));
+                                                        str)));
     }
     return 0;
 }
@@ -52,7 +52,8 @@ int str_slice(struct YASL_State *S) {
         return -1;
     }
 
-    vm_push(S->vm, YASL_STR(str_new_sized_heap(str->start + start, str->start + end, str->str)));
+    // TODO: fix bug with possible mem leak here
+    vm_push(S->vm, YASL_STR(str_new_substring(str->start + start, str->start + end, str)));
 
     return 0;
 }
@@ -151,7 +152,7 @@ int str_toupper(struct YASL_State *S) {
         }
     }
 
-    vm_push(S->vm, YASL_STR(str_new_sized(length, ptr)));
+    vm_push(S->vm, YASL_STR(str_new_sized_heap(0, length, ptr)));
     return 0;
 }
 
@@ -171,7 +172,7 @@ int str_tolower(struct YASL_State *S) {
             ptr[i++] = curr;
         }
     }
-    vm_push(S->vm, YASL_STR(str_new_sized(length, ptr)));
+    vm_push(S->vm, YASL_STR(str_new_sized_heap(0, length, ptr)));
     return 0;
 }
 
@@ -320,7 +321,7 @@ int str_replace(struct YASL_State *S) {
 
     char *new_str = malloc(buff->count);
     memcpy(new_str, buff->bytes, buff->count);
-    vm_push(S->vm, YASL_STR(str_new_sized(buff->count, new_str)));
+    vm_push(S->vm, YASL_STR(str_new_sized_heap(0, buff->count, new_str)));
 
     bb_del(buff);
     return 0;
@@ -355,14 +356,14 @@ int str_split(struct YASL_State *S) {
         if (!memcmp(haystack->str + haystack->start + end,
                     needle->str + needle->start,
                     yasl_string_len(needle))) {
-            ls_append(result->list, YASL_STR(str_new_sized_heap(start + haystack->start, end + haystack->start, haystack->str)));
+            ls_append(result->list, YASL_STR(str_new_substring(start + haystack->start, end + haystack->start, haystack)));
             end += yasl_string_len(needle);
             start = end;
         } else {
             end++;
         }
-    }
-    ls_append(result->list, YASL_STR(str_new_sized_heap(start + haystack->start, end + haystack->start, haystack->str)));
+    } // TODO: fix memory leak possible bug here
+    ls_append(result->list, YASL_STR(str_new_substring(start + haystack->start, end + haystack->start, haystack)));
     vm_push(S->vm, YASL_LIST(result));
     return 0;
 }
@@ -382,8 +383,8 @@ int str_ltrim(struct YASL_State *S) {
         }
 
         vm_push(S->vm,
-                YASL_STR(str_new_sized_heap(haystack->start + start, haystack->start + yasl_string_len(haystack),
-                        haystack->str)));
+                YASL_STR(str_new_substring(haystack->start + start, haystack->start + yasl_string_len(haystack),
+                        haystack)));
 
     return 0;
 }
@@ -402,8 +403,7 @@ int str_rtrim(struct YASL_State *S) {
         end -= yasl_string_len(needle);
     }
 
-    vm_push(S->vm, YASL_STR(str_new_sized_heap(haystack->start, haystack->start + end, haystack->str)));
-
+    vm_push(S->vm, YASL_STR(str_new_substring(haystack->start, haystack->start + end, haystack)));
     return 0;
 }
 
@@ -429,7 +429,8 @@ int str_trim(struct YASL_State *S) {
         end -= yasl_string_len(needle);
     }
 
-    vm_push(S->vm, YASL_STR(str_new_sized_heap(haystack->start + start, haystack->start + end, haystack->str)));
+    // TODO: fix possible mem leak here
+    vm_push(S->vm, YASL_STR(str_new_substring(haystack->start + start, haystack->start + end, haystack)));
 
     return 0;
 }

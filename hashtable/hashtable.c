@@ -192,7 +192,7 @@ void table_insert_literalcstring_cfunction(struct Table *ht, char *key, int (*ad
 }
 
 void table_insert_string_int(struct Table *table, char *key, int64_t key_len, int64_t val) {
-    String_t *string = str_new_sized(key_len, copy_char_buffer(key_len, key));
+    String_t *string = str_new_sized_heap(0, key_len, copy_char_buffer(key_len, key));
     table_insert(table,
                 (struct YASL_Object) {.type = Y_STR, .value.sval = string},
                 (struct YASL_Object) {.type = Y_INT64, .value.ival = val});
@@ -213,7 +213,7 @@ struct YASL_Object* table_search(const struct Table *const table, const struct Y
 }
 
 struct YASL_Object *table_search_string_int(const struct Table *const table, char *key, int64_t key_len) {
-    String_t *string = str_new_sized(key_len, copy_char_buffer(key_len, key));
+    String_t *string = str_new_sized_heap(0, key_len, copy_char_buffer(key_len, key));
     struct YASL_Object object = (struct YASL_Object) { .value.sval = string, .type = Y_STR };
 
     struct YASL_Object *result = table_search(table, object);

@@ -139,7 +139,7 @@ void vm_int_binop(struct VM *vm, yasl_int (*op)(yasl_int, yasl_int), char *opstr
         vm_push(vm, YASL_INT(op(YASL_GETINT(a), YASL_GETINT(b))));
         return;
     }  else if (YASL_ISTBL(a)) {
-        struct YASL_Object *key = YASL_String(str_new_sized_heap(0, strlen(overload_name), overload_name));
+        struct YASL_Object *key = YASL_String(str_new_sized(strlen(overload_name), overload_name));
         struct YASL_Object *result = table_search(YASL_GETTBL(a), *key);
         if (result && YASL_ISFN(*result)) {
             vm->sp += 2;
@@ -210,7 +210,7 @@ void vm_num_binop(
     } else if (YASL_ISINT(left) && YASL_ISFLOAT(right)) {
         vm_push(vm, YASL_FLOAT(float_op(YASL_GETINT(left), YASL_GETFLOAT(right))));
     } else if (YASL_ISTBL(left)) {
-        struct YASL_Object *key = YASL_String(str_new_sized_heap(0, strlen(overload_name), overload_name));
+        struct YASL_Object *key = YASL_String(str_new_sized(strlen(overload_name), overload_name));
         struct YASL_Object *result = table_search(YASL_GETTBL(left), *key);
         if (result && YASL_ISFN(*result)) {
             vm->sp += 2;
@@ -253,7 +253,7 @@ void vm_fdiv(struct VM *vm) {
     else if (YASL_ISFLOAT(left) && YASL_ISINT(right)) {
         vm_push(vm, YASL_FLOAT(YASL_GETFLOAT(left) / (yasl_float)YASL_GETINT(right)));
     }  else if (YASL_ISTBL(left)) {
-        struct YASL_Object *key = YASL_String(str_new_sized_heap(0, strlen(overload_name), overload_name));
+        struct YASL_Object *key = YASL_String(str_new_sized(strlen(overload_name), overload_name));
         struct YASL_Object *result = table_search(YASL_GETTBL(left), *key);
         if (result && YASL_ISFN(*result)) {
             vm->sp += 2;
@@ -537,7 +537,7 @@ void vm_run(struct VM *vm){
                 memcpy(&size, vm->code + addr, sizeof(yasl_int));
                 addr += sizeof(yasl_int);
 
-                vm_push(vm, YASL_STR(str_new_sized_heap(addr, addr + size, (char *) vm->code)));
+                vm_push(vm, YASL_STR(str_new_sized(size, ((char *)vm->code) + addr)));
                 break;
             case NEWTABLE: {
                 struct YASL_Object *table = YASL_Table();

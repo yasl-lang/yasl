@@ -37,8 +37,8 @@ struct RC_List* ls_new(void) {
 
 void ls_del_data(struct RC_List *ls) {
     for (int i = 0; i < ls->list->count; i++) dec_ref(ls->list->items + i);
-    free(ls->list);
     free(ls->list->items);
+    free(ls->list);
 }
 
 void ls_del_rc(struct RC_List *ls) {
@@ -48,8 +48,8 @@ void ls_del_rc(struct RC_List *ls) {
 
 void ls_del(struct RC_List *ls) {
     for (int i = 0; i < ls->list->count; i++) dec_ref(ls->list->items + i);
-    free(ls->list);
     free(ls->list->items);
+    free(ls->list);
     rc_del(ls->rc);
     free(ls);
 }
