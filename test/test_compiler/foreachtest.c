@@ -59,7 +59,7 @@ static void test_continue() {
             ENDFOR,
             HALT
     };
-    ASSERT_GEN_BC_EQ(expected,"for let i <- [0, 1, 2, 3, 4, 5] { if i == 5 { continue; }; echo i; };");
+    ASSERT_GEN_BC_EQ(expected,"for i <- [0, 1, 2, 3, 4, 5] { if i == 5 { continue; }; echo i; };");
 }
 
 static void test_break() {
@@ -101,7 +101,7 @@ static void test_break() {
             ENDFOR,
             HALT
     };
-    ASSERT_GEN_BC_EQ(expected,"for let i <- [0, 1, 2, 3, 4, 5] { if i == 5 { break; }; echo i; };");
+    ASSERT_GEN_BC_EQ(expected,"for i <- [0, 1, 2, 3, 4, 5] { if i == 5 { break; }; echo i; };");
 }
 
 int foreachtest(void) {

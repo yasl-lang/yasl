@@ -1,6 +1,6 @@
 # test overwriting keys works
 
-let x = { 'a': 'A'}
+x := { 'a': 'A'}
 
 x['a'] = '$'
 

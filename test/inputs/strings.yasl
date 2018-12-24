@@ -1,6 +1,6 @@
 # test strings are collected
 
-let x = 'x'
+x := 'x'
 
 x = 'X'
 

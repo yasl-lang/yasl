@@ -117,12 +117,6 @@ void test_not_in(void) {
     ASSERT_EATTOK(T_EOF, lex);
 }
 
-void test_let(void) {
-    Lexer *lex = setup_lexer("let");
-    ASSERT_EATTOK(T_LET, lex);
-    ASSERT_EATTOK(T_EOF, lex);
-}
-
 void test_const(void) {
     Lexer *lex = setup_lexer("const");
     ASSERT_EATTOK(T_CONST, lex);
@@ -504,10 +498,9 @@ void test_int(void) {
 }
 
 void test_string(void) {
-    Lexer *lex = setup_lexer("let x = 'hello world';");
-    ASSERT_EATTOK(T_LET, lex);
+    Lexer *lex = setup_lexer("x := 'hello world';");
     ASSERT_EATTOK(T_ID, lex);
-    ASSERT_EATTOK(T_EQ, lex);
+    ASSERT_EATTOK(T_COLONEQ, lex);
     ASSERT_EATTOK(T_STR, lex);
     ASSERT_EATTOK(T_SEMI, lex);
     ASSERT_EATTOK(T_EOF, lex);
@@ -559,7 +552,6 @@ int lexertest(void) {
     test_for();
     test_in();
     test_not_in();
-    test_let();
     test_const();
     test_fn();
     test_return();

@@ -90,7 +90,6 @@ typedef enum {
     T_IN,
     T_BANGIN,
     T_ID,
-    T_LET,
     T_CONST,
     T_FN,
     T_RET,

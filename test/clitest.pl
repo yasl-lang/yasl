@@ -25,7 +25,7 @@ sub assert_output {
     return $exitcode;
 }
 
-assert_output("YASL -V", "YASL v0.2.1\n", 0);
+assert_output("YASL -V", "YASL v0.3.0\n", 0);
 assert_output("YASL -h",
               "usage: yasl [option] [file]\n" .
               "options:\n" .
