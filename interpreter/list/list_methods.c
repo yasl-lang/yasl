@@ -111,10 +111,11 @@ int list_push(struct YASL_State *S) {
 int list_copy(struct YASL_State *S) {
     ASSERT_TYPE(S->vm, Y_LIST, "list.copy");
     struct List *ls = YASL_GETLIST(vm_pop(S->vm));
-    struct RC_List *new_ls = ls_new_sized(ls->size);
-    new_ls->list->count = ls->count;
-    memcpy(new_ls->list->items, ls->items, new_ls->list->count*sizeof(struct YASL_Object));
+    struct RC_UserData *new_ls = ls_new_sized(ls->size);
+    ((struct List *)new_ls->data)->count = ls->count;
+    memcpy(((struct List *)new_ls->data)->items, ls->items, ((struct List *)new_ls->data)->count*sizeof(struct YASL_Object));
 
+    vm_push(S->vm, YASL_LIST(new_ls));
     struct YASL_Object* yasl_list = malloc(sizeof(struct YASL_Object));
     yasl_list->type = Y_LIST;
     yasl_list->value.lval = new_ls;

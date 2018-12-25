@@ -50,26 +50,28 @@ struct VM* vm_new(unsigned char *code,    // pointer to bytecode
 }
 
 void vm_del(struct VM *vm) {
-    for (size_t i = 0; i < STACK_SIZE; i++) dec_ref(&vm->stack[i]);
-    for (size_t i = 0; i < vm->num_globals; i++) {
-        // printf("i = %zd\n", i);
-        dec_ref(&vm->globals[i]);
-    }
+	for (size_t i = 0; i < STACK_SIZE; i++) dec_ref(&vm->stack[i]);
+	for (size_t i = 0; i < vm->num_globals; i++) {
+		// printf("i = %zd\n", i);
+		dec_ref(&vm->globals[i]);
+	}
 
-    free(vm->globals);
-    free(vm->stack);
+	free(vm->globals);
+	free(vm->stack);
 
-    free(vm->code);
+	free(vm->code);
 
-    table_del(vm->builtins_htable[Y_FLOAT]);
-    table_del(vm->builtins_htable[Y_INT]);
-    table_del(vm->builtins_htable[Y_BOOL]);
-    table_del(vm->builtins_htable[Y_STR]);
-    table_del(vm->builtins_htable[Y_LIST]);
-    table_del(vm->builtins_htable[Y_TABLE]);
-    free(vm->builtins_htable);
 
-    free(vm);
+	table_del(vm->builtins_htable[Y_UNDEF]);
+	table_del(vm->builtins_htable[Y_FLOAT]);
+	table_del(vm->builtins_htable[Y_INT]);
+	table_del(vm->builtins_htable[Y_BOOL]);
+	table_del(vm->builtins_htable[Y_STR]);
+	table_del(vm->builtins_htable[Y_LIST]);
+	table_del(vm->builtins_htable[Y_TABLE]);
+	free(vm->builtins_htable);
+
+	free(vm);
 }
 
 void vm_push(struct VM *vm, struct YASL_Object val) {
@@ -468,6 +470,7 @@ void vm_run(struct VM *vm) {
 				YASL_Types index = vm_peek(vm).type;
 				struct YASL_Object key = YASL_STR(str_new_sized(strlen("tostr"), "tostr"));
 				struct YASL_Object *result = table_search(vm->builtins_htable[index], key);
+				str_del(YASL_GETSTR(key));
 				YASL_GETCFN(*result)->value((struct YASL_State *) &vm);
 			}
 			b = vm_pop(vm);
@@ -475,6 +478,7 @@ void vm_run(struct VM *vm) {
 				YASL_Types index = vm_peek(vm).type;
 				struct YASL_Object key = YASL_STR(str_new_sized(strlen("tostr"), "tostr"));
 				struct YASL_Object *result = table_search(vm->builtins_htable[index], key);
+				str_del(YASL_GETSTR(key));
 				YASL_GETCFN(*result)->value((struct YASL_State *) &vm);
 			}
 			a = vm_pop(vm);
@@ -557,11 +561,11 @@ void vm_run(struct VM *vm) {
 			break;
 		}
 		case NEWLIST: {
-			struct RC_List *ls = ls_new();
+			struct RC_UserData *ls = ls_new();
 			while (vm_peek(vm).type != Y_END) {
-				ls_append(ls->list, vm_pop(vm));
+				ls_append(ls->data, vm_pop(vm));
 			}
-			ls_reverse(ls->list);
+			ls_reverse(ls->data);
 			vm_pop(vm);
 			vm_push(vm, YASL_LIST(ls));
 			break;

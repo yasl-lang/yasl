@@ -351,19 +351,19 @@ int str_split(struct YASL_State *S) {
         return -1;
     }
     int64_t end=0, start=0;
-    struct RC_List* result = ls_new();
+    struct RC_UserData* result = ls_new();
     while (end + yasl_string_len(needle) <= yasl_string_len(haystack)) {
         if (!memcmp(haystack->str + haystack->start + end,
                     needle->str + needle->start,
                     yasl_string_len(needle))) {
-            ls_append(result->list, YASL_STR(str_new_substring(start + haystack->start, end + haystack->start, haystack)));
+            ls_append(result->data, YASL_STR(str_new_substring(start + haystack->start, end + haystack->start, haystack)));
             end += yasl_string_len(needle);
             start = end;
         } else {
             end++;
         }
-    } // TODO: fix memory leak possible bug here
-    ls_append(result->list, YASL_STR(str_new_substring(start + haystack->start, end + haystack->start, haystack)));
+    }
+    ls_append(result->data, YASL_STR(str_new_substring(start + haystack->start, end + haystack->start, haystack)));
     vm_push(S->vm, YASL_LIST(result));
     return 0;
 }

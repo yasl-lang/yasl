@@ -35,7 +35,7 @@
 #define YASL_GETINT(v) ((v).value.ival)
 #define YASL_GETBOOL(v) ((v).value.ival)
 #define YASL_GETSTR(v) ((v).value.sval)
-#define YASL_GETLIST(v) ((v).value.lval->list)
+#define YASL_GETLIST(v) ((struct List *)((v).value.lval->data))
 #define YASL_GETTBL(v) ((v).value.mval->table)
 #define YASL_GETUSERDATA(v) ((v).value.uval)
 #define YASL_GETUSERPTR(v) ((v).value.pval)
@@ -43,6 +43,12 @@
 #define YASL_GETCFN(v) ((v).value.cval)
 
 struct YASL_State;
+
+enum YASL_Tags {
+        T_TABLE = -1,
+        T_LIST = -2,
+        T_FILE = -3,
+};
 
 //Keep up to date with the YASL_TYPE_NAMES
 typedef enum {
@@ -65,7 +71,7 @@ typedef enum {
 } YASL_Types;
 
 struct RC_Table;
-struct UserData_s;
+struct RC_UserData;
 struct CFunction_s {
     struct RC *rc;
     int num_args;
@@ -82,9 +88,9 @@ struct YASL_Object {
         int64_t ival;
         double dval;
         String_t *sval;
-        struct RC_List *lval;
+        struct RC_UserData *lval;
         struct RC_Table *mval;
-        struct UserData_s *uval;
+        struct RC_UserData *uval;
         struct CFunction_s *cval;
         void *pval;
     } value;

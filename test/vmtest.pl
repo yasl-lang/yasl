@@ -44,17 +44,17 @@ assert_output(q+echo `no escapes\a\b\f\n\r\t\v\0\'\\\\`
 ', 0);
 assert_output(q+$x := 10
                 $y := 12
-                echo "$x is #{$x->tostr()}, #{$y->tostr()}.";+,
+                echo "$x is #{$x}, #{$y}.";+,
               "\$x is 10, 12.\n",
               0);
 assert_output(q+$x := 10
                 $y := 12
-                echo "$x is #{$x->tostr()        }, #{$y->tostr()}";+,
+                echo "$x is #{$x        }, #{$y}";+,
               "\$x is 10, 12\n",
               0);
 assert_output(q+$x := 10
                 $y := 12
-                echo "$x is #{$x->tostr()  }#{$y->tostr()}  ";+,
+                echo "$x is #{$x  }#{$y}  ";+,
               "\$x is 1012  \n",
               0);
 

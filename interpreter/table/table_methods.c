@@ -50,12 +50,12 @@ int table_tostr(struct YASL_State *S) {
 int table_keys(struct YASL_State *S) {
     ASSERT_TYPE(S->vm, Y_TABLE, "table.keys");
     struct Table *ht = YASL_GETTBL(vm_pop(S->vm));
-    struct RC_List* ls = ls_new();
+    struct RC_UserData* ls = ls_new();
     Item_t* item;
     for (size_t i = 0; i < ht->size; i++) {
         item = ht->items[i];
         if (item != NULL && item != &TOMBSTONE) {
-            ls_append(ls->list, *(item->key));
+            ls_append(ls->data, *(item->key));
         }
     }
     vm_push(S->vm, YASL_LIST(ls));
@@ -65,12 +65,12 @@ int table_keys(struct YASL_State *S) {
 int table_values(struct YASL_State *S) {
     ASSERT_TYPE(S->vm, Y_TABLE, "table.values");
     struct Table *ht = YASL_GETTBL(vm_pop(S->vm));
-    struct RC_List* ls = ls_new();
+    struct RC_UserData* ls = ls_new();
     Item_t* item;
     for (size_t i = 0; i < ht->size; i++) {
         item = ht->items[i];
         if (item != NULL && item != &TOMBSTONE) {
-            ls_append(ls->list, *(item->value));
+            ls_append(ls->data, *(item->value));
         }
     }
     vm_push(S->vm, YASL_LIST(ls));
