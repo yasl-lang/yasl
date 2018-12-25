@@ -22,6 +22,7 @@ struct RC_UserData* ls_new_sized(const int base_size) {
     list->items = malloc(sizeof(struct YASL_Object)*list->size);
     ls->data = list;
     ls->rc = rc_new();
+    ls->tag = T_LIST;
     return ls;
 }
 

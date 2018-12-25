@@ -12,7 +12,7 @@
 #define YASL_INT(i) ((struct YASL_Object) { .type = Y_INT, .value.ival = i })
 #define YASL_BOOL(b) ((struct YASL_Object) { .type = Y_BOOL, .value.ival = b })
 #define YASL_STR(s) ((struct YASL_Object) { .type = Y_STR, .value.sval = s })
-#define YASL_LIST(l) ((struct YASL_Object) { .type = Y_LIST, .value.lval = l })
+#define YASL_LIST(l) ((struct YASL_Object) { .type = Y_LIST, .value.uval = l })
 #define YASL_TBL(t) ((struct YASL_Object) { .type = Y_TABLE, .value.mval = t })
 #define YASL_USERDATA(p) ((struct YASL_Object) { .type = Y_USERDATA, .value.uval = p })
 #define YASL_USERPTR(p) ((struct YASL_Object) { .type = Y_USERPTR, .value.pval = p })
@@ -35,7 +35,7 @@
 #define YASL_GETINT(v) ((v).value.ival)
 #define YASL_GETBOOL(v) ((v).value.ival)
 #define YASL_GETSTR(v) ((v).value.sval)
-#define YASL_GETLIST(v) ((struct List *)((v).value.lval->data))
+#define YASL_GETLIST(v) ((struct List *)((v).value.uval->data))
 #define YASL_GETTBL(v) ((v).value.mval->table)
 #define YASL_GETUSERDATA(v) ((v).value.uval)
 #define YASL_GETUSERPTR(v) ((v).value.pval)
@@ -88,7 +88,6 @@ struct YASL_Object {
         int64_t ival;
         double dval;
         String_t *sval;
-        struct RC_UserData *lval;
         struct RC_Table *mval;
         struct RC_UserData *uval;
         struct CFunction_s *cval;

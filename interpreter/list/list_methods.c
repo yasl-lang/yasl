@@ -116,13 +116,6 @@ int list_copy(struct YASL_State *S) {
     memcpy(((struct List *)new_ls->data)->items, ls->items, ((struct List *)new_ls->data)->count*sizeof(struct YASL_Object));
 
     vm_push(S->vm, YASL_LIST(new_ls));
-    struct YASL_Object* yasl_list = malloc(sizeof(struct YASL_Object));
-    yasl_list->type = Y_LIST;
-    yasl_list->value.lval = new_ls;
-
-    vm_push(S->vm, *yasl_list);
-
-    free(yasl_list);
     return 0;
 }
 
