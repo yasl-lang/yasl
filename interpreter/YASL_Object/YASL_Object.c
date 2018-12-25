@@ -81,7 +81,7 @@ struct YASL_Object *YASL_String(String_t *str) {
 struct YASL_Object *YASL_Table() {
     struct YASL_Object *table = malloc(sizeof(struct YASL_Object));
     table->type = Y_TABLE;
-    table->value.mval = rcht_new();
+    table->value.uval = rcht_new();
     return table;
 }
 

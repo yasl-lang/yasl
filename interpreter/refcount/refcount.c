@@ -30,7 +30,7 @@ static void inc_weak_ref(struct YASL_Object *v) {
             v->value.uval->rc->weak_refs++;
             break;
         case Y_TABLE_W:
-            v->value.mval->rc->weak_refs++;
+            v->value.uval->rc->weak_refs++;
             break;
         default:
             puts("NOt Implemented");
@@ -51,7 +51,7 @@ static void inc_strong_ref(struct YASL_Object *v) {
             v->value.uval->rc->refs++;
             break;
         case Y_TABLE:
-            v->value.mval->rc->refs++;
+            v->value.uval->rc->refs++;
             break;
         case Y_CFN:
             v->value.cval->rc->refs++;
@@ -97,8 +97,8 @@ static void dec_weak_ref(struct YASL_Object *v) {
             ls_del_rc(v->value.uval);
             break;
         case Y_TABLE_W:
-            if (--(v->value.mval->rc->weak_refs) || v->value.mval->rc->refs) return;
-            rcht_del_rc(v->value.mval);
+            if (--(v->value.uval->rc->weak_refs) || v->value.uval->rc->refs) return;
+            rcht_del_rc(v->value.uval);
             break;
         default:
             puts("NoT IMPELemented");
@@ -126,10 +126,10 @@ void dec_strong_ref(struct YASL_Object *v) {
             ls_del_rc(v->value.uval);
             break;
         case Y_TABLE:
-            if (--(v->value.mval->rc->refs)) return;
-            rcht_del_data(v->value.mval);
-            if (v->value.mval->rc->weak_refs) return;
-            rcht_del_rc(v->value.mval);
+            if (--(v->value.uval->rc->refs)) return;
+            rcht_del_data(v->value.uval);
+            if (v->value.uval->rc->weak_refs) return;
+            rcht_del_rc(v->value.uval);
             break;
         case Y_CFN:
             if (--(v->value.cval->rc->refs)) return;

@@ -20,11 +20,6 @@ struct Table {
     Item_t **items;
 };
 
-struct RC_Table {
-    struct RC *rc;
-    struct Table *table;
-};
-
 static Item_t TOMBSTONE = {0, 0};
 
 struct Table *table_new(void);
@@ -36,8 +31,8 @@ struct YASL_Object *table_search_string_int(const struct Table *const table, cha
 void table_del(struct Table *table);
 void table_del_string_int(struct Table *table);
 
-struct RC_Table* rcht_new(void);
-struct RC_Table* rcht_new_sized(const int base_size);
-void rcht_del_data(struct RC_Table *hashtable);
-void rcht_del_rc(struct RC_Table *hashtable);
-void rcht_del_cstring_cfn(struct RC_Table *hashtable);
+struct RC_UserData* rcht_new(void);
+struct RC_UserData* rcht_new_sized(const int base_size);
+void rcht_del_data(struct RC_UserData *hashtable);
+void rcht_del_rc(struct RC_UserData *hashtable);
+void rcht_del_cstring_cfn(struct RC_UserData *hashtable);

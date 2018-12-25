@@ -17,7 +17,7 @@
 #include "operator_names.h"
 
 static struct Table **builtins_htable_new(void) {
-    struct Table **ht = malloc(sizeof(struct RC_Table*) * NUM_TYPES);
+    struct Table **ht = malloc(sizeof(struct Table*) * NUM_TYPES);
     ht[Y_UNDEF] = undef_builtins();
     ht[Y_FLOAT] = float_builtins();
     ht[Y_INT] = int_builtins();

@@ -80,13 +80,13 @@ int table_values(struct YASL_State *S) {
 int table_clone(struct YASL_State *S) {
     ASSERT_TYPE(S->vm, Y_TABLE, "table.clone");
     struct Table* ht = YASL_GETTBL(vm_pop(S->vm));
-    struct RC_Table* new_ht = rcht_new_sized(ht->base_size);
+    struct RC_UserData* new_ht = rcht_new_sized(ht->base_size);
     for (size_t i = 0; i < ht->size; i++) {
         Item_t* item = ht->items[i];
         if (item != NULL && item != &TOMBSTONE) {
             inc_ref(item->key);
             inc_ref(item->value);
-            table_insert(new_ht->table, *item->key, *item->value);
+            table_insert(new_ht->data, *item->key, *item->value);
         }
     }
 

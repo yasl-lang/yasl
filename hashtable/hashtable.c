@@ -85,33 +85,34 @@ void table_del(struct Table *table) {
     free(table);
 }
 
-struct RC_Table *rcht_new_sized(const int base_size) {
-    struct RC_Table* ht = malloc(sizeof(struct RC_Table));
-    ht->table = table_new_sized(base_size);
+struct RC_UserData *rcht_new_sized(const int base_size) {
+    struct RC_UserData* ht = malloc(sizeof(struct RC_UserData));
+    ht->data = table_new_sized(base_size);
     ht->rc = rc_new();
+    ht->tag = T_TABLE;
     return ht;
 }
 
-struct RC_Table* rcht_new() {
+struct RC_UserData* rcht_new() {
     return rcht_new_sized(HT_BASESIZE);
 }
 
-void rcht_del(struct RC_Table *hashtable) {
-    table_del(hashtable->table);
+void rcht_del(struct RC_UserData *hashtable) {
+    table_del(hashtable->data);
     rc_del(hashtable->rc);
     free(hashtable);
 }
 
-void rcht_del_data(struct RC_Table *hashtable) {
-    table_del(hashtable->table);
+void rcht_del_data(struct RC_UserData *hashtable) {
+    table_del(hashtable->data);
 }
 
-void rcht_del_rc(struct RC_Table *hashtable) {
+void rcht_del_rc(struct RC_UserData *hashtable) {
     rc_del(hashtable->rc);
     free(hashtable);
 }
 
-void rcht_del_cstring_cfn(struct RC_Table *hashtable) {
+void rcht_del_cstring_cfn(struct RC_UserData *hashtable) {
     rcht_del(hashtable);
 }
 
@@ -241,22 +242,22 @@ void table_rm(struct Table *table, struct YASL_Object key) {
 }
 
 /*
-void ht_print(const struct RC_Table *const  ht) {
+void ht_print(const struct RC_UserData *const  ht) {
     ByteBuffer *seen = bb_new(sizeof(int64_t)*2);
     ht_print_h(ht, seen);
 }
 
-void ht_print_h(const struct RC_Table *const ht, ByteBuffer* seen) {
+void ht_print_h(const struct RC_UserData *const ht, ByteBuffer* seen) {
     size_t i = 0;
     int64_t *new_seen;
-    if (ht->table->count == 0) {
+    if (ht->data->count == 0) {
         printf("{}");
         return;
     }
     printf("{");
     Item_t* item = NULL;
-    while (i < ht->table->size) {
-        item = ht->table->items[i];
+    while (i < ht->data->size) {
+        item = ht->data->items[i];
         if (item == &TOMBSTONE || item == NULL) {
             i++;
             continue;
@@ -268,16 +269,16 @@ void ht_print_h(const struct RC_Table *const ht, ByteBuffer* seen) {
                 printf("[...]");
             } else {
                 bb_intbytes8(seen, (int64_t)ht);
-                bb_intbytes8(seen, ht->table->items[i]->value->value.ival);
-                ls_print_h(ht->table->items[i]->value->value.lval, seen);
+                bb_intbytes8(seen, ht->data->items[i]->value->value.ival);
+                ls_print_h(ht->data->items[i]->value->value.lval, seen);
             }
         } else if (item->value->type == Y_TABLE) {
             if (isvalueinarray(item->value->value.ival, (int64_t*)seen->bytes, seen->count/sizeof(int64_t))) {
                 printf("{...}");
             } else {
                 bb_intbytes8(seen, (int64_t)ht);
-                bb_intbytes8(seen, ht->table->items[i]->value->value.ival);
-                ht_print_h(ht->table->items[i]->value->value.mval, seen);
+                bb_intbytes8(seen, ht->data->items[i]->value->value.ival);
+                ht_print_h(ht->data->items[i]->value->value.mval, seen);
             }
         } else {
             print(*item->value);
