@@ -214,17 +214,17 @@ int print(struct YASL_Object v) {
             }
             break;
         case Y_TABLE:
-            printf("<table %p>", (void*)YASL_GETTBL(v));
+            printf("<table>"); //, (void*)YASL_GETTBL(v));
             break;
         case Y_LIST:
             //ls_print((List_t*)v.value);
-            printf("<list %p>", (void*)YASL_GETLIST(v));
+            printf("<list>"); //, (void*)YASL_GETLIST(v));
             break;
         case Y_FN:
-            printf("<fn: %p>", (void*)YASL_GETFN(v));
+            printf("<fn>"); //, (void*)YASL_GETFN(v));
             break;
         case Y_CFN:
-            printf("<fn: %p>", (void*)(*(char**)&v.value.cval->value));
+            printf("<fn>"); //, (void*)(*(char**)&v.value.cval->value));
             break;
         case Y_USERPTR:
             printf("0x%p", YASL_GETUSERPTR(v));
