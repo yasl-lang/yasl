@@ -621,6 +621,18 @@ void vm_run(struct VM *vm) {
 						vm->stack[vm->lp + 1])++]->key);
 				vm_push(vm, YASL_BOOL(1));
 				break;
+			case Y_STR:
+				if (yasl_string_len(YASL_GETSTR(vm->stack[vm->lp])) <= YASL_GETINT(vm->stack[vm->lp + 1])) {
+					vm_push(vm, YASL_BOOL(0));
+				} else {
+					int64_t i = YASL_GETINT(
+						vm->stack[vm->lp + 1]);
+					vm_push(vm,
+						YASL_STR(str_new_substring(i, i+1, YASL_GETSTR(vm->stack[vm->lp]))));
+					YASL_GETINT(vm->stack[vm->lp + 1])++;
+					vm_push(vm, YASL_BOOL(1));
+				}
+				break;
 			default:
 				printf("object of type %s is not iterable.\n", YASL_TYPE_NAMES[vm->stack[vm->lp].type]);
 				exit(EXIT_FAILURE);

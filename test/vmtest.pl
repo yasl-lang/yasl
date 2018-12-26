@@ -170,6 +170,9 @@ assert_output(qq"for i <- [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] { if i == 5 { continue
               "10\n9\n8\n7\n6\n4\n3\n2\n1\n", 0);
 assert_output(qq"for i <- [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] { if i == 5 { break; };  echo i; };",
               "10\n9\n8\n7\n6\n", 0);
+assert_output(qq"for i <- 'abcdef' {
+                     echo i
+                 }\n", "a\nb\nc\nd\ne\nf\n", 0);
 
 # Functions
 assert_output(qq"fn add(a, b) { return a + b; }
