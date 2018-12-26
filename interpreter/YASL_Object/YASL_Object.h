@@ -8,20 +8,20 @@
 
 #define YASL_END() ((struct YASL_Object) { .type = Y_END })
 #define YASL_UNDEF() ((struct YASL_Object) { .type = Y_UNDEF })
-#define YASL_FLOAT(d) ((struct YASL_Object) { .type = Y_FLOAT64, .value.dval = d })
-#define YASL_INT(i) ((struct YASL_Object) { .type = Y_INT64, .value.ival = i })
+#define YASL_FLOAT(d) ((struct YASL_Object) { .type = Y_FLOAT, .value.dval = d })
+#define YASL_INT(i) ((struct YASL_Object) { .type = Y_INT, .value.ival = i })
 #define YASL_BOOL(b) ((struct YASL_Object) { .type = Y_BOOL, .value.ival = b })
 #define YASL_STR(s) ((struct YASL_Object) { .type = Y_STR, .value.sval = s })
-#define YASL_LIST(l) ((struct YASL_Object) { .type = Y_LIST, .value.lval = l })
-#define YASL_TBL(t) ((struct YASL_Object) { .type = Y_TABLE, .value.mval = t })
+#define YASL_LIST(l) ((struct YASL_Object) { .type = Y_LIST, .value.uval = l })
+#define YASL_TBL(t) ((struct YASL_Object) { .type = Y_TABLE, .value.uval = t })
 #define YASL_USERDATA(p) ((struct YASL_Object) { .type = Y_USERDATA, .value.uval = p })
 #define YASL_USERPTR(p) ((struct YASL_Object) { .type = Y_USERPTR, .value.pval = p })
 #define YASL_FN(f) ((struct YASL_Object) { .type = Y_FN, .value.ival = f })
 #define YASL_CFN(f, n) ((struct YASL_Object) { .type = Y_CFN, .value.cval = new_cfn(f, n) })
 
 #define YASL_ISUNDEF(v) ((v).type == Y_UNDEF)
-#define YASL_ISFLOAT(v) ((v).type == Y_FLOAT64)
-#define YASL_ISINT(v) ((v).type == Y_INT64)
+#define YASL_ISFLOAT(v) ((v).type == Y_FLOAT)
+#define YASL_ISINT(v) ((v).type == Y_INT)
 #define YASL_ISBOOL(v) ((v).type == Y_BOOL)
 #define YASL_ISSTR(v) ((v).type == Y_STR)
 #define YASL_ISLIST(v) ((v).type == Y_LIST)
@@ -35,8 +35,8 @@
 #define YASL_GETINT(v) ((v).value.ival)
 #define YASL_GETBOOL(v) ((v).value.ival)
 #define YASL_GETSTR(v) ((v).value.sval)
-#define YASL_GETLIST(v) ((v).value.lval->list)
-#define YASL_GETTBL(v) ((v).value.mval->table)
+#define YASL_GETLIST(v) ((struct List *)((v).value.uval->data))
+#define YASL_GETTBL(v) ((struct Table *)((v).value.uval->data))
 #define YASL_GETUSERDATA(v) ((v).value.uval)
 #define YASL_GETUSERPTR(v) ((v).value.pval)
 #define YASL_GETFN(v) ((v).value.ival)
@@ -44,12 +44,18 @@
 
 struct YASL_State;
 
+enum YASL_Tags {
+        T_TABLE = -1,
+        T_LIST = -2,
+        T_FILE = -3,
+};
+
 //Keep up to date with the YASL_TYPE_NAMES
 typedef enum {
     Y_END = -1,
     Y_UNDEF,
-    Y_FLOAT64,
-    Y_INT64,
+    Y_FLOAT,
+    Y_INT,
     Y_BOOL,
     Y_STR,
     Y_STR_W,
@@ -65,7 +71,7 @@ typedef enum {
 } YASL_Types;
 
 struct RC_Table;
-struct UserData_s;
+struct RC_UserData;
 struct CFunction_s {
     struct RC *rc;
     int num_args;
@@ -82,9 +88,7 @@ struct YASL_Object {
         int64_t ival;
         double dval;
         String_t *sval;
-        struct RC_List *lval;
-        struct RC_Table *mval;
-        struct UserData_s *uval;
+        struct RC_UserData *uval;
         struct CFunction_s *cval;
         void *pval;
     } value;

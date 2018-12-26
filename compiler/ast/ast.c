@@ -93,10 +93,6 @@ struct Node *new_LetIter(struct Node *var, struct Node *collection, size_t line)
     return new_Node_2(N_LETITER, T_UNKNOWN, var, collection, NULL, 0, line);
 }
 
-struct Node *new_Iter(struct Node *var, struct Node *collection, size_t line) {
-    return new_Node_2(N_ITER, T_UNKNOWN, var, collection, NULL, 0, line);
-}
-
 struct Node *new_ForIter(struct Node *iter, struct Node *body, size_t line) {
     return new_Node_2(N_FORITER, T_UNKNOWN, iter, body, NULL, 0, line);
 }

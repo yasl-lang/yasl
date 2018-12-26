@@ -1,6 +1,6 @@
 echo .special_name
 
-let x = {}
+x := {}
 
 x.for = 10
 

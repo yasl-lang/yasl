@@ -43,3 +43,5 @@ int str_ltrim(struct YASL_State *S);
 int str_rtrim(struct YASL_State *S);
 
 int str_trim(struct YASL_State *S);
+
+int str_repeat(struct YASL_State *S);

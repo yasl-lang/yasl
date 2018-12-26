@@ -37,7 +37,7 @@ int64_t env_len(Env_t *env) {
 }
 
 int env_contains_cur_scope(Env_t *env, char *name, int64_t name_len) {
-    String_t *string = str_new_sized(name_len, copy_char_buffer(name_len, name));
+    String_t *string = str_new_sized_heap(0, name_len, copy_char_buffer(name_len, name));
     struct YASL_Object key = YASL_STR(string); // (struct YASL_Object) { .value.sval = string, .type = Y_STR };
 
     struct YASL_Object *value = table_search(env->vars, key);
@@ -50,7 +50,7 @@ int env_contains_cur_scope(Env_t *env, char *name, int64_t name_len) {
 
 int env_contains(Env_t *env, char *name, int64_t name_len) {
     if (env == NULL) return 0;
-    String_t *string = str_new_sized(name_len, copy_char_buffer(name_len, name));
+    String_t *string = str_new_sized_heap(0, name_len, copy_char_buffer(name_len, name));
     struct YASL_Object key = YASL_STR(string);
 
     struct YASL_Object *value = table_search(env->vars, key);
@@ -63,7 +63,7 @@ int env_contains(Env_t *env, char *name, int64_t name_len) {
 }
 
 int64_t env_get(Env_t *env, char *name, int64_t name_len) {
-    String_t *string = str_new_sized(name_len, copy_char_buffer(name_len, name));
+    String_t *string = str_new_sized_heap(0, name_len, copy_char_buffer(name_len, name));
     struct YASL_Object key = YASL_STR(string);
 
     struct YASL_Object *value = table_search(env->vars, key);
@@ -78,7 +78,7 @@ int64_t env_get(Env_t *env, char *name, int64_t name_len) {
 }
 
 void env_decl_var(Env_t *env, char *name, int64_t name_len) {
-    String_t *string = str_new_sized(name_len, copy_char_buffer(name_len, name));
+    String_t *string = str_new_sized_heap(0, name_len, copy_char_buffer(name_len, name));
     struct YASL_Object key = YASL_STR(string);
     struct YASL_Object value = YASL_INT(env_len(env));
     table_insert(env->vars, key, value);

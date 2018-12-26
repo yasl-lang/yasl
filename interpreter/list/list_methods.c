@@ -52,6 +52,54 @@ int list___set(struct YASL_State *S) {
     return 0;
 }
 
+int list_tostr(struct YASL_State *S) {
+	ASSERT_TYPE(S->vm, Y_LIST, "list.tostr");
+	struct List *list = YASL_GETLIST(vm_pop(S->vm));
+
+	char *string = "<list>";
+	vm_push(S->vm, YASL_STR(str_new_sized(strlen(string), string)));
+	return 0;
+}
+
+/*
+void ls_print(struct RC_List* ls) {
+    ByteBuffer *seen = bb_new(sizeof(int64_t)*2);
+    ls_print_h(ls, seen);
+}
+
+void ls_print_h(struct RC_List* ls, ByteBuffer *seen) {
+    int i = 0;
+    if (ls->list->count == 0) {
+        printf("[]");
+        return;
+    }
+    printf("[");
+    while (i < ls->list->count) {
+        if (YASL_ISLIST(ls->list->items[i])) {
+            if (isvalueinarray(ls->list->items[i].value.ival, (int64_t*)seen->bytes, seen->count/sizeof(int64_t))) {
+                printf("[...]");
+            } else {
+                bb_intbytes8(seen, (int64_t)ls);
+                bb_intbytes8(seen, ls->list->items[i].value.ival);
+                ls_print_h(ls->list->items[i].value.lval, seen);
+            }
+        } else if (YASL_ISTBL(ls->list->items[i])) {
+            if (isvalueinarray(ls->list->items[i].value.ival, (int64_t*)seen->bytes, seen->count/sizeof(int64_t))) {
+                printf("[...->...]");
+            } else {
+                bb_intbytes8(seen, (int64_t)ls);
+                bb_intbytes8(seen, ls->list->items[i].value.ival);
+                ht_print_h(ls->list->items[i].value.mval, seen);
+            }
+        } else {
+            print(ls->list->items[i]);
+        }
+        printf(", ");
+        i++;
+    }
+    printf("\b\b]");
+}
+*/
 
 int list_push(struct YASL_State *S) {
     struct YASL_Object val = vm_pop(S->vm);
@@ -63,17 +111,11 @@ int list_push(struct YASL_State *S) {
 int list_copy(struct YASL_State *S) {
     ASSERT_TYPE(S->vm, Y_LIST, "list.copy");
     struct List *ls = YASL_GETLIST(vm_pop(S->vm));
-    struct RC_List *new_ls = ls_new_sized(ls->size);
-    new_ls->list->count = ls->count;
-    memcpy(new_ls->list->items, ls->items, new_ls->list->count*sizeof(struct YASL_Object));
+    struct RC_UserData *new_ls = ls_new_sized(ls->size);
+    ((struct List *)new_ls->data)->count = ls->count;
+    memcpy(((struct List *)new_ls->data)->items, ls->items, ((struct List *)new_ls->data)->count*sizeof(struct YASL_Object));
 
-    struct YASL_Object* yasl_list = malloc(sizeof(struct YASL_Object));
-    yasl_list->type = Y_LIST;
-    yasl_list->value.lval = new_ls;
-
-    vm_push(S->vm, *yasl_list);
-
-    free(yasl_list);
+    vm_push(S->vm, YASL_LIST(new_ls));
     return 0;
 }
 
@@ -121,4 +163,39 @@ int list_reverse(struct YASL_State *S) {
     ls_reverse(ls);
     vm_push(S->vm, YASL_UNDEF());
     return 0;
+}
+
+int list_slice(struct YASL_State *S) {
+	struct YASL_Object end_index = vm_pop(S->vm);
+	struct YASL_Object start_index = vm_pop(S->vm);
+	ASSERT_TYPE(S->vm, Y_LIST, "list.slice");
+	struct List *list = YASL_GETLIST(vm_pop(S->vm));
+	if (!YASL_ISINT(start_index) || !YASL_ISINT(end_index)) {
+		return -1;
+	} else if (YASL_GETINT(start_index) < -list->count ||
+		   YASL_GETINT(start_index) > list->count) {
+		return -1;
+	} else if (YASL_GETINT(end_index) < -list->count || YASL_GETINT(end_index) > list->count) {
+		return -1;
+	}
+
+	int64_t start = YASL_GETINT(start_index) < 0 ? YASL_GETINT(start_index) + list->count : YASL_GETINT(
+		start_index);
+	int64_t end =
+		YASL_GETINT(end_index) < 0 ? YASL_GETINT(end_index) + list->count : YASL_GETINT(end_index);
+
+	if (start > end) {
+		return -1;
+	}
+
+	struct RC_UserData *new_list = ls_new_sized(end - start);
+
+	for (int64_t i = start; i < end; i++) {
+		ls_append(new_list->data, list->items[i]); // = list->items[i];
+		inc_ref(list->items + i);
+	}
+
+	vm_push(S->vm, YASL_LIST(new_list));
+
+	return 0;
 }

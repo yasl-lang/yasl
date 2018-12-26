@@ -2,8 +2,8 @@
 
 #include <stdlib.h>
 
-UserData_t *ud_new(void *data, int tag) {
-    UserData_t *ud = malloc(sizeof(UserData_t));
+struct RC_UserData *ud_new(void *data, int tag) {
+    struct RC_UserData *ud = malloc(sizeof(struct RC_UserData));
     ud->tag = tag;
     ud->rc = rc_new();
     //ud->mt = NULL;
@@ -11,17 +11,17 @@ UserData_t *ud_new(void *data, int tag) {
     return ud;
 }
 
-void ud_del_data(UserData_t *ud) {
+void ud_del_data(struct RC_UserData *ud) {
     free(ud->data);
     // dec_ref(ud->mt);
 }
 
-void ud_del_rc(UserData_t *ud) {
+void ud_del_rc(struct RC_UserData *ud) {
     rc_del(ud->rc);
     free(ud);
 }
 
-void ud_del(UserData_t *ud) {
+void ud_del(struct RC_UserData *ud) {
     free(ud->data);
     // dec_ref(ud->mt);
     rc_del(ud->rc);

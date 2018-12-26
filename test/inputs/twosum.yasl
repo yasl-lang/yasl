@@ -1,8 +1,8 @@
 fn twosum(nums, target) {
-    x := { target - num: num for let num <- nums }
-    for let y <- nums {
+    x := { target - num: num for num <- nums }
+    for y <- nums {
         if x[y] {
-            return "#{x[y]->tostr()} + #{y->tostr()} == #{target->tostr()}"
+            return "#{x[y]} + #{y} == #{target}"
         }
     }
     return 'not found'

@@ -20,16 +20,16 @@
 #define GT(a, b) ((a) > (b))
 #define GE(a, b) ((a) >= (b))
 #define COMP(vm, a, b, f, str)  do {\
-                            if (a.type == Y_INT64 && b.type == Y_INT64) {\
+                            if (a.type == Y_INT && b.type == Y_INT) {\
                                 c = f(a.value.ival, b.value.ival);\
                             }\
-                            else if (a.type == Y_FLOAT64 && b.type == Y_INT64) {\
+                            else if (a.type == Y_FLOAT && b.type == Y_INT) {\
                                 c = f(a.value.dval, (yasl_float)b.value.ival);\
                             }\
-                            else if (a.type == Y_INT64 && b.type == Y_FLOAT64) {\
+                            else if (a.type == Y_INT && b.type == Y_FLOAT) {\
                                 c = f((yasl_float)a.value.ival, (b).value.dval);\
                             }\
-                            else if (a.type == Y_FLOAT64 && b.type == Y_FLOAT64) {\
+                            else if (a.type == Y_FLOAT && b.type == Y_FLOAT) {\
                                 c = f(a.value.dval, (b).value.dval);\
                             }\
                             else {\
@@ -64,9 +64,10 @@ void vm_push(struct VM *vm, struct YASL_Object val);
 
 void vm_run(struct VM *vm);
 
-struct Table* float_builtins(void);
-struct Table* int_builtins(void);
-struct Table* bool_builtins(void);
-struct Table* str_builtins(void);
-struct Table* list_builtins(void);
-struct Table* table_builtins(void);
+struct Table *undef_builtins(void);
+struct Table *float_builtins(void);
+struct Table *int_builtins(void);
+struct Table *bool_builtins(void);
+struct Table *str_builtins(void);
+struct Table *list_builtins(void);
+struct Table *table_builtins(void);

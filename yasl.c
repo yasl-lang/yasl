@@ -99,7 +99,7 @@ int YASL_pushboolean(struct YASL_State *S, int value) {
 }
 
 int YASL_pushliteralstring(struct YASL_State *S, char *value) {
-    vm_push(S->vm, YASL_STR(str_new_sized_heap(0, strlen(value), value)));
+    vm_push(S->vm, YASL_STR(str_new_sized(strlen(value), value)));
     return YASL_SUCCESS;
 }
 
@@ -154,7 +154,7 @@ void *YASL_UserData_getdata(struct YASL_Object *obj) {
 }
 
 struct YASL_Object *YASL_LiteralString(char *str) {
-    return YASL_String(str_new_sized_heap(0, strlen(str), str));
+    return YASL_String(str_new_sized(strlen(str), str));
 }
 
 struct YASL_Object *YASL_CString(char *str) {
@@ -174,12 +174,12 @@ int YASL_isboolean(struct YASL_Object *obj) {
 
 
 int YASL_isdouble(struct YASL_Object *obj) {
-    return obj->type != Y_FLOAT64;
+    return obj->type != Y_FLOAT;
 }
 
 
 int YASL_isinteger(struct YASL_Object *obj) {
-    return obj->type != Y_INT64;
+    return obj->type != Y_INT;
 }
 
 int YASL_isstring(struct YASL_Object *obj) {

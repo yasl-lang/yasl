@@ -16,7 +16,6 @@ typedef enum {
     N_SET,
     N_GET,
     N_LETITER,
-    N_ITER,
     N_LISTCOMP,
     N_TABLECOMP,
     N_FORITER,

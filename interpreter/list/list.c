@@ -14,58 +14,53 @@ int isvalueinarray(int64_t val, int64_t *arr, int size){
     return 0;
 }
 
-struct YASL_Object *YASL_List(struct RC_List *ls) {
-    struct YASL_Object *list = malloc(sizeof(struct YASL_Object));
-    list->type = Y_LIST;
-    list->value.lval = ls;
-    return list;
-}
-
-struct RC_List* ls_new_sized(const int base_size) {
-    struct RC_List* ls = malloc(sizeof(struct RC_List));
-    ls->list = malloc(sizeof(struct List));
-    ls->list->size = base_size;
-    ls->list->count = 0;
-    ls->list->items = malloc(sizeof(struct YASL_Object)*ls->list->size);
+struct RC_UserData* ls_new_sized(const int base_size) {
+    struct RC_UserData *ls = malloc(sizeof(struct RC_UserData));
+    struct List *list = malloc(sizeof(struct List));
+    list->size = base_size;
+    list->count = 0;
+    list->items = malloc(sizeof(struct YASL_Object)*list->size);
+    ls->data = list;
     ls->rc = rc_new();
+    ls->tag = T_LIST;
     return ls;
 }
 
-struct RC_List* ls_new(void) {
+struct RC_UserData* ls_new(void) {
     return ls_new_sized(LS_BASESIZE);
 }
 
-void ls_del_data(struct RC_List *ls) {
-    for (int i = 0; i < ls->list->count; i++) dec_ref(ls->list->items + i);
-    free(ls->list);
-    free(ls->list->items);
+void ls_del_data(struct RC_UserData *ls) {
+    for (int i = 0; i < ((struct List*)ls->data)->count; i++) dec_ref(((struct List*)ls->data)->items + i);
+    free(((struct List*)ls->data)->items);
+    free(ls->data);
 }
 
-void ls_del_rc(struct RC_List *ls) {
+void ls_del_rc(struct RC_UserData *ls) {
     rc_del(ls->rc);
     free(ls);
 }
 
-void ls_del(struct RC_List *ls) {
-    for (int i = 0; i < ls->list->count; i++) dec_ref(ls->list->items + i);
-    free(ls->list);
-    free(ls->list->items);
+void ls_del(struct RC_UserData *ls) {
+    for (int i = 0; i < ((struct List *)ls->data)->count; i++) dec_ref(((struct List *)ls->data)->items + i);
+    free(((struct List *)ls->data)->items);
+    free(((struct List *)ls->data));
     rc_del(ls->rc);
     free(ls);
 }
 
 static void ls_resize(struct List* ls, const int base_size) {
     if (base_size < LS_BASESIZE) return;
-    struct RC_List* new_ls = ls_new_sized(base_size);
+    struct RC_UserData *new_ls = ls_new_sized(base_size);
     int i;
     for (i = 0; i < ls->size; i++) {
-        new_ls->list->items[i] = ls->items[i];
+	    ((struct List *)new_ls->data)->items[i] = ls->items[i];
     }
-    ls->size = new_ls->list->size;
+    ls->size = ((struct List *)new_ls->data)->size;
 
     struct YASL_Object* tmp_items = ls->items;
-    ls->items = new_ls->list->items;
-    new_ls->list->items = tmp_items;
+    ls->items = ((struct List *)new_ls->data)->items;
+	((struct List *)new_ls->data)->items = tmp_items;
 
     ls_del(new_ls);
 }
@@ -77,7 +72,7 @@ static void ls_resize_up(struct List* ls) {
 
 /*
 static void ls_resize_down(struct RC_List* ls) {
-    const int new_size = ls->list->size / 2;
+    const int new_size = ((struct List *)ls->data)->size / 2;
     ls_resize(ls, new_size);
 }
 */

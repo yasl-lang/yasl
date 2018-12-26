@@ -12,8 +12,8 @@ char *float64_to_str(double d);
 // Keep up to date with the YASL_Types
 const char *YASL_TYPE_NAMES[] = {
     "undef",    // Y_UNDEF,
-    "float64",  // Y_FLOAT64,
-    "int64",    // Y_INT64,
+    "float64",  // Y_FLOAT,
+    "int64",    // Y_INT,
     "bool",     // Y_BOOL,
     "str",      // Y_STR,
     "str",      // Y_STR_W,
@@ -52,14 +52,14 @@ struct YASL_Object *YASL_Undef(void) {
 }
 struct YASL_Object *YASL_Float(double value) {
     struct YASL_Object *num = malloc(sizeof(struct YASL_Object));
-    num->type = Y_FLOAT64;
+    num->type = Y_FLOAT;
     num->value.dval = value;
     return num;
 }
 
 struct YASL_Object *YASL_Integer(int64_t value) {
     struct YASL_Object *integer = malloc(sizeof(struct YASL_Object));
-    integer->type = Y_INT64;
+    integer->type = Y_INT;
     integer->value.ival = value;
     return integer;
 }
@@ -81,7 +81,7 @@ struct YASL_Object *YASL_String(String_t *str) {
 struct YASL_Object *YASL_Table() {
     struct YASL_Object *table = malloc(sizeof(struct YASL_Object));
     table->type = Y_TABLE;
-    table->value.mval = rcht_new();
+    table->value.uval = rcht_new();
     return table;
 }
 
@@ -191,11 +191,11 @@ struct YASL_Object isequal(struct YASL_Object a, struct YASL_Object b) {
 int print(struct YASL_Object v) {
     int64_t i;
     switch (v.type) {
-        case Y_INT64:
+        case Y_INT:
             printf("%" PRId64 "", YASL_GETINT(v));
             //printf("int64: %" PRId64 "\n", v.value);
             break;
-        case Y_FLOAT64: {
+        case Y_FLOAT: {
             char *tmp = float64_to_str(YASL_GETFLOAT(v));
             printf("%s", tmp);
             free(tmp);
@@ -214,17 +214,17 @@ int print(struct YASL_Object v) {
             }
             break;
         case Y_TABLE:
-            printf("<table %p>", (void*)YASL_GETTBL(v));
+            printf("<table>"); //, (void*)YASL_GETTBL(v));
             break;
         case Y_LIST:
             //ls_print((List_t*)v.value);
-            printf("<list %p>", (void*)YASL_GETLIST(v));
+            printf("<list>"); //, (void*)YASL_GETLIST(v));
             break;
         case Y_FN:
-            printf("<fn: %p>", (void*)YASL_GETFN(v));
+            printf("<fn>"); //, (void*)YASL_GETFN(v));
             break;
         case Y_CFN:
-            printf("<fn: %p>", (void*)(*(char**)&v.value.cval->value));
+            printf("<fn>"); //, (void*)(*(char**)&v.value.cval->value));
             break;
         case Y_USERPTR:
             printf("0x%p", YASL_GETUSERPTR(v));

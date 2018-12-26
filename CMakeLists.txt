@@ -3,7 +3,7 @@ project(YASL C)
 
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_C_STANDARD 99)
-set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-newline-eof -Wno-unused-variable -Wno-unused-parameter -pedantic -Werror")
+set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-newline-eof -Wno-unused-result -Wno-unused-variable -Wno-unused-parameter -pedantic -Werror")
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 include_directories(.)
@@ -26,6 +26,7 @@ include_directories(interpreter/YASL_Object)
 include_directories(interpreter/YASL_string)
 include_directories(interpreter/refcount)
 include_directories(interpreter/userdata)
+include_directories(interpreter/undef)
 include_directories(std-io)
 include_directories(prime)
 include_directories(test)
@@ -54,6 +55,7 @@ add_executable(YASL
         interpreter/YASL_string/str_methods.c
         interpreter/YASL_string/YASL_string.c
         interpreter/userdata/userdata.c
+        interpreter/undef/undef_methods.c
         prime/prime.c
         std-io/yasl-std-io.c)
 

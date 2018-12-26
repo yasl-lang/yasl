@@ -27,10 +27,10 @@ static void inc_weak_ref(struct YASL_Object *v) {
             v->value.sval->rc->weak_refs++;
             break;
         case Y_LIST_W:
-            v->value.lval->rc->weak_refs++;
+            v->value.uval->rc->weak_refs++;
             break;
         case Y_TABLE_W:
-            v->value.mval->rc->weak_refs++;
+            v->value.uval->rc->weak_refs++;
             break;
         default:
             puts("NOt Implemented");
@@ -48,10 +48,10 @@ static void inc_strong_ref(struct YASL_Object *v) {
             //printf(K_MAG "after : %d\n" K_END, v->value.sval->rc->refs);
             break;
         case Y_LIST:
-            v->value.lval->rc->refs++;
+            v->value.uval->rc->refs++;
             break;
         case Y_TABLE:
-            v->value.mval->rc->refs++;
+            v->value.uval->rc->refs++;
             break;
         case Y_CFN:
             v->value.cval->rc->refs++;
@@ -93,12 +93,12 @@ static void dec_weak_ref(struct YASL_Object *v) {
             str_del_rc(v->value.sval);
             break;
         case Y_LIST_W:
-            if (--(v->value.lval->rc->weak_refs) || v->value.lval->rc->refs) return;
-            ls_del_rc(v->value.lval);
+            if (--(v->value.uval->rc->weak_refs) || v->value.uval->rc->refs) return;
+            ls_del_rc(v->value.uval);
             break;
         case Y_TABLE_W:
-            if (--(v->value.mval->rc->weak_refs) || v->value.mval->rc->refs) return;
-            rcht_del_rc(v->value.mval);
+            if (--(v->value.uval->rc->weak_refs) || v->value.uval->rc->refs) return;
+            rcht_del_rc(v->value.uval);
             break;
         default:
             puts("NoT IMPELemented");
@@ -120,16 +120,16 @@ void dec_strong_ref(struct YASL_Object *v) {
             str_del_rc(v->value.sval);
             break;
         case Y_LIST:
-            if (--(v->value.lval->rc->refs)) return;
-            ls_del_data(v->value.lval);
-            if (v->value.lval->rc->weak_refs) return;
-            ls_del_rc(v->value.lval);
+            if (--(v->value.uval->rc->refs)) return;
+            ls_del_data(v->value.uval);
+            if (v->value.uval->rc->weak_refs) return;
+            ls_del_rc(v->value.uval);
             break;
         case Y_TABLE:
-            if (--(v->value.mval->rc->refs)) return;
-            rcht_del_data(v->value.mval);
-            if (v->value.mval->rc->weak_refs) return;
-            rcht_del_rc(v->value.mval);
+            if (--(v->value.uval->rc->refs)) return;
+            rcht_del_data(v->value.uval);
+            if (v->value.uval->rc->weak_refs) return;
+            rcht_del_rc(v->value.uval);
             break;
         case Y_CFN:
             if (--(v->value.cval->rc->refs)) return;
