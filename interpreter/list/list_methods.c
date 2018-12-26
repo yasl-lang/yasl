@@ -164,3 +164,38 @@ int list_reverse(struct YASL_State *S) {
     vm_push(S->vm, YASL_UNDEF());
     return 0;
 }
+
+int list_slice(struct YASL_State *S) {
+	struct YASL_Object end_index = vm_pop(S->vm);
+	struct YASL_Object start_index = vm_pop(S->vm);
+	ASSERT_TYPE(S->vm, Y_LIST, "list.slice");
+	struct List *list = YASL_GETLIST(vm_pop(S->vm));
+	if (!YASL_ISINT(start_index) || !YASL_ISINT(end_index)) {
+		return -1;
+	} else if (YASL_GETINT(start_index) < -list->count ||
+		   YASL_GETINT(start_index) > list->count) {
+		return -1;
+	} else if (YASL_GETINT(end_index) < -list->count || YASL_GETINT(end_index) > list->count) {
+		return -1;
+	}
+
+	int64_t start = YASL_GETINT(start_index) < 0 ? YASL_GETINT(start_index) + list->count : YASL_GETINT(
+		start_index);
+	int64_t end =
+		YASL_GETINT(end_index) < 0 ? YASL_GETINT(end_index) + list->count : YASL_GETINT(end_index);
+
+	if (start > end) {
+		return -1;
+	}
+
+	struct RC_UserData *new_list = ls_new_sized(end - start);
+
+	for (int64_t i = start; i < end; i++) {
+		ls_append(new_list->data, list->items[i]); // = list->items[i];
+		inc_ref(list->items + i);
+	}
+
+	vm_push(S->vm, YASL_LIST(new_list));
+
+	return 0;
+}

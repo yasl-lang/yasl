@@ -89,6 +89,7 @@ struct Table* list_builtins() {
 	table_insert_literalcstring_cfunction(table, "tostr", &list_tostr, 1);
 	table_insert_literalcstring_cfunction(table, "search", &list_search, 2);
 	table_insert_literalcstring_cfunction(table, "reverse", &list_reverse, 1);
+	table_insert_literalcstring_cfunction(table, "slice", &list_slice, 3);
 	return table;
 }
 

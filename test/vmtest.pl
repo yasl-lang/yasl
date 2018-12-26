@@ -230,6 +230,7 @@ assert_output("echo 'YAY'->trim('A')\n", "YAY\n", 0);
 assert_output("echo 'YYAYYY'->trim('Y')\n", "A\n", 0);
 assert_output("echo 'YASL'->__get(3)\n", "L\n", 0); 
 assert_output("echo 'YASL'->__get(-1)\n", "L\n", 0);
+assert_output("echo '12345'->slice(1, 4)\n", "234\n", 0);
 assert_output("echo 'YASL'->repeat(3)\n", "YASLYASLYASL\n", 0);
 assert_output("echo 'YASL'->repeat(0)\n", "\n", 0);
 assert_output("echo ''->repeat(3)\n", "\n", 0);
@@ -260,6 +261,11 @@ assert_output(qq"x := [1, 2, 3]
                  echo x[0]
                  echo x[1]
                  echo x[2]\n", "1\n2\n3\n", 0);
+assert_output(qq"x := [0, 1, 2, 3, 4, 5, 6]
+                 y := x->slice(1, 5)
+                 for i <- y {
+                     echo i
+                 }\n", "1\n2\n3\n4\n", 0);
  
 # Table Methods
 assert_output(qq"x := {1:'one', 2:'two', 3:'three'}

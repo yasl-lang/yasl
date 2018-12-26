@@ -19,3 +19,5 @@ int list_pop(struct YASL_State *S);
 int list_search(struct YASL_State *S);
 
 int list_reverse(struct YASL_State *S);
+
+int list_slice(struct YASL_State *S);
