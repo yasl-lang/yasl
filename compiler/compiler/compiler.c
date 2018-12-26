@@ -865,7 +865,6 @@ static void (*jumptable[])(struct Compiler *const, const struct Node *const) = {
         &visit_Set,
         &visit_Get,
         NULL,
-        NULL,
         &visit_ListComp,
         &visit_TableComp,
         &visit_ForIter,
