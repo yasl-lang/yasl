@@ -35,7 +35,7 @@
                             else {\
                                 printf("TypeError: %s not supported for operands of types %s and %s.\n", str,\
                                         YASL_TYPE_NAMES[a.type], YASL_TYPE_NAMES[b.type]);\
-                                return;\
+                                return YASL_TYPE_ERROR;\
                             }\
                             BPUSH(vm, c);} while(0);
 
@@ -62,7 +62,7 @@ void vm_del(struct VM *vm);
 struct YASL_Object vm_pop(struct VM *vm);
 void vm_push(struct VM *vm, struct YASL_Object val);
 
-void vm_run(struct VM *vm);
+int vm_run(struct VM *vm);
 
 struct Table *undef_builtins(void);
 struct Table *float_builtins(void);

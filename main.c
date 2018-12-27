@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
             exit(EXIT_FAILURE);
         }
 
-       YASL_load_io(S);
+        YASL_load_io(S);
 
         YASL_execute(S);
 
