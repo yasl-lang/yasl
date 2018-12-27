@@ -8,6 +8,8 @@
 
 #define LEN(v) (*((int64_t*)(v).value))
 
+#define HT_BASESIZE 30
+
 typedef struct {
     struct YASL_Object* key;
     struct YASL_Object* value;
@@ -21,6 +23,8 @@ struct Table {
 };
 
 static Item_t TOMBSTONE = {0, 0};
+
+void del_item(Item_t* item);
 
 struct Table *table_new(void);
 void table_insert(struct Table *table, const struct YASL_Object key, const struct YASL_Object value);

@@ -110,6 +110,7 @@ struct Table* table_builtins() {
 	table_insert_literalcstring_cfunction(table, "tostr", &table_tostr, 1);
 	table_insert_literalcstring_cfunction(table, "__get", &table___get, 2);
 	table_insert_literalcstring_cfunction(table, "__set", &table___set, 3);
+	table_insert_literalcstring_cfunction(table, "clear", &table_clear, 1);
 	return table;
 }
 

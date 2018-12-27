@@ -54,7 +54,7 @@ static Item_t* new_item(const struct YASL_Object k, const struct YASL_Object v) 
     return item;
 }
 
-static void del_item(Item_t* item) {
+void del_item(Item_t* item) {
     dec_ref(item->key);
     dec_ref(item->value);
     free(item->key);

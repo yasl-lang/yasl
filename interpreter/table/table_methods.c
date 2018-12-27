@@ -246,3 +246,21 @@ int table_clone(struct YASL_State *S) {
     vm_push(S->vm, YASL_TBL(new_ht));
     return 0;
 }
+
+int table_clear(struct YASL_State *S) {
+	ASSERT_TYPE(S->vm, Y_TABLE, "table.clear");
+	struct Table* ht = YASL_GETTBL(vm_pop(S->vm));
+	for (size_t i = 0; i < ht->size; i++) {
+		Item_t* item = ht->items[i];
+		if (item != NULL && item != &TOMBSTONE) {
+			del_item(item);
+		}
+	}
+
+	ht->count = 0;
+	ht->size = HT_BASESIZE;
+	free(ht->items);
+	ht->items = calloc(ht->size, sizeof(Item_t*));
+	vm_pushundef(S->vm);
+	return 0;
+}
