@@ -2,4 +2,4 @@
 
 struct VM;
 
-int yasl_print(struct VM* vm);
+void yasl_print(struct VM* vm);

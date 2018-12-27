@@ -9,11 +9,19 @@
 #include "list_methods.h"
 #include "VM.h"
 
-int yasl_print(struct VM* vm) {
+void yasl_print(struct VM* vm) {
+	if (!YASL_ISSTR(VM_PEEK(vm, vm->sp))) {
+		YASL_Types index = PEEK(vm).type;
+		struct YASL_Object key = YASL_STR(str_new_sized(strlen("tostr"), "tostr"));
+		struct YASL_Object *result = table_search(vm->builtins_htable[index], key);
+		str_del(YASL_GETSTR(key));
+		YASL_GETCFN(*result)->value((struct YASL_State *) &vm);
+	}
 	struct YASL_Object v = vm_pop(vm);
-	int return_value = print(v);
+	for (int64_t i = 0; i < yasl_string_len(YASL_GETSTR(v)); i++) {
+		printf("%c", YASL_GETSTR(v)->str[i + YASL_GETSTR(v)->start]);
+	}
 	printf("\n");
-	return return_value;
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

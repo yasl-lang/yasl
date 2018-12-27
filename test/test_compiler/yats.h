@@ -1,7 +1,7 @@
 #pragma once
 
 #include "lexer.h"
-#include "color.h"
+#include "yasl_include.h"
 #include "opcode.h"
 
 #define SETUP_YATS() \

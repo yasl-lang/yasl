@@ -1,6 +1,4 @@
-#include <lexer.h>
-#include <compiler/lexer/lexer.h>
-#include <color.h>
+#include "lexer.h"
 #include "test/test_compiler/yats.h"
 
 SETUP_YATS();

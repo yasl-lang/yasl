@@ -1,12 +1,13 @@
 #include "hashtable.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include <stdio.h>
-#include <interpreter/YASL_Object/YASL_Object.h>
-#include <interpreter/YASL_string/YASL_string.h>
-#include <color.h>
-#include <interpreter/refcount/refcount.h>
+
+#include "YASL_Object.h"
+#include "YASL_string.h"
+#include "refcount.h"
 
 #define HT_BASESIZE 30
 

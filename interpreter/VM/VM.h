@@ -13,6 +13,23 @@
 #define PEEK(vm)     (vm->stack[vm->sp])                 // pop value from top of stack
 #define BPUSH(vm, v) (vm_push(vm, YASL_BOOL(v)))  //push boolean v onto stack
 
+#define vm_pushend(vm) vm_push(vm, YASL_END())
+#define vm_pushundef(vm) vm_push(vm, YASL_UNDEF())
+#define vm_pushfloat(vm, f) vm_push(vm, YASL_FLOAT(f))
+#define vm_pushint(vm, i) vm_push(vm, YASL_INT(i))
+#define vm_pushbool(vm, b) vm_push(vm, YASL_BOOL(b))
+#define vm_pushstr(vm, s) vm_push(vm, YASL_STR(s))
+#define vm_pushfn(vm, f) vm_push(vm, YASL_FN(f))
+
+#define vm_popint(vm) (YASL_GETINT(vm_pop(vm)))
+
+#define VM_PEEK(vm, offset) (vm->stack[offset])
+
+#define vm_peekint(vm, offset) (YASL_GETINT(VM_PEEK(vm, offset)))
+#define vm_peekstr(vm, offset) (YASL_GETSTR(VM_PEEK(vm, offset)))
+#define vm_peeklist(vm, offset) (YASL_GETLIST(VM_PEEK(vm, offset)))
+#define vm_peektable(vm, offset) (YASL_GETTBL(VM_PEEK(vm, offset)))
+#define vm_peekcfn(vm, offset) (YASL_GETCFN(VM_PEEK(vm, offset)))
 
 #define BUFFER_SIZE 256
 #define NCODE(vm)    (vm->code[vm->pc++])     // get next bytecode
@@ -39,17 +56,17 @@
                             }\
                             BPUSH(vm, c);} while(0);
 
-struct VM{
+struct VM {
 	struct YASL_Object *globals;          // variables, see "constant.c" for details on YASL_Object.
-    size_t num_globals;
+	size_t num_globals;
 	struct YASL_Object *stack;            // stack
 	unsigned char *code;           // bytecode
 	size_t pc;                    // program counter
-    size_t pc0;                   // initial value for pc
+	size_t pc0;                   // initial value for pc
 	int sp;                     // stack pointer
 	int fp;                     // frame pointer
-    int next_fp;
-    int lp;                     // foreach pointer
+	int next_fp;
+	int lp;                     // foreach pointer
 	struct Table **builtins_htable;   // htable of builtin methods
 };
 
