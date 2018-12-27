@@ -61,6 +61,14 @@ int list_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, s
 
 	string[string_count++] = '[';
 	struct List *list = vm_peeklist(S->vm, S->vm->sp);
+	if (list->count == 0)    {
+		vm_pop(S->vm);
+		string[string_count++] = ']';
+
+		vm_push(S->vm, YASL_STR(str_new_sized_heap(0, string_count, string)));
+		return 0;
+	}
+
 	for (int64_t i = 0; i < list->count; i++) {
 		vm_push(S->vm, list->items[i]);
 
@@ -304,5 +312,18 @@ int list_slice(struct YASL_State *S) {
 
 	vm_push(S->vm, YASL_LIST(new_list));
 
+	return 0;
+}
+
+int list_clear(struct YASL_State *S) {
+	ASSERT_TYPE(S->vm, Y_LIST, "list.clear");
+	struct List *list = vm_poplist(S->vm);
+	for (int64_t i = 0; i < list->count; i++) {
+		dec_ref(list->items + i);
+	}
+	list->count = 0;
+	list->size = LS_BASESIZE;
+	list->items = realloc(list->items, sizeof(struct YASL_Object)*list->size);
+	vm_pushundef(S->vm);
 	return 0;
 }

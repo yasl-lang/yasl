@@ -56,6 +56,12 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 
 	string[string_count++] = '{';
 	struct Table *table = vm_peektable(S->vm, S->vm->sp);
+	if (table->count == 0) {
+		string[string_count++] = '}';
+		vm_push(S->vm, YASL_STR(str_new_sized_heap(0, string_count, string)));
+		return 0;
+	}
+
 	for (size_t i = 0; i < table->size; i++) {
 		Item_t *item = table->items[i];
 		if (item == NULL || item == &TOMBSTONE) continue;

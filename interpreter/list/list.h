@@ -4,6 +4,8 @@
 #include "bytebuffer.h"
 #include "userdata.h"
 
+#define LS_BASESIZE 4
+
 struct List {
     int64_t size;
     int64_t count;

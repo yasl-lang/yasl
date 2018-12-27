@@ -695,7 +695,7 @@ int vm_run(struct VM *vm) {
 			inc_ref(&VM_PEEK(vm, vm->fp + offset + 3));
 			break;
 		case INIT_CALL:
-			if (YASL_ISFN(vm_peek(vm)) && YASL_ISCFN(vm_peek(vm))) {
+			if (!YASL_ISFN(vm_peek(vm)) && !YASL_ISCFN(vm_peek(vm))) {
 				YASL_PRINT_ERROR_TYPE("%s is not callable.", YASL_TYPE_NAMES[PEEK(vm).type]);
 				return YASL_TYPE_ERROR;
 			}

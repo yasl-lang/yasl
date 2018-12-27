@@ -3,8 +3,6 @@
 #include "YASL_Object.h"
 #include "hashtable.h"
 
-#define LS_BASESIZE 4
-
 int isvalueinarray(int64_t val, int64_t *arr, int size){
     int i;
     for (i=0; i < size; i++) {
