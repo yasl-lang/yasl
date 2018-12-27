@@ -241,47 +241,41 @@ assert_output("echo ''->repeat(0)\n", "\n", 0);
 
 # List Methods
 assert_output(qq"x := [0]
-                 x->push(1) 
-                 for e <- x { echo e; }\n", "0\n1\n", 0);
+                 x->push(1)
+                 echo x\n", "[0, 1]\n", 0);
 assert_output(qq"x := [1, 2, 3]
                echo x->pop()
-               for e <- x { echo e; }\n", "3\n1\n2\n", 0);
+               echo x\n", "3\n[1, 2]\n", 0);
 assert_output(qq"x := [1, 2, 3]
                  x->extend([4, 5, 6])
-                 for e <- x { echo e; }\n", "1\n2\n3\n4\n5\n6\n", 0);
+                 echo x\n", "[1, 2, 3, 4, 5, 6]\n", 0);
 assert_output(qq"x := [1, 2, 3]
                  echo x->search(4)\n", "undef\n", 0);
 assert_output(qq"x := [1, 2, 4]
                  echo x->search(4)\n", "2\n", 0);
 assert_output(qq"x := [1, 2, 3, 4, 5]
                  x->reverse()
-                 for e <- x { echo e; }\n", "5\n4\n3\n2\n1\n", 0);
+                 echo x\n", "[5, 4, 3, 2, 1]\n", 0);
 assert_output(qq"for e <- [1, 2, 3]->copy() { echo e; };", "1\n2\n3\n", 0);
 assert_output(qq"x := [1, 2, 3]
                  x[1] = 0
-                 for e <- x { echo e; }\n", "1\n0\n3\n", 0);
+                 echo x\n", "[1, 0, 3]\n", 0);
 assert_output(qq"x := [1, 2, 3]
                  echo x[0]
                  echo x[1]
                  echo x[2]\n", "1\n2\n3\n", 0);
 assert_output(qq"x := [0, 1, 2, 3, 4, 5, 6]
                  y := x->slice(1, 5)
-                 for i <- y {
-                     echo i
-                 }\n", "1\n2\n3\n4\n", 0);
+                 echo y\n", "[1, 2, 3, 4]\n", 0);
  
 # Table Methods
 assert_output(qq"x := {1:'one', 2:'two', 3:'three'}
-                 for e <- x->keys() { echo e; }\n", "3\n1\n2\n", 0);
+                 echo x->keys()\n", "[3, 1, 2]\n", 0);
 assert_output(qq"x := {1:'one', 2:'two', 3:'three'}
-                 for e <- x->values() { echo e; }\n", "three\none\ntwo\n", 0);
-assert_output(qq"x := {1:'one', 2:'two', 3:'three'}
+                 echo x->values()\n", "[three, one, two]\n", 0);
+assert_output(qq"x := { 3:'three', 1:'one', 2:'two'}
                  x[1] = 'un'
-                 echo x[1]
-                 for  e <- x { echo e; }\n", "un\n3\n1\n2\n", 0);
-assert_output(qq" x := {1:'one', 2:'two', 3:'three'}
-                 x[1] = 'un'
-                 for e <- x->values() { echo e; }\n", "three\nun\ntwo\n", 0);
+                 echo x\n", "{2: two, 3: three, 1: un}\n", 0);
 assert_output(qq"x := {1:'one', 2:'two', 3:'three'};
                  for e <- x->copy() { echo e; echo x[e]; };", "3\nthree\n2\ntwo\n1\none\n", 0);
 
