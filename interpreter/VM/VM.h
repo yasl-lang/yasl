@@ -22,6 +22,8 @@
 #define vm_pushfn(vm, f) vm_push(vm, YASL_FN(f))
 
 #define vm_popint(vm) (YASL_GETINT(vm_pop(vm)))
+#define vm_popstr(vm) (YASL_GETSTR(vm_pop(vm)))
+#define vm_poplist(vm) (YASL_GETLIST(vm_pop(vm)))
 
 #define VM_PEEK(vm, offset) (vm->stack[offset])
 
