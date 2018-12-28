@@ -176,46 +176,6 @@ int list_tostr(struct YASL_State *S) {
 	return 0;
 }
 
-/*
-void ls_print(struct RC_List* ls) {
-    ByteBuffer *seen = bb_new(sizeof(int64_t)*2);
-    ls_print_h(ls, seen);
-}
-
-void ls_print_h(struct RC_List* ls, ByteBuffer *seen) {
-    int i = 0;
-    if (ls->list->count == 0) {
-        printf("[]");
-        return;
-    }
-    printf("[");
-    while (i < ls->list->count) {
-        if (YASL_ISLIST(ls->list->items[i])) {
-            if (isvalueinarray(ls->list->items[i].value.ival, (int64_t*)seen->bytes, seen->count/sizeof(int64_t))) {
-                printf("[...]");
-            } else {
-                bb_intbytes8(seen, (int64_t)ls);
-                bb_intbytes8(seen, ls->list->items[i].value.ival);
-                ls_print_h(ls->list->items[i].value.lval, seen);
-            }
-        } else if (YASL_ISTBL(ls->list->items[i])) {
-            if (isvalueinarray(ls->list->items[i].value.ival, (int64_t*)seen->bytes, seen->count/sizeof(int64_t))) {
-                printf("[...->...]");
-            } else {
-                bb_intbytes8(seen, (int64_t)ls);
-                bb_intbytes8(seen, ls->list->items[i].value.ival);
-                ht_print_h(ls->list->items[i].value.mval, seen);
-            }
-        } else {
-            print(ls->list->items[i]);
-        }
-        printf(", ");
-        i++;
-    }
-    printf("\b\b]");
-}
-*/
-
 int list_push(struct YASL_State *S) {
     struct YASL_Object val = vm_pop(S->vm);
     ASSERT_TYPE(S->vm, Y_LIST, "list.push");
@@ -325,5 +285,72 @@ int list_clear(struct YASL_State *S) {
 	list->size = LS_BASESIZE;
 	list->items = realloc(list->items, sizeof(struct YASL_Object)*list->size);
 	vm_pushundef(S->vm);
+	return 0;
+}
+
+int list_join(struct YASL_State *S) {
+	ASSERT_TYPE(S->vm, Y_STR, "list.join");
+	String_t *string = vm_peekstr(S->vm, S->vm->sp);
+	S->vm->sp--;
+	ASSERT_TYPE(S->vm, Y_LIST, "list.join");
+	struct List *list = vm_peeklist(S->vm, S->vm->sp);
+	S->vm->sp++;
+
+	size_t buffer_count = 0;
+	size_t buffer_size = 8;
+	char *buffer = malloc(buffer_size);
+
+	if (list->count == 0) {
+		vm_pushstr(S->vm, str_new_sized(0, ""));
+		vm_pop(S->vm);
+		vm_pop(S->vm);
+		return 0;
+	}
+
+	vm_push(S->vm, list->items[0]);
+	YASL_Types index = VM_PEEK(S->vm, S->vm->sp).type;
+	struct YASL_Object key = YASL_STR(str_new_sized(strlen("tostr"), "tostr"));
+	struct YASL_Object *result = table_search(S->vm->builtins_htable[index], key);
+	str_del(YASL_GETSTR(key));
+	YASL_GETCFN(*result)->value(S);
+	String_t *str = vm_popstr(S->vm);
+
+	while (buffer_count + yasl_string_len(str) >= buffer_size) {
+		buffer_size *= 2;
+		buffer = realloc(buffer, buffer_size);
+	}
+
+	memcpy(buffer + buffer_count, str->str + str->start, yasl_string_len(str));
+	buffer_count += yasl_string_len(str);
+
+
+	for (int64_t i = 1; i < list->count; i++) {
+		while (buffer_count + yasl_string_len(string) >= buffer_size) {
+			buffer_size *= 2;
+			buffer = realloc(buffer, buffer_size);
+		}
+
+		memcpy(buffer + buffer_count, string->str + string->start, yasl_string_len(string));
+		buffer_count += yasl_string_len(string);
+
+		vm_push(S->vm, list->items[i]);
+		YASL_Types index = VM_PEEK(S->vm, S->vm->sp).type;
+		struct YASL_Object key = YASL_STR(str_new_sized(strlen("tostr"), "tostr"));
+		struct YASL_Object *result = table_search(S->vm->builtins_htable[index], key);
+		str_del(YASL_GETSTR(key));
+		YASL_GETCFN(*result)->value(S);
+		String_t *str = vm_popstr(S->vm);
+
+		while (buffer_count + yasl_string_len(str) >= buffer_size) {
+			buffer_size *= 2;
+			buffer = realloc(buffer, buffer_size);
+		}
+
+		memcpy(buffer + buffer_count, str->str + str->start, yasl_string_len(str));
+		buffer_count += yasl_string_len(str);
+	}
+	vm_pop(S->vm);
+	vm_pop(S->vm);
+	vm_pushstr(S->vm, str_new_sized_heap(0, buffer_count, buffer));
 	return 0;
 }
