@@ -272,6 +272,8 @@ assert_output(qq"x := []
                  x->push(x)
                  echo x
                  x->clear()\n", "[[...]]\n", 0);
+assert_output(qq"x := [1, 2, 3, [1, 2, 3]]
+                 echo x->join('; ')\n", "1; 2; 3; [1, 2, 3]\n", 0);
  
 # Table Methods
 assert_output(qq"x := {1:'one', 2:'two', 3:'three'}
