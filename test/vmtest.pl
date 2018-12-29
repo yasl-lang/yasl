@@ -267,6 +267,11 @@ assert_output(qq"x := [1, 2, 3]
 assert_output(qq"x := [0, 1, 2, 3, 4, 5, 6]
                  y := x->slice(1, 5)
                  echo y\n", "[1, 2, 3, 4]\n", 0);
+assert_output(qq"echo []\n", "[]\n", 0);
+assert_output(qq"x := []
+                 x->push(x)
+                 echo x
+                 x->clear()\n", "[[...]]\n", 0);
  
 # Table Methods
 assert_output(qq"x := {1:'one', 2:'two', 3:'three'}
@@ -278,11 +283,22 @@ assert_output(qq"x := { 3:'three', 1:'one', 2:'two'}
                  echo x\n", "{2: two, 3: three, 1: un}\n", 0);
 assert_output(qq"x := {1:'one', 2:'two', 3:'three'};
                  for e <- x->copy() { echo e; echo x[e]; };", "3\nthree\n2\ntwo\n1\none\n", 0);
+assert_output(qq"echo {}\n", "{}\n", 0);
+assert_output(qq"y := []
+                 x := {}
+                 x.x = x
+                 y->push(y)
+                 y->push(x)
+                 x.y = y
+                 echo x
+                 echo y
+                 x->clear()
+                 y->clear()\n", "{x: {...}, y: [[...], {...}]}\n[[...], {x: {...}, y: [...]}]\n", 0);
 
 # General
 assert_output(qq"x := []
                  i := 0
-                 while i < 1000000 {
+                 while i < 100000 {
                      x->push(i)
                      i += 1
                  };",
