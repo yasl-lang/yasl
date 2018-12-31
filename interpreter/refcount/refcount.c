@@ -79,20 +79,22 @@ static void dec_weak_ref(struct YASL_Object *v) {
         case Y_STR_W:
             if (--(v->value.sval->rc->weak_refs) || v->value.sval->rc->refs) return;
             str_del_rc(v->value.sval);
+            v->type = Y_UNDEF;
             break;
         case Y_LIST_W:
             if (--(v->value.uval->rc->weak_refs) || v->value.uval->rc->refs) return;
             ls_del_rc(v->value.uval);
+	    v->type = Y_UNDEF;
             break;
         case Y_TABLE_W:
             if (--(v->value.uval->rc->weak_refs) || v->value.uval->rc->refs) return;
             rcht_del_rc(v->value.uval);
+	    v->type = Y_UNDEF;
             break;
         default:
             puts("NoT IMPELemented");
             exit(EXIT_FAILURE);
     }
-    // TODO: set to undef
 }
 
 void dec_strong_ref(struct YASL_Object *v) {
