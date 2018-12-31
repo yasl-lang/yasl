@@ -174,7 +174,6 @@ static struct Node *parse_fn(Parser *const parser) {
 
     char *name2 = malloc(name_len);
     memcpy(name2, name, name_len);
-    // return new_FnDecl(block, body, name, name_len, parser->lex->line);
     return new_Let(name, name_len, new_FnDecl(block, body, name2, name_len, parser->lex->line), line);
 }
 
