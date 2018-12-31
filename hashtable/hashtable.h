@@ -10,6 +10,9 @@
 
 #define HT_BASESIZE 30
 
+#define FOR_TABLE(i, item, table) Item_t *item; for (size_t i = 0; i < (table)->size; i++) \
+                                                  if (item = table->items[i], item != NULL && item != &TOMBSTONE)
+
 typedef struct {
     struct YASL_Object* key;
     struct YASL_Object* value;

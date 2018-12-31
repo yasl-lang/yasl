@@ -10,8 +10,6 @@
 
 #define STACK_SIZE 100024
 #define NUM_TYPES 13                                     // number of builtin types, each needs a vtable
-#define PEEK(vm)     (vm->stack[vm->sp])                 // pop value from top of stack
-#define BPUSH(vm, v) (vm_push(vm, YASL_BOOL(v)))  //push boolean v onto stack
 
 #define vm_pushend(vm) vm_push(vm, YASL_END())
 #define vm_pushundef(vm) vm_push(vm, YASL_UNDEF())
@@ -19,6 +17,7 @@
 #define vm_pushint(vm, i) vm_push(vm, YASL_INT(i))
 #define vm_pushbool(vm, b) vm_push(vm, YASL_BOOL(b))
 #define vm_pushstr(vm, s) vm_push(vm, YASL_STR(s))
+#define vm_pushlist(vm, l) vm_push(vm, YASL_LIST(l))
 #define vm_pushfn(vm, f) vm_push(vm, YASL_FN(f))
 
 #define vm_popint(vm) (YASL_GETINT(vm_pop(vm)))
@@ -26,11 +25,12 @@
 #define vm_poplist(vm) (YASL_GETLIST(vm_pop(vm)))
 
 #define VM_PEEK(vm, offset) (vm->stack[offset])
+#define vm_peek(vm) (vm->stack[vm->sp])
 
 #define vm_peekint(vm, offset) (YASL_GETINT(VM_PEEK(vm, offset)))
 #define vm_peekstr(vm, offset) (YASL_GETSTR(VM_PEEK(vm, offset)))
 #define vm_peeklist(vm, offset) (YASL_GETLIST(VM_PEEK(vm, offset)))
-#define vm_peektable(vm, offset) (YASL_GETTBL(VM_PEEK(vm, offset)))
+#define vm_peektable(vm, offset) (YASL_GETTABLE(VM_PEEK(vm, offset)))
 #define vm_peekcfn(vm, offset) (YASL_GETCFN(VM_PEEK(vm, offset)))
 
 #define BUFFER_SIZE 256
@@ -56,7 +56,7 @@
                                         YASL_TYPE_NAMES[a.type], YASL_TYPE_NAMES[b.type]);\
                                 return YASL_TYPE_ERROR;\
                             }\
-                            BPUSH(vm, c);} while(0);
+                            vm_pushbool(vm, c);} while(0);
 
 struct VM {
 	struct YASL_Object *globals;          // variables, see "constant.c" for details on YASL_Object.
@@ -77,6 +77,8 @@ struct VM* vm_new(unsigned char *code,    // pointer to bytecode
            int datasize);       // total params size required to perform a program operations
 
 void vm_del(struct VM *vm);
+
+int vm_stringify_top(struct VM *vm);
 
 struct YASL_Object vm_pop(struct VM *vm);
 void vm_push(struct VM *vm, struct YASL_Object val);

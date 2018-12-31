@@ -76,14 +76,11 @@ struct Table *table_new(void) {
 }
 
 void table_del(struct Table *table) {
-    for (size_t i = 0; i < table->size; i++) {
-        Item_t* item = table->items[i];
-        if (item != NULL && item != &TOMBSTONE) {
-            del_item(item);
-        }
-    }
-    free(table->items);
-    free(table);
+	FOR_TABLE(i, item, table) {
+		del_item(item);
+	}
+	free(table->items);
+	free(table);
 }
 
 struct RC_UserData *rcht_new_sized(const int base_size) {
@@ -118,41 +115,27 @@ void rcht_del_cstring_cfn(struct RC_UserData *hashtable) {
 }
 
 void table_del_string_int(struct Table *table) {
-    for (size_t i = 0; i < table->size; i++) {
-        Item_t* item = table->items[i];
-        if (item != NULL) {
-            str_del(item->key->value.sval);
-            dec_ref(item->value);
-            free(item->key);
-            free(item->value);
-            free(item);
-        }
-    }
-    free(table->items);
-    free(table);
+	table_del(table);
 }
 
 static void table_resize(struct Table *table, const int base_size) {
-    if (base_size < HT_BASESIZE) return;
-    struct Table* new_table = table_new_sized(base_size);
-    for (size_t i = 0; i < table->size; i++) {
-        Item_t* item = table->items[i];
-        if (item != NULL && item != &TOMBSTONE) {
-            table_insert(new_table, *item->key, *item->value);
-        }
-    }
-    table->base_size = new_table->base_size;
-    table->count = new_table->count;
+	if (base_size < HT_BASESIZE) return;
+	struct Table *new_table = table_new_sized(base_size);
+	FOR_TABLE(i, item, table) {
+		table_insert(new_table, *item->key, *item->value);
+	}
+	table->base_size = new_table->base_size;
+	table->count = new_table->count;
 
-    const size_t tmp_size = table->size;
-    table->size = new_table->size;
-    new_table->size = tmp_size;
+	const size_t tmp_size = table->size;
+	table->size = new_table->size;
+	new_table->size = tmp_size;
 
-    Item_t** tmp_items = table->items;
-    table->items = new_table->items;
-    new_table->items = tmp_items;
+	Item_t **tmp_items = table->items;
+	table->items = new_table->items;
+	new_table->items = tmp_items;
 
-    table_del(new_table);
+	table_del(new_table);
 }
 
 static void table_resize_up(struct Table *table) {
@@ -241,52 +224,3 @@ void table_rm(struct Table *table, struct YASL_Object key) {
     }
     table->count--;
 }
-
-/*
-void ht_print(const struct RC_UserData *const  ht) {
-    ByteBuffer *seen = bb_new(sizeof(int64_t)*2);
-    ht_print_h(ht, seen);
-}
-
-void ht_print_h(const struct RC_UserData *const ht, ByteBuffer* seen) {
-    size_t i = 0;
-    int64_t *new_seen;
-    if (ht->data->count == 0) {
-        printf("{}");
-        return;
-    }
-    printf("{");
-    Item_t* item = NULL;
-    while (i < ht->data->size) {
-        item = ht->data->items[i];
-        if (item == &TOMBSTONE || item == NULL) {
-            i++;
-            continue;
-        }
-        print(*item->key);
-        printf(":");
-        if (item->value->type == Y_LIST) {
-            if (isvalueinarray(item->value->value.ival, (int64_t*)seen->bytes, seen->count/sizeof(int64_t))) {
-                printf("[...]");
-            } else {
-                bb_intbytes8(seen, (int64_t)ht);
-                bb_intbytes8(seen, ht->data->items[i]->value->value.ival);
-                ls_print_h(ht->data->items[i]->value->value.lval, seen);
-            }
-        } else if (item->value->type == Y_TABLE) {
-            if (isvalueinarray(item->value->value.ival, (int64_t*)seen->bytes, seen->count/sizeof(int64_t))) {
-                printf("{...}");
-            } else {
-                bb_intbytes8(seen, (int64_t)ht);
-                bb_intbytes8(seen, ht->data->items[i]->value->value.ival);
-                ht_print_h(ht->data->items[i]->value->value.mval, seen);
-            }
-        } else {
-            print(*item->value);
-        }
-        printf(", ");
-        i++;
-    }
-    printf("\b\b}");
-}
-*/

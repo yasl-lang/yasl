@@ -39,17 +39,11 @@ static void inc_weak_ref(struct YASL_Object *v) {
 }
 
 static void inc_strong_ref(struct YASL_Object *v) {
-    //printf(K_GRN "inc_strong(%s): ", YASL_TYPE_NAMES[v->type]);
-    //print(*v);
-    //puts(K_END);
     switch (v->type) {
         case Y_STR:
             v->value.sval->rc->refs++;
-            //printf(K_MAG "after : %d\n" K_END, v->value.sval->rc->refs);
             break;
         case Y_LIST:
-            v->value.uval->rc->refs++;
-            break;
         case Y_TABLE:
             v->value.uval->rc->refs++;
             break;
@@ -68,9 +62,6 @@ void inc_ref(struct YASL_Object *v) {
         case Y_LIST:
         case Y_TABLE:
         case Y_CFN:
-            //puts(K_GRN "inc" K_END);
-            //print(*v);
-            //printf("\n%d++\n", v->value.sval->rc->refs);
             inc_strong_ref(v);
             break;
         case Y_STR_W:
@@ -84,9 +75,6 @@ void inc_ref(struct YASL_Object *v) {
 }
 
 static void dec_weak_ref(struct YASL_Object *v) {
-    //printf(K_RED "dec_weak(%s): ", YASL_TYPE_NAMES[v->type]);
-    //print(*v);
-    //puts(K_END);
     switch(v->type) {
         case Y_STR_W:
             if (--(v->value.sval->rc->weak_refs) || v->value.sval->rc->refs) return;
@@ -108,9 +96,6 @@ static void dec_weak_ref(struct YASL_Object *v) {
 }
 
 void dec_strong_ref(struct YASL_Object *v) {
-    //printf(K_RED "dec_strong(%s): ", YASL_TYPE_NAMES[v->type]);
-    //print(*v);
-    //puts(K_END);
     switch(v->type) {
         case Y_STR:
             //printf(K_MAG "after : %d\n" K_END, v->value.sval->rc->refs - 1);
@@ -149,11 +134,7 @@ void dec_ref(struct YASL_Object *v) {
         case Y_LIST:
         case Y_TABLE:
         case Y_CFN:
-            //puts(K_RED "dec" K_END);
-            //print(*v);
-            //printf("\n%d--\n", v->value.cval->rc->refs);
             dec_strong_ref(v);
-            //printf("\n%d--\n", v->value.cval->rc->refs);
             break;
         case Y_STR_W:
         case Y_LIST_W:

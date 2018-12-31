@@ -5,6 +5,7 @@
 #include "userdata.h"
 
 #define LS_BASESIZE 4
+#define FOR_LIST(i, name, list) struct YASL_Object name; for (int64_t i = 0; i < (list)->count && (name = (list)->items[i], 1); i++)
 
 struct List {
     int64_t size;

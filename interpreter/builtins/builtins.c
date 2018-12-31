@@ -11,7 +11,7 @@
 
 void yasl_print(struct VM* vm) {
 	if (!YASL_ISSTR(VM_PEEK(vm, vm->sp))) {
-		YASL_Types index = PEEK(vm).type;
+		YASL_Types index = vm_peek(vm).type;
 		struct YASL_Object key = YASL_STR(str_new_sized(strlen("tostr"), "tostr"));
 		struct YASL_Object *result = table_search(vm->builtins_htable[index], key);
 		str_del(YASL_GETSTR(key));

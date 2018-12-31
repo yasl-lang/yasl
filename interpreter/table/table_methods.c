@@ -9,7 +9,7 @@
 int table___get(struct YASL_State *S) {
     struct YASL_Object key = vm_pop(S->vm);
     ASSERT_TYPE(S->vm, Y_TABLE, "table.__get");
-    struct Table* ht = YASL_GETTBL(PEEK(S->vm));
+    struct Table* ht = YASL_GETTABLE(vm_peek(S->vm));
     struct YASL_Object *result = table_search(ht, key);
     if (result == NULL) {
         S->vm->sp++;  // TODO: fix this
@@ -27,9 +27,9 @@ int table___set(struct YASL_State *S) {
 	struct YASL_Object val = vm_pop(S->vm);
 	struct YASL_Object key = vm_pop(S->vm);
 	ASSERT_TYPE(S->vm, Y_TABLE, "table.__set");
-	struct Table *ht = YASL_GETTBL(vm_pop(S->vm));
+	struct Table *ht = YASL_GETTABLE(vm_pop(S->vm));
 
-	if (YASL_ISLIST(key) || YASL_ISTBL(key) || YASL_ISUSERDATA(key)) {
+	if (YASL_ISLIST(key) || YASL_ISTABLE(key) || YASL_ISUSERDATA(key)) {
 		printf("Error: unable to use mutable object of type %x as key.\n", key.type);
 		return -1;
 	}
@@ -62,10 +62,7 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 		return 0;
 	}
 
-	for (size_t i = 0; i < table->size; i++) {
-		Item_t *item = table->items[i];
-		if (item == NULL || item == &TOMBSTONE) continue;
-
+	FOR_TABLE(i, item, table) {
 		vm_push(S->vm, *item->key);
 
 		object_tostr(S);
@@ -78,7 +75,6 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 
 		memcpy(string + string_count, str->str + str->start, yasl_string_len(str));
 		string_count += yasl_string_len(str);
-		// str_del(str);
 
 		if (string_count + 2 >= string_size) {
 			string_size *= 2;
@@ -99,17 +95,12 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 				}
 			}
 			if (found) {
-				if (string_count + 7 >= string_size) {
+				if (string_count + strlen("[...], ") >= string_size) {
 					string_size *= 2;
 					string = realloc(string, string_size);
 				}
-				string[string_count++] = '[';
-				string[string_count++] = '.';
-				string[string_count++] = '.';
-				string[string_count++] = '.';
-				string[string_count++] = ']';
-				string[string_count++] = ',';
-				string[string_count++] = ' ';
+				memcpy(string + string_count, "[...], ", strlen("[...], "));
+				string_count += strlen("[...], ");
 				continue;
 			} else {
 				size_t tmp_buffer_size = buffer_count == buffer_size ? buffer_size * 2 : buffer_size;
@@ -119,7 +110,7 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 				list_tostr_helper(S, tmp_buffer, tmp_buffer_size, buffer_size + 1);
 				free(tmp_buffer);
 			}
-		} else if (YASL_ISTBL(VM_PEEK(S->vm, S->vm->sp))) {
+		} else if (YASL_ISTABLE(VM_PEEK(S->vm, S->vm->sp))) {
 			int found = 0;
 			for (size_t j = 0; j < buffer_count; j++) {
 				if (buffer[j] == vm_peeklist(S->vm, S->vm->sp)) {
@@ -128,17 +119,12 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 				}
 			}
 			if (found) {
-				if (string_count + 7 >= string_size) {
+				if (string_count + strlen("{...}, ") >= string_size) {
 					string_size *= 2;
 					string = realloc(string, string_size);
 				}
-				string[string_count++] = '{';
-				string[string_count++] = '.';
-				string[string_count++] = '.';
-				string[string_count++] = '.';
-				string[string_count++] = '}';
-				string[string_count++] = ',';
-				string[string_count++] = ' ';
+				memcpy(string + string_count, "{...}, ", strlen("{...}, "));
+				string_count += strlen("{...}, ");
 				continue;
 			} else {
 				size_t tmp_buffer_size = buffer_count == buffer_size ? buffer_size * 2 : buffer_size;
@@ -148,11 +134,7 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 				table_tostr_helper(S, tmp_buffer, tmp_buffer_size, buffer_size + 1);
 			}
 		} else {
-			YASL_Types index = VM_PEEK(S->vm, S->vm->sp).type;
-			struct YASL_Object key = YASL_STR(str_new_sized(strlen("tostr"), "tostr"));
-			struct YASL_Object *result = table_search(S->vm->builtins_htable[index], key);
-			str_del(YASL_GETSTR(key));
-			YASL_GETCFN(*result)->value(S);
+			vm_stringify_top(S->vm);
 		}
 
 		str = vm_popstr(S->vm);
@@ -199,62 +181,49 @@ int table_tostr(struct YASL_State *S) {
 	return 0;
 }
 
-
 int table_keys(struct YASL_State *S) {
-    ASSERT_TYPE(S->vm, Y_TABLE, "table.keys");
-    struct Table *ht = YASL_GETTBL(vm_pop(S->vm));
-    struct RC_UserData* ls = ls_new();
-    Item_t* item;
-    for (size_t i = 0; i < ht->size; i++) {
-        item = ht->items[i];
-        if (item != NULL && item != &TOMBSTONE) {
-            ls_append(ls->data, *(item->key));
-        }
-    }
-    vm_push(S->vm, YASL_LIST(ls));
-    return 0;
+	ASSERT_TYPE(S->vm, Y_TABLE, "table.keys");
+	struct Table *ht = YASL_GETTABLE(vm_pop(S->vm));
+	struct RC_UserData *ls = ls_new();
+	FOR_TABLE(i, item, ht) {
+			ls_append(ls->data, *(item->key));
+		}
+
+	vm_push(S->vm, YASL_LIST(ls));
+	return 0;
 }
 
 int table_values(struct YASL_State *S) {
-    ASSERT_TYPE(S->vm, Y_TABLE, "table.values");
-    struct Table *ht = YASL_GETTBL(vm_pop(S->vm));
-    struct RC_UserData* ls = ls_new();
-    Item_t* item;
-    for (size_t i = 0; i < ht->size; i++) {
-        item = ht->items[i];
-        if (item != NULL && item != &TOMBSTONE) {
-            ls_append(ls->data, *(item->value));
-        }
-    }
-    vm_push(S->vm, YASL_LIST(ls));
-    return 0;
+	ASSERT_TYPE(S->vm, Y_TABLE, "table.values");
+	struct Table *ht = YASL_GETTABLE(vm_pop(S->vm));
+	struct RC_UserData *ls = ls_new();
+	FOR_TABLE(i, item, ht) {
+		ls_append(ls->data, *(item->value));
+	}
+	vm_push(S->vm, YASL_LIST(ls));
+	return 0;
 }
 
 int table_clone(struct YASL_State *S) {
-    ASSERT_TYPE(S->vm, Y_TABLE, "table.clone");
-    struct Table* ht = YASL_GETTBL(vm_pop(S->vm));
-    struct RC_UserData* new_ht = rcht_new_sized(ht->base_size);
-    for (size_t i = 0; i < ht->size; i++) {
-        Item_t* item = ht->items[i];
-        if (item != NULL && item != &TOMBSTONE) {
-            inc_ref(item->key);
-            inc_ref(item->value);
-            table_insert(new_ht->data, *item->key, *item->value);
-        }
-    }
+	ASSERT_TYPE(S->vm, Y_TABLE, "table.clone");
+	struct Table *ht = YASL_GETTABLE(vm_pop(S->vm));
+	struct RC_UserData *new_ht = rcht_new_sized(ht->base_size);
 
-    vm_push(S->vm, YASL_TBL(new_ht));
-    return 0;
+	FOR_TABLE(i, item, ht) {
+		inc_ref(item->key);
+		inc_ref(item->value);
+		table_insert(new_ht->data, *item->key, *item->value);
+	}
+
+	vm_push(S->vm, YASL_TABLE(new_ht));
+	return 0;
 }
 
 int table_clear(struct YASL_State *S) {
 	ASSERT_TYPE(S->vm, Y_TABLE, "table.clear");
-	struct Table* ht = YASL_GETTBL(vm_pop(S->vm));
-	for (size_t i = 0; i < ht->size; i++) {
-		Item_t* item = ht->items[i];
-		if (item != NULL && item != &TOMBSTONE) {
-			del_item(item);
-		}
+	struct Table* ht = YASL_GETTABLE(vm_pop(S->vm));
+	FOR_TABLE(i, item, ht) {
+		del_item(item);
 	}
 
 	ht->count = 0;
