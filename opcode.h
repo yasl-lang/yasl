@@ -63,7 +63,6 @@ typedef enum Opcode {
             BRT_8     = 0x95, // branch if condition is truthy (takes next 8 bytes as jump length)
             BRN_4     = 0x96, // branch if condition is not undef (takes next 4 bytes as jump length)
             BRN_8     = 0x97, // branch if condition is not undef (takes next 8 bytes as jump length)
-            GOTO      = 0x9F, // jump to addr (next 8 bytes), indexing from after header.
             NEWSTR    = 0xBB, // make new String and push it onto stack (length (8 bytes), string (length bytes))
             NEWTABLE  = 0xBC, // make new HashTable and push it onto stack
             NEWLIST   = 0xBD, // make new List and push it onto stack

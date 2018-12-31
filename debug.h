@@ -1,7 +1,8 @@
 #pragma once
 
-#include <color.h>
 #include <stdio.h>
+
+#include "yasl_include.h"
 
 enum LogLevel {
     INFO,

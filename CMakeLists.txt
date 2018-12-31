@@ -110,6 +110,7 @@ add_library(yaslapi
         interpreter/YASL_string/str_methods.c
         interpreter/YASL_string/YASL_string.c
         interpreter/userdata/userdata.c
+        interpreter/undef/undef_methods.c
         prime/prime.c)
 
 target_link_libraries(YASL m)

@@ -143,7 +143,7 @@ struct YASL_Object isequal(struct YASL_Object a, struct YASL_Object b) {
             }
         case Y_TABLE:
         case Y_TABLE_W:
-            if (YASL_ISTBL(b)) {
+            if (YASL_ISTABLE(b)) {
                 puts("Warning: comparison of hashes currently is not implemented.");
                 return UNDEF_C;
             }
@@ -168,7 +168,7 @@ struct YASL_Object isequal(struct YASL_Object a, struct YASL_Object b) {
             }
             return FALSE_C;
         default:
-            if (YASL_ISBOOL(b) || YASL_ISTBL(b)) {
+            if (YASL_ISBOOL(b) || YASL_ISTABLE(b)) {
                 return FALSE_C;
             }
             int c;
@@ -214,7 +214,7 @@ int print(struct YASL_Object v) {
             }
             break;
         case Y_TABLE:
-            printf("<table>"); //, (void*)YASL_GETTBL(v));
+            printf("<table>"); //, (void*)YASL_GETTABLE(v));
             break;
         case Y_LIST:
             //ls_print((List_t*)v.value);

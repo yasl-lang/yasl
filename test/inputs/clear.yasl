@@ -1,0 +1,12 @@
+# test that clearing a list or table removes cycles
+
+y := []
+x := {}
+x.x = x
+y->push(y)
+y->push(x)
+x.y = y
+echo x
+echo y
+x->clear()
+y->clear()

@@ -1,6 +1,10 @@
 # test overwriting keys works
 
-x := { 'a': 'A'}
+x = {}
+
+echo x
+
+x = { 'a': 'A'}
 
 x['a'] = '$'
 

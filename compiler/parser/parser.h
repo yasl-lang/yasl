@@ -4,7 +4,13 @@
 #include "../ast/ast.h"
 #include "../../debug.h"
 
-//#define peof(parser) (parser->lex->type == T_EOF)
+#define T1(p, a) (curtok(p) == a)
+#define T2(p, a, b) T1(p, a) || T1(p, b)
+#define T3(p, a, b, c) T2(p, a, b) || T1(p, c)
+#define T4(p, a, b, c, d) T3(p, a, b, c) || T1(p, d)
+#define CHOOSE(T1, T2, T3, T4, NAME, ...) NAME
+
+#define TOKEN_MATCHES(parser, ...)  (CHOOSE(__VA_ARGS__, T4, T3, T2, T1, T0)(parser, __VA_ARGS__))
 
 typedef struct {
     Lexer *lex; /* OWN */

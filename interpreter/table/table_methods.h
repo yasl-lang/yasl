@@ -13,3 +13,5 @@ int table_keys(struct YASL_State *S);
 int table_values(struct YASL_State *S);
 
 int table_clone(struct YASL_State *S);
+
+int table_clear(struct YASL_State *S);
