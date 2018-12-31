@@ -1,7 +1,6 @@
 #include "opcode.h"
 #include "yats.h"
 #include "compilertest.h"
-#include "color.h"
 #include "binoptest.h"
 #include "unoptest.h"
 #include "literaltest.h"

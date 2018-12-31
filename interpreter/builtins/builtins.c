@@ -9,11 +9,19 @@
 #include "list_methods.h"
 #include "VM.h"
 
-int yasl_print(struct VM* vm) {
+void yasl_print(struct VM* vm) {
+	if (!YASL_ISSTR(VM_PEEK(vm, vm->sp))) {
+		YASL_Types index = vm_peek(vm).type;
+		struct YASL_Object key = YASL_STR(str_new_sized(strlen("tostr"), "tostr"));
+		struct YASL_Object *result = table_search(vm->builtins_htable[index], key);
+		str_del(YASL_GETSTR(key));
+		YASL_GETCFN(*result)->value((struct YASL_State *) &vm);
+	}
 	struct YASL_Object v = vm_pop(vm);
-	int return_value = print(v);
+	for (int64_t i = 0; i < yasl_string_len(YASL_GETSTR(v)); i++) {
+		printf("%c", YASL_GETSTR(v)->str[i + YASL_GETSTR(v)->start]);
+	}
 	printf("\n");
-	return return_value;
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -90,6 +98,8 @@ struct Table* list_builtins() {
 	table_insert_literalcstring_cfunction(table, "search", &list_search, 2);
 	table_insert_literalcstring_cfunction(table, "reverse", &list_reverse, 1);
 	table_insert_literalcstring_cfunction(table, "slice", &list_slice, 3);
+	table_insert_literalcstring_cfunction(table, "clear", &list_clear, 1);
+	table_insert_literalcstring_cfunction(table, "join", &list_join, 2);
 	return table;
 }
 
@@ -101,6 +111,7 @@ struct Table* table_builtins() {
 	table_insert_literalcstring_cfunction(table, "tostr", &table_tostr, 1);
 	table_insert_literalcstring_cfunction(table, "__get", &table___get, 2);
 	table_insert_literalcstring_cfunction(table, "__set", &table___set, 3);
+	table_insert_literalcstring_cfunction(table, "clear", &table_clear, 1);
 	return table;
 }
 

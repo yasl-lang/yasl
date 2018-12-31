@@ -1,15 +1,16 @@
 # YASL
-Bytecode Interpreter for Yet Another Scripting Language (YASL). More information can be found on my website, here: https://yasl-lang.github.io/docs/.
+Bytecode Interpreter for Yet Another Scripting Language (YASL). More information can be found here: https://yasl-lang.github.io/docs/.
 
 ## Installation
 YASL can be compiled from source with the following commands:
 ```bash
 git clone --recurse-submodules https://github.com/yasl-lang/yasl.git
 cd yasl
+cmake --configure .
 cmake --build .
 ```
 
-You should then be able to type `./YASL -V` from within the `yasl` directory, which should print out the current version of YASL.
+You should then be able to type `./YASL -V` from within the `yasl` directory, which should print out the current version of YASL. YASL is not installed on your path, although doing so is easy.
 
 ## Running YASL Code
 A YASL script can be run using `./YASL filename`. This will search in the current directory (same directory as `YASL`) for a file named `filename`, and run it.

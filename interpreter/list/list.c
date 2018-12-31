@@ -3,8 +3,6 @@
 #include "YASL_Object.h"
 #include "hashtable.h"
 
-#define LS_BASESIZE 4
-
 int isvalueinarray(int64_t val, int64_t *arr, int size){
     int i;
     for (i=0; i < size; i++) {
@@ -128,7 +126,7 @@ void ls_print_h(struct RC_List* ls, ByteBuffer *seen) {
                 bb_intbytes8(seen, ls->list->items[i].value.ival);
                 ls_print_h(ls->list->items[i].value.lval, seen);
             }
-        } else if (YASL_ISTBL(ls->list->items[i])) {
+        } else if (YASL_ISTABLE(ls->list->items[i])) {
             if (isvalueinarray(ls->list->items[i].value.ival, (int64_t*)seen->bytes, seen->count/sizeof(int64_t))) {
                 printf("[...->...]");
             } else {
