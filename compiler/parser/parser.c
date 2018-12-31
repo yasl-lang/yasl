@@ -87,7 +87,7 @@ Token eattok(Parser *const parser, const Token token) {
                    YASL_TOKEN_NAMES[curtok(parser)], parser->lex->line);
             parser->status = YASL_SYNTAX_ERROR;
         }
-        while (curtok(parser) != T_EOF && curtok(parser) != T_SEMI) gettok(parser->lex);
+        while (!TOKEN_MATCHES(parser, T_SEMI, T_EOF)) gettok(parser->lex);
     } else {
         gettok(parser->lex);
     }
@@ -179,19 +179,15 @@ static struct Node *parse_fn(Parser *const parser) {
 }
 
 static struct Node *parse_const(Parser *const parser) {
-    YASL_TRACE_LOG("parsing let in line %zd\n", parser->lex->line);
-    eattok(parser, T_CONST);
-    char *name = parser->lex->value;
-    size_t name_len = parser->lex->val_len;
-    size_t line = parser->lex->line;
-    eattok(parser, T_ID);
-    //if (curtok(parser) == T_COLONEQ) {
-        eattok(parser, T_COLONEQ);
-    //} else {
-    //    eattok(parser, T_EQ);
-    //}
-    struct Node *expr = parse_expr(parser);
-    return new_Const(name, name_len, expr, line);
+	YASL_TRACE_LOG("parsing let in line %zd\n", parser->lex->line);
+	eattok(parser, T_CONST);
+	char *name = parser->lex->value;
+	size_t name_len = parser->lex->val_len;
+	size_t line = parser->lex->line;
+	eattok(parser, T_ID);
+	eattok(parser, T_COLONEQ);
+	struct Node *expr = parse_expr(parser);
+	return new_Const(name, name_len, expr, line);
 }
 
 static struct Node *parse_let_iterate_or_let(Parser *const parser) {
@@ -441,7 +437,7 @@ static struct Node *parse_unary(Parser *const parser) {
 static struct Node *parse_power(Parser *const parser) {
     YASL_TRACE_LOG("parsing ** in line %zd\n", parser->lex->line);
     struct Node *cur_node = parse_call(parser);
-    if (curtok(parser) == T_DSTAR) {
+    if (TOKEN_MATCHES(parser, T_DSTAR)) {
         eattok(parser, T_DSTAR);
         return new_BinOp(T_DSTAR, cur_node, parse_unary(parser), parser->lex->line);
     }
@@ -450,9 +446,8 @@ static struct Node *parse_power(Parser *const parser) {
 
 static struct Node *parse_call(Parser *const parser) {
     struct Node *cur_node = parse_constant(parser);
-    while (curtok(parser) == T_LSQB || curtok(parser) == T_DOT ||
-           curtok(parser) == T_LPAR || curtok(parser) == T_SMALL_ARR) {
-        if (curtok(parser) == T_SMALL_ARR) {
+    while (TOKEN_MATCHES(parser, T_LSQB, T_DOT, T_LPAR, T_SMALL_ARR)) {
+        if (TOKEN_MATCHES(parser, T_SMALL_ARR)) {
             eattok(parser, T_SMALL_ARR);
             struct Node *right = parse_constant(parser);
             if (right->nodetype != N_VAR) {
@@ -469,7 +464,7 @@ static struct Node *parse_call(Parser *const parser) {
 
             cur_node = new_Call(block, cur_node, parser->lex->line);
             eattok(parser, T_LPAR);
-            while (curtok(parser) != T_RPAR && curtok(parser) != T_EOF) {
+            while (!TOKEN_MATCHES(parser, T_RPAR, T_EOF)) {
                 body_append(&cur_node->children[0], parse_expr(parser));
                 if (curtok(parser) != T_COMMA) break;
                 eattok(parser, T_COMMA);
@@ -497,7 +492,7 @@ static struct Node *parse_call(Parser *const parser) {
             YASL_TRACE_LOG("%s\n", "Parsing function call");
             cur_node = new_Call(new_Body(parser->lex->line), cur_node, parser->lex->line);
             eattok(parser, T_LPAR);
-            while (curtok(parser) != T_RPAR && curtok(parser) != T_EOF) {
+            while (!TOKEN_MATCHES(parser, T_RPAR, T_EOF)) {
                 body_append(&cur_node->children[0], parse_expr(parser));
                 if (curtok(parser) != T_COMMA) break;
                 eattok(parser, T_COMMA);
