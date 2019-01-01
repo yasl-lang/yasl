@@ -719,6 +719,7 @@ static void visit_BinOp(struct Compiler *const compiler, const struct Node *cons
 }
 
 static void visit_UnOp(struct Compiler *const compiler, const struct Node *const node) {
+	// if (node->children[0]->nodetype == N_INT64) puts("dadadsa");
 	visit(compiler, node->children[0]);
 	switch (node->type) {
 	case T_PLUS:
@@ -773,22 +774,48 @@ static void visit_Float(struct Compiler *const compiler, const struct Node *cons
 	}
 }
 
-static void visit_Integer(struct Compiler *const compiler, const struct Node *const node) {
-	bb_add_byte(compiler->buffer, ICONST);
-	YASL_TRACE_LOG("int64: %s\n", node->name);
-	if (node->name_len < 2) {
-		bb_intbytes8(compiler->buffer, (int64_t) strtoll(node->name, (char **) NULL, 10));
-		return;
+static int64_t get_int(char *buffer) {
+	if (strlen(buffer) < 2) {
+		return strtoll(buffer, (char **) NULL, 10);
 	}
-	switch (node->name[1]) {
+	switch (buffer[1]) {
 	case 'x':
-		bb_intbytes8(compiler->buffer, (int64_t) strtoll(node->name + 2, (char **) NULL, 16));
-		break;
+		return strtoll(buffer + 2, (char **) NULL, 16);
 	case 'b':
-		bb_intbytes8(compiler->buffer, (int64_t) strtoll(node->name + 2, (char **) NULL, 2));
+		return strtoll(buffer + 2, (char **) NULL, 2);
+	default:
+		return strtoll(buffer, (char **) NULL, 10);
+	}
+}
+
+static void visit_Integer(struct Compiler *const compiler, const struct Node *const node) {
+	YASL_TRACE_LOG("int64: %s\n", node->name);
+	int64_t val = get_int(node->name);
+	switch (val) {/*
+	case -1:
+		bb_add_byte(compiler->buffer, ICONST_M1);
+		break;*/
+	case 0:
+		bb_add_byte(compiler->buffer, ICONST_0);
+		break;
+	case 1:
+		bb_add_byte(compiler->buffer, ICONST_1);
+		break;
+	case 2:
+		bb_add_byte(compiler->buffer, ICONST_2);
+		break;
+	case 3:
+		bb_add_byte(compiler->buffer, ICONST_3);
+		break;
+	case 4:
+		bb_add_byte(compiler->buffer, ICONST_4);
+		break;
+	case 5:
+		bb_add_byte(compiler->buffer, ICONST_5);
 		break;
 	default:
-		bb_intbytes8(compiler->buffer, (int64_t) strtoll(node->name, (char **) NULL, 10));
+		bb_add_byte(compiler->buffer, ICONST);
+		bb_intbytes8(compiler->buffer, val);
 		break;
 	}
 }
