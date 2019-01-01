@@ -69,6 +69,7 @@ struct VM {
 	int fp;                     // frame pointer
 	int next_fp;
 	int lp;                     // foreach pointer
+	struct Table *string_literal_table;
 	struct Table **builtins_htable;   // htable of builtin methods
 };
 

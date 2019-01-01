@@ -65,6 +65,7 @@ struct Node *node_clone(const struct Node *const node);
 #define List_get_values(node) ((node)->children[0])
 #define ExprStmt_get_expr(node) ((node)->children[0])
 #define FnDecl_get_params(node) ((node)->children[0])
+#define FnDecl_get_body(node) ((node)->children[1])
 #define Call_get_params(node) ((node)->children[0])
 #define Return_get_expr(node) ((node)->children[0])
 #define Set_get_collection(node) ((node)->children[0])
@@ -72,6 +73,9 @@ struct Node *node_clone(const struct Node *const node);
 #define Set_get_value(node) ((node)->children[2])
 #define Get_get_collection(node) ((node)->children[0])
 #define Get_get_value(node) ((node)->children[1])
+#define UnOp_get_expr(node) ((node)->children[0])
+#define Assign_get_expr(node) ((node)->children[0])
+
 
 
 struct Node *new_ExprStmt(struct Node *child, size_t line);

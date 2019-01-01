@@ -9,7 +9,22 @@
 #define break_checkpoint(compiler)    ((compiler)->checkpoints[(compiler)->checkpoints_count-1])
 #define continue_checkpoint(compiler) ((compiler)->checkpoints[(compiler)->checkpoints_count-2])
 
+#define FOR_CHILDREN(i, child, node) struct Node *child;\
+for (size_t i = 0; i < (node)->children_len && (child = (node)->children[i], 1 ); i++ )
 
+static int64_t get_int(char *buffer) {
+	if (strlen(buffer) < 2) {
+		return strtoll(buffer, (char **) NULL, 10);
+	}
+	switch (buffer[1]) {
+	case 'x':
+		return strtoll(buffer + 2, (char **) NULL, 16);
+	case 'b':
+		return strtoll(buffer + 2, (char **) NULL, 2);
+	default:
+		return strtoll(buffer, (char **) NULL, 10);
+	}
+}
 
 struct Compiler *compiler_new(Parser *const parser) {
 	struct Compiler *compiler = malloc(sizeof(struct Compiler));
@@ -108,8 +123,8 @@ static void rm_checkpoint(struct Compiler *compiler) {
 static void visit(struct Compiler *const compiler, const struct Node *const node);
 
 static void visit_Body(struct Compiler *const compiler, const struct Node *const node) {
-	for (size_t i = 0; i < node->children_len; i++) {
-		visit(compiler, node->children[i]);
+	FOR_CHILDREN(i, child, node) {
+		visit(compiler, child);
 	}
 }
 
@@ -266,25 +281,23 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 
 	// use offset to compute offsets for params, in other functions.
 	compiler->offset = FnDecl_get_params(node)->children_len;
-	//YASL_DEBUG_LOG("compiler->offset is: %d\n", compiler->offset);
 
 	compiler->params = env_new(compiler->params);
 
 	enter_scope(compiler);
 
-	for (size_t i = 0; i < FnDecl_get_params(node)->children_len; i++) {
-		decl_var(compiler, FnDecl_get_params(node)->children[i]->name,
-			 FnDecl_get_params(node)->children[i]->name_len);
-		if (FnDecl_get_params(node)->children[i]->nodetype == N_CONST) {
-			make_const(compiler, FnDecl_get_params(node)->children[i]->name,
-				   FnDecl_get_params(node)->children[i]->name_len);
-			FnDecl_get_params(node)->children[i]->nodetype = N_VAR;
+	FOR_CHILDREN(i, child, FnDecl_get_params(node)) {
+		decl_var(compiler, child->name,
+			 child->name_len);
+		if (child->nodetype == N_CONST) {
+			make_const(compiler, child->name,
+				   child->name_len);
 		}
 	}
 
 	bb_add_byte(compiler->buffer, FnDecl_get_params(node)->children_len);
 	bb_add_byte(compiler->buffer, compiler->params->vars->count);
-	visit_Body(compiler, node->children[1]);
+	visit_Body(compiler, FnDecl_get_body(node));
 
 	int64_t fn_val = compiler->header->count;
 	bb_append(compiler->header, compiler->buffer->bytes, compiler->buffer->count);
@@ -719,8 +732,7 @@ static void visit_BinOp(struct Compiler *const compiler, const struct Node *cons
 }
 
 static void visit_UnOp(struct Compiler *const compiler, const struct Node *const node) {
-	// if (node->children[0]->nodetype == N_INT64) puts("dadadsa");
-	visit(compiler, node->children[0]);
+	visit(compiler, UnOp_get_expr(node));
 	switch (node->type) {
 	case T_PLUS:
 		bb_add_byte(compiler->buffer, NOP);
@@ -749,7 +761,7 @@ static void visit_Assign(struct Compiler *const compiler, const struct Node *con
 		handle_error(compiler);
 		return;
 	}
-	visit(compiler, node->children[0]);
+	visit(compiler, Assign_get_expr(node));
 	bb_add_byte(compiler->buffer, DUP);
 	store_var(compiler, node->name, node->name_len, node->line);
 }
@@ -762,6 +774,10 @@ static void visit_Undef(struct Compiler *const compiler, const struct Node *cons
 	bb_add_byte(compiler->buffer, NCONST);
 }
 
+static double get_float(char *buffer) {
+	return strtod(buffer, (char **) NULL);
+}
+
 static void visit_Float(struct Compiler *const compiler, const struct Node *const node) {
 	YASL_TRACE_LOG("float64: %s\n", node->name);
 	if (strlen("nan") == node->name_len && !memcmp(node->name, "nan", node->name_len))
@@ -769,22 +785,9 @@ static void visit_Float(struct Compiler *const compiler, const struct Node *cons
 	else if (strlen("inf") == node->name_len && !memcmp(node->name, "inf", node->name_len))
 		bb_add_byte(compiler->buffer, DCONST_I);
 	else {
+		double val = get_float(node->name);
 		bb_add_byte(compiler->buffer, DCONST);
-		bb_floatbytes8(compiler->buffer, strtod(node->name, (char **) NULL));
-	}
-}
-
-static int64_t get_int(char *buffer) {
-	if (strlen(buffer) < 2) {
-		return strtoll(buffer, (char **) NULL, 10);
-	}
-	switch (buffer[1]) {
-	case 'x':
-		return strtoll(buffer + 2, (char **) NULL, 16);
-	case 'b':
-		return strtoll(buffer + 2, (char **) NULL, 2);
-	default:
-		return strtoll(buffer, (char **) NULL, 10);
+		bb_floatbytes8(compiler->buffer, val);
 	}
 }
 

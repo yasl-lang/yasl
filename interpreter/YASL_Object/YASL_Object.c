@@ -158,6 +158,9 @@ struct YASL_Object isequal(struct YASL_Object a, struct YASL_Object b) {
         case Y_STR:
         case Y_STR_W:
             if (YASL_ISSTR(b)) {
+                if (YASL_GETSTR(a) == YASL_GETSTR(b)) {
+                    return TRUE_C;
+                }
                 if (yasl_string_len(YASL_GETSTR(a)) != yasl_string_len(YASL_GETSTR(b))) {
                     return FALSE_C;
                 } else {

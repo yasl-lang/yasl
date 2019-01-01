@@ -47,6 +47,8 @@ struct VM* vm_new(unsigned char *code,    // pointer to bytecode
 
     vm->stack = calloc(sizeof(struct YASL_Object), STACK_SIZE);
 
+    vm->string_literal_table = table_new();
+
     vm->builtins_htable = builtins_htable_new();
     return vm;
 }
@@ -62,6 +64,7 @@ void vm_del(struct VM *vm) {
 
 	free(vm->code);
 
+	table_del(vm->string_literal_table);
 
 	table_del(vm->builtins_htable[Y_UNDEF]);
 	table_del(vm->builtins_htable[Y_FLOAT]);
@@ -538,11 +541,21 @@ int vm_run(struct VM *vm) {
 			vm_push(vm, YASL_BOOL(a.type == b.type && YASL_GETINT(a) == YASL_GETINT(b)));
 			break;
 		case NEWSTR:
-			addr = vm_read_int(vm);
-			memcpy(&size, vm->code + addr, sizeof(yasl_int));
-			addr += sizeof(yasl_int);
-			vm_pushstr(vm, str_new_sized(size, ((char *) vm->code) + addr));
-			break;
+		{
+			addr = vm_read_int(vm); /*
+			struct YASL_Object *result = table_search(vm->string_literal_table, YASL_INT(addr));
+			if (result) {
+				vm_push(vm, *result);
+				break;
+			} else { */
+				memcpy(&size, vm->code + addr, sizeof(yasl_int));
+				addr += sizeof(yasl_int);
+				String_t *string = str_new_sized(size, ((char *) vm->code) + addr);
+				// table_insert(vm->string_literal_table, YASL_INT(addr - sizeof(yasl_int)), YASL_STR(string));
+				vm_pushstr(vm, string);
+				break;
+			// }
+		}
 		case NEWTABLE: {
 			struct YASL_Object *table = YASL_Table();
 			struct Table *ht = YASL_GETTABLE(*table);
