@@ -158,8 +158,15 @@ static struct Node *parse_fn(Parser *const parser) {
     eattok(parser, T_ID);
     eattok(parser, T_LPAR);
     struct Node *block = new_Body(parser->lex->line);
-    while (curtok(parser) == T_ID) {
-        body_append(&block, parse_id(parser));
+    while (TOKEN_MATCHES(parser, T_ID, T_CONST)) {
+    	if (TOKEN_MATCHES(parser, T_ID)) {
+		body_append(&block, parse_id(parser));
+    	} else {
+    		eattok(parser, T_CONST);
+    		struct Node *cur_node = parse_id(parser);
+    		cur_node->nodetype = N_CONST;
+    		body_append(&block, cur_node);
+    	}
         if (curtok(parser) == T_COMMA) eattok(parser, T_COMMA);
         else break;
     }
@@ -183,6 +190,11 @@ static struct Node *parse_const(Parser *const parser) {
 	char *name = parser->lex->value;
 	size_t name_len = parser->lex->val_len;
 	size_t line = parser->lex->line;
+	if (TOKEN_MATCHES(parser, T_FN)) {
+		struct Node *cur_node = parse_fn(parser);
+		cur_node->nodetype = N_CONST;
+		return cur_node;
+	}
 	eattok(parser, T_ID);
 	eattok(parser, T_COLONEQ);
 	struct Node *expr = parse_expr(parser);

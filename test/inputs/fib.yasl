@@ -1,4 +1,4 @@
-fn fib(n) {
+const fn fib(const n) {
     if n == 1 {
         return 1
     }

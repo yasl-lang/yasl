@@ -3,7 +3,7 @@
  * multiple pairs that sum to `target`, in which case you may return any such pair.
  */
 
-fn twosum(nums, target) {
+const fn twosum(const nums, const target) {
     x := { target - num: num for num <- nums }
     for y <- nums {
         if x[y] {

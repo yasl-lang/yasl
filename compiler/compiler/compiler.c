@@ -275,6 +275,11 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	for (size_t i = 0; i < FnDecl_get_params(node)->children_len; i++) {
 		decl_var(compiler, FnDecl_get_params(node)->children[i]->name,
 			 FnDecl_get_params(node)->children[i]->name_len);
+		if (FnDecl_get_params(node)->children[i]->nodetype == N_CONST) {
+			make_const(compiler, FnDecl_get_params(node)->children[i]->name,
+				   FnDecl_get_params(node)->children[i]->name_len);
+			FnDecl_get_params(node)->children[i]->nodetype = N_VAR;
+		}
 	}
 
 	bb_add_byte(compiler->buffer, FnDecl_get_params(node)->children_len);
