@@ -10,15 +10,15 @@ int table___get(struct YASL_State *S) {
     struct YASL_Object key = vm_pop(S->vm);
     ASSERT_TYPE(S->vm, Y_TABLE, "table.__get");
     struct Table* ht = YASL_GETTABLE(vm_peek(S->vm));
-    struct YASL_Object *result = table_search(ht, key);
-    if (result == NULL) {
+    struct YASL_Object result = table_search(ht, key);
+    if (result.type == Y_END) {
         S->vm->sp++;  // TODO: fix this
         //vm_push(S->vm, key);
         return -1;
     }
     else {
         vm_pop(S->vm);
-        vm_push(S->vm, *result);
+        vm_push(S->vm, result);
     }
     return 0;
 }
@@ -41,9 +41,9 @@ int table___set(struct YASL_State *S) {
 int object_tostr(struct YASL_State *S) {
 	YASL_Types index = VM_PEEK(S->vm, S->vm->sp).type;
 	struct YASL_Object key = YASL_STR(str_new_sized(strlen("tostr"), "tostr"));
-	struct YASL_Object *result = table_search(S->vm->builtins_htable[index], key);
+	struct YASL_Object result = table_search(S->vm->builtins_htable[index], key);
 	str_del(YASL_GETSTR(key));
-	YASL_GETCFN(*result)->value(S);
+	YASL_GETCFN(result)->value(S);
 	return 0;
 }
 
@@ -63,7 +63,7 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 	}
 
 	FOR_TABLE(i, item, table) {
-		vm_push(S->vm, *item->key);
+		vm_push(S->vm, item->key);
 
 		object_tostr(S);
 
@@ -84,7 +84,7 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 		string[string_count++] = ':';
 		string[string_count++] = ' ';
 
-		vm_push(S->vm, *item->value);
+		vm_push(S->vm, item->value);
 
 		if (YASL_ISLIST(VM_PEEK(S->vm, S->vm->sp))) {
 			int found = 0;
@@ -186,7 +186,7 @@ int table_keys(struct YASL_State *S) {
 	struct Table *ht = YASL_GETTABLE(vm_pop(S->vm));
 	struct RC_UserData *ls = ls_new();
 	FOR_TABLE(i, item, ht) {
-			ls_append(ls->data, *(item->key));
+			ls_append(ls->data, (item->key));
 		}
 
 	vm_push(S->vm, YASL_LIST(ls));
@@ -198,7 +198,7 @@ int table_values(struct YASL_State *S) {
 	struct Table *ht = YASL_GETTABLE(vm_pop(S->vm));
 	struct RC_UserData *ls = ls_new();
 	FOR_TABLE(i, item, ht) {
-		ls_append(ls->data, *(item->value));
+		ls_append(ls->data, (item->value));
 	}
 	vm_push(S->vm, YASL_LIST(ls));
 	return 0;
@@ -210,9 +210,9 @@ int table_clone(struct YASL_State *S) {
 	struct RC_UserData *new_ht = rcht_new_sized(ht->base_size);
 
 	FOR_TABLE(i, item, ht) {
-		inc_ref(item->key);
-		inc_ref(item->value);
-		table_insert(new_ht->data, *item->key, *item->value);
+		inc_ref(&item->key);
+		inc_ref(&item->value);
+		table_insert(new_ht->data, item->key, item->value);
 	}
 
 	vm_push(S->vm, YASL_TABLE(new_ht));

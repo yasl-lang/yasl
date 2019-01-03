@@ -298,9 +298,9 @@ int list_join(struct YASL_State *S) {
 	vm_push(S->vm, list->items[0]);
 	YASL_Types index = VM_PEEK(S->vm, S->vm->sp).type;
 	struct YASL_Object key = YASL_STR(str_new_sized(strlen("tostr"), "tostr"));
-	struct YASL_Object *result = table_search(S->vm->builtins_htable[index], key);
+	struct YASL_Object result = table_search(S->vm->builtins_htable[index], key);
 	str_del(YASL_GETSTR(key));
-	YASL_GETCFN(*result)->value(S);
+	YASL_GETCFN(result)->value(S);
 	String_t *str = vm_popstr(S->vm);
 
 	while (buffer_count + yasl_string_len(str) >= buffer_size) {
@@ -324,9 +324,9 @@ int list_join(struct YASL_State *S) {
 		vm_push(S->vm, list->items[i]);
 		YASL_Types index = VM_PEEK(S->vm, S->vm->sp).type;
 		struct YASL_Object key = YASL_STR(str_new_sized(strlen("tostr"), "tostr"));
-		struct YASL_Object *result = table_search(S->vm->builtins_htable[index], key);
+		struct YASL_Object result = table_search(S->vm->builtins_htable[index], key);
 		str_del(YASL_GETSTR(key));
-		YASL_GETCFN(*result)->value(S);
+		YASL_GETCFN(result)->value(S);
 		String_t *str = vm_popstr(S->vm);
 
 		while (buffer_count + yasl_string_len(str) >= buffer_size) {

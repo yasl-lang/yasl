@@ -834,8 +834,8 @@ static void visit_Boolean(struct Compiler *const compiler, const struct Node *co
 }
 
 static void visit_String(struct Compiler *const compiler, const struct Node *const node) {
-	struct YASL_Object *value = table_search_string_int(compiler->strings, node->name, node->name_len);
-	if (value == NULL) {
+	struct YASL_Object value = table_search_string_int(compiler->strings, node->name, node->name_len);
+	if (value.type == Y_END) {
 		YASL_DEBUG_LOG("%s\n", "caching string");
 		table_insert_string_int(compiler->strings, node->name, node->name_len, compiler->header->count);
 		bb_intbytes8(compiler->header, node->name_len);
@@ -845,7 +845,7 @@ static void visit_String(struct Compiler *const compiler, const struct Node *con
 	value = table_search_string_int(compiler->strings, node->name, node->name_len);
 
 	bb_add_byte(compiler->buffer, NEWSTR);
-	bb_intbytes8(compiler->buffer, value->value.ival);
+	bb_intbytes8(compiler->buffer, value.value.ival);
 }
 
 static void make_new_collection(struct Compiler *const compiler, const struct Node *const node, Opcode type) {

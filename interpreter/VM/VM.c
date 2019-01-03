@@ -143,12 +143,12 @@ int vm_int_binop(struct VM *vm, yasl_int (*op)(yasl_int, yasl_int), char *opstr,
         return YASL_SUCCESS;
     }  else if (YASL_ISTABLE(a)) {
         struct YASL_Object *key = YASL_String(str_new_sized(strlen(overload_name), overload_name));
-        struct YASL_Object *result = table_search(YASL_GETTABLE(a), *key);
-        if (result && YASL_ISFN(*result)) {
+        struct YASL_Object result = table_search(YASL_GETTABLE(a), *key);
+        if (result.type != Y_END && YASL_ISFN(result)) {
             vm->sp += 2;
 
             int offset = 2;
-            int addr = YASL_GETINT(*result);
+            int addr = YASL_GETINT(result);
             a = ((struct YASL_Object) {.type = offset, .value.ival = vm->fp});
             b = ((struct YASL_Object) { .type = offset, .value.ival = vm->pc});
             vm_push(vm, a);  // store previous frame ptr;
@@ -158,7 +158,7 @@ int vm_int_binop(struct VM *vm, yasl_int (*op)(yasl_int, yasl_int), char *opstr,
             vm->sp += offset + 1; // + 2
             vm->pc = addr + 2;
         } else {
-            YASL_PRINT_ERROR_TYPE("%s is not callable (type %s).\n", overload_name, YASL_TYPE_NAMES[result->type]);
+            YASL_PRINT_ERROR_TYPE("%s is not callable (type %s).\n", overload_name, YASL_TYPE_NAMES[result.type]);
         }
     } else {
         YASL_PRINT_ERROR_TYPE("%s not supported for operands of types %s and %s.\n",
@@ -215,12 +215,12 @@ int vm_num_binop(
 		vm_push(vm, YASL_FLOAT(float_op(YASL_GETINT(left), YASL_GETFLOAT(right))));
 	} else if (YASL_ISTABLE(left)) {
 		struct YASL_Object *key = YASL_String(str_new_sized(strlen(overload_name), overload_name));
-		struct YASL_Object *result = table_search(YASL_GETTABLE(left), *key);
-		if (result && YASL_ISFN(*result)) {
+		struct YASL_Object result = table_search(YASL_GETTABLE(left), *key);
+		if (result.type != Y_END && YASL_ISFN(result)) {
 			vm->sp += 2;
 
 			int offset = 2;
-			int64_t addr = YASL_GETINT(*result);
+			int64_t addr = YASL_GETINT(result);
 			struct YASL_Object a = ((struct YASL_Object) {.type = offset, .value.ival = vm->fp});
 			struct YASL_Object b = ((struct YASL_Object) {.type = offset, .value.ival =  vm->pc});
 			vm_push(vm, a);  // store previous frame ptr;
@@ -231,7 +231,7 @@ int vm_num_binop(
 			vm->pc = addr + 2;
 		} else {
 			YASL_PRINT_ERROR_TYPE("%s is not callable (type %s).\n", overload_name,
-			       YASL_TYPE_NAMES[result->type]);
+			       YASL_TYPE_NAMES[result.type]);
 		}
 	} else {
 		YASL_PRINT_ERROR_TYPE("%s not supported for operands of types %s and %s.\n",
@@ -257,12 +257,12 @@ int vm_fdiv(struct VM *vm) {
 		vm_push(vm, YASL_FLOAT(YASL_GETFLOAT(left) / (yasl_float) YASL_GETINT(right)));
 	} else if (YASL_ISTABLE(left)) {
 		struct YASL_Object *key = YASL_String(str_new_sized(strlen(overload_name), overload_name));
-		struct YASL_Object *result = table_search(YASL_GETTABLE(left), *key);
-		if (result && YASL_ISFN(*result)) {
+		struct YASL_Object result = table_search(YASL_GETTABLE(left), *key);
+		if (result.type != Y_END && YASL_ISFN(result)) {
 			vm->sp += 2;
 
 			int offset = 2;
-			int addr = YASL_GETINT(*result);
+			int addr = YASL_GETINT(result);
 			struct YASL_Object a = ((struct YASL_Object) {.type = offset, .value.ival =  vm->fp});
 			struct YASL_Object b = ((struct YASL_Object) {.type = offset, .value.ival =  vm->pc});
 			vm_push(vm, a);  // store previous frame ptr;
@@ -273,7 +273,7 @@ int vm_fdiv(struct VM *vm) {
 			vm->pc = addr + 2;
 		} else {
 			YASL_PRINT_ERROR_TYPE("%s is not callable (type %s).\n", overload_name,
-			       YASL_TYPE_NAMES[result->type]);
+			       YASL_TYPE_NAMES[result.type]);
 		}
 	} else {
 		YASL_PRINT_ERROR_TYPE("/ not supported for operands of types %s and %s.\n",
@@ -341,9 +341,9 @@ int vm_num_unop(struct VM *vm, yasl_int (*int_op)(yasl_int), yasl_float (*float_
 int vm_stringify_top(struct VM *vm) {
 	YASL_Types index = VM_PEEK(vm, vm->sp).type;
 	struct YASL_Object key = YASL_STR(str_new_sized(strlen("tostr"), "tostr"));
-	struct YASL_Object *result = table_search(vm->builtins_htable[index], key);
+	struct YASL_Object result = table_search(vm->builtins_htable[index], key);
 	str_del(YASL_GETSTR(key));
-	YASL_GETCFN(*result)->value((struct YASL_State *)&vm);
+	YASL_GETCFN(result)->value((struct YASL_State *)&vm);
 	return YASL_SUCCESS;
 }
 
@@ -607,10 +607,10 @@ int vm_run(struct VM *vm) {
 				}
 				break;
 			case Y_TABLE:
-				while ((vm_peektable(vm, vm->lp)->items[vm_peekint(vm, vm->lp + 1)] ==
-					&TOMBSTONE ||
-					vm_peektable(vm, vm->lp)->items[vm_peekint(vm, vm->lp + 1)] ==
-					NULL
+				while ((vm_peektable(vm, vm->lp)->items[vm_peekint(vm, vm->lp + 1)].key.type ==
+					Y_END ||
+					vm_peektable(vm, vm->lp)->items[vm_peekint(vm, vm->lp + 1)].key.type ==
+					Y_UNDEF
 				       ) &&
 					vm_peektable(vm, vm->lp)->size >
 				       (size_t) vm_peekint(vm, vm->lp + 1)) {
@@ -622,7 +622,7 @@ int vm_run(struct VM *vm) {
 					break;
 				}
 				vm_push(vm,
-					*vm_peektable(vm, vm->lp)->items[vm_peekint(vm, vm->lp + 1)++]->key);
+					vm_peektable(vm, vm->lp)->items[vm_peekint(vm, vm->lp + 1)++].key);
 				vm_pushbool(vm, 1);
 				break;
 			case Y_STR:
@@ -771,12 +771,12 @@ int vm_run(struct VM *vm) {
 			}
 
 			struct YASL_Object key = vm_pop(vm);
-			struct YASL_Object *result = table_search(vm->builtins_htable[index], key);
+			struct YASL_Object result = table_search(vm->builtins_htable[index], key);
 			vm_pop(vm);
-			if (result == NULL) {
+			if (result.type == Y_END) {
 				vm_pushundef(vm);
 			} else {
-				vm_push(vm, *result);
+				vm_push(vm, result);
 			}
 			break;
 		}
