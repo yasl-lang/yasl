@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <memory.h>
 #include <stdint.h>
+#include <interpreter/YASL_Object/YASL_Object.h>
 
 #include "YASL_Object.h"
 #include "builtins.h"
@@ -47,7 +48,7 @@ struct VM* vm_new(unsigned char *code,    // pointer to bytecode
 
     vm->stack = calloc(sizeof(struct YASL_Object), STACK_SIZE);
 
-    vm->string_literal_table = table_new();
+    // vm->string_literal_table = table_new();
 
     vm->builtins_htable = builtins_htable_new();
     return vm;
@@ -64,7 +65,7 @@ void vm_del(struct VM *vm) {
 
 	free(vm->code);
 
-	table_del(vm->string_literal_table);
+	// table_del(vm->string_literal_table);
 
 	table_del(vm->builtins_htable[Y_UNDEF]);
 	table_del(vm->builtins_htable[Y_FLOAT]);
@@ -92,7 +93,7 @@ struct YASL_Object vm_pop(struct VM *vm) {
 yasl_int vm_read_int(struct VM *vm) {
     yasl_int val;
     memcpy(&val, vm->code + vm->pc, sizeof(yasl_int));
-    vm->pc += sizeof (yasl_int);
+    vm->pc += sizeof(yasl_int);
     return val;
 }
 
@@ -103,37 +104,16 @@ yasl_float vm_read_float(struct VM *vm) {
     return val;
 }
 
-yasl_int bor(yasl_int left, yasl_int right) {
-    return left | right;
-}
+#define INT_BINOP(name, op) yasl_int name(yasl_int left, yasl_int right) { return left op right; }
 
-yasl_int bxor(yasl_int left, yasl_int right) {
-    return left ^ right;
-}
-
-yasl_int band(yasl_int left, yasl_int right) {
-    return left & right;
-}
-
-yasl_int bandnot(yasl_int left, yasl_int right) {
-    return left & ~right;
-}
-
-yasl_int shift_left(yasl_int left, yasl_int right) {
-    return left << right;
-}
-
-yasl_int shift_right(yasl_int left, yasl_int right) {
-    return left >> right;
-}
-
-yasl_int modulo(yasl_int left, yasl_int right) {
-    return left % right;
-}
-
-yasl_int idiv(yasl_int left, yasl_int right) {
-    return left / right;
-}
+INT_BINOP(bor, |)
+INT_BINOP(bxor, ^)
+INT_BINOP(band, &)
+INT_BINOP(bandnot, &~)
+INT_BINOP(shift_left, <<)
+INT_BINOP(shift_right, >>)
+INT_BINOP(modulo, %)
+INT_BINOP(idiv, /)
 
 int vm_int_binop(struct VM *vm, yasl_int (*op)(yasl_int, yasl_int), char *opstr, char *overload_name) {
     struct YASL_Object b = vm_pop(vm);
@@ -141,25 +121,6 @@ int vm_int_binop(struct VM *vm, yasl_int (*op)(yasl_int, yasl_int), char *opstr,
     if (YASL_ISINT(a) && YASL_ISINT(b)) {
         vm_push(vm, YASL_INT(op(YASL_GETINT(a), YASL_GETINT(b))));
         return YASL_SUCCESS;
-    }  else if (YASL_ISTABLE(a)) {
-        struct YASL_Object *key = YASL_String(str_new_sized(strlen(overload_name), overload_name));
-        struct YASL_Object result = table_search(YASL_GETTABLE(a), *key);
-        if (result.type != Y_END && YASL_ISFN(result)) {
-            vm->sp += 2;
-
-            int offset = 2;
-            int addr = YASL_GETINT(result);
-            a = ((struct YASL_Object) {.type = offset, .value.ival = vm->fp});
-            b = ((struct YASL_Object) { .type = offset, .value.ival = vm->pc});
-            vm_push(vm, a);  // store previous frame ptr;
-            vm_push(vm, b);  // store pc addr
-            vm->fp = vm->sp;
-
-            vm->sp += offset + 1; // + 2
-            vm->pc = addr + 2;
-        } else {
-            YASL_PRINT_ERROR_TYPE("%s is not callable (type %s).\n", overload_name, YASL_TYPE_NAMES[result.type]);
-        }
     } else {
         YASL_PRINT_ERROR_TYPE("%s not supported for operands of types %s and %s.\n",
                opstr,
@@ -170,29 +131,12 @@ int vm_int_binop(struct VM *vm, yasl_int (*op)(yasl_int, yasl_int), char *opstr,
     return YASL_SUCCESS;
 }
 
-yasl_int int_add(yasl_int left, yasl_int right) {
-    return left + right;
-}
+#define FLOAT_BINOP(name, op) yasl_float name(yasl_float left, yasl_float right) { return left op right; }
+#define NUM_BINOP(name, op) INT_BINOP(int_ ## name, op) FLOAT_BINOP(float_ ## name, op)
 
-yasl_float float_add(yasl_float left, yasl_float right) {
-    return left + right;
-}
-
-yasl_int int_sub(yasl_int left, yasl_int right) {
-    return left - right;
-}
-
-yasl_float float_sub(yasl_float left, yasl_float right) {
-    return left - right;
-}
-
-yasl_int int_mul(yasl_int left, yasl_int right) {
-    return left * right;
-}
-
-yasl_float float_mul(yasl_float left, yasl_float right) {
-    return left * right;
-}
+NUM_BINOP(add, +)
+NUM_BINOP(sub, -)
+NUM_BINOP(mul, *)
 
 yasl_int int_pow(yasl_int left, yasl_int right) {
     return (yasl_int)pow(left, right);
@@ -213,26 +157,6 @@ int vm_num_binop(
 		vm_push(vm, YASL_FLOAT(float_op(YASL_GETFLOAT(left), YASL_GETINT(right))));
 	} else if (YASL_ISINT(left) && YASL_ISFLOAT(right)) {
 		vm_push(vm, YASL_FLOAT(float_op(YASL_GETINT(left), YASL_GETFLOAT(right))));
-	} else if (YASL_ISTABLE(left)) {
-		struct YASL_Object *key = YASL_String(str_new_sized(strlen(overload_name), overload_name));
-		struct YASL_Object result = table_search(YASL_GETTABLE(left), *key);
-		if (result.type != Y_END && YASL_ISFN(result)) {
-			vm->sp += 2;
-
-			int offset = 2;
-			int64_t addr = YASL_GETINT(result);
-			struct YASL_Object a = ((struct YASL_Object) {.type = offset, .value.ival = vm->fp});
-			struct YASL_Object b = ((struct YASL_Object) {.type = offset, .value.ival =  vm->pc});
-			vm_push(vm, a);  // store previous frame ptr;
-			vm_push(vm, b);  // store pc addr
-			vm->fp = vm->sp;
-
-			vm->sp += offset + 1; // + 2
-			vm->pc = addr + 2;
-		} else {
-			YASL_PRINT_ERROR_TYPE("%s is not callable (type %s).\n", overload_name,
-			       YASL_TYPE_NAMES[result.type]);
-		}
 	} else {
 		YASL_PRINT_ERROR_TYPE("%s not supported for operands of types %s and %s.\n",
 		       opstr,
@@ -255,26 +179,6 @@ int vm_fdiv(struct VM *vm) {
 		vm_push(vm, YASL_FLOAT((yasl_float) YASL_GETINT(left) / YASL_GETFLOAT(right)));
 	} else if (YASL_ISFLOAT(left) && YASL_ISINT(right)) {
 		vm_push(vm, YASL_FLOAT(YASL_GETFLOAT(left) / (yasl_float) YASL_GETINT(right)));
-	} else if (YASL_ISTABLE(left)) {
-		struct YASL_Object *key = YASL_String(str_new_sized(strlen(overload_name), overload_name));
-		struct YASL_Object result = table_search(YASL_GETTABLE(left), *key);
-		if (result.type != Y_END && YASL_ISFN(result)) {
-			vm->sp += 2;
-
-			int offset = 2;
-			int addr = YASL_GETINT(result);
-			struct YASL_Object a = ((struct YASL_Object) {.type = offset, .value.ival =  vm->fp});
-			struct YASL_Object b = ((struct YASL_Object) {.type = offset, .value.ival =  vm->pc});
-			vm_push(vm, a);  // store previous frame ptr;
-			vm_push(vm, b);  // store pc addr
-			vm->fp = vm->sp;
-
-			vm->sp += offset + 1; // + 2
-			vm->pc = addr + 2;
-		} else {
-			YASL_PRINT_ERROR_TYPE("%s is not callable (type %s).\n", overload_name,
-			       YASL_TYPE_NAMES[result.type]);
-		}
 	} else {
 		YASL_PRINT_ERROR_TYPE("/ not supported for operands of types %s and %s.\n",
 		       YASL_TYPE_NAMES[left.type],
@@ -298,9 +202,12 @@ int vm_pow(struct VM *vm) {
 	return YASL_SUCCESS;
 }
 
-yasl_int bnot(yasl_int val) {
-    return ~val;
-}
+#define INT_UNOP(name, op) yasl_int name(yasl_int val) { return op val; }
+#define FLOAT_UNOP(name, op) yasl_float name(yasl_float val) { return op val; }
+#define NUM_UNOP(name, op) INT_UNOP(int_ ## name, op) FLOAT_UNOP(float_ ## name, op)
+
+INT_UNOP(bnot, ~)
+NUM_UNOP(neg, -)
 
 int vm_int_unop(struct VM *vm, yasl_int (*op)(yasl_int), char *opstr) {
 	struct YASL_Object a = vm_peek(vm);
@@ -313,14 +220,6 @@ int vm_int_unop(struct VM *vm, yasl_int (*op)(yasl_int), char *opstr) {
 		       YASL_TYPE_NAMES[a.type]);
 		return YASL_TYPE_ERROR;
 	}
-}
-
-yasl_int int_neg(yasl_int expr) {
-    return -expr;
-}
-
-yasl_float float_neg(yasl_float expr) {
-    return -expr;
 }
 
 int vm_num_unop(struct VM *vm, yasl_int (*int_op)(yasl_int), yasl_float (*float_op)(yasl_float), char *opstr) {
@@ -340,10 +239,16 @@ int vm_num_unop(struct VM *vm, yasl_int (*int_op)(yasl_int), yasl_float (*float_
 
 int vm_stringify_top(struct VM *vm) {
 	YASL_Types index = VM_PEEK(vm, vm->sp).type;
-	struct YASL_Object key = YASL_STR(str_new_sized(strlen("tostr"), "tostr"));
-	struct YASL_Object result = table_search(vm->builtins_htable[index], key);
-	str_del(YASL_GETSTR(key));
-	YASL_GETCFN(result)->value((struct YASL_State *)&vm);
+	if (YASL_ISFN(VM_PEEK(vm, vm->sp)) || YASL_ISCFN(VM_PEEK(vm, vm->sp))) {
+		char *buffer = malloc(snprintf(NULL, 0, "<fn: %d>", (int)vm_peek(vm).value.ival) + 1);
+		sprintf(buffer, "<fn: %d>", (int)vm_peek(vm).value.ival);
+		vm_pushstr(vm, str_new_sized_heap(0, strlen(buffer), buffer));
+	} else {
+		struct YASL_Object key = YASL_STR(str_new_sized(strlen("tostr"), "tostr"));
+		struct YASL_Object result = table_search(vm->builtins_htable[index], key);
+		str_del(YASL_GETSTR(key));
+		YASL_GETCFN(result)->value((struct YASL_State *)&vm);
+	}
 	return YASL_SUCCESS;
 }
 
@@ -357,17 +262,6 @@ int vm_run(struct VM *vm) {
 		yasl_int c;
 		yasl_float d;
 		int res;
-		// printf("vm->pc, vm->sp, opcode: %x, %d, %x\n", vm->pc - vm->pc0, vm->sp, opcode);
-		//printf("%d\n----------\n", vm->builtins_htable[Y_LIST]);
-		//printf("----------------\nvm->sp, vm->fp, vm->pc, opcode: %d, %d, %d, 0x%x\n", vm->sp, vm->fp, vm->pc, opcode);
-		// printf("vm->pc, opcode: %x, %x\n", vm->pc - vm->pc0, opcode);
-		//printf("pc: %d\n\n", vm->pc);
-		//print(vm->stack[vm->sp]);
-		//puts("\n");
-		/* printf("tpye is: %s\n", YASL_TYPE_NAMES[PEEK(vm).type]);
-		print(PEEK(vm));
-		 */
-		//print(vm->globals[6]);
 		switch (opcode) {   // decode
 		case HALT:
 			return YASL_SUCCESS;  // stop the program

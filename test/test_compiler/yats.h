@@ -25,7 +25,7 @@
 
 #define ASSERT_GEN_BC_EQ(expected, fc) do{\
     remove("dump.yb");\
-    unsigned char *bytecode = setup_compiler(fc);\
+    /*unsigned char *bytecode = */setup_compiler(fc);\
     FILE *file = fopen("dump.yb", "rb");\
     int64_t size = getsize(file);\
     unsigned char actual[size];\

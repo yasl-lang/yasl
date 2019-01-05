@@ -9,6 +9,7 @@
 #include "fortest.h"
 #include "foreachtest.h"
 #include "comprehensiontest.h"
+#include "foldingtest.h"
 
 #define RUN(test) __YASL_TESTS_FAILED__ |= test()
 
@@ -27,6 +28,7 @@ int compilertest() {
     RUN(fortest);
     RUN(foreachtest);
     RUN(comprehensiontest);
+    RUN(foldingtest);
 
     return __YASL_TESTS_FAILED__;
 }

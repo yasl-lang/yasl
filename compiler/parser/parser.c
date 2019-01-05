@@ -1,9 +1,11 @@
 #include "parser.h"
 
 #include <inttypes.h>
+#include <compiler/ast/ast.h>
 
 #include "lexer.h"
 #include "yasl_error.h"
+#include "middleend.h"
 #include "yasl_include.h"
 
 static struct Node *parse_program(Parser *parser);
@@ -140,7 +142,7 @@ static struct Node *parse_program(Parser *const parser) {
                     return handle_error(parser);
                 }
                 eattok(parser, T_COLONEQ);
-                struct Node *assign_node = new_Let(expr->name, expr->name_len, parse_expr(parser), line);
+                struct Node *assign_node = new_Let(expr->value.sval.str, expr->value.sval.str_len, parse_expr(parser), line);
                 free(expr);
                 return assign_node;
             }
@@ -337,8 +339,10 @@ static struct Node *parse_if(Parser *const parser) {
 }
 
 static struct Node *parse_expr(Parser *const parser) {
-    YASL_TRACE_LOG("%s\n", "parsing expression.");
-    return parse_assign(parser);
+	YASL_TRACE_LOG("%s\n", "parsing expression.");
+	struct Node *node = parse_assign(parser);
+	fold(node);
+	return node;
 }
 
 static struct Node *parse_assign(Parser *const parser) {
@@ -348,7 +352,7 @@ static struct Node *parse_assign(Parser *const parser) {
     if (curtok(parser) == T_EQ) {
         eattok(parser, T_EQ);
         if (cur_node->nodetype == N_VAR) {
-            struct Node *assign_node = new_Assign(cur_node->name, cur_node->name_len, parse_assign(parser), line);
+            struct Node *assign_node = new_Assign(cur_node->value.sval.str, cur_node->value.sval.str_len, parse_assign(parser), line);
             free(cur_node);
             return assign_node;
         } else if (cur_node->nodetype == N_GET) {
@@ -364,8 +368,8 @@ static struct Node *parse_assign(Parser *const parser) {
     } else if (tok_isaugmented(curtok(parser))) {
         Token op = eattok(parser, curtok(parser)) - 1; // relies on enum
         if (cur_node->nodetype == N_VAR) {
-            char *name = cur_node->name;
-            size_t name_len = cur_node->name_len;
+            char *name = cur_node->value.sval.str;
+            size_t name_len = cur_node->value.sval.str_len;
             struct Node *tmp = node_clone(cur_node);
             free(cur_node);
             return new_Assign(name, name_len, new_BinOp(op, tmp, parse_assign(parser), line), line);
@@ -574,22 +578,38 @@ static struct Node *parse_undef(Parser *const parser) {
 }
 
 static struct Node *parse_float(Parser *const parser) {
-    YASL_TRACE_LOG("%s\n", "Parsing float64");
+    YASL_TRACE_LOG("%s\n", "Parsing float");
     struct Node* cur_node = new_Float(parser->lex->value, parser->lex->val_len, parser->lex->line);
     eattok(parser, T_FLOAT64);
     return cur_node;
 }
 
+static int64_t get_int(char *buffer) {
+	if (strlen(buffer) < 2) {
+		return strtoll(buffer, (char **) NULL, 10);
+	}
+	switch (buffer[1]) {
+	case 'x':
+		return strtoll(buffer + 2, (char **) NULL, 16);
+	case 'b':
+		return strtoll(buffer + 2, (char **) NULL, 2);
+	default:
+		return strtoll(buffer, (char **) NULL, 10);
+	}
+}
+
 static struct Node *parse_integer(Parser *const parser) {
-    YASL_TRACE_LOG("%s\n", "Parsing int64");
-    struct Node *cur_node = new_Integer(parser->lex->value, parser->lex->val_len, parser->lex->line);
+    YASL_TRACE_LOG("%s\n", "Parsing int");
+    struct Node *cur_node = new_Integer(get_int(parser->lex->value), parser->lex->line);
+    free(parser->lex->value);
     eattok(parser, T_INT64);
     return cur_node;
 }
 
 static struct Node *parse_boolean(Parser *const parser) {
     YASL_TRACE_LOG("%s\n", "Parsing bool");
-    struct Node *cur_node = new_Boolean(parser->lex->value, parser->lex->val_len, parser->lex->line);
+    struct Node *cur_node = new_Boolean(!strcmp(parser->lex->value, "true"), parser->lex->line);
+    free(parser->lex->value);
     eattok(parser, T_BOOL);
     return cur_node;
 }
@@ -600,19 +620,12 @@ static struct Node *parse_string(Parser *const parser) {
 
     while (parser->lex->mode == L_INTERP) {
         eattok(parser, T_STR);
-        //printf("1. lex->c: %c\n", parser->lex->c);
         eattok(parser, T_LBRC);
-        //printf("2. lex->c: %c\n", parser->lex->c);
         struct Node *expr = parse_expr(parser);
-        //printf("3. lex->c: %c\n", parser->lex->c);
         cur_node = new_BinOp(T_TILDE, cur_node, expr, parser->lex->line);
-        //printf("4. lex->c: %c\n", parser->lex->c);
         if (parser->lex->c == '}') {
-            //puts("dasasddas");
             parser->lex->c = fgetc(parser->lex->file);
         }
-        //eattok(parser, T_RBRC);
-        //printf("5. lex->c: %c\n", parser->lex->c);
         lex_eatinterpstringbody(parser->lex);
         struct Node *str = new_String(parser->lex->value, parser->lex->val_len, parser->lex->line);
         cur_node = new_BinOp(T_TILDE, cur_node, str, parser->lex->line);
