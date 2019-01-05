@@ -828,8 +828,110 @@ static void visit_String(struct Compiler *const compiler, const struct Node *con
 
 	value = table_search_string_int(compiler->strings, node->value.sval.str, node->value.sval.str_len);
 
-	bb_add_byte(compiler->buffer, NEWSTR);
-	bb_intbytes8(compiler->buffer, value.value.ival);
+#define STR_EQ(node, literal) ((node)->value.sval.str_len == strlen(literal) && !memcmp(node->value.sval.str, literal, (node)->value.sval.str_len))
+		S_TOSTR,      // tostr
+		S_TOUPPER,    // toupper
+		S_TRIM,       // trim
+
+		S_VALUES,     // values
+
+	if (STR_EQ(node, "__get")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S___GET);
+	} else if (STR_EQ(node, "__set")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S___SET);
+	} else if (STR_EQ(node, "clear")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S_CLEAR);
+	} else if (STR_EQ(node, "copy")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S_COPY);
+	} else if (STR_EQ(node, "endswith")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S_ENDSWITH);
+	} else if (STR_EQ(node, "extend")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S_EXTEND);
+	} else if (STR_EQ(node, "isal")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S_ISAL);
+	} else if (STR_EQ(node, "isalnum")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S_ISALNUM);
+	} else if (STR_EQ(node, "isnum")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S_ISNUM);
+	} else if (STR_EQ(node, "isspace")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S_ISSPACE);
+	} else if (STR_EQ(node, "join")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S_JOIN);
+	} else if (STR_EQ(node, "keys")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S_KEYS);
+	} else if (STR_EQ(node, "ltrim")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S_LTRIM);
+	} else if (STR_EQ(node, "pop")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S_POP);
+	} else if (STR_EQ(node, "push")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S_PUSH);
+	} else if (STR_EQ(node, "repeat")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S_REPEAT);
+	} else if (STR_EQ(node, "replace")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S_REPLACE);
+	} else if (STR_EQ(node, "reverse")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S_REVERSE);
+	} else if (STR_EQ(node, "rtrim")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S_RTRIM);
+	} else if (STR_EQ(node, "search")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S_SEARCH);
+	} else if (STR_EQ(node, "slice")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S_SLICE);
+	} else if (STR_EQ(node, "split")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S_SPLIT);
+	} else if (STR_EQ(node, "startswith")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S_STARTSWITH);
+	} else if (STR_EQ(node, "tobool")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S_TOBOOL);
+	} else if (STR_EQ(node, "tofloat")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S_TOFLOAT);
+	} else if (STR_EQ(node, "toint")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S_TOINT);
+	} else if (STR_EQ(node, "tolower")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S_TOLOWER);
+	} else if (STR_EQ(node, "tostr")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S_TOSTR);
+	} else if (STR_EQ(node, "toupper")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S_TOUPPER);
+	} else if (STR_EQ(node, "trim")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S_TRIM);
+	} else if (STR_EQ(node, "values")) {
+		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
+		bb_add_byte(compiler->buffer, S_VALUES);
+	} else {
+		bb_add_byte(compiler->buffer, NEWSTR);
+		bb_intbytes8(compiler->buffer, value.value.ival);
+	}
 }
 
 static void make_new_collection(struct Compiler *const compiler, const struct Node *const node, Opcode type) {

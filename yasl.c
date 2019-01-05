@@ -40,7 +40,7 @@ int YASL_execute(struct YASL_State *S) {
     // TODO: use this in VM.
     // int64_t num_globals = *((int64_t*)bc+1);
 
-    S->vm->pc0 = S->vm->pc = entry_point;
+    S->vm->pc = entry_point;
     S->vm->code = bc;
 
     vm_run(S->vm);  // TODO: error handling for runtime errors.

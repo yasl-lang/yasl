@@ -19,15 +19,15 @@
 #include "opcode.h"
 #include "operator_names.h"
 
-static struct Table **builtins_htable_new(void) {
+static struct Table **builtins_htable_new(struct VM *vm) {
     struct Table **ht = malloc(sizeof(struct Table*) * NUM_TYPES);
-    ht[Y_UNDEF] = undef_builtins();
-    ht[Y_FLOAT] = float_builtins();
-    ht[Y_INT] = int_builtins();
-    ht[Y_BOOL] = bool_builtins();
-    ht[Y_STR] = str_builtins();
-    ht[Y_LIST] = list_builtins();
-    ht[Y_TABLE] = table_builtins();
+    ht[Y_UNDEF] = undef_builtins(vm);
+    ht[Y_FLOAT] = float_builtins(vm);
+    ht[Y_INT] = int_builtins(vm);
+    ht[Y_BOOL] = bool_builtins(vm);
+    ht[Y_STR] = str_builtins(vm);
+    ht[Y_LIST] = list_builtins(vm);
+    ht[Y_TABLE] = table_builtins(vm);
 
     return ht;
 }
@@ -35,23 +35,53 @@ static struct Table **builtins_htable_new(void) {
 struct VM* vm_new(unsigned char *code,    // pointer to bytecode
            int pc0,             // address of instruction to be executed first -- entrypoint
            int datasize) {      // total params size required to perform a program operations
-    struct VM* vm = malloc(sizeof(struct VM));
-    vm->code = code;
-    vm->pc = pc0;
-    vm->pc0 = vm->pc;
-    vm->fp = -1;
-    vm->lp = -1;
-    vm->sp = -1;
-    vm->globals = calloc(sizeof(struct YASL_Object), datasize);
+	struct VM *vm = malloc(sizeof(struct VM));
+	vm->code = code;
+	vm->pc = pc0;
+	vm->fp = -1;
+	vm->lp = -1;
+	vm->sp = -1;
+	vm->globals = calloc(sizeof(struct YASL_Object), datasize);
 
-    vm->num_globals = datasize;
+	vm->num_globals = datasize;
 
-    vm->stack = calloc(sizeof(struct YASL_Object), STACK_SIZE);
+	vm->stack = calloc(sizeof(struct YASL_Object), STACK_SIZE);
 
-    // vm->string_literal_table = table_new();
+#define DEF_SPECIAL_STR(enum_val, str) vm->special_strings[enum_val] = str_new_sized(strlen(str), str)
 
-    vm->builtins_htable = builtins_htable_new();
-    return vm;
+	DEF_SPECIAL_STR(S___GET, "__get");
+	DEF_SPECIAL_STR(S___SET, "__set");
+	DEF_SPECIAL_STR(S_CLEAR, "clear");
+	DEF_SPECIAL_STR(S_COPY, "copy");
+	DEF_SPECIAL_STR(S_ENDSWITH, "endswith");
+	DEF_SPECIAL_STR(S_EXTEND, "extend");
+	DEF_SPECIAL_STR(S_ISAL, "isal");
+	DEF_SPECIAL_STR(S_ISALNUM, "isalnum");
+	DEF_SPECIAL_STR(S_ISNUM, "isnum");
+	DEF_SPECIAL_STR(S_ISSPACE, "isspace");
+	DEF_SPECIAL_STR(S_JOIN, "join");
+	DEF_SPECIAL_STR(S_KEYS, "keys");
+	DEF_SPECIAL_STR(S_LTRIM, "ltrim");
+	DEF_SPECIAL_STR(S_POP, "pop");
+	DEF_SPECIAL_STR(S_PUSH, "push");
+	DEF_SPECIAL_STR(S_REPEAT, "repeat");
+	DEF_SPECIAL_STR(S_REVERSE, "reverse");
+	DEF_SPECIAL_STR(S_RTRIM, "rtrim");
+	DEF_SPECIAL_STR(S_SEARCH, "search");
+	DEF_SPECIAL_STR(S_SLICE, "slice");
+	DEF_SPECIAL_STR(S_SPLIT, "split");
+	DEF_SPECIAL_STR(S_STARTSWITH, "startswith");
+	DEF_SPECIAL_STR(S_TOBOOL, "tobool");
+	DEF_SPECIAL_STR(S_TOFLOAT, "tofloat");
+	DEF_SPECIAL_STR(S_TOINT, "toint");
+	DEF_SPECIAL_STR(S_TOLOWER, "tolower");
+	DEF_SPECIAL_STR(S_TOSTR, "tostr");
+	DEF_SPECIAL_STR(S_TOUPPER, "toupper");
+	DEF_SPECIAL_STR(S_TRIM, "trim");
+	DEF_SPECIAL_STR(S_VALUES, "values");
+
+	vm->builtins_htable = builtins_htable_new(vm);
+	return vm;
 }
 
 void vm_del(struct VM *vm) {
@@ -433,6 +463,9 @@ int vm_run(struct VM *vm) {
 			b = vm_pop(vm);
 			a = vm_pop(vm);
 			vm_push(vm, YASL_BOOL(a.type == b.type && YASL_GETINT(a) == YASL_GETINT(b)));
+			break;
+		case NEWSPECIALSTR:
+			vm_pushstr(vm, vm->special_strings[NCODE(vm)]);
 			break;
 		case NEWSTR:
 		{
