@@ -31,7 +31,6 @@ static int get_hash(const struct YASL_Object s, const int num_buckets, const int
     const int hash_a = hash_function(s, PRIME_A, num_buckets);
     if (attempt == 0)
         return hash_a % num_buckets;
-
     const int hash_b = hash_function(s, PRIME_B, num_buckets);
     return (hash_a + (attempt * (hash_b + 1))) % num_buckets;
 }
