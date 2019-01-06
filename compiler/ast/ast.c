@@ -13,9 +13,18 @@ struct Node *node_clone(const struct Node *const node) {
     for (size_t i = 0; i < clone->children_len; i++) {
         clone->children[i] = node_clone(node->children[i]);
     }
-    clone->name_len = node->name_len;
-    clone->name = malloc(node->name_len);
-    memcpy(clone->name, node->name, clone->name_len);
+
+    switch (node->nodetype) {
+    case N_INT64:
+    case N_BOOL:
+	    clone->value.ival = node->value.ival;
+	    break;
+    default:
+	    clone->value.sval.str_len = node->value.sval.str_len;
+	    clone->value.sval.str = malloc(node->value.sval.str_len);
+	    memcpy(clone->value.sval.str, node->value.sval.str, clone->value.sval.str_len);
+    }
+
     clone->line = node->line;
     return clone;
 }
@@ -25,8 +34,8 @@ static struct Node *new_Node(AST nodetype, Token type, size_t line, size_t name_
     node->nodetype = nodetype;
     node->type = type;
     node->children_len = n;
-    node->name_len = name_len;
-    node->name = name;
+    node->value.sval.str_len = name_len;
+    node->value.sval.str = name;
     node->line = line;
 
     va_list children;
@@ -153,12 +162,16 @@ struct Node *new_Float(char *value, size_t len, size_t line) {
     return new_Node_0(N_FLOAT64, T_UNKNOWN, value, len, line);
 }
 
-struct Node *new_Integer(char *value, size_t len, size_t line) {
-    return new_Node_0(N_INT64, T_UNKNOWN, value, len, line);
+struct Node *new_Integer(int64_t val, size_t line) {
+	struct Node *node = new_Node_0(N_INT64, T_UNKNOWN, NULL, 0, line);
+	node->value.ival = val;
+	return node;
 }
 
-struct Node *new_Boolean(char *value, size_t len, size_t line) {
-    return new_Node_0(N_BOOL, T_UNKNOWN, value, len, line);
+struct Node *new_Boolean(int val, size_t line) {
+	struct Node *node = new_Node_0(N_BOOL, T_UNKNOWN, NULL, 0, line);
+	node->value.ival = val;
+	return node;
 }
 
 struct Node *new_String(char *value, size_t len, size_t line) {
@@ -174,11 +187,19 @@ struct Node *new_Table(struct Node *keys, size_t line) {
 }
 
 void node_del(struct Node *node) {
-    if (!node) return;
-    while(node->children_len-- > 0)
-        if (node->children[node->children_len] != NULL)
-            node_del(node->children[node->children_len]);
-    free(node->name);
-    free(node);
-
+	if (!node) return;
+	while (node->children_len-- > 0) {
+		if (node->children[node->children_len] != NULL)
+			node_del(node->children[node->children_len]);
+	}
+	switch (node->nodetype) {
+	case N_BOOL:
+	case N_INT64:
+		break;
+	case N_FLOAT64:
+		// break;
+	default:
+		free(node->value.sval.str);
+	}
+	free(node);
 }

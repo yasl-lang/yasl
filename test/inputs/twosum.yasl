@@ -1,4 +1,9 @@
-fn twosum(nums, target) {
+/* problem: given an unsorted list of unique integers `nums` and a target integer `target`,
+ * write a function that returns the two numbers in `nums` that sum to target. There may be
+ * multiple pairs that sum to `target`, in which case you may return any such pair.
+ */
+
+const fn twosum(const nums, const target) {
     x := { target - num: num for num <- nums }
     for y <- nums {
         if x[y] {

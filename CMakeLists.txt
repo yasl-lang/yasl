@@ -14,6 +14,7 @@ include_directories(compiler/compiler)
 include_directories(compiler/compiler/env)
 include_directories(compiler/lexer)
 include_directories(compiler/parser)
+include_directories(compiler/middleend)
 include_directories(hashtable)
 include_directories(interpreter/boolean)
 include_directories(interpreter/builtins)
@@ -40,6 +41,7 @@ add_executable(YASL
         compiler/compiler/env/env.c
         compiler/lexer/lexer.c
         compiler/parser/parser.c
+        compiler/middleend/middleend.c
         hashtable/hashtable.c
         interpreter/boolean/bool_methods.c
         interpreter/builtins/builtins.c
@@ -71,11 +73,13 @@ add_executable(YASLTEST
         test/test_compiler/whiletest.c
         test/test_compiler/fortest.c
         test/test_compiler/foreachtest.c
+        test/test_compiler/foldingtest.c
         test/test_compiler/comprehensiontest.c
         compiler/lexer/lexer.c
         compiler/compiler/compiler.c
         compiler/parser/parser.c
         compiler/ast/ast.c
+        compiler/middleend/middleend.c
         hashtable/hashtable.c
         interpreter/float/yasl_float.c
         interpreter/YASL_Object/YASL_Object.c
@@ -95,6 +99,7 @@ add_library(yaslapi
         compiler/compiler/env/env.c
         compiler/lexer/lexer.c
         compiler/parser/parser.c
+        compiler/middleend/middleend.c
         hashtable/hashtable.c
         interpreter/boolean/bool_methods.c
         interpreter/builtins/builtins.c

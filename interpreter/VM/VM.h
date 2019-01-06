@@ -1,7 +1,8 @@
 #pragma once
 
-#include "hashtable/hashtable.h"
+#include "hashtable.h"
 #include "yasl_conf.h"
+#include "opcode.h"
 
 #include <inttypes.h>
 #include <stdio.h>
@@ -63,12 +64,13 @@ struct VM {
 	size_t num_globals;
 	struct YASL_Object *stack;            // stack
 	unsigned char *code;           // bytecode
-	size_t pc;                    // program counter
-	size_t pc0;                   // initial value for pc
-	int sp;                     // stack pointer
-	int fp;                     // frame pointer
+	size_t pc;                     // program counter
+	int sp;                        // stack pointer
+	int fp;                        // frame pointer
 	int next_fp;
-	int lp;                     // foreach pointer
+	int lp;                        // foreach pointer
+	String_t *special_strings[NUM_SPECIAL_STRINGS];
+	// struct Table *string_literal_table;
 	struct Table **builtins_htable;   // htable of builtin methods
 };
 
@@ -85,10 +87,10 @@ void vm_push(struct VM *vm, struct YASL_Object val);
 
 int vm_run(struct VM *vm);
 
-struct Table *undef_builtins(void);
-struct Table *float_builtins(void);
-struct Table *int_builtins(void);
-struct Table *bool_builtins(void);
-struct Table *str_builtins(void);
-struct Table *list_builtins(void);
-struct Table *table_builtins(void);
+struct Table *undef_builtins(struct VM *vm);
+struct Table *float_builtins(struct VM *vm);
+struct Table *int_builtins(struct VM *vm);
+struct Table *bool_builtins(struct VM *vm);
+struct Table *str_builtins(struct VM *vm);
+struct Table *list_builtins(struct VM *vm);
+struct Table *table_builtins(struct VM *vm);

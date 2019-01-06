@@ -1,6 +1,6 @@
 # simple function to add two numbers
 
-fn add(a, b) {
+const fn add(const a, const b) {
     return a + b
 }
 

@@ -1,6 +1,6 @@
 # test overwriting keys works
 
-x = {}
+x := {}
 
 echo x
 

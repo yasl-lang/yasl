@@ -9,9 +9,9 @@ int bool_tostr(struct YASL_State *S) {
     int val = YASL_GETBOOL(vm_pop(S->vm));
     String_t* string;
     if (val == 0) {
-        string = str_new_sized(strlen("false"), copy_char_buffer(strlen("false"), "false"));
+        string = str_new_sized(strlen("false"), "false");
     } else {
-        string = str_new_sized(strlen("true"), copy_char_buffer(strlen("true"), "true"));
+        string = str_new_sized(strlen("true"), "true");
     }
     vm_push(S->vm, YASL_STR(string));
     return 0;

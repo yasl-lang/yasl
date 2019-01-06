@@ -9,11 +9,13 @@ static void test_neg() {
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             ICONST,
             0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            GSTORE_1, 0x00,
+            GLOAD_1, 0x00,
             NEG,
             POP,
             HALT
     };
-    ASSERT_GEN_BC_EQ(expected, "-16;");
+    ASSERT_GEN_BC_EQ(expected, "x := 16; -x;");
 }
 
 static void test_len() {
@@ -24,11 +26,13 @@ static void test_len() {
             'Y', 'A', 'S', 'L',
             NEWSTR,
             0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            GSTORE_1, 0x00,
+            GLOAD_1, 0x00,
             LEN,
             POP,
             HALT
     };
-    ASSERT_GEN_BC_EQ(expected, "len'YASL';");
+    ASSERT_GEN_BC_EQ(expected, "x := 'YASL'; len x;");
 }
 
 static void test_not() {
@@ -36,24 +40,27 @@ static void test_not() {
             0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             BCONST_T,
+            GSTORE_1, 0x00,
+            GLOAD_1, 0x00,
             NOT,
             POP,
             HALT
     };
-    ASSERT_GEN_BC_EQ(expected, "!true;");
+    ASSERT_GEN_BC_EQ(expected, "x := true; !x;");
 }
 
 static void test_bnot() {
     unsigned char expected[] = {
             0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            ICONST,
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            ICONST_0,
+            GSTORE_1, 0x00,
+            GLOAD_1, 0x00,
             BNOT,
             POP,
             HALT
     };
-    ASSERT_GEN_BC_EQ(expected, "^0x00;");
+    ASSERT_GEN_BC_EQ(expected, "x := 0x00; ^x;");
 }
 
 int unoptest(void) {

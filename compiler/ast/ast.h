@@ -41,19 +41,29 @@ typedef enum {
 } AST;
 
 struct Node {
-    AST nodetype;
-    Token type;
-    char* name;
-    size_t name_len;
-    size_t line;
-    size_t children_len;
-    struct Node *children[];
+	AST nodetype;
+	Token type;
+	size_t line;
+	union {
+		struct {
+			char *str;
+			size_t str_len;
+		} sval;
+		int64_t ival;
+		double dval;
+	} value;
+	size_t children_len;
+	struct Node *children[];
 };
 
 void body_append(struct Node **node, struct Node *const child);
 
 struct Node *node_clone(const struct Node *const node);
 
+#define FOR_CHILDREN(i, child, node) struct Node *child;\
+for (size_t i = 0; i < (node)->children_len; i++ ) if (child = (node)->children[i], child != NULL)
+
+#define Const_get_expr(node) ((node)->children[0])
 #define TableComp_get_key_value(node) ((node)->children[0])
 #define ListComp_get_expr(node) ((node)->children[0])
 #define ForIter_get_body(node) ((node)->children[1])
@@ -65,6 +75,7 @@ struct Node *node_clone(const struct Node *const node);
 #define List_get_values(node) ((node)->children[0])
 #define ExprStmt_get_expr(node) ((node)->children[0])
 #define FnDecl_get_params(node) ((node)->children[0])
+#define FnDecl_get_body(node) ((node)->children[1])
 #define Call_get_params(node) ((node)->children[0])
 #define Return_get_expr(node) ((node)->children[0])
 #define Set_get_collection(node) ((node)->children[0])
@@ -72,6 +83,9 @@ struct Node *node_clone(const struct Node *const node);
 #define Set_get_value(node) ((node)->children[2])
 #define Get_get_collection(node) ((node)->children[0])
 #define Get_get_value(node) ((node)->children[1])
+#define UnOp_get_expr(node) ((node)->children[0])
+#define Assign_get_expr(node) ((node)->children[0])
+
 
 
 struct Node *new_ExprStmt(struct Node *child, size_t line);
@@ -101,8 +115,8 @@ struct Node *new_Assign(char *name, size_t name_len, struct Node *child, size_t 
 struct Node *new_Var(char *name, size_t name_len, size_t line);
 struct Node *new_Undef(size_t line);
 struct Node *new_Float(char *value, size_t len, size_t line);
-struct Node *new_Integer(char *value, size_t len, size_t line);
-struct Node *new_Boolean(char *value, size_t len, size_t line);
+struct Node *new_Integer(int64_t val, size_t line);
+struct Node *new_Boolean(int value, size_t line);
 struct Node *new_String(char *value, size_t len, size_t line);
 struct Node *new_List(struct Node *values, size_t line);
 struct Node *new_Table(struct Node *keys, size_t line);
