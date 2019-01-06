@@ -828,12 +828,7 @@ static void visit_String(struct Compiler *const compiler, const struct Node *con
 
 	value = table_search_string_int(compiler->strings, node->value.sval.str, node->value.sval.str_len);
 
-#define STR_EQ(node, literal) ((node)->value.sval.str_len == strlen(literal) && !memcmp(node->value.sval.str, literal, (node)->value.sval.str_len))
-		S_TOSTR,      // tostr
-		S_TOUPPER,    // toupper
-		S_TRIM,       // trim
-
-		S_VALUES,     // values
+#define STR_EQ(node, literal) ((node)->value.sval.str_len == strlen((literal)) && !memcmp((node)->value.sval.str, (literal), (node)->value.sval.str_len))
 
 	if (STR_EQ(node, "__get")) {
 		bb_add_byte(compiler->buffer, NEWSPECIALSTR);

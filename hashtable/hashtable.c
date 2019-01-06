@@ -4,6 +4,8 @@
 #include <string.h>
 #include <math.h>
 #include <stdio.h>
+#include <interpreter/YASL_Object/YASL_Object.h>
+#include <interpreter/YASL_string/YASL_string.h>
 
 #include "YASL_Object.h"
 #include "YASL_string.h"
@@ -15,10 +17,9 @@ static int hash_function(const struct YASL_Object s, const int a, const int m) {
     long hash = 0;
     if (YASL_ISSTR(s)) {
         const int64_t len_s = yasl_string_len(s.value.sval);
-        int i;
-        for (i = 0; i < len_s; i++) {
-            hash += (long)pow(a, len_s - (i+1)) * ((s.value.sval)->str[i + s.value.sval->start]);
-            hash = hash % m;
+        for (int i = 0; i < len_s; i++) {
+            hash = hash * a + (s.value.sval->str + s.value.sval->start)[i];
+            hash %= m;
         }
         return (int)hash;
     } else {  //TODO: make a better hash function for non-strings
@@ -92,10 +93,6 @@ void rcht_del_rc(struct RC_UserData *hashtable) {
     free(hashtable);
 }
 
-void rcht_del_cstring_cfn(struct RC_UserData *hashtable) {
-    rcht_del(hashtable);
-}
-
 void table_del_string_int(struct Table *table) {
 	table_del(table);
 }
@@ -151,11 +148,6 @@ void table_insert(struct Table *table, const struct YASL_Object key, const struc
     }
     table->items[index] = item;
     table->count++;
-}
-
-void table_insert_literalcstring_cfunction(struct Table *ht, char *key, int (*addr)(struct YASL_State *), int num_args) {
-    String_t *string = str_new_sized(strlen(key), key);
-    table_insert(ht, YASL_STR(string), YASL_CFN(addr, num_args));
 }
 
 void table_insert_string_int(struct Table *table, char *key, int64_t key_len, int64_t val) {

@@ -1,6 +1,6 @@
+#include <interpreter/undef/undef_methods.h>
 #include "builtins.h"
 
-#include "undef_methods.h"
 #include "str_methods.h"
 #include "float_methods.h"
 #include "int_methods.h"
