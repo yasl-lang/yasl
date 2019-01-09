@@ -15,8 +15,9 @@ struct Node *node_clone(const struct Node *const node) {
     }
 
     switch (node->nodetype) {
-    case N_INT64:
+    case N_INT:
     case N_BOOL:
+    case N_FLOAT:
 	    clone->value.ival = node->value.ival;
 	    break;
     default:
@@ -158,12 +159,14 @@ struct Node *new_Undef(size_t line) {
     return new_Node_0(N_UNDEF, T_UNKNOWN, NULL, 0, line);
 }
 
-struct Node *new_Float(char *value, size_t len, size_t line) {
-    return new_Node_0(N_FLOAT64, T_UNKNOWN, value, len, line);
+struct Node *new_Float(double val, size_t line) {
+	struct Node *node = new_Node_0(N_FLOAT, T_UNKNOWN, NULL, 0, line);
+	node->value.dval = val;
+	return node;
 }
 
 struct Node *new_Integer(int64_t val, size_t line) {
-	struct Node *node = new_Node_0(N_INT64, T_UNKNOWN, NULL, 0, line);
+	struct Node *node = new_Node_0(N_INT, T_UNKNOWN, NULL, 0, line);
 	node->value.ival = val;
 	return node;
 }
@@ -194,10 +197,9 @@ void node_del(struct Node *node) {
 	}
 	switch (node->nodetype) {
 	case N_BOOL:
-	case N_INT64:
+	case N_INT:
+	case N_FLOAT:
 		break;
-	case N_FLOAT64:
-		// break;
 	default:
 		free(node->value.sval.str);
 	}

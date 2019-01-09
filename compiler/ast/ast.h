@@ -32,8 +32,8 @@ typedef enum {
     N_ASSIGN,
     N_VAR,
     N_UNDEF,
-    N_FLOAT64,
-    N_INT64,
+    N_FLOAT,
+    N_INT,
     N_BOOL,
     N_STR,
     N_LIST,
@@ -114,7 +114,7 @@ struct Node *new_UnOp(Token op, struct Node *child, size_t line);
 struct Node *new_Assign(char *name, size_t name_len, struct Node *child, size_t line);
 struct Node *new_Var(char *name, size_t name_len, size_t line);
 struct Node *new_Undef(size_t line);
-struct Node *new_Float(char *value, size_t len, size_t line);
+struct Node *new_Float(double val, size_t line);
 struct Node *new_Integer(int64_t val, size_t line);
 struct Node *new_Boolean(int value, size_t line);
 struct Node *new_String(char *value, size_t len, size_t line);

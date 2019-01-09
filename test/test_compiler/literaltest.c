@@ -36,6 +36,29 @@ static void test_false() {
     ASSERT_GEN_BC_EQ(expected, "false;");
 }
 
+static void test_small_ints() {
+    unsigned char expected[]  = {
+            0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            ICONST_M1,
+            POP,
+            ICONST_0,
+            POP,
+            ICONST_1,
+            POP,
+            ICONST_2,
+            POP,
+            ICONST_3,
+            POP,
+            ICONST_4,
+            POP,
+            ICONST_5,
+            POP,
+            HALT
+    };
+    ASSERT_GEN_BC_EQ(expected, "-1; 0; 1; 2; 3; 4; 5;");
+}
+
 static void test_bin() {
     unsigned char expected[] = {
             0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -71,16 +94,34 @@ static void test_hex() {
     ASSERT_GEN_BC_EQ(expected, "0x10;");
 }
 
+static void test_small_floats() {
+	unsigned char expected[]  = {
+		0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		DCONST_N,
+		POP,
+		DCONST_0,
+		POP,
+		DCONST_1,
+		POP,
+		DCONST_2,
+		POP,
+		DCONST_I,
+		POP,
+		HALT
+	};
+	ASSERT_GEN_BC_EQ(expected, "nan; 0.0; 1.0; 2.0; inf;");
+}
 static void test_float() {
     unsigned char expected[] = {
             0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             DCONST,
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF0, 0x3F,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF8, 0x3F,
             POP,
             HALT
     };
-    ASSERT_GEN_BC_EQ(expected, "1.0;");
+    ASSERT_GEN_BC_EQ(expected, "1.5;");
 }
 
 static void test_string() {
@@ -137,16 +178,18 @@ static void test_table() {
 }
 
 int literaltest(void) {
-    test_undef();
-    test_true();
-    test_false();
-    test_bin();
-    test_dec();
-    test_hex();
-    test_float();
-    test_string();
-    test_list();
-    test_table();
+	test_undef();
+	test_true();
+	test_false();
+	test_small_ints();
+	test_bin();
+	test_dec();
+	test_hex();
+	test_small_floats();
+	test_float();
+	test_string();
+	test_list();
+	test_table();
 
-    return __YASL_TESTS_FAILED__;
+	return __YASL_TESTS_FAILED__;
 }

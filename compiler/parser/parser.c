@@ -2,6 +2,7 @@
 
 #include <inttypes.h>
 #include <compiler/ast/ast.h>
+#include <compiler/lexer/lexer.h>
 
 #include "lexer.h"
 #include "yasl_error.h"
@@ -532,9 +533,13 @@ static struct Node *parse_undef(Parser *const parser) {
     return cur_node;
 }
 
+static double get_float(char *buffer) {
+	return strtod(buffer, (char **) NULL);
+}
+
 static struct Node *parse_float(Parser *const parser) {
     YASL_TRACE_LOG("%s\n", "Parsing float");
-    struct Node* cur_node = new_Float(parser->lex->value, parser->lex->val_len, parser->lex->line);
+    struct Node* cur_node = new_Float(get_float(parser->lex->value), parser->lex->line);
     eattok(parser, T_FLOAT64);
     return cur_node;
 }
