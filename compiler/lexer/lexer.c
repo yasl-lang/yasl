@@ -71,7 +71,7 @@ static int lex_eatint(Lexer *lex, char separator, int (*isvaliddigit)(int)) {
     } while (!feof(lex->file) && (*isvaliddigit)(lex->c));
     if (i == lex->val_len) lex->value = realloc(lex->value, i + 1);
     lex->value[i] = '\0';
-    lex->type = T_INT64;
+    lex->type = T_INT;
     if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
     return 1;
 }
@@ -422,7 +422,7 @@ void gettok(Lexer *lex) {
                 lex->value = realloc(lex->value, lex->val_len);
             }
         } while (!feof(lex->file) && isdigit(c1));
-        lex->type = T_INT64;
+        lex->type = T_INT;
         if (i == lex->val_len) lex->value = realloc(lex->value, i + 1);
         lex->value[i] = '\0';
 
@@ -451,7 +451,7 @@ void gettok(Lexer *lex) {
             if (i == lex->val_len) lex->value = realloc(lex->value, i + 1);
             lex->value[i] = '\0';
             if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
-            lex->type = T_FLOAT64;
+            lex->type = T_FLOAT;
             return;
         }
 
@@ -687,7 +687,7 @@ static void YASLKeywords(Lexer *lex) {
     else if (matches_keyword(lex, "while")) set_keyword(lex, T_WHILE);
     else if (matches_keyword(lex, "len")) set_keyword(lex, T_LEN);
     // NOTE: special case for bools and floats
-    else if (matches_keyword(lex, "nan") || matches_keyword(lex, "inf")) lex->type = T_FLOAT64;
+    else if (matches_keyword(lex, "nan") || matches_keyword(lex, "inf")) lex->type = T_FLOAT;
     else if (matches_keyword(lex, "true") || matches_keyword(lex, "false")) lex->type = T_BOOL;
 }
 
@@ -696,8 +696,8 @@ const char *YASL_TOKEN_NAMES[] = {
         "END OF FILE",  // T_EOF,
         ";",            // T_SEMI,
         "undef",        // T_UNDEF,
-        "float64",      // T_FLOAT64,
-        "int64",        // T_INT64,
+        "float64",      // T_FLOAT,
+        "int64",        // T_INT,
         "bool",         // T_BOOL,
         "str",          // T_STR,
         "if",           // T_IF,

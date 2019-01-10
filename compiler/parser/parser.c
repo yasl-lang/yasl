@@ -491,8 +491,8 @@ static struct Node *parse_constant(Parser *const parser) {
         case T_LSQB: return parse_collection(parser);
         case T_LBRC: return parse_table(parser);
         case T_STR: return parse_string(parser);
-        case T_INT64: return parse_integer(parser);
-        case T_FLOAT64: return parse_float(parser);
+        case T_INT: return parse_integer(parser);
+        case T_FLOAT: return parse_float(parser);
         case T_BOOL: return parse_boolean(parser);
         case T_UNDEF: return parse_undef(parser);
         // handle invalid expressions with sensible error messages.
@@ -540,7 +540,7 @@ static double get_float(char *buffer) {
 static struct Node *parse_float(Parser *const parser) {
     YASL_TRACE_LOG("%s\n", "Parsing float");
     struct Node* cur_node = new_Float(get_float(parser->lex->value), parser->lex->line);
-    eattok(parser, T_FLOAT64);
+    eattok(parser, T_FLOAT);
     return cur_node;
 }
 
@@ -562,7 +562,7 @@ static struct Node *parse_integer(Parser *const parser) {
     YASL_TRACE_LOG("%s\n", "Parsing int");
     struct Node *cur_node = new_Integer(get_int(parser->lex->value), parser->lex->line);
     free(parser->lex->value);
-    eattok(parser, T_INT64);
+    eattok(parser, T_INT);
     return cur_node;
 }
 

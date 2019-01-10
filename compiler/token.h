@@ -76,8 +76,8 @@ typedef enum {
     T_EOF,      // 0x00
     T_SEMI,     // 0x01
     T_UNDEF,    // 0x02
-    T_FLOAT64,  // 0x03
-    T_INT64,    // 0x04
+    T_FLOAT,    // 0x03
+    T_INT,      // 0x04
     T_BOOL,     // 0x05
     T_STR,      // 0x06
     T_IF,       // 0x07
