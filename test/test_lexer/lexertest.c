@@ -31,20 +31,20 @@ void test_undef(void) {
 
 void test_valid_float(void) {
     Lexer *lex = setup_lexer("6.4");
-    ASSERT_EATTOK(T_FLOAT64, lex);
+    ASSERT_EATTOK(T_FLOAT, lex);
     ASSERT_EATTOK(T_EOF, lex);
 }
 
 void test_invalid_float_no_leading_digit(void) {
     Lexer *lex = setup_lexer(".4");
     ASSERT_EATTOK(T_DOT, lex);
-    ASSERT_EATTOK(T_INT64, lex);
+    ASSERT_EATTOK(T_INT, lex);
     ASSERT_EATTOK(T_EOF, lex);
 }
 
 void test_invalid_float_no_trailing_digit(void) {
     Lexer *lex = setup_lexer("4.");
-    ASSERT_EATTOK(T_INT64, lex);
+    ASSERT_EATTOK(T_INT, lex);
     ASSERT_EATTOK(T_DOT, lex);
     ASSERT_EATTOK(T_EOF, lex);
 }
@@ -490,7 +490,7 @@ void test_small_arrow(void) {
 
 void test_int(void) {
     Lexer *lex = setup_lexer("64\n");
-    ASSERT_EATTOK(T_INT64, lex);
+    ASSERT_EATTOK(T_INT, lex);
     ASSERT_EATTOK(T_SEMI, lex);
     ASSERT_EATTOK(T_EOF, lex);
 }
@@ -506,9 +506,9 @@ void test_string(void) {
 
 void test_division(void) {
     Lexer *lex = setup_lexer("5 / 7.0");
-    ASSERT_EATTOK(T_INT64, lex);
+    ASSERT_EATTOK(T_INT, lex);
     ASSERT_EATTOK(T_SLASH, lex);
-    ASSERT_EATTOK(T_FLOAT64, lex);
+    ASSERT_EATTOK(T_FLOAT, lex);
     ASSERT_EATTOK(T_EOF, lex);
 }
 
@@ -517,14 +517,14 @@ void test_blockcomment(void) {
     ASSERT_EATTOK(T_WHILE, lex);
     ASSERT_EATTOK(T_ID, lex);
     ASSERT_EATTOK(T_GT, lex);
-    ASSERT_EATTOK(T_INT64, lex);
+    ASSERT_EATTOK(T_INT, lex);
     ASSERT_EATTOK(T_LBRC, lex);
     ASSERT_EATTOK(T_ECHO, lex);
     ASSERT_EATTOK(T_ID, lex);
     ASSERT_EATTOK(T_SEMI, lex);
     ASSERT_EATTOK(T_ID, lex);
     ASSERT_EATTOK(T_MINUSEQ, lex);
-    ASSERT_EATTOK(T_INT64, lex);
+    ASSERT_EATTOK(T_INT, lex);
     ASSERT_EATTOK(T_SEMI, lex);
     ASSERT_EATTOK(T_EOF, lex);
 }

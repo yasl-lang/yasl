@@ -751,7 +751,6 @@ static void visit_Assign(struct Compiler *const compiler, const struct Node *con
 		return;
 	}
 	visit(compiler, Assign_get_expr(node));
-	// bb_add_byte(compiler->buffer, DUP);
 	store_var(compiler, node->value.sval.str, node->value.sval.str_len, node->line);
 	load_var(compiler, node->value.sval.str, node->value.sval.str_len, node->line);
 }
@@ -765,29 +764,20 @@ static void visit_Undef(struct Compiler *const compiler, const struct Node *cons
 }
 
 static void visit_Float(struct Compiler *const compiler, const struct Node *const node) {
-	YASL_TRACE_LOG("float64: %s\n", node->value.sval.str);
-	if (strlen("nan") == node->value.sval.str_len && !memcmp(node->value.sval.str, "nan", node->value.sval.str_len)) {
-		puts("nan");
-	}
-		//bb_add_byte(compiler->buffer, DCONST_N);
-	else if (strlen("inf") == node->value.sval.str_len && !memcmp(node->value.sval.str, "inf", node->value.sval.str_len))
+	double val = node->value.dval;
+	if (val == 0.0) {
+		bb_add_byte(compiler->buffer, DCONST_0);
+	} else if (val == 1.0) {
+		bb_add_byte(compiler->buffer, DCONST_1);
+	} else if (val == 2.0) {
+		bb_add_byte(compiler->buffer, DCONST_2);
+	} else if (val != val) {
+		bb_add_byte(compiler->buffer, DCONST_N);
+	} else if (val == 1.0 / 0.0) {
 		bb_add_byte(compiler->buffer, DCONST_I);
-	else {
-		double val = node->value.dval;
-		if (val == 0.0) {
-			bb_add_byte(compiler->buffer, DCONST_0);
-		} else if (val == 1.0) {
-			bb_add_byte(compiler->buffer, DCONST_1);
-		} else if (val == 2.0) {
-			bb_add_byte(compiler->buffer, DCONST_2);
-		} else if (val != val) {
-			bb_add_byte(compiler->buffer, DCONST_N);
-		} else if (val == 1.0 / 0.0) {
-			bb_add_byte(compiler->buffer, DCONST_I);
-		} else {
-			bb_add_byte(compiler->buffer, DCONST);
-			bb_floatbytes8(compiler->buffer, val);
-		}
+	} else {
+		bb_add_byte(compiler->buffer, DCONST);
+		bb_floatbytes8(compiler->buffer, val);
 	}
 }
 

@@ -97,7 +97,6 @@ struct Node *new_Set(struct Node *collection, struct Node *key, struct Node *val
 struct Node *new_Get(struct Node *collection, struct Node *value, size_t line);
 struct Node *new_Call(struct Node *params, struct Node *object, size_t line);
 struct Node *new_LetIter(struct Node *var, struct Node *collection, size_t line);
-struct Node *new_Iter(struct Node *var, struct Node *collection, size_t line);
 struct Node *new_ListComp(struct Node *expr, struct Node *iter, struct Node *cond, size_t line);
 struct Node *new_TableComp(struct Node *expr, struct Node *iter, struct Node *cond, size_t line);
 struct Node *new_ForIter(struct Node *iter, struct Node *body, size_t line);
