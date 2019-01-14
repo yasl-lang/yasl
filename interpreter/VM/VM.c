@@ -282,6 +282,89 @@ int vm_stringify_top(struct VM *vm) {
 	return YASL_SUCCESS;
 }
 
+int vm_INIT_CALL(struct VM *vm) {
+	if (!YASL_ISFN(vm_peek(vm)) && !YASL_ISCFN(vm_peek(vm))) {
+		YASL_PRINT_ERROR_TYPE("%s is not callable.", YASL_TYPE_NAMES[vm_peek(vm).type]);
+		return YASL_TYPE_ERROR;
+	}
+
+	vm_pushint(vm, vm->fp);
+	vm_pushint(vm, vm->fp);
+	vm->next_fp = vm->sp - 2;
+
+	return YASL_SUCCESS;
+}
+
+int vm_GET(struct VM *vm) {
+	vm->sp--;
+	int index = vm_peek(vm).type;
+	if (YASL_ISLIST(vm_peek(vm))) {
+		vm->sp++;
+		if (!list___get((struct YASL_State *) &vm)) {
+			return YASL_SUCCESS;
+		}
+	} else if (YASL_ISTABLE(vm_peek(vm))) {
+		vm->sp++;
+		if (!table___get((struct YASL_State *) &vm)) {
+			return YASL_SUCCESS;
+		}
+	} else {
+		vm->sp++;
+	}
+
+	struct YASL_Object key = vm_pop(vm);
+	struct YASL_Object result = table_search(vm->builtins_htable[index], key);
+	vm_pop(vm);
+	if (result.type == Y_END) {
+		vm_pushundef(vm);
+	} else {
+		vm_push(vm, result);
+	}
+	return YASL_SUCCESS;
+}
+
+int vm_CALL(struct VM *vm) {
+	vm->fp = vm->next_fp;
+	if (YASL_ISFN(vm->stack[vm->fp])) {
+		vm->stack[vm->fp + 1].value.ival = vm->pc;
+
+		while (vm->sp - (vm->fp + 2) < vm->code[vm_peekint(vm, vm->fp)]) {
+			vm_pushundef(vm);
+		}
+
+		while (vm->sp - (vm->fp + 2) > vm->code[vm_peekint(vm, vm->fp)]) {
+			vm_pop(vm);
+		}
+
+		vm->sp += vm->code[vm_peekint(vm, vm->fp) + 1];
+
+		vm->pc = vm_peekint(vm, vm->fp) + 2;
+		return YASL_SUCCESS;
+	} else if (YASL_ISCFN(vm->stack[vm->fp])) {
+		while (vm->sp - (vm->fp + 2) < vm_peekcfn(vm, vm->fp)->num_args) {
+			vm_pushundef(vm);
+		}
+
+		while (vm->sp - (vm->fp + 2) > vm_peekcfn(vm, vm->fp)->num_args) {
+			vm_pop(vm);
+		}
+		if (vm_peekcfn(vm, vm->fp)->value((struct YASL_State *) &vm)) {
+			printf("ERROR: invalid argument type(s) to builtin function.\n");
+			return YASL_TYPE_ERROR;
+		};
+		struct YASL_Object v = vm_pop(vm);
+		vm->sp = vm->fp + 2;
+		vm->fp = vm_popint(vm);
+		vm_pop(vm);
+		vm_pop(vm);
+		vm_push(vm, v);
+		return YASL_SUCCESS;
+	} else {
+		printf("ERROR: %s is not callable", YASL_TYPE_NAMES[vm->stack[vm->sp].type]);
+		return YASL_TYPE_ERROR;
+	}
+}
+
 int vm_run(struct VM *vm) {
 	while (1) {
 		unsigned char opcode = NCODE(vm);        // fetch
@@ -296,7 +379,7 @@ int vm_run(struct VM *vm) {
 		case HALT:
 			return YASL_SUCCESS;  // stop the program
 		case NOP:
-			puts("Slide");
+			// puts("Slide");
 			break;    // pass
 		case ICONST_M1:     // TODO: make sure no changes to opcodes ruin this
 		case ICONST_0:
@@ -469,19 +552,12 @@ int vm_run(struct VM *vm) {
 			break;
 		case NEWSTR:
 		{
-			addr = vm_read_int(vm); /*
-			struct YASL_Object *result = table_search(vm->string_literal_table, YASL_INT(addr));
-			if (result) {
-				vm_push(vm, *result);
-				break;
-			} else { */
+			addr = vm_read_int(vm);
 				memcpy(&size, vm->code + addr, sizeof(yasl_int));
 				addr += sizeof(yasl_int);
 				String_t *string = str_new_sized(size, ((char *) vm->code) + addr);
-				// table_insert(vm->string_literal_table, YASL_INT(addr - sizeof(yasl_int)), YASL_STR(string));
 				vm_pushstr(vm, string);
 				break;
-			// }
 		}
 		case NEWTABLE: {
 			struct YASL_Object *table = YASL_Table();
@@ -624,54 +700,10 @@ int vm_run(struct VM *vm) {
 			inc_ref(&VM_PEEK(vm, vm->fp + offset + 3));
 			break;
 		case INIT_CALL:
-			if (!YASL_ISFN(vm_peek(vm)) && !YASL_ISCFN(vm_peek(vm))) {
-				YASL_PRINT_ERROR_TYPE("%s is not callable.", YASL_TYPE_NAMES[vm_peek(vm).type]);
-				return YASL_TYPE_ERROR;
-			}
-
-			vm_pushint(vm, vm->fp);
-			vm_pushint(vm, vm->fp);
-			vm->next_fp = vm->sp - 2;
+			if ((res = vm_INIT_CALL(vm))) return res;
 			break;
 		case CALL:
-			vm->fp = vm->next_fp;
-			if (YASL_ISFN(vm->stack[vm->fp])) {
-				vm->stack[vm->fp + 1].value.ival = vm->pc;
-
-				while (vm->sp - (vm->fp + 2) < vm->code[vm_peekint(vm, vm->fp)]) {
-					vm_pushundef(vm);
-				}
-
-				while (vm->sp - (vm->fp + 2) > vm->code[vm_peekint(vm, vm->fp)]) {
-					vm_pop(vm);
-				}
-
-				vm->sp += vm->code[vm_peekint(vm, vm->fp) + 1];
-
-				vm->pc = vm_peekint(vm, vm->fp) + 2;
-			} else if (YASL_ISCFN(vm->stack[vm->fp])) {
-				while (vm->sp - (vm->fp + 2) < vm_peekcfn(vm, vm->fp)->num_args) {
-					vm_pushundef(vm);
-				}
-
-				while (vm->sp - (vm->fp + 2) > vm_peekcfn(vm, vm->fp)->num_args) {
-					vm_pop(vm);
-				}
-				if (vm_peekcfn(vm, vm->fp)->value((struct YASL_State *) &vm)) {
-					printf("ERROR: invalid argument type(s) to builtin function.\n");
-					return YASL_TYPE_ERROR;
-				};
-				v = vm_pop(vm);
-				vm->sp = vm->fp + 2;
-				vm->fp = vm_popint(vm);
-				vm_pop(vm);
-				vm_pop(vm);
-				vm_push(vm, v);
-			} else {
-				// print(vm->stack[vm->sp]);
-				printf("ERROR: %s is not callable", YASL_TYPE_NAMES[vm->stack[vm->sp].type]);
-				return YASL_TYPE_ERROR;
-			}
+			if ((res = vm_CALL(vm))) return res;
 			break;
 		case RET:
 			// TODO: handle multiple returns
@@ -682,33 +714,9 @@ int vm_run(struct VM *vm) {
 			vm_pop(vm);
 			vm_push(vm, v);
 			break;
-		case GET: {
-			vm->sp--;
-			int index = vm_peek(vm).type;
-			if (YASL_ISLIST(vm_peek(vm))) {
-				vm->sp++;
-				if (!list___get((struct YASL_State *) &vm)) {
-					break;
-				}
-			} else if (YASL_ISTABLE(vm_peek(vm))) {
-				vm->sp++;
-				if (!table___get((struct YASL_State *) &vm)) {
-					break;
-				}
-			} else {
-				vm->sp++;
-			}
-
-			struct YASL_Object key = vm_pop(vm);
-			struct YASL_Object result = table_search(vm->builtins_htable[index], key);
-			vm_pop(vm);
-			if (result.type == Y_END) {
-				vm_pushundef(vm);
-			} else {
-				vm_push(vm, result);
-			}
+		case GET:
+			if ((res = vm_GET(vm))) return res;
 			break;
-		}
 		case SET: {
 			vm->sp -= 2;
 			if (YASL_ISLIST(vm_peek(vm))) {

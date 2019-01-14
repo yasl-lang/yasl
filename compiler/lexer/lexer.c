@@ -56,7 +56,7 @@ static int lex_eatint(Lexer *lex, char separator, int (*isvaliddigit)(int)) {
     lex->value[i++] = separator;
     lex_getchar(lex);
     if (!(*isvaliddigit)(lex->c)) {
-        YASL_PRINT_ERROR_SYNTAX("Invalid int64 literal in line %zd.\n", lex->line);
+        YASL_PRINT_ERROR_SYNTAX("Invalid int literal in line %zd.\n", lex->line);
         lex_error(lex);
         return 1;
     }
@@ -77,44 +77,44 @@ static int lex_eatint(Lexer *lex, char separator, int (*isvaliddigit)(int)) {
 }
 
 static int lex_eatop(Lexer *lex) {
-    char c1, c2, c3;
-    int last;
-    c1 = lex->c;
-    c2 = fgetc(lex->file);
-    if (feof(lex->file)) {
-        goto one;
-    }
+	char c1, c2, c3;
+	int last;
+	c1 = lex->c;
+	c2 = fgetc(lex->file);
+	if (feof(lex->file)) {
+		goto one;
+	}
 
-    c3 = fgetc(lex->file);
-    if (feof(lex->file)) {
-        goto two;
-    }
+	c3 = fgetc(lex->file);
+	if (feof(lex->file)) {
+		goto two;
+	}
 
-    last = YASLToken_ThreeChars(c1, c2, c3);
-    if (last != -1) {
-        lex->type = last;
-        free(lex->value); // = realloc(lex->value, 0);
-        return 1;
-    }
-    fseek(lex->file, -1, SEEK_CUR);
+	last = YASLToken_ThreeChars(c1, c2, c3);
+	if (last != -1) {
+		lex->type = last;
+		free(lex->value); // = realloc(lex->value, 0);
+		return 1;
+	}
+	fseek(lex->file, -1, SEEK_CUR);
 
-    two:
-    last = YASLToken_TwoChars(c1, c2);
-    if (last != -1) {
-        lex->type = last;
-        free(lex->value); // = realloc(lex->value, 0);
-        return 1;
-    }
-    fseek(lex->file, -1, SEEK_CUR);
+	two:
+	last = YASLToken_TwoChars(c1, c2);
+	if (last != -1) {
+		lex->type = last;
+		free(lex->value); // = realloc(lex->value, 0);
+		return 1;
+	}
+	fseek(lex->file, -1, SEEK_CUR);
 
-    one:
-    last = YASLToken_OneChar(c1);
-    if (last != -1) {
-        lex->type = last;
-        free(lex->value); // = realloc(lex->value, 0);
-        return 1;
-    }
-    return 0;
+	one:
+	last = YASLToken_OneChar(c1);
+	if (last != -1) {
+		lex->type = last;
+		free(lex->value); // = realloc(lex->value, 0);
+		return 1;
+	}
+	return 0;
 }
 
 #define HANDLE_ESCAPES(lex, i) do {\
@@ -333,254 +333,255 @@ static int lex_eatrawstring(Lexer *lex) {
 }
 
 void gettok(Lexer *lex) {
-    YASL_TRACE_LOG("getting token from line %zd\n", lex->line);
-    lex->value = NULL;
-    int c1, c2, c3, c4; // used as characters
-    lex_getchar(lex);
-    c1 = lex->c;
+	YASL_TRACE_LOG("getting token from line %zd\n", lex->line);
+	lex->value = NULL;
+	int c1, c2, c3, c4; // used as characters
+	lex_getchar(lex);
+	c1 = lex->c;
 
-    // whitespace and comments.
-    while ((!feof(lex->file) && (lex->c == ' ' || lex->c == '\n' || lex->c == '\t')) || lex->c == '#' || lex->c == '/') {
-        // white space
-        if (lex_eatwhitespace(lex)) return;
+	// whitespace and comments.
+	while ((!feof(lex->file) && (lex->c == ' ' || lex->c == '\n' || lex->c == '\t')) || lex->c == '#' ||
+	       lex->c == '/') {
+		// white space
+		if (lex_eatwhitespace(lex)) return;
 
-        // inline comments
-        if (lex_eatinlinecomments(lex)) return;
+		// inline comments
+		if (lex_eatinlinecomments(lex)) return;
 
-        // block comments
-        if (lex->c == '/') {
-            lex_getchar(lex);
-            if (lex->c == '*') {
-                int addsemi = 0;
-                lex->c = ' ';
-                c1 = fgetc(lex->file);
-                c2 = fgetc(lex->file);
-                while (!feof(lex->file) && (c1 != '*' || c2 != '/')) {
-                    if (c1 == '\n' || c2 == '\n') addsemi = 1;
-                    if (c1 == '\n') lex->line++;
-                    c1 = c2;
-                    c2 = fgetc(lex->file);
-                }
-                if (feof(lex->file)) {
-                    YASL_PRINT_ERROR_SYNTAX("Unclosed block comment in line %zd.\n", lex->line);
-                    lex_error(lex);
-                    return;
-                }
-                if (addsemi && ispotentialend(lex)) {
-                    lex->type = T_SEMI;
-                    return;
-                }
-            } else if (feof(lex->file)) {
-                lex->type = T_SLASH;
-                return;
-            } else {
-                lex_rewind(lex, -1);
-                break;
-            }
-        }
-    }
+		// block comments
+		if (lex->c == '/') {
+			lex_getchar(lex);
+			if (lex->c == '*') {
+				int addsemi = 0;
+				lex->c = ' ';
+				c1 = fgetc(lex->file);
+				c2 = fgetc(lex->file);
+				while (!feof(lex->file) && (c1 != '*' || c2 != '/')) {
+					if (c1 == '\n' || c2 == '\n') addsemi = 1;
+					if (c1 == '\n') lex->line++;
+					c1 = c2;
+					c2 = fgetc(lex->file);
+				}
+				if (feof(lex->file)) {
+					YASL_PRINT_ERROR_SYNTAX("Unclosed block comment in line %zd.\n", lex->line);
+					lex_error(lex);
+					return;
+				}
+				if (addsemi && ispotentialend(lex)) {
+					lex->type = T_SEMI;
+					return;
+				}
+			} else if (feof(lex->file)) {
+				lex->type = T_SLASH;
+				return;
+			} else {
+				lex_rewind(lex, -1);
+				break;
+			}
+		}
+	}
 
-    c1 = lex->c;
+	c1 = lex->c;
 
-    // EOF
-    if (feof(lex->file)) {
-        lex->type = T_EOF;
-        lex->value = NULL;
-        return;
-    }
+	// EOF
+	if (feof(lex->file)) {
+		lex->type = T_EOF;
+		lex->value = NULL;
+		return;
+	}
 
-    // numbers
-    if (isdigit(c1)) {                          // numbers
-        lex->val_len = 8;
-        lex->value = realloc(lex->value, lex->val_len);
-        size_t i = 0;
-        c1 = lex->c;
-        c2 = fgetc(lex->file);
+	// numbers
+	if (isdigit(c1)) {                          // numbers
+		lex->val_len = 8;
+		lex->value = realloc(lex->value, lex->val_len);
+		size_t i = 0;
+		c1 = lex->c;
+		c2 = fgetc(lex->file);
 
-        // hex literal
-        if (c1 == '0' && (c2 == 'x' || c2 == 'X')) {            // hexadecimal literal
-            if (lex_eatint(lex, 'x', &isxdigit)) return;
-        }
+		// hexadecimal literal
+		if (c1 == '0' && (c2 == 'x' || c2 == 'X')) {
+			if (lex_eatint(lex, 'x', &isxdigit)) return;
+		}
 
-        // binary literal
-        if (c1 == '0' && (c2 == 'b' || c2 == 'B')) {
-            if (lex_eatint(lex, 'b', &isbdigit)) return;
-        }
+		// binary literal
+		if (c1 == '0' && (c2 == 'b' || c2 == 'B')) {
+			if (lex_eatint(lex, 'b', &isbdigit)) return;
+		}
 
-        // rewind, because we don't have an octal, hex, or binary number.
-        if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
+		// rewind, because we don't have a hexadecimal or binary number.
+		if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
 
-        // decimal (or first half of float)
-        do {
-            lex->value[i++] = c1;
-            lex_getchar(lex);
-            c1 = lex->c;
-            if (i == lex->val_len) {
-                lex->val_len *= 2;
-                lex->value = realloc(lex->value, lex->val_len);
-            }
-        } while (!feof(lex->file) && isdigit(c1));
-        lex->type = T_INT;
-        if (i == lex->val_len) lex->value = realloc(lex->value, i + 1);
-        lex->value[i] = '\0';
+		// decimal (or first half of float)
+		do {
+			lex->value[i++] = c1;
+			lex_getchar(lex);
+			c1 = lex->c;
+			if (i == lex->val_len) {
+				lex->val_len *= 2;
+				lex->value = realloc(lex->value, lex->val_len);
+			}
+		} while (!feof(lex->file) && ((isdigit(c1))));
+		lex->type = T_INT;
+		if (i == lex->val_len) lex->value = realloc(lex->value, i + 1);
+		lex->value[i] = '\0';
 
-        // floats
-        if (c1 == '.') {
-            c2 = fgetc(lex->file);
-            if (feof(lex->file)) {
-                fseek(lex->file, -1, SEEK_CUR);
-                return;
-            }
-            if (!isdigit(c2)) {
-                fseek(lex->file, -2, SEEK_CUR);
-                return;
-            }
-            fseek(lex->file, -1, SEEK_CUR);
-            do {
-                lex->value[i++] = c1;
-                lex_getchar(lex);
-                c1 = lex->c;
-                if (i == lex->val_len) {
-                    lex->val_len *= 2;
-                    lex->value = realloc(lex->value, lex->val_len);
-                }
-            } while (!feof(lex->file) && isdigit(c1));
+		// floats
+		if (c1 == '.') {
+			c2 = fgetc(lex->file);
+			if (feof(lex->file)) {
+				fseek(lex->file, -1, SEEK_CUR);
+				return;
+			}
+			if (!isdigit(c2)) {
+				fseek(lex->file, -2, SEEK_CUR);
+				return;
+			}
+			fseek(lex->file, -1, SEEK_CUR);
+			do {
+				lex->value[i++] = c1;
+				lex_getchar(lex);
+				c1 = lex->c;
+				if (i == lex->val_len) {
+					lex->val_len *= 2;
+					lex->value = realloc(lex->value, lex->val_len);
+				}
+			} while (!feof(lex->file) && isdigit(c1));
 
-            if (i == lex->val_len) lex->value = realloc(lex->value, i + 1);
-            lex->value[i] = '\0';
-            if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
-            lex->type = T_FLOAT;
-            return;
-        }
+			if (i == lex->val_len) lex->value = realloc(lex->value, i + 1);
+			lex->value[i] = '\0';
+			if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
+			lex->type = T_FLOAT;
+			return;
+		}
 
-        if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
-        return;
-    }
+		if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
+		return;
+	}
 
-    // identifiers and keywords
-    if (isalpha(c1) || c1 == '_' || c1 == '$') {                           // identifiers and keywords
-        lex->val_len = 8;
-        lex->value = realloc(lex->value, lex->val_len);
-        size_t i = 0;
-        do {
-            lex->value[i++] = c1;
-            lex_getchar(lex);
-            c1 = lex->c;
-            if (i == lex->val_len) {
-                lex->val_len *= 2;
-                lex->value = realloc(lex->value, lex->val_len);
-            }
-        } while (!feof(lex->file) && (isalnum(c1) || c1 == '_' || c1 == '$'));
-        if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
-        lex->value = realloc(lex->value, 1 + (lex->val_len = i));
-        lex->value[lex->val_len] = '\0';
+	// identifiers and keywords
+	if (isalpha(c1) || c1 == '_' || c1 == '$') {                           // identifiers and keywords
+		lex->val_len = 8;
+		lex->value = realloc(lex->value, lex->val_len);
+		size_t i = 0;
+		do {
+			lex->value[i++] = c1;
+			lex_getchar(lex);
+			c1 = lex->c;
+			if (i == lex->val_len) {
+				lex->val_len *= 2;
+				lex->value = realloc(lex->value, lex->val_len);
+			}
+		} while (!feof(lex->file) && (isalnum(c1) || c1 == '_' || c1 == '$'));
+		if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
+		lex->value = realloc(lex->value, 1 + (lex->val_len = i));
+		lex->value[lex->val_len] = '\0';
 
-        if (lex->type == T_DOT || lex->type == T_SMALL_ARR) {
-            lex->type = T_ID;
-            return;
-        }
+		if (lex->type == T_DOT || lex->type == T_SMALL_ARR) {
+			lex->type = T_ID;
+			return;
+		}
 
-        lex->type = T_ID;
-        YASLKeywords(lex);          // keywords
-        return;
-    }
+		lex->type = T_ID;
+		YASLKeywords(lex);                  // keywords
+		return;
+	}
 
-    // strings
-    if (lex_eatstring(lex)) return;
+	// strings
+	if (lex_eatstring(lex)) return;
 
-    // raw strings
-    if (lex_eatrawstring(lex)) return;
+	// raw strings
+	if (lex_eatrawstring(lex)) return;
 
-    if (lex_eatinterpstring(lex)) return;
+	if (lex_eatinterpstring(lex)) return;
 
-    // operators
-    if (lex_eatop(lex)) return;
+	// operators
+	if (lex_eatop(lex)) return;
 
-    YASL_PRINT_ERROR_SYNTAX("Unknown character in line %zd: `%c` (0x%x).\n", lex->line, lex->c, lex->c);
-    lex_error(lex);
+	YASL_PRINT_ERROR_SYNTAX("Unknown character in line %zd: `%c` (0x%x).\n", lex->line, lex->c, lex->c);
+	lex_error(lex);
 }
 
 static Token YASLToken_ThreeChars(char c1, char c2, char c3) {
-    switch(c1) {
-        case '<': switch(c2) { case '<': switch(c3) { case '=': return T_DLTEQ; default: return T_UNKNOWN;} }
-        case '>': switch(c2) { case '>': switch(c3) { case '=': return T_DGTEQ; default: return T_UNKNOWN;} }
-        case '=': switch(c2) { case '=': switch(c3) { case '=': return T_TEQ; default: return T_UNKNOWN;} }
-        case '!': switch(c2) {
-            case '=': switch(c3) { case '=': return T_BANGDEQ; default: return T_UNKNOWN;}
-            case 'i': switch(c3) { case 'n': return T_BANGIN; default: return T_UNKNOWN; }
-        }
-        case '*': switch(c2) { case '*': switch(c3) { case '=': return T_DSTAREQ; default: return T_UNKNOWN;} }
-        case '/': switch(c2) { case '/': switch(c3) { case '=': return T_DSLASHEQ; default: return T_UNKNOWN;} }
-        case '&': switch(c2) {
-            case '&': switch(c3) { case '=': return T_DAMPEQ; default: return T_UNKNOWN; }
-            case '^': switch(c3) { case '=': return T_AMPCARETEQ; default: return T_UNKNOWN; }
-        }
-        case '|': switch(c2) { case '|': switch(c3) {
-            case '=': return T_DBAREQ;
-            default: return T_UNKNOWN;
-        } }
-        case '?': switch(c2) { case '?': switch(c3) { case '=': return T_DQMARKEQ; default: return T_UNKNOWN;} }
-    }
-    return T_UNKNOWN;
+	switch(c1) {
+		case '<': switch(c2) { case '<': switch(c3) { case '=': return T_DLTEQ; default: return T_UNKNOWN;} }
+		case '>': switch(c2) { case '>': switch(c3) { case '=': return T_DGTEQ; default: return T_UNKNOWN;} }
+		case '=': switch(c2) { case '=': switch(c3) { case '=': return T_TEQ; default: return T_UNKNOWN;} }
+		case '!': switch(c2) {
+			case '=': switch(c3) { case '=': return T_BANGDEQ; default: return T_UNKNOWN;}
+			case 'i': switch(c3) { case 'n': return T_BANGIN; default: return T_UNKNOWN; }
+		}
+		case '*': switch(c2) { case '*': switch(c3) { case '=': return T_DSTAREQ; default: return T_UNKNOWN;} }
+		case '/': switch(c2) { case '/': switch(c3) { case '=': return T_DSLASHEQ; default: return T_UNKNOWN;} }
+		case '&': switch(c2) {
+			case '&': switch(c3) { case '=': return T_DAMPEQ; default: return T_UNKNOWN; }
+			case '^': switch(c3) { case '=': return T_AMPCARETEQ; default: return T_UNKNOWN; }
+		}
+		case '|': switch(c2) { case '|': switch(c3) {
+			case '=': return T_DBAREQ;
+			default: return T_UNKNOWN;
+		} }
+		case '?': switch(c2) { case '?': switch(c3) { case '=': return T_DQMARKEQ; default: return T_UNKNOWN;} }
+	}
+	return T_UNKNOWN;
 }
 
 static Token YASLToken_TwoChars(char c1, char c2) {
-    switch(c1) {
-        case ':': switch(c2) { case '=': return T_COLONEQ; default: return T_UNKNOWN; }
-        case '^': switch(c2) { case '=': return T_CARETEQ; default: return T_UNKNOWN; };
-        case '+': switch(c2) { case '=': return T_PLUSEQ; default: return T_UNKNOWN; };
-        case '-': switch(c2) {
-                case '=': return T_MINUSEQ;
-                case '>': return T_SMALL_ARR;
-                default: return T_UNKNOWN;
-        }
-        case '=': switch(c2) {
-            case '=': return T_DEQ;
-            case '~': return T_EQTILDE;
-            default: return T_UNKNOWN;
-        }
-        case '!': switch(c2) {
-            case '=': return T_BANGEQ;
-            case '~': return T_BANGTILDE;
-            default: return T_UNKNOWN;
-        }
-        case '~': switch(c2) { case '=': return T_TILDEEQ; default: return T_UNKNOWN;}
-        case '*': switch(c2) {
-            case '=': return T_STAREQ;
-            case '*': return T_DSTAR;
-            default: return T_UNKNOWN;
-        }
-        case '/': switch(c2) {
-                case '=': return T_SLASHEQ;
-                case '/': return T_DSLASH;
-                default: return T_UNKNOWN; }
-        case '%': switch(c2) { case '=': return T_MODEQ; default: return T_UNKNOWN;}
-        case '<': switch(c2) {
-                case '=': return T_LTEQ;
-                case '<': return T_DLT;
-                case '-': return T_LEFT_ARR;
-                default: return T_UNKNOWN;
-        }
-        case '>': switch(c2) {
-                case '=': return T_GTEQ;
-                case '>': return T_DGT;
-                default:  return T_UNKNOWN;
-        }
-        case '&': switch(c2) {
-            case '=': return T_AMPEQ;
-            case '&': return T_DAMP;
-            case '^': return T_AMPCARET;
-            default: return T_UNKNOWN;
-        }
-        case '|': switch(c2) {
-                case '=': return T_BAREQ;
-                case '|': return T_DBAR;
-                default: return T_UNKNOWN;
-        }
-        case '?': switch(c2) { case '?': return T_DQMARK; default: return T_UNKNOWN;}
-        default:
-            return T_UNKNOWN;
-    }
+	switch(c1) {
+		case ':': switch(c2) { case '=': return T_COLONEQ; default: return T_UNKNOWN; }
+		case '^': switch(c2) { case '=': return T_CARETEQ; default: return T_UNKNOWN; };
+		case '+': switch(c2) { case '=': return T_PLUSEQ; default: return T_UNKNOWN; };
+		case '-': switch(c2) {
+				case '=': return T_MINUSEQ;
+				case '>': return T_SMALL_ARR;
+				default: return T_UNKNOWN;
+		}
+		case '=': switch(c2) {
+			case '=': return T_DEQ;
+			case '~': return T_EQTILDE;
+			default: return T_UNKNOWN;
+		}
+		case '!': switch(c2) {
+			case '=': return T_BANGEQ;
+			case '~': return T_BANGTILDE;
+			default: return T_UNKNOWN;
+		}
+		case '~': switch(c2) { case '=': return T_TILDEEQ; default: return T_UNKNOWN;}
+		case '*': switch(c2) {
+			case '=': return T_STAREQ;
+			case '*': return T_DSTAR;
+			default: return T_UNKNOWN;
+		}
+		case '/': switch(c2) {
+				case '=': return T_SLASHEQ;
+				case '/': return T_DSLASH;
+				default: return T_UNKNOWN; }
+		case '%': switch(c2) { case '=': return T_MODEQ; default: return T_UNKNOWN;}
+		case '<': switch(c2) {
+				case '=': return T_LTEQ;
+				case '<': return T_DLT;
+				case '-': return T_LEFT_ARR;
+				default: return T_UNKNOWN;
+		}
+		case '>': switch(c2) {
+				case '=': return T_GTEQ;
+				case '>': return T_DGT;
+				default:  return T_UNKNOWN;
+		}
+		case '&': switch(c2) {
+			case '=': return T_AMPEQ;
+			case '&': return T_DAMP;
+			case '^': return T_AMPCARET;
+			default: return T_UNKNOWN;
+		}
+		case '|': switch(c2) {
+				case '=': return T_BAREQ;
+				case '|': return T_DBAR;
+				default: return T_UNKNOWN;
+		}
+		case '?': switch(c2) { case '?': return T_DQMARK; default: return T_UNKNOWN;}
+		default:
+			return T_UNKNOWN;
+	}
 }
 
 static Token YASLToken_OneChar(char c1) {
@@ -694,8 +695,8 @@ const char *YASL_TOKEN_NAMES[] = {
         "END OF FILE",  // T_EOF,
         ";",            // T_SEMI,
         "undef",        // T_UNDEF,
-        "float64",      // T_FLOAT,
-        "int64",        // T_INT,
+        "float",        // T_FLOAT,
+        "int",          // T_INT,
         "bool",         // T_BOOL,
         "str",          // T_STR,
         "if",           // T_IF,

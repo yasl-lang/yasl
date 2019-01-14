@@ -512,23 +512,6 @@ void test_division(void) {
     ASSERT_EATTOK(T_EOF, lex);
 }
 
-void test_blockcomment(void) {
-    Lexer *lex = setup_lexer("/* block comment */ while x > 0 { /* print x */ print x\nx -= 1\n}");
-    ASSERT_EATTOK(T_WHILE, lex);
-    ASSERT_EATTOK(T_ID, lex);
-    ASSERT_EATTOK(T_GT, lex);
-    ASSERT_EATTOK(T_INT, lex);
-    ASSERT_EATTOK(T_LBRC, lex);
-    ASSERT_EATTOK(T_ECHO, lex);
-    ASSERT_EATTOK(T_ID, lex);
-    ASSERT_EATTOK(T_SEMI, lex);
-    ASSERT_EATTOK(T_ID, lex);
-    ASSERT_EATTOK(T_MINUSEQ, lex);
-    ASSERT_EATTOK(T_INT, lex);
-    ASSERT_EATTOK(T_SEMI, lex);
-    ASSERT_EATTOK(T_EOF, lex);
-}
-
 int lexertest(void) {
     test_int();
     test_string();
@@ -553,7 +536,6 @@ int lexertest(void) {
     test_const();
     test_fn();
     test_return();
-    // test_enum();
     test_dec();
     test_lpar();
     test_rpar();

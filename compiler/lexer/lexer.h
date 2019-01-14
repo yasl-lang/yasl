@@ -44,4 +44,4 @@ void lex_del(Lexer *lex);
 void gettok(Lexer *lex);
 int lex_eatinterpstringbody(Lexer *lex);
 
-const char *YASL_TOKEN_NAMES[85];
+const char *YASL_TOKEN_NAMES[84];
