@@ -85,6 +85,7 @@ struct VM* vm_new(unsigned char *code,    // pointer to bytecode
 	return vm;
 }
 
+
 void vm_del(struct VM *vm) {
 	for (size_t i = 0; i < STACK_SIZE; i++) dec_ref(&vm->stack[i]);
 	for (size_t i = 0; i < vm->num_globals; i++) {
@@ -95,8 +96,6 @@ void vm_del(struct VM *vm) {
 	free(vm->stack);
 
 	free(vm->code);
-
-	// table_del(vm->string_literal_table);
 
 	table_del(vm->builtins_htable[Y_UNDEF]);
 	table_del(vm->builtins_htable[Y_FLOAT]);
@@ -669,6 +668,8 @@ int vm_run(struct VM *vm) {
 				vm_pop(vm);
 				vm_push(vm, v);
 			} else {
+				// print(vm->stack[vm->sp]);
+				printf("ERROR: %s is not callable", YASL_TYPE_NAMES[vm->stack[vm->sp].type]);
 				return YASL_TYPE_ERROR;
 			}
 			break;

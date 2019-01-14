@@ -196,7 +196,7 @@ int lex_eatinterpstringbody(Lexer *lex) {
         lex->mode = L_NORMAL;
     }
 
-    lex->value = realloc(lex->value, lex->val_len = i);
+    lex->val_len = i;
 
     if (feof(lex->file)) {
         YASL_PRINT_ERROR_SYNTAX("Unclosed string literal in line %zd.\n", lex->line);
@@ -209,7 +209,7 @@ int lex_eatinterpstringbody(Lexer *lex) {
 
 int lex_eatinterpstring(Lexer *lex) {
     if (lex->c == INTERP_STR_DELIM) {
-        lex->val_len = 6;
+        lex->val_len = 8;
         lex->value = realloc(lex->value, lex->val_len);
         size_t i = 0;
         lex->type = T_STR;
@@ -243,8 +243,7 @@ int lex_eatinterpstring(Lexer *lex) {
             lex->mode = L_NORMAL;
         }
 
-        //lex_getchar(lex);
-        lex->value = realloc(lex->value, lex->val_len = i);
+        lex->val_len = i;
 
         if (feof(lex->file)) {
             YASL_PRINT_ERROR_SYNTAX("Unclosed string literal in line %zd.\n", lex->line);
@@ -285,8 +284,8 @@ static int lex_eatstring(Lexer *lex) {
                 lex->value = realloc(lex->value, lex->val_len);
             }
         }
-        //lex_getchar(lex);
-        lex->value = realloc(lex->value, lex->val_len = i);
+
+        lex->val_len = i;
 
         if (feof(lex->file)) {
             YASL_PRINT_ERROR_SYNTAX("Unclosed string literal in line %zd.\n", lex->line);
@@ -303,7 +302,7 @@ static int lex_eatstring(Lexer *lex) {
 
 static int lex_eatrawstring(Lexer *lex) {
     if (lex->c == RAW_STR_DELIM) {
-        lex->val_len = 6;
+        lex->val_len = 8;
         lex->value = realloc(lex->value, lex->val_len);
         size_t i = 0;
         lex->type = T_STR;
@@ -318,8 +317,8 @@ static int lex_eatrawstring(Lexer *lex) {
                 lex->value = realloc(lex->value, lex->val_len);
             }
         }
-        //lex_getchar(lex);
-        lex->value = realloc(lex->value, lex->val_len = i);
+
+        lex->val_len = i;
 
         if (feof(lex->file)) {
             YASL_PRINT_ERROR_SYNTAX("Unclosed string literal in line %zd.\n", lex->line);
@@ -336,8 +335,7 @@ static int lex_eatrawstring(Lexer *lex) {
 void gettok(Lexer *lex) {
     YASL_TRACE_LOG("getting token from line %zd\n", lex->line);
     lex->value = NULL;
-    char c1, c2, c3, c4;
-    int last;
+    int c1, c2, c3, c4; // used as characters
     lex_getchar(lex);
     c1 = lex->c;
 
@@ -393,7 +391,7 @@ void gettok(Lexer *lex) {
 
     // numbers
     if (isdigit(c1)) {                          // numbers
-        lex->val_len = 6;
+        lex->val_len = 8;
         lex->value = realloc(lex->value, lex->val_len);
         size_t i = 0;
         c1 = lex->c;
@@ -461,7 +459,7 @@ void gettok(Lexer *lex) {
 
     // identifiers and keywords
     if (isalpha(c1) || c1 == '_' || c1 == '$') {                           // identifiers and keywords
-        lex->val_len = 6;
+        lex->val_len = 8;
         lex->value = realloc(lex->value, lex->val_len);
         size_t i = 0;
         do {
