@@ -1,3 +1,5 @@
+##special_name\n10\n
+
 echo .special_name
 
 x := {}

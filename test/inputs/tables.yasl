@@ -1,3 +1,4 @@
+##{}\n
 # test overwriting keys works
 
 x := {}

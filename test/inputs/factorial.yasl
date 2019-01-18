@@ -1,3 +1,5 @@
+##720\n
+
 const fn fact(n) {
     tmp := 1
     while n > 0 {
@@ -6,3 +8,5 @@ const fn fact(n) {
     }
     return tmp
 }
+
+echo fact(6)
