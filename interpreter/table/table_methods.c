@@ -225,7 +225,6 @@ int table_clear(struct YASL_State *S) {
 	inc_ref(&vm_peek(S->vm));
 	FOR_TABLE(i, item, ht) {
 		del_item(item);
-		ht->items[i] = (Item_t){ YASL_UNDEF(), YASL_UNDEF() };
 	}
 
 	ht->count = 0;
