@@ -16,7 +16,7 @@ sub assert_output {
     my $exitcode = ($status != $exp_stat) || 0;
 
     if ($status != $exp_stat) {
-        print $RED . "memory leak in $string." . $END . "\n";
+            print $RED . "exitcode assert failed in $filename (line $line): $status =/= $exp_stat" . $END . "\n";
     }
 
     if ($output ne $exp_out) {
