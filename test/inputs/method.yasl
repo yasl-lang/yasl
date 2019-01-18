@@ -1,0 +1,8 @@
+##0\n0.0
+
+const fn(x) {
+    echo x
+    return x
+}
+
+echo f(0)->tofloat()
