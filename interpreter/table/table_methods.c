@@ -221,15 +221,19 @@ int table_clone(struct YASL_State *S) {
 
 int table_clear(struct YASL_State *S) {
 	ASSERT_TYPE(S->vm, Y_TABLE, "table.clear");
-	struct Table* ht = YASL_GETTABLE(vm_pop(S->vm));
+	struct Table* ht = YASL_GETTABLE(vm_peek(S->vm));
+	inc_ref(&vm_peek(S->vm));
 	FOR_TABLE(i, item, ht) {
 		del_item(item);
+		ht->items[i] = (Item_t){ YASL_UNDEF(), YASL_UNDEF() };
 	}
 
 	ht->count = 0;
 	ht->size = HT_BASESIZE;
 	free(ht->items);
-	ht->items = calloc(ht->size, sizeof(Item_t*));
+	ht->items = calloc((size_t) ht->size, sizeof(Item_t));
+	dec_ref(&vm_peek(S->vm));
+	vm_pop(S->vm);
 	vm_pushundef(S->vm);
 	return 0;
 }
