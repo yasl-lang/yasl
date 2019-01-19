@@ -1,10 +1,9 @@
-##0\n0.0\n
+##10\n10\n10\n
 
 const fn f(x) {
     echo x
     return x
 }
 
-
-echo f(0)->tofloat()
+echo f(f(10))
 

@@ -1,0 +1,14 @@
+##-1\n0\n1\n2\n3\n4\n5\n0.0\n1.0\n2.0\n-nan\ninf\n
+
+echo -1
+echo 0
+echo 1
+echo 2
+echo 3
+echo 4
+echo 5
+echo 0.0
+echo 1.0
+echo 2.0
+echo nan
+echo inf

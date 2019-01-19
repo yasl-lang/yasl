@@ -316,21 +316,6 @@ static void visit_Call(struct Compiler *const compiler, const struct Node *const
 
 static void visit_Return(struct Compiler *const compiler, const struct Node *const node) {
 	YASL_TRACE_LOG("Visit Return: %s\n", node->value.sval.str);
-	// recursive calls.
-	/*
-	if (node->nodetype == N_CALL && !strcmp(compiler->current_function, node->value.sval.str)) {
-	    visit_Body(compiler, Return_get_expr(node));
-
-	    bb_add_byte(compiler->buffer, RCALL_8);
-	    bb_add_byte(compiler->buffer, Return_get_expr(node)->children_len);
-	    bb_intbytes8(compiler->buffer, rcht_search_string_int(compiler->functions, node->value.sval.str, node->value.sval.str_len)->value.ival);
-	    bb_add_byte(compiler->buffer, compiler->offset);
-
-	    return;
-	}
-	*/
-
-	// default case.
 	visit(compiler, Return_get_expr(node));
 	bb_add_byte(compiler->buffer, RET);
 }
@@ -724,7 +709,7 @@ static void visit_UnOp(struct Compiler *const compiler, const struct Node *const
 	visit(compiler, UnOp_get_expr(node));
 	switch (node->type) {
 	case T_PLUS:
-		bb_add_byte(compiler->buffer, NOP);
+		bb_add_byte(compiler->buffer, POS);
 		break;
 	case T_MINUS:
 		bb_add_byte(compiler->buffer, NEG);
@@ -929,7 +914,7 @@ static void visit_String(struct Compiler *const compiler, const struct Node *con
 	}
 }
 
-static void make_new_collection(struct Compiler *const compiler, const struct Node *const node, Opcode type) {
+static void make_new_collection(struct Compiler *const compiler, const struct Node *const node, enum Opcode type) {
 	bb_add_byte(compiler->buffer, END);
 	visit_Body(compiler, node);
 	bb_add_byte(compiler->buffer, type);

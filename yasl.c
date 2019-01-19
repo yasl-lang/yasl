@@ -43,9 +43,7 @@ int YASL_execute(struct YASL_State *S) {
     S->vm->pc = entry_point;
     S->vm->code = bc;
 
-    vm_run(S->vm);  // TODO: error handling for runtime errors.
-
-    return YASL_SUCCESS;
+    return vm_run(S->vm);  // TODO: error handling for runtime errors.
 }
 
 

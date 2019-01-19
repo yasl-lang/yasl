@@ -238,6 +238,7 @@ int vm_pow(struct VM *vm) {
 
 INT_UNOP(bnot, ~)
 NUM_UNOP(neg, -)
+NUM_UNOP(pos, +)
 
 int vm_int_unop(struct VM *vm, yasl_int (*op)(yasl_int), char *opstr) {
 	struct YASL_Object a = vm_peek(vm);
@@ -288,9 +289,11 @@ int vm_INIT_CALL(struct VM *vm) {
 		return YASL_TYPE_ERROR;
 	}
 
+	int next_fp = vm->next_fp;
+	vm->next_fp = vm->sp;
+	vm_pushint(vm, -1);
 	vm_pushint(vm, vm->fp);
-	vm_pushint(vm, vm->fp);
-	vm->next_fp = vm->sp - 2;
+	vm_pushint(vm, next_fp);
 
 	return YASL_SUCCESS;
 }
@@ -328,11 +331,11 @@ int vm_CALL(struct VM *vm) {
 	if (YASL_ISFN(vm->stack[vm->fp])) {
 		vm->stack[vm->fp + 1].value.ival = vm->pc;
 
-		while (vm->sp - (vm->fp + 2) < vm->code[vm_peekint(vm, vm->fp)]) {
+		while (vm->sp - (vm->fp + 3) < vm->code[vm_peekint(vm, vm->fp)]) {
 			vm_pushundef(vm);
 		}
 
-		while (vm->sp - (vm->fp + 2) > vm->code[vm_peekint(vm, vm->fp)]) {
+		while (vm->sp - (vm->fp + 3) > vm->code[vm_peekint(vm, vm->fp)]) {
 			vm_pop(vm);
 		}
 
@@ -341,11 +344,11 @@ int vm_CALL(struct VM *vm) {
 		vm->pc = vm_peekint(vm, vm->fp) + 2;
 		return YASL_SUCCESS;
 	} else if (YASL_ISCFN(vm->stack[vm->fp])) {
-		while (vm->sp - (vm->fp + 2) < vm_peekcfn(vm, vm->fp)->num_args) {
+		while (vm->sp - (vm->fp + 3) < vm_peekcfn(vm, vm->fp)->num_args) {
 			vm_pushundef(vm);
 		}
 
-		while (vm->sp - (vm->fp + 2) > vm_peekcfn(vm, vm->fp)->num_args) {
+		while (vm->sp - (vm->fp + 3) > vm_peekcfn(vm, vm->fp)->num_args) {
 			vm_pop(vm);
 		}
 		if (vm_peekcfn(vm, vm->fp)->value((struct YASL_State *) &vm)) {
@@ -353,7 +356,8 @@ int vm_CALL(struct VM *vm) {
 			return YASL_TYPE_ERROR;
 		};
 		struct YASL_Object v = vm_pop(vm);
-		vm->sp = vm->fp + 2;
+		vm->sp = vm->fp + 3;
+		vm->next_fp = vm_popint(vm);
 		vm->fp = vm_popint(vm);
 		vm_pop(vm);
 		vm_pop(vm);
@@ -375,25 +379,27 @@ int vm_run(struct VM *vm) {
 		yasl_int c;
 		yasl_float d;
 		int res;
-		switch (opcode) {   // decode
+#if 0
+		printf("----------------"
+			"opcode: %x\n"
+			"vm->sp, vm->fp, vm->next_fp: %d, %d, %d\n\n", opcode, vm->sp, vm->fp, vm->next_fp);
+#endif
+		switch (opcode) {
 		case HALT:
-			return YASL_SUCCESS;  // stop the program
-		case NOP:
-			// puts("Slide");
-			break;    // pass
-		case ICONST_M1:     // TODO: make sure no changes to opcodes ruin this
+			return YASL_SUCCESS;
+		case ICONST_M1:
 		case ICONST_0:
 		case ICONST_1:
 		case ICONST_2:
 		case ICONST_3:
 		case ICONST_4:
 		case ICONST_5:
-			vm_pushint(vm, opcode - 0x04); //(vm, YASL_INT(opcode - 0x04));
+			vm_pushint(vm, opcode - ICONST_0); // make sure no changes to opcodes ruin this
 			break;
-		case DCONST_0:    // TODO: make sure no changes to opcodes ruin this
+		case DCONST_0:
 		case DCONST_1:
 		case DCONST_2:
-			vm_pushfloat(vm, opcode - 0x0B); // (vm, YASL_FLOAT(opcode - 0x0B));
+			vm_pushfloat(vm, opcode - DCONST_0); // make sure no changes to opcodes ruin this
 			break;
 		case DCONST_N:
 			vm_pushfloat(vm, 0.0 / 0.0);
@@ -414,7 +420,7 @@ int vm_run(struct VM *vm) {
 			vm_pushbool(vm, opcode & 0x01);
 			break;
 		case NCONST:
-			vm_pushundef(vm); //, YASL_UNDEF());
+			vm_pushundef(vm);
 			break;
 		case FCONST:
 			c = vm_read_int(vm);
@@ -470,6 +476,9 @@ int vm_run(struct VM *vm) {
 			break;
 		case NEG:
 			if ((res = vm_num_unop(vm, &int_neg, &float_neg, "-"))) return res;
+			break;
+		case POS:
+			if ((res = vm_num_unop(vm, &int_pos, &float_pos, "+"))) return res;
 			break;
 		case NOT:
 			c = isfalsey(vm_pop(vm));
@@ -691,13 +700,13 @@ int vm_run(struct VM *vm) {
 			break;
 		case LLOAD_1:
 			offset = NCODE(vm);
-			vm_push(vm, VM_PEEK(vm, vm->fp + offset + 3));
+			vm_push(vm, VM_PEEK(vm, vm->fp + offset + 4));
 			break;
 		case LSTORE_1:
 			offset = NCODE(vm);
-			dec_ref(&VM_PEEK(vm, vm->fp + offset + 3));
-			VM_PEEK(vm, vm->fp + offset + 3) = vm_pop(vm);
-			inc_ref(&VM_PEEK(vm, vm->fp + offset + 3));
+			dec_ref(&VM_PEEK(vm, vm->fp + offset + 4));
+			VM_PEEK(vm, vm->fp + offset + 4) = vm_pop(vm);
+			inc_ref(&VM_PEEK(vm, vm->fp + offset + 4));
 			break;
 		case INIT_CALL:
 			if ((res = vm_INIT_CALL(vm))) return res;
@@ -708,7 +717,9 @@ int vm_run(struct VM *vm) {
 		case RET:
 			// TODO: handle multiple returns
 			v = vm_pop(vm);
-			vm->sp = vm->fp + 2;
+			vm->sp = vm->fp + 3;
+			vm->next_fp = vm->stack[vm->fp + 3].value.ival;
+			vm_pop(vm);
 			vm->fp = vm_popint(vm);
 			vm->pc = vm_popint(vm);
 			vm_pop(vm);
@@ -732,26 +743,6 @@ int vm_run(struct VM *vm) {
 			}
 			break;
 		}
-		case RCALL_8:
-			offset = NCODE(vm);
-			int i;
-			for (i = 0; i < offset; i++) {
-				vm->stack[vm->fp - 2 - i] = vm->stack[vm->sp - i];
-			}
-			addr = vm_read_int(vm);
-			offset = NCODE(vm);
-			vm->sp = vm->fp + offset;
-			vm->pc = addr;
-			break;
-			/*case RET:
-			    v = vm_pop(vm);
-			    a = vm->stack[vm->fp];
-			    b = vm->stack[vm->fp-1];
-			    vm->pc = a.value.ival;
-			    vm->sp = vm->fp - a.type - 2;
-			    vm->fp = b.value.ival;
-			    vm_push(vm, &v);
-			    break;*/
 		case POP:
 			vm_pop(vm);
 			break;
