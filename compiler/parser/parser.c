@@ -163,34 +163,40 @@ static struct Node *parse_body(Parser *const parser) {
     return body;
 }
 
+static struct Node *parse_function_params(Parser *const parser) {
+	struct Node *block = new_Body(parser->lex->line);
+	while (TOKEN_MATCHES(parser, T_ID, T_CONST)) {
+		if (TOKEN_MATCHES(parser, T_ID)) {
+			body_append(&block, parse_id(parser));
+		} else {
+			eattok(parser, T_CONST);
+			struct Node *cur_node = parse_id(parser);
+			cur_node->nodetype = N_CONST;
+			body_append(&block, cur_node);
+		}
+		if (curtok(parser) == T_COMMA) eattok(parser, T_COMMA);
+		else break;
+	}
+	return block;
+}
+
 static struct Node *parse_fn(Parser *const parser) {
-    YASL_TRACE_LOG("parsing fn in line %zd\n", parser->lex->line);
-    eattok(parser, T_FN);
-    size_t line = parser->lex->line;
-    char *name = parser->lex->value;
-    size_t name_len = parser->lex->val_len;
-    eattok(parser, T_ID);
-    eattok(parser, T_LPAR);
-    struct Node *block = new_Body(parser->lex->line);
-    while (TOKEN_MATCHES(parser, T_ID, T_CONST)) {
-        if (TOKEN_MATCHES(parser, T_ID)) {
-            body_append(&block, parse_id(parser));
-        } else {
-            eattok(parser, T_CONST);
-            struct Node *cur_node = parse_id(parser);
-            cur_node->nodetype = N_CONST;
-            body_append(&block, cur_node);
-        }
-        if (curtok(parser) == T_COMMA) eattok(parser, T_COMMA);
-        else break;
-    }
-    eattok(parser, T_RPAR);
+	YASL_TRACE_LOG("parsing fn in line %zd\n", parser->lex->line);
+	eattok(parser, T_FN);
+	size_t line = parser->lex->line;
+	char *name = parser->lex->value;
+	size_t name_len = parser->lex->val_len;
+	eattok(parser, T_ID);
+	eattok(parser, T_LPAR);
+	struct Node *block = parse_function_params(parser);
+	eattok(parser, T_RPAR);
 
-    struct Node *body = parse_body(parser);
+	struct Node *body = parse_body(parser);
 
-    char *name2 = malloc(name_len);
-    memcpy(name2, name, name_len);
-    return new_Let(name, name_len, new_FnDecl(block, body, name2, name_len, parser->lex->line), line);
+	char *name2 = malloc(name_len);
+	memcpy(name2, name, name_len);
+	return new_Let(name, name_len, new_FnDecl(block, body, name2, name_len, parser->lex->line), line);
+
 }
 
 static struct Node *parse_const(Parser *const parser) {
@@ -302,47 +308,54 @@ static struct Node *parse_expr(Parser *const parser) {
 }
 
 static struct Node *parse_assign(Parser *const parser) {
-    YASL_TRACE_LOG("parsing = in line %zd\n", parser->lex->line);
-    struct Node *cur_node = parse_ternary(parser);
-    size_t line = parser->lex->line;
-    if (curtok(parser) == T_EQ) {
-        eattok(parser, T_EQ);
-        if (cur_node->nodetype == N_VAR) {
-            struct Node *assign_node = new_Assign(cur_node->value.sval.str, cur_node->value.sval.str_len, parse_assign(parser), line);
-            free(cur_node);
-            return assign_node;
-        } else if (cur_node->nodetype == N_GET) {
-            struct Node *left = cur_node->children[0];
-            struct Node *key = cur_node->children[1];
-            struct Node *val = parse_expr(parser);
-            free(cur_node);
-            return new_Set(left, key, val, line);
-        } else {
-            YASL_PRINT_ERROR_SYNTAX("Invalid l-value (line %zd).\n", line);
-            return handle_error(parser);
-        }
-    } else if (tok_isaugmented(curtok(parser))) {
-        Token op = eattok(parser, curtok(parser)) - 1; // relies on enum
-        if (cur_node->nodetype == N_VAR) {
-            char *name = cur_node->value.sval.str;
-            size_t name_len = cur_node->value.sval.str_len;
-            struct Node *tmp = node_clone(cur_node);
-            free(cur_node);
-            return new_Assign(name, name_len, new_BinOp(op, tmp, parse_assign(parser), line), line);
-        } else if (cur_node->nodetype == N_GET) {
-            struct Node *left = cur_node->children[0];
-            struct Node *block = new_Body(parser->lex->line);
-            body_append(&block, cur_node->children[1]);
-            body_append(&block, new_BinOp(op, node_clone(cur_node), parse_expr(parser), line));
-            free(cur_node->children);
-            free(cur_node);
-            return new_Set(left, block->children[0], block->children[1], line);
-        } else {
-            YASL_PRINT_ERROR_SYNTAX("Invalid l-value (line %zd).\n", line);
-            return handle_error(parser);
-        }
-    }
-    return cur_node;
+	YASL_TRACE_LOG("parsing = in line %zd\n", parser->lex->line);
+	struct Node *cur_node = parse_ternary(parser);
+	size_t line = parser->lex->line;
+	if (curtok(parser) == T_EQ) {
+		eattok(parser, T_EQ);
+		switch (cur_node->nodetype) {
+		case N_VAR: {
+			struct Node *assign_node = new_Assign(cur_node->value.sval.str, cur_node->value.sval.str_len,
+							      parse_assign(parser), line);
+			free(cur_node);
+			return assign_node;
+		}
+		case N_GET: {
+			struct Node *left = cur_node->children[0];
+			struct Node *key = cur_node->children[1];
+			struct Node *val = parse_expr(parser);
+			free(cur_node);
+			return new_Set(left, key, val, line);
+		}
+		default:
+			YASL_PRINT_ERROR_SYNTAX("Invalid l-value (line %zd).\n", line);
+			return handle_error(parser);
+		}
+	} else if (tok_isaugmented(curtok(parser))) {
+		Token op = eattok(parser, curtok(parser)) - 1; // relies on enum
+		switch (cur_node->nodetype) {
+		case N_VAR: {
+			char *name = cur_node->value.sval.str;
+			size_t name_len = cur_node->value.sval.str_len;
+			struct Node *tmp = node_clone(cur_node);
+			free(cur_node);
+			return new_Assign(name, name_len, new_BinOp(op, tmp, parse_assign(parser), line), line);
+		}
+		case N_GET: {
+			struct Node *left = cur_node->children[0];
+			struct Node *block = new_Body(parser->lex->line);
+			body_append(&block, cur_node->children[1]);
+			body_append(&block, new_BinOp(op, node_clone(cur_node), parse_expr(parser), line));
+			free(cur_node->children);
+			free(cur_node);
+			return new_Set(left, block->children[0], block->children[1], line);
+		}
+		default:
+			YASL_PRINT_ERROR_SYNTAX("Invalid l-value (line %zd).\n", line);
+			return handle_error(parser);
+		}
+	}
+	return cur_node;
 }
 
 static struct Node *parse_ternary(Parser *const parser) {
@@ -540,6 +553,7 @@ static double get_float(char *buffer) {
 static struct Node *parse_float(Parser *const parser) {
     YASL_TRACE_LOG("%s\n", "Parsing float");
     struct Node* cur_node = new_Float(get_float(parser->lex->value), parser->lex->line);
+    free(parser->lex->value);
     eattok(parser, T_FLOAT);
     return cur_node;
 }

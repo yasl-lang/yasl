@@ -71,7 +71,6 @@ typedef enum {
     Y_USERDATA_W,
 } YASL_Types;
 
-struct RC_Table;
 struct RC_UserData;
 struct CFunction_s {
     struct RC *rc;
