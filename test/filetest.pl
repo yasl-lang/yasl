@@ -13,7 +13,7 @@ sub assert_output {
 
     my $output = qx+../YASL $string+;
     my $status = $?;
-    my $exitcode = ($status != $exp_stat) || 0;
+    my $exitcode = !($output eq $exp_out && $status == $exp_stat) || 0;
 
     if ($status != $exp_stat) {
             print $RED . "exitcode assert failed in $filename (line $line): $status =/= $exp_stat" . $END . "\n";
