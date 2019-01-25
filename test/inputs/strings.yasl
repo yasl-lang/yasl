@@ -1,4 +1,5 @@
-# test strings are collected
+##
+# tests that strings are garbage collected properly
 
 x := 'x'
 

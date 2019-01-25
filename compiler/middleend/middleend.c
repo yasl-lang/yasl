@@ -12,6 +12,11 @@ void fold_Call(struct Node *const node) {
 	fold_Body(Call_get_params(node));
 }
 
+void fold_MethodCall(struct Node *const node) {
+	fold(node->children[1]);
+	fold_Body(node->children[0]);
+}
+
 void fold_Set(struct Node *const node) {
 	fold(Set_get_collection(node));
 	fold(Set_get_key(node));
@@ -45,8 +50,14 @@ void fold_TriOp(struct Node *const node) {
 	}
 }
 
+void make_float(struct Node *const node, double val) {
+	node->nodetype = N_FLOAT;
+	node->value.dval = val;
+	node->children_len = 0;
+}
+
 void make_int(struct Node *const node, int64_t val) {
-	node->nodetype = N_INT64;
+	node->nodetype = N_INT;
 	node->value.ival = val;
 	node->children_len = 0;
 }
@@ -62,7 +73,7 @@ void fold_BinOp(struct Node *const node) {
 	fold(node->children[1]);
 	struct Node *left = node->children[0];
 	struct Node *right = node->children[1];
-	if (left->nodetype == N_INT64 && right->nodetype == N_INT64) {
+	if (left->nodetype == N_INT && right->nodetype == N_INT) {
 		switch (node->type) {
 		case T_BAR:
 			make_int(node, left->value.ival | right->value.ival);
@@ -80,7 +91,7 @@ void fold_BinOp(struct Node *const node) {
 			node_del(right);
 			break;
 		case T_AMPCARET:
-			make_int(node, left->value.ival &~ right->value.ival);
+			make_int(node, left->value.ival & ~right->value.ival);
 			node_del(left);
 			node_del(right);
 			break;
@@ -130,7 +141,7 @@ void fold_BinOp(struct Node *const node) {
 			make_bool(node, left->value.ival == right->value.ival);
 			node_del(left);
 			node_del(right);
-			 */
+			*/
 			break;
 		case T_DGT:
 			make_int(node, left->value.ival >> right->value.ival);
@@ -174,6 +185,208 @@ void fold_BinOp(struct Node *const node) {
 		default:
 			break;
 		}
+	} else if (left->nodetype == N_FLOAT && right->nodetype == N_FLOAT) {
+		switch (node->type) {
+		case T_DEQ:
+		case T_TEQ:
+			make_bool(node, left->value.dval == right->value.dval);
+			node_del(left);
+			node_del(right);
+			break;
+		case T_BANGEQ:
+		case T_BANGDEQ:
+			make_bool(node, left->value.dval != right->value.dval);
+			node_del(left);
+			node_del(right);
+			break;
+		case T_GT:
+			make_bool(node, left->value.dval > right->value.dval);
+			node_del(left);
+			node_del(right);
+			break;
+		case T_GTEQ:
+			make_bool(node, left->value.dval >= right->value.dval);
+			node_del(left);
+			node_del(right);
+			break;
+		case T_LT:
+			make_bool(node, left->value.dval < right->value.dval);
+			node_del(left);
+			node_del(right);
+			break;
+		case T_LTEQ:
+			make_bool(node, left->value.dval <= right->value.dval);
+			node_del(left);
+			node_del(right);
+			break;
+		case T_TILDE:
+			/*
+			size_t len = snprintf(NULL, 0, "%lld", (long long) left->value.ival);
+			make_bool(node, left->value.ival == right->value.ival);
+			node_del(left);
+			node_del(right);
+			*/
+			break;
+		case T_PLUS:
+			make_float(node, left->value.dval + right->value.dval);
+			node_del(left);
+			node_del(right);
+			break;
+		case T_MINUS:
+			make_float(node, left->value.dval - right->value.dval);
+			node_del(left);
+			node_del(right);
+			break;
+		case T_STAR:
+			make_float(node, left->value.dval * right->value.dval);
+			node_del(left);
+			node_del(right);
+			break;
+		case T_SLASH:
+			make_float(node, left->value.dval / right->value.dval);
+			node_del(left);
+			node_del(right);
+			break;
+		case T_DSTAR:
+			break;
+		default:
+			break;
+		}
+	} else if (left->nodetype == N_FLOAT && right->nodetype == N_INT) {
+
+		switch (node->type) {
+		case T_DEQ:
+		case T_TEQ:
+			make_bool(node, left->value.dval == right->value.ival);
+			node_del(left);
+			node_del(right);
+			break;
+		case T_BANGEQ:
+		case T_BANGDEQ:
+			make_bool(node, left->value.dval != right->value.ival);
+			node_del(left);
+			node_del(right);
+			break;
+		case T_GT:
+			make_bool(node, left->value.dval > right->value.ival);
+			node_del(left);
+			node_del(right);
+			break;
+		case T_GTEQ:
+			make_bool(node, left->value.dval >= right->value.ival);
+			node_del(left);
+			node_del(right);
+			break;
+		case T_LT:
+			make_bool(node, left->value.dval < right->value.ival);
+			node_del(left);
+			node_del(right);
+			break;
+		case T_LTEQ:
+			make_bool(node, left->value.dval <= right->value.ival);
+			node_del(left);
+			node_del(right);
+			break;
+		case T_TILDE:
+			/*
+			size_t len = snprintf(NULL, 0, "%lld", (long long) left->value.ival);
+			make_bool(node, left->value.ival == right->value.ival);
+			node_del(left);
+			node_del(right);
+			*/
+			break;
+		case T_PLUS:
+			make_float(node, left->value.dval + right->value.ival);
+			node_del(left);
+			node_del(right);
+			break;
+		case T_MINUS:
+			make_float(node, left->value.dval - right->value.ival);
+			node_del(left);
+			node_del(right);
+			break;
+		case T_STAR:
+			make_float(node, left->value.dval * right->value.ival);
+			node_del(left);
+			node_del(right);
+			break;
+		case T_SLASH:
+			make_float(node, left->value.dval / right->value.ival);
+			node_del(left);
+			node_del(right);
+			break;
+		case T_DSTAR:
+			break;
+		default:
+			break;
+		}
+	} else if (left->nodetype == N_INT && right->nodetype == N_FLOAT) {
+		switch (node->type) {
+		case T_DEQ:
+		case T_TEQ:
+			make_bool(node, left->value.ival == right->value.dval);
+			node_del(left);
+			node_del(right);
+			break;
+		case T_BANGEQ:
+		case T_BANGDEQ:
+			make_bool(node, left->value.ival != right->value.dval);
+			node_del(left);
+			node_del(right);
+			break;
+		case T_GT:
+			make_bool(node, left->value.ival > right->value.dval);
+			node_del(left);
+			node_del(right);
+			break;
+		case T_GTEQ:
+			make_bool(node, left->value.ival >= right->value.dval);
+			node_del(left);
+			node_del(right);
+			break;
+		case T_LT:
+			make_bool(node, left->value.ival < right->value.dval);
+			node_del(left);
+			node_del(right);
+			break;
+		case T_LTEQ:
+			make_bool(node, left->value.ival <= right->value.dval);
+			node_del(left);
+			node_del(right);
+			break;
+		case T_TILDE:
+			/*
+			size_t len = snprintf(NULL, 0, "%lld", (long long) left->value.ival);
+			make_bool(node, left->value.ival == right->value.ival);
+			node_del(left);
+			node_del(right);
+			*/
+			break;
+		case T_PLUS:
+			make_float(node, left->value.ival + right->value.dval);
+			node_del(left);
+			node_del(right);
+			break;
+		case T_MINUS:
+			make_float(node, left->value.ival - right->value.dval);
+			node_del(left);
+			node_del(right);
+			break;
+		case T_STAR:
+			make_float(node, left->value.ival * right->value.dval);
+			node_del(left);
+			node_del(right);
+			break;
+		case T_SLASH:
+			make_float(node, left->value.ival / right->value.dval);
+			node_del(left);
+			node_del(right);
+			break;
+		case T_DSTAR:
+			break;
+		default:
+			break;
+		}
 	}
 }
 
@@ -181,7 +394,7 @@ void fold_UnOp(struct Node *const node) {
 	fold(UnOp_get_expr(node));
 	struct Node *expr = UnOp_get_expr(node);
 	switch (expr->nodetype) {
-	case N_INT64:
+	case N_INT:
 		switch (node->type) {
 		case T_PLUS:
 			make_int(node, +expr->value.ival);
@@ -207,6 +420,24 @@ void fold_UnOp(struct Node *const node) {
 		switch (node->type) {
 		case T_BANG:
 			make_bool(node, !expr->value.ival);
+			node_del(expr);
+			break;
+		default:
+			break;
+		}
+		break;
+	case N_FLOAT:
+		switch (node->type) {
+		case T_PLUS:
+			make_float(node, +expr->value.dval);
+			node_del(expr);
+			break;
+		case T_MINUS:
+			make_float(node, -expr->value.dval);
+			node_del(expr);
+			break;
+		case T_BANG:
+			make_bool(node, 0);
 			node_del(expr);
 			break;
 		default:
@@ -267,6 +498,7 @@ static void (*jumptable[])(struct Node *const ) = {
 	NULL,
 	NULL,
 	&fold_Call,
+	&fold_MethodCall,
 	&fold_Set,
 	&fold_Get,
 	NULL,

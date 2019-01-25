@@ -1,0 +1,9 @@
+##10\n10\n10\n
+
+const fn f(x) {
+    echo x
+    return x
+}
+
+echo f(f(10))
+

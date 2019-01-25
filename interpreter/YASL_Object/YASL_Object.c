@@ -12,8 +12,8 @@ char *float64_to_str(double d);
 // Keep up to date with the YASL_Types
 const char *YASL_TYPE_NAMES[] = {
     "undef",    // Y_UNDEF,
-    "float64",  // Y_FLOAT,
-    "int64",    // Y_INT,
+    "float",    // Y_FLOAT,
+    "int",      // Y_INT,
     "bool",     // Y_BOOL,
     "str",      // Y_STR,
     "str",      // Y_STR_W,

@@ -70,7 +70,6 @@ struct VM {
 	int next_fp;
 	int lp;                        // foreach pointer
 	String_t *special_strings[NUM_SPECIAL_STRINGS];
-	// struct Table *string_literal_table;
 	struct Table **builtins_htable;   // htable of builtin methods
 };
 

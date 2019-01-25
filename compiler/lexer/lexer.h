@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #define  ispotentialend(l) ((l)->type == T_ID || (l)->type == T_STR || \
-            (l)->type == T_INT64 || (l)->type == T_FLOAT64 || (l)->type == T_BREAK || \
+            (l)->type == T_INT || (l)->type == T_FLOAT || (l)->type == T_BREAK || \
             (l)->type == T_CONT || (l)->type == T_RPAR || (l)->type == T_RSQB || \
             (l)->type == T_RBRC || (l)->type == T_UNDEF || (l)->type == T_BOOL)
 
@@ -44,4 +44,4 @@ void lex_del(Lexer *lex);
 void gettok(Lexer *lex);
 int lex_eatinterpstringbody(Lexer *lex);
 
-const char *YASL_TOKEN_NAMES[85];
+const char *YASL_TOKEN_NAMES[84];
