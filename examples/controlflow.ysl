@@ -5,53 +5,53 @@
  * nan
  */
 
-let x = undef
-let i = 0
+x := undef
+i := 0
 
 # if statements:
 if x === true {
-    print 'x is true'
+    echo 'x is true'
 } elseif x === false {
-    print 'x is false'
+    echo 'x is false'
 } else {
-    print 'x is not a boolean'
+    echo 'x is not a boolean'
 }
 
 ## Expressions
 
 # `&&` and `||` short circuit, and return either the left or right value:
-print x && true
-print x || true
+echo x && true
+echo x || true
 
 
 # `?:` works as expected:
-let name = 'YASL'
-print name::startswith('A') ? 'starts with A' :
-      name::startswith('T') ? 'starts with T' :
-      name::startswith('Y') ? 'starts with Y' :
+name := 'YASL'
+echo name->startswith('A') ? 'starts with A' :
+      name->startswith('T') ? 'starts with T' :
+      name->startswith('Y') ? 'starts with Y' :
       'i do not recognise that letter'
 
 
 # `??` returns the right value iff the left is undef, else returns the left value.
 # used to set default values for variables.
 
-print undef ?? 'default'
-print 'YASL' ?? 'default'
+echo undef ?? 'default'
+echo 'YASL' ?? 'default'
 
 ## Loops (note that `continue` and `break` also work as expected
 
 # while loops:
 while i < 10 {
-    print i
+    echo i
     i += 1
 }
 
 # numeric for loops:
-for let i = 0; i < 10; i += 1 {
-    print i
+for i := 0; i < 10; i += 1 {
+    echo i
 }
 
 # iterative for loops:
-for let letter <- ['Y', 'A', 'S', 'L'] {
-    print letter
+for letter <- ['Y', 'A', 'S', 'L'] {
+    echo letter
 }

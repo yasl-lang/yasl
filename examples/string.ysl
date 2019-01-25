@@ -1,18 +1,15 @@
-print 'yasl'::toupper()
-print 'yasl'::tolower()
+echo 'yasl'->toupper()
+echo 'yasl'->tolower()
 
-print 'yasl'::isalnum()
-print 'yasl'::isal()
-print 'yasl'::isnum()
-print 'yasl'::isspace()
+echo 'yasl'->isalnum()
+echo 'yasl'->isal()
+echo 'yasl'->isnum()
+echo 'yasl'->isspace()
 
-print 'yasl'::startswith('y')
-print 'yasl'::endswith('y')
+echo 'yasl'->startswith('y')
+echo 'yasl'->endswith('y')
 
-print 'yasl'::search('l')
-print 'yasl'::split('a')
+echo 'yasl'->search('l')
+echo 'yasl'->split('a')
 
-print 'yasl'::contains('sl')
-print 'yasl'::contains('yasll')
-
-print 'yasl'::replace('as', 'e')::replace('l', 'llo')
+echo 'yasl'->replace('as', 'e')->replace('l', 'llo')

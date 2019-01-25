@@ -14,29 +14,29 @@
  * num = int64 | float64 */
 
 # undef
-print undef
+echo undef
 
 # int64
-print 0
-print 1
+echo 0
+echo 1
 
 # float64
-print 0.0
-print 1.0
+echo 0.0
+echo 1.0
 
 # bool
-print false
-print true
+echo false
+echo true
 
 # str
-print ''
-print 'YASL'
+echo ''
+echo 'YASL'
 
 # list
-print []
-print ['Y', 'A', 'S', 'L']
+echo []
+echo ['Y', 'A', 'S', 'L']
 
 # table
-print [:]
-print ['C':1972]
+echo {}
+echo {'C':1972}
 
