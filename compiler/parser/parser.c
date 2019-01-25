@@ -430,9 +430,9 @@ static struct Node *parse_power(Parser *const parser) {
 
 static struct Node *parse_call(Parser *const parser) {
     struct Node *cur_node = parse_constant(parser);
-    while (TOKEN_MATCHES(parser, T_LSQB, T_DOT, T_LPAR, T_SMALL_ARR)) {
-        if (TOKEN_MATCHES(parser, T_SMALL_ARR)) {
-            eattok(parser, T_SMALL_ARR);
+    while (TOKEN_MATCHES(parser, T_LSQB, T_DOT, T_LPAR, T_RIGHT_ARR)) {
+        if (TOKEN_MATCHES(parser, T_RIGHT_ARR)) {
+            eattok(parser, T_RIGHT_ARR);
             struct Node *right = parse_constant(parser);
             if (right->nodetype != N_VAR) {
                 YASL_PRINT_ERROR_SYNTAX("Invalid method call (line %zd).\n", parser->lex->line);

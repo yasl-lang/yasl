@@ -250,7 +250,7 @@ int lex_eatid(Lexer *lex) {
 		lex->value = realloc(lex->value, 1 + (lex->val_len = i));
 		lex->value[lex->val_len] = '\0';
 
-		if (lex->type == T_DOT || lex->type == T_SMALL_ARR) {
+		if (lex->type == T_DOT || lex->type == T_RIGHT_ARR) {
 			lex->type = T_ID;
 			return 1;
 		}
@@ -544,7 +544,7 @@ static Token YASLToken_TwoChars(char c1, char c2) {
 		case '+': switch(c2) { case '=': return T_PLUSEQ; default: return T_UNKNOWN; };
 		case '-': switch(c2) {
 				case '=': return T_MINUSEQ;
-				case '>': return T_SMALL_ARR;
+				case '>': return T_RIGHT_ARR;
 				default: return T_UNKNOWN;
 		}
 		case '=': switch(c2) {
@@ -785,7 +785,7 @@ const char *YASL_TOKEN_NAMES[] = {
         "?\?=",         // DQMARKEQ,
         ":",            // COLON,
         ":=",           // COLONEQ
-        "->",           // SMALL_ARR
+        "->",           // RIGHT_ARR
         "<-",           // LEFT_ARR
 };
 
