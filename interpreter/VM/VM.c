@@ -283,21 +283,6 @@ int vm_stringify_top(struct VM *vm) {
 	return YASL_SUCCESS;
 }
 
-int vm_INIT_CALL(struct VM *vm) {
-	if (!YASL_ISFN(vm_peek(vm)) && !YASL_ISCFN(vm_peek(vm))) {
-		YASL_PRINT_ERROR_TYPE("%s is not callable.", YASL_TYPE_NAMES[vm_peek(vm).type]);
-		return YASL_TYPE_ERROR;
-	}
-
-	int next_fp = vm->next_fp;
-	vm->next_fp = vm->sp;
-	vm_pushint(vm, -1);
-	vm_pushint(vm, vm->fp);
-	vm_pushint(vm, next_fp);
-
-	return YASL_SUCCESS;
-}
-
 int vm_GET(struct VM *vm) {
 	vm->sp--;
 	int index = vm_peek(vm).type;
@@ -323,6 +308,72 @@ int vm_GET(struct VM *vm) {
 	} else {
 		vm_push(vm, result);
 	}
+	return YASL_SUCCESS;
+}
+
+int vm_SWAP(struct VM *vm) {
+	struct YASL_Object a = vm->stack[vm->sp];
+	struct YASL_Object b = vm->stack[vm->sp - 1];
+	vm->stack[vm->sp - 1] = a;
+	vm->stack[vm->sp] = b;
+	return YASL_SUCCESS;
+}
+
+int vm_NEWSPECIALSTR(struct VM *vm) {
+	vm_pushstr(vm, vm->special_strings[NCODE(vm)]);
+	return YASL_SUCCESS;
+}
+
+int vm_NEWSTR(struct VM *vm) {
+	yasl_int addr = vm_read_int(vm);
+
+	size_t size;
+	memcpy(&size, vm->code + addr, sizeof(yasl_int));
+
+	addr += sizeof(yasl_int);
+	String_t *string = str_new_sized(size, ((char *) vm->code) + addr);
+	vm_pushstr(vm, string);
+	return YASL_SUCCESS;
+}
+
+int vm_INIT_CALL(struct VM *vm) {
+	if (!YASL_ISFN(vm_peek(vm)) && !YASL_ISCFN(vm_peek(vm))) {
+		YASL_PRINT_ERROR_TYPE("%s is not callable.", YASL_TYPE_NAMES[vm_peek(vm).type]);
+		return YASL_TYPE_ERROR;
+	}
+
+	int next_fp = vm->next_fp;
+	vm->next_fp = vm->sp;
+	vm_pushint(vm, -1);
+	vm_pushint(vm, vm->fp);
+	vm_pushint(vm, next_fp);
+
+	return YASL_SUCCESS;
+}
+
+int vm_INIT_MC(struct VM *vm) {
+	struct YASL_Object top = vm_peek(vm);
+	inc_ref(&top);
+	vm_NEWSTR(vm);
+	//vm_SWAP(vm);
+	//vm_push(vm, top);
+	vm_GET(vm);
+	vm_INIT_CALL(vm);
+	vm_push(vm, top);
+	dec_ref(&top);
+	return YASL_SUCCESS;
+}
+
+int vm_INIT_MC_SPECIAL(struct VM *vm) {
+	struct YASL_Object top = vm_peek(vm);
+	inc_ref(&top);
+	vm_NEWSPECIALSTR(vm);
+	//vm_SWAP(vm);
+	//vm_push(vm, top);
+	vm_GET(vm);
+	vm_INIT_CALL(vm);
+	vm_push(vm, top);
+	dec_ref(&top);
 	return YASL_SUCCESS;
 }
 
@@ -557,17 +608,11 @@ int vm_run(struct VM *vm) {
 			vm_push(vm, YASL_BOOL(a.type == b.type && YASL_GETINT(a) == YASL_GETINT(b)));
 			break;
 		case NEWSPECIALSTR:
-			vm_pushstr(vm, vm->special_strings[NCODE(vm)]);
+			if ((res = vm_NEWSPECIALSTR(vm))) return res;
 			break;
 		case NEWSTR:
-		{
-			addr = vm_read_int(vm);
-				memcpy(&size, vm->code + addr, sizeof(yasl_int));
-				addr += sizeof(yasl_int);
-				String_t *string = str_new_sized(size, ((char *) vm->code) + addr);
-				vm_pushstr(vm, string);
-				break;
-		}
+			if ((res = vm_NEWSTR(vm))) return res;
+			break;
 		case NEWTABLE: {
 			struct YASL_Object *table = YASL_Table();
 			struct Table *ht = YASL_GETTABLE(*table);
@@ -664,10 +709,7 @@ int vm_run(struct VM *vm) {
 			break;
 		}
 		case SWAP:
-			a = vm->stack[vm->sp];
-			b = vm->stack[vm->sp - 1];
-			vm->stack[vm->sp - 1] = a;
-			vm->stack[vm->sp] = b;
+			if ((res = vm_SWAP(vm))) return res;
 			break;
 		case BR_8:
 			c = vm_read_int(vm);
@@ -707,6 +749,12 @@ int vm_run(struct VM *vm) {
 			dec_ref(&VM_PEEK(vm, vm->fp + offset + 4));
 			VM_PEEK(vm, vm->fp + offset + 4) = vm_pop(vm);
 			inc_ref(&VM_PEEK(vm, vm->fp + offset + 4));
+			break;
+		case INIT_MC:
+			if ((res = vm_INIT_MC(vm))) return res;
+			break;
+		case INIT_MC_SPECIAL:
+			if ((res = vm_INIT_MC_SPECIAL(vm))) return res;
 			break;
 		case INIT_CALL:
 			if ((res = vm_INIT_CALL(vm))) return res;

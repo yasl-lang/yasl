@@ -12,6 +12,11 @@ void fold_Call(struct Node *const node) {
 	fold_Body(Call_get_params(node));
 }
 
+void fold_MethodCall(struct Node *const node) {
+	fold(node->children[1]);
+	fold_Body(node->children[0]);
+}
+
 void fold_Set(struct Node *const node) {
 	fold(Set_get_collection(node));
 	fold(Set_get_key(node));
@@ -493,6 +498,7 @@ static void (*jumptable[])(struct Node *const ) = {
 	NULL,
 	NULL,
 	&fold_Call,
+	&fold_MethodCall,
 	&fold_Set,
 	&fold_Get,
 	NULL,

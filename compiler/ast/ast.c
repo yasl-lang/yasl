@@ -83,6 +83,10 @@ struct Node *new_Call(struct Node *params, struct Node *object, size_t line) {
     return new_Node_2(N_CALL, T_UNKNOWN, params, object, NULL, 0, line);
 }
 
+struct Node *new_MethodCall(struct Node *params, struct Node *object, char *value, size_t len, size_t line) {
+	return new_Node_2(N_MCALL, T_UNKNOWN, params, object, value, len, line);
+}
+
 struct Node *new_Set(struct Node *collection, struct Node *key, struct Node *value, size_t line) {
     return new_Node_3(N_SET, T_UNKNOWN, collection, key, value, NULL, 0, line);
 }

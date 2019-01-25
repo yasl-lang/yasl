@@ -1,4 +1,5 @@
 #include <compiler/ast/ast.h>
+#include <interpreter/YASL_Object/YASL_Object.h>
 #include "compiler.h"
 
 #include "YASL_Object.h"
@@ -12,6 +13,44 @@
 
 #define break_checkpoint(compiler)    ((compiler)->checkpoints[(compiler)->checkpoints_count-1])
 #define continue_checkpoint(compiler) ((compiler)->checkpoints[(compiler)->checkpoints_count-2])
+
+
+static enum SpecialStrings get_special_string(const struct Node *const node) {
+#define STR_EQ(node, literal) ((node)->value.sval.str_len == strlen((literal)) && !memcmp((node)->value.sval.str, (literal), (node)->value.sval.str_len))
+	if (STR_EQ(node, "__get")) return S___GET;
+	else if (STR_EQ(node, "__set")) return S___SET;
+	else if (STR_EQ(node, "clear")) return S_CLEAR;
+	else if (STR_EQ(node, "copy")) return S_COPY;
+	else if (STR_EQ(node, "endswith")) return S_ENDSWITH;
+	else if (STR_EQ(node, "extend")) return S_EXTEND;
+	else if (STR_EQ(node, "isal")) return S_ISAL;
+	else if (STR_EQ(node, "isalnum")) return S_ISALNUM;
+	else if (STR_EQ(node, "isnum")) return S_ISNUM;
+	else if (STR_EQ(node, "isspace")) return S_ISSPACE;
+	else if (STR_EQ(node, "join")) return S_JOIN;
+	else if (STR_EQ(node, "keys")) return S_KEYS;
+	else if (STR_EQ(node, "ltrim")) return S_LTRIM;
+	else if (STR_EQ(node, "pop")) return S_POP;
+	else if (STR_EQ(node, "push")) return S_PUSH;
+	else if (STR_EQ(node, "repeat")) return S_REPEAT;
+	else if (STR_EQ(node, "replace")) return S_REPLACE;
+	else if (STR_EQ(node, "reverse")) return S_REVERSE;
+	else if (STR_EQ(node, "rtrim")) return S_RTRIM;
+	else if (STR_EQ(node, "search")) return S_SEARCH;
+	else if (STR_EQ(node, "slice")) return S_SLICE;
+	else if (STR_EQ(node, "split")) return S_SPLIT;
+	else if (STR_EQ(node, "startswith")) return S_STARTSWITH;
+	else if (STR_EQ(node, "tobool")) return S_TOBOOL;
+	else if (STR_EQ(node, "tofloat")) return S_TOFLOAT;
+	else if (STR_EQ(node, "toint")) return S_TOINT;
+	else if (STR_EQ(node, "tolower")) return S_TOLOWER;
+	else if (STR_EQ(node, "tostr")) return S_TOSTR;
+	else if (STR_EQ(node, "toupper")) return S_TOUPPER;
+	else if (STR_EQ(node, "trim")) return S_TRIM;
+	else if (STR_EQ(node, "values")) return S_VALUES;
+	else return S_UNKNOWN_STR;
+#undef STR_EQ
+}
 
 struct Compiler *compiler_new(Parser *const parser) {
 	struct Compiler *compiler = malloc(sizeof(struct Compiler));
@@ -310,6 +349,32 @@ static void visit_Call(struct Compiler *const compiler, const struct Node *const
 	YASL_TRACE_LOG("Visit Call: %s\n", node->value.sval.str);
 	visit(compiler, node->children[1]);
 	bb_add_byte(compiler->buffer, INIT_CALL);
+	visit_Body(compiler, Call_get_params(node));
+	bb_add_byte(compiler->buffer, CALL);
+}
+
+static void visit_MethodCall(struct Compiler *const compiler, const struct Node *const node) {
+	YASL_TRACE_LOG("Visit MethodCall: %s\n", node->value.sval.str);
+	visit(compiler, node->children[1]);
+	enum SpecialStrings index = get_special_string(node);
+	if (index != S_UNKNOWN_STR) {
+		bb_add_byte(compiler->buffer, INIT_MC_SPECIAL);
+		bb_add_byte(compiler->buffer, index);
+	} else {
+		struct YASL_Object value = table_search_string_int(compiler->strings, node->value.sval.str, node->value.sval.str_len);
+		if (value.type == Y_END) {
+			YASL_DEBUG_LOG("%s\n", "caching string");
+			table_insert_string_int(compiler->strings, node->value.sval.str, node->value.sval.str_len, compiler->header->count);
+			bb_intbytes8(compiler->header, node->value.sval.str_len);
+			bb_append(compiler->header, (unsigned char *) node->value.sval.str, node->value.sval.str_len);
+		}
+
+		value = table_search_string_int(compiler->strings, node->value.sval.str, node->value.sval.str_len);
+
+		bb_add_byte(compiler->buffer, INIT_MC);
+		bb_intbytes8(compiler->buffer, value.value.ival);
+	}
+
 	visit_Body(compiler, Call_get_params(node));
 	bb_add_byte(compiler->buffer, CALL);
 }
@@ -813,101 +878,10 @@ static void visit_String(struct Compiler *const compiler, const struct Node *con
 
 	value = table_search_string_int(compiler->strings, node->value.sval.str, node->value.sval.str_len);
 
-#define STR_EQ(node, literal) ((node)->value.sval.str_len == strlen((literal)) && !memcmp((node)->value.sval.str, (literal), (node)->value.sval.str_len))
-
-	if (STR_EQ(node, "__get")) {
+	enum SpecialStrings index = get_special_string(node);
+	if (index != S_UNKNOWN_STR) {
 		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S___GET);
-	} else if (STR_EQ(node, "__set")) {
-		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S___SET);
-	} else if (STR_EQ(node, "clear")) {
-		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S_CLEAR);
-	} else if (STR_EQ(node, "copy")) {
-		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S_COPY);
-	} else if (STR_EQ(node, "endswith")) {
-		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S_ENDSWITH);
-	} else if (STR_EQ(node, "extend")) {
-		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S_EXTEND);
-	} else if (STR_EQ(node, "isal")) {
-		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S_ISAL);
-	} else if (STR_EQ(node, "isalnum")) {
-		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S_ISALNUM);
-	} else if (STR_EQ(node, "isnum")) {
-		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S_ISNUM);
-	} else if (STR_EQ(node, "isspace")) {
-		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S_ISSPACE);
-	} else if (STR_EQ(node, "join")) {
-		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S_JOIN);
-	} else if (STR_EQ(node, "keys")) {
-		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S_KEYS);
-	} else if (STR_EQ(node, "ltrim")) {
-		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S_LTRIM);
-	} else if (STR_EQ(node, "pop")) {
-		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S_POP);
-	} else if (STR_EQ(node, "push")) {
-		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S_PUSH);
-	} else if (STR_EQ(node, "repeat")) {
-		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S_REPEAT);
-	} else if (STR_EQ(node, "replace")) {
-		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S_REPLACE);
-	} else if (STR_EQ(node, "reverse")) {
-		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S_REVERSE);
-	} else if (STR_EQ(node, "rtrim")) {
-		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S_RTRIM);
-	} else if (STR_EQ(node, "search")) {
-		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S_SEARCH);
-	} else if (STR_EQ(node, "slice")) {
-		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S_SLICE);
-	} else if (STR_EQ(node, "split")) {
-		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S_SPLIT);
-	} else if (STR_EQ(node, "startswith")) {
-		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S_STARTSWITH);
-	} else if (STR_EQ(node, "tobool")) {
-		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S_TOBOOL);
-	} else if (STR_EQ(node, "tofloat")) {
-		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S_TOFLOAT);
-	} else if (STR_EQ(node, "toint")) {
-		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S_TOINT);
-	} else if (STR_EQ(node, "tolower")) {
-		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S_TOLOWER);
-	} else if (STR_EQ(node, "tostr")) {
-		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S_TOSTR);
-	} else if (STR_EQ(node, "toupper")) {
-		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S_TOUPPER);
-	} else if (STR_EQ(node, "trim")) {
-		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S_TRIM);
-	} else if (STR_EQ(node, "values")) {
-		bb_add_byte(compiler->buffer, NEWSPECIALSTR);
-		bb_add_byte(compiler->buffer, S_VALUES);
+		bb_add_byte(compiler->buffer, index);
 	} else {
 		bb_add_byte(compiler->buffer, NEWSTR);
 		bb_intbytes8(compiler->buffer, value.value.ival);
@@ -928,7 +902,7 @@ static void visit_Table(struct Compiler *const compiler, const struct Node *cons
 	make_new_collection(compiler, Table_get_values(node), NEWTABLE);
 }
 
-// NOTE: must keep this synced with the enum in ast.h
+// NOTE: _MUST_ keep this synced with the enum in ast.h, and the jumptable in middleend.c
 static void (*jumptable[])(struct Compiler *const, const struct Node *const) = {
 	&visit_ExprStmt,
 	&visit_Block,
@@ -936,6 +910,7 @@ static void (*jumptable[])(struct Compiler *const, const struct Node *const) = {
 	&visit_FunctionDecl,
 	&visit_Return,
 	&visit_Call,
+	&visit_MethodCall,
 	&visit_Set,
 	&visit_Get,
 	NULL,

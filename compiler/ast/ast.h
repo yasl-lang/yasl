@@ -5,39 +5,40 @@
 #include <stdlib.h>
 #include <string.h>
 
-// NOTE: _MUST_ keep this up to date with the jumptable in compiler.c
-typedef enum {
-    N_EXPRSTMT,
-    N_BLOCK,
-    N_BODY,
-    N_FNDECL,
-    N_RET,
-    N_CALL,
-    N_SET,
-    N_GET,
-    N_LETITER,
-    N_LISTCOMP,
-    N_TABLECOMP,
-    N_FORITER,
-    N_WHILE,
-    N_BREAK,
-    N_CONT,
-    N_IF,
-    N_PRINT,
-    N_LET,
-    N_CONST,
-    N_TRIOP,
-    N_BINOP,
-    N_UNOP,
-    N_ASSIGN,
-    N_VAR,
-    N_UNDEF,
-    N_FLOAT,
-    N_INT,
-    N_BOOL,
-    N_STR,
-    N_LIST,
-    N_TABLE
+// NOTE: _MUST_ keep this up to date with the jumptable in compiler.c and the jumptable in middleend.c
+typedef enum NodeType {
+	N_EXPRSTMT,
+	N_BLOCK,
+	N_BODY,
+	N_FNDECL,
+	N_RET,
+	N_CALL,
+	N_MCALL,
+	N_SET,
+	N_GET,
+	N_LETITER,
+	N_LISTCOMP,
+	N_TABLECOMP,
+	N_FORITER,
+	N_WHILE,
+	N_BREAK,
+	N_CONT,
+	N_IF,
+	N_PRINT,
+	N_LET,
+	N_CONST,
+	N_TRIOP,
+	N_BINOP,
+	N_UNOP,
+	N_ASSIGN,
+	N_VAR,
+	N_UNDEF,
+	N_FLOAT,
+	N_INT,
+	N_BOOL,
+	N_STR,
+	N_LIST,
+	N_TABLE
 } AST;
 
 struct Node {
@@ -96,6 +97,7 @@ struct Node *new_Return(struct Node *expr, size_t line);
 struct Node *new_Set(struct Node *collection, struct Node *key, struct Node *value, size_t line);
 struct Node *new_Get(struct Node *collection, struct Node *value, size_t line);
 struct Node *new_Call(struct Node *params, struct Node *object, size_t line);
+struct Node *new_MethodCall(struct Node *params, struct Node *object, char *value, size_t len, size_t line);
 struct Node *new_LetIter(struct Node *var, struct Node *collection, size_t line);
 struct Node *new_ListComp(struct Node *expr, struct Node *iter, struct Node *cond, size_t line);
 struct Node *new_TableComp(struct Node *expr, struct Node *iter, struct Node *cond, size_t line);

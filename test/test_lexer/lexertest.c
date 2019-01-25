@@ -484,7 +484,7 @@ void test_colon_eq(void) {
 
 void test_small_arrow(void) {
     Lexer *lex = setup_lexer("->");
-    ASSERT_EATTOK(T_SMALL_ARR, lex);
+    ASSERT_EATTOK(T_RIGHT_ARR, lex);
     ASSERT_EATTOK(T_EOF, lex);
 }
 

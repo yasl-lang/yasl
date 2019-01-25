@@ -432,30 +432,28 @@ static struct Node *parse_call(Parser *const parser) {
     struct Node *cur_node = parse_constant(parser);
     while (TOKEN_MATCHES(parser, T_LSQB, T_DOT, T_LPAR, T_RIGHT_ARR)) {
         if (TOKEN_MATCHES(parser, T_RIGHT_ARR)) {
-            eattok(parser, T_RIGHT_ARR);
-            struct Node *right = parse_constant(parser);
-            if (right->nodetype != N_VAR) {
-                YASL_PRINT_ERROR_SYNTAX("Invalid method call (line %zd).\n", parser->lex->line);
-                return handle_error(parser);
-            }
+		eattok(parser, T_RIGHT_ARR);
+		struct Node *right = parse_constant(parser);
+		if (right->nodetype != N_VAR) {
+			YASL_PRINT_ERROR_SYNTAX("Invalid method call (line %zd).\n", parser->lex->line);
+			return handle_error(parser);
+		}
 
-            struct Node *block = new_Body(parser->lex->line);
-            body_append(&block, node_clone(cur_node));
+		struct Node *block = new_Body(parser->lex->line);
 
-            right->nodetype = N_STR;
-            cur_node = new_Get(cur_node, right, parser->lex->line);
+		cur_node = new_MethodCall(block, cur_node, right->value.sval.str, right->value.sval.str_len,
+					  parser->lex->line);
+		free(right);
 
+		eattok(parser, T_LPAR);
+		while (!TOKEN_MATCHES(parser, T_RPAR, T_EOF)) {
+			body_append(&cur_node->children[0], parse_expr(parser));
+			if (curtok(parser) != T_COMMA) break;
+			eattok(parser, T_COMMA);
+		}
+		eattok(parser, T_RPAR);
 
-            cur_node = new_Call(block, cur_node, parser->lex->line);
-            eattok(parser, T_LPAR);
-            while (!TOKEN_MATCHES(parser, T_RPAR, T_EOF)) {
-                body_append(&cur_node->children[0], parse_expr(parser));
-                if (curtok(parser) != T_COMMA) break;
-                eattok(parser, T_COMMA);
-            }
-            eattok(parser, T_RPAR);
-
-        } else if (curtok(parser) == T_DOT) {
+	} else if (curtok(parser) == T_DOT) {
             eattok(parser, T_DOT);
             struct Node *right = parse_constant(parser);
             if (right->nodetype == N_CALL) {
