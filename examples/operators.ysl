@@ -51,4 +51,4 @@ echo !undef
 
 # list | map | str -> int64
 echo [1,2,3]
-echo ['YASL'->2017]
+echo {'YASL':2017}
