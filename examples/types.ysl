@@ -1,7 +1,7 @@
 /* the basic types in YASL are:
  * undef: different from all other values
- * int64: 64 bit signed integer
- * float64: IEEE double precision floating point number
+ * int: 64 bit signed integer
+ * float: IEEE double precision floating point number
  * bool: Boolean
  * str: ascii string
  * list: ordered collection of objects of arbitrary size, indexed by natural numbers
@@ -16,11 +16,11 @@
 # undef
 echo undef
 
-# int64
+# int
 echo 0
 echo 1
 
-# float64
+# float
 echo 0.0
 echo 1.0
 
