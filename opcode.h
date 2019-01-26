@@ -106,6 +106,8 @@ enum SpecialStrings {
 
 	S_JOIN,       // join
 
+	S_SORT,       // sort
+
 	S_KEYS,       // keys
 
 	S_LTRIM,      // ltrim

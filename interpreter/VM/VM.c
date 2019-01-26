@@ -60,6 +60,7 @@ struct VM* vm_new(unsigned char *code,    // pointer to bytecode
 	DEF_SPECIAL_STR(S_ISNUM, "isnum");
 	DEF_SPECIAL_STR(S_ISSPACE, "isspace");
 	DEF_SPECIAL_STR(S_JOIN, "join");
+	DEF_SPECIAL_STR(S_SORT, "sort");
 	DEF_SPECIAL_STR(S_KEYS, "keys");
 	DEF_SPECIAL_STR(S_LTRIM, "ltrim");
 	DEF_SPECIAL_STR(S_POP, "pop");

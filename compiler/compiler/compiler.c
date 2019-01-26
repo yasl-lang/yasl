@@ -28,6 +28,7 @@ static enum SpecialStrings get_special_string(const struct Node *const node) {
 	else if (STR_EQ(node, "isnum")) return S_ISNUM;
 	else if (STR_EQ(node, "isspace")) return S_ISSPACE;
 	else if (STR_EQ(node, "join")) return S_JOIN;
+	else if (STR_EQ(node, "sort")) return S_SORT;
 	else if (STR_EQ(node, "keys")) return S_KEYS;
 	else if (STR_EQ(node, "ltrim")) return S_LTRIM;
 	else if (STR_EQ(node, "pop")) return S_POP;
