@@ -5,7 +5,7 @@
 #include "yasl.h"
 #include "yasl-std-io.h"
 
-#define VERSION "v0.3.3"
+#define VERSION "v0.3.4"
 
 int main(int argc, char** argv) {
     if (argc > 2) {
