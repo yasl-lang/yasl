@@ -23,7 +23,7 @@ echo 1 > 1.0
 echo 1 <= 1.0
 echo 1 >= 1.0
 
-# str8, str8 -> str8
+# str, str -> str
 echo 'Hello' ~ 'World'
 
 # num, num -> num
@@ -33,10 +33,10 @@ echo 1 - 0.0
 # num, num -> num
 echo 1 * 1.0
 
-# num, num -> float64
+# num, num -> float
 echo 5 / 2
 
-# int64, int64 -> int64
+# int, int -> int
 echo 5 % 2
 echo 5 // 2
 
@@ -49,6 +49,6 @@ echo !false
 echo !true
 echo !undef
 
-# list | map | str -> int64
+# list | map | str -> int
 echo [1,2,3]
 echo {'YASL':2017}
