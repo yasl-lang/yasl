@@ -50,5 +50,6 @@ echo !true
 echo !undef
 
 # list | map | str -> int
-echo [1,2,3]
-echo {'YASL':2017}
+echo len [1,2,3]
+echo len {'YASL':2017}
+echo len 'YASL'
