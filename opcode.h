@@ -106,8 +106,6 @@ enum SpecialStrings {
 
 	S_JOIN,       // join
 
-	S_SORT,       // sort
-
 	S_KEYS,       // keys
 
 	S_LTRIM,      // ltrim
@@ -122,6 +120,7 @@ enum SpecialStrings {
 
 	S_SEARCH,     // search
 	S_SLICE,      // slice
+	S_SORT,       // sort
 	S_SPLIT,      // split
 	S_STARTSWITH, // startswith
 
