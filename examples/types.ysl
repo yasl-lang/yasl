@@ -1,7 +1,7 @@
 /* the basic types in YASL are:
  * undef: different from all other values
- * int64: 64 bit signed integer
- * float64: IEEE double precision floating point number
+ * int: 64 bit signed integer
+ * float: IEEE double precision floating point number
  * bool: Boolean
  * str: ascii string
  * list: ordered collection of objects of arbitrary size, indexed by natural numbers
@@ -14,29 +14,29 @@
  * num = int64 | float64 */
 
 # undef
-print undef
+echo undef
 
-# int64
-print 0
-print 1
+# int
+echo 0
+echo 1
 
-# float64
-print 0.0
-print 1.0
+# float
+echo 0.0
+echo 1.0
 
 # bool
-print false
-print true
+echo false
+echo true
 
 # str
-print ''
-print 'YASL'
+echo ''
+echo 'YASL'
 
 # list
-print []
-print ['Y', 'A', 'S', 'L']
+echo []
+echo ['Y', 'A', 'S', 'L']
 
 # table
-print [:]
-print ['C':1972]
+echo {}
+echo {'C':1972}
 

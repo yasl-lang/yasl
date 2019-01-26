@@ -1,54 +1,55 @@
 # any, any, any -> any
-print false ? 'TRUE' : 'FALSE'
+echo false ? 'TRUE' : 'FALSE'
 
 # any, any -> any
-print undef ?? true
+echo undef ?? true
 
 # any, any -> any
-print 'C' || 'not C'
+echo 'C' || 'not C'
 
 # any, any -> any
-print '' && 'YASL'
+echo '' && 'YASL'
 
 # any, any -> any
-print 1 == 1.0
-print 1 != 1.0
-print 1 === 1.0
-print 1 !== 1.0
+echo 1 == 1.0
+echo 1 != 1.0
+echo 1 === 1.0
+echo 1 !== 1.0
 
 
 # any, any -> any
-print 1 < 1.0
-print 1 > 1.0
-print 1 <= 1.0
-print 1 >= 1.0
+echo 1 < 1.0
+echo 1 > 1.0
+echo 1 <= 1.0
+echo 1 >= 1.0
 
-# str8, str8 -> str8
-print 'Hello' ~ 'World'
+# str, str -> str
+echo 'Hello' ~ 'World'
 
 # num, num -> num
-print 1 + 1
-print 1 - 0.0
+echo 1 + 1
+echo 1 - 0.0
 
 # num, num -> num
-print 1 * 1.0
+echo 1 * 1.0
 
-# num, num -> float64
-print 5 / 2
+# num, num -> float
+echo 5 / 2
 
-# int64, int64 -> int64
-print 5 % 2
-print 5 // 2
+# int, int -> int
+echo 5 % 2
+echo 5 // 2
 
 # num -> num
-print -1.0
-print +2
+echo -1.0
+echo +2
 
 # any -> bool
-print !false
-print !true
-print !undef
+echo !false
+echo !true
+echo !undef
 
-# list | map | str -> int64
-print @[1,2,3]
-print @['YASL'->2017]
+# list | map | str -> int
+echo len [1,2,3]
+echo len {'YASL':2017}
+echo len 'YASL'
