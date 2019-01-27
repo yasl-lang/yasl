@@ -81,6 +81,7 @@ struct Table* str_builtins(struct VM *vm) {
 	table_insert_specialstring_cfunction(vm, table, S_ENDSWITH, &str_endswith, 2);
 	table_insert_specialstring_cfunction(vm, table, S_REPLACE, &str_replace, 3);
 	table_insert_specialstring_cfunction(vm, table, S_SEARCH, &str_search, 2);
+	table_insert_specialstring_cfunction(vm, table, S_COUNT, &str_count, 2);
 	table_insert_specialstring_cfunction(vm, table, S_SLICE, &str_slice, 3);
 	table_insert_specialstring_cfunction(vm, table, S_SPLIT, &str_split, 2);
 	table_insert_specialstring_cfunction(vm, table, S_LTRIM, &str_ltrim, 2);
@@ -119,4 +120,3 @@ struct Table* table_builtins(struct VM *vm) {
 	table_insert_specialstring_cfunction(vm, table, S_CLEAR, &table_clear, 1);
 	return table;
 }
-

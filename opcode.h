@@ -95,6 +95,7 @@ enum SpecialStrings {
 
 	S_CLEAR,      // clear
 	S_COPY,       // copy
+	S_COUNT,      // count
 
 	S_ENDSWITH,   // endswith
 	S_EXTEND,     // extend
