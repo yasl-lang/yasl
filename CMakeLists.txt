@@ -29,6 +29,7 @@ include_directories(interpreter/refcount)
 include_directories(interpreter/userdata)
 include_directories(interpreter/undef)
 include_directories(std-io)
+include_directories(std-math)
 include_directories(prime)
 include_directories(test)
 
@@ -59,7 +60,8 @@ add_executable(YASL
         interpreter/userdata/userdata.c
         interpreter/undef/undef_methods.c
         prime/prime.c
-        std-io/yasl-std-io.c)
+        std-io/yasl-std-io.c
+        std-math/yasl-std-math.c)
 
 add_executable(YASLTEST
         test/test_compiler/yats.c
