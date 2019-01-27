@@ -53,6 +53,7 @@ struct VM* vm_new(unsigned char *code,    // pointer to bytecode
 	DEF_SPECIAL_STR(S___SET, "__set");
 	DEF_SPECIAL_STR(S_CLEAR, "clear");
 	DEF_SPECIAL_STR(S_COPY, "copy");
+	DEF_SPECIAL_STR(S_COUNT, "count");
 	DEF_SPECIAL_STR(S_ENDSWITH, "endswith");
 	DEF_SPECIAL_STR(S_EXTEND, "extend");
 	DEF_SPECIAL_STR(S_ISAL, "isal");
