@@ -85,8 +85,6 @@ enum Opcode {
 	PRINT           = 0xFF  // print
 };
 
-#define NUM_SPECIAL_STRINGS 32
-
 enum SpecialStrings {
 	S_UNKNOWN_STR = -1, // ERROR, used internally but doesn't represent a real string value
 
@@ -134,4 +132,6 @@ enum SpecialStrings {
 	S_TRIM,       // trim
 
 	S_VALUES,     // values
+	
+	NUM_SPECIAL_STRINGS // don't treat this as a member
 };
