@@ -354,7 +354,10 @@ int str_count(struct YASL_State *S) {
 	int64_t hLen = yasl_string_len(haystack);
 	int64_t count = 0;
 	for(int64_t i = 0; i + nLen <= hLen; i++) {
-		if(memcmp(needle->str + needle->start, haystack->str + haystack->start + i, nLen) == 0) count++;
+		if(memcmp(needle->str + needle->start, haystack->str + haystack->start + i, nLen) == 0) {
+			count++;
+			i += nLen-1;
+		}
 	}
 	vm_pushint(S->vm, count);
 	return 0;
