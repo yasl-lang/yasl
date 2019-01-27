@@ -6,4 +6,4 @@
 	url = https://github.com/yasl-lang/std-io.git
 [submodule "std-math"]
 	path = std-math
-	url = https://github.com/yasl-lang/std-math.git
+	url = https://github.com/yasl-lang/std-math
