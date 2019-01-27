@@ -1,0 +1,23 @@
+##true\n180.0\n0.20788\n1.0\ntrue\n10.0\ntrue\ntrue\ntrue\n
+
+fn inEpsilon(a, b) {
+	return math.abs(a - b) < 10**-10
+}
+
+echo inEpsilon(0, 10**-20) && inEpsilon(0.1**20, 0)
+
+echo math.deg(math.pi)
+
+echo math.exp(-math.pi/2)
+
+echo 2*math.sin(math.rad(45))**2
+
+echo math.ceil(0.5) == 1 && math.ceil(0) == 0 && math.floor(0.5) == 0 && math.floor(0) == 0
+
+echo math.log(1024)/math.log(2)
+
+echo math.sqrt(0.5) == math.cos(math.pi / 4)
+
+echo inEpsilon(math.asin(0.5), math.rad(30))
+
+echo inEpsilon(math.tan(1984), math.sin(1984)/math.cos(1984))
