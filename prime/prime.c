@@ -8,8 +8,8 @@ const int64_t PRIMES_UNDER_200[] = {2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,
 int is_prime(const int64_t x) {
     if (x < 2) return -1;
     if (x < 4) return 1;
-	int i;
-	for (i = 0; i < sizeof(PRIMES_UNDER_200)/sizeof(int64_t); i++) {
+	int64_t i;
+	for (i = 0; i < (int64_t)(sizeof(PRIMES_UNDER_200)/sizeof(int64_t)); i++) {
 		if ((x % PRIMES_UNDER_200[i]) == 0) {
             return 0;
         }

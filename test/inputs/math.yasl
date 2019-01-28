@@ -1,4 +1,4 @@
-##true\n180.0\n0.20788\n1.0\ntrue\n10.0\ntrue\ntrue\ntrue\n48\n15360\ntrue\ntrue\n
+##true\n180.0\n0.20788\n1.0\ntrue\n10.0\ntrue\ntrue\ntrue\n48\n15360\ntrue\nfalse\ntrue\n
 
 fn inEpsilon(a, b) {
 	return math.abs(a - b) < 10**-10
@@ -28,7 +28,8 @@ echo math.gcd(3072, 240)
 echo math.lcm(3072, 240)
 
 # Type casts to integer
-echo math.isprime(15485867.5)
+echo math.isprime(15485867.6)
+echo math.isprime(15485869.1)
 
 x := 18408990
 echo math.isprime(x-1) && math.isprime(x+1)
