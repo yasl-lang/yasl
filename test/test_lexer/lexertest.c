@@ -110,9 +110,10 @@ void test_in(void) {
 }
 
 void test_not_in(void) {
-    Lexer *lex = setup_lexer("!in");
-    ASSERT_EATTOK(T_BANGIN, lex);
-    ASSERT_EATTOK(T_EOF, lex);
+	Lexer *lex = setup_lexer("!in");
+	ASSERT_EATTOK(T_BANG, lex);
+	ASSERT_EATTOK(T_IN, lex);
+	ASSERT_EATTOK(T_EOF, lex);
 }
 
 void test_const(void) {

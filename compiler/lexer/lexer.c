@@ -123,6 +123,41 @@ static int lex_eatint(Lexer *lex, char separator, int (*isvaliddigit)(int)) {
 	return 1;
 }
 
+/*
+static int lex_eatnotin(Lexer *lex) {
+	char c1, c2, c3, c4;
+	c1 = lex->c;
+	if (c1 != '!' || feof(lex->file)) {
+		lex_rewind(lex, -1);
+		return 0;
+	}
+
+	c2 = lex_getchar(lex);
+	if (c2 != 'i' || feof(lex->file)) {
+		lex_rewind(lex, -2);
+		return 0;
+	}
+
+	c3 = lex_getchar(lex);
+	if (c3 !=  'n' || feof(lex->file)) {
+		lex_rewind(lex, -3);
+		return 0;
+	}
+
+	c4 = lex_getchar(lex);
+	if (isyaslid(c4) || feof(lex->file)) {
+		lex_rewind(lex, -4);
+		return 0;
+	}
+
+	lex->type = T_BANGIN;
+	return 1;
+
+
+
+}
+*/
+
 static int lex_eatop(Lexer *lex) {
 	char c1, c2, c3;
 	int last;
@@ -498,6 +533,9 @@ void gettok(Lexer *lex) {
 	// numbers
 	if (lex_eatnumber(lex)) return;
 
+	// !in operator
+	//if (lex_eatnotin(lex)) return;
+
 	// identifiers and keywords
 	if (lex_eatid(lex)) return;
 
@@ -507,6 +545,7 @@ void gettok(Lexer *lex) {
 	// raw strings
 	if (lex_eatrawstring(lex)) return;
 
+	// interpolated strings
 	if (lex_eatinterpstring(lex)) return;
 
 	// operators
@@ -523,7 +562,7 @@ static Token YASLToken_ThreeChars(char c1, char c2, char c3) {
 		case '=': switch(c2) { case '=': switch(c3) { case '=': return T_TEQ; default: return T_UNKNOWN;} }
 		case '!': switch(c2) {
 			case '=': switch(c3) { case '=': return T_BANGDEQ; default: return T_UNKNOWN;}
-			case 'i': switch(c3) { case 'n': return T_BANGIN; default: return T_UNKNOWN; }
+			// case 'i': switch(c3) { case 'n': return T_BANGIN; default: return T_UNKNOWN; }
 		}
 		case '*': switch(c2) { case '*': switch(c3) { case '=': return T_DSTAREQ; default: return T_UNKNOWN;} }
 		case '/': switch(c2) { case '/': switch(c3) { case '=': return T_DSLASHEQ; default: return T_UNKNOWN;} }
