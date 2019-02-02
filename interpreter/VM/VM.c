@@ -53,6 +53,7 @@ struct VM* vm_new(unsigned char *code,    // pointer to bytecode
 	DEF_SPECIAL_STR(S___SET, "__set");
 	DEF_SPECIAL_STR(S_CLEAR, "clear");
 	DEF_SPECIAL_STR(S_COPY, "copy");
+	DEF_SPECIAL_STR(S_COUNT, "count");
 	DEF_SPECIAL_STR(S_ENDSWITH, "endswith");
 	DEF_SPECIAL_STR(S_EXTEND, "extend");
 	DEF_SPECIAL_STR(S_ISAL, "isal");
@@ -60,6 +61,7 @@ struct VM* vm_new(unsigned char *code,    // pointer to bytecode
 	DEF_SPECIAL_STR(S_ISNUM, "isnum");
 	DEF_SPECIAL_STR(S_ISSPACE, "isspace");
 	DEF_SPECIAL_STR(S_JOIN, "join");
+	DEF_SPECIAL_STR(S_SORT, "sort");
 	DEF_SPECIAL_STR(S_KEYS, "keys");
 	DEF_SPECIAL_STR(S_LTRIM, "ltrim");
 	DEF_SPECIAL_STR(S_POP, "pop");
@@ -728,7 +730,7 @@ int vm_run(struct VM *vm) {
 		case BRN_8:
 			c = vm_read_int(vm);
 			v = vm_pop(vm);
-			if (YASL_ISUNDEF(v)) vm->pc += c;
+			if (!YASL_ISUNDEF(v)) vm->pc += c;
 			break;
 		case GLOAD_1:
 			addr = vm->code[vm->pc++];

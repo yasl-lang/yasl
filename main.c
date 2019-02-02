@@ -1,13 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "yasl.h"
 #include "yasl-std-io.h"
+#include "yasl-std-math.h"
 
-#define VERSION "v0.3.3"
+#define VERSION "v0.3.4"
 
 int main(int argc, char** argv) {
+	// Initialize prng seed
+	srand(time(NULL));
+
     if (argc > 2) {
         puts("ERROR: Too many arguments passed. Type `yasl -h` for help (without the backticks).");
         return EXIT_FAILURE;
@@ -32,6 +37,8 @@ int main(int argc, char** argv) {
             exit(EXIT_FAILURE);
         }
 
+		// Load Standard Libraries
+		YASL_load_math(S);
         YASL_load_io(S);
 
         YASL_execute(S);
