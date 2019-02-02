@@ -7,7 +7,7 @@
 #include "yasl-std-io.h"
 #include "yasl-std-math.h"
 
-#define VERSION "v0.3.4"
+#define VERSION "v0.3.5"
 
 int main(int argc, char** argv) {
 	// Initialize prng seed
