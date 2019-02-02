@@ -1,4 +1,3 @@
-
 # this is an inline comment.
 
 /*
@@ -6,4 +5,4 @@
  */
 
 # show 'hello world' on stdout.
-print 'hello world'
+echo 'hello world'
