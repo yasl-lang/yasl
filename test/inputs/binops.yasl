@@ -1,0 +1,6 @@
+##5\n5\n5\nundef\n
+
+echo undef ?? 5
+echo 5 ?? undef
+echo 5 ?? 6
+echo undef ?? undef

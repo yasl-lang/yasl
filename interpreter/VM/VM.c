@@ -730,7 +730,7 @@ int vm_run(struct VM *vm) {
 		case BRN_8:
 			c = vm_read_int(vm);
 			v = vm_pop(vm);
-			if (YASL_ISUNDEF(v)) vm->pc += c;
+			if (!YASL_ISUNDEF(v)) vm->pc += c;
 			break;
 		case GLOAD_1:
 			addr = vm->code[vm->pc++];
