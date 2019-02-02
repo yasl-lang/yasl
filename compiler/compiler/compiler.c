@@ -79,7 +79,7 @@ struct Compiler *compiler_new(Parser *const parser) {
 	magic_number[6] = YASL_MINOR_VERSION;
 	magic_number[7] = YASL_PATCH; */
 	compiler->checkpoints_size = 4;
-	compiler->checkpoints = malloc(sizeof(int64_t) * compiler->checkpoints_size);
+	compiler->checkpoints = malloc(sizeof(size_t) * compiler->checkpoints_size);
 	compiler->checkpoints_count = 0;
 	compiler->code = bb_new(16);
 	return compiler;
@@ -136,7 +136,7 @@ static inline void exit_conditional_false(struct Compiler *const compiler, const
 	bb_rewrite_intbytes8(compiler->buffer, *index, compiler->buffer->count - *index - 8);
 }
 
-static void add_checkpoint(struct Compiler *const compiler, const int64_t cp) {
+static void add_checkpoint(struct Compiler *const compiler, const size_t cp) {
 	if (compiler->checkpoints_count >= compiler->checkpoints_size)
 		compiler->checkpoints = realloc(compiler->checkpoints, compiler->checkpoints_size *= 2);
 	compiler->checkpoints[compiler->checkpoints_count++] = cp;
@@ -163,7 +163,7 @@ static inline int64_t get_index(int64_t value) {
 	return is_const(value) ? ~value : value;
 }
 
-static void load_var(struct Compiler *const compiler, char *name, int64_t name_len, size_t line) {
+static void load_var(struct Compiler *const compiler, char *name, size_t name_len, size_t line) {
 	if (env_contains(compiler->params, name, name_len)) {
 		bb_add_byte(compiler->buffer, LLOAD_1);
 		bb_add_byte(compiler->buffer,
@@ -205,18 +205,18 @@ static void store_var(struct Compiler *const compiler, char *name, size_t name_l
 	}
 }
 
-static int contains_var_in_current_scope(const struct Compiler *const compiler, char *name, int64_t name_len) {
+static int contains_var_in_current_scope(const struct Compiler *const compiler, char *name, size_t name_len) {
 	return compiler->params ?
 	       env_contains_cur_scope(compiler->params, name, name_len) :
 	       env_contains_cur_scope(compiler->globals, name, name_len);
 }
 
-static int contains_var(const struct Compiler *const compiler, char *name, int64_t name_len) {
+static int contains_var(const struct Compiler *const compiler, char *name, size_t name_len) {
 	return env_contains(compiler->globals, name, name_len) ||
 	       env_contains(compiler->params, name, name_len);
 }
 
-static void decl_var(struct Compiler *const compiler, char *name, int64_t name_len) {
+static void decl_var(struct Compiler *const compiler, char *name, size_t name_len) {
 	if (NULL != compiler->params) {
 		env_decl_var(compiler->params, name, name_len);
 	} else {
@@ -224,7 +224,7 @@ static void decl_var(struct Compiler *const compiler, char *name, int64_t name_l
 	}
 }
 
-static void make_const(struct Compiler * const compiler, char *name, int64_t name_len) {
+static void make_const(struct Compiler * const compiler, char *name, size_t name_len) {
 	if (NULL != compiler->params) env_make_const(compiler->params, name, name_len);
 	else env_make_const(compiler->globals, name, name_len);
 }
@@ -324,7 +324,7 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	bb_add_byte(compiler->buffer, compiler->params->vars->count);
 	visit_Body(compiler, FnDecl_get_body(node));
 
-	int64_t fn_val = compiler->header->count;
+	size_t fn_val = compiler->header->count;
 	bb_append(compiler->header, compiler->buffer->bytes, compiler->buffer->count);
 	bb_add_byte(compiler->header, NCONST);
 	bb_add_byte(compiler->header, RET);
@@ -457,7 +457,7 @@ static void visit_TableComp(struct Compiler *const compiler, const struct Node *
 
 	decl_var(compiler, node->children[1]->children[0]->value.sval.str, node->children[1]->children[0]->value.sval.str_len);
 
-	int64_t index_start = compiler->buffer->count;
+	size_t index_start = compiler->buffer->count;
 
 	bb_add_byte(compiler->buffer, ITER_1);
 
@@ -499,7 +499,7 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 
 	decl_var(compiler, node->children[0]->children[0]->value.sval.str, node->children[0]->children[0]->value.sval.str_len);
 
-	int64_t index_start = compiler->buffer->count;
+	size_t index_start = compiler->buffer->count;
 	add_checkpoint(compiler, index_start);
 
 	bb_add_byte(compiler->buffer, ITER_1);
@@ -526,11 +526,11 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 }
 
 static void visit_While(struct Compiler *const compiler, const struct Node *const node) {
-	int64_t index_start = compiler->buffer->count;
+	size_t index_start = compiler->buffer->count;
 
 	if (node->children[2] != NULL) {
 		bb_add_byte(compiler->buffer, BR_8);
-		int64_t index = compiler->buffer->count;
+		size_t index = compiler->buffer->count;
 		bb_intbytes8(compiler->buffer, 0);
 		index_start = compiler->buffer->count;
 		visit(compiler, node->children[2]);
@@ -643,7 +643,7 @@ static void visit_TriOp(struct Compiler *const compiler, const struct Node *cons
 	visit(compiler, node->children[1]);
 
 	bb_add_byte(compiler->buffer, BR_8);
-	int64_t index_r = compiler->buffer->count;
+	size_t index_r = compiler->buffer->count;
 	bb_intbytes8(compiler->buffer, 0);
 
 	exit_conditional_false(compiler, &index_l);
@@ -658,7 +658,7 @@ static void visit_BinOp(struct Compiler *const compiler, const struct Node *cons
 		visit(compiler, node->children[0]);
 		bb_add_byte(compiler->buffer, DUP);
 		bb_add_byte(compiler->buffer, BRN_8);
-		int64_t index = compiler->buffer->count;
+		size_t index = compiler->buffer->count;
 		bb_intbytes8(compiler->buffer, 0);
 		bb_add_byte(compiler->buffer, POP);
 		visit(compiler, node->children[1]);
@@ -668,7 +668,7 @@ static void visit_BinOp(struct Compiler *const compiler, const struct Node *cons
 		visit(compiler, node->children[0]);
 		bb_add_byte(compiler->buffer, DUP);
 		bb_add_byte(compiler->buffer, BRT_8);
-		int64_t index = compiler->buffer->count;
+		size_t index = compiler->buffer->count;
 		bb_intbytes8(compiler->buffer, 0);
 		bb_add_byte(compiler->buffer, POP);
 		visit(compiler, node->children[1]);
@@ -829,7 +829,7 @@ static void visit_Float(struct Compiler *const compiler, const struct Node *cons
 
 static void visit_Integer(struct Compiler *const compiler, const struct Node *const node) {
 	YASL_TRACE_LOG("int64: %" PRId64 "\n", node->value.ival);
-	int64_t val = node->value.ival;
+	yasl_int val = node->value.ival;
 	switch (val) {
 	case -1:
 		bb_add_byte(compiler->buffer, ICONST_M1);
