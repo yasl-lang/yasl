@@ -59,7 +59,6 @@ struct Compiler *compiler_new(Parser *const parser) {
 	compiler->globals = env_new(NULL);
 	compiler->params = NULL;
 
-	compiler->offset = 0;
 	compiler->strings = table_new();
 	compiler->parser = parser;
 	compiler->buffer = bb_new(16);
@@ -308,9 +307,6 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 
 	// start logic for function, now that we are sure it's legal to do so, and have set up.
 
-	// use offset to compute offsets for params, in other functions.
-	compiler->offset = FnDecl_get_params(node)->children_len;
-
 	compiler->params = env_new(compiler->params);
 
 	enter_scope(compiler);
@@ -340,7 +336,6 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	Env_t *tmp = compiler->params->parent;
 	env_del_current_only(compiler->params);
 	compiler->params = tmp;
-	compiler->offset = 0;
 
 	bb_add_byte(compiler->buffer, FCONST);
 	bb_intbytes8(compiler->buffer, fn_val);

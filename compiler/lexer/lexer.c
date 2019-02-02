@@ -14,6 +14,9 @@ static int isbdigit(int c) {
 	return c == '0' || c == '1';
 }
 
+#define isyaslidstart(c) (isalpha(c) || (c) == '_' || (c) == '$')
+#define isyaslid(c) (isalnum(c) || (c) == '_' || (c) == '$')
+
 static void lex_error(Lexer *lex) {
 	free(lex->value);
 	lex->value = NULL;
@@ -233,7 +236,7 @@ int lex_eatnumber(Lexer *lex) {
 
 int lex_eatid(Lexer *lex) {
 	int c = lex->c;
-	if (isalpha(c) || c == '_' || c == '$') {                           // identifiers and keywords
+	if (isyaslidstart(c)) {                           // identifiers and keywords
 		lex->val_len = 8;
 		lex->value = realloc(lex->value, lex->val_len);
 		size_t i = 0;
@@ -245,7 +248,7 @@ int lex_eatid(Lexer *lex) {
 				lex->val_len *= 2;
 				lex->value = realloc(lex->value, lex->val_len);
 			}
-		} while (!feof(lex->file) && (isalnum(c) || c == '_' || c == '$'));
+		} while (!feof(lex->file) && isyaslid(c));
 		if (!feof(lex->file)) fseek(lex->file, -1, SEEK_CUR);
 		lex->value = realloc(lex->value, 1 + (lex->val_len = i));
 		lex->value[lex->val_len] = '\0';
