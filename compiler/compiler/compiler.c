@@ -53,14 +53,14 @@ static enum SpecialStrings get_special_string(const struct Node *const node) {
 #undef STR_EQ
 }
 
-struct Compiler *compiler_new(Parser *const parser) {
+struct Compiler *compiler_new(FILE *fp) {
 	struct Compiler *compiler = malloc(sizeof(struct Compiler));
 
 	compiler->globals = env_new(NULL);
 	compiler->params = NULL;
 
 	compiler->strings = table_new();
-	compiler->parser = parser;
+	compiler->parser = NEW_PARSER(fp);
 	compiler->buffer = bb_new(16);
 	compiler->header = bb_new(16);
 	compiler->header->count = 16;
@@ -99,7 +99,7 @@ void compiler_del(struct Compiler *compiler) {
 	compiler_tables_del(compiler);
 	env_del(compiler->globals);
 	env_del(compiler->params);
-	parser_del(compiler->parser);
+	parser_cleanup(&compiler->parser);
 	compiler_buffers_del(compiler);
 	free(compiler->checkpoints);
 	free(compiler);
@@ -231,13 +231,13 @@ static void make_const(struct Compiler * const compiler, char *name, size_t name
 
 unsigned char *compile(struct Compiler *const compiler) {
 	struct Node *node;
-	gettok(&compiler->parser->lex);
-	while (!peof(compiler->parser)) {
-		if (peof(compiler->parser)) break;
-		node = parse(compiler->parser);
-		eattok(compiler->parser, T_SEMI);
-		compiler->status |= compiler->parser->status;
-		if (!compiler->parser->status) {
+	gettok(&compiler->parser.lex);
+	while (!peof(&compiler->parser)) {
+		if (peof(&compiler->parser)) break;
+		node = parse(&compiler->parser);
+		eattok(&compiler->parser, T_SEMI);
+		compiler->status |= compiler->parser.status;
+		if (!compiler->parser.status) {
 			visit(compiler, node);
 			bb_append(compiler->code, compiler->buffer->bytes, compiler->buffer->count);
 			compiler->buffer->count = 0;

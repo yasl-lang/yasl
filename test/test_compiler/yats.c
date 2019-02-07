@@ -23,8 +23,7 @@ unsigned char *setup_compiler(char *file_contents) {
     fseek(fptr, 0, SEEK_SET);
     fclose(fptr);
     fptr = fopen("dump.ysl", "r");
-    Parser *parser = parser_new(fptr);
-    struct Compiler *compiler = compiler_new(parser);
+    struct Compiler *compiler = compiler_new(fptr);
     unsigned char *bytecode = compile(compiler);
     FILE *f = fopen("dump.yb", "wb");
     if (bytecode == NULL) {

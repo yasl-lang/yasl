@@ -63,16 +63,9 @@ static inline Token curtok(const Parser *const parser) {
     return parser->lex.type;
 }
 
-Parser *parser_new(FILE *fp) {
-	Parser *parser = malloc(sizeof(Parser));
-	parser->lex = NEW_LEXER(fp);
-	parser->status = YASL_SUCCESS;
-	return parser;
-}
-
-void parser_del(Parser *const parser) {
+void parser_cleanup(Parser *const parser) {
 	lex_cleanup(&parser->lex);
-	free(parser);
+	//free(parser);
 }
 
 static struct Node *handle_error(Parser *parser) {

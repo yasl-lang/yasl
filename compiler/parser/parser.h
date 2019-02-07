@@ -12,13 +12,19 @@
 
 #define TOKEN_MATCHES(parser, ...)  (CHOOSE(__VA_ARGS__, T4, T3, T2, T1, T0)(parser, __VA_ARGS__))
 
+#define NEW_PARSER(fp)\
+((Parser) {\
+	.lex = NEW_LEXER(fp),\
+	.status = YASL_SUCCESS\
+})
+
 typedef struct {
     Lexer lex; /* OWN */
     int status;
 } Parser;
 
 int peof(const Parser *parser);
-Parser *parser_new(FILE *fp);
-void parser_del(Parser *parser);
+// Parser *parser_new(FILE *fp);
+void parser_cleanup(Parser *const parser);
 Token eattok(Parser *parser, Token token);
 struct Node *parse(Parser *parser);

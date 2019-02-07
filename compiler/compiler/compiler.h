@@ -9,7 +9,7 @@
 #include "../../debug.h"
 
 struct Compiler {
-    Parser *parser;
+    Parser parser;
     Env_t *globals;
     Env_t *params;
     struct Table *strings;
@@ -22,6 +22,6 @@ struct Compiler {
     int status;
 };
 
-struct Compiler *compiler_new(Parser *const parser);
+struct Compiler *compiler_new(FILE *fp);
 void compiler_del(struct Compiler *compiler);
 unsigned char *compile(struct Compiler *const compiler);
