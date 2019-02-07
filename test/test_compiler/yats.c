@@ -1,23 +1,29 @@
 #include "yats.h"
 
+#include "yasl.h"
 #include "ast.h"
 #include "parser.h"
 #include "compiler.h"
 #include "yats.h"
 #include "test/test_compiler/compilertest.h"
 
-Lexer *setup_lexer(char *file_contents) {
+Lexer setup_lexer(char *file_contents) {
+	FILE *fptr = fopen("dump.ysl", "w");
+	fwrite(file_contents, 1, strlen(file_contents), fptr);
+	fseek(fptr, 0, SEEK_SET);
+	fclose(fptr);
+	fptr = fopen("dump.ysl", "r");
+	return NEW_LEXER(fptr);
+}
+
+
+unsigned char *setup_compiler(char *file_contents) {
     FILE *fptr = fopen("dump.ysl", "w");
     fwrite(file_contents, 1, strlen(file_contents), fptr);
     fseek(fptr, 0, SEEK_SET);
     fclose(fptr);
     fptr = fopen("dump.ysl", "r");
-    return lex_new(fptr);
-}
-
-
-unsigned char *setup_compiler(char *file_contents) {
-    Parser *parser = parser_new(setup_lexer(file_contents));
+    Parser *parser = parser_new(fptr);
     struct Compiler *compiler = compiler_new(parser);
     unsigned char *bytecode = compile(compiler);
     FILE *f = fopen("dump.yb", "wb");

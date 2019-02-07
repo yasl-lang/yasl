@@ -231,7 +231,7 @@ static void make_const(struct Compiler * const compiler, char *name, size_t name
 
 unsigned char *compile(struct Compiler *const compiler) {
 	struct Node *node;
-	gettok(compiler->parser->lex);
+	gettok(&compiler->parser->lex);
 	while (!peof(compiler->parser)) {
 		if (peof(compiler->parser)) break;
 		node = parse(compiler->parser);

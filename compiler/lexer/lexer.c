@@ -843,7 +843,7 @@ Lexer *lex_new(FILE *file /* OWN */) {
     return lex;
 }
 
-void lex_del(Lexer *lex) {
+void lex_cleanup(Lexer *lex) {
     fclose(lex->file);
-    free(lex);
+    //free(lex);
 }

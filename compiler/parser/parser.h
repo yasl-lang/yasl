@@ -13,12 +13,12 @@
 #define TOKEN_MATCHES(parser, ...)  (CHOOSE(__VA_ARGS__, T4, T3, T2, T1, T0)(parser, __VA_ARGS__))
 
 typedef struct {
-    Lexer *lex; /* OWN */
+    Lexer lex; /* OWN */
     int status;
 } Parser;
 
 int peof(const Parser *parser);
-Parser *parser_new(Lexer *lex);
+Parser *parser_new(FILE *fp);
 void parser_del(Parser *parser);
 Token eattok(Parser *parser, Token token);
 struct Node *parse(Parser *parser);

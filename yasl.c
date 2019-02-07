@@ -19,7 +19,7 @@ struct YASL_State *YASL_newstate(char *filename) {
     }
 
     fseek(fp, 0, SEEK_SET);
-    S->compiler = compiler_new(parser_new(lex_new(fp)));
+    S->compiler = compiler_new(parser_new(fp));
 
     S->vm = vm_new(NULL, -1, 256); // TODO: decide proper number of globals
     return S;

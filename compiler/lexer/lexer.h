@@ -10,7 +10,15 @@
             (l)->type == T_CONT || (l)->type == T_RPAR || (l)->type == T_RSQB || \
             (l)->type == T_RBRC || (l)->type == T_UNDEF || (l)->type == T_BOOL)
 
-
+#define NEW_LEXER(f) \
+((Lexer) { .file = (f),\
+	   .line = 1,\
+	   .value = NULL,\
+	   .val_len = 0,\
+	   .type = T_UNKNOWN,\
+	   .status = YASL_SUCCESS,\
+	   .mode = L_NORMAL\
+})
 
 /*
 an identifier
@@ -39,8 +47,8 @@ typedef struct {
     int mode;
 } Lexer;
 
-Lexer *lex_new(FILE *file);
-void lex_del(Lexer *lex);
+// Lexer *lex_new(FILE *file);
+void lex_cleanup(Lexer *lex);
 void gettok(Lexer *lex);
 int lex_eatinterpstringbody(Lexer *lex);
 
