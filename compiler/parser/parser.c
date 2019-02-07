@@ -303,7 +303,8 @@ static struct Node *parse_if(Parser *const parser) {
 static struct Node *parse_expr(Parser *const parser) {
 	YASL_TRACE_LOG("%s\n", "parsing expression.");
 	struct Node *node = parse_assign(parser);
-	fold(node);
+	if (node)
+		fold(node);
 	return node;
 }
 
