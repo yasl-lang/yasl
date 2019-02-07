@@ -8,6 +8,21 @@
 #include "env/env.h"
 #include "../../debug.h"
 
+#define NEW_COMPILER(fp)\
+((struct Compiler) {\
+	.parser = (NEW_PARSER(fp)),\
+	.globals = env_new(NULL),\
+	.params = NULL,\
+	.strings = table_new(),\
+	.buffer = bb_new(16),\
+	.header = bb_new(16),\
+	.status = YASL_SUCCESS,\
+	.checkpoints_size = 4,\
+	.checkpoints = malloc(sizeof(size_t) * 4),\
+	.checkpoints_count = 0,\
+	.code = bb_new(16)\
+})
+
 struct Compiler {
     Parser parser;
     Env_t *globals;
@@ -23,5 +38,5 @@ struct Compiler {
 };
 
 struct Compiler *compiler_new(FILE *fp);
-void compiler_del(struct Compiler *compiler);
+void compiler_cleanup(struct Compiler *compiler);
 unsigned char *compile(struct Compiler *const compiler);

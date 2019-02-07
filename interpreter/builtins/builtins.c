@@ -15,7 +15,7 @@ void yasl_print(struct VM* vm) {
 		struct YASL_Object key = YASL_STR(str_new_sized(strlen("tostr"), "tostr"));
 		struct YASL_Object result = table_search(vm->builtins_htable[index], key);
 		str_del(YASL_GETSTR(key));
-		YASL_GETCFN(result)->value((struct YASL_State *) &vm);
+		YASL_GETCFN(result)->value((struct YASL_State *) vm);
 	}
 	struct YASL_Object v = vm_pop(vm);
 	for (int64_t i = 0; i < yasl_string_len(YASL_GETSTR(v)); i++) {

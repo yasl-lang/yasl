@@ -32,10 +32,10 @@ static struct Table **builtins_htable_new(struct VM *vm) {
     return ht;
 }
 
-struct VM* vm_new(unsigned char *code,    // pointer to bytecode
+void vm_init(struct VM *vm,
+	     unsigned char *code,    // pointer to bytecode
            int pc0,             // address of instruction to be executed first -- entrypoint
-           int datasize) {      // total params size required to perform a program operations
-	struct VM *vm = malloc(sizeof(struct VM));
+           size_t datasize) {      // total params size required to perform a program operations
 	vm->code = code;
 	vm->pc = pc0;
 	vm->fp = -1;
@@ -67,7 +67,7 @@ struct VM* vm_new(unsigned char *code,    // pointer to bytecode
 	DEF_SPECIAL_STR(S_POP, "pop");
 	DEF_SPECIAL_STR(S_PUSH, "push");
 	DEF_SPECIAL_STR(S_REPEAT, "repeat");
-    DEF_SPECIAL_STR(S_REPLACE, "replace");
+        DEF_SPECIAL_STR(S_REPLACE, "replace");
 	DEF_SPECIAL_STR(S_REVERSE, "reverse");
 	DEF_SPECIAL_STR(S_RTRIM, "rtrim");
 	DEF_SPECIAL_STR(S_SEARCH, "search");
@@ -83,12 +83,13 @@ struct VM* vm_new(unsigned char *code,    // pointer to bytecode
 	DEF_SPECIAL_STR(S_TRIM, "trim");
 	DEF_SPECIAL_STR(S_VALUES, "values");
 
+#undef DEF_SPECIAL_STR
+
 	vm->builtins_htable = builtins_htable_new(vm);
-	return vm;
 }
 
 
-void vm_del(struct VM *vm) {
+void vm_cleanup(struct VM *vm) {
 	for (size_t i = 0; i < STACK_SIZE; i++) dec_ref(&vm->stack[i]);
 	for (size_t i = 0; i < vm->num_globals; i++) {
 		dec_ref(&vm->globals[i]);
@@ -107,8 +108,6 @@ void vm_del(struct VM *vm) {
 	table_del(vm->builtins_htable[Y_LIST]);
 	table_del(vm->builtins_htable[Y_TABLE]);
 	free(vm->builtins_htable);
-
-	free(vm);
 }
 
 void vm_push(struct VM *vm, struct YASL_Object val) {
@@ -280,7 +279,7 @@ int vm_stringify_top(struct VM *vm) {
 		struct YASL_Object key = YASL_STR(str_new_sized(strlen("tostr"), "tostr"));
 		struct YASL_Object result = table_search(vm->builtins_htable[index], key);
 		str_del(YASL_GETSTR(key));
-		YASL_GETCFN(result)->value((struct YASL_State *)&vm);
+		YASL_GETCFN(result)->value((struct YASL_State *)vm);
 	}
 	return YASL_SUCCESS;
 }
@@ -290,12 +289,12 @@ int vm_GET(struct VM *vm) {
 	int index = vm_peek(vm).type;
 	if (YASL_ISLIST(vm_peek(vm))) {
 		vm->sp++;
-		if (!list___get((struct YASL_State *) &vm)) {
+		if (!list___get((struct YASL_State *) vm)) {
 			return YASL_SUCCESS;
 		}
 	} else if (YASL_ISTABLE(vm_peek(vm))) {
 		vm->sp++;
-		if (!table___get((struct YASL_State *) &vm)) {
+		if (!table___get((struct YASL_State *) vm)) {
 			return YASL_SUCCESS;
 		}
 	} else {
@@ -404,7 +403,7 @@ int vm_CALL(struct VM *vm) {
 		while (vm->sp - (vm->fp + 3) > vm_peekcfn(vm, vm->fp)->num_args) {
 			vm_pop(vm);
 		}
-		if (vm_peekcfn(vm, vm->fp)->value((struct YASL_State *) &vm)) {
+		if (vm_peekcfn(vm, vm->fp)->value((struct YASL_State *) vm)) {
 			printf("ERROR: invalid argument type(s) to builtin function.\n");
 			return YASL_TYPE_ERROR;
 		};
@@ -782,10 +781,10 @@ int vm_run(struct VM *vm) {
 			vm->sp -= 2;
 			if (YASL_ISLIST(vm_peek(vm))) {
 				vm->sp += 2;
-				list___set((struct YASL_State *) &vm);
+				list___set((struct YASL_State *) vm);
 			} else if (YASL_ISTABLE(vm_peek(vm))) {
 				vm->sp += 2;
-				table___set((struct YASL_State *) &vm);
+				table___set((struct YASL_State *) vm);
 			} else {
 				vm->sp += 2;
 				YASL_PRINT_ERROR_TYPE("object of type %s is immutable.", YASL_TYPE_NAMES[vm_peek(vm).type]);

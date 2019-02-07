@@ -32,7 +32,7 @@ unsigned char *setup_compiler(char *file_contents) {
         fwrite(bytecode, 1, compiler->code->count + compiler->header->count + 1, f);
     }
     fclose(f);
-    compiler_del(compiler);
+	compiler_cleanup(compiler);
     return bytecode;
 }
 

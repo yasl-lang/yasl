@@ -65,19 +65,6 @@ struct Compiler *compiler_new(FILE *fp) {
 	compiler->header = bb_new(16);
 	compiler->header->count = 16;
 	compiler->status = YASL_SUCCESS;
-	/*bb_add_byte(compiler->header, 'Y');
-	bb_add_byte(compiler->header, 'Y');
-	bb_add_byte(compiler->header, 'Y');
-	bb_add_byte(compiler->header, 'Y');
-	bb_add_byte(compiler->header, 'Y');
-	bb_add_byte(compiler->header, 'Y');
-	bb_add_byte(compiler->header, 'Y');
-	bb_add_byte(compiler->header, 'Y');
-	char magic_number[YASL_MAG_NUM_SIZE] = "YASL";
-	magic_number[4] = YASL_COMPILER;
-	magic_number[5] = YASL_MAJOR_VERSION;
-	magic_number[6] = YASL_MINOR_VERSION;
-	magic_number[7] = YASL_PATCH; */
 	compiler->checkpoints_size = 4;
 	compiler->checkpoints = malloc(sizeof(size_t) * compiler->checkpoints_size);
 	compiler->checkpoints_count = 0;
@@ -95,14 +82,14 @@ static void compiler_buffers_del(const struct Compiler *const compiler) {
 	bb_del(compiler->code);
 }
 
-void compiler_del(struct Compiler *compiler) {
+void compiler_cleanup(struct Compiler *compiler) {
 	compiler_tables_del(compiler);
 	env_del(compiler->globals);
 	env_del(compiler->params);
 	parser_cleanup(&compiler->parser);
 	compiler_buffers_del(compiler);
 	free(compiler->checkpoints);
-	free(compiler);
+	//free(compiler);
 }
 
 static void handle_error(struct Compiler *const compiler) {

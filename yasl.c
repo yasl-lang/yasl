@@ -4,6 +4,7 @@
 #include <interpreter/YASL_Object/YASL_Object.h>
 #include <interpreter/YASL_string/YASL_string.h>
 #include <interpreter/userdata/userdata.h>
+#include <bytebuffer/bytebuffer.h>
 #include "yasl.h"
 #include "yasl_state.h"
 #include "compiler.h"
@@ -19,36 +20,38 @@ struct YASL_State *YASL_newstate(char *filename) {
     }
 
     fseek(fp, 0, SEEK_SET);
-    S->compiler = compiler_new(fp);
+    S->compiler = NEW_COMPILER(fp);
+    S->compiler.header->count = 16;
 
-    S->vm = vm_new(NULL, -1, 256); // TODO: decide proper number of globals
+    vm_init((struct VM *)S, NULL, -1, 256);
+    // S->vm = vm_new(NULL, -1, 256); // TODO: decide proper number of globals
     return S;
 }
 
 int YASL_delstate(struct YASL_State *S) {
-    if (S->compiler) compiler_del(S->compiler);
-    if (S->vm) vm_del(S->vm);
+    compiler_cleanup(&S->compiler);
+	vm_cleanup((struct VM *) S);
     free(S);
     return YASL_SUCCESS;
 }
 
 int YASL_execute(struct YASL_State *S) {
-    unsigned char *bc = compile(S->compiler);
-    if (!bc) return S->compiler->status;
+    unsigned char *bc = compile(&S->compiler);
+    if (!bc) return S->compiler.status;
 
     int64_t entry_point = *((int64_t*)bc);
     // TODO: use this in VM.
     // int64_t num_globals = *((int64_t*)bc+1);
 
-    S->vm->pc = entry_point;
-    S->vm->code = bc;
+    S->vm.pc = entry_point;
+    S->vm.code = bc;
 
-    return vm_run(S->vm);  // TODO: error handling for runtime errors.
+    return vm_run((struct VM *)S);  // TODO: error handling for runtime errors.
 }
 
 
 int YASL_declglobal(struct YASL_State *S, char *name) {
-    env_decl_var(S->compiler->globals, name, strlen(name));
+    env_decl_var(S->compiler.globals, name, strlen(name));
     return YASL_SUCCESS;
 }
 
@@ -59,77 +62,77 @@ static inline int is_const(int64_t value) {
 
 int YASL_setglobal(struct YASL_State *S, char *name) {
 
-    if (!env_contains(S->compiler->globals, name, strlen(name))) return YASL_ERROR;
+    if (!env_contains(S->compiler.globals, name, strlen(name))) return YASL_ERROR;
 
-    int64_t index = env_get(S->compiler->globals, name, strlen(name));
+    int64_t index = env_get(S->compiler.globals, name, strlen(name));
     if (is_const(index)) return YASL_ERROR;
 
-    // int64_t num_globals = S->compiler->globals->vars->count;
+    // int64_t num_globals = S->compiler.globals->vars->count;
 
-    // S->vm->globals = realloc(S->vm->globals, num_globals * sizeof(YASL_Object));
+    // S->vm.globals = realloc(S->vm.globals, num_globals * sizeof(YASL_Object));
 
-    dec_ref(S->vm->globals + index);
-    S->vm->globals[index] = vm_pop(S->vm);
-    inc_ref(S->vm->globals + index);
+    dec_ref(S->vm.globals + index);
+    S->vm.globals[index] = vm_pop((struct VM *)S);
+    inc_ref(S->vm.globals + index);
 
     return YASL_SUCCESS;
 }
 
 
 int YASL_pushundef(struct YASL_State *S) {
-    vm_push(S->vm, YASL_UNDEF());
+    vm_push((struct VM *)S, YASL_UNDEF());
     return YASL_SUCCESS;
 }
 
 int YASL_pushfloat(struct YASL_State *S, double value) {
-    vm_push(S->vm, YASL_FLOAT(value));
+    vm_push((struct VM *)S, YASL_FLOAT(value));
     return YASL_SUCCESS;
 }
 
 int YASL_pushinteger(struct YASL_State *S, int64_t value) {
-    vm_push(S->vm, YASL_INT(value));
+    vm_push((struct VM *)S, YASL_INT(value));
     return YASL_SUCCESS;
 }
 
 int YASL_pushboolean(struct YASL_State *S, int value) {
-    vm_push(S->vm, YASL_BOOL(value));
+    vm_push((struct VM *)S, YASL_BOOL(value));
     return YASL_SUCCESS;
 }
 
 int YASL_pushliteralstring(struct YASL_State *S, char *value) {
-    vm_push(S->vm, YASL_STR(str_new_sized(strlen(value), value)));
+    vm_push((struct VM *)S, YASL_STR(str_new_sized(strlen(value), value)));
     return YASL_SUCCESS;
 }
 
 int YASL_pushcstring(struct YASL_State *S, char *value) {
-    vm_push(S->vm, YASL_STR(str_new_sized(strlen(value), value)));
+    vm_push((struct VM *)S, YASL_STR(str_new_sized(strlen(value), value)));
     return YASL_SUCCESS;
 }
 
 int YASL_pushuserpointer(struct YASL_State *S, void *userpointer) {
-    vm_push(S->vm, YASL_USERPTR(userpointer));
+    vm_push((struct VM *)S, YASL_USERPTR(userpointer));
     return YASL_SUCCESS;
 }
 
 int YASL_pushstring(struct YASL_State *S, char *value, int64_t size) {
-    vm_push(S->vm, YASL_STR(str_new_sized(size, value)));
+    vm_push((struct VM *)S, YASL_STR(str_new_sized(size, value)));
     return YASL_SUCCESS;
 }
 
 int YASL_pushcfunction(struct YASL_State *S, int (*value)(struct YASL_State *), int num_args) {
-    vm_push(S->vm, YASL_CFN(value, num_args));
+    vm_push((struct VM *)S, YASL_CFN(value, num_args));
     return YASL_SUCCESS;
 }
 
 int YASL_pushobject(struct YASL_State *S, struct YASL_Object *obj) {
     if (!obj) return YASL_ERROR;
-    vm_push(S->vm, *obj);
+    vm_push((struct VM *)S, *obj);
     free(obj);
     return YASL_SUCCESS;
 }
 
 struct YASL_Object *YASL_popobject(struct YASL_State *S) {
-    return &S->vm->stack[S->vm->sp--];
+    return &S->vm.stack[S->vm.sp--];
 }
 
 int YASL_Table_set(struct YASL_Object *table, struct YASL_Object *key, struct YASL_Object *value) {
