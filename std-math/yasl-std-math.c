@@ -196,10 +196,9 @@ int YASL_math_isprime(struct YASL_State *S) {
 		n = num->value.ival;
 	}
 
-	int p = prob_is_prime(n, 32);
-	//int p = is_prime(n);
+	int p = is_prime(n);
 	if (p < 0) return YASL_pushundef(S);
-	return YASL_pushboolean(S, p > 0);
+	return YASL_pushboolean(S, p);
 }
 int64_t gcd_helper(int64_t a, int64_t b) {
 	if (a < b) {
