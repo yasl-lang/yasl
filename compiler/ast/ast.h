@@ -1,9 +1,11 @@
 #pragma once
 
-#include "../token.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "token.h"
+#include "yasl_conf.h"
 
 // NOTE: _MUST_ keep this up to date with the jumptable in compiler.c and the jumptable in middleend.c
 typedef enum NodeType {
@@ -50,7 +52,7 @@ struct Node {
 			char *str;
 			size_t str_len;
 		} sval;
-		int64_t ival;
+		yasl_int ival;
 		double dval;
 	} value;
 	size_t children_len;
@@ -116,7 +118,7 @@ struct Node *new_Assign(char *name, size_t name_len, struct Node *child, size_t 
 struct Node *new_Var(char *name, size_t name_len, size_t line);
 struct Node *new_Undef(size_t line);
 struct Node *new_Float(double val, size_t line);
-struct Node *new_Integer(int64_t val, size_t line);
+struct Node *new_Integer(yasl_int val, size_t line);
 struct Node *new_Boolean(int value, size_t line);
 struct Node *new_String(char *value, size_t len, size_t line);
 struct Node *new_List(struct Node *values, size_t line);

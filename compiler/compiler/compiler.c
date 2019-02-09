@@ -6,7 +6,6 @@
 #include "middleend.h"
 #include "YASL_string.h"
 #include "bytebuffer.h"
-#include "metadata.h"
 #include "parser.h"
 #include "yasl_error.h"
 #include "yasl_include.h"
