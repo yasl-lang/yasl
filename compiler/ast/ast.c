@@ -3,6 +3,7 @@
 #include <stdarg.h>
 
 #include "debug.h"
+#include "yasl_conf.h"
 
 struct Node *node_clone(const struct Node *const node) {
     if (node == NULL) return NULL;
@@ -169,7 +170,7 @@ struct Node *new_Float(double val, size_t line) {
 	return node;
 }
 
-struct Node *new_Integer(int64_t val, size_t line) {
+struct Node *new_Integer(yasl_int val, size_t line) {
 	struct Node *node = new_Node_0(N_INT, T_UNKNOWN, NULL, 0, line);
 	node->value.ival = val;
 	return node;

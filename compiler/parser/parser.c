@@ -1,12 +1,12 @@
 #include "parser.h"
 
 #include <inttypes.h>
-#include <compiler/ast/ast.h>
-#include <compiler/lexer/lexer.h>
 
+#include "ast.h"
 #include "lexer.h"
-#include "yasl_error.h"
 #include "middleend.h"
+#include "yasl_conf.h"
+#include "yasl_error.h"
 #include "yasl_include.h"
 
 static struct Node *parse_program(Parser *parser);
@@ -550,7 +550,7 @@ static struct Node *parse_float(Parser *const parser) {
     return cur_node;
 }
 
-static int64_t get_int(char *buffer) {
+static yasl_int get_int(char *buffer) {
 	if (strlen(buffer) < 2) {
 		return strtoll(buffer, (char **) NULL, 10);
 	}
