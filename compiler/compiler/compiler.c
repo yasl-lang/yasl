@@ -1,13 +1,13 @@
 #include <compiler/ast/ast.h>
 #include <interpreter/YASL_Object/YASL_Object.h>
-#include "compiler.h"
+#include "compiler/compiler/compiler.h"
 
-#include "YASL_Object.h"
-#include "middleend.h"
-#include "YASL_string.h"
-#include "bytebuffer.h"
+//#include "interpreter/YASL_Object/YASL_Object.h"
+#include "compiler/middleend/middleend.h"
+#include "interpreter/YASL_string/YASL_string.h"
+#include "bytebuffer/bytebuffer.h"
 #include "metadata.h"
-#include "parser.h"
+#include "compiler/parser/parser.h"
 #include "yasl_error.h"
 #include "yasl_include.h"
 

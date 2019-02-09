@@ -1,8 +1,8 @@
 #include "yats.h"
 
-#include "ast.h"
-#include "parser.h"
-#include "compiler.h"
+#include "compiler/ast/ast.h"
+#include "compiler/parser/parser.h"
+#include "compiler/compiler/compiler.h"
 #include "yats.h"
 #include "test/test_compiler/compilertest.h"
 

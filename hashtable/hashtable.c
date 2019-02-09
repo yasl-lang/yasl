@@ -1,4 +1,4 @@
-#include "hashtable.h"
+#include "hashtable/hashtable.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -7,9 +7,9 @@
 #include <interpreter/YASL_Object/YASL_Object.h>
 #include <interpreter/YASL_string/YASL_string.h>
 
-#include "YASL_Object.h"
-#include "YASL_string.h"
-#include "refcount.h"
+//#include "YASL_Object.h"
+//#include "YASL_string.h"
+#include "interpreter/refcount/refcount.h"
 
 #define HT_BASESIZE 30
 

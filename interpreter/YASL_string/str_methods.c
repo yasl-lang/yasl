@@ -4,12 +4,12 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "bytebuffer.h"
-#include "YASL_string.h"
+#include "bytebuffer/bytebuffer.h"
+#include "interpreter/YASL_string/YASL_string.h"
 #include "yasl_state.h"
-#include "VM.h"
-#include "YASL_Object.h"
-#include "list.h"
+#include "interpreter/VM/VM.h"
+#include "interpreter/YASL_Object/YASL_Object.h"
+#include "interpreter/list/list.h"
 
 int str___get(struct YASL_State *S) {
 	struct YASL_Object index = vm_pop(S->vm);

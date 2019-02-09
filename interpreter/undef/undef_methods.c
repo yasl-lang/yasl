@@ -1,6 +1,6 @@
 #include "undef_methods.h"
 
-#include "VM.h"
+#include "interpreter/VM/VM.h"
 #include "yasl_state.h"
 #include "yasl_conf.h"
 

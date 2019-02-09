@@ -3,8 +3,8 @@
 #include <stdio.h>
 
 #include "yasl_state.h"
-#include "VM.h"
-#include "YASL_Object.h"
+#include "interpreter/VM/VM.h"
+#include "interpreter/YASL_Object/YASL_Object.h"
 
 int table___get(struct YASL_State *S) {
     struct YASL_Object key = vm_pop(S->vm);

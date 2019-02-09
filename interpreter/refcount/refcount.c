@@ -2,9 +2,9 @@
 
 #include <stdlib.h>
 
-#include "YASL_Object.h"
-#include "list.h"
-#include "hashtable.h"
+#include "interpreter/YASL_Object/YASL_Object.h"
+#include "interpreter/list/list.h"
+#include "hashtable/hashtable.h"
 
 
 struct RC *rc_new(void) {
