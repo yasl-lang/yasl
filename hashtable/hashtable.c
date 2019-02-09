@@ -1,4 +1,4 @@
-#include "hashtable.h"
+#include "hashtable/hashtable.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -7,9 +7,9 @@
 #include <interpreter/YASL_Object/YASL_Object.h>
 #include <interpreter/YASL_string/YASL_string.h>
 
-#include "YASL_Object.h"
-#include "YASL_string.h"
-#include "refcount.h"
+//#include "YASL_Object.h"
+//#include "YASL_string.h"
+#include "interpreter/refcount/refcount.h"
 
 #define HT_BASESIZE 30
 
@@ -18,12 +18,16 @@ static int hash_function(const struct YASL_Object s, const int a, const int m) {
         if (YASL_ISSTR(s)) {
                 const int64_t len_s = yasl_string_len(s.value.sval);
                 for (int i = 0; i < len_s; i++) {
-                        hash = hash * a + (s.value.sval->str + s.value.sval->start)[i];
+                        hash = (hash * a) ^ (s.value.sval->str + s.value.sval->start)[i];
                         hash %= m;
                 }
                 return (int) hash;
-        } else {  //TODO: make a better hash function for non-strings
-                return (int) (((long) pow(a, 8) * s.type) % m);
+        } else {
+				long ll = s.value.ival & 0xFFFF;
+				long lu = (s.value.ival & 0xFFFF0000) >> 16;
+				long ul = (s.value.ival & 0xFFFF00000000) >> 32;
+				long uu = (s.value.ival & 0xFFFF000000000000) >> 48;
+                return (int) (((long) a*ll*ll*ll*ll ^ a*a*lu*lu*lu ^ a*a*a*ul*ul ^ a*a*a*a*uu) % m);
         }
 }
 
@@ -130,14 +134,14 @@ static void table_resize_down(struct Table *table) {
 }
 
 void table_insert(struct Table *table, const struct YASL_Object key, const struct YASL_Object value) {
-        const int load = table->count * 100 / table->size;
+		const int load = table->count * 100 / table->size;
         if (load > 70) table_resize_up(table);
         Item_t item = new_item(key, value);
         int index = get_hash(item.key, table->size, 0);
         Item_t curr_item = table->items[index];
         int i = 1;
         while (!YASL_ISUNDEF(curr_item.key)) {
-                if (curr_item.key.type != Y_END) {
+				if (curr_item.key.type != Y_END) {
                         if (!isfalsey(isequal(curr_item.key, item.key))) {
                                 del_item(&curr_item);
                                 table->items[index] = item;
@@ -146,7 +150,6 @@ void table_insert(struct Table *table, const struct YASL_Object key, const struc
                 }
                 index = get_hash(item.key, table->size, i++);
                 curr_item = table->items[index];
-
         }
         table->items[index] = item;
         table->count++;

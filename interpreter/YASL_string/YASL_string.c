@@ -15,7 +15,8 @@ int64_t yasl_string_cmp(const String_t *const left, const String_t *const right)
         int64_t tmp = memcmp(left->str + left->start, right->str + right->start, yasl_string_len(left));
         return tmp ? tmp : -1;
     } else {
-        return memcmp(left->str + left->start, right->str + right->start, yasl_string_len(right)) || 1;
+        int64_t tmp = memcmp(left->str + left->start, right->str + right->start, yasl_string_len(right));
+		return tmp ? tmp : 1;
     }
 }
 

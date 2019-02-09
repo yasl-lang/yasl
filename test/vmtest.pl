@@ -72,13 +72,13 @@ assert_output(qq"x := { x*2:-x for x <- [1, 2, 3, 4] if x % 2 == 0}
                       echo i
                       echo x[i]
                  }\n",
-              "8\n-4\n4\n-2\n", 0);
+              "4\n-2\n8\n-4\n", 0);
 assert_output(qq"x := { x*2:-x for x <- [1, 2, 3]}
                  for i <- x {
                       echo i
                       echo x[i]
                  }\n",
-              "6\n-3\n2\n-1\n4\n-2\n", 0);
+              "2\n-1\n4\n-2\n6\n-3\n", 0);
 
 
 # Unary Operators
@@ -277,14 +277,14 @@ assert_output(qq"x := [1, 2, 3, [1, 2, 3]]
  
 # Table Methods
 assert_output(qq"x := {1:'one', 2:'two', 3:'three'}
-                 echo x->keys()\n", "[3, 1, 2]\n", 0);
+                 echo x->keys()\n", "[2, 1, 3]\n", 0);
 assert_output(qq"x := {1:'one', 2:'two', 3:'three'}
-                 echo x->values()\n", "[three, one, two]\n", 0);
+                 echo x->values()\n", "[two, one, three]\n", 0);
 assert_output(qq"x := { 3:'three', 1:'one', 2:'two'}
                  x[1] = 'un'
-                 echo x\n", "{2: two, 3: three, 1: un}\n", 0);
+                 echo x\n", "{2: two, 1: un, 3: three}\n", 0);
 assert_output(qq"x := {1:'one', 2:'two', 3:'three'};
-                 for e <- x->copy() { echo e; echo x[e]; };", "3\nthree\n2\ntwo\n1\none\n", 0);
+                 for e <- x->copy() { echo e; echo x[e]; };", "2\ntwo\n1\none\n3\nthree\n", 0);
 assert_output(qq"echo {}\n", "{}\n", 0);
 assert_output(qq"y := []
                  x := {}

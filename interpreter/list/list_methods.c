@@ -2,9 +2,9 @@
 
 #include <stdio.h>
 
-#include "VM.h"
-#include "YASL_Object.h"
-#include "list.h"
+#include "interpreter/VM/VM.h"
+#include "interpreter/YASL_Object/YASL_Object.h"
+#include "interpreter/list/list.h"
 #include "yasl_state.h"
 
 int list___get(struct YASL_State *S) {
@@ -340,5 +340,106 @@ int list_join(struct YASL_State *S) {
 	vm_pop(S->vm);
 	vm_pop(S->vm);
 	vm_pushstr(S->vm, str_new_sized_heap(0, buffer_count, buffer));
+	return 0;
+}
+
+const int SORT_TYPE_EMPTY = 0;
+const int SORT_TYPE_STR = -1;
+const int SORT_TYPE_NUM = 1;
+void sort(struct YASL_Object *list, const size_t len) {
+	// Base cases
+	struct YASL_Object tmpObj;
+	if (len < 2) return;
+	if (len == 2) {
+		if (yasl_object_cmp(list[0], list[1]) > 0) {
+			tmpObj = list[0];
+			list[0] = list[1];
+			list[1] = tmpObj;
+		}
+		return;
+	}
+
+	// Set sorting bounds
+	size_t left = 0;
+	size_t right = len-1;
+
+	// Determine random midpoint to use (good average case)
+	const size_t randIndex = rand() % len;
+	const struct YASL_Object mid = list[randIndex];
+
+	// Determine exact number of items less than mid (mid's index)
+	// Furthermore, ensure list is not homogenous to avoid infinite loops
+	size_t ltCount = 0;
+	int seenDifferent = 0;
+	for(size_t i = 0; i < len; i++) {
+		if(yasl_object_cmp(list[i], mid) < 0) ltCount++;
+		if(seenDifferent == 0 && yasl_object_cmp(list[0], list[i]) != 0) seenDifferent = 1;
+	}
+	if (seenDifferent == 0) return;
+
+	// Ensure all items are on the correct side of mid
+	while (left < right) {
+		while (yasl_object_cmp(list[left], mid) < 0) left++;
+		while (yasl_object_cmp(list[right], mid) >= 0) {
+			if (right == 0) break;
+			right--;
+		}
+
+		int cmp = yasl_object_cmp(list[left], list[right]);
+		if (cmp > 0 && left < right) {
+			tmpObj = list[right];
+			list[right] = list[left];
+			list[left++] = tmpObj;
+			if(right == 0) break;
+			right--;
+		} else if (cmp == 0) {
+			left++;
+			if(right == 0) break;
+			right--;
+		}
+	}
+
+	// Let sort() finish that for us...
+	sort(list, ltCount);
+	sort(&list[ltCount], len - ltCount);
+}
+int list_sort(struct YASL_State *S) {
+	ASSERT_TYPE(S->vm, Y_LIST, "list.sort");
+	struct List *list = vm_poplist(S->vm);
+	int type = SORT_TYPE_EMPTY;
+
+	int err = 0;
+	for (int64_t i = 0; i < list->count; i++) {
+		switch (list->items[i].type) {
+		case Y_STR:
+			if (type == SORT_TYPE_EMPTY) {
+				type = SORT_TYPE_STR;
+			} else if (type == SORT_TYPE_NUM) {
+				err = -1;
+			}
+			break;
+		case Y_INT:
+		case Y_FLOAT:
+			if (type == SORT_TYPE_EMPTY) {
+				type = SORT_TYPE_NUM;
+			} else if (type == SORT_TYPE_STR) {
+				err = -1;
+			}
+			break;
+		default:
+			err = -1;
+		}
+
+		if (err != 0) {
+			printf("Only lists containing all strings or all numbers can be sorted.\n");
+			return err;
+		}
+	}
+
+	if (type != SORT_TYPE_EMPTY) {
+		sort(list->items, list->count);
+	}
+
+	vm_pushundef(S->vm);
 	return 0;
 }

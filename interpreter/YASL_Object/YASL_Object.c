@@ -2,10 +2,10 @@
 
 #include <string.h>
 
-#include "YASL_string.h"
-#include "hashtable.h"
-#include "float_methods.h"
-#include "userdata.h"
+#include "interpreter/YASL_string/YASL_string.h"
+#include "hashtable/hashtable.h"
+#include "interpreter/float/float_methods.h"
+#include "interpreter/userdata/userdata.h"
 
 char *float64_to_str(double d);
 
@@ -114,6 +114,31 @@ struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *), int num_ar
     fn->value.cval->num_args = num_args;
     fn->value.cval->rc = rc_new();
     return fn;
+}
+
+int yasl_object_cmp(struct YASL_Object a, struct YASL_Object b) {
+	if (YASL_ISSTR(a) && YASL_ISSTR(b)) {
+		return yasl_string_cmp(YASL_GETSTR(a), YASL_GETSTR(b));
+	} else if (YASL_ISNUM(a) && YASL_ISNUM(b)) {
+		double aVal, bVal;
+		if(YASL_ISINT(a)) {
+			aVal = a.value.ival;
+		} else {
+			aVal = a.value.dval;
+		}
+		if(YASL_ISINT(b)) {
+			bVal = b.value.ival;
+		} else {
+			bVal = b.value.dval;
+		}
+
+		if (aVal < bVal) return -1;
+		if (aVal > bVal) return 1;
+		return 0;
+	} else {
+		printf("Cannot apply object compare to types %s and %s.\n", YASL_TYPE_NAMES[a.type], YASL_TYPE_NAMES[b.type]);
+		exit(-1);
+	}
 }
 
 int isfalsey(struct YASL_Object v) {

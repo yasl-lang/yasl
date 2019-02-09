@@ -1,9 +1,10 @@
 #pragma once
 
-#include "hashtable.h"
+#include "hashtable/hashtable.h"
 #include "yasl_conf.h"
 #include "opcode.h"
 
+#include <stdint.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <string.h>

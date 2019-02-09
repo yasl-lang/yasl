@@ -4,9 +4,9 @@
 #include <compiler/ast/ast.h>
 #include <compiler/lexer/lexer.h>
 
-#include "lexer.h"
+#include "compiler/lexer/lexer.h"
 #include "yasl_error.h"
-#include "middleend.h"
+#include "compiler/middleend/middleend.h"
 #include "yasl_include.h"
 
 static struct Node *parse_program(Parser *parser);

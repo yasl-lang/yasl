@@ -3,7 +3,7 @@
 #include <inttypes.h>
 #include <stdlib.h>
 
-#include "refcount.h"
+#include "interpreter/refcount/refcount.h"
 
 typedef struct {
     struct RC* rc;      // RC MUST BE THE FIRST MEMBER OF THIS STRUCT. DO NOT REARRANGE.

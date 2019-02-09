@@ -1,6 +1,6 @@
 #pragma once
 
-#include "refcount.h"
+#include "interpreter/refcount/refcount.h"
 
 struct RC_Table;
 

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.9.2)
+cmake_minimum_required(VERSION 3.7.2)
 project(YASL C)
 
 set(CMAKE_BUILD_TYPE Debug)
@@ -7,29 +7,8 @@ set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-newline-eof -Wno-unused-result -Wno-unused
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 include_directories(.)
-include_directories(compiler)
-include_directories(compiler/ast)
-include_directories(bytebuffer)
-include_directories(compiler/compiler)
-include_directories(compiler/compiler/env)
-include_directories(compiler/lexer)
-include_directories(compiler/parser)
-include_directories(compiler/middleend)
-include_directories(hashtable)
-include_directories(interpreter/boolean)
-include_directories(interpreter/builtins)
-include_directories(interpreter/float)
-include_directories(interpreter/integer)
-include_directories(interpreter/list)
-include_directories(interpreter/table)
-include_directories(interpreter/VM)
-include_directories(interpreter/YASL_Object)
-include_directories(interpreter/YASL_string)
-include_directories(interpreter/refcount)
-include_directories(interpreter/userdata)
-include_directories(interpreter/undef)
 include_directories(std-io)
-include_directories(prime)
+include_directories(std-math)
 include_directories(test)
 
 add_executable(YASL
@@ -59,7 +38,8 @@ add_executable(YASL
         interpreter/userdata/userdata.c
         interpreter/undef/undef_methods.c
         prime/prime.c
-        std-io/yasl-std-io.c)
+        std-io/yasl-std-io.c
+        std-math/yasl-std-math.c)
 
 add_executable(YASLTEST
         test/test_compiler/yats.c

@@ -1,6 +1,6 @@
 #include <interpreter/YASL_string/YASL_string.h>
 #include <interpreter/YASL_Object/YASL_Object.h>
-#include "env.h"
+#include "compiler/compiler/env/env.h"
 
 Env_t *env_new(Env_t *parent) {
     Env_t *env  = malloc(sizeof(Env_t));

@@ -4,12 +4,12 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "bytebuffer.h"
-#include "YASL_string.h"
+#include "bytebuffer/bytebuffer.h"
+#include "interpreter/YASL_string/YASL_string.h"
 #include "yasl_state.h"
-#include "VM.h"
-#include "YASL_Object.h"
-#include "list.h"
+#include "interpreter/VM/VM.h"
+#include "interpreter/YASL_Object/YASL_Object.h"
+#include "interpreter/list/list.h"
 
 int str___get(struct YASL_State *S) {
 	struct YASL_Object index = vm_pop(S->vm);
@@ -334,13 +334,32 @@ int str_replace(struct YASL_State *S) {
 
 int str_search(struct YASL_State *S) {
 	ASSERT_TYPE(S->vm, Y_STR, "str.search");
-	String_t *needle = YASL_GETSTR(vm_pop(S->vm));
+	String_t *needle = vm_popstr(S->vm);
 	ASSERT_TYPE(S->vm, Y_STR, "str.search");
-	String_t *haystack = YASL_GETSTR(vm_pop(S->vm));
+	String_t *haystack = vm_popstr(S->vm);
 
 	int64_t index = str_find_index(haystack, needle);
 	if (index != -1) vm_push(S->vm, YASL_INT(index));
 	else vm_push(S->vm, YASL_UNDEF());
+	return 0;
+}
+
+int str_count(struct YASL_State *S) {
+	ASSERT_TYPE(S->vm, Y_STR, "str.count");
+	String_t *needle = vm_popstr(S->vm);
+	ASSERT_TYPE(S->vm, Y_STR, "str.count");
+	String_t *haystack = vm_popstr(S->vm);
+
+	int64_t nLen = yasl_string_len(needle);
+	int64_t hLen = yasl_string_len(haystack);
+	int64_t count = 0;
+	for(int64_t i = 0; i + nLen <= hLen; i++) {
+		if(memcmp(needle->str + needle->start, haystack->str + haystack->start + i, nLen) == 0) {
+			count++;
+			i += nLen-1;
+		}
+	}
+	vm_pushint(S->vm, count);
 	return 0;
 }
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "YASL_string.h"
+#include "interpreter/YASL_string/YASL_string.h"
 
 #define UNDEF_C ((struct YASL_Object) { .type = Y_UNDEF, .value.ival = 0 })
 #define FALSE_C ((struct YASL_Object) { .type = Y_BOOL, .value.ival = 0 })
@@ -103,6 +103,11 @@ struct YASL_Object *YASL_Table(void);
 struct YASL_Object *YASL_UserPointer(void *userdata);
 struct YASL_Object *YASL_Function(int64_t index);
 struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *), int num_args);
+
+/*
+ * Either both types are strings or both types are numerical. Otherwise error
+ */
+int yasl_object_cmp(struct YASL_Object a, struct YASL_Object b);
 
 int isfalsey(struct YASL_Object v);
 struct YASL_Object isequal(struct YASL_Object a, struct YASL_Object b);

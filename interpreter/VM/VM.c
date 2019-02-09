@@ -5,19 +5,19 @@
 #include <stdint.h>
 #include <interpreter/YASL_Object/YASL_Object.h>
 
-#include "YASL_Object.h"
-#include "builtins.h"
-#include "YASL_string.h"
-#include "hashtable.h"
-#include "refcount.h"
+#include "interpreter/YASL_Object/YASL_Object.h"
+#include "interpreter/builtins/builtins.h"
+#include "interpreter/YASL_string/YASL_string.h"
+#include "hashtable/hashtable.h"
+#include "interpreter/refcount/refcount.h"
 
-#include "table_methods.h"
-#include "list_methods.h"
+#include "interpreter/table/table_methods.h"
+#include "interpreter/list/list_methods.h"
 #include "yasl_state.h"
 #include "yasl_error.h"
 #include "yasl_include.h"
 #include "opcode.h"
-#include "operator_names.h"
+#include "interpreter/VM/operator_names.h"
 
 static struct Table **builtins_htable_new(struct VM *vm) {
     struct Table **ht = malloc(sizeof(struct Table*) * NUM_TYPES);
@@ -53,6 +53,7 @@ struct VM* vm_new(unsigned char *code,    // pointer to bytecode
 	DEF_SPECIAL_STR(S___SET, "__set");
 	DEF_SPECIAL_STR(S_CLEAR, "clear");
 	DEF_SPECIAL_STR(S_COPY, "copy");
+	DEF_SPECIAL_STR(S_COUNT, "count");
 	DEF_SPECIAL_STR(S_ENDSWITH, "endswith");
 	DEF_SPECIAL_STR(S_EXTEND, "extend");
 	DEF_SPECIAL_STR(S_ISAL, "isal");
@@ -60,6 +61,7 @@ struct VM* vm_new(unsigned char *code,    // pointer to bytecode
 	DEF_SPECIAL_STR(S_ISNUM, "isnum");
 	DEF_SPECIAL_STR(S_ISSPACE, "isspace");
 	DEF_SPECIAL_STR(S_JOIN, "join");
+	DEF_SPECIAL_STR(S_SORT, "sort");
 	DEF_SPECIAL_STR(S_KEYS, "keys");
 	DEF_SPECIAL_STR(S_LTRIM, "ltrim");
 	DEF_SPECIAL_STR(S_POP, "pop");
@@ -728,7 +730,7 @@ int vm_run(struct VM *vm) {
 		case BRN_8:
 			c = vm_read_int(vm);
 			v = vm_pop(vm);
-			if (YASL_ISUNDEF(v)) vm->pc += c;
+			if (!YASL_ISUNDEF(v)) vm->pc += c;
 			break;
 		case GLOAD_1:
 			addr = vm->code[vm->pc++];

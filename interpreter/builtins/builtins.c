@@ -1,13 +1,13 @@
 #include <interpreter/undef/undef_methods.h>
 #include "builtins.h"
 
-#include "str_methods.h"
-#include "float_methods.h"
-#include "int_methods.h"
-#include "bool_methods.h"
-#include "table_methods.h"
-#include "list_methods.h"
-#include "VM.h"
+#include "interpreter/YASL_string/str_methods.h"
+#include "interpreter/float/float_methods.h"
+#include "interpreter/integer/int_methods.h"
+#include "interpreter/boolean/bool_methods.h"
+#include "interpreter/table/table_methods.h"
+#include "interpreter/list/list_methods.h"
+#include "interpreter/VM/VM.h"
 
 void yasl_print(struct VM* vm) {
 	if (!YASL_ISSTR(VM_PEEK(vm, vm->sp))) {
@@ -81,6 +81,7 @@ struct Table* str_builtins(struct VM *vm) {
 	table_insert_specialstring_cfunction(vm, table, S_ENDSWITH, &str_endswith, 2);
 	table_insert_specialstring_cfunction(vm, table, S_REPLACE, &str_replace, 3);
 	table_insert_specialstring_cfunction(vm, table, S_SEARCH, &str_search, 2);
+	table_insert_specialstring_cfunction(vm, table, S_COUNT, &str_count, 2);
 	table_insert_specialstring_cfunction(vm, table, S_SLICE, &str_slice, 3);
 	table_insert_specialstring_cfunction(vm, table, S_SPLIT, &str_split, 2);
 	table_insert_specialstring_cfunction(vm, table, S_LTRIM, &str_ltrim, 2);
@@ -105,6 +106,7 @@ struct Table* list_builtins(struct VM *vm) {
 	table_insert_specialstring_cfunction(vm, table, S_SLICE, &list_slice, 3);
 	table_insert_specialstring_cfunction(vm, table, S_CLEAR, &list_clear, 1);
 	table_insert_specialstring_cfunction(vm, table, S_JOIN, &list_join, 2);
+	table_insert_specialstring_cfunction(vm, table, S_SORT, &list_sort, 1);
 	return table;
 }
 
@@ -119,4 +121,3 @@ struct Table* table_builtins(struct VM *vm) {
 	table_insert_specialstring_cfunction(vm, table, S_CLEAR, &table_clear, 1);
 	return table;
 }
-

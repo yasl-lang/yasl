@@ -2,7 +2,7 @@
 
 #include "yasl_float.h"
 #include "yasl_state.h"
-#include "VM.h"
+#include "interpreter/VM/VM.h"
 
 int float_toint(struct YASL_State *S) {
     ASSERT_TYPE(S->vm, Y_FLOAT, "float.toint64");

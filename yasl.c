@@ -6,9 +6,9 @@
 #include <interpreter/userdata/userdata.h>
 #include "yasl.h"
 #include "yasl_state.h"
-#include "compiler.h"
-#include "VM.h"
-#include "YASL_Object.h"
+#include "compiler/compiler/compiler.h"
+#include "interpreter/VM/VM.h"
+#include "interpreter/YASL_Object/YASL_Object.h"
 
 struct YASL_State *YASL_newstate(char *filename) {
     struct YASL_State *S = malloc(sizeof(struct YASL_State));
