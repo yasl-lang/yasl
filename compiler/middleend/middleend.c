@@ -1,5 +1,6 @@
-#include <compiler/ast/ast.h>
 #include "middleend.h"
+
+#include "ast.h"
 
 void fold_Body(struct Node *const node) {
 	FOR_CHILDREN(i, child, node) {
@@ -56,13 +57,13 @@ void make_float(struct Node *const node, double val) {
 	node->children_len = 0;
 }
 
-void make_int(struct Node *const node, int64_t val) {
+void make_int(struct Node *const node, yasl_int val) {
 	node->nodetype = N_INT;
 	node->value.ival = val;
 	node->children_len = 0;
 }
 
-void make_bool(struct Node *const node, int64_t val) {
+void make_bool(struct Node *const node, int val) {
 	node->nodetype = N_BOOL;
 	node->value.ival = val;
 	node->children_len = 0;
