@@ -1,11 +1,12 @@
 #include "yasl-std-math.h"
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-#include "YASL_Object.h"
 #include "prime.h"
+#include "YASL_Object.h"
+#include "yasl_conf.h"
 
 #define POP_NUMBER(state, obj_name, fn_name) \
 					struct YASL_Object *obj_name = YASL_popobject(state); \
@@ -23,7 +24,7 @@ int YASL_math_abs(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.abs");
 
 	if (YASL_ISINT(*num)) {
-		int64_t i = num->value.ival;
+		yasl_int i = num->value.ival;
 		if (i < 0) i = -i;
 		return YASL_pushinteger(S, i);
 	} else {
@@ -189,7 +190,7 @@ int YASL_math_rad(struct YASL_State *S) {
 int YASL_math_isprime(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.isprime");
 
-	int64_t n;
+	yasl_int n;
 	if (YASL_ISFLOAT(*num)) {
 		n = num->value.dval;
 	} else {
@@ -200,14 +201,14 @@ int YASL_math_isprime(struct YASL_State *S) {
 	if (p < 0) return YASL_pushundef(S);
 	return YASL_pushboolean(S, p);
 }
-int64_t gcd_helper(int64_t a, int64_t b) {
+yasl_int gcd_helper(yasl_int a, yasl_int b) {
 	if (a < b) {
-		int64_t tmp = a;
+		yasl_int tmp = a;
 		a = b;
 		b = tmp;
 	}
 
-	int64_t r = 1;
+	yasl_int r = 1;
 	while(r != 0) {
 		r = a % b;
 		a = b;
@@ -219,7 +220,7 @@ int YASL_math_gcd(struct YASL_State *S) {
 	POP_NUMBER(S, numA, "math.gcd");
 	POP_NUMBER(S, numB, "math.gcd");
 
-	int64_t a, b, r = 0;
+	yasl_int a = 0, b = 0;
 	if (YASL_ISFLOAT(*numA)) {
 		a = numA->value.dval;
 	} else {
@@ -240,7 +241,7 @@ int YASL_math_lcm(struct YASL_State *S) {
 	POP_NUMBER(S, numA, "math.lcm");
 	POP_NUMBER(S, numB, "math.lcm");
 
-	int64_t a, b, r = 0;
+	yasl_int a = 0, b = 0;
 	if (YASL_ISFLOAT(*numA)) {
 		a = numA->value.dval;
 	} else {
@@ -255,13 +256,13 @@ int YASL_math_lcm(struct YASL_State *S) {
 		return YASL_pushundef(S);
 	}
 
-	int64_t gcd = gcd_helper(a, b);
+	yasl_int gcd = gcd_helper(a, b);
 	return YASL_pushinteger(S, b*a/gcd);
 }
 
 int YASL_math_rand(struct YASL_State *S) {
 	// rand() is only guarenteed to return a maximum of ~32000. Ensure all 64 bits are used
-	int64_t r = (int64_t) rand() ^((int64_t) rand() << 16) ^((int64_t) rand() << 32) ^((int64_t) rand() << 48);
+	yasl_int r = (yasl_int) rand() ^((yasl_int) rand() << 16) ^((yasl_int) rand() << 32) ^((yasl_int) rand() << 48);
 	return YASL_pushinteger(S, r);
 }
 
