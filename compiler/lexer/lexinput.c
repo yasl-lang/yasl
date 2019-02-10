@@ -4,6 +4,7 @@ struct LEXINPUT {
   FILE *fp;
   ByteBuffer *bb;
   int pos;
+  int iseof;
   int (*getc)(struct LEXINPUT *lp);
   int (*tell)(struct LEXINPUT *lp);
   int (*seek)(struct LEXINPUT *lp, int w, int cmd);
@@ -15,17 +16,24 @@ struct LEXINPUT {
 int lxgetc(LEXINPUT *lp)
 {
 #undef getc
-    return lp->getc(lp);
+  int ch = lp->getc(lp);
+  printf("getc = '%c' %d\n", ch, ch);
+  return ch;
 }
 
 int lxtell(LEXINPUT *lp)
 {
-    return lp->tell(lp);
+  int d = lp->tell(lp);
+  printf("tell = %d\n", d);
+  return d;
 }
 
 int lxseek(LEXINPUT *lp, int w, int cmd)
 {
-    return lp->seek(lp, w, cmd);
+  int r = lp->seek(lp, w, cmd);
+  printf("seek = %d %d %d\n", r, w, cmd);
+  lxtell(lp);
+  return r;
 }
 
 int lxclose(LEXINPUT *lp)
@@ -34,7 +42,9 @@ int lxclose(LEXINPUT *lp)
 }
 int lxeof(LEXINPUT *lp)
 {
-    return lp->eof(lp);
+  int d = lp->eof(lp);
+  printf("eof = %d\n", d);
+  return d;
 }
 
 static  int lexinput_file_getc(LEXINPUT *lp)
@@ -75,8 +85,13 @@ LEXINPUT *lexinput_new_file(FILE *fp)
 
 #include "bytebuffer/bytebuffer.h"
 
+static int lexinput_bb_eof(LEXINPUT *lp);
 static  int lexinput_bb_getc(LEXINPUT *lp)
 {
+    if (lp->pos >= (signed)lp->bb->count) {
+        lp->iseof = 1;
+        return -1;
+    }
     return lp->bb->bytes[lp->pos++];
 }
 static  int lexinput_bb_tell(LEXINPUT *lp)
@@ -94,15 +109,19 @@ static  int lexinput_bb_seek(LEXINPUT *lp, int w, int cmd)
     else if (cmd == 2) {
         lp->pos = lp->bb->count = w;
     }
+    if (lp->pos < (signed)lp->bb->count)         lp->iseof = 0;
     return 0;
 }
 static  int lexinput_bb_eof(LEXINPUT *lp)
 {
-    return (unsigned int)lp->pos >= lp->bb->count;
+    int ret;
+    if (lp->pos >= (signed)lp->bb->count) {
+      return lp->iseof;
+    }
+    return 0;
 }
 static  int lexinput_bb_close(LEXINPUT *lp)
 {
-// should free bb
     free(lp->bb);
     lp->bb = 0;
     free(lp);
@@ -119,5 +138,6 @@ LEXINPUT *lexinput_new_bb(char *buf, int len)
     lp->seek = lexinput_bb_seek;
     lp->close = lexinput_bb_close;
     lp->eof = lexinput_bb_eof;
+    lp->iseof = 0;
     return lp;
 }
