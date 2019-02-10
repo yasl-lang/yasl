@@ -1,7 +1,7 @@
 #include "bool_methods.h"
 
-#include "VM.h"
-#include "YASL_Object.h"
+#include "interpreter/VM/VM.h"
+#include "interpreter/YASL_Object/YASL_Object.h"
 #include "yasl_state.h"
 
 int bool_tostr(struct YASL_State *S) {

@@ -2,10 +2,10 @@
 
 #include <string.h>
 
-#include "YASL_string.h"
-#include "hashtable.h"
-#include "float_methods.h"
-#include "userdata.h"
+#include "interpreter/YASL_string/YASL_string.h"
+#include "hashtable/hashtable.h"
+#include "interpreter/float/float_methods.h"
+#include "interpreter/userdata/userdata.h"
 
 char *float64_to_str(double d);
 

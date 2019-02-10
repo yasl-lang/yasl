@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "prime.h"
-#include "YASL_Object.h"
+#include "prime/prime.h"
+#include "interpreter/YASL_Object/YASL_Object.h"
 #include "yasl_conf.h"
 
 #define POP_NUMBER(state, obj_name, fn_name) \

@@ -1,7 +1,7 @@
 #include "list.h"
 
-#include "YASL_Object.h"
-#include "hashtable.h"
+#include "interpreter/YASL_Object/YASL_Object.h"
+#include "hashtable/hashtable.h"
 
 int isvalueinarray(int64_t val, int64_t *arr, int size){
     int i;

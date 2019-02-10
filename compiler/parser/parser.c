@@ -1,10 +1,10 @@
-#include "parser.h"
+#include "compiler/parser/parser.h"
 
 #include <inttypes.h>
 
-#include "ast.h"
-#include "lexer.h"
-#include "middleend.h"
+#include "compiler/ast/ast.h"
+#include "compiler/lexer/lexer.h"
+#include "compiler/middleend/middleend.h"
 #include "yasl_conf.h"
 #include "yasl_error.h"
 #include "yasl_include.h"

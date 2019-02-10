@@ -2,9 +2,9 @@
 
 #include <stdio.h>
 
-#include "VM.h"
-#include "YASL_Object.h"
-#include "list.h"
+#include "interpreter/VM/VM.h"
+#include "interpreter/YASL_Object/YASL_Object.h"
+#include "interpreter/list/list.h"
 #include "yasl_state.h"
 
 int list___get(struct YASL_State *S) {
