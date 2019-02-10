@@ -17,22 +17,22 @@ int lxgetc(LEXINPUT *lp)
 {
 #undef getc
   int ch = lp->getc(lp);
-  printf("getc = '%c' %d\n", ch, ch);
+  //  //  printf("getc = '%c' %d\n", ch, ch);
   return ch;
 }
 
 int lxtell(LEXINPUT *lp)
 {
   int d = lp->tell(lp);
-  printf("tell = %d\n", d);
+  //  printf("tell = %d\n", d);
   return d;
 }
 
 int lxseek(LEXINPUT *lp, int w, int cmd)
 {
   int r = lp->seek(lp, w, cmd);
-  printf("seek = %d %d %d\n", r, w, cmd);
-  lxtell(lp);
+  //  printf("seek = %d %d %d\n", r, w, cmd);
+  //  lxtell(lp);
   return r;
 }
 
@@ -43,7 +43,7 @@ int lxclose(LEXINPUT *lp)
 int lxeof(LEXINPUT *lp)
 {
   int d = lp->eof(lp);
-  printf("eof = %d\n", d);
+  //  printf("eof = %d\n", d);
   return d;
 }
 
