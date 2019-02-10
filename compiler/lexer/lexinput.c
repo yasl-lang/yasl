@@ -57,6 +57,7 @@ static  int lexinput_file_close(LEXINPUT *lp)
 {
     fclose(lp->fp);
     lp->fp = 0;
+    free(lp);
     return 0;
 }
 
@@ -102,7 +103,9 @@ static  int lexinput_bb_eof(LEXINPUT *lp)
 static  int lexinput_bb_close(LEXINPUT *lp)
 {
 // should free bb
+    free(lp->bb);
     lp->bb = 0;
+    free(lp);
     return 0;
 }
 
