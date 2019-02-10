@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../token.h"
+#include "lexinput.h"
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
@@ -37,7 +38,7 @@ enum LexerModes {
 };
 
 typedef struct {
-    FILE *file;     // OWN
+    LEXINPUT *file;     // OWN
     char c;
     Token type;
     char *value;    // NOT OWN

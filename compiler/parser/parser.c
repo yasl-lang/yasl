@@ -8,6 +8,7 @@
 #include "yasl_conf.h"
 #include "yasl_error.h"
 #include "yasl_include.h"
+#include "compiler/lexer/lexinput.h"
 
 static struct Node *parse_program(Parser *parser);
 static struct Node *parse_const(Parser *parser);
@@ -590,7 +591,7 @@ static struct Node *parse_string(Parser *const parser) {
         struct Node *expr = parse_expr(parser);
         cur_node = new_BinOp(T_TILDE, cur_node, expr, parser->lex.line);
         if (parser->lex.c == '}') {
-            parser->lex.c = fgetc(parser->lex.file);
+            parser->lex.c = lxgetc(parser->lex.file);
         }
         lex_eatinterpstringbody(&parser->lex);
         struct Node *str = new_String(parser->lex.value, parser->lex.val_len, parser->lex.line);

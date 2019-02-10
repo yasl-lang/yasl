@@ -9,6 +9,7 @@
 #include "yasl_state.h"
 #include "compiler/compiler/compiler.h"
 #include "interpreter/VM/VM.h"
+#include "compiler/lexer/lexinput.h"
 //#include "interpreter/YASL_object/YASL_Object.h"
 
 struct YASL_State *YASL_newstate(char *filename) {
@@ -20,7 +21,9 @@ struct YASL_State *YASL_newstate(char *filename) {
     }
 
     fseek(fp, 0, SEEK_SET);
-    S->compiler = NEW_COMPILER(fp);
+
+    LEXINPUT *lp = lexinput_new_file(fp);
+    S->compiler = NEW_COMPILER(lp);
     S->compiler.header->count = 16;
 
     vm_init((struct VM *)S, NULL, -1, 256);

@@ -6,6 +6,7 @@
 #include "compiler/compiler/compiler.h"
 #include "yats.h"
 #include "test/test_compiler/compilertest.h"
+#include "compiler/lexer/lexinput.h"
 
 Lexer setup_lexer(char *file_contents) {
 	FILE *fptr = fopen("dump.ysl", "w");
@@ -13,7 +14,8 @@ Lexer setup_lexer(char *file_contents) {
 	fseek(fptr, 0, SEEK_SET);
 	fclose(fptr);
 	fptr = fopen("dump.ysl", "r");
-	return NEW_LEXER(fptr);
+	LEXINPUT *lp = lexinput_new_file(fptr);
+	return NEW_LEXER(lp);
 }
 
 

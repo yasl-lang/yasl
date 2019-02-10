@@ -8,6 +8,7 @@
 #include "compiler/parser/parser.h"
 #include "yasl_error.h"
 #include "yasl_include.h"
+#include "compiler/lexer/lexinput.h"
 
 #define break_checkpoint(compiler)    ((compiler)->checkpoints[(compiler)->checkpoints_count-1])
 #define continue_checkpoint(compiler) ((compiler)->checkpoints[(compiler)->checkpoints_count-2])
@@ -57,8 +58,9 @@ struct Compiler *compiler_new(FILE *fp) {
 	compiler->globals = env_new(NULL);
 	compiler->params = NULL;
 
+	LEXINPUT *lp = lexinput_new_file(fp);
 	compiler->strings = table_new();
-	compiler->parser = NEW_PARSER(fp);
+	compiler->parser = NEW_PARSER(lp);
 	compiler->buffer = bb_new(16);
 	compiler->header = bb_new(16);
 	compiler->header->count = 16;

@@ -19,6 +19,7 @@ add_executable(YASL
         compiler/compiler/compiler.c
         compiler/compiler/env/env.c
         compiler/lexer/lexer.c
+        compiler/lexer/lexinput.c
         compiler/parser/parser.c
         compiler/middleend/middleend.c
         hashtable/hashtable.c
@@ -56,6 +57,7 @@ add_executable(YASLTEST
         test/test_compiler/foldingtest.c
         test/test_compiler/comprehensiontest.c
         compiler/lexer/lexer.c
+        compiler/lexer/lexinput.c
         compiler/compiler/compiler.c
         compiler/parser/parser.c
         compiler/ast/ast.c
@@ -78,6 +80,7 @@ add_library(yaslapi
         compiler/compiler/compiler.c
         compiler/compiler/env/env.c
         compiler/lexer/lexer.c
+        compiler/lexer/lexinput.c
         compiler/parser/parser.c
         compiler/middleend/middleend.c
         hashtable/hashtable.c
