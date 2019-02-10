@@ -1,5 +1,17 @@
 #include "lexinput.h"
 
+struct LEXINPUT {
+  FILE *fp;
+  ByteBuffer *bb;
+  int pos;
+  int (*getc)(struct LEXINPUT *lp);
+  int (*tell)(struct LEXINPUT *lp);
+  int (*seek)(struct LEXINPUT *lp, int w, int cmd);
+  int (*close)(struct LEXINPUT *lp);
+  int (*eof)(struct LEXINPUT *lp);
+};
+
+
 int lxgetc(LEXINPUT *lp)
 {
 #undef getc

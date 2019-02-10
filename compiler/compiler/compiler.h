@@ -38,5 +38,6 @@ struct Compiler {
 };
 
 struct Compiler *compiler_new(FILE *fp);
+struct Compiler *compiler_new_bb(char *buf, int len);
 void compiler_cleanup(struct Compiler *compiler);
 unsigned char *compile(struct Compiler *const compiler);
