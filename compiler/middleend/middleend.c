@@ -1,6 +1,6 @@
-#include "middleend.h"
+#include "compiler/middleend/middleend.h"
 
-#include "ast.h"
+#include "compiler/ast/ast.h"
 
 void fold_Body(struct Node *const node) {
 	FOR_CHILDREN(i, child, node) {

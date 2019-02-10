@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lexer.h"
+#include "compiler/lexer/lexer.h"
 #include "yasl_include.h"
 #include "opcode.h"
 

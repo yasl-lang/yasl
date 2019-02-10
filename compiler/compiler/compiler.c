@@ -2,11 +2,10 @@
 #include <interpreter/YASL_Object/YASL_Object.h>
 #include "compiler.h"
 
-#include "YASL_Object.h"
-#include "middleend.h"
-#include "YASL_string.h"
-#include "bytebuffer.h"
-#include "parser.h"
+#include "compiler/middleend/middleend.h"
+#include "interpreter/YASL_string/YASL_string.h"
+#include "bytebuffer/bytebuffer.h"
+#include "compiler/parser/parser.h"
 #include "yasl_error.h"
 #include "yasl_include.h"
 

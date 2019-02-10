@@ -1,4 +1,4 @@
-#include "ast.h"
+#include "compiler/ast/ast.h"
 
 #include <stdarg.h>
 

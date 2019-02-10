@@ -5,19 +5,18 @@
 #include <stdint.h>
 #include <interpreter/YASL_Object/YASL_Object.h>
 
-#include "YASL_Object.h"
-#include "builtins.h"
-#include "YASL_string.h"
-#include "hashtable.h"
-#include "refcount.h"
+#include "interpreter/builtins/builtins.h"
+#include "interpreter/YASL_string/YASL_string.h"
+#include "hashtable/hashtable.h"
+#include "interpreter/refcount/refcount.h"
 
-#include "table_methods.h"
-#include "list_methods.h"
+#include "interpreter/table/table_methods.h"
+#include "interpreter/list/list_methods.h"
 #include "yasl_state.h"
 #include "yasl_error.h"
 #include "yasl_include.h"
 #include "opcode.h"
-#include "operator_names.h"
+#include "interpreter/VM/operator_names.h"
 
 static struct Table **builtins_htable_new(struct VM *vm) {
     struct Table **ht = malloc(sizeof(struct Table*) * NUM_TYPES);

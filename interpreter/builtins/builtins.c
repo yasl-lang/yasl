@@ -1,13 +1,13 @@
 #include <interpreter/undef/undef_methods.h>
 #include "builtins.h"
 
-#include "str_methods.h"
-#include "float_methods.h"
-#include "int_methods.h"
-#include "bool_methods.h"
-#include "table_methods.h"
-#include "list_methods.h"
-#include "VM.h"
+#include "interpreter/YASL_string/str_methods.h"
+#include "interpreter/float/float_methods.h"
+#include "interpreter/integer/int_methods.h"
+#include "interpreter/boolean/bool_methods.h"
+#include "interpreter/table/table_methods.h"
+#include "interpreter/list/list_methods.h"
+#include "interpreter/VM/VM.h"
 
 void yasl_print(struct VM* vm) {
 	if (!YASL_ISSTR(VM_PEEK(vm, vm->sp))) {
