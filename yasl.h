@@ -11,6 +11,7 @@ struct YASL_Object;
  * @return the new YASL_State
  */
 struct YASL_State *YASL_newstate(char *filename);
+struct YASL_State *YASL_newstate_bb(char *buf, int len);
 
 /**
  * deletes the given YASL_State.

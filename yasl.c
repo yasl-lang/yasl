@@ -9,6 +9,7 @@
 #include "yasl_state.h"
 #include "compiler/compiler/compiler.h"
 #include "interpreter/VM/VM.h"
+#include "compiler/lexer/lexinput.h"
 //#include "interpreter/YASL_object/YASL_Object.h"
 
 struct YASL_State *YASL_newstate(char *filename) {
@@ -20,13 +21,29 @@ struct YASL_State *YASL_newstate(char *filename) {
     }
 
     fseek(fp, 0, SEEK_SET);
-    S->compiler = NEW_COMPILER(fp);
+
+    struct LEXINPUT *lp = lexinput_new_file(fp);
+    S->compiler = NEW_COMPILER(lp);
     S->compiler.header->count = 16;
 
     vm_init((struct VM *)S, NULL, -1, 256);
     // S->vm = vm_new(NULL, -1, 256); // TODO: decide proper number of globals
     return S;
 }
+
+
+struct YASL_State *YASL_newstate_bb(char *buf, int len) {
+    struct YASL_State *S = malloc(sizeof(struct YASL_State));
+
+    struct LEXINPUT *lp = lexinput_new_bb(buf, len);
+    S->compiler = NEW_COMPILER(lp);
+    S->compiler.header->count = 16;
+
+    vm_init((struct VM *)S, NULL, -1, 256);
+    // S->vm = vm_new(NULL, -1, 256); // TODO: decide proper number of globals
+    return S;
+}
+
 
 int YASL_delstate(struct YASL_State *S) {
     compiler_cleanup(&S->compiler);

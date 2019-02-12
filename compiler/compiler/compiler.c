@@ -8,6 +8,7 @@
 #include "compiler/parser/parser.h"
 #include "yasl_error.h"
 #include "yasl_include.h"
+#include "compiler/lexer/lexinput.h"
 
 #define break_checkpoint(compiler)    ((compiler)->checkpoints[(compiler)->checkpoints_count-1])
 #define continue_checkpoint(compiler) ((compiler)->checkpoints[(compiler)->checkpoints_count-2])
@@ -57,8 +58,9 @@ struct Compiler *compiler_new(FILE *fp) {
 	compiler->globals = env_new(NULL);
 	compiler->params = NULL;
 
+	struct LEXINPUT *lp = lexinput_new_file(fp);
 	compiler->strings = table_new();
-	compiler->parser = NEW_PARSER(fp);
+	compiler->parser = NEW_PARSER(lp);
 	compiler->buffer = bb_new(16);
 	compiler->header = bb_new(16);
 	compiler->header->count = 16;
@@ -69,6 +71,29 @@ struct Compiler *compiler_new(FILE *fp) {
 	compiler->code = bb_new(16);
 	return compiler;
 }
+
+
+struct Compiler *compiler_new_bb(char *buf, int len) {
+	struct Compiler *compiler = malloc(sizeof(struct Compiler));
+
+	compiler->globals = env_new(NULL);
+	compiler->params = NULL;
+
+	struct LEXINPUT *lp = lexinput_new_bb(buf, len);
+	compiler->strings = table_new();
+	compiler->parser = NEW_PARSER(lp);
+	compiler->buffer = bb_new(16);
+	compiler->header = bb_new(16);
+	compiler->header->count = 16;
+	compiler->status = YASL_SUCCESS;
+	compiler->checkpoints_size = 4;
+	compiler->checkpoints = malloc(sizeof(size_t) * compiler->checkpoints_size);
+	compiler->checkpoints_count = 0;
+	compiler->code = bb_new(16);
+	return compiler;
+}
+
+
 
 void compiler_tables_del(struct Compiler *compiler) {
 	table_del_string_int(compiler->strings);
