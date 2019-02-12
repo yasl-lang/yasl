@@ -271,8 +271,9 @@ int vm_num_unop(struct VM *vm, yasl_int (*int_op)(yasl_int), yasl_float (*float_
 int vm_stringify_top(struct VM *vm) {
 	YASL_Types index = VM_PEEK(vm, vm->sp).type;
 	if (YASL_ISFN(VM_PEEK(vm, vm->sp)) || YASL_ISCFN(VM_PEEK(vm, vm->sp))) {
-		char *buffer = malloc(snprintf(NULL, 0, "<fn: %d>", (int)vm_peek(vm).value.ival) + 1);
-		sprintf(buffer, "<fn: %d>", (int)vm_peek(vm).value.ival);
+		int n;	  
+		char *buffer = malloc(n = snprintf(NULL, 0, "<fn: %d>", (int)vm_peek(vm).value.ival) + 1);
+		snprintf(buffer, n, "<fn: %d>", (int)vm_peek(vm).value.ival);
 		vm_pushstr(vm, str_new_sized_heap(0, strlen(buffer), buffer));
 	} else {
 		struct YASL_Object key = YASL_STR(str_new_sized(strlen("tostr"), "tostr"));
@@ -327,7 +328,7 @@ int vm_NEWSPECIALSTR(struct VM *vm) {
 int vm_NEWSTR(struct VM *vm) {
 	yasl_int addr = vm_read_int(vm);
 
-	size_t size;
+	yasl_int size;
 	memcpy(&size, vm->code + addr, sizeof(yasl_int));
 
 	addr += sizeof(yasl_int);
@@ -453,10 +454,10 @@ int vm_run(struct VM *vm) {
 			vm_pushfloat(vm, opcode - DCONST_0); // make sure no changes to opcodes ruin this
 			break;
 		case DCONST_N:
-			vm_pushfloat(vm, 0.0 / 0.0);
+			vm_pushfloat(vm, NAN);
 			break;
 		case DCONST_I:
-			vm_pushfloat(vm, 1.0 / 0.0);
+			vm_pushfloat(vm, INFINITY);
 			break;
 		case DCONST:        // constants have native endianness
 			d = vm_read_float(vm);

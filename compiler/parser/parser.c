@@ -686,3 +686,22 @@ static struct Node *parse_collection(Parser *const parser) {
         return new_List(keys, parser->lex.line);
     }
 }
+
+#ifdef _MSC_VER
+// To avoid MSVC _VA_ARGS_ macro expansion bug
+int token_matches(Parser *parser, ...) {
+    va_list ap;
+    int ret = 0;
+    va_start(ap, parser);
+    for (;;) {
+        Token tok = va_arg(ap, Token);
+        if (tok == -1) break;
+        if (curtok(parser) == tok) {
+            ret = 1;
+            break;
+ 	}
+    }
+    va_end(ap);
+    return ret;
+}
+#endif
