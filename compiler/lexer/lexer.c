@@ -229,12 +229,15 @@ int lex_eatnumber(Lexer *lex) {
 		do {
 			lex->value[i++] = c1;
 			lex_getchar(lex);
-			c1 = lex->c;
 			if (i == lex->val_len) {
 				lex->val_len *= 2;
 				lex->value = realloc(lex->value, lex->val_len);
 			}
+			while (lex->c == '_') lex_getchar(lex);
+			c1 = lex->c;
 		} while (!lxeof(lex->file) && ((isdigit(c1))));
+
+		while (lex->c == '_') lex_getchar(lex);
 		lex->type = T_INT;
 		if (i == lex->val_len) lex->value = realloc(lex->value, i + 1);
 		lex->value[i] = '\0';
