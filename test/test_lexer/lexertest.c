@@ -543,6 +543,22 @@ void test_binary(void) {
 	ASSERT_EATTOK(T_EOF, lex);
 }
 
+void test_float(void) {
+	Lexer lex = setup_lexer("64.50;"
+				"1_0___.5__;"
+				"1____.6_7__8;"
+				"1.5_;");
+	ASSERT_EATTOK(T_FLOAT, lex);
+	ASSERT_EATTOK(T_SEMI, lex);
+	ASSERT_EATTOK(T_FLOAT, lex);
+	ASSERT_EATTOK(T_SEMI, lex);
+	ASSERT_EATTOK(T_FLOAT, lex);
+	ASSERT_EATTOK(T_SEMI, lex);
+	ASSERT_EATTOK(T_FLOAT, lex);
+	ASSERT_EATTOK(T_SEMI, lex);
+	ASSERT_EATTOK(T_EOF, lex);
+}
+
 void test_string(void) {
     Lexer lex = setup_lexer("x := 'hello world';");
     ASSERT_EATTOK(T_ID, lex);

@@ -262,6 +262,8 @@ int lex_eatnumber(Lexer *lex) {
 					lex->val_len *= 2;
 					lex->value = realloc(lex->value, lex->val_len);
 				}
+				while (lex->c == '_') lex_getchar(lex);
+				c1 = lex->c;
 			} while (!lxeof(lex->file) && isdigit(c1));
 
 			if (i == lex->val_len) lex->value = realloc(lex->value, i + 1);
