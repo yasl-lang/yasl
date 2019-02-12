@@ -1,5 +1,5 @@
 #pragma once
-
+#include <stdint.h>
 #include <inttypes.h>
 
 // Which floating point type YASL will use.

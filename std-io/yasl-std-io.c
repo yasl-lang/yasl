@@ -29,7 +29,7 @@ int YASL_io_open(struct YASL_State *S) {
         return -1;
     }
 
-    FILE *f;
+    FILE *f = 0;
     if (mode_len == 1) {
         switch (mode_str[0]) {
             case 'r':

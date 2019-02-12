@@ -6,7 +6,7 @@
 char *float64_to_str(double d) {
 	int64_t size = snprintf(NULL, 0, "%f", d);
 	char *ptr = malloc(size + 1);
-	sprintf(ptr, "%f", d);
+	snprintf(ptr, size+1, "%f", d);
 	while (ptr[size - 1] == '0' && ptr[size - 2] != '.') {
 		size--;
 	}
