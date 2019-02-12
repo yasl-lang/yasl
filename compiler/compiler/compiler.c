@@ -58,7 +58,7 @@ struct Compiler *compiler_new(FILE *fp) {
 	compiler->globals = env_new(NULL);
 	compiler->params = NULL;
 
-	LEXINPUT *lp = lexinput_new_file(fp);
+	struct LEXINPUT *lp = lexinput_new_file(fp);
 	compiler->strings = table_new();
 	compiler->parser = NEW_PARSER(lp);
 	compiler->buffer = bb_new(16);
@@ -79,7 +79,7 @@ struct Compiler *compiler_new_bb(char *buf, int len) {
 	compiler->globals = env_new(NULL);
 	compiler->params = NULL;
 
-	LEXINPUT *lp = lexinput_new_bb(buf, len);
+	struct LEXINPUT *lp = lexinput_new_bb(buf, len);
 	compiler->strings = table_new();
 	compiler->parser = NEW_PARSER(lp);
 	compiler->buffer = bb_new(16);

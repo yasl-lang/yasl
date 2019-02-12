@@ -22,7 +22,7 @@ struct YASL_State *YASL_newstate(char *filename) {
 
     fseek(fp, 0, SEEK_SET);
 
-    LEXINPUT *lp = lexinput_new_file(fp);
+    struct LEXINPUT *lp = lexinput_new_file(fp);
     S->compiler = NEW_COMPILER(lp);
     S->compiler.header->count = 16;
 
@@ -35,7 +35,7 @@ struct YASL_State *YASL_newstate(char *filename) {
 struct YASL_State *YASL_newstate_bb(char *buf, int len) {
     struct YASL_State *S = malloc(sizeof(struct YASL_State));
 
-    LEXINPUT *lp = lexinput_new_bb(buf, len);
+    struct LEXINPUT *lp = lexinput_new_bb(buf, len);
     S->compiler = NEW_COMPILER(lp);
     S->compiler.header->count = 16;
 

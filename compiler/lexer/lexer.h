@@ -38,7 +38,7 @@ enum LexerModes {
 };
 
 typedef struct {
-    LEXINPUT *file;     // OWN
+    struct LEXINPUT *file;     // OWN
     char c;
     Token type;
     char *value;    // NOT OWN

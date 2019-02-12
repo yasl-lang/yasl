@@ -2,18 +2,11 @@
 
 #include "bytebuffer/bytebuffer.h"
 
-typedef struct LEXINPUT LEXINPUT;
-
-LEXINPUT *lexinput_new_file(FILE *lp);
-LEXINPUT *lexinput_new_bb(char *buf, int len);
-int lxgetc(LEXINPUT *lp);
-int lxtell(LEXINPUT *lp);
-int lxseek(LEXINPUT *lp, int w, int cmd);
-int lxclose(LEXINPUT *lp);
-int lxeof(LEXINPUT *lp);
-
-
-
-/*
- 0: 1: 2
-*/
+struct LEXINPUT;
+struct LEXINPUT *lexinput_new_file(FILE *lp);
+struct LEXINPUT *lexinput_new_bb(char *buf, int len);
+int lxgetc(struct LEXINPUT *lp);
+int lxtell(struct LEXINPUT *lp);
+int lxseek(struct LEXINPUT *lp, int w, int cmd);
+int lxclose(struct LEXINPUT *lp);
+int lxeof(struct LEXINPUT *lp);
