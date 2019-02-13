@@ -491,9 +491,12 @@ void test_small_arrow(void) {
 
 void test_int(void) {
 	Lexer lex = setup_lexer("64;"
+			 	"0__10;"
 			 	"1_000;"
      				"10__;"
 	 			"1_000__000___;");
+	ASSERT_EATTOK(T_INT, lex);
+	ASSERT_EATTOK(T_SEMI, lex);
 	ASSERT_EATTOK(T_INT, lex);
 	ASSERT_EATTOK(T_SEMI, lex);
 	ASSERT_EATTOK(T_INT, lex);
