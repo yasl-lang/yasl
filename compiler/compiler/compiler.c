@@ -9,6 +9,7 @@
 #include "yasl_error.h"
 #include "yasl_include.h"
 #include "compiler/lexer/lexinput.h"
+#include <math.h>
 
 #define break_checkpoint(compiler)    ((compiler)->checkpoints[(compiler)->checkpoints_count-1])
 #define continue_checkpoint(compiler) ((compiler)->checkpoints[(compiler)->checkpoints_count-2])
@@ -829,7 +830,7 @@ static void visit_Float(struct Compiler *const compiler, const struct Node *cons
 		bb_add_byte(compiler->buffer, DCONST_2);
 	} else if (val != val) {
 		bb_add_byte(compiler->buffer, DCONST_N);
-	} else if (val == 1.0 / 0.0) {
+	} else if (isinf(val)) {
 		bb_add_byte(compiler->buffer, DCONST_I);
 	} else {
 		bb_add_byte(compiler->buffer, DCONST);

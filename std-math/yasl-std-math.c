@@ -17,8 +17,13 @@
                     }
 
 const double YASL_PI = 3.14159265358979323851280895940618620443274267017841339111328125;
+#if _MSC_VER
+const double YASL_NAN = NAN;
+const double YASL_INF = INFINITY;
+#else
 const double YASL_NAN = 0.0 / 0.0;
 const double YASL_INF = 1.0 / 0.0;
+#endif
 
 int YASL_math_abs(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.abs");

@@ -78,14 +78,14 @@ int isvaliddouble(const char *str) {
 }
 
 double parsedouble(const char *str) {
-	if (!strcmp(str, "inf") || !strcmp(str, "+inf")) return 1.0 / 0.0;
-	else if (!strcmp(str, "-inf")) return -1.0 / 0.0;
+	if (!strcmp(str, "inf") || !strcmp(str, "+inf")) return INFINITY;
+	else if (!strcmp(str, "-inf")) return -INFINITY;
 	else if (str[0] == '-' && isvaliddouble(str+1))
 		return -strtod(str+1, NULL);
 	else if (str[0] == '+' && isvaliddouble(str+1))
 		return +strtod(str+1, NULL);
 	else if (isvaliddouble(str))	return strtod(str, NULL);
-	return 0.0 / 0.0;
+	return NAN;
 }
 
 int64_t parseint64(const char *str) {
