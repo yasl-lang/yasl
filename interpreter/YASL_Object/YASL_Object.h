@@ -1,6 +1,7 @@
 #pragma once
 
-#include "YASL_string.h"
+#include "yasl_conf.h"
+#include "interpreter/YASL_string/YASL_string.h"
 
 #define UNDEF_C ((struct YASL_Object) { .type = Y_UNDEF, .value.ival = 0 })
 #define FALSE_C ((struct YASL_Object) { .type = Y_BOOL, .value.ival = 0 })
@@ -85,8 +86,8 @@ void cfn_del_data(struct CFunction_s *cfn);
 struct YASL_Object {
     YASL_Types type;
     union {
-        int64_t ival;
-        double dval;
+        yasl_int ival;
+        yasl_float dval;
         String_t *sval;
         struct RC_UserData *uval;
         struct CFunction_s *cval;
@@ -95,8 +96,8 @@ struct YASL_Object {
 };
 
 struct YASL_Object *YASL_Undef(void);
-struct YASL_Object *YASL_Float(double value);
-struct YASL_Object *YASL_Integer(int64_t value);
+struct YASL_Object *YASL_Float(yasl_float value);
+struct YASL_Object *YASL_Integer(yasl_int value);
 struct YASL_Object *YASL_Boolean(int value);
 struct YASL_Object *YASL_String(String_t *str);
 struct YASL_Object *YASL_Table(void);

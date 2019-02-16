@@ -16,9 +16,9 @@ Env_t *env_new(Env_t *env);
 void env_del(Env_t *env);
 void env_del_current_only(Env_t *env);
 
-int64_t env_len(Env_t *env);
-int env_contains_cur_scope(Env_t *env, char *name, int64_t name_len);
-int env_contains(Env_t *env, char *name, int64_t name_len);
-int64_t env_get(Env_t *env, char *name, int64_t name_len);
-void env_decl_var(Env_t *env, char *name, int64_t name_len);
-void env_make_const(Env_t *env, char *name, int64_t name_len);
+size_t env_len(Env_t *env);
+int env_contains_cur_scope(Env_t *env, char *name, size_t name_len);
+int env_contains(Env_t *env, char *name, size_t name_len);
+int64_t env_get(Env_t *env, char *name, size_t name_len);
+void env_decl_var(Env_t *env, char *name, size_t name_len);
+void env_make_const(Env_t *env, char *name, size_t name_len);

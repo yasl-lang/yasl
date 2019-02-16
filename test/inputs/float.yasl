@@ -1,0 +1,13 @@
+##true\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\n
+
+echo 64.50 == 64.5
+echo 1_0___.5__ == 10.5
+echo 1____.6_7__8 == 1.678
+echo 1.5_ == 1.5
+echo 0__4.10__ == 4.1
+
+echo 64.50 == '64.50'->tofloat()
+echo 1_0___.5__ == '1_0___.5__'->tofloat()
+echo 1____.6_7__8 == '1____.6_7__8'->tofloat()
+echo 1.5_ == '1.5_'->tofloat()
+echo 0__4.10__ == '0__4.10__'->tofloat()

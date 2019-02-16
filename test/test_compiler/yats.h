@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lexer.h"
+#include "compiler/lexer/lexer.h"
 #include "yasl_include.h"
 #include "opcode.h"
 
@@ -34,6 +34,6 @@
     fclose(file);\
 } while(0)
 
-Lexer *setup_lexer(char *file_contents);
+Lexer setup_lexer(char *file_contents);
 unsigned char *setup_compiler(char *file_contents);
 int64_t getsize(FILE *file);

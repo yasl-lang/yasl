@@ -2,14 +2,14 @@
 #include <interpreter/YASL_Object/YASL_Object.h>
 #include "compiler.h"
 
-#include "YASL_Object.h"
-#include "middleend.h"
-#include "YASL_string.h"
-#include "bytebuffer.h"
-#include "metadata.h"
-#include "parser.h"
+#include "compiler/middleend/middleend.h"
+#include "interpreter/YASL_string/YASL_string.h"
+#include "bytebuffer/bytebuffer.h"
+#include "compiler/parser/parser.h"
 #include "yasl_error.h"
 #include "yasl_include.h"
+#include "compiler/lexer/lexinput.h"
+#include <math.h>
 
 #define break_checkpoint(compiler)    ((compiler)->checkpoints[(compiler)->checkpoints_count-1])
 #define continue_checkpoint(compiler) ((compiler)->checkpoints[(compiler)->checkpoints_count-2])
@@ -53,38 +53,48 @@ static enum SpecialStrings get_special_string(const struct Node *const node) {
 #undef STR_EQ
 }
 
-struct Compiler *compiler_new(Parser *const parser) {
+struct Compiler *compiler_new(FILE *fp) {
 	struct Compiler *compiler = malloc(sizeof(struct Compiler));
 
 	compiler->globals = env_new(NULL);
 	compiler->params = NULL;
 
-	compiler->offset = 0;
+	struct LEXINPUT *lp = lexinput_new_file(fp);
 	compiler->strings = table_new();
-	compiler->parser = parser;
+	compiler->parser = NEW_PARSER(lp);
 	compiler->buffer = bb_new(16);
 	compiler->header = bb_new(16);
 	compiler->header->count = 16;
 	compiler->status = YASL_SUCCESS;
-	/*bb_add_byte(compiler->header, 'Y');
-	bb_add_byte(compiler->header, 'Y');
-	bb_add_byte(compiler->header, 'Y');
-	bb_add_byte(compiler->header, 'Y');
-	bb_add_byte(compiler->header, 'Y');
-	bb_add_byte(compiler->header, 'Y');
-	bb_add_byte(compiler->header, 'Y');
-	bb_add_byte(compiler->header, 'Y');
-	char magic_number[YASL_MAG_NUM_SIZE] = "YASL";
-	magic_number[4] = YASL_COMPILER;
-	magic_number[5] = YASL_MAJOR_VERSION;
-	magic_number[6] = YASL_MINOR_VERSION;
-	magic_number[7] = YASL_PATCH; */
 	compiler->checkpoints_size = 4;
-	compiler->checkpoints = malloc(sizeof(int64_t) * compiler->checkpoints_size);
+	compiler->checkpoints = malloc(sizeof(size_t) * compiler->checkpoints_size);
 	compiler->checkpoints_count = 0;
 	compiler->code = bb_new(16);
 	return compiler;
 }
+
+
+struct Compiler *compiler_new_bb(char *buf, int len) {
+	struct Compiler *compiler = malloc(sizeof(struct Compiler));
+
+	compiler->globals = env_new(NULL);
+	compiler->params = NULL;
+
+	struct LEXINPUT *lp = lexinput_new_bb(buf, len);
+	compiler->strings = table_new();
+	compiler->parser = NEW_PARSER(lp);
+	compiler->buffer = bb_new(16);
+	compiler->header = bb_new(16);
+	compiler->header->count = 16;
+	compiler->status = YASL_SUCCESS;
+	compiler->checkpoints_size = 4;
+	compiler->checkpoints = malloc(sizeof(size_t) * compiler->checkpoints_size);
+	compiler->checkpoints_count = 0;
+	compiler->code = bb_new(16);
+	return compiler;
+}
+
+
 
 void compiler_tables_del(struct Compiler *compiler) {
 	table_del_string_int(compiler->strings);
@@ -96,14 +106,14 @@ static void compiler_buffers_del(const struct Compiler *const compiler) {
 	bb_del(compiler->code);
 }
 
-void compiler_del(struct Compiler *compiler) {
+void compiler_cleanup(struct Compiler *compiler) {
 	compiler_tables_del(compiler);
 	env_del(compiler->globals);
 	env_del(compiler->params);
-	parser_del(compiler->parser);
+	parser_cleanup(&compiler->parser);
 	compiler_buffers_del(compiler);
 	free(compiler->checkpoints);
-	free(compiler);
+	//free(compiler);
 }
 
 static void handle_error(struct Compiler *const compiler) {
@@ -127,17 +137,17 @@ static void exit_scope(struct Compiler *const compiler) {
 	}
 }
 
-static inline void enter_conditional_false(struct Compiler *const compiler, int64_t *index) {
+static inline void enter_conditional_false(struct Compiler *const compiler, size_t *index) {
 	bb_add_byte(compiler->buffer, BRF_8);
 	*index = compiler->buffer->count;
 	bb_intbytes8(compiler->buffer, 0);
 }
 
-static inline void exit_conditional_false(struct Compiler *const compiler, const int64_t *const index) {
+static inline void exit_conditional_false(struct Compiler *const compiler, const size_t *const index) {
 	bb_rewrite_intbytes8(compiler->buffer, *index, compiler->buffer->count - *index - 8);
 }
 
-static void add_checkpoint(struct Compiler *const compiler, const int64_t cp) {
+static void add_checkpoint(struct Compiler *const compiler, const size_t cp) {
 	if (compiler->checkpoints_count >= compiler->checkpoints_size)
 		compiler->checkpoints = realloc(compiler->checkpoints, compiler->checkpoints_size *= 2);
 	compiler->checkpoints[compiler->checkpoints_count++] = cp;
@@ -164,7 +174,7 @@ static inline int64_t get_index(int64_t value) {
 	return is_const(value) ? ~value : value;
 }
 
-static void load_var(struct Compiler *const compiler, char *name, int64_t name_len, size_t line) {
+static void load_var(struct Compiler *const compiler, char *name, size_t name_len, size_t line) {
 	if (env_contains(compiler->params, name, name_len)) {
 		bb_add_byte(compiler->buffer, LLOAD_1);
 		bb_add_byte(compiler->buffer,
@@ -206,18 +216,18 @@ static void store_var(struct Compiler *const compiler, char *name, size_t name_l
 	}
 }
 
-static int contains_var_in_current_scope(const struct Compiler *const compiler, char *name, int64_t name_len) {
+static int contains_var_in_current_scope(const struct Compiler *const compiler, char *name, size_t name_len) {
 	return compiler->params ?
 	       env_contains_cur_scope(compiler->params, name, name_len) :
 	       env_contains_cur_scope(compiler->globals, name, name_len);
 }
 
-static int contains_var(const struct Compiler *const compiler, char *name, int64_t name_len) {
+static int contains_var(const struct Compiler *const compiler, char *name, size_t name_len) {
 	return env_contains(compiler->globals, name, name_len) ||
 	       env_contains(compiler->params, name, name_len);
 }
 
-static void decl_var(struct Compiler *const compiler, char *name, int64_t name_len) {
+static void decl_var(struct Compiler *const compiler, char *name, size_t name_len) {
 	if (NULL != compiler->params) {
 		env_decl_var(compiler->params, name, name_len);
 	} else {
@@ -225,20 +235,20 @@ static void decl_var(struct Compiler *const compiler, char *name, int64_t name_l
 	}
 }
 
-static void make_const(struct Compiler * const compiler, char *name, int64_t name_len) {
+static void make_const(struct Compiler * const compiler, char *name, size_t name_len) {
 	if (NULL != compiler->params) env_make_const(compiler->params, name, name_len);
 	else env_make_const(compiler->globals, name, name_len);
 }
 
 unsigned char *compile(struct Compiler *const compiler) {
 	struct Node *node;
-	gettok(compiler->parser->lex);
-	while (!peof(compiler->parser)) {
-		if (peof(compiler->parser)) break;
-		node = parse(compiler->parser);
-		eattok(compiler->parser, T_SEMI);
-		compiler->status |= compiler->parser->status;
-		if (!compiler->parser->status) {
+	gettok(&compiler->parser.lex);
+	while (!peof(&compiler->parser)) {
+		if (peof(&compiler->parser)) break;
+		node = parse(&compiler->parser);
+		eattok(&compiler->parser, T_SEMI);
+		compiler->status |= compiler->parser.status;
+		if (!compiler->parser.status) {
 			visit(compiler, node);
 			bb_append(compiler->code, compiler->buffer->bytes, compiler->buffer->count);
 			compiler->buffer->count = 0;
@@ -308,9 +318,6 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 
 	// start logic for function, now that we are sure it's legal to do so, and have set up.
 
-	// use offset to compute offsets for params, in other functions.
-	compiler->offset = FnDecl_get_params(node)->children_len;
-
 	compiler->params = env_new(compiler->params);
 
 	enter_scope(compiler);
@@ -328,7 +335,7 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	bb_add_byte(compiler->buffer, compiler->params->vars->count);
 	visit_Body(compiler, FnDecl_get_body(node));
 
-	int64_t fn_val = compiler->header->count;
+	size_t fn_val = compiler->header->count;
 	bb_append(compiler->header, compiler->buffer->bytes, compiler->buffer->count);
 	bb_add_byte(compiler->header, NCONST);
 	bb_add_byte(compiler->header, RET);
@@ -340,7 +347,6 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	Env_t *tmp = compiler->params->parent;
 	env_del_current_only(compiler->params);
 	compiler->params = tmp;
-	compiler->offset = 0;
 
 	bb_add_byte(compiler->buffer, FCONST);
 	bb_intbytes8(compiler->buffer, fn_val);
@@ -405,7 +411,7 @@ static void visit_Block(struct Compiler *const compiler, const struct Node *cons
 	exit_scope(compiler);
 }
 
-static inline void branch_back(struct Compiler *const compiler, int64_t index) {
+static inline void branch_back(struct Compiler *const compiler, size_t index) {
 	bb_add_byte(compiler->buffer, BR_8);
 	bb_intbytes8(compiler->buffer, index - compiler->buffer->count - 8);
 }
@@ -425,13 +431,13 @@ static void visit_ListComp(struct Compiler *const compiler, const struct Node *c
 
 	bb_add_byte(compiler->buffer, ITER_1);
 
-	int64_t index_second;
+	size_t index_second;
 	enter_conditional_false(compiler, &index_second);
 
 	store_var(compiler, node->children[1]->children[0]->value.sval.str, node->children[1]->children[0]->value.sval.str_len, node->line);
 
 	if (node->children[2]) {
-		int64_t index_third;
+		size_t index_third;
 		visit(compiler, node->children[2]);
 		enter_conditional_false(compiler, &index_third);
 
@@ -462,17 +468,17 @@ static void visit_TableComp(struct Compiler *const compiler, const struct Node *
 
 	decl_var(compiler, node->children[1]->children[0]->value.sval.str, node->children[1]->children[0]->value.sval.str_len);
 
-	int64_t index_start = compiler->buffer->count;
+	size_t index_start = compiler->buffer->count;
 
 	bb_add_byte(compiler->buffer, ITER_1);
 
-	int64_t index_second;
+	size_t index_second;
 	enter_conditional_false(compiler, &index_second);
 
 	store_var(compiler, node->children[1]->children[0]->value.sval.str, node->children[1]->children[0]->value.sval.str_len, node->line);
 
 	if (node->children[2]) {
-		int64_t index_third;
+		size_t index_third;
 		visit(compiler, node->children[2]);
 		enter_conditional_false(compiler, &index_third);
 
@@ -504,14 +510,14 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 
 	decl_var(compiler, node->children[0]->children[0]->value.sval.str, node->children[0]->children[0]->value.sval.str_len);
 
-	int64_t index_start = compiler->buffer->count;
+	size_t index_start = compiler->buffer->count;
 	add_checkpoint(compiler, index_start);
 
 	bb_add_byte(compiler->buffer, ITER_1);
 
 	add_checkpoint(compiler, compiler->buffer->count);
 
-	int64_t index_second;
+	size_t index_second;
 	enter_conditional_false(compiler, &index_second);
 
 
@@ -531,11 +537,11 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 }
 
 static void visit_While(struct Compiler *const compiler, const struct Node *const node) {
-	int64_t index_start = compiler->buffer->count;
+	size_t index_start = compiler->buffer->count;
 
 	if (node->children[2] != NULL) {
 		bb_add_byte(compiler->buffer, BR_8);
-		int64_t index = compiler->buffer->count;
+		size_t index = compiler->buffer->count;
 		bb_intbytes8(compiler->buffer, 0);
 		index_start = compiler->buffer->count;
 		visit(compiler, node->children[2]);
@@ -548,7 +554,7 @@ static void visit_While(struct Compiler *const compiler, const struct Node *cons
 
 	add_checkpoint(compiler, compiler->buffer->count);
 
-	int64_t index_second;
+	size_t index_second;
 	enter_conditional_false(compiler, &index_second);
 	enter_scope(compiler);
 
@@ -585,13 +591,13 @@ static void visit_Continue(struct Compiler *const compiler, const struct Node *c
 static void visit_If(struct Compiler *const compiler, const struct Node *const node) {
 	visit(compiler, node->children[0]);
 
-	int64_t index_then;
+	size_t index_then;
 	enter_conditional_false(compiler, &index_then);
 	enter_scope(compiler);
 
 	visit(compiler, node->children[1]);
 
-	int64_t index_else = 0;
+	size_t index_else = 0;
 
 	if (node->children[2] != NULL) {
 		bb_add_byte(compiler->buffer, BR_8);
@@ -642,13 +648,13 @@ static void visit_Const(struct Compiler *const compiler, const struct Node *cons
 static void visit_TriOp(struct Compiler *const compiler, const struct Node *const node) {
 	visit(compiler, node->children[0]);
 
-	int64_t index_l;
+	size_t index_l;
 	enter_conditional_false(compiler, &index_l);
 
 	visit(compiler, node->children[1]);
 
 	bb_add_byte(compiler->buffer, BR_8);
-	int64_t index_r = compiler->buffer->count;
+	size_t index_r = compiler->buffer->count;
 	bb_intbytes8(compiler->buffer, 0);
 
 	exit_conditional_false(compiler, &index_l);
@@ -663,7 +669,7 @@ static void visit_BinOp(struct Compiler *const compiler, const struct Node *cons
 		visit(compiler, node->children[0]);
 		bb_add_byte(compiler->buffer, DUP);
 		bb_add_byte(compiler->buffer, BRN_8);
-		int64_t index = compiler->buffer->count;
+		size_t index = compiler->buffer->count;
 		bb_intbytes8(compiler->buffer, 0);
 		bb_add_byte(compiler->buffer, POP);
 		visit(compiler, node->children[1]);
@@ -673,7 +679,7 @@ static void visit_BinOp(struct Compiler *const compiler, const struct Node *cons
 		visit(compiler, node->children[0]);
 		bb_add_byte(compiler->buffer, DUP);
 		bb_add_byte(compiler->buffer, BRT_8);
-		int64_t index = compiler->buffer->count;
+		size_t index = compiler->buffer->count;
 		bb_intbytes8(compiler->buffer, 0);
 		bb_add_byte(compiler->buffer, POP);
 		visit(compiler, node->children[1]);
@@ -683,7 +689,7 @@ static void visit_BinOp(struct Compiler *const compiler, const struct Node *cons
 		visit(compiler, node->children[0]);
 		bb_add_byte(compiler->buffer, DUP);
 
-		int64_t index;
+		size_t index;
 		enter_conditional_false(compiler, &index);
 
 		bb_add_byte(compiler->buffer, POP);
@@ -824,7 +830,7 @@ static void visit_Float(struct Compiler *const compiler, const struct Node *cons
 		bb_add_byte(compiler->buffer, DCONST_2);
 	} else if (val != val) {
 		bb_add_byte(compiler->buffer, DCONST_N);
-	} else if (val == 1.0 / 0.0) {
+	} else if (isinf(val)) {
 		bb_add_byte(compiler->buffer, DCONST_I);
 	} else {
 		bb_add_byte(compiler->buffer, DCONST);
@@ -834,7 +840,7 @@ static void visit_Float(struct Compiler *const compiler, const struct Node *cons
 
 static void visit_Integer(struct Compiler *const compiler, const struct Node *const node) {
 	YASL_TRACE_LOG("int64: %" PRId64 "\n", node->value.ival);
-	int64_t val = node->value.ival;
+	yasl_int val = node->value.ival;
 	switch (val) {
 	case -1:
 		bb_add_byte(compiler->buffer, ICONST_M1);

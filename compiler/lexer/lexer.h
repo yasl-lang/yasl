@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../token.h"
+#include "lexinput.h"
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
@@ -10,18 +11,21 @@
             (l)->type == T_CONT || (l)->type == T_RPAR || (l)->type == T_RSQB || \
             (l)->type == T_RBRC || (l)->type == T_UNDEF || (l)->type == T_BOOL)
 
+#define NEW_LEXER(f) \
+((Lexer) { .file = (f),\
+	   .line = 1,\
+	   .value = NULL,\
+	   .val_len = 0,\
+	   .type = T_UNKNOWN,\
+	   .status = YASL_SUCCESS,\
+	   .mode = L_NORMAL\
+})
 
-
-/*
-an identifier
-an integer, floating-point, or string literal
-one of the keywords break, or continue
-one of the delimiters ), ], or }
-*/
 #define STR_DELIM '\''
 #define RAW_STR_DELIM '`'
 #define INTERP_STR_DELIM '"'
 #define INTERP_STR_PLACEHOLDER '#'
+#define NUM_SEPERATOR '_'
 
 enum LexerModes {
     L_NORMAL,     // default mode.
@@ -29,7 +33,7 @@ enum LexerModes {
 };
 
 typedef struct {
-    FILE *file;     // OWN
+    struct LEXINPUT *file;     // OWN
     char c;
     Token type;
     char *value;    // NOT OWN
@@ -39,8 +43,8 @@ typedef struct {
     int mode;
 } Lexer;
 
-Lexer *lex_new(FILE *file);
-void lex_del(Lexer *lex);
+// Lexer *lex_new(FILE *file);
+void lex_cleanup(Lexer *lex);
 void gettok(Lexer *lex);
 int lex_eatinterpstringbody(Lexer *lex);
 

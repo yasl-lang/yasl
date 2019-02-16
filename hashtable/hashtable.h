@@ -2,9 +2,9 @@
 
 #include <inttypes.h>
 
-#include "prime.h"
-#include "YASL_Object.h"
-#include "list.h"
+#include "prime/prime.h"
+#include "interpreter/YASL_Object/YASL_Object.h"
+#include "interpreter/list/list.h"
 
 #define LEN(v) (*((int64_t*)(v).value))
 

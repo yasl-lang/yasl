@@ -1,6 +1,6 @@
 #pragma once
 
-#include "hashtable.h"
+#include "hashtable/hashtable.h"
 #include "yasl_conf.h"
 #include "opcode.h"
 
@@ -25,8 +25,8 @@
 #define vm_popstr(vm) (YASL_GETSTR(vm_pop(vm)))
 #define vm_poplist(vm) (YASL_GETLIST(vm_pop(vm)))
 
-#define VM_PEEK(vm, offset) (vm->stack[offset])
-#define vm_peek(vm) (vm->stack[vm->sp])
+#define VM_PEEK(vm, offset) ((vm)->stack[offset])
+#define vm_peek(vm) ((vm)->stack[(vm)->sp])
 
 #define vm_peekint(vm, offset) (YASL_GETINT(VM_PEEK(vm, offset)))
 #define vm_peekstr(vm, offset) (YASL_GETSTR(VM_PEEK(vm, offset)))
@@ -35,7 +35,7 @@
 #define vm_peekcfn(vm, offset) (YASL_GETCFN(VM_PEEK(vm, offset)))
 
 #define BUFFER_SIZE 256
-#define NCODE(vm)    (vm->code[vm->pc++])     // get next bytecode
+#define NCODE(vm)    ((vm)->code[(vm)->pc++])     // get next bytecode
 
 #define GT(a, b) ((a) > (b))
 #define GE(a, b) ((a) >= (b))
@@ -73,11 +73,9 @@ struct VM {
 	struct Table **builtins_htable;   // htable of builtin methods
 };
 
-struct VM* vm_new(unsigned char *code,    // pointer to bytecode
-           int pc0,             // address of instruction to be executed first -- entrypoint
-           int datasize);       // total params size required to perform a program operations
+void vm_init(struct VM *vm, unsigned char *code, int pc0, size_t datasize);
 
-void vm_del(struct VM *vm);
+void vm_cleanup(struct VM *vm);
 
 int vm_stringify_top(struct VM *vm);
 

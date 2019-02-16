@@ -1,13 +1,13 @@
 #include <interpreter/undef/undef_methods.h>
 #include "builtins.h"
 
-#include "str_methods.h"
-#include "float_methods.h"
-#include "int_methods.h"
-#include "bool_methods.h"
-#include "table_methods.h"
-#include "list_methods.h"
-#include "VM.h"
+#include "interpreter/YASL_string/str_methods.h"
+#include "interpreter/float/float_methods.h"
+#include "interpreter/integer/int_methods.h"
+#include "interpreter/boolean/bool_methods.h"
+#include "interpreter/table/table_methods.h"
+#include "interpreter/list/list_methods.h"
+#include "interpreter/VM/VM.h"
 
 void yasl_print(struct VM* vm) {
 	if (!YASL_ISSTR(VM_PEEK(vm, vm->sp))) {
@@ -15,7 +15,7 @@ void yasl_print(struct VM* vm) {
 		struct YASL_Object key = YASL_STR(str_new_sized(strlen("tostr"), "tostr"));
 		struct YASL_Object result = table_search(vm->builtins_htable[index], key);
 		str_del(YASL_GETSTR(key));
-		YASL_GETCFN(result)->value((struct YASL_State *) &vm);
+		YASL_GETCFN(result)->value((struct YASL_State *) vm);
 	}
 	struct YASL_Object v = vm_pop(vm);
 	for (int64_t i = 0; i < yasl_string_len(YASL_GETSTR(v)); i++) {
@@ -46,6 +46,7 @@ struct Table *undef_builtins(struct VM *vm) {
 struct Table* float_builtins(struct VM *vm) {
 	struct Table *table = table_new();
 	table_insert_specialstring_cfunction(vm, table, S_TOINT, &float_toint, 1);
+	table_insert_specialstring_cfunction(vm, table, S_TOFLOAT, &float_tofloat, 1);
 	table_insert_specialstring_cfunction(vm, table, S_TOSTR, &float_tostr, 1);
 	return table;
 }
@@ -53,6 +54,7 @@ struct Table* float_builtins(struct VM *vm) {
 
 struct Table* int_builtins(struct VM *vm) {
 	struct Table *table = table_new();
+	table_insert_specialstring_cfunction(vm, table, S_TOINT, &int_toint, 1);
 	table_insert_specialstring_cfunction(vm, table, S_TOFLOAT, &int_tofloat, 1);
 	table_insert_specialstring_cfunction(vm, table, S_TOSTR, &int_tostr, 1);
 	return table;
