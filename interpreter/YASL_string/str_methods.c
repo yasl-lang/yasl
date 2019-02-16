@@ -10,6 +10,7 @@
 #include "interpreter/VM/VM.h"
 #include "interpreter/YASL_Object/YASL_Object.h"
 #include "interpreter/list/list.h"
+#include "YASL_string.h"
 
 int str___get(struct YASL_State *S) {
 	struct YASL_Object index = vm_pop((struct VM *)S);
@@ -91,9 +92,9 @@ int64_t parseint64(const char *str) {
 	int64_t result;
 	size_t len = strlen(str);
 	char *end;
-	if (len > 2 && str[0] == '0' && str[1] == 'x') {
+	if (len > 2 && str[0] == '0' && (str[1] == 'x' || str[1] == 'X')) {
 		result = strtoll(str + 2, &end, 16);
-	} else if (len > 2 && str[0] == '0' && str[1] == 'b') {
+	} else if (len > 2 && str[0] == '0' && (str[1] == 'b' || str[1] == 'B')) {
 		result = strtoll(str + 2, &end, 2);
 	} else {
 		result = strtoll(str, &end, 10);
@@ -106,8 +107,18 @@ int str_tofloat(struct YASL_State *S) {
 	ASSERT_TYPE((struct VM *)S, Y_STR, "str.tofloat");
 	String_t *str = YASL_GETSTR(vm_pop((struct VM *)S));
 	char *buffer = malloc(yasl_string_len(str) + 1);
-	memcpy(buffer, str->str + str->start, yasl_string_len(str));
-	buffer[yasl_string_len(str)] = '\0';
+	if (!isdigit(str->str[str->start])) {
+		free(buffer);
+		vm_push((struct VM *)S, YASL_FLOAT(NAN));
+	}
+	size_t curr = 0;
+	for (int64_t i = 0; i < yasl_string_len(str); ++i) {
+		if (str->str[str->start + i] == '_' && str->str[str->start + i - 1] != '.') {
+			continue;
+		}
+		buffer[curr++] = str->str[str->start + i];
+	}
+	buffer[curr] = '\0';
 	vm_push((struct VM *)S, YASL_FLOAT(parsedouble(buffer)));
 	free(buffer);
 	return 0;
@@ -118,8 +129,39 @@ int str_toint(struct YASL_State *S) {
 	ASSERT_TYPE((struct VM *)S, Y_STR, "str.toint");
 	String_t *str = vm_popstr((struct VM *)S);
 	char *buffer = malloc(yasl_string_len(str) + 1);
-	memcpy(buffer, str->str + str->start, yasl_string_len(str));
-	buffer[yasl_string_len(str)] = '\0';
+
+	if (yasl_string_len(str) <= 2) {
+		memcpy(buffer, str->str + str->start, yasl_string_len(str));
+		buffer[yasl_string_len(str)] = '\0';
+		vm_push((struct VM *)S, YASL_INT(parseint64(buffer)));
+		free(buffer);
+		return 0;
+	}
+
+	if (str->str[str->start + 0] == '0' && (isalpha(str->str[str->start + 1]))) {
+		size_t curr = 2;
+		buffer[0] = str->str[str->start + 0];
+		buffer[1] = str->str[str->start + 1];
+		for (int64_t i = 2; i < yasl_string_len(str); ++i) {
+			if (str->str[str->start + i] == '_') {
+				continue;
+			}
+			buffer[curr++] = str->str[str->start + i];
+		}
+		buffer[curr] = '\0';
+		vm_push((struct VM *)S, YASL_INT(parseint64(buffer)));
+		free(buffer);
+		return 0;
+	}
+
+	size_t curr = 0;
+	for (int64_t i = 0; i < yasl_string_len(str); ++i) {
+		if (str->str[str->start + i] == '_') {
+			continue;
+		}
+		buffer[curr++] = str->str[str->start + i];
+	}
+	buffer[curr] = '\0';
 	vm_push((struct VM *)S, YASL_INT(parseint64(buffer)));
 	free(buffer);
 	return 0;
