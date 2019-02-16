@@ -490,10 +490,76 @@ void test_small_arrow(void) {
 }
 
 void test_int(void) {
-    Lexer lex = setup_lexer("64\n");
-    ASSERT_EATTOK(T_INT, lex);
-    ASSERT_EATTOK(T_SEMI, lex);
-    ASSERT_EATTOK(T_EOF, lex);
+	Lexer lex = setup_lexer("64;"
+			 	"0__10;"
+			 	"1_000;"
+     				"10__;"
+	 			"1_000__000___;");
+	ASSERT_EATTOK(T_INT, lex);
+	ASSERT_EATTOK(T_SEMI, lex);
+	ASSERT_EATTOK(T_INT, lex);
+	ASSERT_EATTOK(T_SEMI, lex);
+	ASSERT_EATTOK(T_INT, lex);
+	ASSERT_EATTOK(T_SEMI, lex);
+	ASSERT_EATTOK(T_INT, lex);
+	ASSERT_EATTOK(T_SEMI, lex);
+	ASSERT_EATTOK(T_INT, lex);
+	ASSERT_EATTOK(T_SEMI, lex);
+	ASSERT_EATTOK(T_EOF, lex);
+}
+
+void test_hex(void) {
+	Lexer lex = setup_lexer("0x10;"
+			 	"0x__10;"
+     				"0x10_AB;"
+	 			"0x10__;"
+     				"0x_10__AB_;");
+	ASSERT_EATTOK(T_INT, lex);
+	ASSERT_EATTOK(T_SEMI, lex);
+	ASSERT_EATTOK(T_INT, lex);
+	ASSERT_EATTOK(T_SEMI, lex);
+	ASSERT_EATTOK(T_INT, lex);
+	ASSERT_EATTOK(T_SEMI, lex);
+	ASSERT_EATTOK(T_INT, lex);
+	ASSERT_EATTOK(T_SEMI, lex);
+	ASSERT_EATTOK(T_INT, lex);
+	ASSERT_EATTOK(T_SEMI, lex);
+	ASSERT_EATTOK(T_EOF, lex);
+}
+
+void test_binary(void) {
+	Lexer lex = setup_lexer("0b10;"
+				"0b__10;"
+				"0b10_10;"
+				"0b10__;"
+				"0b_10__10_;");
+	ASSERT_EATTOK(T_INT, lex);
+	ASSERT_EATTOK(T_SEMI, lex);
+	ASSERT_EATTOK(T_INT, lex);
+	ASSERT_EATTOK(T_SEMI, lex);
+	ASSERT_EATTOK(T_INT, lex);
+	ASSERT_EATTOK(T_SEMI, lex);
+	ASSERT_EATTOK(T_INT, lex);
+	ASSERT_EATTOK(T_SEMI, lex);
+	ASSERT_EATTOK(T_INT, lex);
+	ASSERT_EATTOK(T_SEMI, lex);
+	ASSERT_EATTOK(T_EOF, lex);
+}
+
+void test_float(void) {
+	Lexer lex = setup_lexer("64.50;"
+				"1_0___.5__;"
+				"1____.6_7__8;"
+				"1.5_;");
+	ASSERT_EATTOK(T_FLOAT, lex);
+	ASSERT_EATTOK(T_SEMI, lex);
+	ASSERT_EATTOK(T_FLOAT, lex);
+	ASSERT_EATTOK(T_SEMI, lex);
+	ASSERT_EATTOK(T_FLOAT, lex);
+	ASSERT_EATTOK(T_SEMI, lex);
+	ASSERT_EATTOK(T_FLOAT, lex);
+	ASSERT_EATTOK(T_SEMI, lex);
+	ASSERT_EATTOK(T_EOF, lex);
 }
 
 void test_string(void) {
@@ -515,6 +581,8 @@ void test_division(void) {
 
 int lexertest(void) {
     test_int();
+    test_hex();
+    test_binary();
     test_string();
     test_division();
 

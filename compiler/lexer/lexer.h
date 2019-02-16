@@ -21,16 +21,11 @@
 	   .mode = L_NORMAL\
 })
 
-/*
-an identifier
-an integer, floating-point, or string literal
-one of the keywords break, or continue
-one of the delimiters ), ], or }
-*/
 #define STR_DELIM '\''
 #define RAW_STR_DELIM '`'
 #define INTERP_STR_DELIM '"'
 #define INTERP_STR_PLACEHOLDER '#'
+#define NUM_SEPERATOR '_'
 
 enum LexerModes {
     L_NORMAL,     // default mode.

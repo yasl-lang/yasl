@@ -102,11 +102,16 @@ static int lex_eatint(Lexer *lex, char separator, int (*isvaliddigit)(int)) {
 	lex->value[i++] = '0';
 	lex->value[i++] = separator;
 	lex_getchar(lex);
+
+	// eat leading newlines for literals
+	while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
+
 	if (!(*isvaliddigit)(lex->c)) {
 		YASL_PRINT_ERROR_SYNTAX("Invalid int literal in line %zd.\n", lex->line);
 		lex_error(lex);
 		return 1;
 	}
+
 	do {
 		lex->value[i++] = lex->c;
 		lex_getchar(lex);
@@ -114,7 +119,7 @@ static int lex_eatint(Lexer *lex, char separator, int (*isvaliddigit)(int)) {
 			lex->val_len *= 2;
 			lex->value = realloc(lex->value, lex->val_len);
 		}
-		// while (lex->c == '_') lex_getchar(lex);
+		while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
 	} while (!lxeof(lex->file) && (*isvaliddigit)(lex->c));
 	if (i == lex->val_len) lex->value = realloc(lex->value, i + 1);
 	lex->value[i] = '\0';
@@ -224,12 +229,15 @@ int lex_eatnumber(Lexer *lex) {
 		do {
 			lex->value[i++] = c1;
 			lex_getchar(lex);
-			c1 = lex->c;
 			if (i == lex->val_len) {
 				lex->val_len *= 2;
 				lex->value = realloc(lex->value, lex->val_len);
 			}
+			while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
+			c1 = lex->c;
 		} while (!lxeof(lex->file) && ((isdigit(c1))));
+
+		while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
 		lex->type = T_INT;
 		if (i == lex->val_len) lex->value = realloc(lex->value, i + 1);
 		lex->value[i] = '\0';
@@ -254,6 +262,8 @@ int lex_eatnumber(Lexer *lex) {
 					lex->val_len *= 2;
 					lex->value = realloc(lex->value, lex->val_len);
 				}
+				while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
+				c1 = lex->c;
 			} while (!lxeof(lex->file) && isdigit(c1));
 
 			if (i == lex->val_len) lex->value = realloc(lex->value, i + 1);

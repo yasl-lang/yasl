@@ -1,0 +1,11 @@
+##true\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\n
+
+echo 0b_10 == 0b10
+echo 0b10___10 == 0b1010
+echo 0b10__ == 0b10
+echo 0b_10__10_ == 0b1010
+
+echo 0b_10 == '0b_10'->toint()
+echo 0b10___10 == '0b10___10'->toint()
+echo 0b10__ == '0b10__'->toint()
+echo 0b_10__10_ == '0b_10__10_'->toint()

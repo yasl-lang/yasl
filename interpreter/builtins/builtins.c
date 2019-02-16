@@ -46,6 +46,7 @@ struct Table *undef_builtins(struct VM *vm) {
 struct Table* float_builtins(struct VM *vm) {
 	struct Table *table = table_new();
 	table_insert_specialstring_cfunction(vm, table, S_TOINT, &float_toint, 1);
+	table_insert_specialstring_cfunction(vm, table, S_TOFLOAT, &float_tofloat, 1);
 	table_insert_specialstring_cfunction(vm, table, S_TOSTR, &float_tostr, 1);
 	return table;
 }
@@ -53,6 +54,7 @@ struct Table* float_builtins(struct VM *vm) {
 
 struct Table* int_builtins(struct VM *vm) {
 	struct Table *table = table_new();
+	table_insert_specialstring_cfunction(vm, table, S_TOINT, &int_toint, 1);
 	table_insert_specialstring_cfunction(vm, table, S_TOFLOAT, &int_tofloat, 1);
 	table_insert_specialstring_cfunction(vm, table, S_TOSTR, &int_tostr, 1);
 	return table;
