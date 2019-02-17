@@ -180,9 +180,11 @@ void fold_BinOp(struct Node *const node) {
 			}
 			break;
 		case T_MOD:
-			make_int(node, left->value.ival % right->value.ival);
-			node_del(left);
-			node_del(right);
+			if (right->value.ival != 0) {
+				make_int(node, left->value.ival % right->value.ival);
+				node_del(left);
+				node_del(right);
+			}
 			break;
 		case T_DSTAR:
 			break;

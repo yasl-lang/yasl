@@ -521,6 +521,11 @@ int vm_run(struct VM *vm) {
 			break;
 		case MOD:
 			// TODO: handle undefined C behaviour for negative numbers.
+			if (YASL_ISINT(vm_peek(vm)) && YASL_GETINT(vm_peek(vm)) == 0) {
+				YASL_PRINT_ERROR_DIVIDE_BY_ZERO();
+				return YASL_DIVIDE_BY_ZERO_ERROR;
+				break;
+			}
 			if ((res = vm_int_binop(vm, &modulo, "%", OP_BIN_MOD))) return res;
 			break;
 		case EXP:
