@@ -1,15 +1,15 @@
-#include <compiler/compiler/compiler.h>
-#include <interpreter/VM/VM.h>
-#include <interpreter/table/table_methods.h>
-#include <interpreter/YASL_Object/YASL_Object.h>
-#include <interpreter/YASL_string/YASL_string.h>
-#include <interpreter/userdata/userdata.h>
+#include <compiler/compiler.h>
+#include <interpreter/VM.h>
+#include <interpreter/table_methods.h>
+#include <interpreter/YASL_Object.h>
+#include <interpreter/YASL_string.h>
+#include <interpreter/userdata.h>
 #include <bytebuffer/bytebuffer.h>
 #include "yasl.h"
 #include "yasl_state.h"
-#include "compiler/compiler/compiler.h"
-#include "interpreter/VM/VM.h"
-#include "compiler/lexer/lexinput.h"
+#include "compiler/compiler.h"
+#include "interpreter/VM.h"
+#include "compiler/lexinput.h"
 //#include "interpreter/YASL_object/YASL_Object.h"
 
 struct YASL_State *YASL_newstate(char *filename) {

@@ -1,4 +1,4 @@
-#include "compiler/lexer/lexer.h"
+#include "compiler/lexer.h"
 #include "test/test_compiler/yats.h"
 
 SETUP_YATS();

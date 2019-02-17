@@ -71,7 +71,7 @@
 // NOTE: make sure that augmented version of operand is directly after regular version for all operands.
 // parser.c uses this
 // NOTE: keep up to date with array names in lexer.c
-typedef enum {
+enum Token {
     T_UNKNOWN = -1,
     T_EOF,      // 0x00
     T_SEMI,     // 0x01
@@ -157,4 +157,4 @@ typedef enum {
     T_COLONEQ,
     T_RIGHT_ARR,
     T_LEFT_ARR,
-} Token;
+};
