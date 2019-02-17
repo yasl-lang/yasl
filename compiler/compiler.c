@@ -137,19 +137,22 @@ static void exit_scope(struct Compiler *const compiler) {
 	}
 }
 
-static inline void enter_conditional_false(struct Compiler *const compiler, size_t *index) {
+static inline void enter_conditional_false(struct Compiler *const compiler, yasl_int *index) {
 	bb_add_byte(compiler->buffer, BRF_8);
 	*index = compiler->buffer->count;
 	bb_intbytes8(compiler->buffer, 0);
 }
-
-static inline void exit_conditional_false(struct Compiler *const compiler, const size_t *const index) {
+ya
+static inline void exit_conditional_false(struct Compiler *const compiler, const yasl_int *const index) {
 	bb_rewrite_intbytes8(compiler->buffer, *index, compiler->buffer->count - *index - 8);
 }
 
 static void add_checkpoint(struct Compiler *const compiler, const size_t cp) {
-	if (compiler->checkpoints_count >= compiler->checkpoints_size)
-		compiler->checkpoints = realloc(compiler->checkpoints, compiler->checkpoints_size *= 2);
+	if (compiler->checkpoints_count >= compiler->checkpoints_size) {
+		compiler->checkpoints_size *= 2;
+		size_t size = (sizeof(compiler->checkpoints[0]) * compiler->checkpoints_size);
+		compiler->checkpoints = realloc(compiler->checkpoints, size);
+	}
 	compiler->checkpoints[compiler->checkpoints_count++] = cp;
 }
 
@@ -335,7 +338,7 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	bb_add_byte(compiler->buffer, compiler->params->vars->count);
 	visit_Body(compiler, FnDecl_get_body(node));
 
-	size_t fn_val = compiler->header->count;
+	yasl_int fn_val = compiler->header->count;
 	bb_append(compiler->header, compiler->buffer->bytes, compiler->buffer->count);
 	bb_add_byte(compiler->header, NCONST);
 	bb_add_byte(compiler->header, RET);
@@ -411,7 +414,7 @@ static void visit_Block(struct Compiler *const compiler, const struct Node *cons
 	exit_scope(compiler);
 }
 
-static inline void branch_back(struct Compiler *const compiler, size_t index) {
+static inline void branch_back(struct Compiler *const compiler, yasl_int index) {
 	bb_add_byte(compiler->buffer, BR_8);
 	bb_intbytes8(compiler->buffer, index - compiler->buffer->count - 8);
 }
@@ -427,17 +430,17 @@ static void visit_ListComp(struct Compiler *const compiler, const struct Node *c
 
 	decl_var(compiler, node->children[1]->children[0]->value.sval.str, node->children[1]->children[0]->value.sval.str_len);
 
-	size_t index_start = compiler->buffer->count;
+	yasl_int index_start = compiler->buffer->count;
 
 	bb_add_byte(compiler->buffer, ITER_1);
 
-	size_t index_second;
+	yasl_int index_second;
 	enter_conditional_false(compiler, &index_second);
 
 	store_var(compiler, node->children[1]->children[0]->value.sval.str, node->children[1]->children[0]->value.sval.str_len, node->line);
 
 	if (node->children[2]) {
-		size_t index_third;
+		yasl_int index_third;
 		visit(compiler, node->children[2]);
 		enter_conditional_false(compiler, &index_third);
 
@@ -468,17 +471,17 @@ static void visit_TableComp(struct Compiler *const compiler, const struct Node *
 
 	decl_var(compiler, node->children[1]->children[0]->value.sval.str, node->children[1]->children[0]->value.sval.str_len);
 
-	size_t index_start = compiler->buffer->count;
+	yasl_int index_start = compiler->buffer->count;
 
 	bb_add_byte(compiler->buffer, ITER_1);
 
-	size_t index_second;
+	yasl_int index_second;
 	enter_conditional_false(compiler, &index_second);
 
 	store_var(compiler, node->children[1]->children[0]->value.sval.str, node->children[1]->children[0]->value.sval.str_len, node->line);
 
 	if (node->children[2]) {
-		size_t index_third;
+		yasl_int index_third;
 		visit(compiler, node->children[2]);
 		enter_conditional_false(compiler, &index_third);
 
@@ -510,14 +513,14 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 
 	decl_var(compiler, node->children[0]->children[0]->value.sval.str, node->children[0]->children[0]->value.sval.str_len);
 
-	size_t index_start = compiler->buffer->count;
+	yasl_int index_start = compiler->buffer->count;
 	add_checkpoint(compiler, index_start);
 
 	bb_add_byte(compiler->buffer, ITER_1);
 
 	add_checkpoint(compiler, compiler->buffer->count);
 
-	size_t index_second;
+	yasl_int index_second;
 	enter_conditional_false(compiler, &index_second);
 
 
@@ -537,11 +540,11 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 }
 
 static void visit_While(struct Compiler *const compiler, const struct Node *const node) {
-	size_t index_start = compiler->buffer->count;
+	yasl_int index_start = compiler->buffer->count;
 
 	if (node->children[2] != NULL) {
 		bb_add_byte(compiler->buffer, BR_8);
-		size_t index = compiler->buffer->count;
+		yasl_int index = compiler->buffer->count;
 		bb_intbytes8(compiler->buffer, 0);
 		index_start = compiler->buffer->count;
 		visit(compiler, node->children[2]);
@@ -554,7 +557,7 @@ static void visit_While(struct Compiler *const compiler, const struct Node *cons
 
 	add_checkpoint(compiler, compiler->buffer->count);
 
-	size_t index_second;
+	yasl_int index_second;
 	enter_conditional_false(compiler, &index_second);
 	enter_scope(compiler);
 
@@ -591,13 +594,13 @@ static void visit_Continue(struct Compiler *const compiler, const struct Node *c
 static void visit_If(struct Compiler *const compiler, const struct Node *const node) {
 	visit(compiler, node->children[0]);
 
-	size_t index_then;
+	yasl_int index_then;
 	enter_conditional_false(compiler, &index_then);
 	enter_scope(compiler);
 
 	visit(compiler, node->children[1]);
 
-	size_t index_else = 0;
+	yasl_int index_else = 0;
 
 	if (node->children[2] != NULL) {
 		bb_add_byte(compiler->buffer, BR_8);
@@ -648,13 +651,13 @@ static void visit_Const(struct Compiler *const compiler, const struct Node *cons
 static void visit_TriOp(struct Compiler *const compiler, const struct Node *const node) {
 	visit(compiler, node->children[0]);
 
-	size_t index_l;
+	yasl_int index_l;
 	enter_conditional_false(compiler, &index_l);
 
 	visit(compiler, node->children[1]);
 
 	bb_add_byte(compiler->buffer, BR_8);
-	size_t index_r = compiler->buffer->count;
+	yasl_int index_r = compiler->buffer->count;
 	bb_intbytes8(compiler->buffer, 0);
 
 	exit_conditional_false(compiler, &index_l);
@@ -669,7 +672,7 @@ static void visit_BinOp(struct Compiler *const compiler, const struct Node *cons
 		visit(compiler, node->children[0]);
 		bb_add_byte(compiler->buffer, DUP);
 		bb_add_byte(compiler->buffer, BRN_8);
-		size_t index = compiler->buffer->count;
+		yasl_int index = compiler->buffer->count;
 		bb_intbytes8(compiler->buffer, 0);
 		bb_add_byte(compiler->buffer, POP);
 		visit(compiler, node->children[1]);
@@ -679,7 +682,7 @@ static void visit_BinOp(struct Compiler *const compiler, const struct Node *cons
 		visit(compiler, node->children[0]);
 		bb_add_byte(compiler->buffer, DUP);
 		bb_add_byte(compiler->buffer, BRT_8);
-		size_t index = compiler->buffer->count;
+		yasl_int index = compiler->buffer->count;
 		bb_intbytes8(compiler->buffer, 0);
 		bb_add_byte(compiler->buffer, POP);
 		visit(compiler, node->children[1]);
@@ -689,7 +692,7 @@ static void visit_BinOp(struct Compiler *const compiler, const struct Node *cons
 		visit(compiler, node->children[0]);
 		bb_add_byte(compiler->buffer, DUP);
 
-		size_t index;
+		yasl_int index;
 		enter_conditional_false(compiler, &index);
 
 		bb_add_byte(compiler->buffer, POP);
