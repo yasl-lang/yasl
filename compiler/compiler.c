@@ -137,13 +137,13 @@ static void exit_scope(struct Compiler *const compiler) {
 	}
 }
 
-static inline void enter_conditional_false(struct Compiler *const compiler, yasl_int *index) {
+static inline void enter_conditional_false(struct Compiler *const compiler, int64_t *index) {
 	bb_add_byte(compiler->buffer, BRF_8);
 	*index = compiler->buffer->count;
 	bb_intbytes8(compiler->buffer, 0);
 }
 
-static inline void exit_conditional_false(struct Compiler *const compiler, const yasl_int *const index) {
+static inline void exit_conditional_false(struct Compiler *const compiler, const int64_t *const index) {
 	bb_rewrite_intbytes8(compiler->buffer, *index, compiler->buffer->count - *index - 8);
 }
 
@@ -352,7 +352,7 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	bb_add_byte(compiler->buffer, compiler->params->vars->count);
 	visit_Body(compiler, FnDecl_get_body(node));
 
-	yasl_int fn_val = compiler->header->count;
+	int64_t fn_val = compiler->header->count;
 	bb_append(compiler->header, compiler->buffer->bytes, compiler->buffer->count);
 	bb_add_byte(compiler->header, NCONST);
 	bb_add_byte(compiler->header, RET);
