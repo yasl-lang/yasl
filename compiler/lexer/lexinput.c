@@ -106,15 +106,15 @@ static  int lexinput_bb_eof(struct LEXINPUT *lp) {
 }
 
 static  int lexinput_bb_close(struct LEXINPUT *lp) {
-	free(lp->bb);
+	bb_del(lp->bb);
 	lp->bb = 0;
 	free(lp);
 	return 0;
 }
 
-struct LEXINPUT *lexinput_new_bb(char *buf, int len) {
+struct LEXINPUT *lexinput_new_bb(char *buf, size_t len) {
 	struct LEXINPUT *lp = (struct LEXINPUT *) malloc(sizeof(struct LEXINPUT));
-	lp->bb = bb_new(len);
+	lp->bb = bb_new(8);
 	bb_append(lp->bb, (unsigned char *) buf, len);
 	lp->getc = lexinput_bb_getc;
 	lp->tell = lexinput_bb_tell;

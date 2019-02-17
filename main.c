@@ -48,11 +48,11 @@ int main(int argc, char** argv) {
     } else {
 	    int next;
 	    size_t size = 8, count = 0;
-	    struct YASL_State *S = YASL_newstate_bb("", 0);
+	    char *buffer = malloc(size);
+	    struct YASL_State *S = YASL_newstate_bb(buffer, 0);
 	    YASL_load_math(S);
 	    YASL_load_io(S);
 	    while (1) {
-		    char *buffer = malloc(size);
 		    printf("YASL> ");
 		    while ((next = getchar()) != '\n') {
 			    if (size == count) {
@@ -67,6 +67,9 @@ int main(int argc, char** argv) {
 		    }
 		    buffer[count++] = '\n';
 
+		    if (count == strlen("quit\n") && !memcmp(buffer, "quit\n", strlen("quit\n"))) {
+		    	break;
+		    }
 		    // printf("`%s`", buffer);
 		    YASL_resetstate_bb(S, buffer, count); // *S = YASL_newstate_bb(buffer, count);
 
@@ -74,9 +77,9 @@ int main(int argc, char** argv) {
 		    // Load Standard Libraries
 
 		    YASL_execute(S);
-
-		    // YASL_delstate(S);
 	    }
+	    free(buffer);
+	    YASL_delstate(S);
     }
 
     return EXIT_SUCCESS;

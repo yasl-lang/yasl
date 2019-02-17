@@ -1,6 +1,7 @@
 #include "compiler/parser/parser.h"
 
 #include <inttypes.h>
+#include <compiler/lexer/lexer.h>
 
 #include "compiler/ast/ast.h"
 #include "compiler/lexer/lexer.h"
@@ -9,6 +10,7 @@
 #include "yasl_error.h"
 #include "yasl_include.h"
 #include "compiler/lexer/lexinput.h"
+#include "parser.h"
 
 static struct Node *parse_program(Parser *parser);
 static struct Node *parse_const(Parser *parser);
@@ -70,9 +72,13 @@ void parser_cleanup(Parser *const parser) {
 }
 
 static struct Node *handle_error(Parser *parser) {
-    parser->status = YASL_SYNTAX_ERROR;
-    while (curtok(parser) != T_SEMI) eattok(parser, curtok(parser));
-    return NULL;
+	parser->status = YASL_SYNTAX_ERROR;
+	free(parser->lex.value);
+	while (curtok(parser) != T_SEMI) {
+		free(parser->lex.value);
+		eattok(parser, curtok(parser));
+	}
+	return NULL;
 }
 
 Token eattok(Parser *const parser, const Token token) {
@@ -84,7 +90,10 @@ Token eattok(Parser *const parser, const Token token) {
                    YASL_TOKEN_NAMES[curtok(parser)], parser->lex.line);
             parser->status = YASL_SYNTAX_ERROR;
         }
-        while (!TOKEN_MATCHES(parser, T_SEMI, T_EOF)) gettok(&parser->lex);
+        while (!TOKEN_MATCHES(parser, T_SEMI, T_EOF)) {
+		free(parser->lex.value);
+        	gettok(&parser->lex);
+        }
     } else {
         gettok(&parser->lex);
     }

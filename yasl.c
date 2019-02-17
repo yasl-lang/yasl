@@ -44,7 +44,7 @@ struct YASL_State *YASL_newstate_bb(char *buf, int len) {
     return S;
 }
 
-void YASL_resetstate_bb(struct YASL_State *S, char *buf, int len) {
+void YASL_resetstate_bb(struct YASL_State *S, char *buf, size_t len) {
 	S->compiler.status = YASL_SUCCESS;
 	S->compiler.parser.status = YASL_SUCCESS;
 	lex_cleanup(&S->compiler.parser.lex);
