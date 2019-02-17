@@ -242,6 +242,36 @@ static void make_const(struct Compiler * const compiler, char *name, size_t name
 	else env_make_const(compiler->globals, name, name_len);
 }
 
+static unsigned char *return_bytes(struct Compiler *const compiler) {
+	if (compiler->status) return NULL;
+
+	bb_rewrite_intbytes8(compiler->header, 0, compiler->header->count);
+	bb_rewrite_intbytes8(compiler->header, 8, 0x00);   // TODO: put num globals here eventually.
+
+	YASL_DEBUG_LOG("%s\n", "header");
+	for (size_t i = 0; i < compiler->header->count; i++) {
+		if (i % 16 == 15)
+			YASL_DEBUG_LOG("%02x\n", compiler->header->bytes[i]);
+		else
+			YASL_DEBUG_LOG("%02x ", compiler->header->bytes[i]);
+	}
+	YASL_DEBUG_LOG("%s\n", "entry point");
+	for (size_t i = 0; i < compiler->code->count; i++) {
+		if (i % 16 == 15)
+			YASL_DEBUG_LOG("%02x\n", compiler->code->bytes[i]);
+		else
+			YASL_DEBUG_LOG("%02x ", compiler->code->bytes[i]);
+	}
+	YASL_DEBUG_LOG("%02x\n", HALT);
+
+	fflush(stdout);
+	unsigned char *bytecode = malloc(compiler->code->count + compiler->header->count + 1);    // NOT OWN
+	memcpy(bytecode, compiler->header->bytes, compiler->header->count);
+	memcpy(bytecode + compiler->header->count, compiler->code->bytes, compiler->code->count);
+	bytecode[compiler->code->count + compiler->header->count] = HALT;
+	return bytecode;
+}
+
 unsigned char *compile(struct Compiler *const compiler) {
 	struct Node *node;
 	gettok(&compiler->parser.lex);
@@ -259,45 +289,30 @@ unsigned char *compile(struct Compiler *const compiler) {
 		node_del(node);
 	}
 
-	if (compiler->status) return NULL;
+	return return_bytes(compiler);
+}
 
-	bb_rewrite_intbytes8(compiler->header, 0, compiler->header->count);
-	bb_rewrite_intbytes8(compiler->header, 8, 0x00);   // TODO: put num globals here eventually.
+unsigned char *compile_REPL(struct Compiler *const compiler) {
+	struct Node *node;
+	gettok(&compiler->parser.lex);
+	while (!peof(&compiler->parser)) {
+		if (peof(&compiler->parser)) break;
+		node = parse(&compiler->parser);
+		eattok(&compiler->parser, T_SEMI);
+		compiler->status |= compiler->parser.status;
+		if (!compiler->parser.status) {
+			if (peof(&compiler->parser) && node->nodetype == N_EXPRSTMT) {
+				node->nodetype = N_PRINT;
+			}
+			visit(compiler, node);
+			bb_append(compiler->code, compiler->buffer->bytes, compiler->buffer->count);
+			compiler->buffer->count = 0;
+		}
 
-	/*YASL_DEBUG_LOG("%s\n", "magic number");
-	for (i = 0; i < 7; i++) {
-	    YASL_DEBUG_LOG("%02x\n", magic_number[i]);
-	} */
-
-	YASL_DEBUG_LOG("%s\n", "header");
-	for (size_t i = 0; i < compiler->header->count; i++) {
-		if (i % 16 == 15)
-			YASL_DEBUG_LOG("%02x\n", compiler->header->bytes[i]);
-		else
-			YASL_DEBUG_LOG("%02x ", compiler->header->bytes[i]);
+		node_del(node);
 	}
-	YASL_DEBUG_LOG("%s\n", "entry point");
-	for (size_t i = 0; i < compiler->code->count; i++) {
-		if (i % 16 == 15)
-			YASL_DEBUG_LOG("%02x\n", compiler->code->bytes[i]);
-		else
-			YASL_DEBUG_LOG("%02x ", compiler->code->bytes[i]);
-	}
-	YASL_DEBUG_LOG("%02x\n", HALT);
-	//FILE *fp = fopen(compiler->value.sval.str, "wb");
-	//if (!fp) exit(EXIT_FAILURE);
 
-	fflush(stdout);
-	//fwrite(magic_number, 1, YASL_MAG_NUM_SIZE, fp);
-	//fwrite(compiler->header->bytes, 1, compiler->header->count, fp);
-	//fwrite(compiler->code->bytes, 1, compiler->code->count, fp);
-	unsigned char *bytecode = malloc(compiler->code->count + compiler->header->count + 1);    // NOT OWN
-	memcpy(bytecode, compiler->header->bytes, compiler->header->count);
-	memcpy(bytecode + compiler->header->count, compiler->code->bytes, compiler->code->count);
-	bytecode[compiler->code->count + compiler->header->count] = HALT;
-	//fputc(HALT, fp);
-	//fclose(fp);
-	return bytecode;
+	return return_bytes(compiler);
 }
 
 static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *const node) {

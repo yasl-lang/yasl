@@ -80,7 +80,7 @@ int main(int argc, char** argv) {
 			count = 0;
 			// Load Standard Libraries
 
-			YASL_execute(S);
+			YASL_execute_REPL(S);
 		}
 		free(buffer);
 		YASL_delstate(S);

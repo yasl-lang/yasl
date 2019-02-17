@@ -66,7 +66,7 @@ int YASL_delstate(struct YASL_State *S) {
 }
 
 int YASL_execute_REPL(struct YASL_State *S) {
-	unsigned char *bc = compile(&S->compiler);
+	unsigned char *bc = compile_REPL(&S->compiler);
 	if (!bc) return S->compiler.status;
 
 	int64_t entry_point = *((int64_t*)bc);

@@ -29,6 +29,7 @@ int YASL_delstate(struct YASL_State *S);
  * @return 0 on successful execution, else an error code.
  */
 int YASL_execute(struct YASL_State *S);
+int YASL_execute_REPL(struct YASL_State *S);
 
 /**
  * Declares a global for use in the given YASL_State.
