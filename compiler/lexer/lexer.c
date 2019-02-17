@@ -855,5 +855,4 @@ Lexer *lex_new(FILE *file /* OWN */) {
 
 void lex_cleanup(Lexer *lex) {
     lxclose(lex->file);
-    //free(lex);
 }
