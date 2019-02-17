@@ -148,8 +148,10 @@ static inline void exit_conditional_false(struct Compiler *const compiler, const
 }
 
 static void add_checkpoint(struct Compiler *const compiler, const size_t cp) {
-	if (compiler->checkpoints_count >= compiler->checkpoints_size)
-		compiler->checkpoints = realloc(compiler->checkpoints, compiler->checkpoints_size *= 2);
+	if (compiler->checkpoints_count >= compiler->checkpoints_size) {
+		compiler->checkpoints_size *= 2;
+		compiler->checkpoints = realloc(compiler->checkpoints, sizeof(compiler->checkpoints[0]) * compiler->checkpoints_size);
+	}
 	compiler->checkpoints[compiler->checkpoints_count++] = cp;
 }
 
