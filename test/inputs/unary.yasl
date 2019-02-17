@@ -1,0 +1,7 @@
+##-10\n4\nfalse\ntrue\n-1\n
+
+echo -10
+echo len'YASL'
+echo !true
+echo !false
+echo ^0b00000000
