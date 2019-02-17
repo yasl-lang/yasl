@@ -33,8 +33,6 @@ sub assert_output {
 
 
 # Literals
-assert_output("echo 0x10\n", "16\n", 0);
-assert_output("echo 0b1010\n", "10\n", 0);
 assert_output(q+echo '\ttab'
                +,
               "\ttab\n", 0);

@@ -31,6 +31,12 @@ printf "Running CLI tests...\n"
 CLI_TESTS_OUTPUT=$?
 printf "CLI tests exited with code $CLI_TESTS_OUTPUT\n\n"
 
+printf "========================================\n"
+printf "Running script tests...\n"
+( cd test ; perl filetest.pl )
+FILE_TESTS_OUTPUT=$?
+printf "Script tests exited with code $FILE_TESTS_OUTPUT\n\n"
+
 MEM_TESTS_OUTPUT=0
 if [ "$1" != '-m' ]; then
   printf "========================================\n"
@@ -39,12 +45,6 @@ if [ "$1" != '-m' ]; then
   MEM_TESTS_OUTPUT=$?
   printf "Memory tests exited with code $MEM_TESTS_OUTPUT\n\n"
 fi
-
-printf "========================================\n"
-printf "Running script tests...\n"
-( cd test ; perl filetest.pl )
-FILE_TESTS_OUTPUT=$?
-printf "Script tests exited with code $FILE_TESTS_OUTPUT\n\n"
 
 printf "========================================\n"
 [ $C_TESTS_OUTPUT$VM_TESTS_OUTPUT$CLI_TESTS_OUTPUT$MEM_TESTS_OUTPUT$FILE_TESTS_OUTPUT = 00000 ]
