@@ -63,6 +63,7 @@ struct Table* int_builtins(struct VM *vm) {
 struct Table* bool_builtins(struct VM *vm) {
 	struct Table *table = table_new();
 	table_insert_specialstring_cfunction(vm, table, S_TOSTR, &bool_tostr, 1);
+	table_insert_specialstring_cfunction(vm, table, S_TOBOOL, &bool_tobool, 1);
 	return table;
 }
 

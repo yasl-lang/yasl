@@ -78,14 +78,6 @@ assert_output(qq"x := { x*2:-x for x <- [1, 2, 3]}
                  }\n",
               "2\n-1\n4\n-2\n6\n-3\n", 0);
 
-
-# Unary Operators
-assert_output("echo -10\n", "-10\n", 0);
-assert_output("echo len'YASL'\n", "4\n", 0);
-assert_output("echo !true\n", "false\n", 0);
-assert_output("echo !false\n", "true\n", 0);
-assert_output("echo ^0b00000000\n", "-1\n", 0);
-
 # Binary Operators
 assert_output("echo 2 ** 4\n", "16\n", 0);
 assert_output("echo 2 ** -1\n", "0.5\n", 0);
