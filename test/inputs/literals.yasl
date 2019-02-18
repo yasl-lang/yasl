@@ -1,13 +1,4 @@
-##true\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\n
+##16\n10\n
 
-echo 0__10 == 10
-echo 10__ == 10
-echo 1_000 == 1000
-echo 10__000__ == 10000
-echo 1_000__000___ == 1000000
-
-echo 0__10 == '0__10'->toint()
-echo 10__ == '10__'->toint()
-echo 1_000 == '1_000'->toint()
-echo 10__000__ == '10__000__'->toint()
-echo 1_000__000___ == '1_000__000___'->toint()
+echo 0x10
+echo 0b1010

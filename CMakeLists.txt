@@ -14,30 +14,30 @@ include_directories(test)
 add_executable(YASL
         yasl.c
         main.c
-        compiler/ast/ast.c
+        compiler/ast.c
         bytebuffer/bytebuffer.c
-        compiler/compiler/compiler.c
-        compiler/compiler/env/env.c
-        compiler/lexer/lexer.c
-        compiler/lexer/lexinput.c
-        compiler/parser/parser.c
-        compiler/middleend/middleend.c
+        compiler/compiler.c
+        compiler/env.c
+        compiler/lexer.c
+        compiler/lexinput.c
+        compiler/parser.c
+        compiler/middleend.c
         hashtable/hashtable.c
-        interpreter/boolean/bool_methods.c
-        interpreter/builtins/builtins.c
-        interpreter/float/float_methods.c
-        interpreter/float/yasl_float.c
-        interpreter/integer/int_methods.c
-        interpreter/list/list.c
-        interpreter/list/list_methods.c
-        interpreter/table/table_methods.c
-        interpreter/VM/VM.c
-        interpreter/YASL_Object/YASL_Object.c
-        interpreter/refcount/refcount.c
-        interpreter/YASL_string/str_methods.c
-        interpreter/YASL_string/YASL_string.c
-        interpreter/userdata/userdata.c
-        interpreter/undef/undef_methods.c
+        interpreter/bool_methods.c
+        interpreter/builtins.c
+        interpreter/float_methods.c
+        interpreter/yasl_float.c
+        interpreter/int_methods.c
+        interpreter/list.c
+        interpreter/list_methods.c
+        interpreter/table_methods.c
+        interpreter/VM.c
+        interpreter/YASL_Object.c
+        interpreter/refcount.c
+        interpreter/str_methods.c
+        interpreter/YASL_string.c
+        interpreter/userdata.c
+        interpreter/undef_methods.c
         prime/prime.c
         std-io/yasl-std-io.c
         std-math/yasl-std-math.c)
@@ -56,49 +56,49 @@ add_executable(YASLTEST
         test/test_compiler/foreachtest.c
         test/test_compiler/foldingtest.c
         test/test_compiler/comprehensiontest.c
-        compiler/lexer/lexer.c
-        compiler/lexer/lexinput.c
-        compiler/compiler/compiler.c
-        compiler/parser/parser.c
-        compiler/ast/ast.c
-        compiler/middleend/middleend.c
+        compiler/lexer.c
+        compiler/lexinput.c
+        compiler/compiler.c
+        compiler/parser.c
+        compiler/ast.c
+        compiler/middleend.c
         hashtable/hashtable.c
-        interpreter/float/yasl_float.c
-        interpreter/YASL_Object/YASL_Object.c
+        interpreter/yasl_float.c
+        interpreter/YASL_Object.c
         bytebuffer/bytebuffer.c
-        interpreter/YASL_string/YASL_string.c
-        interpreter/refcount/refcount.c
-        interpreter/list/list.c
-        interpreter/userdata/userdata.c
+        interpreter/YASL_string.c
+        interpreter/refcount.c
+        interpreter/list.c
+        interpreter/userdata.c
         prime/prime.c
-        compiler/compiler/env/env.c)
+        compiler/env.c)
 
 add_library(yaslapi
         yasl.c
-        compiler/ast/ast.c
+        compiler/ast.c
         bytebuffer/bytebuffer.c
-        compiler/compiler/compiler.c
-        compiler/compiler/env/env.c
-        compiler/lexer/lexer.c
-        compiler/lexer/lexinput.c
-        compiler/parser/parser.c
-        compiler/middleend/middleend.c
+        compiler/compiler.c
+        compiler/env.c
+        compiler/lexer.c
+        compiler/lexinput.c
+        compiler/parser.c
+        compiler/middleend.c
         hashtable/hashtable.c
-        interpreter/boolean/bool_methods.c
-        interpreter/builtins/builtins.c
-        interpreter/float/float_methods.c
-        interpreter/float/yasl_float.c
-        interpreter/integer/int_methods.c
-        interpreter/list/list.c
-        interpreter/list/list_methods.c
-        interpreter/table/table_methods.c
-        interpreter/VM/VM.c
-        interpreter/YASL_Object/YASL_Object.c
-        interpreter/refcount/refcount.c
-        interpreter/YASL_string/str_methods.c
-        interpreter/YASL_string/YASL_string.c
-        interpreter/userdata/userdata.c
-        interpreter/undef/undef_methods.c
+        interpreter/bool_methods.c
+        interpreter/builtins.c
+        interpreter/float_methods.c
+        interpreter/yasl_float.c
+        interpreter/int_methods.c
+        interpreter/list.c
+        interpreter/list_methods.c
+        interpreter/table_methods.c
+        interpreter/VM.c
+        interpreter/YASL_Object.c
+        interpreter/refcount.c
+        interpreter/str_methods.c
+        interpreter/YASL_string.c
+        interpreter/userdata.c
+        interpreter/undef_methods.c
         prime/prime.c)
 
 target_link_libraries(YASL m)

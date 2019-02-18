@@ -3,8 +3,8 @@
 #include <inttypes.h>
 
 #include "prime/prime.h"
-#include "interpreter/YASL_Object/YASL_Object.h"
-#include "interpreter/list/list.h"
+#include "interpreter/YASL_Object.h"
+#include "interpreter/list.h"
 
 #define LEN(v) (*((int64_t*)(v).value))
 

@@ -2,6 +2,7 @@
 
 #include "yasl_error.h"
 #include "inttypes.h"
+#include <stdlib.h>
 
 struct YASL_State;
 struct YASL_Object;
@@ -12,6 +13,8 @@ struct YASL_Object;
  */
 struct YASL_State *YASL_newstate(char *filename);
 struct YASL_State *YASL_newstate_bb(char *buf, int len);
+
+void YASL_resetstate_bb(struct YASL_State *S, char *buf, size_t len);
 
 /**
  * deletes the given YASL_State.
@@ -26,6 +29,7 @@ int YASL_delstate(struct YASL_State *S);
  * @return 0 on successful execution, else an error code.
  */
 int YASL_execute(struct YASL_State *S);
+int YASL_execute_REPL(struct YASL_State *S);
 
 /**
  * Declares a global for use in the given YASL_State.

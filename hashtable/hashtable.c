@@ -4,12 +4,12 @@
 #include <string.h>
 #include <math.h>
 #include <stdio.h>
-#include <interpreter/YASL_Object/YASL_Object.h>
-#include <interpreter/YASL_string/YASL_string.h>
+#include <interpreter/YASL_Object.h>
+#include <interpreter/YASL_string.h>
 
 //#include "YASL_Object.h"
 //#include "YASL_string.h"
-#include "interpreter/refcount/refcount.h"
+#include "interpreter/refcount.h"
 
 #define HT_BASESIZE 30
 
@@ -31,12 +31,12 @@ static int hash_function(const struct YASL_Object s, const int a, const int m) {
         }
 }
 
-static int get_hash(const struct YASL_Object s, const int num_buckets, const int attempt) {
+static unsigned int get_hash(const struct YASL_Object s, const int num_buckets, const int attempt) {
         const int hash_a = hash_function(s, PRIME_A, num_buckets);
         if (attempt == 0)
                 return hash_a % num_buckets;
         const int hash_b = hash_function(s, PRIME_B, num_buckets);
-        return (hash_a + (attempt * (hash_b + 1))) % num_buckets;
+        return ((unsigned int)(hash_a + (attempt * (hash_b + 1)))) % num_buckets;
 }
 
 static Item_t new_item(const struct YASL_Object k, const struct YASL_Object v) {
