@@ -95,7 +95,10 @@ int YASL_execute(struct YASL_State *S) {
 
 
 int YASL_declglobal(struct YASL_State *S, char *name) {
-    env_decl_var(S->compiler.globals, name, strlen(name));
+    int64_t index = env_decl_var(S->compiler.globals, name, strlen(name));
+    if (index > 255) {
+        return YASL_TOO_MANY_VAR_ERROR;
+    }
     return YASL_SUCCESS;
 }
 
