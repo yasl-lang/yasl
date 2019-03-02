@@ -8,7 +8,7 @@
 #include "yasl-std-math.h"
 #include "yasl_state.h"
 
-#define VERSION "v0.3.6"
+#define VERSION "v0.3.7"
 #define VERSION_PRINTOUT "YASL " VERSION
 
 static int main_error(int argc, char **argv) {
