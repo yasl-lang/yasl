@@ -113,7 +113,6 @@ void compiler_cleanup(struct Compiler *compiler) {
 	parser_cleanup(&compiler->parser);
 	compiler_buffers_del(compiler);
 	free(compiler->checkpoints);
-	//free(compiler);
 }
 
 static void handle_error(struct Compiler *const compiler) {
@@ -178,13 +177,13 @@ static inline int64_t get_index(int64_t value) {
 
 static void load_var(struct Compiler *const compiler, char *name, size_t name_len, size_t line) {
 	if (env_contains(compiler->params, name, name_len)) {
+		int64_t index = get_index(env_get(compiler->params, name, name_len));
 		bb_add_byte(compiler->buffer, LLOAD_1);
-		bb_add_byte(compiler->buffer,
-			    get_index(env_get(compiler->params, name, name_len))); // TODO: handle size
+		bb_add_byte(compiler->buffer, (unsigned char)index);
 	} else if (env_contains(compiler->globals, name, name_len)) {
+		int64_t index = get_index(env_get(compiler->globals, name, name_len));
 		bb_add_byte(compiler->buffer, GLOAD_1);
-		bb_add_byte(compiler->buffer,
-			    get_index(env_get(compiler->globals, name, name_len)));  // TODO: handle size
+		bb_add_byte(compiler->buffer, (unsigned char) index);
 	} else {
 		YASL_PRINT_ERROR_UNDECLARED_VAR(name, line);
 		handle_error(compiler);
@@ -201,7 +200,7 @@ static void store_var(struct Compiler *const compiler, char *name, size_t name_l
 			return;
 		}
 		bb_add_byte(compiler->buffer, LSTORE_1);
-		bb_add_byte(compiler->buffer, index); // TODO: handle size
+		bb_add_byte(compiler->buffer, (unsigned char) index);
 	} else if (env_contains(compiler->globals, name, name_len)) {
 		int64_t index = env_get(compiler->globals, name, name_len);
 		if (is_const(index)) {
@@ -210,7 +209,7 @@ static void store_var(struct Compiler *const compiler, char *name, size_t name_l
 			return;
 		}
 		bb_add_byte(compiler->buffer, GSTORE_1);
-		bb_add_byte(compiler->buffer, index);  // TODO: handle size
+		bb_add_byte(compiler->buffer, (unsigned char) index);
 	} else {
 		YASL_PRINT_ERROR_UNDECLARED_VAR(name, line);
 		handle_error(compiler);
@@ -229,11 +228,19 @@ static int contains_var(const struct Compiler *const compiler, char *name, size_
 	       env_contains(compiler->params, name, name_len);
 }
 
-static void decl_var(struct Compiler *const compiler, char *name, size_t name_len) {
+static void decl_var(struct Compiler *const compiler, char *name, size_t name_len, size_t line) {
 	if (NULL != compiler->params) {
-		env_decl_var(compiler->params, name, name_len);
+		int64_t index = env_decl_var(compiler->params, name, name_len);
+		if (index > 255) {
+			YASL_PRINT_ERROR_TOO_MANY_VAR(line);
+			handle_error(compiler);
+		}
 	} else {
-		env_decl_var(compiler->globals, name, name_len);
+		int64_t index = env_decl_var(compiler->globals, name, name_len);
+		if (index > 255) {
+			YASL_PRINT_ERROR_TOO_MANY_VAR(line);
+			handle_error(compiler);
+		}
 	}
 }
 
@@ -341,7 +348,7 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 
 	FOR_CHILDREN(i, child, FnDecl_get_params(node)) {
 		decl_var(compiler, child->value.sval.str,
-			 child->value.sval.str_len);
+			 child->value.sval.str_len, child->line);
 		if (child->nodetype == N_CONST) {
 			make_const(compiler, child->value.sval.str,
 				   child->value.sval.str_len);
@@ -442,7 +449,7 @@ static void visit_ListComp(struct Compiler *const compiler, const struct Node *c
 
 	bb_add_byte(compiler->buffer, END);
 
-	decl_var(compiler, node->children[1]->children[0]->value.sval.str, node->children[1]->children[0]->value.sval.str_len);
+	decl_var(compiler, node->children[1]->children[0]->value.sval.str, node->children[1]->children[0]->value.sval.str_len, node->children[1]->children[0]->line);
 
 	int64_t index_start = compiler->buffer->count;
 
@@ -483,7 +490,7 @@ static void visit_TableComp(struct Compiler *const compiler, const struct Node *
 	bb_add_byte(compiler->buffer, INITFOR);
 	bb_add_byte(compiler->buffer, END);
 
-	decl_var(compiler, node->children[1]->children[0]->value.sval.str, node->children[1]->children[0]->value.sval.str_len);
+	decl_var(compiler, node->children[1]->children[0]->value.sval.str, node->children[1]->children[0]->value.sval.str_len,  node->children[1]->children[0]->line);
 
 	int64_t index_start = compiler->buffer->count;
 
@@ -525,7 +532,7 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 
 	bb_add_byte(compiler->buffer, INITFOR);
 
-	decl_var(compiler, node->children[0]->children[0]->value.sval.str, node->children[0]->children[0]->value.sval.str_len);
+	decl_var(compiler, node->children[0]->children[0]->value.sval.str, node->children[0]->children[0]->value.sval.str_len, node->children[0]->children[0]->line);
 
 	int64_t index_start = compiler->buffer->count;
 	add_checkpoint(compiler, index_start);
@@ -645,7 +652,7 @@ static void declare_with_let_or_const(struct Compiler *const compiler, const str
 		return;
 	}
 
-	decl_var(compiler, node->value.sval.str, node->value.sval.str_len);
+	decl_var(compiler, node->value.sval.str, node->value.sval.str_len, node->line);
 
 	if (Let_get_expr(node) != NULL) visit(compiler, Let_get_expr(node));
 	else bb_add_byte(compiler->buffer, NCONST);
