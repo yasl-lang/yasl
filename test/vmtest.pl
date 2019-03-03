@@ -316,10 +316,18 @@ assert_output(qq"const x := 10
 # Errors
 assert_output(qq"echo 1 // 0;", $RED . "DivisionByZeroError\n" . $END, 5);
 assert_output(qq"echo 1 % 0;", $RED . "DivisionByZeroError\n" . $END, 5);
+
 assert_output(qq"for x := 0; x < 5; x += 1 { };
                  echo x;", $RED . "SyntaxError: Undeclared variable x (line 2).\n" . $END, 3);
 assert_output(qq"const x := 10; x = 11;", $RED . "SyntaxError: Cannot assign to constant x (line 1).\n" . $END, 3);
 assert_output(qq"const x := 10; x := 11;", $RED . "SyntaxError: Illegal redeclaration of x (line 1).\n" . $END, 3);
 assert_output(qq"x := 10; x := 11;", $RED . "SyntaxError: Illegal redeclaration of x (line 1).\n" . $END, 3);
+assert_output(q"x := [ b for b <- [1, 2, 3, 4] if b % 2 == 0 ]; echo b;",
+              $RED . "SyntaxError: Undeclared variable b (line 1).\n" . $END, 3);
+assert_output("echo if;",
+              $RED . "SyntaxError: ParsingError in line 1: expected expression, got `if`\n" . $END, 3);
+
+assert_output("echo true + false;",
+              $RED . "TypeError: + not supported for operands of types bool and bool.\n" . $END, 4);
 
 exit $__VM_TESTS_FAILED__;
