@@ -91,7 +91,7 @@ struct Table* str_builtins(struct VM *vm) {
 	table_insert_specialstring_cfunction(vm, table, S_RTRIM, &str_rtrim, 2);
 	table_insert_specialstring_cfunction(vm, table, S_TRIM, &str_trim, 2);
 	table_insert_specialstring_cfunction(vm, table, S___GET, &str___get, 2);
-	table_insert_specialstring_cfunction(vm, table, S_REPEAT, &str_repeat, 2);
+	table_insert_specialstring_cfunction(vm, table, S_REP, &str_repeat, 2);
 	return table;
 }
 

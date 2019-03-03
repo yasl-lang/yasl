@@ -112,7 +112,7 @@ enum SpecialStrings {
 	S_POP,        // pop
 	S_PUSH,       // push
 
-	S_REPEAT,     // repeat
+	S_REP,     // repeat
 	S_REPLACE,    // replace
 	S_REVERSE,    // reverse
 	S_RTRIM,      // rtrim

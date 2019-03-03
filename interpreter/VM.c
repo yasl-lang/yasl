@@ -65,7 +65,7 @@ void vm_init(struct VM *vm,
 	DEF_SPECIAL_STR(S_LTRIM, "ltrim");
 	DEF_SPECIAL_STR(S_POP, "pop");
 	DEF_SPECIAL_STR(S_PUSH, "push");
-	DEF_SPECIAL_STR(S_REPEAT, "repeat");
+	DEF_SPECIAL_STR(S_REP, "rep");
         DEF_SPECIAL_STR(S_REPLACE, "replace");
 	DEF_SPECIAL_STR(S_REVERSE, "reverse");
 	DEF_SPECIAL_STR(S_RTRIM, "rtrim");

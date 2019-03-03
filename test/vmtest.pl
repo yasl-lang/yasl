@@ -224,10 +224,10 @@ assert_output("echo 'YYAYYY'->trim('Y')\n", "A\n", 0);
 assert_output("echo 'YASL'->__get(3)\n", "L\n", 0); 
 assert_output("echo 'YASL'->__get(-1)\n", "L\n", 0);
 assert_output("echo '12345'->slice(1, 4)\n", "234\n", 0);
-assert_output("echo 'YASL'->repeat(3)\n", "YASLYASLYASL\n", 0);
-assert_output("echo 'YASL'->repeat(0)\n", "\n", 0);
-assert_output("echo ''->repeat(3)\n", "\n", 0);
-assert_output("echo ''->repeat(0)\n", "\n", 0);
+assert_output("echo 'YASL'->rep(3)\n", "YASLYASLYASL\n", 0);
+assert_output("echo 'YASL'->rep(0)\n", "\n", 0);
+assert_output("echo ''->rep(3)\n", "\n", 0);
+assert_output("echo ''->rep(0)\n", "\n", 0);
 
 # List Methods
 assert_output(qq"x := [0]

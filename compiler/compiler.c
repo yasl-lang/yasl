@@ -33,7 +33,7 @@ static enum SpecialStrings get_special_string(const struct Node *const node) {
 	else if (STR_EQ(node, "ltrim")) return S_LTRIM;
 	else if (STR_EQ(node, "pop")) return S_POP;
 	else if (STR_EQ(node, "push")) return S_PUSH;
-	else if (STR_EQ(node, "repeat")) return S_REPEAT;
+	else if (STR_EQ(node, "rep")) return S_REP;
 	else if (STR_EQ(node, "replace")) return S_REPLACE;
 	else if (STR_EQ(node, "reverse")) return S_REVERSE;
 	else if (STR_EQ(node, "rtrim")) return S_RTRIM;
