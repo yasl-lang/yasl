@@ -647,7 +647,7 @@ static void visit_Print(struct Compiler *const compiler, const struct Node *cons
 
 static void declare_with_let_or_const(struct Compiler *const compiler, const struct Node *const node) {
 	if (contains_var_in_current_scope(compiler, node->value.sval.str, node->value.sval.str_len)) {
-		YASL_PRINT_ERROR_SYNTAX("Illegal redeclaration of %s in line %zd.\n", node->value.sval.str, node->line);
+		YASL_PRINT_ERROR_SYNTAX("Illegal redeclaration of %s (line %zd).\n", node->value.sval.str, node->line);
 		handle_error(compiler);
 		return;
 	}
