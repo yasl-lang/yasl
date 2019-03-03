@@ -51,7 +51,7 @@ void YASL_resetstate_bb(struct YASL_State *S, char *buf, size_t len) {
 	S->compiler.parser.lex = NEW_LEXER(lexinput_new_bb(buf, len));
 	S->compiler.code->count = 0;
 	S->compiler.buffer->count = 0;
-	S->compiler.header->count = 16;
+	// S->compiler.header->count = 16;
 	table_del_string_int(S->compiler.strings);
 	S->compiler.strings = table_new();
 	free(S->vm.code);
@@ -59,10 +59,10 @@ void YASL_resetstate_bb(struct YASL_State *S, char *buf, size_t len) {
 
 
 int YASL_delstate(struct YASL_State *S) {
-    compiler_cleanup(&S->compiler);
+	compiler_cleanup(&S->compiler);
 	vm_cleanup((struct VM *) S);
-    free(S);
-    return YASL_SUCCESS;
+	free(S);
+	return YASL_SUCCESS;
 }
 
 int YASL_execute_REPL(struct YASL_State *S) {
@@ -80,17 +80,17 @@ int YASL_execute_REPL(struct YASL_State *S) {
 }
 
 int YASL_execute(struct YASL_State *S) {
-    unsigned char *bc = compile(&S->compiler);
-    if (!bc) return S->compiler.status;
+	unsigned char *bc = compile(&S->compiler);
+	if (!bc) return S->compiler.status;
 
-    int64_t entry_point = *((int64_t*)bc);
-    // TODO: use this in VM.
-    // int64_t num_globals = *((int64_t*)bc+1);
+	int64_t entry_point = *((int64_t *) bc);
+	// TODO: use this in VM.
+	// int64_t num_globals = *((int64_t*)bc+1);
 
-    S->vm.pc = entry_point;
-    S->vm.code = bc;
+	S->vm.pc = entry_point;
+	S->vm.code = bc;
 
-    return vm_run((struct VM *)S);  // TODO: error handling for runtime errors.
+	return vm_run((struct VM *) S);  // TODO: error handling for runtime errors.
 }
 
 
