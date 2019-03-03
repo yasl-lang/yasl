@@ -19,4 +19,4 @@
 #define YASL_PRINT_ERROR_UNDECLARED_VAR(name, line) YASL_PRINT_ERROR_SYNTAX("Undeclared variable %s (line %zd).\n", name, line)
 #define YASL_PRINT_ERROR_CONSTANT(name, line) YASL_PRINT_ERROR_SYNTAX("Cannot assign to constant %s (line %zd).\n", name, line)
 #define YASL_PRINT_ERROR_TOO_MANY_VAR(line) YASL_PRINT_ERROR("Too many variables in current scope (line %zd).\n", line)
-#define YASL_PRINT_ERROR_DIVIDE_BY_ZERO() printf(K_RED "DivisionByZeroError" K_END "\n")
+#define YASL_PRINT_ERROR_DIVIDE_BY_ZERO() printf(K_RED "DivisionByZeroError\n" K_END)
