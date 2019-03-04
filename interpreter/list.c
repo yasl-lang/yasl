@@ -13,25 +13,26 @@ int isvalueinarray(int64_t val, int64_t *arr, int size){
 }
 
 struct RC_UserData* ls_new_sized(const int base_size) {
-    struct RC_UserData *ls = malloc(sizeof(struct RC_UserData));
-    struct List *list = malloc(sizeof(struct List));
-    list->size = base_size;
-    list->count = 0;
-    list->items = malloc(sizeof(struct YASL_Object)*list->size);
-    ls->data = list;
-    ls->rc = rc_new();
-    ls->tag = T_LIST;
-    return ls;
+	struct RC_UserData *ls = malloc(sizeof(struct RC_UserData));
+	struct List *list = malloc(sizeof(struct List));
+	list->size = base_size;
+	list->count = 0;
+	list->items = malloc(sizeof(struct YASL_Object) * list->size);
+	ls->data = list;
+	ls->rc = rc_new();
+	ls->destructor = ls_del_data;
+	ls->tag = T_LIST;
+	return ls;
 }
 
 struct RC_UserData* ls_new(void) {
-    return ls_new_sized(LS_BASESIZE);
+	return ls_new_sized(LS_BASESIZE);
 }
 
-void ls_del_data(struct RC_UserData *ls) {
-    for (int i = 0; i < ((struct List*)ls->data)->count; i++) dec_ref(((struct List*)ls->data)->items + i);
-    free(((struct List*)ls->data)->items);
-    free(ls->data);
+void ls_del_data(void *ls) {
+	for (int i = 0; i < ((struct List *) ls)->count; i++) dec_ref(((struct List *) ls)->items + i);
+	free(((struct List *) ls)->items);
+	free(ls);
 }
 
 void ls_del_rc(struct RC_UserData *ls) {

@@ -98,19 +98,15 @@ static void test_small_floats() {
 	unsigned char expected[]  = {
 		0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		DCONST_N,
-		POP,
 		DCONST_0,
 		POP,
 		DCONST_1,
 		POP,
 		DCONST_2,
 		POP,
-		DCONST_I,
-		POP,
 		HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "nan; 0.0; 1.0; 2.0; inf;");
+	ASSERT_GEN_BC_EQ(expected, "0.0; 1.0; 2.0;");
 }
 static void test_float() {
     unsigned char expected[] = {

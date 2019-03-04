@@ -65,19 +65,23 @@ void inc_ref(struct YASL_Object *v) {
 
 static void dec_weak_ref(struct YASL_Object *v) {
 	switch (v->type) {
-	case Y_STR_W:if (--(v->value.sval->rc->weak_refs) || v->value.sval->rc->refs) return;
+	case Y_STR_W:
+		if (--(v->value.sval->rc->weak_refs) || v->value.sval->rc->refs) return;
 		str_del_rc(v->value.sval);
 		v->type = Y_UNDEF;
 		break;
-	case Y_LIST_W:if (--(v->value.uval->rc->weak_refs) || v->value.uval->rc->refs) return;
+	case Y_LIST_W:
+		if (--(v->value.uval->rc->weak_refs) || v->value.uval->rc->refs) return;
 		ls_del_rc(v->value.uval);
 		v->type = Y_UNDEF;
 		break;
-	case Y_TABLE_W:if (--(v->value.uval->rc->weak_refs) || v->value.uval->rc->refs) return;
+	case Y_TABLE_W:
+		if (--(v->value.uval->rc->weak_refs) || v->value.uval->rc->refs) return;
 		rcht_del_rc(v->value.uval);
 		v->type = Y_UNDEF;
 		break;
-	default:puts("NoT IMPELemented");
+	default:
+		puts("NoT IMPELemented");
 		exit(EXIT_FAILURE);
 	}
 }
@@ -91,17 +95,23 @@ void dec_strong_ref(struct YASL_Object *v) {
 		if (v->value.sval->rc->weak_refs) return;
 		str_del_rc(v->value.sval);
 		break;
-	case Y_LIST:if (--(v->value.uval->rc->refs)) return;
+	/* case Y_LIST:
+		if (--(v->value.uval->rc->refs)) return;
 		ls_del_data(v->value.uval);
 		if (v->value.uval->rc->weak_refs) return;
 		ls_del_rc(v->value.uval);
 		break;
-	case Y_TABLE:if (--(v->value.uval->rc->refs)) return;
-		rcht_del_data(v->value.uval);
+	 */
+	case Y_LIST:
+	case Y_USERDATA:
+	case Y_TABLE:
+		if (--(v->value.uval->rc->refs)) return;
+		ud_del_data(v->value.uval);
 		if (v->value.uval->rc->weak_refs) return;
-		rcht_del_rc(v->value.uval);
+		ud_del_rc(v->value.uval);
 		break;
-	case Y_CFN:if (--(v->value.cval->rc->refs)) return;
+	case Y_CFN:
+		if (--(v->value.cval->rc->refs)) return;
 		cfn_del_data(v->value.cval);
 		if (v->value.cval->rc->weak_refs) return;
 		cfn_del_rc(v->value.cval);
