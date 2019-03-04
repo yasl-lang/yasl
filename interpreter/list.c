@@ -35,11 +35,6 @@ void ls_del_data(void *ls) {
 	free(ls);
 }
 
-void ls_del_rc(struct RC_UserData *ls) {
-    rc_del(ls->rc);
-    free(ls);
-}
-
 void ls_del(struct RC_UserData *ls) {
     for (int i = 0; i < ((struct List *)ls->data)->count; i++) dec_ref(((struct List *)ls->data)->items + i);
     free(((struct List *)ls->data)->items);

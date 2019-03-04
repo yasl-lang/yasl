@@ -72,12 +72,12 @@ static void dec_weak_ref(struct YASL_Object *v) {
 		break;
 	case Y_LIST_W:
 		if (--(v->value.uval->rc->weak_refs) || v->value.uval->rc->refs) return;
-		ls_del_rc(v->value.uval);
+		ud_del_rc(v->value.uval);
 		v->type = Y_UNDEF;
 		break;
 	case Y_TABLE_W:
 		if (--(v->value.uval->rc->weak_refs) || v->value.uval->rc->refs) return;
-		rcht_del_rc(v->value.uval);
+		ud_del_rc(v->value.uval);
 		v->type = Y_UNDEF;
 		break;
 	default:
