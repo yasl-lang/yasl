@@ -77,7 +77,8 @@ int isvaliddouble(const char *str) {
 	return hasdot && isdigit(str[len-1]) && isdigit(str[0]);
 }
 
-double parsedouble(const char *str) {
+double parsedouble(const char *str, int *error) {
+	*error = 1;
 	if (!strcmp(str, "inf") || !strcmp(str, "+inf")) return INFINITY;
 	else if (!strcmp(str, "-inf")) return -INFINITY;
 	else if (str[0] == '-' && isvaliddouble(str+1))
@@ -85,10 +86,11 @@ double parsedouble(const char *str) {
 	else if (str[0] == '+' && isvaliddouble(str+1))
 		return +strtod(str+1, NULL);
 	else if (isvaliddouble(str))	return strtod(str, NULL);
+	*error = 0;
 	return NAN;
 }
 
-int64_t parseint64(const char *str) {
+int64_t parseint64(const char *str, int *error) {
 	int64_t result;
 	size_t len = strlen(str);
 	char *end;
@@ -99,7 +101,7 @@ int64_t parseint64(const char *str) {
 	} else {
 		result = strtoll(str, &end, 10);
 	}
-	// printf("%d, %d", str + len, end);
+	*error = str + len == end;
 	return str + len == end ? result : 0;
 }
 
@@ -110,6 +112,7 @@ int str_tofloat(struct YASL_State *S) {
 	if (!isdigit(str->str[str->start])) {
 		free(buffer);
 		vm_push((struct VM *)S, YASL_FLOAT(NAN));
+		return 0;
 	}
 	size_t curr = 0;
 	for (int64_t i = 0; i < yasl_string_len(str); ++i) {
@@ -119,7 +122,22 @@ int str_tofloat(struct YASL_State *S) {
 		buffer[curr++] = str->str[str->start + i];
 	}
 	buffer[curr] = '\0';
-	vm_push((struct VM *)S, YASL_FLOAT(parsedouble(buffer)));
+	int ok = 1;
+	yasl_float result = parsedouble(buffer, &ok);
+	if (ok) {
+		vm_push((struct VM *)S, YASL_FLOAT(result));
+		free(buffer);
+		return 0;
+	}
+
+	result = parseint64(buffer, &ok);
+	if (ok) {
+		vm_push((struct VM *)S, YASL_FLOAT(result));
+		free(buffer);
+		return 0;
+	}
+
+	vm_push((struct VM *)S, YASL_FLOAT(NAN));
 	free(buffer);
 	return 0;
 }
@@ -133,7 +151,8 @@ int str_toint(struct YASL_State *S) {
 	if (yasl_string_len(str) <= 2) {
 		memcpy(buffer, str->str + str->start, yasl_string_len(str));
 		buffer[yasl_string_len(str)] = '\0';
-		vm_push((struct VM *)S, YASL_INT(parseint64(buffer)));
+		int ok;
+		vm_push((struct VM *)S, YASL_INT(parseint64(buffer, &ok)));
 		free(buffer);
 		return 0;
 	}
@@ -149,7 +168,8 @@ int str_toint(struct YASL_State *S) {
 			buffer[curr++] = str->str[str->start + i];
 		}
 		buffer[curr] = '\0';
-		vm_push((struct VM *)S, YASL_INT(parseint64(buffer)));
+		int ok;
+		vm_push((struct VM *)S, YASL_INT(parseint64(buffer, &ok)));
 		free(buffer);
 		return 0;
 	}
@@ -162,7 +182,8 @@ int str_toint(struct YASL_State *S) {
 		buffer[curr++] = str->str[str->start + i];
 	}
 	buffer[curr] = '\0';
-	vm_push((struct VM *)S, YASL_INT(parseint64(buffer)));
+	int ok;
+	vm_push((struct VM *)S, YASL_INT(parseint64(buffer, &ok)));
 	free(buffer);
 	return 0;
 }
