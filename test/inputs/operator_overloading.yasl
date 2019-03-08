@@ -1,0 +1,113 @@
+##-9223372036854775808\n161\n171\n-161\n151\n-162\n171\n1610\n16.1\n16\n1\n164864\n0\n0\n161\n171\n
+
+fn pos(a) {
+    return a.val;
+}
+
+fn neg(a) {
+    return -a.val;
+}
+
+fn bnot(a) {
+    return ^a.val;
+}
+
+fn add(a, b) {
+    return a.val + b.val;
+}
+
+fn sub(a, b) {
+    return a.val - b.val;
+}
+
+fn mul(a, b) {
+    return a.val * b.val;
+}
+
+fn fdiv(a, b) {
+    return a.val / b.val;
+}
+
+fn idiv(a, b) {
+    return a.val // b.val;
+}
+
+fn mod(a, b) {
+    return a.val % b.val;
+}
+
+fn bshl(a, b) {
+    return a.val << b.val;
+}
+
+fn bshr(a, b) {
+    return a.val >> b.val;
+}
+
+fn bxor(a, b) {
+    return a.val ^ b.val;
+}
+
+fn band(a, b) {
+    return a.val & b.val;
+}
+
+fn bandnot(a, b) {
+    return a.val &^ b.val;
+}
+
+fn bor(a, b) {
+    return a.val | b.val;
+}
+
+fn pow(a, b) {
+    return a.val ** b.val;
+}
+
+x := {
+    .__pow: pow,
+    .__pos: pos,
+    .__add: add,
+    .__neg: neg,
+    .__sub: sub,
+    .__bnot: bnot,
+    .__bxor: bxor,
+    .__mul: mul,
+    .__div: fdiv,
+    .__idiv: idiv,
+    .__mod: mod,
+    .__bshl: bshl,
+    .__bshr: bshr,
+    .__band: band,
+    .__bor: bor,
+    .__bandnot: bandnot,
+    .val: 0xA1 }
+
+y := { .val: 0x0A }
+
+
+
+
+echo x ** y
+echo +x
+echo x + y
+echo -x
+echo x - y
+echo ^x
+echo x ^ y
+echo x * y
+echo x / y
+echo x // y
+echo x % y
+echo x << y
+echo x >> y
+echo x & y
+echo x &^ y
+echo x | y
+
+
+
+
+
+
+

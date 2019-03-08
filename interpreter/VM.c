@@ -134,6 +134,10 @@ yasl_float vm_read_float(struct VM *vm) {
     return val;
 }
 
+int vm_GET(struct VM *vm);
+int vm_INIT_CALL(struct VM *vm);
+int vm_CALL(struct VM *vm);
+
 #define INT_BINOP(name, op) yasl_int name(yasl_int left, yasl_int right) { return left op right; }
 
 INT_BINOP(bor, |)
@@ -146,19 +150,30 @@ INT_BINOP(modulo, %)
 INT_BINOP(idiv, /)
 
 int vm_int_binop(struct VM *vm, yasl_int (*op)(yasl_int, yasl_int), char *opstr, char *overload_name) {
-    struct YASL_Object b = vm_pop(vm);
-    struct YASL_Object a = vm_pop(vm);
-    if (YASL_ISINT(a) && YASL_ISINT(b)) {
-        vm_push(vm, YASL_INT(op(YASL_GETINT(a), YASL_GETINT(b))));
-        return YASL_SUCCESS;
-    } else {
-        YASL_PRINT_ERROR_TYPE("%s not supported for operands of types %s and %s.\n",
-               opstr,
-               YASL_TYPE_NAMES[a.type],
-               YASL_TYPE_NAMES[b.type]);
-        return YASL_TYPE_ERROR;
-    }
-    return YASL_SUCCESS;
+	struct YASL_Object b = vm_pop(vm);
+	struct YASL_Object a = vm_pop(vm);
+	if (YASL_ISINT(a) && YASL_ISINT(b)) {
+		vm_push(vm, YASL_INT(op(YASL_GETINT(a), YASL_GETINT(b))));
+		return YASL_SUCCESS;
+	} else {
+		struct YASL_Object op_name = YASL_STR(str_new_sized(strlen(overload_name), overload_name));
+		vm_push(vm, a);
+		vm_push(vm, op_name);
+		vm_GET(vm);
+		if (YASL_ISUNDEF(vm_peek(vm))) {
+			YASL_PRINT_ERROR_TYPE("%s not supported for operands of types %s and %s.\n",
+					      opstr,
+					      YASL_TYPE_NAMES[a.type],
+					      YASL_TYPE_NAMES[b.type]);
+			return YASL_TYPE_ERROR;
+		} else {
+			vm_INIT_CALL(vm);
+			vm_push(vm, a);
+			vm_push(vm, b);
+			vm_CALL(vm);
+		}
+	}
+	return YASL_SUCCESS;
 }
 
 #define FLOAT_BINOP(name, op) yasl_float name(yasl_float left, yasl_float right) { return left op right; }
@@ -188,11 +203,22 @@ int vm_num_binop(
 	} else if (YASL_ISINT(left) && YASL_ISFLOAT(right)) {
 		vm_push(vm, YASL_FLOAT(float_op(YASL_GETINT(left), YASL_GETFLOAT(right))));
 	} else {
-		YASL_PRINT_ERROR_TYPE("%s not supported for operands of types %s and %s.\n",
-		       opstr,
-		       YASL_TYPE_NAMES[left.type],
-		       YASL_TYPE_NAMES[right.type]);
-		return YASL_TYPE_ERROR;
+		struct YASL_Object op_name = YASL_STR(str_new_sized(strlen(overload_name), overload_name));
+		vm_push(vm, left);
+		vm_push(vm, op_name);
+		vm_GET(vm);
+		if (YASL_ISUNDEF(vm_peek(vm))) {
+			YASL_PRINT_ERROR_TYPE("%s not supported for operands of types %s and %s.\n",
+					      opstr,
+					      YASL_TYPE_NAMES[left.type],
+					      YASL_TYPE_NAMES[right.type]);
+			return YASL_TYPE_ERROR;
+		} else {
+			vm_INIT_CALL(vm);
+			vm_push(vm, left);
+			vm_push(vm, right);
+			vm_CALL(vm);
+		}
 	}
 	return YASL_SUCCESS;
 }
@@ -210,10 +236,21 @@ int vm_fdiv(struct VM *vm) {
 	} else if (YASL_ISFLOAT(left) && YASL_ISINT(right)) {
 		vm_push(vm, YASL_FLOAT(YASL_GETFLOAT(left) / (yasl_float) YASL_GETINT(right)));
 	} else {
-		YASL_PRINT_ERROR_TYPE("/ not supported for operands of types %s and %s.\n",
-		       YASL_TYPE_NAMES[left.type],
-		       YASL_TYPE_NAMES[right.type]);
-		return YASL_TYPE_ERROR;
+		struct YASL_Object op_name = YASL_STR(str_new_sized(strlen(overload_name), overload_name));
+		vm_push(vm, left);
+		vm_push(vm, op_name);
+		vm_GET(vm);
+		if (YASL_ISUNDEF(vm_peek(vm))) {
+			YASL_PRINT_ERROR_TYPE("/ not supported for operands of types %s and %s.\n",
+					      YASL_TYPE_NAMES[left.type],
+					      YASL_TYPE_NAMES[right.type]);
+			return YASL_TYPE_ERROR;
+		} else {
+			vm_INIT_CALL(vm);
+			vm_push(vm, left);
+			vm_push(vm, right);
+			vm_CALL(vm);
+		}
 	}
 	return YASL_SUCCESS;
 }
@@ -240,30 +277,51 @@ INT_UNOP(bnot, ~)
 NUM_UNOP(neg, -)
 NUM_UNOP(pos, +)
 
-int vm_int_unop(struct VM *vm, yasl_int (*op)(yasl_int), char *opstr) {
+int vm_int_unop(struct VM *vm, yasl_int (*op)(yasl_int), char *opstr, char *overload_name) {
 	struct YASL_Object a = vm_peek(vm);
 	if (YASL_ISINT(a)) {
 		vm_peek(vm).value.ival = op(YASL_GETINT(a));
 		return YASL_SUCCESS;
 	} else {
-		YASL_PRINT_ERROR_TYPE("%s not supported for operand of type %s.\n",
-		       opstr,
-		       YASL_TYPE_NAMES[a.type]);
-		return YASL_TYPE_ERROR;
+		struct YASL_Object op_name = YASL_STR(str_new_sized(strlen(overload_name), overload_name));
+		vm_push(vm, a);
+		vm_push(vm, op_name);
+		vm_GET(vm);
+		if (YASL_ISUNDEF(vm_peek(vm))) {
+			YASL_PRINT_ERROR_TYPE("%s not supported for operand of types %s.\n",
+					      opstr,
+					      YASL_TYPE_NAMES[a.type]);
+			return YASL_TYPE_ERROR;
+		} else {
+			vm_INIT_CALL(vm);
+			vm_push(vm, a);
+			vm_CALL(vm);
+		}
 	}
+	return YASL_SUCCESS;
 }
 
-int vm_num_unop(struct VM *vm, yasl_int (*int_op)(yasl_int), yasl_float (*float_op)(yasl_float), char *opstr) {
+int vm_num_unop(struct VM *vm, yasl_int (*int_op)(yasl_int), yasl_float (*float_op)(yasl_float), char *opstr, char *overload_name) {
 	struct YASL_Object expr = vm_pop(vm);
 	if (YASL_ISINT(expr)) {
 		vm_push(vm, YASL_INT(int_op(YASL_GETINT(expr))));
 	} else if (YASL_ISFLOAT(expr)) {
 		vm_push(vm, YASL_FLOAT(float_op(YASL_GETFLOAT(expr))));
 	} else {
-		YASL_PRINT_ERROR_TYPE("%s not supported for operand of type %s.\n",
-		       opstr,
-		       YASL_TYPE_NAMES[expr.type]);
-		return YASL_TYPE_ERROR;
+		struct YASL_Object op_name = YASL_STR(str_new_sized(strlen(overload_name), overload_name));
+		vm_push(vm, expr);
+		vm_push(vm, op_name);
+		vm_GET(vm);
+		if (YASL_ISUNDEF(vm_peek(vm))) {
+			YASL_PRINT_ERROR_TYPE("%s not supported for operand of types %s.\n",
+					      opstr,
+					      YASL_TYPE_NAMES[expr.type]);
+			return YASL_TYPE_ERROR;
+		} else {
+			vm_INIT_CALL(vm);
+			vm_push(vm, expr);
+			vm_CALL(vm);
+		}
 	}
 	return YASL_SUCCESS;
 }
@@ -491,7 +549,7 @@ int vm_run(struct VM *vm) {
 			if ((res = vm_int_binop(vm, &bandnot, "&^", OP_BIN_AMPCARET))) return res;
 			break;
 		case BNOT:
-			if ((res = vm_int_unop(vm, &bnot, "^"))) return res;
+			if ((res = vm_int_unop(vm, &bnot, "^", OP_UN_CARET))) return res;
 			break;
 		case BSL:
 			if ((res = vm_int_binop(vm, &shift_left, "<<", OP_BIN_SHL))) return res;
@@ -532,10 +590,10 @@ int vm_run(struct VM *vm) {
 			if ((res = vm_pow(vm))) return res;
 			break;
 		case NEG:
-			if ((res = vm_num_unop(vm, &int_neg, &float_neg, "-"))) return res;
+			if ((res = vm_num_unop(vm, &int_neg, &float_neg, "-", OP_UN_MINUS))) return res;
 			break;
 		case POS:
-			if ((res = vm_num_unop(vm, &int_pos, &float_pos, "+"))) return res;
+			if ((res = vm_num_unop(vm, &int_pos, &float_pos, "+", OP_UN_PLUS))) return res;
 			break;
 		case NOT:
 			c = isfalsey(vm_pop(vm));

@@ -36,7 +36,7 @@ static unsigned int get_hash(const struct YASL_Object s, const int num_buckets, 
         if (attempt == 0)
                 return hash_a % num_buckets;
         const int hash_b = hash_function(s, PRIME_B, num_buckets);
-        return ((unsigned int)(hash_a + (attempt * (hash_b + 1)))) % num_buckets;
+	return ((unsigned int) (hash_a + (attempt * (hash_b + (hash_b == 0))))) % num_buckets;
 }
 
 static Item_t new_item(const struct YASL_Object k, const struct YASL_Object v) {
@@ -135,25 +135,25 @@ static void table_resize_down(struct Table *table) {
 }
 
 void table_insert(struct Table *table, const struct YASL_Object key, const struct YASL_Object value) {
-		const int load = table->count * 100 / table->size;
-        if (load > 70) table_resize_up(table);
-        Item_t item = new_item(key, value);
-        int index = get_hash(item.key, table->size, 0);
-        Item_t curr_item = table->items[index];
-        int i = 1;
-        while (!YASL_ISUNDEF(curr_item.key)) {
-				if (curr_item.key.type != Y_END) {
-                        if (!isfalsey(isequal(curr_item.key, item.key))) {
-                                del_item(&curr_item);
-                                table->items[index] = item;
-                                return;
-                        }
-                }
-                index = get_hash(item.key, table->size, i++);
-                curr_item = table->items[index];
-        }
-        table->items[index] = item;
-        table->count++;
+	const int load = table->count * 100 / table->size;
+	if (load > 70) table_resize_up(table);
+	Item_t item = new_item(key, value);
+	int index = get_hash(item.key, table->size, 0);
+	Item_t curr_item = table->items[index];
+	int i = 1;
+	while (!YASL_ISUNDEF(curr_item.key)) {
+		if (curr_item.key.type != Y_END) {
+			if (!isfalsey(isequal(curr_item.key, item.key))) {
+				del_item(&curr_item);
+				table->items[index] = item;
+				return;
+			}
+		}
+		index = get_hash(item.key, table->size, i++);
+		curr_item = table->items[index];
+	}
+	table->items[index] = item;
+	table->count++;
 }
 
 void table_insert_string_int(struct Table *table, char *key, int64_t key_len, int64_t val) {

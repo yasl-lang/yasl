@@ -22,7 +22,7 @@ void ud_del_rc(struct RC_UserData *ud) {
 }
 
 void ud_del(struct RC_UserData *ud) {
-    free(ud->data);
+    ud->destructor(ud->data);
     // dec_ref(ud->mt);
     rc_del(ud->rc);
     free(ud);
