@@ -48,6 +48,7 @@ void vm_init(struct VM *vm,
 
 #define DEF_SPECIAL_STR(enum_val, str) vm->special_strings[enum_val] = str_new_sized(strlen(str), str)
 
+	DEF_SPECIAL_STR(S___ADD, "__add");
 	DEF_SPECIAL_STR(S___GET, "__get");
 	DEF_SPECIAL_STR(S___SET, "__set");
 	DEF_SPECIAL_STR(S_CLEAR, "clear");
@@ -203,6 +204,8 @@ int vm_num_binop(
 	} else if (YASL_ISINT(left) && YASL_ISFLOAT(right)) {
 		vm_push(vm, YASL_FLOAT(float_op(YASL_GETINT(left), YASL_GETFLOAT(right))));
 	} else {
+		inc_ref(&left);
+		inc_ref(&right);
 		struct YASL_Object op_name = YASL_STR(str_new_sized(strlen(overload_name), overload_name));
 		vm_push(vm, left);
 		vm_push(vm, op_name);
@@ -212,12 +215,16 @@ int vm_num_binop(
 					      opstr,
 					      YASL_TYPE_NAMES[left.type],
 					      YASL_TYPE_NAMES[right.type]);
+			dec_ref(&left);
+			dec_ref(&right);
 			return YASL_TYPE_ERROR;
 		} else {
 			vm_INIT_CALL(vm);
 			vm_push(vm, left);
 			vm_push(vm, right);
 			vm_CALL(vm);
+			dec_ref(&left);
+			dec_ref(&right);
 		}
 	}
 	return YASL_SUCCESS;

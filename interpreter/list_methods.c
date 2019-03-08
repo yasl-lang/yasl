@@ -180,6 +180,25 @@ int list_copy(struct YASL_State *S) {
 	return 0;
 }
 
+int list___add(struct YASL_State *S) {
+	ASSERT_TYPE((struct VM *) S, Y_LIST, "list.__add");
+	struct List *b = YASL_GETLIST(vm_pop((struct VM *) S));
+	ASSERT_TYPE((struct VM *) S, Y_LIST, "list.__add");
+	struct List *a = YASL_GETLIST(vm_pop((struct VM *) S));
+	int64_t size = a->count + b->count;
+	struct RC_UserData *ptr = ls_new_sized(size);
+	int64_t i;
+	for (i = 0; i < a->count; i++) {
+		ls_append(ptr->data, (a)->items[i]);
+	}
+	for (i = 0; i < (b)->count; i++) {
+		ls_append(ptr->data, (b)->items[i]);
+	}
+	vm_pushlist((struct VM *) S, ptr);
+	return 0;
+}
+
+
 int list_extend(struct YASL_State *S) {
     ASSERT_TYPE((struct VM *)S, Y_LIST, "list.extend");
     struct List *extend_ls = YASL_GETLIST(vm_pop((struct VM *)S));
