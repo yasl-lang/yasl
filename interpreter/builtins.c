@@ -91,7 +91,7 @@ struct Table* str_builtins(struct VM *vm) {
 	table_insert_specialstring_cfunction(vm, table, S_RTRIM, &str_rtrim, 2);
 	table_insert_specialstring_cfunction(vm, table, S_TRIM, &str_trim, 2);
 	table_insert_specialstring_cfunction(vm, table, S___GET, &str___get, 2);
-	table_insert_specialstring_cfunction(vm, table, S_REPEAT, &str_repeat, 2);
+	table_insert_specialstring_cfunction(vm, table, S_REP, &str_repeat, 2);
 	return table;
 }
 
@@ -99,6 +99,7 @@ struct Table* list_builtins(struct VM *vm) {
 	struct Table *table = table_new();
 	table_insert_specialstring_cfunction(vm, table, S_PUSH, &list_push, 2);
 	table_insert_specialstring_cfunction(vm, table, S_COPY, &list_copy, 1);
+	table_insert_specialstring_cfunction(vm, table, S___ADD, &list___add, 2);
 	table_insert_specialstring_cfunction(vm, table, S_EXTEND, &list_extend, 2);
 	table_insert_specialstring_cfunction(vm, table, S_POP, &list_pop, 1);
 	table_insert_specialstring_cfunction(vm, table, S___GET, &list___get, 2);

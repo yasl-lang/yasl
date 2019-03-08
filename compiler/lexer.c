@@ -750,7 +750,7 @@ static void YASLKeywords(Lexer *lex) {
     else if (matches_keyword(lex, "while")) set_keyword(lex, T_WHILE);
     else if (matches_keyword(lex, "len")) set_keyword(lex, T_LEN);
     // NOTE: special case for bools and floats
-    else if (matches_keyword(lex, "nan") || matches_keyword(lex, "inf")) lex->type = T_FLOAT;
+    // else if (matches_keyword(lex, "nan") || matches_keyword(lex, "inf")) lex->type = T_FLOAT;
     else if (matches_keyword(lex, "true") || matches_keyword(lex, "false")) lex->type = T_BOOL;
 }
 

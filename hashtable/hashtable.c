@@ -75,11 +75,12 @@ void table_del(struct Table *table) {
 }
 
 struct RC_UserData *rcht_new_sized(const int base_size) {
-	struct RC_UserData *ht = malloc(sizeof(struct RC_UserData));
-	ht->data = table_new_sized(base_size);
-	ht->rc = rc_new();
-	ht->tag = T_TABLE;
-	return ht;
+        struct RC_UserData *ht = malloc(sizeof(struct RC_UserData));
+        ht->data = table_new_sized(base_size);
+        ht->rc = rc_new();
+        ht->tag = T_TABLE;
+        ht->destructor = rcht_del_data;
+        return ht;
 }
 
 struct RC_UserData *rcht_new() {
@@ -92,8 +93,8 @@ void rcht_del(struct RC_UserData *hashtable) {
 	free(hashtable);
 }
 
-void rcht_del_data(struct RC_UserData *hashtable) {
-	table_del(hashtable->data);
+void rcht_del_data(void *hashtable) {
+        table_del(hashtable);
 }
 
 void rcht_del_rc(struct RC_UserData *hashtable) {

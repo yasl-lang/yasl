@@ -92,10 +92,10 @@ struct YASL_Object *YASL_UserPointer(void *userpointer) {
     return userptr;
 }
 
-struct YASL_Object *YASL_UserData(void *userdata, int tag) {
+struct YASL_Object *YASL_UserData(void *userdata, int tag, void (*destructor)(void *)) {
     struct YASL_Object *obj = malloc(sizeof(struct YASL_Object));
     obj->type = Y_USERDATA;
-    obj->value.uval = ud_new(userdata, tag);
+    obj->value.uval = ud_new(userdata, tag, destructor);
     return obj;
 }
 

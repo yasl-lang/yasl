@@ -88,6 +88,7 @@ enum Opcode {
 enum SpecialStrings {
 	S_UNKNOWN_STR = -1, // ERROR, used internally but doesn't represent a real string value
 
+	S___ADD,      // __add
 	S___GET,      // __get
 	S___SET,      // __set
 
@@ -112,7 +113,7 @@ enum SpecialStrings {
 	S_POP,        // pop
 	S_PUSH,       // push
 
-	S_REPEAT,     // repeat
+	S_REP,     // repeat
 	S_REPLACE,    // replace
 	S_REVERSE,    // reverse
 	S_RTRIM,      // rtrim

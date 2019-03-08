@@ -17,7 +17,8 @@
 
 static enum SpecialStrings get_special_string(const struct Node *const node) {
 #define STR_EQ(node, literal) ((node)->value.sval.str_len == strlen((literal)) && !memcmp((node)->value.sval.str, (literal), (node)->value.sval.str_len))
-	if (STR_EQ(node, "__get")) return S___GET;
+	if (STR_EQ(node, "__add")) return S___ADD;
+	else if (STR_EQ(node, "__get")) return S___GET;
 	else if (STR_EQ(node, "__set")) return S___SET;
 	else if (STR_EQ(node, "clear")) return S_CLEAR;
 	else if (STR_EQ(node, "copy")) return S_COPY;
@@ -33,7 +34,7 @@ static enum SpecialStrings get_special_string(const struct Node *const node) {
 	else if (STR_EQ(node, "ltrim")) return S_LTRIM;
 	else if (STR_EQ(node, "pop")) return S_POP;
 	else if (STR_EQ(node, "push")) return S_PUSH;
-	else if (STR_EQ(node, "repeat")) return S_REPEAT;
+	else if (STR_EQ(node, "rep")) return S_REP;
 	else if (STR_EQ(node, "replace")) return S_REPLACE;
 	else if (STR_EQ(node, "reverse")) return S_REVERSE;
 	else if (STR_EQ(node, "rtrim")) return S_RTRIM;
