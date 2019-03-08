@@ -2,13 +2,13 @@ use strict;
 use warnings;
 
 my $__VM_TESTS_FAILED__ = 0;
+my $RED = "\x1B[31m";
+my $END = "\x1B[0m";
 
 sub assert_output {
     my ($string, $exp_out, $exp_stat) = @_;
     my (undef, $filename, $line) = caller;
 
-    my $RED = "\x1B[31m";
-    my $END = "\x1B[0m";
     my $debug_dump = '/dump.ysl';
     my $debug_yasl = '/YASL';
 
@@ -17,7 +17,7 @@ sub assert_output {
     close $fh;
 
     my $output = qx/"..$debug_yasl" "..$debug_dump"/;
-    my $status = $?;
+    my $status = $? >> 8;
     my $exitcode = !($output eq $exp_out && $status == $exp_stat) || 0;
 
     if ($output ne $exp_out) {
@@ -312,5 +312,22 @@ assert_output(qq"const x := 10
                 ",
               "10\n20\n",
               0);
+
+# Errors
+assert_output(qq"echo 1 // 0;", $RED . "DivisionByZeroError\n" . $END, 5);
+assert_output(qq"echo 1 % 0;", $RED . "DivisionByZeroError\n" . $END, 5);
+
+assert_output(qq"for x := 0; x < 5; x += 1 { };
+                 echo x;", $RED . "SyntaxError: Undeclared variable x (line 2).\n" . $END, 3);
+assert_output(qq"const x := 10; x = 11;", $RED . "SyntaxError: Cannot assign to constant x (line 1).\n" . $END, 3);
+assert_output(qq"const x := 10; x := 11;", $RED . "SyntaxError: Illegal redeclaration of x (line 1).\n" . $END, 3);
+assert_output(qq"x := 10; x := 11;", $RED . "SyntaxError: Illegal redeclaration of x (line 1).\n" . $END, 3);
+assert_output(q"x := [ b for b <- [1, 2, 3, 4] if b % 2 == 0 ]; echo b;",
+              $RED . "SyntaxError: Undeclared variable b (line 1).\n" . $END, 3);
+assert_output("echo if;",
+              $RED . "SyntaxError: ParsingError in line 1: expected expression, got `if`\n" . $END, 3);
+
+assert_output("echo true + false;",
+              $RED . "TypeError: + not supported for operands of types bool and bool.\n" . $END, 4);
 
 exit $__VM_TESTS_FAILED__;

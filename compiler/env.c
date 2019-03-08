@@ -76,11 +76,12 @@ int64_t env_get(Env_t *env, char *name, size_t name_len) {
 	return value.value.ival;
 }
 
-void env_decl_var(Env_t *env, char *name, size_t name_len) {
+int64_t env_decl_var(Env_t *env, char *name, size_t name_len) {
 	String_t *string = str_new_sized_heap(0, name_len, copy_char_buffer(name_len, name));
 	struct YASL_Object key = YASL_STR(string);
 	struct YASL_Object value = YASL_INT(env_len(env));
 	table_insert(env->vars, key, value);
+	return env_len(env);
 }
 
 static struct Table *get_closest_scope_with_var(Env_t *env, char *name, size_t name_len) {

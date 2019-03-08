@@ -685,6 +685,7 @@ static int matches_keyword(Lexer *lex, char *string) {
 static void set_keyword(Lexer *lex, enum Token type) {
 	lex->type = type;
 	free(lex->value);
+	lex->value = NULL;
 }
 
 static void YASLKeywords(Lexer *lex) {
