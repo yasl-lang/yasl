@@ -16,10 +16,10 @@ enum LogLevel {
 
 #define LOGLEVEL 0
 
-#define YASL_LEX_DEBUG_LOG(str, msg) do { if ((LOGLEVEL) & D_LEX) printf(K_RED str K_END, msg); } while(0)
-#define YASL_PARSE_DEBUG_LOG(str, msg) do { if ((LOGLEVEL) & D_PARSE) printf(K_YEL str K_END, msg); } while(0)
-#define YASL_FOLD_DEBUG_LOG(str, msg) do { if ((LOGLEVEL) & D_FOLD) printf(K_WHT str K_END, msg); } while(0)
-#define YASL_COMPILE_DEBUG_LOG(str, msg) do { if ((LOGLEVEL) & D_COMPILE) printf(K_GRN str K_END, msg); } while(0)
-#define YASL_BYTECODE_DEBUG_LOG(str, msg) do { if ((LOGLEVEL) & D_BYTECODE) printf(K_BLU str K_END, msg); } while(0)
-#define YASL_VM_DEBUG_LOG(str, msg) do { if ((LOGLEVEL) & D_VM) printf(K_CYN str K_END, msg); } while(0)
-#define YASL_RC_DEBUG_LOG(str, msg) do { if ((LOGLEVEL) & D_RC) printf(K_MAG str K_END, msg); } while(0)
+#define YASL_LEX_DEBUG_LOG(str, ...) do { if ((LOGLEVEL) & D_LEX) printf(K_RED str K_END, __VA_ARGS__); } while(0)
+#define YASL_PARSE_DEBUG_LOG(str, ...) do { if ((LOGLEVEL) & D_PARSE) printf(K_YEL str K_END, __VA_ARGS__); } while(0)
+#define YASL_FOLD_DEBUG_LOG(str, ...) do { if ((LOGLEVEL) & D_FOLD) printf(K_WHT str K_END, __VA_ARGS__); } while(0)
+#define YASL_COMPILE_DEBUG_LOG(str, ...) do { if ((LOGLEVEL) & D_COMPILE) printf(K_GRN str K_END, __VA_ARGS__); } while(0)
+#define YASL_BYTECODE_DEBUG_LOG(str, ...) do { if ((LOGLEVEL) & D_BYTECODE) printf(K_BLU str K_END, __VA_ARGS__); } while(0)
+#define YASL_VM_DEBUG_LOG(str, ...) do { if ((LOGLEVEL) & D_VM) printf(K_CYN str K_END, __VA_ARGS__); } while(0)
+#define YASL_RC_DEBUG_LOG(str, ...) do { if ((LOGLEVEL) & D_RC) printf(K_MAG str K_END, __VA_ARGS__); } while(0)

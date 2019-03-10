@@ -496,11 +496,9 @@ int vm_run(struct VM *vm) {
 		yasl_int c;
 		yasl_float d;
 		int res;
-#if 0
-		printf("----------------"
-			"opcode: %x\n"
-			"vm->sp, vm->fp, vm->next_fp: %d, %d, %d\n\n", opcode, vm->sp, vm->fp, vm->next_fp);
-#endif
+		YASL_VM_DEBUG_LOG("----------------"
+				  "opcode: %x\n"
+				  "vm->sp, vm->fp, vm->next_fp: %d, %d, %d\n\n", opcode, vm->sp, vm->fp, vm->next_fp);
 		switch (opcode) {
 		case HALT:
 			return YASL_SUCCESS;
