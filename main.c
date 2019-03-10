@@ -9,7 +9,7 @@
 #include "yasl_state.h"
 
 
-#define VERSION "v0.4.0"
+#define VERSION "v0.4.1"
 #define VERSION_PRINTOUT "YASL " VERSION
 
 static int main_error(int argc, char **argv) {
