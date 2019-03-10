@@ -7,9 +7,11 @@ static void test_elimination() {
 	unsigned char expected[] = {
 		0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		ICONST_1,
+		GSTORE_1, 0x00,
 		HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "undef; true; 'YASL'; 10; 10.0;");
+	ASSERT_GEN_BC_EQ(expected, "x := 1; x; undef; true; 'YASL'; 10; 10.0;");
 }
 
 static void test_undef() {
