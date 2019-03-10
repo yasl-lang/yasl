@@ -67,7 +67,7 @@ struct Node *new_Body(size_t line) {
 }
 
 void body_append(struct Node **node, struct Node *const child) {
-    YASL_TRACE_LOG("%s\n", "appending to block");
+    YASL_COMPILE_DEBUG_LOG("%s\n", "appending to block");
     *node = realloc(*node, sizeof(struct Node) + (++(*node)->children_len)*sizeof(struct Node*));
     (*node)->children[(*node)->children_len-1] = child;
 }

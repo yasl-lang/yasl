@@ -526,7 +526,7 @@ static int lex_eatrawstring(Lexer *lex) {
 }
 
 void gettok(Lexer *lex) {
-	YASL_TRACE_LOG("getting token from line %zd\n", lex->line);
+	YASL_LEX_DEBUG_LOG("getting token from line %zd\n", lex->line);
 	lex->value = NULL;
 	lex_getchar(lex);
 
