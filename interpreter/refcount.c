@@ -5,7 +5,7 @@
 #include "YASL_Object.h"
 #include "interpreter/list.h"
 #include "hashtable/hashtable.h"
-
+#include "yasl_include.h"
 
 struct RC *rc_new(void) {
 	struct RC *rc = malloc(sizeof(struct RC));
@@ -37,6 +37,9 @@ static void inc_weak_ref(struct YASL_Object *v) {
 static void inc_strong_ref(struct YASL_Object *v) {
 	switch (v->type) {
 	case Y_STR:v->value.sval->rc->refs++;
+		//printf(K_BLU "after : %zd\n" K_END, v->value.sval->rc->refs);
+		//print(*v);
+		//puts("");
 		break;
 	case Y_LIST:
 	case Y_TABLE:v->value.uval->rc->refs++;
@@ -89,11 +92,14 @@ static void dec_weak_ref(struct YASL_Object *v) {
 void dec_strong_ref(struct YASL_Object *v) {
 	switch (v->type) {
 	case Y_STR:
-		//printf(K_MAG "after : %d\n" K_END, v->value.sval->rc->refs - 1);
+		//printf(K_MAG "after : %zd\n" K_END, v->value.sval->rc->refs - 1);
+		//print(*v);
+		//puts("");
 		if (--(v->value.sval->rc->refs)) return;
 		str_del_data(v->value.sval);
 		if (v->value.sval->rc->weak_refs) return;
 		str_del_rc(v->value.sval);
+		v->type = Y_UNDEF;
 		break;
 	/* case Y_LIST:
 		if (--(v->value.uval->rc->refs)) return;
@@ -109,14 +115,17 @@ void dec_strong_ref(struct YASL_Object *v) {
 		ud_del_data(v->value.uval);
 		if (v->value.uval->rc->weak_refs) return;
 		ud_del_rc(v->value.uval);
+		v->type = Y_UNDEF;
 		break;
 	case Y_CFN:
 		if (--(v->value.cval->rc->refs)) return;
 		cfn_del_data(v->value.cval);
 		if (v->value.cval->rc->weak_refs) return;
 		cfn_del_rc(v->value.cval);
+		v->type = Y_UNDEF;
 		break;
-	default:puts("NoT IMPELemented");
+	default:
+		puts("NoT IMPELemented");
 		exit(EXIT_FAILURE);
 	}
 }

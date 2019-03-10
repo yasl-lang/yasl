@@ -325,11 +325,16 @@ unsigned char *compile_REPL(struct Compiler *const compiler) {
 
 static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *const node) {
 	const struct Node *const expr = ExprStmt_get_expr(node);
-	visit(compiler, expr);
-	if (expr->nodetype == N_ASSIGN) {
-		compiler->buffer->count -= 2;
-	} else {
-		bb_add_byte(compiler->buffer, POP);
+	switch (expr->nodetype) {
+	case N_STR:
+		return;
+	default:
+		visit(compiler, expr);
+		if (expr->nodetype == N_ASSIGN) {
+			compiler->buffer->count -= 2;
+		} else {
+			bb_add_byte(compiler->buffer, POP);
+		}
 	}
 }
 
