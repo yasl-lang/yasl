@@ -12,10 +12,10 @@ static void test_if() {
 		BRF_8,
 		0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		BCONST_T,
-		POP,
+		PRINT,
 		HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "if true { true; };");
+	ASSERT_GEN_BC_EQ(expected, "if true { echo true; };");
 }
 
 static void test_ifelse() {
@@ -26,14 +26,14 @@ static void test_ifelse() {
 		BRF_8,
 		0x0B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		BCONST_T,
-		POP,
+		PRINT,
 		BR_8,
 		0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		BCONST_F,
-		POP,
+		PRINT,
 		HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "if true { true; } else { false; };");
+	ASSERT_GEN_BC_EQ(expected, "if true { echo true; } else { echo false; };");
 }
 
 static void test_ifelseelseif() {
@@ -44,21 +44,21 @@ static void test_ifelseelseif() {
 		BRF_8,
 		0x0B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		BCONST_T,
-		POP,
+		PRINT,
 		BR_8,
 		0x17, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		BCONST_F,
 		BRF_8,
 		0x0B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		BCONST_F,
-		POP,
+		PRINT,
 		BR_8,
 		0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		NCONST,
-		POP,
+		PRINT,
 		HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "if true { true; } elseif false { false; } else { undef; };");
+	ASSERT_GEN_BC_EQ(expected, "if true { echo true; } elseif false { echo false; } else { echo undef; };");
 }
 
 

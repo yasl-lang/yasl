@@ -327,6 +327,11 @@ static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *c
 	const struct Node *const expr = ExprStmt_get_expr(node);
 	switch (expr->nodetype) {
 	case N_STR:
+	case N_INT:
+	case N_FLOAT:
+	case N_BOOL:
+	case N_UNDEF:
+	case N_VAR:
 		return;
 	default:
 		visit(compiler, expr);
