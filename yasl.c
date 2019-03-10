@@ -52,9 +52,10 @@ void YASL_resetstate_bb(struct YASL_State *S, char *buf, size_t len) {
 	S->compiler.code->count = 0;
 	S->compiler.buffer->count = 0;
 	// S->compiler.header->count = 16;
-	table_del_string_int(S->compiler.strings);
-	S->compiler.strings = table_new();
-	free(S->vm.code);
+	// table_del_string_int(S->compiler.strings);
+	// S->compiler.strings = table_new();
+	if (S->vm.code)	free(S->vm.code);
+	S->vm.code = NULL;
 }
 
 
