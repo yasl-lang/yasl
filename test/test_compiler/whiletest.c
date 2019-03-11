@@ -11,12 +11,12 @@ static void test_while() {
 		BRF_8,
 		0x0B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		BCONST_T,
-		POP,
+		PRINT,
 		BR_8,
 		0xEB, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 		HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "while true { true; };");
+	ASSERT_GEN_BC_EQ(expected, "while true { echo true; };");
 }
 
 static void test_continue() {

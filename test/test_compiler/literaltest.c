@@ -3,15 +3,26 @@
 
 SETUP_YATS();
 
+static void test_elimination() {
+	unsigned char expected[] = {
+		0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		ICONST_1,
+		GSTORE_1, 0x00,
+		HALT
+	};
+	ASSERT_GEN_BC_EQ(expected, "x := 1; x; undef; true; 'YASL'; 10; 10.0;");
+}
+
 static void test_undef() {
     unsigned char expected[] = {
             0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             NCONST,
-            POP,
+            PRINT,
             HALT
     };
-    ASSERT_GEN_BC_EQ(expected, "undef;");
+    ASSERT_GEN_BC_EQ(expected, "echo undef;");
 }
 
 static void test_true() {
@@ -19,10 +30,10 @@ static void test_true() {
             0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             BCONST_T,
-            POP,
+            PRINT,
             HALT
     };
-    ASSERT_GEN_BC_EQ(expected, "true;");
+    ASSERT_GEN_BC_EQ(expected, "echo true;");
 }
 
 static void test_false() {
@@ -30,10 +41,10 @@ static void test_false() {
             0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             BCONST_F,
-            POP,
+            PRINT,
             HALT
     };
-    ASSERT_GEN_BC_EQ(expected, "false;");
+    ASSERT_GEN_BC_EQ(expected, "echo false;");
 }
 
 static void test_small_ints() {
@@ -41,22 +52,22 @@ static void test_small_ints() {
             0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             ICONST_M1,
-            POP,
+            PRINT,
             ICONST_0,
-            POP,
+            PRINT,
             ICONST_1,
-            POP,
+            PRINT,
             ICONST_2,
-            POP,
+            PRINT,
             ICONST_3,
-            POP,
+            PRINT,
             ICONST_4,
-            POP,
+            PRINT,
             ICONST_5,
-            POP,
+            PRINT,
             HALT
     };
-    ASSERT_GEN_BC_EQ(expected, "-1; 0; 1; 2; 3; 4; 5;");
+    ASSERT_GEN_BC_EQ(expected, "echo -1; echo 0; echo 1; echo 2; echo 3; echo 4; echo 5;");
 }
 
 static void test_bin() {
@@ -64,10 +75,10 @@ static void test_bin() {
             0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             ICONST_3,
-            POP,
+            PRINT,
             HALT
     };
-    ASSERT_GEN_BC_EQ(expected, "0b11;");
+    ASSERT_GEN_BC_EQ(expected, "echo 0b11;");
 }
 
 static void test_dec() {
@@ -76,10 +87,10 @@ static void test_dec() {
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             ICONST,
             0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            POP,
+            PRINT,
             HALT
     };
-    ASSERT_GEN_BC_EQ(expected, "10;");
+    ASSERT_GEN_BC_EQ(expected, "echo 10;");
 }
 
 static void test_hex() {
@@ -88,10 +99,10 @@ static void test_hex() {
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             ICONST,
             0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            POP,
+            PRINT,
             HALT
     };
-    ASSERT_GEN_BC_EQ(expected, "0x10;");
+    ASSERT_GEN_BC_EQ(expected, "echo 0x10;");
 }
 
 static void test_small_floats() {
@@ -99,14 +110,14 @@ static void test_small_floats() {
 		0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		DCONST_0,
-		POP,
+		PRINT,
 		DCONST_1,
-		POP,
+		PRINT,
 		DCONST_2,
-		POP,
+		PRINT,
 		HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "0.0; 1.0; 2.0;");
+	ASSERT_GEN_BC_EQ(expected, "echo 0.0; echo 1.0; echo 2.0;");
 }
 static void test_float() {
     unsigned char expected[] = {
@@ -114,10 +125,10 @@ static void test_float() {
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             DCONST,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF8, 0x3F,
-            POP,
+            PRINT,
             HALT
     };
-    ASSERT_GEN_BC_EQ(expected, "1.5;");
+    ASSERT_GEN_BC_EQ(expected, "echo 1.5;");
 }
 
 static void test_string() {
@@ -128,10 +139,10 @@ static void test_string() {
             'Y', 'A', 'S', 'L',
             NEWSTR,
             0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            POP,
+            PRINT,
             HALT
     };
-    ASSERT_GEN_BC_EQ(expected, "'YASL';");
+    ASSERT_GEN_BC_EQ(expected, "echo 'YASL';");
 }
 
 static void test_list() {
@@ -186,6 +197,7 @@ int literaltest(void) {
 	test_string();
 	test_list();
 	test_table();
+	test_elimination();
 
 	return __YASL_TESTS_FAILED__;
 }

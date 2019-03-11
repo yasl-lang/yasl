@@ -18,6 +18,7 @@ typedef enum NodeType {
 	N_MCALL,
 	N_SET,
 	N_GET,
+	N_SLICE,
 	N_LETITER,
 	N_LISTCOMP,
 	N_TABLECOMP,
@@ -53,7 +54,7 @@ struct Node {
 			size_t str_len;
 		} sval;
 		yasl_int ival;
-		double dval;
+		yasl_float dval;
 	} value;
 	size_t children_len;
 	struct Node *children[];
@@ -86,6 +87,9 @@ for (size_t i = 0; i < (node)->children_len; i++ ) if (child = (node)->children[
 #define Set_get_value(node) ((node)->children[2])
 #define Get_get_collection(node) ((node)->children[0])
 #define Get_get_value(node) ((node)->children[1])
+#define Slice_get_collection(node) ((node)->children[0])
+#define Slice_get_start(node) ((node)->children[1])
+#define Slice_get_end(node) ((node)->children[2])
 #define UnOp_get_expr(node) ((node)->children[0])
 #define Assign_get_expr(node) ((node)->children[0])
 
@@ -98,6 +102,7 @@ struct Node *new_FnDecl(struct Node *params, struct Node *body, char *name, size
 struct Node *new_Return(struct Node *expr, size_t line);
 struct Node *new_Set(struct Node *collection, struct Node *key, struct Node *value, size_t line);
 struct Node *new_Get(struct Node *collection, struct Node *value, size_t line);
+struct Node *new_Slice(struct Node *collection, struct Node *start, struct Node *end, size_t line);
 struct Node *new_Call(struct Node *params, struct Node *object, size_t line);
 struct Node *new_MethodCall(struct Node *params, struct Node *object, char *value, size_t len, size_t line);
 struct Node *new_LetIter(struct Node *var, struct Node *collection, size_t line);

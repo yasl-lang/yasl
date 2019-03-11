@@ -1,0 +1,10 @@
+##13\n
+
+# test that ref counts are working properly
+fn f() {
+    var := '12'
+    abc := '13'
+    echo abc
+}
+
+f()

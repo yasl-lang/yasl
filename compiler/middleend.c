@@ -30,6 +30,12 @@ void fold_Get(struct Node *const node) {
 	fold(Get_get_value(node));
 }
 
+void fold_Slice(struct Node *const node) {
+	fold(Slice_get_collection(node));
+	fold(Slice_get_start(node));
+	fold(Slice_get_end(node));
+}
+
 void fold_ListComp(struct Node *const node) {
 	FOR_CHILDREN(i, child, node) {
 		if (child->nodetype != N_LETITER) {
@@ -507,6 +513,7 @@ static void (*jumptable[])(struct Node *const ) = {
 	&fold_MethodCall,
 	&fold_Set,
 	&fold_Get,
+	&fold_Slice,
 	NULL,
 	&fold_ListComp,
 	&fold_TableComp,

@@ -256,21 +256,21 @@ static unsigned char *return_bytes(struct Compiler *const compiler) {
 	bb_rewrite_intbytes8(compiler->header, 0, compiler->header->count);
 	bb_rewrite_intbytes8(compiler->header, 8, 0x00);   // TODO: put num globals here eventually.
 
-	YASL_DEBUG_LOG("%s\n", "header");
+	YASL_BYTECODE_DEBUG_LOG("%s\n", "header");
 	for (size_t i = 0; i < compiler->header->count; i++) {
 		if (i % 16 == 15)
-			YASL_DEBUG_LOG("%02x\n", compiler->header->bytes[i]);
+			YASL_BYTECODE_DEBUG_LOG("%02x\n", compiler->header->bytes[i]);
 		else
-			YASL_DEBUG_LOG("%02x ", compiler->header->bytes[i]);
+			YASL_BYTECODE_DEBUG_LOG("%02x ", compiler->header->bytes[i]);
 	}
-	YASL_DEBUG_LOG("%s\n", "entry point");
+	YASL_BYTECODE_DEBUG_LOG("%s\n", "entry point");
 	for (size_t i = 0; i < compiler->code->count; i++) {
 		if (i % 16 == 15)
-			YASL_DEBUG_LOG("%02x\n", compiler->code->bytes[i]);
+			YASL_BYTECODE_DEBUG_LOG("%02x\n", compiler->code->bytes[i]);
 		else
-			YASL_DEBUG_LOG("%02x ", compiler->code->bytes[i]);
+			YASL_BYTECODE_DEBUG_LOG("%02x ", compiler->code->bytes[i]);
 	}
-	YASL_DEBUG_LOG("%02x\n", HALT);
+	YASL_BYTECODE_DEBUG_LOG("%02x\n", HALT);
 
 	fflush(stdout);
 	unsigned char *bytecode = malloc(compiler->code->count + compiler->header->count + 1);    // NOT OWN
@@ -325,11 +325,21 @@ unsigned char *compile_REPL(struct Compiler *const compiler) {
 
 static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *const node) {
 	const struct Node *const expr = ExprStmt_get_expr(node);
-	visit(compiler, expr);
-	if (expr->nodetype == N_ASSIGN) {
-		compiler->buffer->count -= 2;
-	} else {
-		bb_add_byte(compiler->buffer, POP);
+	switch (expr->nodetype) {
+	case N_STR:
+	case N_INT:
+	case N_FLOAT:
+	case N_BOOL:
+	case N_UNDEF:
+	case N_VAR:
+		return;
+	default:
+		visit(compiler, expr);
+		if (expr->nodetype == N_ASSIGN) {
+			compiler->buffer->count -= 2;
+		} else {
+			bb_add_byte(compiler->buffer, POP);
+		}
 	}
 }
 
@@ -378,7 +388,7 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 }
 
 static void visit_Call(struct Compiler *const compiler, const struct Node *const node) {
-	YASL_TRACE_LOG("Visit Call: %s\n", node->value.sval.str);
+	YASL_COMPILE_DEBUG_LOG("Visit Call: %s\n", node->value.sval.str);
 	visit(compiler, node->children[1]);
 	bb_add_byte(compiler->buffer, INIT_CALL);
 	visit_Body(compiler, Call_get_params(node));
@@ -386,7 +396,7 @@ static void visit_Call(struct Compiler *const compiler, const struct Node *const
 }
 
 static void visit_MethodCall(struct Compiler *const compiler, const struct Node *const node) {
-	YASL_TRACE_LOG("Visit MethodCall: %s\n", node->value.sval.str);
+	YASL_COMPILE_DEBUG_LOG("Visit MethodCall: %s\n", node->value.sval.str);
 	visit(compiler, node->children[1]);
 	enum SpecialStrings index = get_special_string(node);
 	if (index != S_UNKNOWN_STR) {
@@ -395,7 +405,7 @@ static void visit_MethodCall(struct Compiler *const compiler, const struct Node 
 	} else {
 		struct YASL_Object value = table_search_string_int(compiler->strings, node->value.sval.str, node->value.sval.str_len);
 		if (value.type == Y_END) {
-			YASL_DEBUG_LOG("%s\n", "caching string");
+			YASL_COMPILE_DEBUG_LOG("%s\n", "caching string");
 			table_insert_string_int(compiler->strings, node->value.sval.str, node->value.sval.str_len, compiler->header->count);
 			bb_intbytes8(compiler->header, node->value.sval.str_len);
 			bb_append(compiler->header, (unsigned char *) node->value.sval.str, node->value.sval.str_len);
@@ -412,7 +422,7 @@ static void visit_MethodCall(struct Compiler *const compiler, const struct Node 
 }
 
 static void visit_Return(struct Compiler *const compiler, const struct Node *const node) {
-	YASL_TRACE_LOG("Visit Return: %s\n", node->value.sval.str);
+	YASL_COMPILE_DEBUG_LOG("Visit Return: %s\n", node->value.sval.str);
 	visit(compiler, Return_get_expr(node));
 	bb_add_byte(compiler->buffer, RET);
 }
@@ -428,6 +438,13 @@ static void visit_Get(struct Compiler *const compiler, const struct Node *const 
 	visit(compiler, Get_get_collection(node));
 	visit(compiler, Get_get_value(node));
 	bb_add_byte(compiler->buffer, GET);
+}
+
+static void visit_Slice(struct Compiler *const compiler, const struct Node *const node) {
+	visit(compiler, Slice_get_collection(node));
+	visit(compiler, Slice_get_start(node));
+	visit(compiler, Slice_get_end(node));
+	bb_add_byte(compiler->buffer, SLICE);
 }
 
 static void visit_Block(struct Compiler *const compiler, const struct Node *const node) {
@@ -864,7 +881,7 @@ static void visit_Float(struct Compiler *const compiler, const struct Node *cons
 }
 
 static void visit_Integer(struct Compiler *const compiler, const struct Node *const node) {
-	YASL_TRACE_LOG("int64: %" PRId64 "\n", node->value.ival);
+	YASL_COMPILE_DEBUG_LOG("int64: %" PRId64 "\n", node->value.ival);
 	yasl_int val = node->value.ival;
 	switch (val) {
 	case -1:
@@ -902,7 +919,7 @@ static void visit_Boolean(struct Compiler *const compiler, const struct Node *co
 static void visit_String(struct Compiler *const compiler, const struct Node *const node) {
 	struct YASL_Object value = table_search_string_int(compiler->strings, node->value.sval.str, node->value.sval.str_len);
 	if (value.type == Y_END) {
-		YASL_DEBUG_LOG("%s\n", "caching string");
+		YASL_COMPILE_DEBUG_LOG("%s\n", "caching string");
 		table_insert_string_int(compiler->strings, node->value.sval.str, node->value.sval.str_len, compiler->header->count);
 		bb_intbytes8(compiler->header, node->value.sval.str_len);
 		bb_append(compiler->header, (unsigned char *) node->value.sval.str, node->value.sval.str_len);
@@ -945,6 +962,7 @@ static void (*jumptable[])(struct Compiler *const, const struct Node *const) = {
 	&visit_MethodCall,
 	&visit_Set,
 	&visit_Get,
+	&visit_Slice,
 	NULL,
 	&visit_ListComp,
 	&visit_TableComp,
