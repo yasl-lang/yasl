@@ -468,7 +468,15 @@ static struct Node *parse_call(Parser *const parser) {
 			}
 		} else if (curtok(parser) == T_LSQB) {
 			eattok(parser, T_LSQB);
-			cur_node = new_Get(cur_node, parse_expr(parser), parser->lex.line);
+			size_t line = parser->lex.line;
+			struct Node *expr = parse_expr(parser);
+			if (curtok(parser) == T_COLON) {
+				eattok(parser, T_COLON);
+				struct Node *end = parse_expr(parser);
+				cur_node = new_Slice(cur_node, expr, end, line);
+			} else {
+				cur_node = new_Get(cur_node, expr, line);
+			}
 			eattok(parser, T_RSQB);
 		} else if (curtok(parser) == T_LPAR) {
 			YASL_PARSE_DEBUG_LOG("%s\n", "Parsing function call");

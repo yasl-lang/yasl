@@ -440,6 +440,13 @@ static void visit_Get(struct Compiler *const compiler, const struct Node *const 
 	bb_add_byte(compiler->buffer, GET);
 }
 
+static void visit_Slice(struct Compiler *const compiler, const struct Node *const node) {
+	visit(compiler, Slice_get_collection(node));
+	visit(compiler, Slice_get_start(node));
+	visit(compiler, Slice_get_end(node));
+	bb_add_byte(compiler->buffer, SLICE);
+}
+
 static void visit_Block(struct Compiler *const compiler, const struct Node *const node) {
 	enter_scope(compiler);
 	visit(compiler, node->children[0]);
@@ -955,6 +962,7 @@ static void (*jumptable[])(struct Compiler *const, const struct Node *const) = {
 	&visit_MethodCall,
 	&visit_Set,
 	&visit_Get,
+	&visit_Slice,
 	NULL,
 	&visit_ListComp,
 	&visit_TableComp,

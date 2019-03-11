@@ -349,6 +349,66 @@ int vm_stringify_top(struct VM *vm) {
 	return YASL_SUCCESS;
 }
 
+int vm_SLICE(struct VM *vm) {
+	if (!YASL_ISINT(VM_PEEK(vm, vm->sp)) || !YASL_ISINT(VM_PEEK(vm, vm->sp - 1))) {
+		YASL_PRINT_ERROR_TYPE("slicing expected range of type int:int, got type %s:%s",
+				      YASL_TYPE_NAMES[VM_PEEK(vm, vm->sp - 1).type],
+				      YASL_TYPE_NAMES[VM_PEEK(vm, vm->sp).type]
+		);
+		return YASL_TYPE_ERROR;
+	}
+
+	yasl_int end = vm_popint(vm);
+	yasl_int start = vm_popint(vm);
+
+	if (YASL_ISLIST(vm_peek(vm))) {
+		struct List *list = vm_poplist(vm);
+		yasl_int len = list->count;
+		if (end < 0)
+			end += len;
+
+		if (start < 0)
+			start += len;
+
+		if (end > len)
+			end = len;
+
+		if (start < 0)
+			start = 0;
+
+		struct RC_UserData *new_ls = ls_new();
+
+		for (yasl_int i = start; i <end; ++i) {
+			ls_append(new_ls->data, list->items[i]);
+		}
+		vm_push(vm, YASL_LIST(new_ls));
+		return YASL_SUCCESS;
+	}
+
+	if (YASL_ISSTR(vm_peek(vm))) {
+		String_t *str = vm_popstr(vm);
+		yasl_int len = yasl_string_len(str);
+		if (end < 0)
+			end += len;
+
+		if (start < 0)
+			start += len;
+
+		if (end > len)
+			end = len;
+
+		if (start < 0)
+			start = 0;
+
+		vm_push(vm, YASL_STR(str_new_substring(start, end, str)));
+		return YASL_SUCCESS;
+	}
+
+	YASL_PRINT_ERROR_TYPE("slice is not defined for objects of type %s.", YASL_TYPE_NAMES[vm_pop(vm).type]);
+	return YASL_TYPE_ERROR;
+
+}
+
 int vm_GET(struct VM *vm) {
 	vm->sp--;
 	int index = vm_peek(vm).type;
@@ -844,6 +904,9 @@ int vm_run(struct VM *vm) {
 			break;
 		case GET:
 			if ((res = vm_GET(vm))) return res;
+			break;
+		case SLICE:
+			if ((res = vm_SLICE(vm))) return res;
 			break;
 		case SET: {
 			vm->sp -= 2;
