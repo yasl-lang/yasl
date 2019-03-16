@@ -15,6 +15,8 @@ You should then be able to type `./YASL -V` from within the `yasl` directory, wh
 ## Running YASL Code
 A YASL script can be run using `./YASL filename`. This will search in the current directory (same directory as `YASL`) for a file named `filename`, and run it.
 
+An online Interpreter is also available here: https://coffeetableespresso.github.io/YASL.html. It's the same interpreter as found in this repo, but compiled to WASM. It might be slow and buggy compared to the native interpreter, but we're working to fix that.
+
 ## Running Tests
 
 ```bash
