@@ -330,4 +330,6 @@ assert_output("echo if;",
 assert_output("echo true + false;",
               $RED . "TypeError: + not supported for operands of types bool and bool.\n" . $END, 4);
 
+assert_output("x;", $RED . "SyntaxError: Undeclared variable x (line 1).\n" . $END, 3);
+
 exit $__VM_TESTS_FAILED__;
