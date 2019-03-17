@@ -23,6 +23,8 @@ void YASL_resetstate_bb(struct YASL_State *S, char *buf, size_t len);
  */
 int YASL_delstate(struct YASL_State *S);
 
+int YASL_compile(struct YASL_State *S);
+
 /**
  * Execute the bytecode for the given YASL_State.
  * @param S the YASL_State to use to execute the bytecode.
