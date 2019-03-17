@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <inttypes.h>
 
 char *float64_to_str(double d) {
 	int64_t size = snprintf(NULL, 0, "%f", d);

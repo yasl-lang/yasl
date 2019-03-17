@@ -62,7 +62,7 @@ int YASL_io_open(struct YASL_State *S) {
                 return -1;
         }
     }
-    YASL_pushobject(S, f ? YASL_UserData(f, YASL_FILE) : YASL_Undef());
+    YASL_pushobject(S, f ? YASL_UserData(f, YASL_FILE, NULL) : YASL_Undef());
     return 0;
 }
 
