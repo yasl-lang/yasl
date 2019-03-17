@@ -1,5 +1,5 @@
 # YASL
-Bytecode Interpreter for Yet Another Scripting Language (YASL). More information can be found here: https://yasl-lang.github.io/docs/. A online interpreter (that you can use to try YASL from your browser without downloading anything) can be found here: https://yasl-lang.github.io/playground/interpreter.html.
+Bytecode Interpreter for Yet Another Scripting Language (YASL). More information can be found here: https://yasl-lang.github.io/docs/. An online interpreter (that you can use to try YASL from your browser without downloading anything) can be found here: https://yasl-lang.github.io/playground/interpreter.html.
 
 ## Installation
 YASL can be compiled from source with the following commands:
