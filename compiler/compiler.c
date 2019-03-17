@@ -10,6 +10,7 @@
 #include "yasl_include.h"
 #include "lexinput.h"
 #include <math.h>
+#include <bytebuffer/bytebuffer.h>
 
 #define break_checkpoint(compiler)    ((compiler)->checkpoints[(compiler)->checkpoints_count-1])
 #define continue_checkpoint(compiler) ((compiler)->checkpoints[(compiler)->checkpoints_count-2])
@@ -325,13 +326,17 @@ unsigned char *compile_REPL(struct Compiler *const compiler) {
 
 static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *const node) {
 	const struct Node *const expr = ExprStmt_get_expr(node);
+	size_t curr = compiler->buffer->count;
 	switch (expr->nodetype) {
 	case N_STR:
 	case N_INT:
 	case N_FLOAT:
 	case N_BOOL:
 	case N_UNDEF:
+		return;
 	case N_VAR:
+		visit(compiler, expr);
+		compiler->buffer->count = curr;
 		return;
 	default:
 		visit(compiler, expr);

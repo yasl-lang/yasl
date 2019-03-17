@@ -80,6 +80,11 @@ int YASL_execute_REPL(struct YASL_State *S) {
 	return vm_run((struct VM *)S);  // TODO: error handling for runtime errors.
 }
 
+int YASL_compile(struct YASL_State *S) {
+	compile(&S->compiler);
+	return S->compiler.status;
+}
+
 int YASL_execute(struct YASL_State *S) {
 	unsigned char *bc = compile(&S->compiler);
 	if (!bc) return S->compiler.status;
