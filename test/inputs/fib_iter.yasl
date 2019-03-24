@@ -1,0 +1,32 @@
+##fib(0): 0\nfib(1): 1\nfib(2): 1\nfib(3): 2\nfib(4): 3\nfib(5): 5\nfib(6): 8\n
+
+
+fn fib(n) {
+    i := 0
+    nextterm := 1
+    present := 1
+    previous := 0
+
+    while i < n {
+        nextterm = present + previous
+        previous = present
+        present = nextterm
+        i += 1
+    }
+    return previous
+}
+
+
+
+fn range(a, b) {
+    tmp := []
+    for i := a; i < b; i += 1 {
+        tmp->push(i)
+    }
+
+    return tmp
+}
+
+for i <- range(0, 7) {
+    echo "fib(#{i}): #{fib(i)}"
+}
