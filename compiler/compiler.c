@@ -231,7 +231,7 @@ static int contains_var(const struct Compiler *const compiler, char *name, size_
 }
 
 static void decl_var(struct Compiler *const compiler, char *name, size_t name_len, size_t line) {
-	if (NULL != compiler->params) {
+	if (compiler->params) {
 		int64_t index = env_decl_var(compiler->params, name, name_len);
 		if (index > 255) {
 			YASL_PRINT_ERROR_TOO_MANY_VAR(line);
@@ -372,9 +372,11 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	}
 
 	bb_add_byte(compiler->buffer, FnDecl_get_params(node)->children_len);
+	size_t index = compiler->buffer->count;
 	bb_add_byte(compiler->buffer, compiler->params->vars->count);
 	visit_Body(compiler, FnDecl_get_body(node));
 
+	compiler->buffer->bytes[index] = compiler->params->vars->count;
 	int64_t fn_val = compiler->header->count;
 	bb_append(compiler->header, compiler->buffer->bytes, compiler->buffer->count);
 	bb_add_byte(compiler->header, NCONST);
