@@ -1,0 +1,15 @@
+##false\ntrue\n
+
+fn unique(string) {
+    hash := {}
+    for char <- string {
+        if hash[char] {
+            return false
+        }
+        hash[char] = true
+    }
+    return true
+}
+
+echo unique('1234566')
+echo unique('12345')
