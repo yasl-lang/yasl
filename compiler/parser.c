@@ -341,13 +341,11 @@ static struct Node *parse_assign(Parser *const parser) {
 			return new_Assign(name, name_len, new_BinOp(op, tmp, parse_assign(parser), line), line);
 		}
 		case N_GET: {
-			struct Node *left = cur_node->children[0];
-			struct Node *block = new_Body(parser->lex.line);
-			body_append(&block, cur_node->children[1]);
-			body_append(&block, new_BinOp(op, node_clone(cur_node), parse_expr(parser), line));
-			free(cur_node->children);
+			struct Node *collection = cur_node->children[0];
+			struct Node *key = cur_node->children[1];
+			struct Node *value = new_BinOp(op, node_clone(cur_node), parse_expr(parser), line);
 			free(cur_node);
-			return new_Set(left, block->children[0], block->children[1], line);
+			return new_Set(collection, key, value, line);
 		}
 		default:
 			YASL_PRINT_ERROR_SYNTAX("Invalid l-value (line %zd).\n", line);
