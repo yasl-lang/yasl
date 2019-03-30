@@ -1,0 +1,33 @@
+##true\ntrue\nfalse\n
+
+
+# CTCI 1.4
+fn pp(s) {
+    hash := {}
+    for c <- s {
+        if hash[c] !== undef {
+            hash[c] += 1
+        } else {
+            hash[c] = 1
+        }
+    }
+
+    count := false
+    for c <- hash {
+        if hash[c] % 2 != 0 {
+            if count {
+                return false
+            }
+            count = true
+        }
+    }
+
+    return true
+
+}
+
+
+echo pp('asdsa')
+echo pp('asdas')
+echo pp('sasdasddas')
+
