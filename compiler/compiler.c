@@ -128,6 +128,7 @@ static void enter_scope(struct Compiler *const compiler) {
 
 static void exit_scope(struct Compiler *const compiler) {
 	if (compiler->params != NULL) {
+		compiler->num_locals += compiler->params->vars->count;
 		Env_t *tmp = compiler->params;
 		compiler->params = compiler->params->parent;
 		env_del_current_only(tmp);
@@ -359,6 +360,7 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	// start logic for function, now that we are sure it's legal to do so, and have set up.
 
 	compiler->params = env_new(compiler->params);
+	compiler->num_locals = 0;
 
 	enter_scope(compiler);
 
@@ -375,8 +377,9 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	size_t index = compiler->buffer->count;
 	bb_add_byte(compiler->buffer, compiler->params->vars->count);
 	visit_Body(compiler, FnDecl_get_body(node));
+	exit_scope(compiler);
+	compiler->buffer->bytes[index] = compiler->num_locals;
 
-	compiler->buffer->bytes[index] = compiler->params->vars->count;
 	int64_t fn_val = compiler->header->count;
 	bb_append(compiler->header, compiler->buffer->bytes, compiler->buffer->count);
 	bb_add_byte(compiler->header, NCONST);
@@ -385,7 +388,6 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	// zero buffer length
 	compiler->buffer->count = 0;
 
-	exit_scope(compiler);
 	Env_t *tmp = compiler->params->parent;
 	env_del_current_only(compiler->params);
 	compiler->params = tmp;

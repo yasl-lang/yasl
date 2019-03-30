@@ -27,6 +27,7 @@ struct Compiler {
     Parser parser;
     Env_t *globals;
     Env_t *params;
+    size_t num_locals;
     struct Table *strings;
     ByteBuffer *buffer;
     ByteBuffer *header;
