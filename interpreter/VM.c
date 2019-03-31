@@ -423,11 +423,11 @@ int vm_GET(struct VM *vm) {
 		if (!table___get((struct YASL_State *) vm)) {
 			return YASL_SUCCESS;
 		}
-	//}// else if (YASL_ISSTR(vm_peek(vm))) {
-	//	vm->sp++;
-	//	if (!str___get((struct YASL_State *) vm)) {
-	//		return YASL_SUCCESS;
-	//	}
+	} else if (YASL_ISSTR(vm_peek(vm)) && VM_PEEK(vm, vm->sp+1).type == Y_INT) {
+		vm->sp++;
+		if (!str___get((struct YASL_State *) vm)) {
+			return YASL_SUCCESS;
+		}
 	} else {
 			vm->sp++;
 	}
