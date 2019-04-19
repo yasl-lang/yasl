@@ -140,6 +140,12 @@ static int main_REPL(int argc, char **argv) {
 	return YASL_SUCCESS;
 }
 
+#ifdef __EMSCRIPTEN__
+int main(void) {
+	puts(VERSION_PRINTOUT);
+	exit(EXIT_SUCCESS);
+}
+#else
 int main(int argc, char **argv) {
 	// Initialize prng seed
 	srand(time(NULL));
@@ -158,3 +164,5 @@ int main(int argc, char **argv) {
 		return main_REPL(argc, argv);
 	}
 }
+#endif
+
