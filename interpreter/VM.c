@@ -429,7 +429,7 @@ int vm_GET(struct VM *vm) {
 			return YASL_SUCCESS;
 		}
 	} else {
-			vm->sp++;
+		vm->sp++;
 	}
 
 	struct YASL_Object key = vm_pop(vm);

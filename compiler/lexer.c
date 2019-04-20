@@ -279,6 +279,26 @@ int lex_eatnumber(Lexer *lex) {
 	return 0;
 }
 
+int lex_eatfloatexp(Lexer *lex) {
+	lex->val_len = 8;
+	lex->value = realloc(lex->value, lex->val_len);
+	size_t i = 0;
+	do {
+		lex->value[i++] = lex->c;
+		lex_getchar(lex);
+		if (i == lex->val_len) {
+			lex->val_len *= 2;
+			lex->value = realloc(lex->value, lex->val_len);
+		}
+		while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
+	} while (!lxeof(lex->file) && ((isdigit(lex->c))));
+	if (i == lex->val_len) lex->value = realloc(lex->value, i + 1);
+	lex->value[i] = '\0';
+	if (!lxeof(lex->file)) lxseek(lex->file, -1, SEEK_CUR);
+	lex->type = T_FLOAT;
+	return 1;
+}
+
 int lex_eatid(Lexer *lex) {
 	int c = lex->c;
 	if (isyaslidstart(c)) {                           // identifiers and keywords
