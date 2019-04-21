@@ -376,13 +376,12 @@ int handle_escapes(Lexer *lex, size_t *i, char delim) {
 		buffer[1] = lex_getchar(lex);
 		buffer[2] = '\0';
 		tmp = (char) strtol(buffer, &end, 16);
-		if (end != buffer) {
+		if (end != buffer + 2) {
 			YASL_PRINT_ERROR_SYNTAX("Invalid hex string escape in line %zd.\n", lex->line);
 			while (lex->c != '\n' && lex->c != delim) lex_getchar(lex);
 			lex_error(lex);
 			return 1;
 		}
-		// printf("tmp: %d\n", tmp);
 		lex->value[(*i)++] = tmp;
 		return 0;
 	default:

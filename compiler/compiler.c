@@ -55,7 +55,7 @@ static enum SpecialStrings get_special_string(const struct Node *const node) {
 #undef STR_EQ
 }
 
-struct Compiler *compiler_new(FILE *fp) {
+struct Compiler *compiler_new(FILE *const fp) {
 	struct Compiler *compiler = malloc(sizeof(struct Compiler));
 
 	compiler->globals = env_new(NULL);
@@ -76,7 +76,7 @@ struct Compiler *compiler_new(FILE *fp) {
 }
 
 
-struct Compiler *compiler_new_bb(char *buf, int len) {
+struct Compiler *compiler_new_bb(char *buf, const int len) {
 	struct Compiler *compiler = malloc(sizeof(struct Compiler));
 
 	compiler->globals = env_new(NULL);
@@ -139,7 +139,7 @@ static void exit_scope(struct Compiler *const compiler) {
 	}
 }
 
-static inline void enter_conditional_false(struct Compiler *const compiler, int64_t *index) {
+static inline void enter_conditional_false(struct Compiler *const compiler, int64_t *const index) {
 	bb_add_byte(compiler->buffer, BRF_8);
 	*index = compiler->buffer->count;
 	bb_intbytes8(compiler->buffer, 0);
@@ -169,16 +169,16 @@ static void visit_Body(struct Compiler *const compiler, const struct Node *const
 	}
 }
 
-int is_const(int64_t value) {
+int is_const(const int64_t value) {
 	const uint64_t MASK = 0x8000000000000000;
 	return (MASK & value) != 0;
 }
 
-static inline int64_t get_index(int64_t value) {
+static inline int64_t get_index(const int64_t value) {
 	return is_const(value) ? ~value : value;
 }
 
-static void load_var(struct Compiler *const compiler, char *name, size_t name_len, size_t line) {
+static void load_var(struct Compiler *const compiler, char *const name, const size_t name_len, const size_t line) {
 	if (env_contains(compiler->params, name, name_len)) {
 		int64_t index = get_index(env_get(compiler->params, name, name_len));
 		bb_add_byte(compiler->buffer, LLOAD_1);
@@ -194,7 +194,7 @@ static void load_var(struct Compiler *const compiler, char *name, size_t name_le
 	}
 }
 
-static void store_var(struct Compiler *const compiler, char *name, size_t name_len, size_t line) {
+static void store_var(struct Compiler *const compiler, char *const name, const size_t name_len, const size_t line) {
 	if (env_contains(compiler->params, name, name_len)) {
 		int64_t index = env_get(compiler->params, name, name_len);
 		if (is_const(index)) {

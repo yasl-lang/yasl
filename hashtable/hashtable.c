@@ -136,7 +136,7 @@ static void table_resize_down(struct Table *table) {
 	table_resize(table, new_size);
 }
 
-void table_insert(struct Table *table, const struct YASL_Object key, const struct YASL_Object value) {
+void table_insert(struct Table *const table, const struct YASL_Object key, const struct YASL_Object value) {
 	const int load = table->count * 100 / table->size;
 	if (load > 70) table_resize_up(table);
 	Item_t item = new_item(key, value);
@@ -158,7 +158,7 @@ void table_insert(struct Table *table, const struct YASL_Object key, const struc
 	table->count++;
 }
 
-void table_insert_string_int(struct Table *table, char *key, int64_t key_len, int64_t val) {
+void table_insert_string_int(struct Table *const table, const char *const key, const int64_t key_len, const int64_t val) {
 	String_t *string = str_new_sized_heap(0, key_len, copy_char_buffer(key_len, key));
 	table_insert(table,
 		     (struct YASL_Object) {.type = Y_STR, .value.sval = string},
@@ -179,7 +179,7 @@ struct YASL_Object table_search(const struct Table *const table, const struct YA
 	return (struct YASL_Object) {Y_END, {0}};
 }
 
-struct YASL_Object table_search_string_int(const struct Table *const table, char *key, int64_t key_len) {
+struct YASL_Object table_search_string_int(const struct Table *const table, const char *const key, const int64_t key_len) {
 	String_t *string = str_new_sized_heap(0, key_len, copy_char_buffer(key_len, key));
 	struct YASL_Object object = (struct YASL_Object) {.value.sval = string, .type = Y_STR};
 
