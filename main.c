@@ -141,9 +141,13 @@ static int main_REPL(int argc, char **argv) {
 }
 
 #ifdef __EMSCRIPTEN__
-int main(void) {
-	puts(VERSION_PRINTOUT);
-	exit(EXIT_SUCCESS);
+int main(int argc, char **argv) {
+	// printf("argc: %d\n", argc);
+	if (argc == 1) {
+		puts(VERSION_PRINTOUT);
+		return EXIT_SUCCESS;
+	}
+	return main_command(argc, argv);
 }
 #else
 int main(int argc, char **argv) {
