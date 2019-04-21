@@ -325,8 +325,8 @@ assert_output(q"x := [ b for b <- [1, 2, 3, 4] if b % 2 == 0 ]; echo b;",
 assert_output("echo if;",
               $RED . "SyntaxError: ParsingError in line 1: expected expression, got `if`\n" . $END, 3);
 assert_output("x;", $RED . "SyntaxError: Undeclared variable x (line 1).\n" . $END, 3);
-assert_output(q+echo 'hello \o world';+, $RED . "SyntaxError: Invalid string escape sequence in line 1." . $END, 3);
-assert_output(q+echo 'hello \xworld';+, $RED . "SyntaxError: Invalid hex string escape in line 1." . $END, 3);
+assert_output("echo 'hello \\o world'\n", $RED . "SyntaxError: Invalid string escape sequence in line 1.\n" . $END, 3);
+assert_output("echo 'hello \\xworld'\n", $RED . "SyntaxError: Invalid hex string escape in line 1.\n" . $END, 3);
 
 assert_output("echo true + false;",
               $RED . "TypeError: + not supported for operands of types bool and bool.\n" . $END, 4);
