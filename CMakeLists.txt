@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 3.7.2)
+cmake_minimum_required(VERSION 3.5.0)
 project(YASL C)
 
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_C_STANDARD 99)
-set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-unused-result -Wno-unused-variable -Wno-unused-parameter -pedantic -Werror")
+set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-unused-function -Wno-unused-result -Wno-unused-variable -Wno-unused-parameter -pedantic -Werror")
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 include_directories(.)

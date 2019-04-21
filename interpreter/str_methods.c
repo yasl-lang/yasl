@@ -20,6 +20,7 @@ int str___get(struct YASL_State *S) {
 		return -1;
 		vm_push((struct VM *)S, YASL_UNDEF());
 	} else if (YASL_GETINT(index) < -yasl_string_len(str) || YASL_GETINT(index) >= yasl_string_len(str)) {
+		printf("IndexError\n");
 		return -1;
 		vm_push((struct VM *)S, YASL_UNDEF());
 	} else {

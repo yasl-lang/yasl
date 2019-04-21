@@ -341,13 +341,11 @@ static struct Node *parse_assign(Parser *const parser) {
 			return new_Assign(name, name_len, new_BinOp(op, tmp, parse_assign(parser), line), line);
 		}
 		case N_GET: {
-			struct Node *left = cur_node->children[0];
-			struct Node *block = new_Body(parser->lex.line);
-			body_append(&block, cur_node->children[1]);
-			body_append(&block, new_BinOp(op, node_clone(cur_node), parse_expr(parser), line));
-			free(cur_node->children);
+			struct Node *collection = cur_node->children[0];
+			struct Node *key = cur_node->children[1];
+			struct Node *value = new_BinOp(op, node_clone(cur_node), parse_expr(parser), line);
 			free(cur_node);
-			return new_Set(left, block->children[0], block->children[1], line);
+			return new_Set(collection, key, value, line);
 		}
 		default:
 			YASL_PRINT_ERROR_SYNTAX("Invalid l-value (line %zd).\n", line);
@@ -520,16 +518,16 @@ static struct Node *parse_constant(Parser *const parser) {
 	case T_CONT:
 	case T_IF:
 	case T_ELSEIF:
-	case T_ELSE:YASL_PRINT_ERROR_SYNTAX("ParsingError in line %"
-						    PRId64
-						    ": expected expression, got `%s`\n", parser->lex.line,
+	case T_ELSE:
+		YASL_PRINT_ERROR_SYNTAX("ParsingError in line %zd: expected expression, got `%s`\n",
+					    parser->lex.line,
 					    YASL_TOKEN_NAMES[curtok(parser)]);
 		return handle_error(parser);
-	case T_UNKNOWN:parser->status = parser->lex.status;
+	case T_UNKNOWN:
+		parser->status = parser->lex.status;
 		return NULL;
-	default:YASL_PRINT_ERROR_SYNTAX("Invalid expression in line %"
-						PRId64
-						" (%s).\n", parser->lex.line, YASL_TOKEN_NAMES[curtok(parser)]);
+	default:
+		YASL_PRINT_ERROR_SYNTAX("Invalid expression in line %zd (%s).\n", parser->lex.line, YASL_TOKEN_NAMES[curtok(parser)]);
 		return handle_error(parser);
 	}
 }
@@ -551,6 +549,7 @@ static struct Node *parse_undef(Parser *const parser) {
 	return cur_node;
 }
 
+static yasl_int get_int(char *buffer);
 static double get_float(char *buffer) {
 	return strtod(buffer, (char **) NULL);
 }
@@ -558,6 +557,28 @@ static double get_float(char *buffer) {
 static struct Node *parse_float(Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("%s\n", "Parsing float");
 	struct Node *cur_node = new_Float(get_float(parser->lex.value), parser->lex.line);
+	if (parser->lex.c == 'E' || parser->lex.c == 'e') {
+		lxgetc(parser->lex.file);
+		parser->lex.c = lxgetc(parser->lex.file);
+		int sign;
+		if (parser->lex.c == '-') {
+			sign = -1;
+			parser->lex.c = lxgetc(parser->lex.file);
+		} else if (parser->lex.c == '+') {
+			sign = 1;
+			parser->lex.c = lxgetc(parser->lex.file);
+		} else {
+			sign = 1;
+		}
+		lex_eatfloatexp(&parser->lex);
+		yasl_int i = get_int(parser->lex.value);
+		free(parser->lex.value);
+		eattok(parser, T_FLOAT);
+		return new_BinOp(T_STAR, cur_node,
+				 new_BinOp(T_DSTAR, new_Integer(10, parser->lex.line),
+					   new_Integer(sign * i, parser->lex.line), parser->lex.line),
+				 parser->lex.line);
+	}
 	free(parser->lex.value);
 	eattok(parser, T_FLOAT);
 	return cur_node;

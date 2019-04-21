@@ -10,6 +10,7 @@
 #include "yasl_include.h"
 #include "lexinput.h"
 #include <math.h>
+#include <bytebuffer/bytebuffer.h>
 
 #define break_checkpoint(compiler)    ((compiler)->checkpoints[(compiler)->checkpoints_count-1])
 #define continue_checkpoint(compiler) ((compiler)->checkpoints[(compiler)->checkpoints_count-2])
@@ -127,6 +128,7 @@ static void enter_scope(struct Compiler *const compiler) {
 
 static void exit_scope(struct Compiler *const compiler) {
 	if (compiler->params != NULL) {
+		compiler->num_locals += compiler->params->vars->count;
 		Env_t *tmp = compiler->params;
 		compiler->params = compiler->params->parent;
 		env_del_current_only(tmp);
@@ -230,7 +232,7 @@ static int contains_var(const struct Compiler *const compiler, char *name, size_
 }
 
 static void decl_var(struct Compiler *const compiler, char *name, size_t name_len, size_t line) {
-	if (NULL != compiler->params) {
+	if (compiler->params) {
 		int64_t index = env_decl_var(compiler->params, name, name_len);
 		if (index > 255) {
 			YASL_PRINT_ERROR_TOO_MANY_VAR(line);
@@ -325,13 +327,17 @@ unsigned char *compile_REPL(struct Compiler *const compiler) {
 
 static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *const node) {
 	const struct Node *const expr = ExprStmt_get_expr(node);
+	size_t curr = compiler->buffer->count;
 	switch (expr->nodetype) {
 	case N_STR:
 	case N_INT:
 	case N_FLOAT:
 	case N_BOOL:
 	case N_UNDEF:
+		return;
 	case N_VAR:
+		visit(compiler, expr);
+		compiler->buffer->count = curr;
 		return;
 	default:
 		visit(compiler, expr);
@@ -354,6 +360,7 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	// start logic for function, now that we are sure it's legal to do so, and have set up.
 
 	compiler->params = env_new(compiler->params);
+	compiler->num_locals = 0;
 
 	enter_scope(compiler);
 
@@ -367,8 +374,11 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	}
 
 	bb_add_byte(compiler->buffer, FnDecl_get_params(node)->children_len);
+	size_t index = compiler->buffer->count;
 	bb_add_byte(compiler->buffer, compiler->params->vars->count);
 	visit_Body(compiler, FnDecl_get_body(node));
+	exit_scope(compiler);
+	compiler->buffer->bytes[index] = compiler->num_locals;
 
 	int64_t fn_val = compiler->header->count;
 	bb_append(compiler->header, compiler->buffer->bytes, compiler->buffer->count);
@@ -378,7 +388,6 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	// zero buffer length
 	compiler->buffer->count = 0;
 
-	exit_scope(compiler);
 	Env_t *tmp = compiler->params->parent;
 	env_del_current_only(compiler->params);
 	compiler->params = tmp;

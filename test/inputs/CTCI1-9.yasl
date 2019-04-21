@@ -1,0 +1,12 @@
+##true\nfalse\n
+
+# CTCI 1.9
+fn isrotation(s1, s2) {
+    if (len s1 == len s2 && len s1 > 0) {
+        return !!(s1 ~ s1)->search(s2)
+    }
+    return false
+}
+
+echo isrotation(.waterbottle, .erbottlewat)
+echo isrotation(.waterbottle, .erbottlewate)

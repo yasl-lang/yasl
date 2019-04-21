@@ -12,6 +12,7 @@
 
 #include "interpreter/table_methods.h"
 #include "interpreter/list_methods.h"
+#include "interpreter/str_methods.h"
 #include "yasl_state.h"
 #include "yasl_error.h"
 #include "yasl_include.h"
@@ -422,6 +423,11 @@ int vm_GET(struct VM *vm) {
 		if (!table___get((struct YASL_State *) vm)) {
 			return YASL_SUCCESS;
 		}
+	} else if (YASL_ISSTR(vm_peek(vm)) && VM_PEEK(vm, vm->sp+1).type == Y_INT) {
+		vm->sp++;
+		if (!str___get((struct YASL_State *) vm)) {
+			return YASL_SUCCESS;
+		}
 	} else {
 		vm->sp++;
 	}
@@ -793,13 +799,10 @@ int vm_run(struct VM *vm) {
 				}
 				break;
 			case Y_TABLE:
-				while ((vm_peektable(vm, vm->lp)->items[vm_peekint(vm, vm->lp + 1)].key.type ==
-					Y_END ||
-					vm_peektable(vm, vm->lp)->items[vm_peekint(vm, vm->lp + 1)].key.type ==
-					Y_UNDEF
-				       ) &&
-					vm_peektable(vm, vm->lp)->size >
-				       (size_t) vm_peekint(vm, vm->lp + 1)) {
+				while (vm_peektable(vm, vm->lp)->size > (size_t) vm_peekint(vm, vm->lp + 1) &&
+					(vm_peektable(vm, vm->lp)->items[vm_peekint(vm, vm->lp + 1)].key.type == Y_END ||
+					vm_peektable(vm, vm->lp)->items[vm_peekint(vm, vm->lp + 1)].key.type == Y_UNDEF)
+					) {
 					vm_peekint(vm, vm->lp + 1)++;
 				}
 				if (vm_peektable(vm, vm->lp)->size <=

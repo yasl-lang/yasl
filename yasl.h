@@ -23,6 +23,8 @@ void YASL_resetstate_bb(struct YASL_State *S, char *buf, size_t len);
  */
 int YASL_delstate(struct YASL_State *S);
 
+int YASL_compile(struct YASL_State *S);
+
 /**
  * Execute the bytecode for the given YASL_State.
  * @param S the YASL_State to use to execute the bytecode.
@@ -136,7 +138,7 @@ struct YASL_Object *YASL_Boolean(int value);
 struct YASL_Object *YASL_LiteralString(char *str);
 struct YASL_Object *YASL_CString(char *str);
 struct YASL_Object *YASL_UserPointer(void *userdata);
-struct YASL_Object *YASL_UserData(void *userdata, int tag);
+struct YASL_Object *YASL_UserData(void *userdata, int tag, void (*destructor)(void *));
 int YASL_UserData_gettag(struct YASL_Object *obj);
 void *YASL_UserData_getdata(struct YASL_Object *obj);
 struct YASL_Object *YASL_Function(int64_t index);

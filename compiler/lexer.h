@@ -47,5 +47,6 @@ typedef struct {
 void lex_cleanup(Lexer *lex);
 void gettok(Lexer *lex);
 int lex_eatinterpstringbody(Lexer *lex);
+int lex_eatfloatexp(Lexer *lex);
 
 const char *YASL_TOKEN_NAMES[84];

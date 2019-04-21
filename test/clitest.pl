@@ -26,13 +26,19 @@ sub assert_output {
 }
 
 
-assert_output("YASL -V", "YASL v0.4.1\n", 0);
+assert_output("YASL -V", "YASL v0.4.2\n", 0);
+assert_output("YASL -e 'x := 10; x;'", "10\n", 0);
+assert_output("YASL -E 'x := 10; x;'", "", 0);
+assert_output("YASL -E 'x := 10; echo x;'", "10\n", 0);
 assert_output("YASL -h",
-              "usage: yasl [option] [file]\n" .
+              "usage: yasl [option] [input]\n" .
               "options:\n" .
-              "\t-h: this menu\n" .
-              "\t-V: print current version\n" .
-              "\tfile: name of file containing script\n",
+              "\t-C: checks `input` for syntax errors but doesn't run it.\n" .
+              "\t-e input: executes `input` as code and prints result of last statement.\n" .
+              "\t-E input: executes `input` as code.\n" .
+              "\t-h: show this text.\n" .
+              "\t-V: print current version.\n" .
+              "\tinput: name of file containing script (or literal to execute with -e or -E).\n",
               0);
 
 exit $__CLI_TESTS_FAILED__;

@@ -1,0 +1,24 @@
+##a2b1c4a3\nabcde\n
+
+fn compress(s) {
+    new_s := ''
+    i := 0
+    while i < len s {
+        count := 0
+        j := i
+        while i < len s && s[i] == s[j] {
+            count += 1
+            i += 1
+        }
+        new_s ~= s[j] ~ count
+    }
+    if len s <= len new_s {
+        return s
+    }
+    return new_s
+}
+
+
+echo compress('aabccccaaa')
+echo compress('abcde')
+

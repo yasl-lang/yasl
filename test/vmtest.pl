@@ -221,7 +221,8 @@ assert_output("echo 'YAY'->rtrim('A')\n", "YAY\n", 0);
 assert_output("echo 'YAY'->trim('Y')\n", "A\n", 0);
 assert_output("echo 'YAY'->trim('A')\n", "YAY\n", 0);
 assert_output("echo 'YYAYYY'->trim('Y')\n", "A\n", 0);
-assert_output("echo 'YASL'->__get(3)\n", "L\n", 0); 
+assert_output("echo 'YASL'->__get(3)\n", "L\n", 0);
+assert_output("echo 'YASL'[3]\n", "L\n", 0);
 assert_output("echo 'YASL'->__get(-1)\n", "L\n", 0);
 assert_output("echo '12345'->slice(1, 4)\n", "234\n", 0);
 assert_output("echo 'YASL'->rep(3)\n", "YASLYASLYASL\n", 0);
@@ -329,5 +330,7 @@ assert_output("echo if;",
 
 assert_output("echo true + false;",
               $RED . "TypeError: + not supported for operands of types bool and bool.\n" . $END, 4);
+
+assert_output("x;", $RED . "SyntaxError: Undeclared variable x (line 1).\n" . $END, 3);
 
 exit $__VM_TESTS_FAILED__;
