@@ -29,8 +29,9 @@ struct Node *node_clone(const struct Node *const node) {
 	return clone;
 }
 
-static struct Node *new_Node(AST nodetype, enum Token type, size_t line, size_t name_len, char *name /* OWN */, size_t n, ... /* OWN */) {
-	struct Node *node = malloc(sizeof(struct Node) + n * sizeof(struct Node *));
+static struct Node *new_Node(const AST nodetype, const enum Token type, const size_t line, const size_t name_len,
+		char *const name /* OWN */, const size_t n, ... /* OWN */) {
+	struct Node *const node = malloc(sizeof(struct Node) + n * sizeof(struct Node *));
 	node->nodetype = nodetype;
 	node->type = type;
 	node->children_len = n;
@@ -52,11 +53,11 @@ static struct Node *new_Node(AST nodetype, enum Token type, size_t line, size_t 
 #define new_Node_2(nodetype, type, child1, child2, name, name_len, line) new_Node(nodetype, type, line, name_len, name, 2, child1, child2)
 #define new_Node_3(nodetype, type, child1, child2, child3, name, name_len, line) new_Node(nodetype, type, line, name_len, name, 3, child1, child2, child3)
 
-struct Node *new_ExprStmt(struct Node *child, size_t line) {
+struct Node *new_ExprStmt(const struct Node *const child, const size_t line) {
 	return new_Node_1(N_EXPRSTMT, T_UNKNOWN, child, NULL, 0, line);
 }
 
-struct Node *new_Block(struct Node *body, size_t line) {
+struct Node *new_Block(const struct Node *const body, const size_t line) {
 	return new_Node_1(N_BLOCK, T_UNKNOWN, body, NULL, 0, line);
 }
 
@@ -70,51 +71,51 @@ void body_append(struct Node **node, struct Node *const child) {
 	(*node)->children[(*node)->children_len - 1] = child;
 }
 
-struct Node *new_FnDecl(struct Node *params, struct Node *body, char *name, size_t name_len, size_t line) {
+struct Node *new_FnDecl(const struct Node *const params, const struct Node *const body, char *name, size_t name_len, const size_t line) {
 	return new_Node_2(N_FNDECL, T_UNKNOWN, params, body, name, name_len, line);
 }
 
-struct Node *new_Return(struct Node *expr, size_t line) {
+struct Node *new_Return(struct Node *expr, const size_t line) {
 	return new_Node_1(N_RET, T_UNKNOWN, expr, NULL, 0, line);
 }
 
-struct Node *new_Call(struct Node *params, struct Node *object, size_t line) {
+struct Node *new_Call(struct Node *params, struct Node *object, const size_t line) {
 	return new_Node_2(N_CALL, T_UNKNOWN, params, object, NULL, 0, line);
 }
 
-struct Node *new_MethodCall(struct Node *params, struct Node *object, char *value, size_t len, size_t line) {
+struct Node *new_MethodCall(struct Node *params, struct Node *object, char *value, size_t len, const size_t line) {
 	return new_Node_2(N_MCALL, T_UNKNOWN, params, object, value, len, line);
 }
 
-struct Node *new_Set(struct Node *collection, struct Node *key, struct Node *value, size_t line) {
+struct Node *new_Set(struct Node *collection, struct Node *key, struct Node *value, const size_t line) {
 	return new_Node_3(N_SET, T_UNKNOWN, collection, key, value, NULL, 0, line);
 }
 
-struct Node *new_Get(struct Node *collection, struct Node *value, size_t line) {
+struct Node *new_Get(struct Node *collection, struct Node *value, const size_t line) {
 	return new_Node_2(N_GET, T_UNKNOWN, collection, value, NULL, 0, line);
 }
 
-struct Node *new_Slice(struct Node *collection, struct Node *start, struct Node *end, size_t line) {
+struct Node *new_Slice(struct Node *collection, struct Node *start, struct Node *end, const size_t line) {
 	return new_Node_3(N_SLICE, T_UNKNOWN, collection, start, end, NULL, 0, line);
 }
 
-struct Node *new_ListComp(struct Node *expr, struct Node *iter, struct Node *cond, size_t line) {
+struct Node *new_ListComp(struct Node *expr, struct Node *iter, struct Node *cond, const size_t line) {
 	return new_Node_3(N_LISTCOMP, T_UNKNOWN, expr, iter, cond, NULL, 0, line);
 }
 
-struct Node *new_TableComp(struct Node *expr, struct Node *iter, struct Node *cond, size_t line) {
+struct Node *new_TableComp(struct Node *expr, struct Node *iter, struct Node *cond, const size_t line) {
 	return new_Node_3(N_TABLECOMP, T_UNKNOWN, expr, iter, cond, NULL, 0, line);
 }
 
-struct Node *new_LetIter(struct Node *var, struct Node *collection, size_t line) {
+struct Node *new_LetIter(struct Node *var, struct Node *collection, const size_t line) {
 	return new_Node_2(N_LETITER, T_UNKNOWN, var, collection, NULL, 0, line);
 }
 
-struct Node *new_ForIter(struct Node *iter, struct Node *body, size_t line) {
+struct Node *new_ForIter(struct Node *iter, struct Node *body, const size_t line) {
 	return new_Node_2(N_FORITER, T_UNKNOWN, iter, body, NULL, 0, line);
 }
 
-struct Node *new_While(struct Node *cond, struct Node *body, struct Node *post, size_t line) {
+struct Node *new_While(struct Node *cond, struct Node *body, struct Node *post, const size_t line) {
 	return new_Node_3(N_WHILE, T_UNKNOWN, cond, body, post, NULL, 0, line);
 }
 
@@ -126,39 +127,39 @@ struct Node *new_Continue(size_t line) {
 	return new_Node_0(N_CONT, T_UNKNOWN, NULL, 0, line);
 }
 
-struct Node *new_If(struct Node *cond, struct Node *then_node, struct Node *else_node, size_t line) {
+struct Node *new_If(struct Node *cond, struct Node *then_node, struct Node *else_node, const size_t line) {
 	return new_Node_3(N_IF, T_UNKNOWN, cond, then_node, else_node, NULL, 0, line);
 }
 
-struct Node *new_Print(struct Node *expr, size_t line) {
+struct Node *new_Print(struct Node *expr, const size_t line) {
 	return new_Node_1(N_PRINT, T_UNKNOWN, expr, NULL, 0, line);
 }
 
-struct Node *new_Let(char *name, size_t name_len, struct Node *expr, size_t line) {
+struct Node *new_Let(char *name, size_t name_len, struct Node *expr, const size_t line) {
 	return new_Node_1(N_LET, T_UNKNOWN, expr, name, name_len, line);
 }
 
-struct Node *new_Const(char *name, size_t name_len, struct Node *expr, size_t line) {
+struct Node *new_Const(char *name, size_t name_len, struct Node *expr, const size_t line) {
 	return new_Node_1(N_CONST, T_UNKNOWN, expr, name, name_len, line);
 }
 
-struct Node *new_TriOp(enum Token op, struct Node *left, struct Node *middle, struct Node *right, size_t line) {
+struct Node *new_TriOp(enum Token op, struct Node *left, struct Node *middle, struct Node *right, const size_t line) {
 	return new_Node_3(N_TRIOP, op, left, middle, right, NULL, 0, line);
 }
 
-struct Node *new_BinOp(enum Token op, struct Node *left, struct Node *right, size_t line) {
+struct Node *new_BinOp(enum Token op, struct Node *left, struct Node *right, const size_t line) {
 	return new_Node_2(N_BINOP, op, left, right, NULL, 0, line);
 }
 
-struct Node *new_UnOp(enum Token op, struct Node *child, size_t line) {
+struct Node *new_UnOp(enum Token op, struct Node *child, const size_t line) {
 	return new_Node_1(N_UNOP, op, child, NULL, 0, line);
 }
 
-struct Node *new_Assign(char *name, size_t name_len, struct Node *child, size_t line) {
+struct Node *new_Assign(char *name, size_t name_len, struct Node *child, const size_t line) {
 	return new_Node_1(N_ASSIGN, T_UNKNOWN, child, name, name_len, line);
 }
 
-struct Node *new_Var(char *name, size_t name_len, size_t line) {
+struct Node *new_Var(char *name, size_t name_len, const size_t line) {
 	return new_Node_0(N_VAR, T_UNKNOWN, name, name_len, line);
 }
 
@@ -166,33 +167,33 @@ struct Node *new_Undef(size_t line) {
 	return new_Node_0(N_UNDEF, T_UNKNOWN, NULL, 0, line);
 }
 
-struct Node *new_Float(double val, size_t line) {
+struct Node *new_Float(double val, const size_t line) {
 	struct Node *node = new_Node_0(N_FLOAT, T_UNKNOWN, NULL, 0, line);
 	node->value.dval = val;
 	return node;
 }
 
-struct Node *new_Integer(yasl_int val, size_t line) {
+struct Node *new_Integer(yasl_int val, const size_t line) {
 	struct Node *node = new_Node_0(N_INT, T_UNKNOWN, NULL, 0, line);
 	node->value.ival = val;
 	return node;
 }
 
-struct Node *new_Boolean(int val, size_t line) {
+struct Node *new_Boolean(int val, const size_t line) {
 	struct Node *node = new_Node_0(N_BOOL, T_UNKNOWN, NULL, 0, line);
 	node->value.ival = val;
 	return node;
 }
 
-struct Node *new_String(char *value, size_t len, size_t line) {
+struct Node *new_String(char *value, size_t len, const size_t line) {
 	return new_Node_0(N_STR, T_UNKNOWN, value, len, line);
 }
 
-struct Node *new_List(struct Node *values, size_t line) {
+struct Node *new_List(struct Node *values, const size_t line) {
 	return new_Node_1(N_LIST, T_UNKNOWN, values, NULL, 0, line);
 }
 
-struct Node *new_Table(struct Node *keys, size_t line) {
+struct Node *new_Table(struct Node *keys, const size_t line) {
 	return new_Node_1(N_TABLE, T_UNKNOWN, keys, NULL, 0, line);
 }
 

@@ -69,7 +69,6 @@ static inline enum Token curtok(const Parser *const parser) {
 
 void parser_cleanup(Parser *const parser) {
 	lex_cleanup(&parser->lex);
-	//free(parser);
 }
 
 static struct Node *handle_error(Parser *parser) {
@@ -106,8 +105,6 @@ struct Node *parse(Parser *const parser) {
 }
 
 static struct Node *parse_program(Parser *const parser) {
-	//YASL_DEBUG_LOG("parse. type: %s, ", YASL_TOKEN_NAMES[curtok(parser)]);
-	//YASL_DEBUG_LOG("value: %s\n", parser->lex.value);
 	YASL_PARSE_DEBUG_LOG("parsing statement in line %zd\n", parser->lex.line);
 	size_t line;
 	struct Node *expr;
@@ -140,7 +137,8 @@ static struct Node *parse_program(Parser *const parser) {
 	case T_ELSE:
 		YASL_PRINT_ERROR_SYNTAX("`%s` without previous `if`\n", YASL_TOKEN_NAMES[curtok(parser)]);
 		return handle_error(parser);
-	case T_UNKNOWN:parser->status = parser->lex.status;
+	case T_UNKNOWN:
+		parser->status = parser->lex.status;
 		return NULL;
 	default:
 		line = parser->lex.line;
@@ -157,7 +155,6 @@ static struct Node *parse_program(Parser *const parser) {
 			return assign_node;
 		}
 		return new_ExprStmt(expr, parser->lex.line);
-
 	}
 }
 
