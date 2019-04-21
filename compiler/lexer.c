@@ -330,50 +330,69 @@ int lex_eatid(Lexer *lex) {
 	return 0;
 }
 
-#define HANDLE_ESCAPES(lex, i) do {\
-    switch ((lex)->c) {\
-        case 'a': \
-            (lex)->value[(i)++] = '\a';\
-            break;\
-        case 'b':\
-            (lex)->value[(i)++] = '\b';\
-            break;\
-        case 'f':\
-            (lex)->value[(i)++] = '\f';\
-            break;\
-        case 'n':\
-            (lex)->value[(i)++] = '\n';\
-            break;\
-        case 'r':\
-            (lex)->value[(i)++] = '\r';\
-            break;\
-        case 't':\
-            (lex)->value[(i)++] = '\t';\
-            break;\
-        case 'v':\
-            (lex)->value[(i)++] = '\v';\
-            break;\
-        case '0':\
-            (lex)->value[(i)++] = '\0';\
-            break;\
-        case STR_DELIM:\
-            (lex)->value[(i)++] = STR_DELIM;\
-            break;\
-        case INTERP_STR_DELIM:\
-            (lex)->value[(i)++] = INTERP_STR_DELIM;\
-            break;\
-        case INTERP_STR_PLACEHOLDER:\
-            (lex)->value[(i)++] = INTERP_STR_PLACEHOLDER;\
-            break;\
-        case '\\':\
-            (lex)->value[(i)++] = '\\';\
-            break;\
-        default:\
-            YASL_PRINT_ERROR_SYNTAX("Unclosed string literal in line %zd.\n", (lex)->line);\
-            lex_error(lex);\
-            return 1;\
-    }\
-} while(0);
+int handle_escapes(Lexer *lex, size_t *i, char delim) {
+	char buffer[9];
+	char tmp;
+	char *end;
+	switch ((lex)->c) {
+	case 'a':
+		(lex)->value[(*i)++] = '\a';
+		break;
+	case 'b':
+		(lex)->value[(*i)++] = '\b';
+		break;
+	case 'f':
+		(lex)->value[(*i)++] = '\f';
+		break;
+	case 'n':
+		(lex)->value[(*i)++] = '\n';
+		break;
+	case 'r':
+		(lex)->value[(*i)++] = '\r';
+		break;
+	case 't':
+		(lex)->value[(*i)++] = '\t';
+		break;
+	case 'v':
+		(lex)->value[(*i)++] = '\v';
+		break;
+	case '0':
+		(lex)->value[(*i)++] = '\0';
+		break;
+	case STR_DELIM:
+		(lex)->value[(*i)++] = STR_DELIM;
+		break;
+	case INTERP_STR_DELIM:
+		(lex)->value[(*i)++] = INTERP_STR_DELIM;
+		break;
+	case INTERP_STR_PLACEHOLDER:
+		(lex)->value[(*i)++] = INTERP_STR_PLACEHOLDER;
+		break;
+	case '\\':
+		(lex)->value[(*i)++] = '\\';
+		break;
+	case 'x':
+		buffer[0] = lex_getchar(lex);
+		buffer[1] = lex_getchar(lex);
+		buffer[2] = '\0';
+		tmp = (char) strtol(buffer, &end, 16);
+		if (end != buffer) {
+			YASL_PRINT_ERROR_SYNTAX("Invalid hex string escape in line %zd.\n", lex->line);
+			while (lex->c != '\n' && lex->c != delim) lex_getchar(lex);
+			lex_error(lex);
+			return 1;
+		}
+		// printf("tmp: %d\n", tmp);
+		lex->value[(*i)++] = tmp;
+		return 0;
+	default:
+		YASL_PRINT_ERROR_SYNTAX("Invalid string escape sequence in line %zd.\n", (lex)->line);
+		while (lex->c != '\n' && lex->c != delim) lex_getchar(lex);
+		lex_error(lex);
+		return 1;
+	}
+	return 0;
+}
 
 int lex_eatinterpstringbody(Lexer *lex) {
 	lex->val_len = 6;
@@ -390,7 +409,7 @@ int lex_eatinterpstringbody(Lexer *lex) {
 
 		if (lex->c == '\\') {
 			lex_getchar(lex);
-			HANDLE_ESCAPES(lex, i);
+			if (handle_escapes(lex, &i, INTERP_STR_DELIM)) return 1;
 		} else {
 			lex->value[i++] = lex->c;
 		}
@@ -437,7 +456,7 @@ int lex_eatinterpstring(Lexer *lex) {
 
 			if (lex->c == '\\') {
 				lex_getchar(lex);
-				HANDLE_ESCAPES(lex, i);
+				if (handle_escapes(lex, &i, INTERP_STR_DELIM)) return 1;
 			} else {
 				lex->value[i++] = lex->c;
 			}
@@ -487,7 +506,9 @@ static int lex_eatstring(Lexer *lex) {
 
 			if (lex->c == '\\') {
 				lex_getchar(lex);
-				HANDLE_ESCAPES(lex, i);
+				if (handle_escapes(lex, &i, STR_DELIM)) {
+					return 1;
+				}
 			} else {
 				lex->value[i++] = lex->c;
 			}

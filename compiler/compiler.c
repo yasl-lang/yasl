@@ -688,6 +688,7 @@ static void declare_with_let_or_const(struct Compiler *const compiler, const str
 }
 
 static void visit_Let(struct Compiler *const compiler, const struct Node *const node) {
+	// printf("node type: %d\n", node->nodetype);
 	declare_with_let_or_const(compiler, node);
 }
 

@@ -112,27 +112,38 @@ static struct Node *parse_program(Parser *const parser) {
 	size_t line;
 	struct Node *expr;
 	switch (curtok(parser)) {
-	case T_ECHO:eattok(parser, T_ECHO);
+	case T_ECHO:
+		eattok(parser, T_ECHO);
 		return new_Print(parse_expr(parser), parser->lex.line);
-	case T_FN: return parse_fn(parser);
-	case T_RET:eattok(parser, T_RET);
+	case T_FN:
+		return parse_fn(parser);
+	case T_RET:
+		eattok(parser, T_RET);
 		return new_Return(parse_expr(parser), parser->lex.line);
-	case T_CONST: return parse_const(parser);
-	case T_FOR: return parse_for(parser);
-	case T_WHILE: return parse_while(parser);
-	case T_BREAK:line = parser->lex.line;
+	case T_CONST:
+		return parse_const(parser);
+	case T_FOR:
+		return parse_for(parser);
+	case T_WHILE:
+		return parse_while(parser);
+	case T_BREAK:
+		line = parser->lex.line;
 		eattok(parser, T_BREAK);
 		return new_Break(line);
-	case T_CONT:line = parser->lex.line;
+	case T_CONT:
+		line = parser->lex.line;
 		eattok(parser, T_CONT);
 		return new_Continue(line);
-	case T_IF: return parse_if(parser);
+	case T_IF:
+		return parse_if(parser);
 	case T_ELSEIF:
-	case T_ELSE:YASL_PRINT_ERROR_SYNTAX("`%s` without previous `if`\n", YASL_TOKEN_NAMES[curtok(parser)]);
+	case T_ELSE:
+		YASL_PRINT_ERROR_SYNTAX("`%s` without previous `if`\n", YASL_TOKEN_NAMES[curtok(parser)]);
 		return handle_error(parser);
 	case T_UNKNOWN:parser->status = parser->lex.status;
 		return NULL;
-	default:line = parser->lex.line;
+	default:
+		line = parser->lex.line;
 		expr = parse_expr(parser);
 		if (curtok(parser) == T_COLONEQ) {
 			if (expr->nodetype != N_VAR) {

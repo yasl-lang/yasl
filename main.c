@@ -9,7 +9,7 @@
 #include "yasl_state.h"
 
 
-#define VERSION "v0.4.2"
+#define VERSION "v0.4.3"
 #define VERSION_PRINTOUT "YASL " VERSION
 
 static int main_error(int argc, char **argv) {
@@ -142,7 +142,9 @@ static int main_REPL(int argc, char **argv) {
 
 #ifdef __EMSCRIPTEN__
 int main(int argc, char **argv) {
-	// printf("argc: %d\n", argc);
+	// Initialize prng seed
+	srand(time(NULL));
+
 	if (argc == 1) {
 		puts(VERSION_PRINTOUT);
 		return EXIT_SUCCESS;
