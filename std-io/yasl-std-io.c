@@ -29,9 +29,12 @@ int YASL_io_open(struct YASL_State *S) {
 		return -1;
 	}
 
+	char mode_char = mode_str[0];
+	free(mode_str);
+
 	FILE *f = 0;
 	if (mode_len == 1) {
-		switch (mode_str[0]) {
+		switch (mode_char) {
 		case 'r':f = fopen(filename_str, "r");
 			break;
 		case 'w':f = fopen(filename_str, "w");
@@ -40,11 +43,12 @@ int YASL_io_open(struct YASL_State *S) {
 			break;
 		default:
 			// invalid mode;
+			free(filename_str);
 			return -1;
 		}
 	}
 	if (mode_len == 2) {
-		switch (mode_str[0]) {
+		switch (mode_char) {
 		case 'r':f = fopen(filename_str, "r+");
 			break;
 		case 'w':f = fopen(filename_str, "w+");
@@ -53,10 +57,13 @@ int YASL_io_open(struct YASL_State *S) {
 			break;
 		default:
 			// invalid mode;
+			free(filename_str);
 			return -1;
 		}
 	}
-	YASL_pushobject(S, f ? YASL_UserData(f, YASL_FILE, NULL) : YASL_Undef());
+	struct YASL_Object *ud = f ? YASL_UserData(f, YASL_FILE, NULL) : YASL_Undef();
+	YASL_pushobject(S, ud);
+	free(filename_str);
 	return 0;
 }
 
@@ -127,7 +134,7 @@ int YASL_io_write(struct YASL_State *S) {
 	size_t write_len = fwrite(str, 1, len, f);
 
 	YASL_pushinteger(S, write_len);
-
+	free(str);
 	return YASL_SUCCESS;
 }
 
@@ -191,6 +198,11 @@ int YASL_load_io(struct YASL_State *S) {
 	free(open_fn);
 	free(read_str);
 	free(read_fn);
+	free(write_str);
+	free(write_fn);
+	free(flush_str);
+	free(flush_fn);
+
 /*
 	free(stdin_str);
 	free(stdin_file);

@@ -180,7 +180,7 @@ int YASL_pushcfunction(struct YASL_State *S, int (*value)(struct YASL_State *), 
 int YASL_pushobject(struct YASL_State *S, struct YASL_Object *obj) {
     if (!obj) return YASL_ERROR;
     vm_push((struct VM *)S, *obj);
-    free(obj);
+    free(obj); // TODO: delete properly
     return YASL_SUCCESS;
 }
 
