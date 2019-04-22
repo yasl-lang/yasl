@@ -258,6 +258,8 @@ int64_t YASL_getinteger(struct YASL_Object *obj);
  */
 char *YASL_getcstring(struct YASL_Object *obj);
 
+size_t YASL_getstringlen(struct YASL_Object *obj);
+
 /**
  * Retrieves the string value of the YASL_Object.
  * @param obj the given YASL_Object.

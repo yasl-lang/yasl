@@ -285,6 +285,11 @@ char *YASL_getcstring(struct YASL_Object *obj) {
     return tmp;
 }
 
+size_t YASL_getstringlen(struct YASL_Object *obj) {
+	if (YASL_isstring(obj) != YASL_SUCCESS) return 0;
+
+	return yasl_string_len(obj->value.sval);
+}
 
 char *YASL_getstring(struct YASL_Object *obj);
 
