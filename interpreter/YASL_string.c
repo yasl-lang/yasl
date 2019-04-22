@@ -20,13 +20,13 @@ int64_t yasl_string_cmp(const String_t *const left, const String_t *const right)
     }
 }
 
-char *copy_char_buffer(const int64_t size, const char *const ptr) {
+char *copy_char_buffer(const size_t size, const char *const ptr) {
     char *tmp = malloc(size);
     memcpy(tmp, ptr, size);
     return tmp;
 }
 
-String_t *str_new_substring(const int64_t start, const int64_t end, const String_t *const string) {
+String_t *str_new_substring(const size_t start, const size_t end, const String_t *const string) {
 	String_t* str = malloc(sizeof(String_t));
 	str->start = start;
 	str->end = end;
@@ -36,7 +36,7 @@ String_t *str_new_substring(const int64_t start, const int64_t end, const String
 	return str;
 }
 
-String_t *str_new_sized(const int64_t base_size, char *ptr) {
+String_t *str_new_sized(const size_t base_size, char *ptr) {
     String_t* str = malloc(sizeof(String_t));
     str->start = 0;
     str->end = base_size;
@@ -46,7 +46,7 @@ String_t *str_new_sized(const int64_t base_size, char *ptr) {
     return str;
 }
 
-String_t* str_new_sized_heap(const int64_t start, const int64_t end, char *mem) {
+String_t* str_new_sized_heap(const size_t start, const size_t end, char *mem) {
     String_t* str = malloc(sizeof(String_t));
     str->start = start;
     str->end = end;
@@ -59,7 +59,7 @@ String_t* str_new_sized_heap(const int64_t start, const int64_t end, char *mem) 
 //TODO: add new string constructor that takes address of string as second param.
 
 void str_del_data(String_t *str) {
-    if(str->on_heap) free(str->str);
+    if (str->on_heap) free(str->str);
 }
 
 void str_del_rc(String_t *str) {

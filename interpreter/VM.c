@@ -33,11 +33,11 @@ static struct Table **builtins_htable_new(struct VM *vm) {
 }
 
 void vm_init(struct VM *vm,
-	     unsigned char *code,    // pointer to bytecode
-           int pc0,             // address of instruction to be executed first -- entrypoint
-           size_t datasize) {      // total params size required to perform a program operations
+	     unsigned char *const code,    // pointer to bytecode
+             const size_t pc,              // address of instruction to be executed first -- entrypoint
+             const size_t datasize) {      // total params size required to perform a program operations
 	vm->code = code;
-	vm->pc = pc0;
+	vm->pc = pc;
 	vm->fp = -1;
 	vm->lp = -1;
 	vm->sp = -1;
@@ -111,25 +111,25 @@ void vm_cleanup(struct VM *vm) {
 	free(vm->builtins_htable);
 }
 
-void vm_push(struct VM *vm, struct YASL_Object val) {
+void vm_push(struct VM *const vm, const struct YASL_Object val) {
     vm->sp++;
     dec_ref(vm->stack + vm->sp);
     vm->stack[vm->sp] = val;
     inc_ref(vm->stack + vm->sp);
 }
 
-struct YASL_Object vm_pop(struct VM *vm) {
+struct YASL_Object vm_pop(struct VM *const vm) {
     return vm->stack[vm->sp--];
 }
 
-yasl_int vm_read_int(struct VM *vm) {
+yasl_int vm_read_int(struct VM *const vm) {
     yasl_int val;
     memcpy(&val, vm->code + vm->pc, sizeof(yasl_int));
     vm->pc += sizeof(yasl_int);
     return val;
 }
 
-yasl_float vm_read_float(struct VM *vm) {
+yasl_float vm_read_float(struct VM *const vm) {
     yasl_float val;
     memcpy(&val, vm->code + vm->pc, sizeof(yasl_float));
     vm->pc += sizeof(yasl_float);

@@ -73,7 +73,7 @@ struct VM {
 	struct Table **builtins_htable;   // htable of builtin methods
 };
 
-void vm_init(struct VM *vm, unsigned char *code, int pc0, size_t datasize);
+void vm_init(struct VM *const vm, unsigned char *const code, const size_t pc, const size_t datasize);
 
 void vm_cleanup(struct VM *vm);
 
