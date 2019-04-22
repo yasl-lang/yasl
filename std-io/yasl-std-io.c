@@ -23,7 +23,6 @@ int YASL_io_open(struct YASL_State *S) {
 	char *filename_str = YASL_getcstring(filename);
 
 	size_t mode_len = strlen(mode_str);
-	size_t filename_len = strlen(filename_str);
 
 	if (mode_len > 2 || mode_len < 1 || (mode_len == 2 && mode_str[1] != '+')) {
 		return -1;
@@ -61,7 +60,7 @@ int YASL_io_open(struct YASL_State *S) {
 			return -1;
 		}
 	}
-	struct YASL_Object *ud = f ? YASL_UserData(f, YASL_FILE, NULL) : YASL_Undef();
+	struct YASL_Object *ud = f ? YASL_UserData(f, YASL_FILE, NULL, NULL) : YASL_Undef();
 	YASL_pushobject(S, ud);
 	free(filename_str);
 	return 0;

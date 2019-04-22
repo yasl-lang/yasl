@@ -48,12 +48,12 @@ static Item_t new_item(const struct YASL_Object k, const struct YASL_Object v) {
 	return item;
 }
 
-void del_item(Item_t *item) {
+void del_item(Item_t *const item) {
 	dec_ref(&item->key);
 	dec_ref(&item->value);
 }
 
-struct Table *table_new_sized(const int base_size) {
+struct Table *table_new_sized(const size_t base_size) {
 	struct Table *table = malloc(sizeof(struct Table));
 	table->base_size = base_size;
 	table->size = next_prime(table->base_size);
@@ -66,7 +66,7 @@ struct Table *table_new(void) {
 	return table_new_sized(HT_BASESIZE);
 }
 
-void table_del(struct Table *table) {
+void table_del(struct Table *const table) {
 	FOR_TABLE(i, item, table) {
 		del_item(item);
 	}
@@ -74,7 +74,7 @@ void table_del(struct Table *table) {
 	free(table);
 }
 
-struct RC_UserData *rcht_new_sized(const int base_size) {
+struct RC_UserData *rcht_new_sized(const size_t base_size) {
         struct RC_UserData *ht = malloc(sizeof(struct RC_UserData));
         ht->data = table_new_sized(base_size);
         ht->rc = rc_new();
@@ -83,30 +83,30 @@ struct RC_UserData *rcht_new_sized(const int base_size) {
         return ht;
 }
 
-struct RC_UserData *rcht_new() {
+struct RC_UserData *rcht_new(void) {
 	return rcht_new_sized(HT_BASESIZE);
 }
 
-void rcht_del(struct RC_UserData *hashtable) {
+void rcht_del(struct RC_UserData *const hashtable) {
 	table_del(hashtable->data);
 	rc_del(hashtable->rc);
 	free(hashtable);
 }
 
-void rcht_del_data(void *hashtable) {
+void rcht_del_data(void *const hashtable) {
         table_del(hashtable);
 }
 
-void rcht_del_rc(struct RC_UserData *hashtable) {
+void rcht_del_rc(struct RC_UserData *const hashtable) {
 	rc_del(hashtable->rc);
 	free(hashtable);
 }
 
-void table_del_string_int(struct Table *table) {
+void table_del_string_int(struct Table *const table) {
 	table_del(table);
 }
 
-static void table_resize(struct Table *table, const int base_size) {
+static void table_resize(struct Table *const table, const size_t base_size) {
 	if (base_size < HT_BASESIZE) return;
 	struct Table *new_table = table_new_sized(base_size);
 	FOR_TABLE(i, item, table) {

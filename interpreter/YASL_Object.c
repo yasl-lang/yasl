@@ -92,11 +92,11 @@ struct YASL_Object *YASL_UserPointer(void *userpointer) {
     return userptr;
 }
 
-struct YASL_Object *YASL_UserData(void *userdata, int tag, void (*destructor)(void *)) {
-    struct YASL_Object *obj = malloc(sizeof(struct YASL_Object));
-    obj->type = Y_USERDATA;
-    obj->value.uval = ud_new(userdata, tag, destructor);
-    return obj;
+struct YASL_Object *YASL_UserData(void *userdata, int tag, struct Table *mt, void (*destructor)(void *)) {
+	struct YASL_Object *obj = malloc(sizeof(struct YASL_Object));
+	obj->type = Y_USERDATA;
+	obj->value.uval = ud_new(userdata, tag, mt, destructor);
+	return obj;
 }
 
 struct YASL_Object *YASL_Function(int64_t index) {
@@ -142,13 +142,19 @@ int yasl_object_cmp(struct YASL_Object a, struct YASL_Object b) {
 }
 
 int isfalsey(struct YASL_Object v) {
-    // TODO: add NaN as falsey
-    return (
-            YASL_ISUNDEF(v) ||
-            (YASL_ISBOOL(v) && YASL_GETBOOL(v) == 0) ||
-            (YASL_ISSTR(v) && yasl_string_len(YASL_GETSTR(v)) == 0) ||
-            (YASL_ISFLOAT(v) && YASL_GETFLOAT(v) != YASL_GETFLOAT(v))
-    );
+	/*
+	 * Falsey values are:
+	 * 	undef
+	 * 	false
+	 * 	''
+	 * 	NaN
+	 */
+	return (
+		YASL_ISUNDEF(v) ||
+		(YASL_ISBOOL(v) && YASL_GETBOOL(v) == 0) ||
+		(YASL_ISSTR(v) && yasl_string_len(YASL_GETSTR(v)) == 0) ||
+		(YASL_ISFLOAT(v) && YASL_GETFLOAT(v) != YASL_GETFLOAT(v))
+	);
 }
 
 struct YASL_Object isequal(struct YASL_Object a, struct YASL_Object b) {

@@ -39,6 +39,6 @@ void table_del(struct Table *table);
 void table_del_string_int(struct Table *table);
 
 struct RC_UserData* rcht_new(void);
-struct RC_UserData* rcht_new_sized(const int base_size);
+struct RC_UserData* rcht_new_sized(const size_t base_size);
 void rcht_del_data(void *hashtable);
 void rcht_del_cstring_cfn(struct RC_UserData *hashtable);

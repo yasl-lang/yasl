@@ -26,7 +26,7 @@ char *copy_char_buffer(const int64_t size, const char *const ptr) {
     return tmp;
 }
 
-String_t *str_new_substring(const int64_t start, const int64_t end, String_t *string) {
+String_t *str_new_substring(const int64_t start, const int64_t end, const String_t *const string) {
 	String_t* str = malloc(sizeof(String_t));
 	str->start = start;
 	str->end = end;

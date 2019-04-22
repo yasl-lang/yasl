@@ -1,5 +1,6 @@
 #pragma once
 
+#include "yasl_conf.h"
 #include "yasl_error.h"
 #include "inttypes.h"
 #include <stdlib.h>
@@ -62,7 +63,7 @@ int YASL_pushundef(struct YASL_State *S);
  * @param value
  * @return
  */
-int YASL_pushfloat(struct YASL_State *S, double value);
+int YASL_pushfloat(struct YASL_State *S, yasl_float value);
 
 /**
  * Pushes an integer value onto the stack.
@@ -70,7 +71,7 @@ int YASL_pushfloat(struct YASL_State *S, double value);
  * @param integer to be pushed onto the stack.
  * @return 0 on success, else error code.
  */
-int YASL_pushinteger(struct YASL_State *S, int64_t value);
+int YASL_pushinteger(struct YASL_State *S, yasl_int value);
 
 /**
  * Pushes a boolean value onto the stack.
@@ -131,14 +132,14 @@ struct YASL_Object *YASL_popobject(struct YASL_State *S);
  */
 struct YASL_Object *YASL_Table(void);
 
-struct YASL_Object *YASL_Integer(int64_t);
+struct YASL_Object *YASL_Integer(yasl_int value);
 struct YASL_Object *YASL_Undef(void);
-struct YASL_Object *YASL_Float(double value);
+struct YASL_Object *YASL_Float(yasl_float value);
 struct YASL_Object *YASL_Boolean(int value);
 struct YASL_Object *YASL_LiteralString(char *str);
 struct YASL_Object *YASL_CString(char *str);
 struct YASL_Object *YASL_UserPointer(void *userdata);
-struct YASL_Object *YASL_UserData(void *userdata, int tag, void (*destructor)(void *));
+struct YASL_Object *YASL_UserData(void *userdata, int tag, struct YASL_Object *mt, void (*destructor)(void *));
 int YASL_UserData_gettag(struct YASL_Object *obj);
 void *YASL_UserData_getdata(struct YASL_Object *obj);
 struct YASL_Object *YASL_Function(int64_t index);
