@@ -52,13 +52,13 @@ int list_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, s
 int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, size_t buffer_count) {
 	size_t string_count = 0;
 	size_t string_size = 8;
-	char *string = malloc(string_size);
+	char *string = (char *)malloc(string_size);
 
 	string[string_count++] = '{';
 	struct Table *table = vm_peektable((struct VM *)S, S->vm.sp);
 	if (table->count == 0) {
 		string[string_count++] = '}';
-		vm_push((struct VM *)S, YASL_STR(str_new_sized_heap(0, string_count, string)));
+		VM_PUSH((struct VM *)S, YASL_STR(str_new_sized_heap(0, string_count, string)));
 		return 0;
 	}
 
@@ -70,7 +70,7 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 		String_t *str = vm_popstr((struct VM *)S);
 		while (string_count + yasl_string_len(str) >= string_size) {
 			string_size *= 2;
-			string = realloc(string, string_size);
+			string = (char *)realloc(string, string_size);
 		}
 
 		memcpy(string + string_count, str->str + str->start, yasl_string_len(str));
@@ -78,7 +78,7 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 
 		if (string_count + 2 >= string_size) {
 			string_size *= 2;
-			string = realloc(string, string_size);
+			string = (char *)realloc(string, string_size);
 		}
 
 		string[string_count++] = ':';
@@ -97,14 +97,14 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 			if (found) {
 				if (string_count + strlen("[...], ") >= string_size) {
 					string_size *= 2;
-					string = realloc(string, string_size);
+					string = (char *)realloc(string, string_size);
 				}
 				memcpy(string + string_count, "[...], ", strlen("[...], "));
 				string_count += strlen("[...], ");
 				continue;
 			} else {
 				size_t tmp_buffer_size = buffer_count == buffer_size ? buffer_size * 2 : buffer_size;
-				void **tmp_buffer = malloc(tmp_buffer_size * sizeof(void *));
+				void **tmp_buffer = (void **)malloc(tmp_buffer_size * sizeof(void *));
 				memcpy(tmp_buffer, buffer, sizeof(void *) * buffer_count);
 				tmp_buffer[buffer_count] = vm_peeklist((struct VM *)S, S->vm.sp);
 				list_tostr_helper(S, tmp_buffer, tmp_buffer_size, buffer_size + 1);
@@ -121,14 +121,14 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 			if (found) {
 				if (string_count + strlen("{...}, ") >= string_size) {
 					string_size *= 2;
-					string = realloc(string, string_size);
+					string = (char *)realloc(string, string_size);
 				}
 				memcpy(string + string_count, "{...}, ", strlen("{...}, "));
 				string_count += strlen("{...}, ");
 				continue;
 			} else {
 				size_t tmp_buffer_size = buffer_count == buffer_size ? buffer_size * 2 : buffer_size;
-				void **tmp_buffer = malloc(tmp_buffer_size * sizeof(void *));
+				void **tmp_buffer = (void **)malloc(tmp_buffer_size * sizeof(void *));
 				memcpy(tmp_buffer, buffer, sizeof(void *) * buffer_count);
 				tmp_buffer[buffer_size] = vm_peeklist((struct VM *)S, S->vm.sp);
 				table_tostr_helper(S, tmp_buffer, tmp_buffer_size, buffer_size + 1);
@@ -140,7 +140,7 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 		str = vm_popstr((struct VM *)S);
 		while (string_count + yasl_string_len(str) >= string_size) {
 			string_size *= 2;
-			string = realloc(string, string_size);
+			string = (char *)realloc(string, string_size);
 		}
 
 		memcpy(string + string_count, str->str + str->start, yasl_string_len(str));
@@ -148,7 +148,7 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 
 		if (string_count + 2 >= string_size) {
 			string_size *= 2;
-			string = realloc(string, string_size);
+			string = (char *)realloc(string, string_size);
 		}
 
 		string[string_count++] = ',';
@@ -159,13 +159,13 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 
 	if (string_count + 2 >= string_size) {
 		string_size *= 2;
-		string = realloc(string, string_size);
+		string = (char *)realloc(string, string_size);
 	}
 
 	string_count -= 2;
 	string[string_count++] = '}';
 
-	vm_push((struct VM *)S, YASL_STR(str_new_sized_heap(0, string_count, string)));
+	VM_PUSH((struct VM *)S, YASL_STR(str_new_sized_heap(0, string_count, string)));
 
 	return 0;
 }
@@ -173,7 +173,7 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 int table_tostr(struct YASL_State *S) {
 	ASSERT_TYPE((struct VM *)S, Y_TABLE, "table.tostr");
 
-	void **buffer = malloc(8*sizeof(void *));
+	void **buffer = (void **)malloc(8*sizeof(void *));
 	buffer[0] = vm_peektable((struct VM *)S, S->vm.sp);
 	table_tostr_helper(S, buffer, 8, 1);
 	free(buffer);
@@ -186,10 +186,10 @@ int table_keys(struct YASL_State *S) {
 	struct Table *ht = YASL_GETTABLE(vm_pop((struct VM *)S));
 	struct RC_UserData *ls = ls_new();
 	FOR_TABLE(i, item, ht) {
-			ls_append(ls->data, (item->key));
+			ls_append((List *)ls->data, (item->key));
 		}
 
-	vm_push((struct VM *)S, YASL_LIST(ls));
+	VM_PUSH((struct VM *)S, YASL_LIST(ls));
 	return 0;
 }
 
@@ -198,9 +198,9 @@ int table_values(struct YASL_State *S) {
 	struct Table *ht = YASL_GETTABLE(vm_pop((struct VM *)S));
 	struct RC_UserData *ls = ls_new();
 	FOR_TABLE(i, item, ht) {
-		ls_append(ls->data, (item->value));
+		ls_append((List *)ls->data, (item->value));
 	}
-	vm_push((struct VM *)S, YASL_LIST(ls));
+	VM_PUSH((struct VM *)S, YASL_LIST(ls));
 	return 0;
 }
 
@@ -212,10 +212,10 @@ int table_clone(struct YASL_State *S) {
 	FOR_TABLE(i, item, ht) {
 		inc_ref(&item->key);
 		inc_ref(&item->value);
-		table_insert(new_ht->data, item->key, item->value);
+		table_insert((Table *)new_ht->data, item->key, item->value);
 	}
 
-	vm_push((struct VM *)S, YASL_TABLE(new_ht));
+	VM_PUSH((struct VM *)S, YASL_TABLE(new_ht));
 	return 0;
 }
 
@@ -230,7 +230,7 @@ int table_clear(struct YASL_State *S) {
 	ht->count = 0;
 	ht->size = HT_BASESIZE;
 	free(ht->items);
-	ht->items = calloc((size_t) ht->size, sizeof(Item_t));
+	ht->items = (Item_t *)calloc((size_t) ht->size, sizeof(Item_t));
 	dec_ref(&vm_peek((struct VM *)S));
 	vm_pop((struct VM *)S);
 	vm_pushundef((struct VM *)S);

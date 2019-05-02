@@ -54,11 +54,11 @@ void del_item(Item_t *const item) {
 }
 
 struct Table *table_new_sized(const size_t base_size) {
-	struct Table *table = malloc(sizeof(struct Table));
+	struct Table *table = (struct Table *)malloc(sizeof(struct Table));
 	table->base_size = base_size;
 	table->size = next_prime(table->base_size);
 	table->count = 0;
-	table->items = calloc((size_t) table->size, sizeof(Item_t));
+	table->items = (Item_t *)calloc((size_t) table->size, sizeof(Item_t));
 	return table;
 }
 
@@ -75,7 +75,7 @@ void table_del(struct Table *const table) {
 }
 
 struct RC_UserData *rcht_new_sized(const size_t base_size) {
-        struct RC_UserData *ht = malloc(sizeof(struct RC_UserData));
+        struct RC_UserData *ht = (struct RC_UserData *)malloc(sizeof(struct RC_UserData));
         ht->data = table_new_sized(base_size);
         ht->rc = rc_new();
         ht->tag = T_TABLE;
@@ -88,13 +88,13 @@ struct RC_UserData *rcht_new(void) {
 }
 
 void rcht_del(struct RC_UserData *const hashtable) {
-	table_del(hashtable->data);
+	table_del((struct Table *)hashtable->data);
 	rc_del(hashtable->rc);
 	free(hashtable);
 }
 
 void rcht_del_data(void *const hashtable) {
-        table_del(hashtable);
+        table_del((struct Table *)hashtable);
 }
 
 void rcht_del_rc(struct RC_UserData *const hashtable) {
@@ -160,9 +160,11 @@ void table_insert(struct Table *const table, const struct YASL_Object key, const
 
 void table_insert_string_int(struct Table *const table, const char *const key, const int64_t key_len, const int64_t val) {
 	String_t *string = str_new_sized_heap(0, key_len, copy_char_buffer(key_len, key));
-	table_insert(table,
-		     (struct YASL_Object) {.type = Y_STR, .value.sval = string},
-		     (struct YASL_Object) {.type = Y_INT, .value.ival = val});
+	YASL_Object ko = NEW_YO({.type = Y_STR, .value = {.sval = string}}),
+	  vo = NEW_YO({.type = Y_INT, .value = {.ival = val}});
+	table_insert(table, ko, vo);
+		     
+		     
 }
 
 struct YASL_Object table_search(const struct Table *const table, const struct YASL_Object key) {
@@ -176,12 +178,12 @@ struct YASL_Object table_search(const struct Table *const table, const struct YA
 		index = get_hash(key, table->size, i++);
 		item = table->items[index];
 	}
-	return (struct YASL_Object) {Y_END, {0}};
+	return {Y_END, {0}};
 }
 
 struct YASL_Object table_search_string_int(const struct Table *const table, const char *const key, const int64_t key_len) {
 	String_t *string = str_new_sized_heap(0, key_len, copy_char_buffer(key_len, key));
-	struct YASL_Object object = (struct YASL_Object) {.value.sval = string, .type = Y_STR};
+	struct YASL_Object object = NEW_YO({.type = Y_STR, .value = {.sval = string}});
 
 	struct YASL_Object result = table_search(table, object);
 	str_del(string);

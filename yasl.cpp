@@ -13,7 +13,7 @@
 //#include "interpreter/YASL_object/YASL_Object.h"
 
 struct YASL_State *YASL_newstate(char *filename) {
-    struct YASL_State *S = malloc(sizeof(struct YASL_State));
+  struct YASL_State *S = (struct YASL_State *)malloc(sizeof(struct YASL_State));
 
     FILE *fp = fopen(filename, "r");
     if (!fp) {
@@ -23,7 +23,8 @@ struct YASL_State *YASL_newstate(char *filename) {
     fseek(fp, 0, SEEK_SET);
 
     struct LEXINPUT *lp = lexinput_new_file(fp);
-    S->compiler = NEW_COMPILER(lp);
+    struct Compiler tcomp = NEW_COMPILER(lp);
+    S->compiler = tcomp;
     S->compiler.header->count = 16;
 
     vm_init((struct VM *)S, NULL, -1, 256);
@@ -33,10 +34,11 @@ struct YASL_State *YASL_newstate(char *filename) {
 
 
 struct YASL_State *YASL_newstate_bb(char *buf, int len) {
-    struct YASL_State *S = malloc(sizeof(struct YASL_State));
+  struct YASL_State *S = (struct YASL_State *)malloc(sizeof(struct YASL_State));
 
     struct LEXINPUT *lp = lexinput_new_bb(buf, len);
-    S->compiler = NEW_COMPILER(lp);
+    struct Compiler tcomp = NEW_COMPILER(lp);
+    S->compiler = tcomp;
     S->compiler.header->count = 16;
 
     vm_init((struct VM *)S, NULL, -1, 256);
@@ -100,7 +102,7 @@ int YASL_execute(struct YASL_State *S) {
 }
 
 
-int YASL_declglobal(struct YASL_State *S, char *name) {
+int YASL_declglobal(struct YASL_State *S, const char *name) {
     int64_t index = env_decl_var(S->compiler.globals, name, strlen(name));
     if (index > 255) {
         return YASL_TOO_MANY_VAR_ERROR;
@@ -113,7 +115,7 @@ static inline int is_const(int64_t value) {
     return (MASK & value) != 0;
 }
 
-int YASL_setglobal(struct YASL_State *S, char *name) {
+int YASL_setglobal(struct YASL_State *S, const char *name) {
 
     if (!env_contains(S->compiler.globals, name, strlen(name))) return YASL_ERROR;
 
@@ -153,27 +155,27 @@ int YASL_pushboolean(struct YASL_State *S, int value) {
 }
 
 int YASL_pushliteralstring(struct YASL_State *S, char *value) {
-    vm_push((struct VM *)S, YASL_STR(str_new_sized(strlen(value), value)));
+    VM_PUSH((struct VM *)S, YASL_STR(str_new_sized(strlen(value), value)));
     return YASL_SUCCESS;
 }
 
 int YASL_pushcstring(struct YASL_State *S, char *value) {
-    vm_push((struct VM *)S, YASL_STR(str_new_sized(strlen(value), value)));
+    VM_PUSH((struct VM *)S, YASL_STR(str_new_sized(strlen(value), value)));
     return YASL_SUCCESS;
 }
 
 int YASL_pushuserpointer(struct YASL_State *S, void *userpointer) {
-    vm_push((struct VM *)S, YASL_USERPTR(userpointer));
+    VM_PUSH((struct VM *)S, YASL_USERPTR(userpointer));
     return YASL_SUCCESS;
 }
 
 int YASL_pushstring(struct YASL_State *S, char *value, int64_t size) {
-    vm_push((struct VM *)S, YASL_STR(str_new_sized(size, value)));
+    VM_PUSH((struct VM *)S, YASL_STR(str_new_sized(size, value)));
     return YASL_SUCCESS;
 }
 
 int YASL_pushcfunction(struct YASL_State *S, int (*value)(struct YASL_State *), int num_args) {
-    vm_push((struct VM *)S, YASL_CFN(value, num_args));
+    VM_PUSH((struct VM *)S, YASL_CFN(value, num_args));
     return YASL_SUCCESS;
 }
 
@@ -211,7 +213,7 @@ struct YASL_Object *YASL_LiteralString(char *str) {
     return YASL_String(str_new_sized(strlen(str), str));
 }
 
-struct YASL_Object *YASL_CString(char *str) {
+struct YASL_Object *YASL_CString(const char *str) {
     return YASL_String(str_new_sized(strlen(str), str));
 }
 
@@ -277,7 +279,7 @@ int64_t YASL_getinteger(struct YASL_Object *obj);
 char *YASL_getcstring(struct YASL_Object *obj) {
     if (YASL_isstring(obj) != YASL_SUCCESS) return NULL;
 
-    char *tmp = malloc(yasl_string_len(obj->value.sval) + 1);
+    char *tmp = (char *)malloc(yasl_string_len(obj->value.sval) + 1);
 
     memcpy(tmp, obj->value.sval->str + obj->value.sval->start, yasl_string_len(obj->value.sval));
     tmp[yasl_string_len(obj->value.sval)] = '\0';

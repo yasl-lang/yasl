@@ -40,7 +40,7 @@ int YASL_execute_REPL(struct YASL_State *S);
  * @param name the name of the global (null-terminated string).
  * @return 0 on success, else an error code.
  */
-int YASL_declglobal(struct YASL_State *S, char *name);
+int YASL_declglobal(struct YASL_State *S, const char *name);
 
 /**
  * Pops the top of the YASL stack and stores it in the given global.
@@ -48,7 +48,7 @@ int YASL_declglobal(struct YASL_State *S, char *name);
  * @param name the name of the global.
  * @return 0 on success, else an error code.
  */
-int YASL_setglobal(struct YASL_State *S, char *name);
+int YASL_setglobal(struct YASL_State *S, const char *name);
 
 /**
  * Pushes an undef value onto the stack.
@@ -137,9 +137,9 @@ struct YASL_Object *YASL_Undef(void);
 struct YASL_Object *YASL_Float(yasl_float value);
 struct YASL_Object *YASL_Boolean(int value);
 struct YASL_Object *YASL_LiteralString(char *str);
-struct YASL_Object *YASL_CString(char *str);
+struct YASL_Object *YASL_CString(const char *str);
 struct YASL_Object *YASL_UserPointer(void *userdata);
-struct YASL_Object *YASL_UserData(void *userdata, int tag, struct YASL_Object *mt, void (*destructor)(void *));
+struct YASL_Object *YASL_UserData(void *userdata, int tag, struct Table *mt, void (*destructor)(void *));
 int YASL_UserData_gettag(struct YASL_Object *obj);
 void *YASL_UserData_getdata(struct YASL_Object *obj);
 struct YASL_Object *YASL_Function(int64_t index);

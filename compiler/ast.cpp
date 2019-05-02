@@ -7,10 +7,11 @@
 
 struct Node *node_clone(const struct Node *const node) {
 	if (node == NULL) return NULL;
-	struct Node *clone = malloc(sizeof(struct Node) + node->children_len * sizeof(struct Node *));
+	struct Node *clone = (struct Node *)malloc(sizeof(struct Node));
 	clone->nodetype = node->nodetype;
 	clone->type = node->type;
 	clone->children_len = node->children_len;
+	clone->children = (struct Node **)malloc(sizeof(struct Node *) * node->children_len);
 	for (size_t i = 0; i < clone->children_len; i++) {
 		clone->children[i] = node_clone(node->children[i]);
 	}
@@ -21,8 +22,8 @@ struct Node *node_clone(const struct Node *const node) {
 	case N_FLOAT: clone->value.ival = node->value.ival;
 		break;
 	default: clone->value.sval.str_len = node->value.sval.str_len;
-		clone->value.sval.str = malloc(node->value.sval.str_len);
-		memcpy(clone->value.sval.str, node->value.sval.str, clone->value.sval.str_len);
+      	  clone->value.sval.str = (char *)malloc(node->value.sval.str_len);
+	  memcpy(clone->value.sval.str, node->value.sval.str, clone->value.sval.str_len);
 	}
 
 	clone->line = node->line;
@@ -31,14 +32,14 @@ struct Node *node_clone(const struct Node *const node) {
 
 static struct Node *new_Node(const AST nodetype, const enum Token type, const size_t line, const size_t name_len,
 		char *const name /* OWN */, const size_t n, ... /* OWN */) {
-	struct Node *const node = malloc(sizeof(struct Node) + n * sizeof(struct Node *));
+	struct Node *const node = (struct Node *)malloc(sizeof(struct Node));
 	node->nodetype = nodetype;
 	node->type = type;
 	node->children_len = n;
 	node->value.sval.str_len = name_len;
 	node->value.sval.str = name;
 	node->line = line;
-
+	node->children = (struct Node **)malloc(sizeof(struct Node *) * n);
 	va_list children;
 	va_start(children, n);
 	for (size_t i = 0; i < n; i++) {
@@ -65,10 +66,10 @@ struct Node *new_Body(size_t line) {
 	return new_Node_0(N_BODY, T_UNKNOWN, NULL, 0, line);
 }
 
-void body_append(struct Node **node, struct Node *const child) {
+void body_append(struct Node *node, struct Node *const child) {
 	YASL_COMPILE_DEBUG_LOG("%s\n", "appending to block");
-	*node = realloc(*node, sizeof(struct Node) + (++(*node)->children_len) * sizeof(struct Node *));
-	(*node)->children[(*node)->children_len - 1] = child;
+	node->children = (struct Node **)realloc(node->children, ++node->children_len * sizeof(struct Node *));
+	node->children[node->children_len - 1] = child;
 }
 
 struct Node *new_FnDecl(const struct Node *const params, const struct Node *const body, char *name, size_t name_len, const size_t line) {
@@ -211,5 +212,6 @@ void node_del(struct Node *node) {
 	default:
 		free(node->value.sval.str);
 	}
+	free(node->children);
 	free(node);
 }

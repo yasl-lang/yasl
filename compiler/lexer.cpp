@@ -117,11 +117,11 @@ static int lex_eatint(Lexer *lex, char separator, int (*isvaliddigit)(int)) {
 		lex_getchar(lex);
 		if (i == lex->val_len) {
 			lex->val_len *= 2;
-			lex->value = realloc(lex->value, lex->val_len);
+			lex->value = (char *)realloc(lex->value, lex->val_len);
 		}
 		while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
 	} while (!lxeof(lex->file) && (*isvaliddigit)(lex->c));
-	if (i == lex->val_len) lex->value = realloc(lex->value, i + 1);
+	if (i == lex->val_len) lex->value = (char *)realloc(lex->value, i + 1);
 	lex->value[i] = '\0';
 	lex->type = T_INT;
 	if (!lxeof(lex->file)) lxseek(lex->file, -1, SEEK_CUR);
@@ -165,7 +165,7 @@ static int lex_eatnotin(Lexer *lex) {
 
 static int lex_eatop(Lexer *lex) {
 	char c1, c2, c3;
-	int last;
+	enum Token last;
 	c1 = lex->c;
 	c2 = lxgetc(lex->file);
 	if (lxeof(lex->file)) {
@@ -208,7 +208,7 @@ int lex_eatnumber(Lexer *lex) {
 	int c1 = lex->c;
 	if (isdigit(c1)) {                          // numbers
 		lex->val_len = 8;
-		lex->value = realloc(lex->value, lex->val_len);
+		lex->value = (char *)realloc(lex->value, lex->val_len);
 		size_t i = 0;
 		int c2 = lxgetc(lex->file);
 
@@ -231,7 +231,7 @@ int lex_eatnumber(Lexer *lex) {
 			lex_getchar(lex);
 			if (i == lex->val_len) {
 				lex->val_len *= 2;
-				lex->value = realloc(lex->value, lex->val_len);
+				lex->value = (char *)realloc(lex->value, lex->val_len);
 			}
 			while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
 			c1 = lex->c;
@@ -239,7 +239,7 @@ int lex_eatnumber(Lexer *lex) {
 
 		while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
 		lex->type = T_INT;
-		if (i == lex->val_len) lex->value = realloc(lex->value, i + 1);
+		if (i == lex->val_len) lex->value = (char *)realloc(lex->value, i + 1);
 		lex->value[i] = '\0';
 
 		// floats
@@ -260,13 +260,13 @@ int lex_eatnumber(Lexer *lex) {
 				c1 = lex->c;
 				if (i == lex->val_len) {
 					lex->val_len *= 2;
-					lex->value = realloc(lex->value, lex->val_len);
+					lex->value = (char *)realloc(lex->value, lex->val_len);
 				}
 				while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
 				c1 = lex->c;
 			} while (!lxeof(lex->file) && isdigit(c1));
 
-			if (i == lex->val_len) lex->value = realloc(lex->value, i + 1);
+			if (i == lex->val_len) lex->value = (char *)realloc(lex->value, i + 1);
 			lex->value[i] = '\0';
 			if (!lxeof(lex->file)) lxseek(lex->file, -1, SEEK_CUR);
 			lex->type = T_FLOAT;
@@ -281,18 +281,18 @@ int lex_eatnumber(Lexer *lex) {
 
 int lex_eatfloatexp(Lexer *lex) {
 	lex->val_len = 8;
-	lex->value = realloc(lex->value, lex->val_len);
+	lex->value = (char *)realloc(lex->value, lex->val_len);
 	size_t i = 0;
 	do {
 		lex->value[i++] = lex->c;
 		lex_getchar(lex);
 		if (i == lex->val_len) {
 			lex->val_len *= 2;
-			lex->value = realloc(lex->value, lex->val_len);
+			lex->value = (char *)realloc(lex->value, lex->val_len);
 		}
 		while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
 	} while (!lxeof(lex->file) && ((isdigit(lex->c))));
-	if (i == lex->val_len) lex->value = realloc(lex->value, i + 1);
+	if (i == lex->val_len) lex->value = (char *)realloc(lex->value, i + 1);
 	lex->value[i] = '\0';
 	if (!lxeof(lex->file)) lxseek(lex->file, -1, SEEK_CUR);
 	lex->type = T_FLOAT;
@@ -303,7 +303,7 @@ int lex_eatid(Lexer *lex) {
 	int c = lex->c;
 	if (isyaslidstart(c)) {                           // identifiers and keywords
 		lex->val_len = 8;
-		lex->value = realloc(lex->value, lex->val_len);
+		lex->value = (char *)realloc(lex->value, lex->val_len);
 		size_t i = 0;
 		do {
 			lex->value[i++] = c;
@@ -311,11 +311,11 @@ int lex_eatid(Lexer *lex) {
 			c = lex->c;
 			if (i == lex->val_len) {
 				lex->val_len *= 2;
-				lex->value = realloc(lex->value, lex->val_len);
+				lex->value = (char *)realloc(lex->value, lex->val_len);
 			}
 		} while (!lxeof(lex->file) && isyaslid(c));
 		if (!lxeof(lex->file)) lxseek(lex->file, -1, SEEK_CUR);
-		lex->value = realloc(lex->value, 1 + (lex->val_len = i));
+		lex->value = (char *)realloc(lex->value, 1 + (lex->val_len = i));
 		lex->value[lex->val_len] = '\0';
 
 		if (lex->type == T_DOT || lex->type == T_RIGHT_ARR) {
@@ -395,7 +395,7 @@ int handle_escapes(Lexer *lex, size_t *i, char delim) {
 
 int lex_eatinterpstringbody(Lexer *lex) {
 	lex->val_len = 6;
-	lex->value = realloc(lex->value, lex->val_len);
+	lex->value = (char *)realloc(lex->value, lex->val_len);
 	size_t i = 0;
 	lex->type = T_STR;
 
@@ -417,7 +417,7 @@ int lex_eatinterpstringbody(Lexer *lex) {
 
 		if (i == lex->val_len) {
 			lex->val_len *= 2;
-			lex->value = realloc(lex->value, lex->val_len);
+			lex->value = (char *)realloc(lex->value, lex->val_len);
 		}
 	}
 
@@ -441,7 +441,7 @@ int lex_eatinterpstringbody(Lexer *lex) {
 int lex_eatinterpstring(Lexer *lex) {
 	if (lex->c == INTERP_STR_DELIM) {
 		lex->val_len = 8;
-		lex->value = realloc(lex->value, lex->val_len);
+		lex->value = (char *)realloc(lex->value, lex->val_len);
 		size_t i = 0;
 		lex->type = T_STR;
 
@@ -464,7 +464,7 @@ int lex_eatinterpstring(Lexer *lex) {
 
 			if (i == lex->val_len) {
 				lex->val_len *= 2;
-				lex->value = realloc(lex->value, lex->val_len);
+				lex->value = (char *)realloc(lex->value, lex->val_len);
 			}
 		}
 
@@ -491,7 +491,7 @@ int lex_eatinterpstring(Lexer *lex) {
 static int lex_eatstring(Lexer *lex) {
 	if (lex->c == STR_DELIM) {
 		lex->val_len = 6;
-		lex->value = realloc(lex->value, lex->val_len);
+		lex->value = (char *)realloc(lex->value, lex->val_len);
 		size_t i = 0;
 		lex->type = T_STR;
 
@@ -514,7 +514,7 @@ static int lex_eatstring(Lexer *lex) {
 			lex_getchar(lex);
 			if (i == lex->val_len) {
 				lex->val_len *= 2;
-				lex->value = realloc(lex->value, lex->val_len);
+				lex->value = (char *)realloc(lex->value, lex->val_len);
 			}
 		}
 
@@ -536,7 +536,7 @@ static int lex_eatstring(Lexer *lex) {
 static int lex_eatrawstring(Lexer *lex) {
 	if (lex->c == RAW_STR_DELIM) {
 		lex->val_len = 8;
-		lex->value = realloc(lex->value, lex->val_len);
+		lex->value = (char *)realloc(lex->value, lex->val_len);
 		size_t i = 0;
 		lex->type = T_STR;
 
@@ -547,7 +547,7 @@ static int lex_eatrawstring(Lexer *lex) {
 			lex_getchar(lex);
 			if (i == lex->val_len) {
 				lex->val_len *= 2;
-				lex->value = realloc(lex->value, lex->val_len);
+				lex->value = (char *)realloc(lex->value, lex->val_len);
 			}
 		}
 
@@ -607,82 +607,74 @@ void gettok(Lexer *lex) {
 
 static enum Token YASLToken_ThreeChars(char c1, char c2, char c3) {
 	switch(c1) {
-		case '<': switch(c2) { case '<': switch(c3) { case '=': return T_DLTEQ; default: return T_UNKNOWN;} }
-		case '>': switch(c2) { case '>': switch(c3) { case '=': return T_DGTEQ; default: return T_UNKNOWN;} }
-		case '=': switch(c2) { case '=': switch(c3) { case '=': return T_TEQ; default: return T_UNKNOWN;} }
+	case '<': switch(c2) { case '<': switch(c3) { case '=': return T_DLTEQ;} } return T_UNKNOWN;
+	case '>': switch(c2) { case '>': switch(c3) { case '=': return T_DGTEQ; } } return T_UNKNOWN;
+	case '=': switch(c2) { case '=': switch(c3) { case '=': return T_TEQ; } } return T_UNKNOWN;
 		case '!': switch(c2) {
-			case '=': switch(c3) { case '=': return T_BANGDEQ; default: return T_UNKNOWN;}
+			case '=': switch(c3) { case '=': return T_BANGDEQ;}
+			  return T_UNKNOWN;
 			// case 'i': switch(c3) { case 'n': return T_BANGIN; default: return T_UNKNOWN; }
-		}
-		case '*': switch(c2) { case '*': switch(c3) { case '=': return T_DSTAREQ; default: return T_UNKNOWN;} }
-		case '/': switch(c2) { case '/': switch(c3) { case '=': return T_DSLASHEQ; default: return T_UNKNOWN;} }
+	  } return T_UNKNOWN;
+	case '*': switch(c2) { case '*': switch(c3) { case '=': return T_DSTAREQ; }} return T_UNKNOWN;
+	case '/': switch(c2) { case '/': switch(c3) { case '=': return T_DSLASHEQ; }} return T_UNKNOWN;
 		case '&': switch(c2) {
-			case '&': switch(c3) { case '=': return T_DAMPEQ; default: return T_UNKNOWN; }
-			case '^': switch(c3) { case '=': return T_AMPCARETEQ; default: return T_UNKNOWN; }
-		}
+	  case '&': switch(c3) { case '=': return T_DAMPEQ; } return T_UNKNOWN;
+			case '^': switch(c3) { case '=': return T_AMPCARETEQ;}
+			  return T_UNKNOWN;
+	  } return T_UNKNOWN;
 		case '|': switch(c2) { case '|': switch(c3) {
 			case '=': return T_DBAREQ;
-			default: return T_UNKNOWN;
-		} }
-		case '?': switch(c2) { case '?': switch(c3) { case '=': return T_DQMARKEQ; default: return T_UNKNOWN;} }
+	    } } return T_UNKNOWN;
+		case '?': switch(c2) { case '?': switch(c3) { case '=': return T_DQMARKEQ; } }
 	}
 	return T_UNKNOWN;
 }
 
 static enum Token YASLToken_TwoChars(char c1, char c2) {
 	switch(c1) {
-		case ':': switch(c2) { case '=': return T_COLONEQ; default: return T_UNKNOWN; }
-		case '^': switch(c2) { case '=': return T_CARETEQ; default: return T_UNKNOWN; };
-		case '+': switch(c2) { case '=': return T_PLUSEQ; default: return T_UNKNOWN; };
+	case ':': switch(c2) { case '=': return T_COLONEQ;} return T_UNKNOWN;
+	case '^': switch(c2) { case '=': return T_CARETEQ;} return T_UNKNOWN;
+	case '+': switch(c2) { case '=': return T_PLUSEQ;} return T_UNKNOWN;
 		case '-': switch(c2) {
 				case '=': return T_MINUSEQ;
 				case '>': return T_RIGHT_ARR;
-				default: return T_UNKNOWN;
-		}
+	  } return T_UNKNOWN;
 		case '=': switch(c2) {
 			case '=': return T_DEQ;
 			case '~': return T_EQTILDE;
-			default: return T_UNKNOWN;
-		}
+	  } return T_UNKNOWN;
 		case '!': switch(c2) {
 			case '=': return T_BANGEQ;
 			case '~': return T_BANGTILDE;
-			default: return T_UNKNOWN;
-		}
-		case '~': switch(c2) { case '=': return T_TILDEEQ; default: return T_UNKNOWN;}
+	  } return T_UNKNOWN;
+	case '~': switch(c2) { case '=': return T_TILDEEQ;} return T_UNKNOWN;
 		case '*': switch(c2) {
 			case '=': return T_STAREQ;
 			case '*': return T_DSTAR;
-			default: return T_UNKNOWN;
-		}
+	  } return T_UNKNOWN;
 		case '/': switch(c2) {
 				case '=': return T_SLASHEQ;
-				case '/': return T_DSLASH;
-				default: return T_UNKNOWN; }
-		case '%': switch(c2) { case '=': return T_MODEQ; default: return T_UNKNOWN;}
+	  case '/': return T_DSLASH;} return T_UNKNOWN;
+	case '%': switch(c2) { case '=': return T_MODEQ;} return T_UNKNOWN;
 		case '<': switch(c2) {
 				case '=': return T_LTEQ;
 				case '<': return T_DLT;
 				case '-': return T_LEFT_ARR;
-				default: return T_UNKNOWN;
-		}
+	  } return T_UNKNOWN;
 		case '>': switch(c2) {
 				case '=': return T_GTEQ;
 				case '>': return T_DGT;
-				default:  return T_UNKNOWN;
-		}
+	  } return T_UNKNOWN;
 		case '&': switch(c2) {
 			case '=': return T_AMPEQ;
 			case '&': return T_DAMP;
 			case '^': return T_AMPCARET;
-			default: return T_UNKNOWN;
-		}
+	  } return T_UNKNOWN;
 		case '|': switch(c2) {
 				case '=': return T_BAREQ;
 				case '|': return T_DBAR;
-				default: return T_UNKNOWN;
-		}
-		case '?': switch(c2) { case '?': return T_DQMARK; default: return T_UNKNOWN;}
+	  } return T_UNKNOWN;
+	case '?': switch(c2) { case '?': return T_DQMARK;} return T_UNKNOWN;
 		default:
 			return T_UNKNOWN;
 	}
@@ -718,7 +710,7 @@ static enum Token YASLToken_OneChar(char c1) {
 	}
 }
 
-static int matches_keyword(Lexer *lex, char *string) {
+static int matches_keyword(Lexer *lex, const char *string) {
 	return strlen(string) == lex->val_len && !memcmp(lex->value, string, lex->val_len);
 }
 
@@ -883,7 +875,7 @@ const char *YASL_TOKEN_NAMES[] = {
 };
 
 Lexer *lex_new(FILE *file /* OWN */) {
-    Lexer *lex = malloc(sizeof(Lexer));
+    Lexer *lex = (Lexer *)malloc(sizeof(Lexer));
     lex->line = 1;
     lex->value = NULL;
     lex->val_len = 0;

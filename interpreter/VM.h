@@ -12,14 +12,16 @@
 #define STACK_SIZE 100024
 #define NUM_TYPES 13                                     // number of builtin types, each needs a vtable
 
-#define vm_pushend(vm) vm_push(vm, YASL_END())
-#define vm_pushundef(vm) vm_push(vm, YASL_UNDEF())
-#define vm_pushfloat(vm, f) vm_push(vm, YASL_FLOAT(f))
-#define vm_pushint(vm, i) vm_push(vm, YASL_INT(i))
-#define vm_pushbool(vm, b) vm_push(vm, YASL_BOOL(b))
-#define vm_pushstr(vm, s) vm_push(vm, YASL_STR(s))
-#define vm_pushlist(vm, l) vm_push(vm, YASL_LIST(l))
-#define vm_pushfn(vm, f) vm_push(vm, YASL_FN(f))
+#define VM_PUSH(vm, x) do {struct YASL_Object to = x; vm_push(vm, to);} while(0)
+
+#define vm_pushend(vm) VM_PUSH(vm, YASL_END())
+#define vm_pushundef(vm) VM_PUSH(vm, YASL_UNDEF())
+#define vm_pushfloat(vm, f) VM_PUSH(vm, YASL_FLOAT(f))
+#define vm_pushint(vm, i) VM_PUSH(vm, YASL_INT(i))
+#define vm_pushbool(vm, b) VM_PUSH(vm, YASL_BOOL(b))
+#define vm_pushstr(vm, s) VM_PUSH(vm, YASL_STR(s))
+#define vm_pushlist(vm, l) VM_PUSH(vm, YASL_LIST(l))
+#define vm_pushfn(vm, f) VM_PUSH(vm, YASL_FN(f))
 
 #define vm_popint(vm) (YASL_GETINT(vm_pop(vm)))
 #define vm_popstr(vm) (YASL_GETSTR(vm_pop(vm)))

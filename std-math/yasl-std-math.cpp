@@ -7,6 +7,7 @@
 #include "prime/prime.h"
 #include "interpreter/YASL_Object.h"
 #include "yasl_conf.h"
+#include "yasl.h"
 
 #define POP_NUMBER(state, obj_name, fn_name) \
 					struct YASL_Object *obj_name = YASL_popobject(state); \
@@ -287,19 +288,19 @@ int YASL_load_math(struct YASL_State *S) {
 	YASL_Table_set(math, log_str, log_fn);
 
 	struct YASL_Object *pi_str = YASL_CString("pi");
-	struct YASL_Object *pi_val = malloc(sizeof(struct YASL_Object));
+	struct YASL_Object *pi_val = (struct YASL_Object *)malloc(sizeof(struct YASL_Object));
 	pi_val->type = Y_FLOAT;
 	pi_val->value.dval = YASL_PI;
 	YASL_Table_set(math, pi_str, pi_val);
 
 	struct YASL_Object *nan_str = YASL_CString("nan");
-	struct YASL_Object *nan_val = malloc(sizeof(struct YASL_Object));
+	struct YASL_Object *nan_val = (struct YASL_Object *)malloc(sizeof(struct YASL_Object));
 	nan_val->type = Y_FLOAT;
 	nan_val->value.dval = YASL_NAN;
 	YASL_Table_set(math, nan_str, nan_val);
 
 	struct YASL_Object *inf_str = YASL_CString("inf");
-	struct YASL_Object *inf_val = malloc(sizeof(struct YASL_Object));
+	struct YASL_Object *inf_val = (struct YASL_Object *)malloc(sizeof(struct YASL_Object));
 	inf_val->type = Y_FLOAT;
 	inf_val->value.dval = YASL_INF;
 	YASL_Table_set(math, inf_str, inf_val);
