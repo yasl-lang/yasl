@@ -187,10 +187,10 @@ int list___add(struct YASL_State *S) {
 	struct RC_UserData *ptr = ls_new_sized(size);
 	int64_t i;
 	for (i = 0; i < a->count; i++) {
-		ls_append((List *)ptr->data, (a)->items[i]);
+		ls_append((struct List *)ptr->data, (a)->items[i]);
 	}
 	for (i = 0; i < (b)->count; i++) {
-		ls_append((List *)ptr->data, (b)->items[i]);
+		ls_append((struct List *)ptr->data, (b)->items[i]);
 	}
 	vm_pushlist((struct VM *) S, ptr);
 	return 0;
@@ -273,7 +273,7 @@ int list_slice(struct YASL_State *S) {
 	struct RC_UserData *new_list = ls_new_sized(end - start);
 
 	for (int64_t i = start; i < end; i++) {
-		ls_append((List *)new_list->data, list->items[i]); // = list->items[i];
+		ls_append((struct List *)new_list->data, list->items[i]); // = list->items[i];
 		inc_ref(list->items + i);
 	}
 
@@ -288,7 +288,7 @@ int list_clear(struct YASL_State *S) {
 	FOR_LIST(i, obj, list) dec_ref(&obj);
 	list->count = 0;
 	list->size = LS_BASESIZE;
-	list->items = (YASL_Object *)realloc(list->items, sizeof(struct YASL_Object)*list->size);
+	list->items = (struct YASL_Object *)realloc(list->items, sizeof(struct YASL_Object)*list->size);
 	vm_pushundef((struct VM *)S);
 	return 0;
 }

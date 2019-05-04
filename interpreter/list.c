@@ -86,7 +86,7 @@ void ls_append(struct List* ls, struct YASL_Object value) {
 }
 
 struct YASL_Object ls_search(struct List* ls, int64_t index) {
-  static YASL_Object undobj = NEW_YO({.type = Y_UNDEF, .value = {.ival = 0}});
+    struct YASL_Object undobj = UNDEF_C;
     if (index < -ls->count || index >= ls->count) return undobj;
     else if (0 <= index) return ls->items[index];
     else return ls->items[ls->count+index];

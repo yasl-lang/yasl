@@ -186,7 +186,7 @@ int table_keys(struct YASL_State *S) {
 	struct Table *ht = YASL_GETTABLE(vm_pop((struct VM *)S));
 	struct RC_UserData *ls = ls_new();
 	FOR_TABLE(i, item, ht) {
-			ls_append((List *)ls->data, (item->key));
+			ls_append((struct List *)ls->data, (item->key));
 		}
 
 	VM_PUSH((struct VM *)S, YASL_LIST(ls));
@@ -198,7 +198,7 @@ int table_values(struct YASL_State *S) {
 	struct Table *ht = YASL_GETTABLE(vm_pop((struct VM *)S));
 	struct RC_UserData *ls = ls_new();
 	FOR_TABLE(i, item, ht) {
-		ls_append((List *)ls->data, (item->value));
+		ls_append((struct List *)ls->data, (item->value));
 	}
 	VM_PUSH((struct VM *)S, YASL_LIST(ls));
 	return 0;
@@ -212,7 +212,7 @@ int table_clone(struct YASL_State *S) {
 	FOR_TABLE(i, item, ht) {
 		inc_ref(&item->key);
 		inc_ref(&item->value);
-		table_insert((Table *)new_ht->data, item->key, item->value);
+		table_insert((struct Table *)new_ht->data, item->key, item->value);
 	}
 
 	VM_PUSH((struct VM *)S, YASL_TABLE(new_ht));

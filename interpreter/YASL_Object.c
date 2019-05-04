@@ -158,9 +158,9 @@ int isfalsey(struct YASL_Object v) {
 }
 
 struct YASL_Object isequal(struct YASL_Object a, struct YASL_Object b) {
-  const static struct YASL_Object false_c = FALSE_C;
-  const static struct YASL_Object true_c = TRUE_C;
-  const static struct YASL_Object undef_c = UNDEF_C;
+  const struct YASL_Object false_c = FALSE_C;
+  const struct YASL_Object true_c = TRUE_C;
+  const struct YASL_Object undef_c = UNDEF_C;
         if (YASL_ISUNDEF(a) && YASL_ISUNDEF(b)) {
             return true_c;
         }
@@ -221,7 +221,7 @@ struct YASL_Object isequal(struct YASL_Object a, struct YASL_Object b) {
                 // printf("== and != not supported for operands of types %x and %x.\n", a.type, b.type);
                 return undef_c;
             }
-            return NEW_YO({ .type = Y_BOOL, .value = {.ival = c}});
+            return YASL_BOOL(c);
         }
 }
 

@@ -13,7 +13,7 @@ int bool_tostr(struct YASL_State *S) {
 	} else {
 		string = str_new_sized(strlen("true"), "true");
 	}
-	YASL_Object to = YASL_STR(string);
+	struct YASL_Object to = YASL_STR(string);
 	vm_push((struct VM *) S, to);
 	return 0;
 }

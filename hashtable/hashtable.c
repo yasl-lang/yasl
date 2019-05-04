@@ -160,8 +160,8 @@ void table_insert(struct Table *const table, const struct YASL_Object key, const
 
 void table_insert_string_int(struct Table *const table, const char *const key, const int64_t key_len, const int64_t val) {
 	String_t *string = str_new_sized_heap(0, key_len, copy_char_buffer(key_len, key));
-	YASL_Object ko = NEW_YO({.type = Y_STR, .value = {.sval = string}}),
-	  vo = NEW_YO({.type = Y_INT, .value = {.ival = val}});
+	struct YASL_Object ko = YASL_STR(string),
+	  vo = YASL_INT(val);
 	table_insert(table, ko, vo);
 		     
 		     
@@ -178,12 +178,12 @@ struct YASL_Object table_search(const struct Table *const table, const struct YA
 		index = get_hash(key, table->size, i++);
 		item = table->items[index];
 	}
-	return {Y_END, {0}};
+	return YASL_END();
 }
 
 struct YASL_Object table_search_string_int(const struct Table *const table, const char *const key, const int64_t key_len) {
 	String_t *string = str_new_sized_heap(0, key_len, copy_char_buffer(key_len, key));
-	struct YASL_Object object = NEW_YO({.type = Y_STR, .value = {.sval = string}});
+	struct YASL_Object object = YASL_STR(string);
 
 	struct YASL_Object result = table_search(table, object);
 	str_del(string);

@@ -34,7 +34,7 @@ void yasl_print(struct VM* vm) {
 
 void table_insert_specialstring_cfunction(struct VM *vm, struct Table *ht, int index, int (*addr)(struct YASL_State *), int num_args) {
 	String_t *string = vm->special_strings[index];
-	YASL_Object ko = YASL_STR(string), vo = YASL_CFN(addr, num_args);
+	struct YASL_Object ko = YASL_STR(string), vo = YASL_CFN(addr, num_args);
 	table_insert(ht, ko, vo);
 }
 
