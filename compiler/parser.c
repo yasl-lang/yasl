@@ -151,7 +151,7 @@ static struct Node *parse_program(Parser *const parser) {
 			eattok(parser, T_COLONEQ);
 			struct Node *assign_node = new_Let(expr->value.sval.str, expr->value.sval.str_len,
 							   parse_expr(parser), line);
-			free(expr);
+			node_free(expr);
 			return assign_node;
 		}
 		return new_ExprStmt(expr, parser->lex.line);
@@ -324,14 +324,14 @@ static struct Node *parse_assign(Parser *const parser) {
 		case N_VAR: {
 			struct Node *assign_node = new_Assign(cur_node->value.sval.str, cur_node->value.sval.str_len,
 							      parse_assign(parser), line);
-			free(cur_node);
+			node_free(cur_node);
 			return assign_node;
 		}
 		case N_GET: {
 			struct Node *left = cur_node->children[0];
 			struct Node *key = cur_node->children[1];
 			struct Node *val = parse_expr(parser);
-			free(cur_node);
+			node_free(cur_node);
 			return new_Set(left, key, val, line);
 		}
 		default:
@@ -345,14 +345,14 @@ static struct Node *parse_assign(Parser *const parser) {
 			char *name = cur_node->value.sval.str;
 			size_t name_len = cur_node->value.sval.str_len;
 			struct Node *tmp = node_clone(cur_node);
-			free(cur_node);
+			node_free(cur_node);
 			return new_Assign(name, name_len, new_BinOp(op, tmp, parse_assign(parser), line), line);
 		}
 		case N_GET: {
 			struct Node *collection = cur_node->children[0];
 			struct Node *key = cur_node->children[1];
 			struct Node *value = new_BinOp(op, node_clone(cur_node), parse_expr(parser), line);
-			free(cur_node);
+			node_free(cur_node);
 			return new_Set(collection, key, value, line);
 		}
 		default:
@@ -448,7 +448,7 @@ static struct Node *parse_call(Parser *const parser) {
 
 			cur_node = new_MethodCall(block, cur_node, right->value.sval.str, right->value.sval.str_len,
 						  parser->lex.line);
-			free(right);
+			node_free(right);
 
 			eattok(parser, T_LPAR);
 			while (!TOKEN_MATCHES(parser, T_RPAR, T_EOF)) {
@@ -464,7 +464,7 @@ static struct Node *parse_call(Parser *const parser) {
 			if (right->nodetype == N_CALL) {
 				cur_node = new_Set(cur_node, right->children[0]->children[0],
 						   right->children[0]->children[1], parser->lex.line);
-				free(right);
+				node_free(right);
 			} else if (right->nodetype == N_VAR) {
 				right->nodetype = N_STR;
 				cur_node = new_Get(cur_node, right, parser->lex.line);
@@ -714,7 +714,7 @@ static struct Node *parse_collection(Parser *const parser) {
 
 		eattok(parser, T_RSQB);
 		struct Node *table_comp = new_ListComp(keys->children[0], iter, cond, parser->lex.line);
-		free(keys);
+		node_free(keys);
 		return table_comp;
 	} else {
 		while (curtok(parser) == T_COMMA) {

@@ -212,6 +212,11 @@ void node_del(struct Node *node) {
 	default:
 		free(node->value.sval.str);
 	}
-	free(node->children);
-	free(node);
+	node_free(node);
+}
+
+void node_free(struct Node *node) {
+  if(!node) return;
+  free(node->children);
+  free(node);
 }
