@@ -7,11 +7,10 @@
 
 struct Node *node_clone(const struct Node *const node) {
 	if (node == NULL) return NULL;
-	struct Node *clone = (struct Node *)malloc(sizeof(struct Node));
+	struct Node *clone = (struct Node *)malloc(sizeof(struct Node) + node->children_len * sizeof(struct Node *));
 	clone->nodetype = node->nodetype;
 	clone->type = node->type;
 	clone->children_len = node->children_len;
-	clone->children = (struct Node **)malloc(sizeof(struct Node *) * node->children_len);
 	for (size_t i = 0; i < clone->children_len; i++) {
 		clone->children[i] = node_clone(node->children[i]);
 	}
@@ -32,14 +31,13 @@ struct Node *node_clone(const struct Node *const node) {
 
 static struct Node *new_Node(const AST nodetype, const enum Token type, const size_t line, const size_t name_len,
 		char *const name /* OWN */, const size_t n, ... /* OWN */) {
-	struct Node *const node = (struct Node *)malloc(sizeof(struct Node));
+	struct Node *const node = (struct Node *)malloc(sizeof(struct Node) + sizeof(struct Node *) * n);
 	node->nodetype = nodetype;
 	node->type = type;
 	node->children_len = n;
 	node->value.sval.str_len = name_len;
 	node->value.sval.str = name;
 	node->line = line;
-	node->children = (struct Node **)malloc(sizeof(struct Node *) * n);
 	va_list children;
 	va_start(children, n);
 	for (size_t i = 0; i < n; i++) {
@@ -66,10 +64,10 @@ struct Node *new_Body(size_t line) {
 	return new_Node_0(N_BODY, T_UNKNOWN, NULL, 0, line);
 }
 
-void body_append(struct Node *node, struct Node *const child) {
+void body_append(struct Node **node, struct Node *const child) {
 	YASL_COMPILE_DEBUG_LOG("%s\n", "appending to block");
-	node->children = (struct Node **)realloc(node->children, ++node->children_len * sizeof(struct Node *));
-	node->children[node->children_len - 1] = child;
+	*node = (struct Node*)realloc(*node, sizeof(struct Node) + (++(*node)->children_len) * sizeof(struct Node *));
+	(*node)->children[(*node)->children_len - 1] = child;
 }
 
 struct Node *new_FnDecl(const struct Node *const params, const struct Node *const body, char *name, size_t name_len, const size_t line) {
@@ -212,11 +210,5 @@ void node_del(struct Node *node) {
 	default:
 		free(node->value.sval.str);
 	}
-	node_free(node);
-}
-
-void node_free(struct Node *node) {
-  if(!node) return;
-  free(node->children);
-  free(node);
+	free(node);
 }

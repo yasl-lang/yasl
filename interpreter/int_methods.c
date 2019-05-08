@@ -11,7 +11,7 @@ int int_toint(struct YASL_State *S) {
 
 int int_tofloat(struct YASL_State *S) {
 	ASSERT_TYPE((struct VM *) S, Y_INT, "int64.tofloat");
-	vm_push((struct VM *) S, YASL_FLOAT((yasl_float) YASL_GETINT(vm_pop((struct VM *) S))));
+	vm_pushfloat((struct VM *) S, (yasl_float) YASL_GETINT(vm_pop((struct VM *) S)));
 	return 0;
 }
 

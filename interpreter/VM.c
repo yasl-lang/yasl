@@ -199,11 +199,11 @@ int vm_num_binop(
 	if (YASL_ISINT(left) && YASL_ISINT(right)) {
 		vm_push(vm, YASL_INT(int_op(YASL_GETINT(left), YASL_GETINT(right))));
 	} else if (YASL_ISFLOAT(left) && YASL_ISFLOAT(right)) {
-		vm_push(vm, YASL_FLOAT(float_op(YASL_GETFLOAT(left), YASL_GETFLOAT(right))));
+		vm_pushfloat(vm, float_op(YASL_GETFLOAT(left), YASL_GETFLOAT(right)));
 	} else if (YASL_ISFLOAT(left) && YASL_ISINT(right)) {
-		vm_push(vm, YASL_FLOAT(float_op(YASL_GETFLOAT(left), YASL_GETINT(right))));
+		vm_pushfloat(vm, float_op(YASL_GETFLOAT(left), YASL_GETINT(right)));
 	} else if (YASL_ISINT(left) && YASL_ISFLOAT(right)) {
-		vm_push(vm, YASL_FLOAT(float_op(YASL_GETINT(left), YASL_GETFLOAT(right))));
+		vm_pushfloat(vm, float_op(YASL_GETINT(left), YASL_GETFLOAT(right)));
 	} else {
 		inc_ref(&left);
 		inc_ref(&right);
@@ -236,13 +236,13 @@ int vm_fdiv(struct VM *vm) {
 	struct YASL_Object right = vm_pop(vm);
 	struct YASL_Object left = vm_pop(vm);
 	if (YASL_ISINT(left) && YASL_ISINT(right)) {
-		vm_push(vm, YASL_FLOAT((yasl_float) YASL_GETINT(left) / (yasl_float) YASL_GETINT(right)));
+		vm_pushfloat(vm, (yasl_float) YASL_GETINT(left) / (yasl_float) YASL_GETINT(right));
 	} else if (YASL_ISFLOAT(left) && YASL_ISFLOAT(right)) {
-		vm_push(vm, YASL_FLOAT(YASL_GETFLOAT(left) / YASL_GETFLOAT(right)));
+		vm_pushfloat(vm, YASL_GETFLOAT(left) / YASL_GETFLOAT(right));
 	} else if (YASL_ISINT(left) && YASL_ISFLOAT(right)) {
-		vm_push(vm, YASL_FLOAT((yasl_float) YASL_GETINT(left) / YASL_GETFLOAT(right)));
+		vm_pushfloat(vm, (yasl_float) YASL_GETINT(left) / YASL_GETFLOAT(right));
 	} else if (YASL_ISFLOAT(left) && YASL_ISINT(right)) {
-		vm_push(vm, YASL_FLOAT(YASL_GETFLOAT(left) / (yasl_float) YASL_GETINT(right)));
+		vm_pushfloat(vm, YASL_GETFLOAT(left) / (yasl_float) YASL_GETINT(right));
 	} else {
 		struct YASL_Object op_name = YASL_STR(str_new_sized(strlen(overload_name), overload_name));
 		vm_push(vm, left);
@@ -268,7 +268,7 @@ int vm_pow(struct VM *vm) {
 	struct YASL_Object left = vm_peek(vm);
 	if (YASL_ISINT(left) && YASL_ISINT(right) && YASL_GETINT(right) < 0) {
 		vm_pop(vm);
-		vm_push(vm, YASL_FLOAT(pow(YASL_GETINT(left), YASL_GETINT(right))));
+		vm_pushfloat(vm, pow(YASL_GETINT(left), YASL_GETINT(right)));
 	} else {
 		vm->sp++;
 		int res = vm_num_binop(vm, &int_pow, &pow, "**", OP_BIN_POWER);
@@ -314,7 +314,7 @@ int vm_num_unop(struct VM *vm, yasl_int (*int_op)(yasl_int), yasl_float (*float_
 	if (YASL_ISINT(expr)) {
 		vm_push(vm, YASL_INT(int_op(YASL_GETINT(expr))));
 	} else if (YASL_ISFLOAT(expr)) {
-		vm_push(vm, YASL_FLOAT(float_op(YASL_GETFLOAT(expr))));
+		vm_pushfloat(vm, float_op(YASL_GETFLOAT(expr)));
 	} else {
 		struct YASL_Object op_name = YASL_STR(str_new_sized(strlen(overload_name), overload_name));
 		vm_push(vm, expr);

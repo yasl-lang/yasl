@@ -9,8 +9,8 @@
 #include "debug.h"
 
 #define NEW_COMPILER(fp)\
-  NEW_FOO(struct Compiler, {			\
-      .parser = NEW_PARSER(fp),			\
+  ((struct Compiler) {\
+  	.parser = NEW_PARSER(fp),\
 	.globals = env_new(NULL),\
 	.params = NULL,\
         .num_locals = 0,	\
@@ -22,7 +22,7 @@
 	.checkpoints_count = 0,\
 	.checkpoints_size = 4,\
 	.status = YASL_SUCCESS\
-			      })
+  })
 
 struct Compiler {
     Parser parser;

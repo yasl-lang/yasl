@@ -6,6 +6,7 @@ project(YASL)
 
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_C_STANDARD 99)
+#set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-unused-function -Wno-unused-result -Wno-unused-variable -Wno-unused-parameter -Wpedantic -Werror")
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 

@@ -139,8 +139,8 @@ int YASL_pushundef(struct YASL_State *S) {
     return YASL_SUCCESS;
 }
 
-int YASL_pushfloat(struct YASL_State *S, double value) {
-    vm_push((struct VM *)S, YASL_FLOAT(value));
+int YASL_pushfloat(struct YASL_State *S, yasl_float value) {
+    vm_pushfloat((struct VM *)S, value);
     return YASL_SUCCESS;
 }
 
