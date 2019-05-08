@@ -13,7 +13,7 @@
 #define TOKEN_MATCHES(parser, ...)  (CHOOSE(__VA_ARGS__, T4, T3, T2, T1, T0)(parser, __VA_ARGS__))
 
 #define NEW_PARSER(fp)\
-((Parser) {\
+  NEW_FOO(Parser, {				\
 	.lex = NEW_LEXER(fp),\
 	.status = YASL_SUCCESS\
 })

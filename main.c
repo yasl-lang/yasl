@@ -104,7 +104,7 @@ static int main_command(int argc, char **argv) {
 static int main_REPL(int argc, char **argv) {
 	int next;
 	size_t size = 8, count = 0;
-	char *buffer = malloc(size);
+	char *buffer = (char *)malloc(size);
 	struct YASL_State *S = YASL_newstate_bb(buffer, 0);
 	YASL_load_math(S);
 	YASL_load_io(S);
@@ -114,13 +114,13 @@ static int main_REPL(int argc, char **argv) {
 		while ((next = getchar()) != '\n') {
 			if (size == count) {
 				size *= 2;
-				buffer = realloc(buffer, size);
+				buffer = (char *)realloc(buffer, size);
 			}
 			buffer[count++] = next;
 		}
 		if (size == count) {
 			size *= 2;
-			buffer = realloc(buffer, size);
+			buffer = (char *)realloc(buffer, size);
 		}
 		buffer[count++] = '\n';
 

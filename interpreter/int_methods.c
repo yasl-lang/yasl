@@ -18,9 +18,9 @@ int int_tofloat(struct YASL_State *S) {
 int int_tostr(struct YASL_State *S) {
 	ASSERT_TYPE((struct VM *) S, Y_INT, "int64.tostr");
 	yasl_int val = YASL_GETINT(vm_pop((struct VM *) S));
-	char *ptr = malloc(snprintf(NULL, 0, "%" PRId64 "", val) + 1);
+	char *ptr = (char *)malloc(snprintf(NULL, 0, "%" PRId64 "", val) + 1);
 	sprintf(ptr, "%" PRId64 "", val);
 	String_t *string = str_new_sized_heap(0, snprintf(NULL, 0, "%" PRId64 "", val), ptr);
-	vm_push((struct VM *) S, YASL_STR(string));
+	VM_PUSH((struct VM *) S, YASL_STR(string));
 	return 0;
 }

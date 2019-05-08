@@ -57,10 +57,10 @@ struct Node {
 		yasl_float dval;
 	} value;
 	size_t children_len;
-	struct Node *children[];
+	struct Node **children;
 };
 
-void body_append(struct Node **node, struct Node *const child);
+void body_append(struct Node *node, struct Node *const child);
 
 struct Node *node_clone(const struct Node *const node);
 
@@ -130,3 +130,4 @@ struct Node *new_List(struct Node *values, const size_t line);
 struct Node *new_Table(struct Node *keys, const size_t line);
 
 void node_del(struct Node *node);
+void node_free(struct Node *node);

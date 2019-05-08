@@ -8,7 +8,7 @@
 #include "yasl_include.h"
 
 struct RC *rc_new(void) {
-	struct RC *rc = malloc(sizeof(struct RC));
+	struct RC *rc = (struct RC *)malloc(sizeof(struct RC));
 	rc->refs = 0;
 	rc->weak_refs = 0;
 	return rc;

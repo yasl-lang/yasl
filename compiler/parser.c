@@ -151,7 +151,7 @@ static struct Node *parse_program(Parser *const parser) {
 			eattok(parser, T_COLONEQ);
 			struct Node *assign_node = new_Let(expr->value.sval.str, expr->value.sval.str_len,
 							   parse_expr(parser), line);
-			free(expr);
+			node_free(expr);
 			return assign_node;
 		}
 		return new_ExprStmt(expr, parser->lex.line);
@@ -162,7 +162,7 @@ static struct Node *parse_body(Parser *const parser) {
 	eattok(parser, T_LBRC);
 	struct Node *body = new_Body(parser->lex.line);
 	while (curtok(parser) != T_RBRC && curtok(parser) != T_EOF) {
-		body_append(&body, parse_program(parser));
+		body_append(body, parse_program(parser));
 		eattok(parser, T_SEMI);
 	}
 	eattok(parser, T_RBRC);
@@ -173,12 +173,12 @@ static struct Node *parse_function_params(Parser *const parser) {
 	struct Node *block = new_Body(parser->lex.line);
 	while (TOKEN_MATCHES(parser, T_ID, T_CONST)) {
 		if (TOKEN_MATCHES(parser, T_ID)) {
-			body_append(&block, parse_id(parser));
+			body_append(block, parse_id(parser));
 		} else {
 			eattok(parser, T_CONST);
 			struct Node *cur_node = parse_id(parser);
 			cur_node->nodetype = N_CONST;
-			body_append(&block, cur_node);
+			body_append(block, cur_node);
 		}
 		if (curtok(parser) == T_COMMA) eattok(parser, T_COMMA);
 		else break;
@@ -199,7 +199,7 @@ static struct Node *parse_fn(Parser *const parser) {
 
 	struct Node *body = parse_body(parser);
 
-	char *name2 = malloc(name_len);
+	char *name2 = (char *)malloc(name_len);
 	memcpy(name2, name, name_len);
 	return new_Let(name, name_len, new_FnDecl(block, body, name2, name_len, parser->lex.line), line);
 
@@ -261,8 +261,8 @@ static struct Node *parse_for(Parser *const parser) {
 		struct Node *post = parse_expr(parser);
 		struct Node *body = parse_body(parser);
 		struct Node *outer_body = new_Body(parser->lex.line);
-		body_append(&outer_body, iter);
-		body_append(&outer_body, new_While(cond, body, new_ExprStmt(post, parser->lex.line), parser->lex.line));
+		body_append(outer_body, iter);
+		body_append(outer_body, new_While(cond, body, new_ExprStmt(post, parser->lex.line), parser->lex.line));
 		struct Node *block = new_Block(outer_body, parser->lex.line);
 		return block;
 	}
@@ -324,14 +324,14 @@ static struct Node *parse_assign(Parser *const parser) {
 		case N_VAR: {
 			struct Node *assign_node = new_Assign(cur_node->value.sval.str, cur_node->value.sval.str_len,
 							      parse_assign(parser), line);
-			free(cur_node);
+			node_free(cur_node);
 			return assign_node;
 		}
 		case N_GET: {
 			struct Node *left = cur_node->children[0];
 			struct Node *key = cur_node->children[1];
 			struct Node *val = parse_expr(parser);
-			free(cur_node);
+			node_free(cur_node);
 			return new_Set(left, key, val, line);
 		}
 		default:
@@ -339,20 +339,20 @@ static struct Node *parse_assign(Parser *const parser) {
 			return handle_error(parser);
 		}
 	} else if (tok_isaugmented(curtok(parser))) {
-		enum Token op = eattok(parser, curtok(parser)) - 1; // relies on enum
+	  enum Token op = (enum Token)(eattok(parser, curtok(parser)) - 1); // relies on enum
 		switch (cur_node->nodetype) {
 		case N_VAR: {
 			char *name = cur_node->value.sval.str;
 			size_t name_len = cur_node->value.sval.str_len;
 			struct Node *tmp = node_clone(cur_node);
-			free(cur_node);
+			node_free(cur_node);
 			return new_Assign(name, name_len, new_BinOp(op, tmp, parse_assign(parser), line), line);
 		}
 		case N_GET: {
 			struct Node *collection = cur_node->children[0];
 			struct Node *key = cur_node->children[1];
 			struct Node *value = new_BinOp(op, node_clone(cur_node), parse_expr(parser), line);
-			free(cur_node);
+			node_free(cur_node);
 			return new_Set(collection, key, value, line);
 		}
 		default:
@@ -448,11 +448,11 @@ static struct Node *parse_call(Parser *const parser) {
 
 			cur_node = new_MethodCall(block, cur_node, right->value.sval.str, right->value.sval.str_len,
 						  parser->lex.line);
-			free(right);
+			node_free(right);
 
 			eattok(parser, T_LPAR);
 			while (!TOKEN_MATCHES(parser, T_RPAR, T_EOF)) {
-				body_append(&cur_node->children[0], parse_expr(parser));
+				body_append(cur_node->children[0], parse_expr(parser));
 				if (curtok(parser) != T_COMMA) break;
 				eattok(parser, T_COMMA);
 			}
@@ -464,7 +464,7 @@ static struct Node *parse_call(Parser *const parser) {
 			if (right->nodetype == N_CALL) {
 				cur_node = new_Set(cur_node, right->children[0]->children[0],
 						   right->children[0]->children[1], parser->lex.line);
-				free(right);
+				node_free(right);
 			} else if (right->nodetype == N_VAR) {
 				right->nodetype = N_STR;
 				cur_node = new_Get(cur_node, right, parser->lex.line);
@@ -489,7 +489,7 @@ static struct Node *parse_call(Parser *const parser) {
 			cur_node = new_Call(new_Body(parser->lex.line), cur_node, parser->lex.line);
 			eattok(parser, T_LPAR);
 			while (!TOKEN_MATCHES(parser, T_RPAR, T_EOF)) {
-				body_append(&cur_node->children[0], parse_expr(parser));
+				body_append(cur_node->children[0], parse_expr(parser));
 				if (curtok(parser) != T_COMMA) break;
 				eattok(parser, T_COMMA);
 			}
@@ -501,15 +501,17 @@ static struct Node *parse_call(Parser *const parser) {
 
 static struct Node *parse_constant(Parser *const parser) {
 	switch (curtok(parser)) {
-	case T_DOT:eattok(parser, T_DOT);
+	case T_DOT:eattok(parser, T_DOT); {
 		struct Node *cur_node = new_String(parser->lex.value, parser->lex.val_len, parser->lex.line);
 		eattok(parser, T_ID);
 		return cur_node;
+	  }
 	case T_ID: return parse_id(parser);
-	case T_LPAR:eattok(parser, T_LPAR);
+	case T_LPAR:eattok(parser, T_LPAR); {
 		struct Node *expr = parse_expr(parser);
 		eattok(parser, T_RPAR);
 		return expr;
+	  }
 	case T_LSQB: return parse_collection(parser);
 	case T_LBRC: return parse_table(parser);
 	case T_STR: return parse_string(parser);
@@ -653,12 +655,12 @@ static struct Node *parse_table(Parser *const parser) {
 		return new_Table(keys, parser->lex.line);
 	}
 
-	body_append(&keys, parse_expr(parser));
+	body_append(keys, parse_expr(parser));
 
 	// non-empty table
 	YASL_PARSE_DEBUG_LOG("%s\n", "Parsing table");
 	eattok(parser, T_COLON);
-	body_append(&keys, parse_expr(parser));
+	body_append(keys, parse_expr(parser));
 
 	if (curtok(parser) == T_FOR) {
 		eattok(parser, T_FOR);
@@ -676,9 +678,9 @@ static struct Node *parse_table(Parser *const parser) {
 	}
 	while (curtok(parser) == T_COMMA) {
 		eattok(parser, T_COMMA);
-		body_append(&keys, parse_expr(parser));
+		body_append(keys, parse_expr(parser));
 		eattok(parser, T_COLON);
-		body_append(&keys, parse_expr(parser));
+		body_append(keys, parse_expr(parser));
 	}
 	eattok(parser, T_RBRC);
 	return new_Table(keys, parser->lex.line);
@@ -697,7 +699,7 @@ static struct Node *parse_collection(Parser *const parser) {
 		return new_List(keys, parser->lex.line);
 	}
 
-	body_append(&keys, parse_expr(parser));
+	body_append(keys, parse_expr(parser));
 
 	// non-empty list
 	if (curtok(parser) == T_FOR) {
@@ -712,13 +714,13 @@ static struct Node *parse_collection(Parser *const parser) {
 
 		eattok(parser, T_RSQB);
 		struct Node *table_comp = new_ListComp(keys->children[0], iter, cond, parser->lex.line);
-		free(keys);
+		node_free(keys);
 		return table_comp;
 	} else {
 		while (curtok(parser) == T_COMMA) {
 			YASL_PARSE_DEBUG_LOG("%s\n", "Parsing list");
 			eattok(parser, T_COMMA);
-			body_append(&keys, parse_expr(parser));
+			body_append(keys, parse_expr(parser));
 		}
 		eattok(parser, T_RSQB);
 		return new_List(keys, parser->lex.line);
