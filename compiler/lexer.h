@@ -11,14 +11,23 @@
             (l)->type == T_CONT || (l)->type == T_RPAR || (l)->type == T_RSQB || \
             (l)->type == T_RBRC || (l)->type == T_UNDEF || (l)->type == T_BOOL)
 
+#ifndef NEW_FOO
+#ifndef __cplusplus
+#define NEW_FOO(a, ...) ((a) __VA_ARGS__)
+#else
+#define NEW_FOO(a, ...) __VA_ARGS__
+#endif
+#endif
+
 #define NEW_LEXER(f) \
-((Lexer) { .file = (f),\
-	   .line = 1,\
+  NEW_FOO(Lexer, { .file = (f),\
+    .c = 0,\
+	   .type = T_UNKNOWN,\
 	   .value = NULL,\
 	   .val_len = 0,\
-	   .type = T_UNKNOWN,\
+	   .line = 1,\
 	   .status = YASL_SUCCESS,\
-	   .mode = L_NORMAL\
+	   .mode = L_NORMAL,\
 })
 
 #define STR_DELIM '\''
@@ -49,4 +58,4 @@ void gettok(Lexer *lex);
 int lex_eatinterpstringbody(Lexer *lex);
 int lex_eatfloatexp(Lexer *lex);
 
-const char *YASL_TOKEN_NAMES[84];
+extern const char *YASL_TOKEN_NAMES[84];

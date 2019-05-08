@@ -7,7 +7,7 @@
 
 int YASL_io_open(struct YASL_State *S) {
 	struct YASL_Object *mode = YASL_popobject(S);
-	char *mode_str;
+	const char *mode_str;
 	if (YASL_isundef(mode) == YASL_SUCCESS) {
 		mode_str = "r";
 	} else if (YASL_isstring(mode) == YASL_SUCCESS) {
@@ -29,7 +29,6 @@ int YASL_io_open(struct YASL_State *S) {
 	}
 
 	char mode_char = mode_str[0];
-	free(mode_str);
 
 	FILE *f = 0;
 	if (mode_len == 1) {
@@ -68,7 +67,7 @@ int YASL_io_open(struct YASL_State *S) {
 
 int YASL_io_read(struct YASL_State *S) {
 	struct YASL_Object *mode = YASL_popobject(S);
-	char *mode_str;
+	const char *mode_str;
 
 	if (YASL_isundef(mode) == YASL_SUCCESS) {
 		mode_str = "a";
@@ -83,7 +82,7 @@ int YASL_io_read(struct YASL_State *S) {
 
 
 	if (YASL_isuserdata(file, YASL_FILE) == YASL_SUCCESS) {
-		f = YASL_UserData_getdata(file);
+		f = (FILE *)YASL_UserData_getdata(file);
 	} else {
 		return -1;
 	}
@@ -95,15 +94,15 @@ int YASL_io_read(struct YASL_State *S) {
 	}
 
 	switch (mode_str[0]) {
-	case 'a':
+	case 'a': {
 		fseek(f, 0, SEEK_END);
 		size_t fsize = ftell(f);
 		fseek(f, 0, SEEK_SET);
 
-		char *string = malloc(fsize + 1);
+		char *string = (char *)malloc(fsize + 1);
 		fread(string, fsize, 1, f);
 		string[fsize] = '\0';
-		YASL_pushobject(S, YASL_CString(string));
+		YASL_pushobject(S, YASL_CString(string)); }
 		return 0;
 	default:
 		return -1;
@@ -122,7 +121,7 @@ int YASL_io_write(struct YASL_State *S) {
 
 
 	if (YASL_isuserdata(file, YASL_FILE) == YASL_SUCCESS) {
-		f = YASL_UserData_getdata(file);
+		f = (FILE *)YASL_UserData_getdata(file);
 	} else {
 		return -1;
 	}
@@ -143,7 +142,7 @@ int YASL_io_flush(struct YASL_State *S) {
 
 
 	if (YASL_isuserdata(file, YASL_FILE) == YASL_SUCCESS) {
-		f = YASL_UserData_getdata(file);
+		f = (FILE *)YASL_UserData_getdata(file);
 	} else {
 		return -1;
 	}

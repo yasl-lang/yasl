@@ -56,7 +56,7 @@ static enum SpecialStrings get_special_string(const struct Node *const node) {
 }
 
 struct Compiler *compiler_new(FILE *const fp) {
-	struct Compiler *compiler = malloc(sizeof(struct Compiler));
+	struct Compiler *compiler = (struct Compiler *)malloc(sizeof(struct Compiler));
 
 	compiler->globals = env_new(NULL);
 	compiler->params = NULL;
@@ -69,7 +69,7 @@ struct Compiler *compiler_new(FILE *const fp) {
 	compiler->header->count = 16;
 	compiler->status = YASL_SUCCESS;
 	compiler->checkpoints_size = 4;
-	compiler->checkpoints = malloc(sizeof(size_t) * compiler->checkpoints_size);
+	compiler->checkpoints = (size_t *)malloc(sizeof(size_t) * compiler->checkpoints_size);
 	compiler->checkpoints_count = 0;
 	compiler->code = bb_new(16);
 	return compiler;
@@ -77,7 +77,7 @@ struct Compiler *compiler_new(FILE *const fp) {
 
 
 struct Compiler *compiler_new_bb(char *buf, const int len) {
-	struct Compiler *compiler = malloc(sizeof(struct Compiler));
+	struct Compiler *compiler = (struct Compiler *)malloc(sizeof(struct Compiler));
 
 	compiler->globals = env_new(NULL);
 	compiler->params = NULL;
@@ -90,7 +90,7 @@ struct Compiler *compiler_new_bb(char *buf, const int len) {
 	compiler->header->count = 16;
 	compiler->status = YASL_SUCCESS;
 	compiler->checkpoints_size = 4;
-	compiler->checkpoints = malloc(sizeof(size_t) * compiler->checkpoints_size);
+	compiler->checkpoints = (size_t *)malloc(sizeof(size_t) * compiler->checkpoints_size);
 	compiler->checkpoints_count = 0;
 	compiler->code = bb_new(16);
 	return compiler;
@@ -152,7 +152,7 @@ static inline void exit_conditional_false(struct Compiler *const compiler, const
 static void add_checkpoint(struct Compiler *const compiler, const size_t cp) {
 	if (compiler->checkpoints_count >= compiler->checkpoints_size) {
 		compiler->checkpoints_size *= 2;
-		compiler->checkpoints = realloc(compiler->checkpoints, sizeof(compiler->checkpoints[0]) * compiler->checkpoints_size);
+		compiler->checkpoints = (size_t *)realloc(compiler->checkpoints, sizeof(compiler->checkpoints[0]) * compiler->checkpoints_size);
 	}
 	compiler->checkpoints[compiler->checkpoints_count++] = cp;
 }
@@ -275,7 +275,7 @@ static unsigned char *return_bytes(struct Compiler *const compiler) {
 	YASL_BYTECODE_DEBUG_LOG("%02x\n", HALT);
 
 	fflush(stdout);
-	unsigned char *bytecode = malloc(compiler->code->count + compiler->header->count + 1);    // NOT OWN
+	unsigned char *bytecode = (unsigned char *)malloc(compiler->code->count + compiler->header->count + 1);    // NOT OWN
 	memcpy(bytecode, compiler->header->bytes, compiler->header->count);
 	memcpy(bytecode + compiler->header->count, compiler->code->bytes, compiler->code->count);
 	bytecode[compiler->code->count + compiler->header->count] = HALT;

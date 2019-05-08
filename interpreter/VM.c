@@ -20,7 +20,7 @@
 #include "operator_names.h"
 
 static struct Table **builtins_htable_new(struct VM *vm) {
-    struct Table **ht = malloc(sizeof(struct Table*) * NUM_TYPES);
+    struct Table **ht = (struct Table **)malloc(sizeof(struct Table*) * NUM_TYPES);
     ht[Y_UNDEF] = undef_builtins(vm);
     ht[Y_FLOAT] = float_builtins(vm);
     ht[Y_INT] = int_builtins(vm);
@@ -41,11 +41,11 @@ void vm_init(struct VM *vm,
 	vm->fp = -1;
 	vm->lp = -1;
 	vm->sp = -1;
-	vm->globals = calloc(sizeof(struct YASL_Object), datasize);
+	vm->globals = (struct YASL_Object *)calloc(sizeof(struct YASL_Object), datasize);
 
 	vm->num_globals = datasize;
 
-	vm->stack = calloc(sizeof(struct YASL_Object), STACK_SIZE);
+	vm->stack = (struct YASL_Object *)calloc(sizeof(struct YASL_Object), STACK_SIZE);
 
 #define DEF_SPECIAL_STR(enum_val, str) vm->special_strings[enum_val] = str_new_sized(strlen(str), str)
 
@@ -151,7 +151,7 @@ INT_BINOP(shift_right, >>)
 INT_BINOP(modulo, %)
 INT_BINOP(idiv, /)
 
-int vm_int_binop(struct VM *vm, yasl_int (*op)(yasl_int, yasl_int), char *opstr, char *overload_name) {
+int vm_int_binop(struct VM *vm, yasl_int (*op)(yasl_int, yasl_int), const char *opstr, const char *overload_name) {
 	struct YASL_Object b = vm_pop(vm);
 	struct YASL_Object a = vm_pop(vm);
 	if (YASL_ISINT(a) && YASL_ISINT(b)) {
@@ -193,7 +193,7 @@ int vm_num_binop(
         struct VM *vm, yasl_int (*int_op)(yasl_int, yasl_int),
         yasl_float (*float_op)(yasl_float, yasl_float),
         const char *const opstr,
-        char *overload_name) {
+        const char *overload_name) {
 	struct YASL_Object right = vm_pop(vm);
 	struct YASL_Object left = vm_pop(vm);
 	if (YASL_ISINT(left) && YASL_ISINT(right)) {
@@ -232,7 +232,7 @@ int vm_num_binop(
 }
 
 int vm_fdiv(struct VM *vm) {
-	char *overload_name = OP_BIN_FDIV;
+	const char *overload_name = OP_BIN_FDIV;
 	struct YASL_Object right = vm_pop(vm);
 	struct YASL_Object left = vm_pop(vm);
 	if (YASL_ISINT(left) && YASL_ISINT(right)) {
@@ -285,7 +285,7 @@ INT_UNOP(bnot, ~)
 NUM_UNOP(neg, -)
 NUM_UNOP(pos, +)
 
-int vm_int_unop(struct VM *vm, yasl_int (*op)(yasl_int), char *opstr, char *overload_name) {
+int vm_int_unop(struct VM *vm, yasl_int (*op)(yasl_int), const char *opstr, const char *overload_name) {
 	struct YASL_Object a = vm_peek(vm);
 	if (YASL_ISINT(a)) {
 		vm_peek(vm).value.ival = op(YASL_GETINT(a));
@@ -309,7 +309,7 @@ int vm_int_unop(struct VM *vm, yasl_int (*op)(yasl_int), char *opstr, char *over
 	return YASL_SUCCESS;
 }
 
-int vm_num_unop(struct VM *vm, yasl_int (*int_op)(yasl_int), yasl_float (*float_op)(yasl_float), char *opstr, char *overload_name) {
+int vm_num_unop(struct VM *vm, yasl_int (*int_op)(yasl_int), yasl_float (*float_op)(yasl_float), const char *opstr, const char *overload_name) {
 	struct YASL_Object expr = vm_pop(vm);
 	if (YASL_ISINT(expr)) {
 		vm_push(vm, YASL_INT(int_op(YASL_GETINT(expr))));
@@ -338,7 +338,7 @@ int vm_stringify_top(struct VM *vm) {
 	YASL_Types index = VM_PEEK(vm, vm->sp).type;
 	if (YASL_ISFN(VM_PEEK(vm, vm->sp)) || YASL_ISCFN(VM_PEEK(vm, vm->sp))) {
 		int n;	  
-		char *buffer = malloc(n = snprintf(NULL, 0, "<fn: %d>", (int)vm_peek(vm).value.ival) + 1);
+		char *buffer = (char *)malloc(n = snprintf(NULL, 0, "<fn: %d>", (int)vm_peek(vm).value.ival) + 1);
 		snprintf(buffer, n, "<fn: %d>", (int)vm_peek(vm).value.ival);
 		vm_pushstr(vm, str_new_sized_heap(0, strlen(buffer), buffer));
 	} else {
@@ -380,9 +380,9 @@ int vm_SLICE(struct VM *vm) {
 		struct RC_UserData *new_ls = ls_new();
 
 		for (yasl_int i = start; i <end; ++i) {
-			ls_append(new_ls->data, list->items[i]);
+			ls_append((struct List *)new_ls->data, list->items[i]);
 		}
-		vm_push(vm, YASL_LIST(new_ls));
+		VM_PUSH(vm, YASL_LIST(new_ls));
 		return YASL_SUCCESS;
 	}
 
@@ -401,7 +401,7 @@ int vm_SLICE(struct VM *vm) {
 		if (start < 0)
 			start = 0;
 
-		vm_push(vm, YASL_STR(str_new_substring(start, end, str)));
+		VM_PUSH(vm, YASL_STR(str_new_substring(start, end, str)));
 		return YASL_SUCCESS;
 	}
 
@@ -580,7 +580,7 @@ int vm_run(struct VM *vm) {
 		case DCONST_0:
 		case DCONST_1:
 		case DCONST_2:
-			vm_pushfloat(vm, opcode - DCONST_0); // make sure no changes to opcodes ruin this
+			vm_pushfloat(vm, (double)(opcode - DCONST_0)); // make sure no changes to opcodes ruin this
 			break;
 		case DCONST_N:
 			vm_pushfloat(vm, NAN);
@@ -675,9 +675,9 @@ int vm_run(struct VM *vm) {
 			if (YASL_ISSTR(v)) {
 				vm_pushint(vm, yasl_string_len(YASL_GETSTR(v)));
 			} else if (YASL_ISTABLE(v)) {
-				vm_pushint(vm, YASL_GETTABLE(v)->count);
+				vm_pushint(vm, (yasl_int)YASL_GETTABLE(v)->count);
 			} else if (YASL_ISLIST(v)) {
-				vm_pushint(vm, YASL_GETLIST(v)->count);
+				vm_pushint(vm, (yasl_int)YASL_GETLIST(v)->count);
 			} else {
 				YASL_PRINT_ERROR_TYPE("len not supported for operand of type %s.\n",
 							      YASL_TYPE_NAMES[v.type]);
@@ -692,7 +692,7 @@ int vm_run(struct VM *vm) {
 			String_t *a = vm_popstr(vm);
 
 			size = yasl_string_len((a)) + yasl_string_len((b));
-			char *ptr = malloc(size);
+			char *ptr = (char *)malloc(size);
 			memcpy(ptr, (a)->str + (a)->start,
 			       yasl_string_len((a)));
 			memcpy(ptr + yasl_string_len((a)),
@@ -764,11 +764,11 @@ int vm_run(struct VM *vm) {
 		case NEWLIST: {
 			struct RC_UserData *ls = ls_new();
 			while (vm_peek(vm).type != Y_END) {
-				ls_append(ls->data, vm_pop(vm));
+				ls_append((struct List *)ls->data, vm_pop(vm));
 			}
-			ls_reverse(ls->data);
+			ls_reverse((struct List *)ls->data);
 			vm_pop(vm);
-			vm_push(vm, YASL_LIST(ls));
+			VM_PUSH(vm, YASL_LIST(ls));
 			break;
 		}
 		case INITFOR:
@@ -819,7 +819,7 @@ int vm_run(struct VM *vm) {
 					vm_push(vm, YASL_BOOL(0));
 				} else {
 					int64_t i = vm_peekint(vm, vm->lp + 1);
-					vm_push(vm, YASL_STR(str_new_substring(i, i+1, vm_peekstr(vm, vm->lp))));
+					VM_PUSH(vm, YASL_STR(str_new_substring(i, i+1, vm_peekstr(vm, vm->lp))));
 					vm_peekint(vm, vm->lp + 1)++;
 					vm_pushbool(vm, 1);
 				}

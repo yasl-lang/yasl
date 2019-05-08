@@ -9,19 +9,20 @@
 #include "debug.h"
 
 #define NEW_COMPILER(fp)\
-((struct Compiler) {\
-	.parser = (NEW_PARSER(fp)),\
+  NEW_FOO(struct Compiler, {			\
+      .parser = NEW_PARSER(fp),			\
 	.globals = env_new(NULL),\
 	.params = NULL,\
+        .num_locals = 0,	\
 	.strings = table_new(),\
 	.buffer = bb_new(16),\
 	.header = bb_new(16),\
-	.status = YASL_SUCCESS,\
-	.checkpoints_size = 4,\
-	.checkpoints = malloc(sizeof(size_t) * 4),\
+	.code = bb_new(16),\
+        .checkpoints = (size_t *)malloc(sizeof(size_t) * 4),\
 	.checkpoints_count = 0,\
-	.code = bb_new(16)\
-})
+	.checkpoints_size = 4,\
+	.status = YASL_SUCCESS\
+			      })
 
 struct Compiler {
     Parser parser;

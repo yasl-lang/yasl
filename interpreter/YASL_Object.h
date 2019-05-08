@@ -3,22 +3,32 @@
 #include "yasl_conf.h"
 #include "YASL_string.h"
 
-#define UNDEF_C ((struct YASL_Object) { .type = Y_UNDEF, .value.ival = 0 })
-#define FALSE_C ((struct YASL_Object) { .type = Y_BOOL, .value.ival = 0 })
-#define TRUE_C ((struct YASL_Object) { .type = Y_BOOL, .value.ival = 1 })
+#ifndef NEW_FOO
+#ifndef __cplusplus
+#define NEW_FOO(a, ...) ((a) __VA_ARGS__)
+#else
+#define NEW_FOO(a, ...) __VA_ARGS__
+#endif
+#endif
 
-#define YASL_END() ((struct YASL_Object) { .type = Y_END })
-#define YASL_UNDEF() ((struct YASL_Object) { .type = Y_UNDEF })
-#define YASL_FLOAT(d) ((struct YASL_Object) { .type = Y_FLOAT, .value.dval = d })
-#define YASL_INT(i) ((struct YASL_Object) { .type = Y_INT, .value.ival = i })
-#define YASL_BOOL(b) ((struct YASL_Object) { .type = Y_BOOL, .value.ival = b })
-#define YASL_STR(s) ((struct YASL_Object) { .type = Y_STR, .value.sval = s })
-#define YASL_LIST(l) ((struct YASL_Object) { .type = Y_LIST, .value.uval = l })
-#define YASL_TABLE(t) ((struct YASL_Object) { .type = Y_TABLE, .value.uval = t })
-#define YASL_USERDATA(p) ((struct YASL_Object) { .type = Y_USERDATA, .value.uval = p })
-#define YASL_USERPTR(p) ((struct YASL_Object) { .type = Y_USERPTR, .value.pval = p })
-#define YASL_FN(f) ((struct YASL_Object) { .type = Y_FN, .value.ival = f })
-#define YASL_CFN(f, n) ((struct YASL_Object) { .type = Y_CFN, .value.cval = new_cfn(f, n) })
+#define NEW_YO(...) NEW_FOO(struct YASL_Object, __VA_ARGS__)
+
+#define UNDEF_C NEW_YO({ .type = Y_UNDEF, .value = { .ival = 0 }  })
+#define FALSE_C NEW_YO({ .type = Y_BOOL, .value = {.ival = 0 }})
+#define TRUE_C NEW_YO({ .type = Y_BOOL, .value = {.ival = 1 }})
+
+#define YASL_END() NEW_YO({ .type = Y_END, .value = {.ival = 0}})
+#define YASL_UNDEF() NEW_YO({ .type = Y_UNDEF, .value = {.ival = 0 }})
+#define YASL_FLOAT(d) NEW_YO({ .type = Y_FLOAT, .value = {.dval = d }})
+#define YASL_INT(i) NEW_YO({ .type = Y_INT, .value = {.ival = i }})
+#define YASL_BOOL(b) NEW_YO({ .type = Y_BOOL, .value = {.ival = b }})
+#define YASL_STR(s) NEW_YO({ .type = Y_STR, .value = {.sval = s }})
+#define YASL_LIST(l) NEW_YO({ .type = Y_LIST, .value = {.uval = l }})
+#define YASL_TABLE(t) NEW_YO({ .type = Y_TABLE, .value = {.uval = t }})
+#define YASL_USERDATA(p) NEW_YO({ .type = Y_USERDATA, .value = {.uval = p }})
+#define YASL_USERPTR(p) NEW_YO({ .type = Y_USERPTR, .value = {.pval = p }})
+#define YASL_FN(f) NEW_YO({ .type = Y_FN, .value = {.ival = f }})
+#define YASL_CFN(f, n) NEW_YO({ .type = Y_CFN, .value = {.cval = new_cfn(f, n) }})
 
 #define YASL_ISUNDEF(v) ((v).type == Y_UNDEF)
 #define YASL_ISFLOAT(v) ((v).type == Y_FLOAT)
@@ -117,7 +127,7 @@ int print(struct YASL_Object a);
 void inc_ref(struct YASL_Object *v);
 void dec_ref(struct YASL_Object *v);
 
-const char *YASL_TYPE_NAMES[15];
+extern const char *YASL_TYPE_NAMES[15];
 
 #define ASSERT_TYPE(vm, expected_type, name) do {\
                     if ((vm)->stack[(vm)->sp].type != (expected_type)) {\

@@ -13,11 +13,11 @@ int isvalueinarray(int64_t val, int64_t *arr, int size){
 }
 
 struct RC_UserData* ls_new_sized(const int base_size) {
-	struct RC_UserData *ls = malloc(sizeof(struct RC_UserData));
-	struct List *list = malloc(sizeof(struct List));
+	struct RC_UserData *ls = (struct RC_UserData *)malloc(sizeof(struct RC_UserData));
+	struct List *list = (struct List *)malloc(sizeof(struct List));
 	list->size = base_size;
 	list->count = 0;
-	list->items = malloc(sizeof(struct YASL_Object) * list->size);
+	list->items = (struct YASL_Object *)malloc(sizeof(struct YASL_Object) * list->size);
 	ls->data = list;
 	ls->rc = rc_new();
 	ls->destructor = ls_del_data;
@@ -86,7 +86,8 @@ void ls_append(struct List* ls, struct YASL_Object value) {
 }
 
 struct YASL_Object ls_search(struct List* ls, int64_t index) {
-    if (index < -ls->count || index >= ls->count) return (struct YASL_Object) { .type = Y_UNDEF, .value.ival = 0 };
+    struct YASL_Object undobj = UNDEF_C;
+    if (index < -ls->count || index >= ls->count) return undobj;
     else if (0 <= index) return ls->items[index];
     else return ls->items[ls->count+index];
 }
