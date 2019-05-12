@@ -58,7 +58,8 @@ static enum SpecialStrings get_special_string(const struct Node *const node) {
 struct Compiler *compiler_new(FILE *const fp) {
 	struct Compiler *compiler = (struct Compiler *)malloc(sizeof(struct Compiler));
 
-	compiler->stack = env_new(NULL);
+	compiler->globals = env_new(NULL);
+	compiler->stack = NULL;
 	compiler->params = NULL;
 
 	struct LEXINPUT *lp = lexinput_new_file(fp);
@@ -79,7 +80,8 @@ struct Compiler *compiler_new(FILE *const fp) {
 struct Compiler *compiler_new_bb(char *buf, const int len) {
 	struct Compiler *compiler = (struct Compiler *)malloc(sizeof(struct Compiler));
 
-	compiler->stack = env_new(NULL);
+	compiler->globals = env_new(NULL);
+	compiler->stack = NULL;
 	compiler->params = NULL;
 
 	struct LEXINPUT *lp = lexinput_new_bb(buf, len);
@@ -375,11 +377,11 @@ static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *c
 		return;
 	default:
 		visit(compiler, expr);
-//		if (expr->nodetype == N_ASSIGN && (compiler->stack || in_function(compiler))) {
-//			compiler->buffer->count -= 2;
-//		} else {
+		if (expr->nodetype == N_ASSIGN && (compiler->buffer->bytes[compiler->buffer->count-2] == GLOAD_1 || compiler->buffer->bytes[compiler->buffer->count-2] == LLOAD_1)) {
+			compiler->buffer->count -= 2;
+		} else {
 			bb_add_byte(compiler->buffer, POP);
-//		}
+		}
 	}
 }
 
