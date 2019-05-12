@@ -12,6 +12,7 @@
   ((struct Compiler) {\
   	.parser = NEW_PARSER(fp),\
 	.globals = env_new(NULL),\
+	.stack = NULL,\
 	.params = NULL,\
         .num_locals = 0,	\
 	.strings = table_new(),\
@@ -27,6 +28,7 @@
 struct Compiler {
     Parser parser;
     Env_t *globals;
+    Env_t *stack;
     Env_t *params;
     size_t num_locals;
     struct Table *strings;

@@ -103,10 +103,14 @@ int YASL_execute(struct YASL_State *S) {
 
 
 int YASL_declglobal(struct YASL_State *S, const char *name) {
+	struct YASL_Object value = table_search_string_int(S->compiler.strings, name, strlen(name));
+	if (value.type == Y_END) {
+		YASL_COMPILE_DEBUG_LOG("%s\n", "caching string");
+		table_insert_string_int(S->compiler.strings, name, strlen(name), S->compiler.header->count);
+		bb_intbytes8(S->compiler.header, strlen(name));
+		bb_append(S->compiler.header, (unsigned char *) name, strlen(name));
+	}
     int64_t index = env_decl_var(S->compiler.globals, name, strlen(name));
-    if (index > 255) {
-        return YASL_TOO_MANY_VAR_ERROR;
-    }
     return YASL_SUCCESS;
 }
 
@@ -117,20 +121,25 @@ static inline int is_const(int64_t value) {
 
 int YASL_setglobal(struct YASL_State *S, const char *name) {
 
-    if (!env_contains(S->compiler.globals, name, strlen(name))) return YASL_ERROR;
+	if (!env_contains(S->compiler.globals, name, strlen(name))) return YASL_ERROR;
 
-    int64_t index = env_get(S->compiler.globals, name, strlen(name));
-    if (is_const(index)) return YASL_ERROR;
+	int64_t index = env_get(S->compiler.globals, name, strlen(name));
+	if (is_const(index)) return YASL_ERROR;
 
-    // int64_t num_globals = S->compiler.globals->vars->count;
+	// int64_t num_globals = S->compiler.globals->vars->count;
 
-    // S->vm.globals = realloc(S->vm.globals, num_globals * sizeof(YASL_Object));
+	// S->vm.globals = realloc(S->vm.globals, num_globals * sizeof(YASL_Object));
 
-    dec_ref(S->vm.globals + index);
-    S->vm.globals[index] = vm_pop((struct VM *)S);
-    inc_ref(S->vm.globals + index);
+	String_t *string = str_new_sized(strlen(name), name);
+	struct YASL_Object obj = table_search(S->vm.global_vars, YASL_STR(string));
+	dec_ref(&obj);
+	// inc_ref(S->vm.stack + S->vm.sp);
+	table_insert(S->vm.global_vars, YASL_STR(string), vm_peek((struct VM *) S));
+	S->vm.sp--;
+//	vm_pop((struct VM *) S);
+	// inc_ref(S->vm.globals + index);
 
-    return YASL_SUCCESS;
+	return YASL_SUCCESS;
 }
 
 
@@ -213,7 +222,7 @@ struct YASL_Object *YASL_LiteralString(char *str) {
     return YASL_String(str_new_sized(strlen(str), str));
 }
 
-struct YASL_Object *YASL_CString(const char *str) {
+struct YASL_Object *YASL_CString(char *str) {
     return YASL_String(str_new_sized(strlen(str), str));
 }
 

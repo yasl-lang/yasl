@@ -36,7 +36,7 @@ String_t *str_new_substring(const size_t start, const size_t end, const String_t
 	return str;
 }
 
-String_t *str_new_sized(const size_t base_size, const char *ptr) {
+String_t *str_new_sized(const size_t base_size, const char *const ptr) {
     String_t* str = (String_t *)malloc(sizeof(String_t));
     str->start = 0;
     str->end = base_size;
@@ -46,7 +46,7 @@ String_t *str_new_sized(const size_t base_size, const char *ptr) {
     return str;
 }
 
-String_t* str_new_sized_heap(const size_t start, const size_t end, char *mem) {
+String_t* str_new_sized_heap(const size_t start, const size_t end, const char *const mem) {
     String_t* str = (String_t *)malloc(sizeof(String_t));
     str->start = start;
     str->end = end;

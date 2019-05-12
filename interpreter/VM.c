@@ -41,6 +41,7 @@ void vm_init(struct VM *vm,
 	vm->fp = -1;
 	vm->lp = -1;
 	vm->sp = -1;
+	vm->global_vars = table_new();
 	vm->globals = (struct YASL_Object *)calloc(sizeof(struct YASL_Object), datasize);
 
 	vm->num_globals = datasize;
@@ -96,6 +97,9 @@ void vm_cleanup(struct VM *vm) {
 		dec_ref(&vm->globals[i]);
 	}
 
+	table_del(vm->global_vars);
+	//free(vm->global_vars->items);
+	//free(vm->global_vars);
 	free(vm->globals);
 	free(vm->stack);
 
@@ -465,6 +469,34 @@ int vm_NEWSTR(struct VM *vm) {
 	addr += sizeof(yasl_int);
 	String_t *string = str_new_sized(size, ((char *) vm->code) + addr);
 	vm_pushstr(vm, string);
+	return YASL_SUCCESS;
+}
+
+int vm_GSTORE_8(struct VM *vm) {
+	yasl_int addr = vm_read_int(vm);
+
+	yasl_int size;
+	memcpy(&size, vm->code + addr, sizeof(yasl_int));
+
+	addr += sizeof(yasl_int);
+	String_t *string = str_new_sized(size, ((char *) vm->code) + addr);
+
+	table_insert(vm->global_vars, YASL_STR(string), vm_pop(vm));
+	return YASL_SUCCESS;
+}
+
+int vm_GLOAD_8(struct VM *vm) {
+	yasl_int addr = vm_read_int(vm);
+
+	yasl_int size;
+	memcpy(&size, vm->code + addr, sizeof(yasl_int));
+
+	addr += sizeof(yasl_int);
+	String_t *string = str_new_sized(size, ((char *) vm->code) + addr);
+
+	vm_push(vm, table_search(vm->global_vars, YASL_STR(string)));
+
+	str_del(string);
 	return YASL_SUCCESS;
 }
 
@@ -861,6 +893,13 @@ int vm_run(struct VM *vm) {
 			c = vm_read_int(vm);
 			v = vm_pop(vm);
 			if (!YASL_ISUNDEF(v)) vm->pc += c;
+			break;
+		case GLOAD_8:
+			if ((res = vm_GLOAD_8(vm))) return res;
+			break;
+		case GSTORE_8:
+			// printf("asdasds\n");
+			if ((res = vm_GSTORE_8(vm))) return res;
 			break;
 		case GLOAD_1:
 			addr = vm->code[vm->pc++];

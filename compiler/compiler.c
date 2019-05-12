@@ -58,7 +58,7 @@ static enum SpecialStrings get_special_string(const struct Node *const node) {
 struct Compiler *compiler_new(FILE *const fp) {
 	struct Compiler *compiler = (struct Compiler *)malloc(sizeof(struct Compiler));
 
-	compiler->globals = env_new(NULL);
+	compiler->stack = env_new(NULL);
 	compiler->params = NULL;
 
 	struct LEXINPUT *lp = lexinput_new_file(fp);
@@ -79,7 +79,7 @@ struct Compiler *compiler_new(FILE *const fp) {
 struct Compiler *compiler_new_bb(char *buf, const int len) {
 	struct Compiler *compiler = (struct Compiler *)malloc(sizeof(struct Compiler));
 
-	compiler->globals = env_new(NULL);
+	compiler->stack = env_new(NULL);
 	compiler->params = NULL;
 
 	struct LEXINPUT *lp = lexinput_new_bb(buf, len);
@@ -111,6 +111,7 @@ static void compiler_buffers_del(const struct Compiler *const compiler) {
 void compiler_cleanup(struct Compiler *compiler) {
 	compiler_tables_del(compiler);
 	env_del(compiler->globals);
+	env_del(compiler->stack);
 	env_del(compiler->params);
 	parser_cleanup(&compiler->parser);
 	compiler_buffers_del(compiler);
@@ -121,20 +122,24 @@ static void handle_error(struct Compiler *const compiler) {
 	compiler->status = YASL_SYNTAX_ERROR;
 }
 
+static bool in_function(const struct Compiler *const compiler) {
+	return compiler->params != NULL;
+}
+
 static void enter_scope(struct Compiler *const compiler) {
-	if (compiler->params != NULL) compiler->params = env_new(compiler->params);
-	else compiler->globals = env_new(compiler->globals);
+	if (in_function(compiler)) compiler->params = env_new(compiler->params);
+	else compiler->stack = env_new(compiler->stack);
 }
 
 static void exit_scope(struct Compiler *const compiler) {
-	if (compiler->params != NULL) {
+	if (in_function(compiler)) {
 		compiler->num_locals += compiler->params->vars->count;
 		Env_t *tmp = compiler->params;
 		compiler->params = compiler->params->parent;
 		env_del_current_only(tmp);
 	} else {
-		Env_t *tmp = compiler->globals;
-		compiler->globals = compiler->globals->parent;
+		Env_t *tmp = compiler->stack;
+		compiler->stack = compiler->stack->parent;
 		env_del_current_only(tmp);
 	}
 }
@@ -183,10 +188,13 @@ static void load_var(struct Compiler *const compiler, char *const name, const si
 		int64_t index = get_index(env_get(compiler->params, name, name_len));
 		bb_add_byte(compiler->buffer, LLOAD_1);
 		bb_add_byte(compiler->buffer, (unsigned char)index);
-	} else if (env_contains(compiler->globals, name, name_len)) {
-		int64_t index = get_index(env_get(compiler->globals, name, name_len));
+	} else if (env_contains(compiler->stack, name, name_len)) {
+		int64_t index = get_index(env_get(compiler->stack, name, name_len));
 		bb_add_byte(compiler->buffer, GLOAD_1);
 		bb_add_byte(compiler->buffer, (unsigned char) index);
+	} else if (env_contains(compiler->globals, name, name_len)) {
+		bb_add_byte(compiler->buffer, GLOAD_8);
+		bb_intbytes8(compiler->buffer, table_search_string_int(compiler->strings, name, name_len).value.ival);
 	} else {
 		YASL_PRINT_ERROR_UNDECLARED_VAR(name, line);
 		handle_error(compiler);
@@ -204,8 +212,8 @@ static void store_var(struct Compiler *const compiler, char *const name, const s
 		}
 		bb_add_byte(compiler->buffer, LSTORE_1);
 		bb_add_byte(compiler->buffer, (unsigned char) index);
-	} else if (env_contains(compiler->globals, name, name_len)) {
-		int64_t index = env_get(compiler->globals, name, name_len);
+	} else if (env_contains(compiler->stack, name, name_len)) {
+		int64_t index = env_get(compiler->stack, name, name_len);
 		if (is_const(index)) {
 			YASL_PRINT_ERROR_CONSTANT(name, line);
 			handle_error(compiler);
@@ -213,6 +221,15 @@ static void store_var(struct Compiler *const compiler, char *const name, const s
 		}
 		bb_add_byte(compiler->buffer, GSTORE_1);
 		bb_add_byte(compiler->buffer, (unsigned char) index);
+	} else if (env_contains(compiler->globals, name, name_len)) {
+		int64_t index = env_get(compiler->globals, name, name_len);
+		if (is_const(index)) {
+			YASL_PRINT_ERROR_CONSTANT(name, line);
+			handle_error(compiler);
+			return;
+		}
+		bb_add_byte(compiler->buffer, GSTORE_8);
+		bb_intbytes8(compiler->buffer, table_search_string_int(compiler->strings, name, name_len).value.ival);
 	} else {
 		YASL_PRINT_ERROR_UNDECLARED_VAR(name, line);
 		handle_error(compiler);
@@ -221,34 +238,51 @@ static void store_var(struct Compiler *const compiler, char *const name, const s
 }
 
 static int contains_var_in_current_scope(const struct Compiler *const compiler, char *name, size_t name_len) {
-	return compiler->params ?
+	return in_function(compiler) ?
 	       env_contains_cur_scope(compiler->params, name, name_len) :
+	       compiler->stack ?
+	       env_contains_cur_scope(compiler->stack, name, name_len) :
 	       env_contains_cur_scope(compiler->globals, name, name_len);
 }
 
 static int contains_var(const struct Compiler *const compiler, char *name, size_t name_len) {
-	return env_contains(compiler->globals, name, name_len) ||
-	       env_contains(compiler->params, name, name_len);
+	return env_contains(compiler->stack, name, name_len) ||
+		env_contains(compiler->params, name, name_len) ||
+		env_contains_cur_scope(compiler->globals, name, name_len);
 }
 
 static void decl_var(struct Compiler *const compiler, char *name, size_t name_len, size_t line) {
-	if (compiler->params) {
+	if (in_function(compiler)) {
 		int64_t index = env_decl_var(compiler->params, name, name_len);
 		if (index > 255) {
 			YASL_PRINT_ERROR_TOO_MANY_VAR(line);
 			handle_error(compiler);
 		}
-	} else {
-		int64_t index = env_decl_var(compiler->globals, name, name_len);
+	} else if (compiler->stack) {
+		int64_t index = env_decl_var(compiler->stack, name, name_len);
 		if (index > 255) {
 			YASL_PRINT_ERROR_TOO_MANY_VAR(line);
 			handle_error(compiler);
 		}
+	} else {
+		struct YASL_Object value = table_search_string_int(compiler->strings, name, name_len);
+		if (value.type == Y_END) {
+			YASL_COMPILE_DEBUG_LOG("%s\n", "caching string");
+			table_insert_string_int(compiler->strings, name, name_len, compiler->header->count);
+			bb_intbytes8(compiler->header, name_len);
+			bb_append(compiler->header, (unsigned char *) name, name_len);
+		}
+		env_decl_var(compiler->globals, name, name_len);
+		//if (index > 255) {
+		//	YASL_PRINT_ERROR_TOO_MANY_VAR(line);
+		//	handle_error(compiler);
+		//}
 	}
 }
 
 static void make_const(struct Compiler * const compiler, char *name, size_t name_len) {
-	if (NULL != compiler->params) env_make_const(compiler->params, name, name_len);
+	if (in_function(compiler)) env_make_const(compiler->params, name, name_len);
+	else if (compiler->stack) env_make_const(compiler->stack, name, name_len);
 	else env_make_const(compiler->globals, name, name_len);
 }
 
@@ -341,16 +375,16 @@ static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *c
 		return;
 	default:
 		visit(compiler, expr);
-		if (expr->nodetype == N_ASSIGN) {
-			compiler->buffer->count -= 2;
-		} else {
+//		if (expr->nodetype == N_ASSIGN && (compiler->stack || in_function(compiler))) {
+//			compiler->buffer->count -= 2;
+//		} else {
 			bb_add_byte(compiler->buffer, POP);
-		}
+//		}
 	}
 }
 
 static void visit_FunctionDecl(struct Compiler *const compiler, const struct Node *const node) {
-	if (compiler->params != NULL) {
+	if (in_function(compiler)) {
 		YASL_PRINT_ERROR_SYNTAX("Illegal function declaration outside global scope, in line %zd.\n",
 					node->line);
 		handle_error(compiler);

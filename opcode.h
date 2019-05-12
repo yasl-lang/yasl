@@ -79,6 +79,8 @@ enum Opcode {
 	CALL            = 0xE9, // function call
 	RET             = 0xEA, // return from function
 
+	GSTORE_8        = 0xF0, // from string
+	GLOAD_8         = 0xF1, // from string
 	GSTORE_1        = 0xF4, // store top of stack at addr provided
 	LSTORE_1        = 0xF5, // store top of stack as local at addr
 	GLOAD_1         = 0xF6, // load global from addr
