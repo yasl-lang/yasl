@@ -130,8 +130,9 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 				size_t tmp_buffer_size = buffer_count == buffer_size ? buffer_size * 2 : buffer_size;
 				void **tmp_buffer = (void **)malloc(tmp_buffer_size * sizeof(void *));
 				memcpy(tmp_buffer, buffer, sizeof(void *) * buffer_count);
-				tmp_buffer[buffer_size] = vm_peeklist((struct VM *)S, S->vm.sp);
+				tmp_buffer[buffer_count] = vm_peeklist((struct VM *)S, S->vm.sp);
 				table_tostr_helper(S, tmp_buffer, tmp_buffer_size, buffer_size + 1);
+				free(tmp_buffer);
 			}
 		} else {
 			vm_stringify_top((struct VM *)S);
