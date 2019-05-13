@@ -30,21 +30,29 @@ int YASL_require(struct YASL_State *S) {
 	YASL_load_require(Ss);
 
 	int64_t old_len = *((int64_t *)(S->vm.code + 8));
-	// printf("%ld\n", old_len);
+	//printf("%ld\n", old_len);
 	Ss->compiler.header->count = (size_t)old_len;
 	int status = YASL_execute(Ss);
 
 	struct RC_UserData *table = Ss->vm.global_vars;
 	// printf("rc: %zd\n", table->rc->refs);
 	Ss->vm.global_vars = NULL;
-	ByteBuffer *bb = Ss->compiler.code;
-	unsigned char *code = Ss->vm.code;
 	// printf("%zd\n", Ss->compiler.code->count + Ss->compiler.header->count + 1);
 
+	//printf("%zd\n", Ss->compiler.header->count);
 	S->vm.code = (unsigned char *)realloc(S->vm.code, old_len + Ss->compiler.header->count);
-	*((int64_t *)(&S->vm.code + 8)) += Ss->compiler.header->count;
 
-	memcpy(S->vm.code + old_len, Ss->compiler.header + old_len, Ss->compiler.header->count - old_len);
+	memcpy(S->vm.code + 8, &Ss->compiler.header->count, sizeof(int64_t));
+
+	//printf("%ld\n%ld\n", *((int64_t *)(S->vm.code + 8)), Ss->compiler.header->count - old_len);
+	memcpy(S->vm.code + old_len, Ss->compiler.header->bytes + old_len, Ss->compiler.header->count - old_len);
+	/*
+	for (size_t i = 0; i <  (size_t)*((int64_t *)(S->vm.code + 8)); i++) {
+		if (i % 16 == 15)
+			YASL_BYTECODE_DEBUG_LOG("%02x\n", S->vm.code[i]);
+		else
+			YASL_BYTECODE_DEBUG_LOG("%02x ", S->vm.code[i]);
+	}
 	//*/
 	YASL_delstate(Ss);
 

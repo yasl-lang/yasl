@@ -1,7 +1,7 @@
 #pragma once
 
 enum Opcode {
-	HALT            = 0x00, // halt
+	HALT            = 0x0F, // halt
 	NCONST          = 0x01, // push literal undef onto stack
 	BCONST_F        = 0x08, // push literal false onto stack
 	BCONST_T        = 0x09, // push literal true onto stack
