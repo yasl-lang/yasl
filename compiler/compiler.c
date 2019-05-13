@@ -292,7 +292,7 @@ static unsigned char *return_bytes(struct Compiler *const compiler) {
 	if (compiler->status) return NULL;
 
 	bb_rewrite_intbytes8(compiler->header, 0, compiler->header->count);
-	bb_rewrite_intbytes8(compiler->header, 8, 0x00);   // TODO: put num globals here eventually.
+	bb_rewrite_intbytes8(compiler->header, 8, compiler->code->count + compiler->header->count + 1);   // TODO: put num globals here eventually.
 
 	YASL_BYTECODE_DEBUG_LOG("%s\n", "header");
 	for (size_t i = 0; i < compiler->header->count; i++) {

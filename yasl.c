@@ -131,10 +131,10 @@ int YASL_setglobal(struct YASL_State *S, const char *name) {
 	// S->vm.globals = realloc(S->vm.globals, num_globals * sizeof(YASL_Object));
 
 	String_t *string = str_new_sized(strlen(name), name);
-	struct YASL_Object obj = table_search(S->vm.global_vars, YASL_STR(string));
+	struct YASL_Object obj = table_search((struct Table *)S->vm.global_vars->data, YASL_STR(string));
 	dec_ref(&obj);
 	// inc_ref(S->vm.stack + S->vm.sp);
-	table_insert(S->vm.global_vars, YASL_STR(string), vm_peek((struct VM *) S));
+	table_insert((struct Table *)S->vm.global_vars->data, YASL_STR(string), vm_peek((struct VM *) S));
 	S->vm.sp--;
 //	vm_pop((struct VM *) S);
 	// inc_ref(S->vm.globals + index);

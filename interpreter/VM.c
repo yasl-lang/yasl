@@ -41,7 +41,9 @@ void vm_init(struct VM *vm,
 	vm->fp = -1;
 	vm->lp = -1;
 	vm->sp = -1;
-	vm->global_vars = table_new();
+	vm->global_vars = rcht_new();
+	// vm->global_vars->rc->refs++;
+	// printf("inc: %zd\n", vm->global_vars->rc->refs);
 	vm->globals = (struct YASL_Object *)calloc(sizeof(struct YASL_Object), datasize);
 
 	vm->num_globals = datasize;
@@ -97,7 +99,15 @@ void vm_cleanup(struct VM *vm) {
 		dec_ref(&vm->globals[i]);
 	}
 
-	table_del(vm->global_vars);
+	if (vm->global_vars) rcht_del(vm->global_vars);
+	// struct YASL_Object table = YASL_TABLE(vm->global_vars);
+
+	//	dec_ref(&table);
+	// table_del(vm->global_vars->data);
+	// rc_del(vm->global_vars->rc);
+	// free(vm->global_vars);
+//		printf("%zd\n", vm->global_vars->rc->refs);
+
 	//free(vm->global_vars->items);
 	//free(vm->global_vars);
 	free(vm->globals);
@@ -481,7 +491,7 @@ int vm_GSTORE_8(struct VM *vm) {
 	addr += sizeof(yasl_int);
 	String_t *string = str_new_sized(size, ((char *) vm->code) + addr);
 
-	table_insert(vm->global_vars, YASL_STR(string), vm_pop(vm));
+	table_insert((struct Table *)vm->global_vars->data, YASL_STR(string), vm_pop(vm));
 	return YASL_SUCCESS;
 }
 
@@ -494,7 +504,7 @@ int vm_GLOAD_8(struct VM *vm) {
 	addr += sizeof(yasl_int);
 	String_t *string = str_new_sized(size, ((char *) vm->code) + addr);
 
-	vm_push(vm, table_search(vm->global_vars, YASL_STR(string)));
+	vm_push(vm, table_search((struct Table *)vm->global_vars->data, YASL_STR(string)));
 
 	str_del(string);
 	return YASL_SUCCESS;

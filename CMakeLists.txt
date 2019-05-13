@@ -17,6 +17,7 @@ set(CMAKE_VERBOSE_MAKEFILE OFF)
 include_directories(.)
 include_directories(std-io)
 include_directories(std-math)
+include_directories(std-require)
 include_directories(test)
 
 add_executable(YASL
@@ -48,7 +49,8 @@ add_executable(YASL
         interpreter/undef_methods.c
         prime/prime.c
         std-io/yasl-std-io.c
-        std-math/yasl-std-math.c)
+        std-math/yasl-std-math.c
+        std-require/yasl-std-require.c)
 
 add_executable(YASLTEST
         test/test_compiler/yats.c

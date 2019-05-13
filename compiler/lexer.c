@@ -761,11 +761,11 @@ static void YASLKeywords(Lexer *lex) {
         YASL_PRINT_ERROR_SYNTAX("no is an unused reserved word and cannot be used (line %zd).\n", lex->line);
         lex_error(lex);
         return;
-    } else if (matches_keyword(lex, "require")) {
+    } /*else if (matches_keyword(lex, "require")) {
         YASL_PRINT_ERROR_SYNTAX("require is an unused reserved word and cannot be used (line %zd).\n", lex->line);
         lex_error(lex);
         return;
-    }
+    } */
 
     if (matches_keyword(lex, "break")) set_keyword(lex, T_BREAK);
     else if (matches_keyword(lex, "const")) set_keyword(lex, T_CONST);

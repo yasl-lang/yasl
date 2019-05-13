@@ -62,7 +62,7 @@
                             vm_pushbool(vm, c);} while(0);
 
 struct VM {
-	struct Table *global_vars;
+	struct RC_UserData *global_vars;
 	struct YASL_Object *globals;          // variables, see "constant.c" for details on YASL_Object.
 	size_t num_globals;
 	struct YASL_Object *stack;            // stack

@@ -67,6 +67,7 @@ struct Table *table_new(void) {
 }
 
 void table_del(struct Table *const table) {
+	if (!table) return;
 	FOR_TABLE(i, item, table) {
 		del_item(item);
 	}

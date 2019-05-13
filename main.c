@@ -6,6 +6,7 @@
 #include "yasl.h"
 #include "yasl-std-io.h"
 #include "yasl-std-math.h"
+#include "yasl-std-require.h"
 #include "yasl_state.h"
 
 
@@ -54,6 +55,7 @@ static int main_file(int argc, char **argv) {
 	// Load Standard Libraries
 	YASL_load_math(S);
 	YASL_load_io(S);
+	YASL_load_require(S);
 
 	int status = YASL_execute(S);
 
