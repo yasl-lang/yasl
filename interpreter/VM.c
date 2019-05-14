@@ -38,6 +38,8 @@ void vm_init(struct VM *vm,
              const size_t pc,              // address of instruction to be executed first -- entrypoint
              const size_t datasize) {      // total params size required to perform a program operations
 	vm->code = code;
+	vm->headers = NULL;
+	vm->headers_size = 0;
 	vm->pc = code + pc;
 	vm->fp = -1;
 	vm->lp = -1;
@@ -115,6 +117,10 @@ void vm_cleanup(struct VM *vm) {
 	free(vm->stack);
 
 	free(vm->code);
+	for (size_t i = 0; i < vm->headers_size; i++) {
+		free(vm->headers[i]);
+	}
+	free(vm->headers);
 
 	table_del(vm->builtins_htable[Y_UNDEF]);
 	table_del(vm->builtins_htable[Y_FLOAT]);

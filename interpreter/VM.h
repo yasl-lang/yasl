@@ -67,6 +67,8 @@ struct VM {
 	size_t num_globals;
 	struct YASL_Object *stack;            // stack
 	unsigned char *code;           // bytecode
+	unsigned char **headers;
+	size_t headers_size;
 	unsigned char *pc;                     // program counter
 	int sp;                        // stack pointer
 	int fp;                        // frame pointer
