@@ -37,7 +37,7 @@
 #define vm_peekcfn(vm, offset) (YASL_GETCFN(VM_PEEK(vm, offset)))
 
 #define BUFFER_SIZE 256
-#define NCODE(vm)    ((vm)->code[(vm)->pc++])     // get next bytecode
+#define NCODE(vm)    (*((vm)->pc++))     // get next bytecode
 
 #define GT(a, b) ((a) > (b))
 #define GE(a, b) ((a) >= (b))
@@ -67,7 +67,7 @@ struct VM {
 	size_t num_globals;
 	struct YASL_Object *stack;            // stack
 	unsigned char *code;           // bytecode
-	size_t pc;                     // program counter
+	unsigned char *pc;                     // program counter
 	int sp;                        // stack pointer
 	int fp;                        // frame pointer
 	int next_fp;

@@ -18,6 +18,7 @@
 #include "yasl_include.h"
 #include "opcode.h"
 #include "operator_names.h"
+#include "YASL_Object.h"
 
 static struct Table **builtins_htable_new(struct VM *vm) {
     struct Table **ht = (struct Table **)malloc(sizeof(struct Table*) * NUM_TYPES);
@@ -37,7 +38,7 @@ void vm_init(struct VM *vm,
              const size_t pc,              // address of instruction to be executed first -- entrypoint
              const size_t datasize) {      // total params size required to perform a program operations
 	vm->code = code;
-	vm->pc = pc;
+	vm->pc = code + pc;
 	vm->fp = -1;
 	vm->lp = -1;
 	vm->sp = -1;
@@ -138,14 +139,14 @@ struct YASL_Object vm_pop(struct VM *const vm) {
 
 yasl_int vm_read_int(struct VM *const vm) {
     yasl_int val;
-    memcpy(&val, vm->code + vm->pc, sizeof(yasl_int));
+    memcpy(&val, vm->pc, sizeof(yasl_int));
     vm->pc += sizeof(yasl_int);
     return val;
 }
 
 yasl_float vm_read_float(struct VM *const vm) {
     yasl_float val;
-    memcpy(&val, vm->code + vm->pc, sizeof(yasl_float));
+    memcpy(&val, vm->pc, sizeof(yasl_float));
     vm->pc += sizeof(yasl_float);
     return val;
 }
@@ -554,19 +555,20 @@ int vm_INIT_MC_SPECIAL(struct VM *vm) {
 int vm_CALL(struct VM *vm) {
 	vm->fp = vm->next_fp;
 	if (YASL_ISFN(vm->stack[vm->fp])) {
-		vm->stack[vm->fp + 1].value.ival = vm->pc;
+		vm->stack[vm->fp + 1].value.fval = vm->pc;
 
-		while (vm->sp - (vm->fp + 3) < vm->code[vm_peekint(vm, vm->fp)]) {
+		while (vm->sp - (vm->fp + 3) < vm->stack[vm->fp].value.fval[0]) {
 			vm_pushundef(vm);
 		}
 
-		while (vm->sp - (vm->fp + 3) > vm->code[vm_peekint(vm, vm->fp)]) {
+		while (vm->sp - (vm->fp + 3) > vm->stack[vm->fp].value.fval[0]) {
 			vm_pop(vm);
 		}
 
-		vm->sp += vm->code[vm_peekint(vm, vm->fp) + 1];
+		// vm->sp += vm->code[vm_peekint(vm, vm->fp) + 1];
+		vm->sp += vm->stack[vm->fp].value.fval[1];
 
-		vm->pc = vm_peekint(vm, vm->fp) + 2;
+		vm->pc =  vm->stack[vm->fp].value.fval + 2; //vm_peekint(vm, vm->fp) + 2;
 		return YASL_SUCCESS;
 	} else if (YASL_ISCFN(vm->stack[vm->fp])) {
 		while (vm->sp - (vm->fp + 3) < vm_peekcfn(vm, vm->fp)->num_args) {
@@ -647,7 +649,7 @@ int vm_run(struct VM *vm) {
 			break;
 		case FCONST:
 			c = vm_read_int(vm);
-			vm_pushfn(vm, c);
+			vm_pushfn(vm, vm->code + c);
 			break;
 		case BOR:
 			if ((res = vm_int_binop(vm, &bor, "|", OP_BIN_BAR))) return res;
@@ -912,11 +914,11 @@ int vm_run(struct VM *vm) {
 			if ((res = vm_GSTORE_8(vm))) return res;
 			break;
 		case GLOAD_1:
-			addr = vm->code[vm->pc++];
+			addr = vm->code[vm->pc++ - vm->code];
 			vm_push(vm, vm->globals[addr]);
 			break;
 		case GSTORE_1:
-			addr = vm->code[vm->pc++];
+			addr = vm->code[vm->pc++ - vm->code];
 			dec_ref(&vm->globals[addr]);
 			vm->globals[addr] = vm_pop(vm);
 			inc_ref(&vm->globals[addr]);
@@ -950,7 +952,7 @@ int vm_run(struct VM *vm) {
 			vm->next_fp = vm->stack[vm->fp + 3].value.ival;
 			vm_pop(vm);
 			vm->fp = vm_popint(vm);
-			vm->pc = vm_popint(vm);
+			vm->pc = vm_pop(vm).value.fval;   //vm_popint(vm);
 			vm_pop(vm);
 			vm_push(vm, v);
 			break;
