@@ -13,7 +13,7 @@
 //#include "interpreter/YASL_object/YASL_Object.h"
 
 struct YASL_State *YASL_newstate(char *filename) {
-    struct YASL_State *S = malloc(sizeof(struct YASL_State));
+  struct YASL_State *S = (struct YASL_State *)malloc(sizeof(struct YASL_State));
 
     FILE *fp = fopen(filename, "r");
     if (!fp) {
@@ -23,7 +23,8 @@ struct YASL_State *YASL_newstate(char *filename) {
     fseek(fp, 0, SEEK_SET);
 
     struct LEXINPUT *lp = lexinput_new_file(fp);
-    S->compiler = NEW_COMPILER(lp);
+    struct Compiler tcomp = NEW_COMPILER(lp);
+    S->compiler = tcomp;
     S->compiler.header->count = 16;
 
     vm_init((struct VM *)S, NULL, -1, 256);
@@ -33,10 +34,11 @@ struct YASL_State *YASL_newstate(char *filename) {
 
 
 struct YASL_State *YASL_newstate_bb(char *buf, int len) {
-    struct YASL_State *S = malloc(sizeof(struct YASL_State));
+  struct YASL_State *S = (struct YASL_State *)malloc(sizeof(struct YASL_State));
 
     struct LEXINPUT *lp = lexinput_new_bb(buf, len);
-    S->compiler = NEW_COMPILER(lp);
+    struct Compiler tcomp = NEW_COMPILER(lp);
+    S->compiler = tcomp;
     S->compiler.header->count = 16;
 
     vm_init((struct VM *)S, NULL, -1, 256);
@@ -74,7 +76,7 @@ int YASL_execute_REPL(struct YASL_State *S) {
 	// TODO: use this in VM.
 	// int64_t num_globals = *((int64_t*)bc+1);
 
-	S->vm.pc = entry_point;
+	S->vm.pc = bc + entry_point;
 	S->vm.code = bc;
 
 	return vm_run((struct VM *)S);  // TODO: error handling for runtime errors.
@@ -93,18 +95,22 @@ int YASL_execute(struct YASL_State *S) {
 	// TODO: use this in VM.
 	// int64_t num_globals = *((int64_t*)bc+1);
 
-	S->vm.pc = entry_point;
+	S->vm.pc = bc + entry_point;
 	S->vm.code = bc;
 
 	return vm_run((struct VM *) S);  // TODO: error handling for runtime errors.
 }
 
 
-int YASL_declglobal(struct YASL_State *S, char *name) {
+int YASL_declglobal(struct YASL_State *S, const char *name) {
+	struct YASL_Object value = table_search_string_int(S->compiler.strings, name, strlen(name));
+	if (value.type == Y_END) {
+		YASL_COMPILE_DEBUG_LOG("%s\n", "caching string");
+		table_insert_string_int(S->compiler.strings, name, strlen(name), S->compiler.header->count);
+		bb_intbytes8(S->compiler.header, strlen(name));
+		bb_append(S->compiler.header, (unsigned char *) name, strlen(name));
+	}
     int64_t index = env_decl_var(S->compiler.globals, name, strlen(name));
-    if (index > 255) {
-        return YASL_TOO_MANY_VAR_ERROR;
-    }
     return YASL_SUCCESS;
 }
 
@@ -113,22 +119,27 @@ static inline int is_const(int64_t value) {
     return (MASK & value) != 0;
 }
 
-int YASL_setglobal(struct YASL_State *S, char *name) {
+int YASL_setglobal(struct YASL_State *S, const char *name) {
 
-    if (!env_contains(S->compiler.globals, name, strlen(name))) return YASL_ERROR;
+	if (!env_contains(S->compiler.globals, name, strlen(name))) return YASL_ERROR;
 
-    int64_t index = env_get(S->compiler.globals, name, strlen(name));
-    if (is_const(index)) return YASL_ERROR;
+	int64_t index = env_get(S->compiler.globals, name, strlen(name));
+	if (is_const(index)) return YASL_ERROR;
 
-    // int64_t num_globals = S->compiler.globals->vars->count;
+	// int64_t num_globals = S->compiler.globals->vars->count;
 
-    // S->vm.globals = realloc(S->vm.globals, num_globals * sizeof(YASL_Object));
+	// S->vm.globals = realloc(S->vm.globals, num_globals * sizeof(YASL_Object));
 
-    dec_ref(S->vm.globals + index);
-    S->vm.globals[index] = vm_pop((struct VM *)S);
-    inc_ref(S->vm.globals + index);
+	String_t *string = str_new_sized(strlen(name), name);
+	struct YASL_Object obj = table_search((struct Table *)S->vm.global_vars->data, YASL_STR(string));
+	dec_ref(&obj);
+	// inc_ref(S->vm.stack + S->vm.sp);
+	table_insert((struct Table *)S->vm.global_vars->data, YASL_STR(string), vm_peek((struct VM *) S));
+	S->vm.sp--;
+//	vm_pop((struct VM *) S);
+	// inc_ref(S->vm.globals + index);
 
-    return YASL_SUCCESS;
+	return YASL_SUCCESS;
 }
 
 
@@ -137,8 +148,8 @@ int YASL_pushundef(struct YASL_State *S) {
     return YASL_SUCCESS;
 }
 
-int YASL_pushfloat(struct YASL_State *S, double value) {
-    vm_push((struct VM *)S, YASL_FLOAT(value));
+int YASL_pushfloat(struct YASL_State *S, yasl_float value) {
+    vm_pushfloat((struct VM *)S, value);
     return YASL_SUCCESS;
 }
 
@@ -153,34 +164,34 @@ int YASL_pushboolean(struct YASL_State *S, int value) {
 }
 
 int YASL_pushliteralstring(struct YASL_State *S, char *value) {
-    vm_push((struct VM *)S, YASL_STR(str_new_sized(strlen(value), value)));
+    VM_PUSH((struct VM *)S, YASL_STR(str_new_sized(strlen(value), value)));
     return YASL_SUCCESS;
 }
 
 int YASL_pushcstring(struct YASL_State *S, char *value) {
-    vm_push((struct VM *)S, YASL_STR(str_new_sized(strlen(value), value)));
+    VM_PUSH((struct VM *)S, YASL_STR(str_new_sized(strlen(value), value)));
     return YASL_SUCCESS;
 }
 
 int YASL_pushuserpointer(struct YASL_State *S, void *userpointer) {
-    vm_push((struct VM *)S, YASL_USERPTR(userpointer));
+    VM_PUSH((struct VM *)S, YASL_USERPTR(userpointer));
     return YASL_SUCCESS;
 }
 
 int YASL_pushstring(struct YASL_State *S, char *value, int64_t size) {
-    vm_push((struct VM *)S, YASL_STR(str_new_sized(size, value)));
+    VM_PUSH((struct VM *)S, YASL_STR(str_new_sized(size, value)));
     return YASL_SUCCESS;
 }
 
 int YASL_pushcfunction(struct YASL_State *S, int (*value)(struct YASL_State *), int num_args) {
-    vm_push((struct VM *)S, YASL_CFN(value, num_args));
+    VM_PUSH((struct VM *)S, YASL_CFN(value, num_args));
     return YASL_SUCCESS;
 }
 
 int YASL_pushobject(struct YASL_State *S, struct YASL_Object *obj) {
     if (!obj) return YASL_ERROR;
     vm_push((struct VM *)S, *obj);
-    free(obj);
+    free(obj); // TODO: delete properly
     return YASL_SUCCESS;
 }
 
@@ -277,7 +288,7 @@ int64_t YASL_getinteger(struct YASL_Object *obj);
 char *YASL_getcstring(struct YASL_Object *obj) {
     if (YASL_isstring(obj) != YASL_SUCCESS) return NULL;
 
-    char *tmp = malloc(yasl_string_len(obj->value.sval) + 1);
+    char *tmp = (char *)malloc(yasl_string_len(obj->value.sval) + 1);
 
     memcpy(tmp, obj->value.sval->str + obj->value.sval->start, yasl_string_len(obj->value.sval));
     tmp[yasl_string_len(obj->value.sval)] = '\0';
@@ -285,6 +296,11 @@ char *YASL_getcstring(struct YASL_Object *obj) {
     return tmp;
 }
 
+size_t YASL_getstringlen(struct YASL_Object *obj) {
+	if (YASL_isstring(obj) != YASL_SUCCESS) return 0;
+
+	return yasl_string_len(obj->value.sval);
+}
 
 char *YASL_getstring(struct YASL_Object *obj);
 

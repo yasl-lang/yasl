@@ -48,17 +48,17 @@ static Item_t new_item(const struct YASL_Object k, const struct YASL_Object v) {
 	return item;
 }
 
-void del_item(Item_t *item) {
+void del_item(Item_t *const item) {
 	dec_ref(&item->key);
 	dec_ref(&item->value);
 }
 
-struct Table *table_new_sized(const int base_size) {
-	struct Table *table = malloc(sizeof(struct Table));
+struct Table *table_new_sized(const size_t base_size) {
+	struct Table *table = (struct Table *)malloc(sizeof(struct Table));
 	table->base_size = base_size;
 	table->size = next_prime(table->base_size);
 	table->count = 0;
-	table->items = calloc((size_t) table->size, sizeof(Item_t));
+	table->items = (Item_t *)calloc((size_t) table->size, sizeof(Item_t));
 	return table;
 }
 
@@ -66,7 +66,8 @@ struct Table *table_new(void) {
 	return table_new_sized(HT_BASESIZE);
 }
 
-void table_del(struct Table *table) {
+void table_del(struct Table *const table) {
+	if (!table) return;
 	FOR_TABLE(i, item, table) {
 		del_item(item);
 	}
@@ -74,8 +75,8 @@ void table_del(struct Table *table) {
 	free(table);
 }
 
-struct RC_UserData *rcht_new_sized(const int base_size) {
-        struct RC_UserData *ht = malloc(sizeof(struct RC_UserData));
+struct RC_UserData *rcht_new_sized(const size_t base_size) {
+        struct RC_UserData *ht = (struct RC_UserData *)malloc(sizeof(struct RC_UserData));
         ht->data = table_new_sized(base_size);
         ht->rc = rc_new();
         ht->tag = T_TABLE;
@@ -83,30 +84,30 @@ struct RC_UserData *rcht_new_sized(const int base_size) {
         return ht;
 }
 
-struct RC_UserData *rcht_new() {
+struct RC_UserData *rcht_new(void) {
 	return rcht_new_sized(HT_BASESIZE);
 }
 
-void rcht_del(struct RC_UserData *hashtable) {
-	table_del(hashtable->data);
+void rcht_del(struct RC_UserData *const hashtable) {
+	table_del((struct Table *)hashtable->data);
 	rc_del(hashtable->rc);
 	free(hashtable);
 }
 
-void rcht_del_data(void *hashtable) {
-        table_del(hashtable);
+void rcht_del_data(void *const hashtable) {
+        table_del((struct Table *)hashtable);
 }
 
-void rcht_del_rc(struct RC_UserData *hashtable) {
+void rcht_del_rc(struct RC_UserData *const hashtable) {
 	rc_del(hashtable->rc);
 	free(hashtable);
 }
 
-void table_del_string_int(struct Table *table) {
+void table_del_string_int(struct Table *const table) {
 	table_del(table);
 }
 
-static void table_resize(struct Table *table, const int base_size) {
+static void table_resize(struct Table *const table, const size_t base_size) {
 	if (base_size < HT_BASESIZE) return;
 	struct Table *new_table = table_new_sized(base_size);
 	FOR_TABLE(i, item, table) {
@@ -136,7 +137,7 @@ static void table_resize_down(struct Table *table) {
 	table_resize(table, new_size);
 }
 
-void table_insert(struct Table *table, const struct YASL_Object key, const struct YASL_Object value) {
+void table_insert(struct Table *const table, const struct YASL_Object key, const struct YASL_Object value) {
 	const int load = table->count * 100 / table->size;
 	if (load > 70) table_resize_up(table);
 	Item_t item = new_item(key, value);
@@ -158,11 +159,13 @@ void table_insert(struct Table *table, const struct YASL_Object key, const struc
 	table->count++;
 }
 
-void table_insert_string_int(struct Table *table, char *key, int64_t key_len, int64_t val) {
+void table_insert_string_int(struct Table *const table, const char *const key, const int64_t key_len, const int64_t val) {
 	String_t *string = str_new_sized_heap(0, key_len, copy_char_buffer(key_len, key));
-	table_insert(table,
-		     (struct YASL_Object) {.type = Y_STR, .value.sval = string},
-		     (struct YASL_Object) {.type = Y_INT, .value.ival = val});
+	struct YASL_Object ko = YASL_STR(string),
+	  vo = YASL_INT(val);
+	table_insert(table, ko, vo);
+		     
+		     
 }
 
 struct YASL_Object table_search(const struct Table *const table, const struct YASL_Object key) {
@@ -176,12 +179,12 @@ struct YASL_Object table_search(const struct Table *const table, const struct YA
 		index = get_hash(key, table->size, i++);
 		item = table->items[index];
 	}
-	return (struct YASL_Object) {Y_END, {0}};
+	return YASL_END();
 }
 
-struct YASL_Object table_search_string_int(const struct Table *const table, char *key, int64_t key_len) {
+struct YASL_Object table_search_string_int(const struct Table *const table, const char *const key, const int64_t key_len) {
 	String_t *string = str_new_sized_heap(0, key_len, copy_char_buffer(key_len, key));
-	struct YASL_Object object = (struct YASL_Object) {.value.sval = string, .type = Y_STR};
+	struct YASL_Object object = YASL_STR(string);
 
 	struct YASL_Object result = table_search(table, object);
 	str_del(string);

@@ -1,8 +1,10 @@
 #pragma once
 
+#include "yasl_conf.h"
 #include "yasl_error.h"
 #include "inttypes.h"
 #include <stdlib.h>
+#include "hashtable/hashtable.h"
 
 struct YASL_State;
 struct YASL_Object;
@@ -39,7 +41,7 @@ int YASL_execute_REPL(struct YASL_State *S);
  * @param name the name of the global (null-terminated string).
  * @return 0 on success, else an error code.
  */
-int YASL_declglobal(struct YASL_State *S, char *name);
+int YASL_declglobal(struct YASL_State *S, const char *name);
 
 /**
  * Pops the top of the YASL stack and stores it in the given global.
@@ -47,7 +49,7 @@ int YASL_declglobal(struct YASL_State *S, char *name);
  * @param name the name of the global.
  * @return 0 on success, else an error code.
  */
-int YASL_setglobal(struct YASL_State *S, char *name);
+int YASL_setglobal(struct YASL_State *S, const char *name);
 
 /**
  * Pushes an undef value onto the stack.
@@ -62,7 +64,7 @@ int YASL_pushundef(struct YASL_State *S);
  * @param value
  * @return
  */
-int YASL_pushfloat(struct YASL_State *S, double value);
+int YASL_pushfloat(struct YASL_State *S, yasl_float value);
 
 /**
  * Pushes an integer value onto the stack.
@@ -70,7 +72,7 @@ int YASL_pushfloat(struct YASL_State *S, double value);
  * @param integer to be pushed onto the stack.
  * @return 0 on success, else error code.
  */
-int YASL_pushinteger(struct YASL_State *S, int64_t value);
+int YASL_pushinteger(struct YASL_State *S, yasl_int value);
 
 /**
  * Pushes a boolean value onto the stack.
@@ -131,14 +133,14 @@ struct YASL_Object *YASL_popobject(struct YASL_State *S);
  */
 struct YASL_Object *YASL_Table(void);
 
-struct YASL_Object *YASL_Integer(int64_t);
+struct YASL_Object *YASL_Integer(yasl_int value);
 struct YASL_Object *YASL_Undef(void);
-struct YASL_Object *YASL_Float(double value);
+struct YASL_Object *YASL_Float(yasl_float value);
 struct YASL_Object *YASL_Boolean(int value);
 struct YASL_Object *YASL_LiteralString(char *str);
 struct YASL_Object *YASL_CString(char *str);
 struct YASL_Object *YASL_UserPointer(void *userdata);
-struct YASL_Object *YASL_UserData(void *userdata, int tag, void (*destructor)(void *));
+struct YASL_Object *YASL_UserData(void *userdata, int tag, struct Table *mt, void (*destructor)(void *));
 int YASL_UserData_gettag(struct YASL_Object *obj);
 void *YASL_UserData_getdata(struct YASL_Object *obj);
 struct YASL_Object *YASL_Function(int64_t index);
@@ -257,6 +259,8 @@ int64_t YASL_getinteger(struct YASL_Object *obj);
  * @return the null-terminated string value of the given YASL_Object, or NULL if the YASL_Object doesn't have type string.
  */
 char *YASL_getcstring(struct YASL_Object *obj);
+
+size_t YASL_getstringlen(struct YASL_Object *obj);
 
 /**
  * Retrieves the string value of the YASL_Object.

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdbool.h>
+
 #ifdef __EMSCRIPTEN__
 #define K_END
 #define K_RED

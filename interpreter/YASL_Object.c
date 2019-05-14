@@ -29,7 +29,7 @@ const char *YASL_TYPE_NAMES[] = {
 };
 
 struct CFunction_s *new_cfn(int (*value)(struct YASL_State *), int num_args) {
-    struct CFunction_s *fn = malloc(sizeof(struct CFunction_s));
+    struct CFunction_s *fn = (struct CFunction_s *)malloc(sizeof(struct CFunction_s));
     fn->value = value;
     fn->num_args = num_args;
     fn->rc = rc_new();
@@ -45,69 +45,69 @@ void cfn_del_rc(struct CFunction_s *cfn) {
 }
 
 struct YASL_Object *YASL_Undef(void) {
-    struct YASL_Object *undef = malloc(sizeof(struct YASL_Object));
+    struct YASL_Object *undef = (struct YASL_Object *)malloc(sizeof(struct YASL_Object));
     undef->type = Y_UNDEF;
     undef->value.ival = 0;
     return undef;
 }
 struct YASL_Object *YASL_Float(double value) {
-    struct YASL_Object *num = malloc(sizeof(struct YASL_Object));
+    struct YASL_Object *num = (struct YASL_Object *)malloc(sizeof(struct YASL_Object));
     num->type = Y_FLOAT;
     num->value.dval = value;
     return num;
 }
 
 struct YASL_Object *YASL_Integer(int64_t value) {
-    struct YASL_Object *integer = malloc(sizeof(struct YASL_Object));
+    struct YASL_Object *integer = (struct YASL_Object *)malloc(sizeof(struct YASL_Object));
     integer->type = Y_INT;
     integer->value.ival = value;
     return integer;
 }
 
 struct YASL_Object *YASL_Boolean(int value) {
-    struct YASL_Object *boolean = malloc(sizeof(struct YASL_Object));
+    struct YASL_Object *boolean = (struct YASL_Object *)malloc(sizeof(struct YASL_Object));
     boolean->type = Y_BOOL;
     boolean->value.ival = value;
     return boolean;
 }
 
 struct YASL_Object *YASL_String(String_t *str) {
-    struct YASL_Object *string = malloc(sizeof(struct YASL_Object));
+    struct YASL_Object *string = (struct YASL_Object *)malloc(sizeof(struct YASL_Object));
     string->type = Y_STR;
     string->value.sval = str;
     return string;
 }
 
 struct YASL_Object *YASL_Table() {
-    struct YASL_Object *table = malloc(sizeof(struct YASL_Object));
+    struct YASL_Object *table = (struct YASL_Object *)malloc(sizeof(struct YASL_Object));
     table->type = Y_TABLE;
     table->value.uval = rcht_new();
     return table;
 }
 
 struct YASL_Object *YASL_UserPointer(void *userpointer) {
-    struct YASL_Object *userptr = malloc(sizeof(struct YASL_Object));
+    struct YASL_Object *userptr = (struct YASL_Object *)malloc(sizeof(struct YASL_Object));
     userptr->type = Y_USERPTR;
     userptr->value.pval = userpointer;
     return userptr;
 }
 
-struct YASL_Object *YASL_UserData(void *userdata, int tag, void (*destructor)(void *)) {
-    struct YASL_Object *obj = malloc(sizeof(struct YASL_Object));
-    obj->type = Y_USERDATA;
-    obj->value.uval = ud_new(userdata, tag, destructor);
-    return obj;
+struct YASL_Object *YASL_UserData(void *userdata, int tag, struct Table *mt, void (*destructor)(void *)) {
+	struct YASL_Object *obj = (struct YASL_Object *)malloc(sizeof(struct YASL_Object));
+	obj->type = Y_USERDATA;
+	obj->value.uval = ud_new(userdata, tag, mt, destructor);
+	return obj;
 }
 
 struct YASL_Object *YASL_Function(int64_t index) {
-    struct YASL_Object *fn = malloc(sizeof(struct YASL_Object));
+    struct YASL_Object *fn = (struct YASL_Object *)malloc(sizeof(struct YASL_Object));
     fn->type = Y_FN;
     fn->value.ival = index;
     return fn;
 }
 
 struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *), int num_args) {
-    struct YASL_Object *fn = malloc(sizeof(struct YASL_Object));
+    struct YASL_Object *fn = (struct YASL_Object *)malloc(sizeof(struct YASL_Object));
     fn->type = Y_CFN;
     fn->value.pval = malloc(sizeof(struct CFunction_s));
     fn->value.cval->value = value;
@@ -142,62 +142,71 @@ int yasl_object_cmp(struct YASL_Object a, struct YASL_Object b) {
 }
 
 int isfalsey(struct YASL_Object v) {
-    // TODO: add NaN as falsey
-    return (
-            YASL_ISUNDEF(v) ||
-            (YASL_ISBOOL(v) && YASL_GETBOOL(v) == 0) ||
-            (YASL_ISSTR(v) && yasl_string_len(YASL_GETSTR(v)) == 0) ||
-            (YASL_ISFLOAT(v) && YASL_GETFLOAT(v) != YASL_GETFLOAT(v))
-    );
+	/*
+	 * Falsey values are:
+	 * 	undef
+	 * 	false
+	 * 	''
+	 * 	NaN
+	 */
+	return (
+		YASL_ISUNDEF(v) ||
+		(YASL_ISBOOL(v) && YASL_GETBOOL(v) == 0) ||
+		(YASL_ISSTR(v) && yasl_string_len(YASL_GETSTR(v)) == 0) ||
+		(YASL_ISFLOAT(v) && YASL_GETFLOAT(v) != YASL_GETFLOAT(v))
+	);
 }
 
 struct YASL_Object isequal(struct YASL_Object a, struct YASL_Object b) {
+  const struct YASL_Object false_c = FALSE_C;
+  const struct YASL_Object true_c = TRUE_C;
+  const struct YASL_Object undef_c = UNDEF_C;
         if (YASL_ISUNDEF(a) && YASL_ISUNDEF(b)) {
-            return TRUE_C;
+            return true_c;
         }
         switch(a.type) {
         case Y_BOOL:
             if (YASL_ISBOOL(b)) {
                 if (YASL_GETBOOL(a) == YASL_GETBOOL(b)) {
-                    return TRUE_C;
+                    return true_c;
                 } else {
-                    return FALSE_C;
+                    return false_c;
                 }
             } else {
-                return FALSE_C;
+                return false_c;
             }
         case Y_TABLE:
         case Y_TABLE_W:
             if (YASL_ISTABLE(b)) {
                 puts("Warning: comparison of hashes currently is not implemented.");
-                return UNDEF_C;
+                return undef_c;
             }
-            return FALSE_C;
+            return false_c;
         case Y_LIST:
         case Y_LIST_W:
             if (YASL_ISLIST(b)) {
                 puts("Warning: comparison of lists currently is not implemented.");
-                return UNDEF_C;
+                return undef_c;
             }
-            return FALSE_C;
+            return false_c;
         case Y_STR:
         case Y_STR_W:
             if (YASL_ISSTR(b)) {
                 if (YASL_GETSTR(a) == YASL_GETSTR(b)) {
-                    return TRUE_C;
+                    return true_c;
                 }
                 if (yasl_string_len(YASL_GETSTR(a)) != yasl_string_len(YASL_GETSTR(b))) {
-                    return FALSE_C;
+                    return false_c;
                 } else {
                     return memcmp(YASL_GETSTR(a)->str + YASL_GETSTR(a)->start,
                                   YASL_GETSTR(b)->str + YASL_GETSTR(b)->start,
-                             yasl_string_len(YASL_GETSTR(a))) ? FALSE_C : TRUE_C;
+                             yasl_string_len(YASL_GETSTR(a))) ? false_c : true_c;
                 }
             }
-            return FALSE_C;
+            return false_c;
         default:
             if (YASL_ISBOOL(b) || YASL_ISTABLE(b)) {
-                return FALSE_C;
+                return false_c;
             }
             int c;
             if (YASL_ISINT(a) && YASL_ISINT(b)) {
@@ -210,9 +219,9 @@ struct YASL_Object isequal(struct YASL_Object a, struct YASL_Object b) {
                 c = YASL_GETFLOAT(a) == YASL_GETFLOAT(b);
             } else {
                 // printf("== and != not supported for operands of types %x and %x.\n", a.type, b.type);
-                return UNDEF_C;
+                return undef_c;
             }
-            return (struct YASL_Object) { .type = Y_BOOL, .value.ival = c};
+            return YASL_BOOL(c);
         }
 }
 

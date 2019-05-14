@@ -13,10 +13,10 @@
 #define TOKEN_MATCHES(parser, ...)  (CHOOSE(__VA_ARGS__, T4, T3, T2, T1, T0)(parser, __VA_ARGS__))
 
 #define NEW_PARSER(fp)\
-((Parser) {\
+  ((Parser) {\
 	.lex = NEW_LEXER(fp),\
 	.status = YASL_SUCCESS\
-})
+  })
 
 typedef struct {
     Lexer lex; /* OWN */

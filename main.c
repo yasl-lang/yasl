@@ -6,10 +6,11 @@
 #include "yasl.h"
 #include "yasl-std-io.h"
 #include "yasl-std-math.h"
+#include "yasl-std-require.h"
 #include "yasl_state.h"
 
 
-#define VERSION "v0.4.2"
+#define VERSION "v0.4.3"
 #define VERSION_PRINTOUT "YASL " VERSION
 
 static int main_error(int argc, char **argv) {
@@ -54,6 +55,7 @@ static int main_file(int argc, char **argv) {
 	// Load Standard Libraries
 	YASL_load_math(S);
 	YASL_load_io(S);
+	YASL_load_require(S);
 
 	int status = YASL_execute(S);
 
@@ -104,7 +106,7 @@ static int main_command(int argc, char **argv) {
 static int main_REPL(int argc, char **argv) {
 	int next;
 	size_t size = 8, count = 0;
-	char *buffer = malloc(size);
+	char *buffer = (char *)malloc(size);
 	struct YASL_State *S = YASL_newstate_bb(buffer, 0);
 	YASL_load_math(S);
 	YASL_load_io(S);
@@ -114,13 +116,13 @@ static int main_REPL(int argc, char **argv) {
 		while ((next = getchar()) != '\n') {
 			if (size == count) {
 				size *= 2;
-				buffer = realloc(buffer, size);
+				buffer = (char *)realloc(buffer, size);
 			}
 			buffer[count++] = next;
 		}
 		if (size == count) {
 			size *= 2;
-			buffer = realloc(buffer, size);
+			buffer = (char *)realloc(buffer, size);
 		}
 		buffer[count++] = '\n';
 
@@ -142,7 +144,9 @@ static int main_REPL(int argc, char **argv) {
 
 #ifdef __EMSCRIPTEN__
 int main(int argc, char **argv) {
-	// printf("argc: %d\n", argc);
+	// Initialize prng seed
+	srand(time(NULL));
+
 	if (argc == 1) {
 		puts(VERSION_PRINTOUT);
 		return EXIT_SUCCESS;

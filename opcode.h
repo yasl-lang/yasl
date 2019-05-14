@@ -1,7 +1,7 @@
 #pragma once
 
 enum Opcode {
-	HALT            = 0x00, // halt
+	HALT            = 0x0F, // halt
 	NCONST          = 0x01, // push literal undef onto stack
 	BCONST_F        = 0x08, // push literal false onto stack
 	BCONST_T        = 0x09, // push literal true onto stack
@@ -79,6 +79,8 @@ enum Opcode {
 	CALL            = 0xE9, // function call
 	RET             = 0xEA, // return from function
 
+	GSTORE_8        = 0xF0, // from string
+	GLOAD_8         = 0xF1, // from string
 	GSTORE_1        = 0xF4, // store top of stack at addr provided
 	LSTORE_1        = 0xF5, // store top of stack as local at addr
 	GLOAD_1         = 0xF6, // load global from addr

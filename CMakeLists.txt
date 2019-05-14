@@ -1,14 +1,23 @@
 cmake_minimum_required(VERSION 3.5.0)
-project(YASL C)
+project(YASL)
+
+if(cpp)
+    message(STATUS "COMPILING AS C++")
+    file(GLOB_RECURSE CFILES "${CMAKE_SOURCE_DIR}/*.c")
+    SET_SOURCE_FILES_PROPERTIES(${CFILES} PROPERTIES LANGUAGE CXX )
+endif()
 
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_C_STANDARD 99)
-set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-unused-function -Wno-unused-result -Wno-unused-variable -Wno-unused-parameter -pedantic -Werror")
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-unused-function -Wno-unused-result -Wno-unused-variable -Wno-unused-parameter -Wpedantic -Werror")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-function -Wno-unused-result -Wno-unused-variable -Wno-unused-parameter -Werror")
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 include_directories(.)
 include_directories(std-io)
 include_directories(std-math)
+include_directories(std-require)
 include_directories(test)
 
 add_executable(YASL
@@ -40,7 +49,8 @@ add_executable(YASL
         interpreter/undef_methods.c
         prime/prime.c
         std-io/yasl-std-io.c
-        std-math/yasl-std-math.c)
+        std-math/yasl-std-math.c
+        std-require/yasl-std-require.c)
 
 add_executable(YASLTEST
         test/test_compiler/yats.c

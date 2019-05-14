@@ -1,4 +1,4 @@
-##{}\n
+##{}\n{a: A}\n{a: @}\n{io: {flush: 0, seek: 1}, math: {tan: 2, sin: 1, cos: 0}}\n
 # test overwriting keys works
 
 x := {}
@@ -7,5 +7,10 @@ echo x
 
 x = { 'a': 'A'}
 
-x['a'] = '$'
+echo x
 
+x['a'] = '@'
+
+echo x
+
+echo { .io: { .flush: 0, .seek: 1 }, .math: { .cos: 0, .sin: 1, .tan: 2 } }

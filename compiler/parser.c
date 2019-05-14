@@ -69,7 +69,6 @@ static inline enum Token curtok(const Parser *const parser) {
 
 void parser_cleanup(Parser *const parser) {
 	lex_cleanup(&parser->lex);
-	//free(parser);
 }
 
 static struct Node *handle_error(Parser *parser) {
@@ -106,33 +105,43 @@ struct Node *parse(Parser *const parser) {
 }
 
 static struct Node *parse_program(Parser *const parser) {
-	//YASL_DEBUG_LOG("parse. type: %s, ", YASL_TOKEN_NAMES[curtok(parser)]);
-	//YASL_DEBUG_LOG("value: %s\n", parser->lex.value);
 	YASL_PARSE_DEBUG_LOG("parsing statement in line %zd\n", parser->lex.line);
 	size_t line;
 	struct Node *expr;
 	switch (curtok(parser)) {
-	case T_ECHO:eattok(parser, T_ECHO);
+	case T_ECHO:
+		eattok(parser, T_ECHO);
 		return new_Print(parse_expr(parser), parser->lex.line);
-	case T_FN: return parse_fn(parser);
-	case T_RET:eattok(parser, T_RET);
+	case T_FN:
+		return parse_fn(parser);
+	case T_RET:
+		eattok(parser, T_RET);
 		return new_Return(parse_expr(parser), parser->lex.line);
-	case T_CONST: return parse_const(parser);
-	case T_FOR: return parse_for(parser);
-	case T_WHILE: return parse_while(parser);
-	case T_BREAK:line = parser->lex.line;
+	case T_CONST:
+		return parse_const(parser);
+	case T_FOR:
+		return parse_for(parser);
+	case T_WHILE:
+		return parse_while(parser);
+	case T_BREAK:
+		line = parser->lex.line;
 		eattok(parser, T_BREAK);
 		return new_Break(line);
-	case T_CONT:line = parser->lex.line;
+	case T_CONT:
+		line = parser->lex.line;
 		eattok(parser, T_CONT);
 		return new_Continue(line);
-	case T_IF: return parse_if(parser);
+	case T_IF:
+		return parse_if(parser);
 	case T_ELSEIF:
-	case T_ELSE:YASL_PRINT_ERROR_SYNTAX("`%s` without previous `if`\n", YASL_TOKEN_NAMES[curtok(parser)]);
+	case T_ELSE:
+		YASL_PRINT_ERROR_SYNTAX("`%s` without previous `if`\n", YASL_TOKEN_NAMES[curtok(parser)]);
 		return handle_error(parser);
-	case T_UNKNOWN:parser->status = parser->lex.status;
+	case T_UNKNOWN:
+		parser->status = parser->lex.status;
 		return NULL;
-	default:line = parser->lex.line;
+	default:
+		line = parser->lex.line;
 		expr = parse_expr(parser);
 		if (curtok(parser) == T_COLONEQ) {
 			if (expr->nodetype != N_VAR) {
@@ -146,7 +155,6 @@ static struct Node *parse_program(Parser *const parser) {
 			return assign_node;
 		}
 		return new_ExprStmt(expr, parser->lex.line);
-
 	}
 }
 
@@ -191,7 +199,7 @@ static struct Node *parse_fn(Parser *const parser) {
 
 	struct Node *body = parse_body(parser);
 
-	char *name2 = malloc(name_len);
+	char *name2 = (char *)malloc(name_len);
 	memcpy(name2, name, name_len);
 	return new_Let(name, name_len, new_FnDecl(block, body, name2, name_len, parser->lex.line), line);
 
@@ -331,7 +339,7 @@ static struct Node *parse_assign(Parser *const parser) {
 			return handle_error(parser);
 		}
 	} else if (tok_isaugmented(curtok(parser))) {
-		enum Token op = eattok(parser, curtok(parser)) - 1; // relies on enum
+	  enum Token op = (enum Token)(eattok(parser, curtok(parser)) - 1); // relies on enum
 		switch (cur_node->nodetype) {
 		case N_VAR: {
 			char *name = cur_node->value.sval.str;
@@ -493,15 +501,17 @@ static struct Node *parse_call(Parser *const parser) {
 
 static struct Node *parse_constant(Parser *const parser) {
 	switch (curtok(parser)) {
-	case T_DOT:eattok(parser, T_DOT);
+	case T_DOT:eattok(parser, T_DOT); {
 		struct Node *cur_node = new_String(parser->lex.value, parser->lex.val_len, parser->lex.line);
 		eattok(parser, T_ID);
 		return cur_node;
+	  }
 	case T_ID: return parse_id(parser);
-	case T_LPAR:eattok(parser, T_LPAR);
+	case T_LPAR:eattok(parser, T_LPAR); {
 		struct Node *expr = parse_expr(parser);
 		eattok(parser, T_RPAR);
 		return expr;
+	  }
 	case T_LSQB: return parse_collection(parser);
 	case T_LBRC: return parse_table(parser);
 	case T_STR: return parse_string(parser);
