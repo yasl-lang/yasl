@@ -1,7 +1,7 @@
 ##720\n
 
 const fn fact(n) {
-    tmp := 1
+    let tmp = 1
     while n > 0 {
         tmp *= n
         n -= 1

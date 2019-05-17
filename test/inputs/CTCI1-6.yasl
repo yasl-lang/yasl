@@ -1,11 +1,11 @@
 ##a2b1c4a3\nabcde\n
 
 fn compress(s) {
-    new_s := ''
-    i := 0
+    let new_s = ''
+    let i = 0
     while i < len s {
-        count := 0
-        j := i
+        let count = 0
+        let j = i
         while i < len s && s[i] == s[j] {
             count += 1
             i += 1

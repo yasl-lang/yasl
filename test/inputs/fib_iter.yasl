@@ -2,10 +2,10 @@
 
 
 fn fib(n) {
-    i := 0
-    nextterm := 1
-    present := 1
-    previous := 0
+    let i = 0
+    let nextterm = 1
+    let present = 1
+    let previous = 0
 
     while i < n {
         nextterm = present + previous
@@ -19,8 +19,8 @@ fn fib(n) {
 
 
 fn range(a, b) {
-    tmp := []
-    for i := a; i < b; i += 1 {
+    const tmp = []
+    for let i = a; i < b; i += 1 {
         tmp->push(i)
     }
 

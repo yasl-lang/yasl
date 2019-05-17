@@ -1,8 +1,8 @@
 ##{x: {...}, y: [[...], {...}]}\n[[...], {x: {...}, y: [...]}]\n
 # test that clearing a list or table removes cycles
 
-y := []
-x := {}
+let y = []
+let x = {}
 x.x = x
 y->push(y)
 y->push(x)

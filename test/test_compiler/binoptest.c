@@ -17,7 +17,7 @@ static void test_mul() {
 		POP,
 		HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "x := 2; x * 3;");
+	ASSERT_GEN_BC_EQ(expected, "let x = 2; x * 3;");
 }
 
 static void test_fdiv() {
@@ -47,7 +47,7 @@ static void test_idiv() {
 		POP,
 		HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "x := 3; x // 2;");
+	ASSERT_GEN_BC_EQ(expected, "let x = 3; x // 2;");
 }
 
 static void test_mod() {
@@ -64,7 +64,7 @@ static void test_mod() {
 		POP,
 		HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "x := 5; x % 3;");
+	ASSERT_GEN_BC_EQ(expected, "let x = 5; x % 3;");
 }
 
 static void test_add() {
@@ -81,7 +81,7 @@ static void test_add() {
 		POP,
 		HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "x := 5; x + 5;");
+	ASSERT_GEN_BC_EQ(expected, "let x = 5; x + 5;");
 }
 
 static void test_sub() {
@@ -98,7 +98,7 @@ static void test_sub() {
 		POP,
 		HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "x := 5; x - 3;");
+	ASSERT_GEN_BC_EQ(expected, "let x = 5; x - 3;");
 }
 
 static void test_bshl() {
@@ -115,7 +115,7 @@ static void test_bshl() {
 		POP,
 		HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "x := 2; x << 3;");
+	ASSERT_GEN_BC_EQ(expected, "let x = 2; x << 3;");
 }
 
 static void test_bshr() {
@@ -133,7 +133,7 @@ static void test_bshr() {
 		POP,
 		HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "x := 8; x >> 2;");
+	ASSERT_GEN_BC_EQ(expected, "let x = 8; x >> 2;");
 }
 
 static void test_band() {
@@ -151,7 +151,7 @@ static void test_band() {
 		POP,
 		HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "x := 8; x & 2;");
+	ASSERT_GEN_BC_EQ(expected, "let x = 8; x & 2;");
 }
 
 static void test_bandnot() {
@@ -169,7 +169,7 @@ static void test_bandnot() {
 		POP,
 		HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "x := 8; x &^ 2;");
+	ASSERT_GEN_BC_EQ(expected, "let x = 8; x &^ 2;");
 }
 
 static void test_bxor() {
@@ -187,7 +187,7 @@ static void test_bxor() {
 		POP,
 		HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "x := 8; x ^ 2;");
+	ASSERT_GEN_BC_EQ(expected, "let x = 8; x ^ 2;");
 }
 
 static void test_bor() {
@@ -205,7 +205,7 @@ static void test_bor() {
 		POP,
 		HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "x := 8; x | 2;");
+	ASSERT_GEN_BC_EQ(expected, "let x = 8; x | 2;");
 }
 
 static void test_concat() {

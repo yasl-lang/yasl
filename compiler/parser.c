@@ -14,6 +14,7 @@
 
 static struct Node *parse_program(Parser *parser);
 static struct Node *parse_const(Parser *parser);
+static struct Node *parse_let(Parser *parser);
 static struct Node *parse_fn(Parser *parser);
 static struct Node *parse_for(Parser *parser);
 static struct Node *parse_while(Parser *parser);
@@ -119,6 +120,8 @@ static struct Node *parse_program(Parser *const parser) {
 		return new_Return(parse_expr(parser), parser->lex.line);
 	case T_CONST:
 		return parse_const(parser);
+	case T_LET:
+		return parse_let(parser);
 	case T_FOR:
 		return parse_for(parser);
 	case T_WHILE:
@@ -143,6 +146,7 @@ static struct Node *parse_program(Parser *const parser) {
 	default:
 		line = parser->lex.line;
 		expr = parse_expr(parser);
+/*
 		if (curtok(parser) == T_COLONEQ) {
 			if (expr->nodetype != N_VAR) {
 				YASL_PRINT_ERROR_SYNTAX("Invalid lvalue in line %zd\n", parser->lex.line);
@@ -154,7 +158,8 @@ static struct Node *parse_program(Parser *const parser) {
 			free(expr);
 			return assign_node;
 		}
-		return new_ExprStmt(expr, parser->lex.line);
+*/
+		return new_ExprStmt(expr, line);
 	}
 }
 
@@ -206,7 +211,7 @@ static struct Node *parse_fn(Parser *const parser) {
 }
 
 static struct Node *parse_const(Parser *const parser) {
-	YASL_PARSE_DEBUG_LOG("parsing let in line %zd\n", parser->lex.line);
+	YASL_PARSE_DEBUG_LOG("parsing const in line %zd\n", parser->lex.line);
 	eattok(parser, T_CONST);
 	char *name = parser->lex.value;
 	size_t name_len = parser->lex.val_len;
@@ -217,21 +222,31 @@ static struct Node *parse_const(Parser *const parser) {
 		return cur_node;
 	}
 	eattok(parser, T_ID);
-	eattok(parser, T_COLONEQ);
+	eattok(parser, T_EQ);
 	struct Node *expr = parse_expr(parser);
 	return new_Const(name, name_len, expr, line);
 }
 
-static struct Node *parse_let_iterate_or_let(Parser *const parser) {
+static struct Node *parse_let(Parser *const parser) {
+	YASL_PARSE_DEBUG_LOG("parsing let in line %zd\n", parser->lex.line);
+	eattok(parser, T_LET);
 	char *name = parser->lex.value;
 	size_t name_len = parser->lex.val_len;
 	size_t line = parser->lex.line;
 	eattok(parser, T_ID);
-	if (curtok(parser) == T_COLONEQ) {
-		eattok(parser, T_COLONEQ);
-		struct Node *expr = parse_expr(parser);
-		return new_Let(name, name_len, expr, line);
+	eattok(parser, T_EQ);
+	struct Node *expr = parse_expr(parser);
+	return new_Let(name, name_len, expr, line);
+}
+
+static struct Node *parse_let_iterate_or_let(Parser *const parser) {
+	if (curtok(parser) == T_LET) {
+		return parse_let(parser);
 	} else {
+		char *name = parser->lex.value;
+		size_t name_len = parser->lex.val_len;
+		size_t line = parser->lex.line;
+		eattok(parser, T_ID);
 		eattok(parser, T_LEFT_ARR);
 		struct Node *expr = parse_expr(parser);
 		return new_LetIter(new_Var(name, name_len, line), expr, line);

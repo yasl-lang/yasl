@@ -2,7 +2,7 @@
 
 echo .special_name
 
-x := {}
+const x = {}
 
 x.for = 10
 

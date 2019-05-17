@@ -1,6 +1,6 @@
 ##
 
-sub := .submodule
+const sub = .submodule
 
 fn add(a, b) {
     return a + b

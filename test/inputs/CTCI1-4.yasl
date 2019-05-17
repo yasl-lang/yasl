@@ -3,7 +3,7 @@
 
 # CTCI 1.4
 fn pp(s) {
-    hash := {}
+    let hash = {}
     for c <- s {
         if hash[c] !== undef {
             hash[c] += 1
@@ -12,7 +12,7 @@ fn pp(s) {
         }
     }
 
-    count := false
+    let count = false
     for c <- hash {
         if hash[c] % 2 != 0 {
             if count {

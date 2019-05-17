@@ -46,7 +46,7 @@ static void test_continue() {
 		0xB3, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 		HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "i := 0; while i < 10 { if i == 5 { continue; }; echo i; };");
+	ASSERT_GEN_BC_EQ(expected, "let i = 0; while i < 10 { if i == 5 { continue; }; echo i; };");
 }
 
 static void test_break() {
@@ -77,7 +77,7 @@ static void test_break() {
 		0xB2, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 		HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "i := 0; while i < 10 { if i == 5 { break; }; echo i; };");
+	ASSERT_GEN_BC_EQ(expected, "let i = 0; while i < 10 { if i == 5 { break; }; echo i; };");
 }
 
 int whiletest(void) {

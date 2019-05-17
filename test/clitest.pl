@@ -27,9 +27,9 @@ sub assert_output {
 
 
 assert_output("YASL -V", "YASL v0.4.3\n", 0);
-assert_output("YASL -e 'x := 10; x;'", "10\n", 0);
-assert_output("YASL -E 'x := 10; x;'", "", 0);
-assert_output("YASL -E 'x := 10; echo x;'", "10\n", 0);
+assert_output("YASL -e 'let x = 10; x;'", "10\n", 0);
+assert_output("YASL -E 'let x = 10; x;'", "", 0);
+assert_output("YASL -E 'let x = 10; echo x;'", "10\n", 0);
 assert_output("YASL -h",
               "usage: yasl [option] [input]\n" .
               "options:\n" .

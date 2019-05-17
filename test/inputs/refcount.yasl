@@ -2,8 +2,8 @@
 
 # test that ref counts are working properly
 fn f() {
-    var := '12'
-    abc := '13'
+    const var = '12'
+    const abc = '13'
     echo abc
 }
 

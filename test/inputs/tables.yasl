@@ -1,7 +1,7 @@
 ##{}\n{a: A}\n{a: @}\n{io: {flush: 0, seek: 1}, math: {tan: 2, sin: 1, cos: 0}}\n
 # test overwriting keys works
 
-x := {}
+let x = {}
 
 echo x
 

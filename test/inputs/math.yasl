@@ -31,5 +31,5 @@ echo math.lcm(3072, 240)
 echo math.isprime(15485867.6)
 echo math.isprime(15485869.1)
 
-x := 18408990
+const x = 18408990
 echo math.isprime(x-1) && math.isprime(x+1)

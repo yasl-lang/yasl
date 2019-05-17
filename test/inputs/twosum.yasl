@@ -5,7 +5,7 @@
  */
 
 const fn twosum(const nums, const target) {
-    x := { target - num: num for num <- nums }
+    const x = { target - num: num for num <- nums }
     for y <- nums {
         if x[y] {
             return "#{x[y]} + #{y} == #{target}"

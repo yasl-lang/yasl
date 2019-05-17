@@ -40,18 +40,18 @@ assert_output(q+echo `no escapes\a\b\f\n\r\t\v\0\'\\\\`
                +,
               'no escapes\a\b\f\n\r\t\v\0\\\'\\\\
 ', 0);
-assert_output(q+$x := 10
-                $y := 12
+assert_output(q+let $x = 10
+                let $y = 12
                 echo "$x is #{$x}, #{$y}.";+,
               "\$x is 10, 12.\n",
               0);
-assert_output(q+$x := 10
-                $y := 12
+assert_output(q+let $x = 10
+                let $y = 12
                 echo "$x is #{$x        }, #{$y}";+,
               "\$x is 10, 12\n",
               0);
-assert_output(q+$x := 10
-                $y := 12
+assert_output(q+let $x = 10
+                let $y = 12
                 echo "$x is #{$x  }#{$y}  ";+,
               "\$x is 1012  \n",
               0);
@@ -65,13 +65,13 @@ assert_output(qq"for i <- [x*2 for x <- [1, 2, 3, 4, 5, 6] if x % 2 == 0] {
                     echo i;
                  }\n",
               "4\n8\n12\n", 0);
-assert_output(qq"x := { x*2:-x for x <- [1, 2, 3, 4] if x % 2 == 0}
+assert_output(qq"let x = { x*2:-x for x <- [1, 2, 3, 4] if x % 2 == 0}
                  for i <- x {
                       echo i
                       echo x[i]
                  }\n",
               "4\n-2\n8\n-4\n", 0);
-assert_output(qq"x := { x*2:-x for x <- [1, 2, 3]}
+assert_output(qq"let x = { x*2:-x for x <- [1, 2, 3]}
                  for i <- x {
                       echo i
                       echo x[i]
@@ -118,39 +118,39 @@ assert_output("echo true ? 1 : 0\n", "1\n", 0);
 assert_output("echo false ? 1 : 0\n", "0\n", 0);
 
 # If Statements
-assert_output(qq"x := true
+assert_output(qq"let x = true
                  if x { echo 1; } else { echo 0; };",
               "1\n", 0);
-assert_output(qq"x := false
+assert_output(qq"let x = false
                  if x { echo 1; } else { echo 0; };",
               "0\n", 0);
-assert_output(qq"x := 1
+assert_output(qq"let x = 1
                  if x > 0 { echo '+'; } elseif x < 0 { echo '-'; } else { echo '0'; };",
               "+\n", 0);
-assert_output(qq"x := -1
+assert_output(qq"let x = -1
                  if x > 0 { echo '+'; } elseif x < 0 { echo '-'; } else { echo '0'; };",
               "-\n", 0);
-assert_output(qq"x := 0
+assert_output(qq"let x = 0
                  if x > 0 { echo '+'; } elseif x < 0 { echo '-'; } else { echo '0'; };",
               "0\n", 0);
 
 # While Loops
-assert_output(qq"n := 10
+assert_output(qq"let n = 10
                  while n > 0 { echo n; n -= 1; };",
               "10\n9\n8\n7\n6\n5\n4\n3\n2\n1\n", 0);
-assert_output(qq"n := 10
+assert_output(qq"let n = 10
                  while n > 0 { if n == 5 { n -= 1; continue; }; echo n; n -= 1; };",
               "10\n9\n8\n7\n6\n4\n3\n2\n1\n", 0);
-assert_output(qq"n := 10
+assert_output(qq"let n = 10
                  while n > 0 { if n == 5 { break; }; echo n; n -= 1; };",
               "10\n9\n8\n7\n6\n", 0);
 
 # Numeric For Loops
-assert_output(qq"for n := 10; n > 0; n -= 1 { echo n; };",
+assert_output(qq"for let n = 10; n > 0; n -= 1 { echo n; };",
               "10\n9\n8\n7\n6\n5\n4\n3\n2\n1\n", 0);
-assert_output(qq"for n := 10; n > 0; n -= 1 { if n == 5 { continue; }; echo n; };",
+assert_output(qq"for let n = 10; n > 0; n -= 1 { if n == 5 { continue; }; echo n; };",
               "10\n9\n8\n7\n6\n4\n3\n2\n1\n", 0);
-assert_output(qq"for n := 10; n > 0; n -= 1 { if n == 5 { break; }; echo n; };",
+assert_output(qq"for let n = 10; n > 0; n -= 1 { if n == 5 { break; }; echo n; };",
               "10\n9\n8\n7\n6\n", 0);
 
 # Iterative For Loops
@@ -168,8 +168,8 @@ assert_output(qq"for i <- 'abcdef' {
 assert_output(qq"fn add(a, b) { return a + b; }
                  echo add(10, 11);",
               "21\n", 0);
-assert_output(qq"x := 10
-                 fn add(a, b) { sum := a + b; return sum; }
+assert_output(qq"let x = 10
+                 fn add(a, b) { let sum =a + b; return sum; }
                  echo add(10, 11)
                  echo x;",
               "21\n10\n", 0);
@@ -231,54 +231,54 @@ assert_output("echo ''->rep(3)\n", "\n", 0);
 assert_output("echo ''->rep(0)\n", "\n", 0);
 
 # List Methods
-assert_output(qq"x := [0]
+assert_output(qq"let x = [0]
                  x->push(1)
                  echo x\n", "[0, 1]\n", 0);
-assert_output(qq"x := [1, 2, 3]
+assert_output(qq"let x = [1, 2, 3]
                echo x->pop()
                echo x\n", "3\n[1, 2]\n", 0);
-assert_output(qq"x := [1, 2, 3]
+assert_output(qq"let x = [1, 2, 3]
                  x->extend([4, 5, 6])
                  echo x\n", "[1, 2, 3, 4, 5, 6]\n", 0);
-assert_output(qq"x := [1, 2, 3]
+assert_output(qq"let x = [1, 2, 3]
                  echo x->search(4)\n", "undef\n", 0);
-assert_output(qq"x := [1, 2, 4]
+assert_output(qq"let x = [1, 2, 4]
                  echo x->search(4)\n", "2\n", 0);
-assert_output(qq"x := [1, 2, 3, 4, 5]
+assert_output(qq"let x = [1, 2, 3, 4, 5]
                  x->reverse()
                  echo x\n", "[5, 4, 3, 2, 1]\n", 0);
 assert_output(qq"for e <- [1, 2, 3]->copy() { echo e; };", "1\n2\n3\n", 0);
-assert_output(qq"x := [1, 2, 3]
+assert_output(qq"let x = [1, 2, 3]
                  x[1] = 0
                  echo x\n", "[1, 0, 3]\n", 0);
-assert_output(qq"x := [1, 2, 3]
+assert_output(qq"let x = [1, 2, 3]
                  echo x[0]
                  echo x[1]
                  echo x[2]\n", "1\n2\n3\n", 0);
-assert_output(qq"x := [0, 1, 2, 3, 4, 5, 6]
-                 y := x->slice(1, 5)
+assert_output(qq"let x = [0, 1, 2, 3, 4, 5, 6]
+                 let y = x->slice(1, 5)
                  echo y\n", "[1, 2, 3, 4]\n", 0);
 assert_output(qq"echo []\n", "[]\n", 0);
-assert_output(qq"x := []
+assert_output(qq"let x = []
                  x->push(x)
                  echo x
                  x->clear()\n", "[[...]]\n", 0);
-assert_output(qq"x := [1, 2, 3, [1, 2, 3]]
+assert_output(qq"let x = [1, 2, 3, [1, 2, 3]]
                  echo x->join('; ')\n", "1; 2; 3; [1, 2, 3]\n", 0);
  
 # Table Methods
-assert_output(qq"x := {1:'one', 2:'two', 3:'three'}
+assert_output(qq"let x = {1:'one', 2:'two', 3:'three'}
                  echo x->keys()\n", "[2, 1, 3]\n", 0);
-assert_output(qq"x := {1:'one', 2:'two', 3:'three'}
+assert_output(qq"let x = {1:'one', 2:'two', 3:'three'}
                  echo x->values()\n", "[two, one, three]\n", 0);
-assert_output(qq"x := { 3:'three', 1:'one', 2:'two'}
+assert_output(qq"let x = { 3:'three', 1:'one', 2:'two'}
                  x[1] = 'un'
                  echo x\n", "{2: two, 1: un, 3: three}\n", 0);
-assert_output(qq"x := {1:'one', 2:'two', 3:'three'};
+assert_output(qq"let x = {1:'one', 2:'two', 3:'three'};
                  for e <- x->copy() { echo e; echo x[e]; };", "2\ntwo\n1\none\n3\nthree\n", 0);
 assert_output(qq"echo {}\n", "{}\n", 0);
-assert_output(qq"y := []
-                 x := {}
+assert_output(qq"let y = []
+                 let x = {}
                  x.x = x
                  y->push(y)
                  y->push(x)
@@ -289,8 +289,8 @@ assert_output(qq"y := []
                  y->clear()\n", "{x: {...}, y: [[...], {...}]}\n[[...], {x: {...}, y: [...]}]\n", 0);
 
 # General
-assert_output(qq"x := []
-                 i := 0
+assert_output(qq"let x = []
+                 let i = 0
                  while i < 100000 {
                      x->push(i)
                      i += 1
@@ -298,16 +298,16 @@ assert_output(qq"x := []
               "",
               0);
 
-assert_output(qq"x := 10
-                 y := x + 10
+assert_output(qq"let x = 10
+                 let y = x + 10
                  echo x
                  echo y
                 ",
               "10\n20\n",
               0);
 
-assert_output(qq"const x := 10
-                 const y := x + 10
+assert_output(qq"const x = 10
+                 const y = x + 10
                  echo x
                  echo y
                 ",
@@ -315,12 +315,12 @@ assert_output(qq"const x := 10
               0);
 
 # Errors
-assert_output(qq"for x := 0; x < 5; x += 1 { };
+assert_output(qq"for let x = 0; x < 5; x += 1 { };
                  echo x;", $RED . "SyntaxError: Undeclared variable x (line 2).\n" . $END, 3);
-assert_output(qq"const x := 10; x = 11;", $RED . "SyntaxError: Cannot assign to constant x (line 1).\n" . $END, 3);
-assert_output(qq"const x := 10; x := 11;", $RED . "SyntaxError: Illegal redeclaration of x (line 1).\n" . $END, 3);
-assert_output(qq"x := 10; x := 11;", $RED . "SyntaxError: Illegal redeclaration of x (line 1).\n" . $END, 3);
-assert_output(q"x := [ b for b <- [1, 2, 3, 4] if b % 2 == 0 ]; echo b;",
+assert_output(qq"const x = 10; x = 11;", $RED . "SyntaxError: Cannot assign to constant x (line 1).\n" . $END, 3);
+assert_output(qq"const x = 10; let x = 11;", $RED . "SyntaxError: Illegal redeclaration of x (line 1).\n" . $END, 3);
+assert_output(qq"let x = 10; let x = 11;", $RED . "SyntaxError: Illegal redeclaration of x (line 1).\n" . $END, 3);
+assert_output(q"let x = [ b for b <- [1, 2, 3, 4] if b % 2 == 0 ]; echo b;",
               $RED . "SyntaxError: Undeclared variable b (line 1).\n" . $END, 3);
 assert_output("echo if;",
               $RED . "SyntaxError: ParsingError in line 1: expected expression, got `if`\n" . $END, 3);
