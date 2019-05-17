@@ -50,4 +50,4 @@ void gettok(Lexer *lex);
 int lex_eatinterpstringbody(Lexer *lex);
 int lex_eatfloatexp(Lexer *lex);
 
-extern const char *YASL_TOKEN_NAMES[84];
+extern const char *YASL_TOKEN_NAMES[85];
