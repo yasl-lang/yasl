@@ -368,8 +368,8 @@ int handle_escapes(Lexer *lex, size_t *i, char delim) {
 	case INTERP_STR_PLACEHOLDER:
 		(lex)->value[(*i)++] = INTERP_STR_PLACEHOLDER;
 		break;
-	case '\\':
-		(lex)->value[(*i)++] = '\\';
+	case ESCAPE_CHAR:
+		(lex)->value[(*i)++] = ESCAPE_CHAR;
 		break;
 	case 'x':
 		buffer[0] = lex_getchar(lex);
@@ -406,7 +406,7 @@ int lex_eatinterpstringbody(Lexer *lex) {
 			return 1;
 		}
 
-		if (lex->c == '\\') {
+		if (lex->c == ESCAPE_CHAR) {
 			lex_getchar(lex);
 			if (handle_escapes(lex, &i, INTERP_STR_DELIM)) return 1;
 		} else {
@@ -453,7 +453,7 @@ int lex_eatinterpstring(Lexer *lex) {
 				return 1;
 			}
 
-			if (lex->c == '\\') {
+			if (lex->c == ESCAPE_CHAR) {
 				lex_getchar(lex);
 				if (handle_escapes(lex, &i, INTERP_STR_DELIM)) return 1;
 			} else {
@@ -503,7 +503,7 @@ static int lex_eatstring(Lexer *lex) {
 				return 1;
 			}
 
-			if (lex->c == '\\') {
+			if (lex->c == ESCAPE_CHAR) {
 				lex_getchar(lex);
 				if (handle_escapes(lex, &i, STR_DELIM)) {
 					return 1;

@@ -6,6 +6,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+
 #define  ispotentialend(l) ((l)->type == T_ID || (l)->type == T_STR || \
             (l)->type == T_INT || (l)->type == T_FLOAT || (l)->type == T_BREAK || \
             (l)->type == T_CONT || (l)->type == T_RPAR || (l)->type == T_RSQB || \
@@ -22,6 +23,7 @@
 	     .mode = L_NORMAL,\
 })
 
+#define ESCAPE_CHAR '\\'
 #define STR_DELIM '\''
 #define RAW_STR_DELIM '`'
 #define INTERP_STR_DELIM '"'
