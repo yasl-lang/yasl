@@ -1,4 +1,4 @@
-##true\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\n
+##true\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\n
 
 echo 64.50 == 64.5
 echo 1_0___.5__ == 10.5
@@ -11,3 +11,6 @@ echo 1_0___.5__ == '1_0___.5__'->tofloat()
 echo 1____.6_7__8 == '1____.6_7__8'->tofloat()
 echo 1.5_ == '1.5_'->tofloat()
 echo 0__4.10__ == '0__4.10__'->tofloat()
+echo 1.0e1 == '1.0e1'->tofloat()
+echo 1.1E-1 == '1.1E-1'->tofloat()
+echo 1.2e+2 == '1.2e+2'->tofloat()

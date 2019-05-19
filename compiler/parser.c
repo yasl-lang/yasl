@@ -11,6 +11,7 @@
 #include "yasl_include.h"
 #include "compiler/lexinput.h"
 #include "parser.h"
+#include "lexer.h"
 
 static struct Node *parse_program(Parser *parser);
 static struct Node *parse_const(Parser *parser);
@@ -582,28 +583,6 @@ static double get_float(char *buffer) {
 static struct Node *parse_float(Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("%s\n", "Parsing float");
 	struct Node *cur_node = new_Float(get_float(parser->lex.value), parser->lex.line);
-	if (parser->lex.c == 'E' || parser->lex.c == 'e') {
-		lxgetc(parser->lex.file);
-		parser->lex.c = lxgetc(parser->lex.file);
-		int sign;
-		if (parser->lex.c == '-') {
-			sign = -1;
-			parser->lex.c = lxgetc(parser->lex.file);
-		} else if (parser->lex.c == '+') {
-			sign = 1;
-			parser->lex.c = lxgetc(parser->lex.file);
-		} else {
-			sign = 1;
-		}
-		lex_eatfloatexp(&parser->lex);
-		yasl_int i = get_int(parser->lex.value);
-		free(parser->lex.value);
-		eattok(parser, T_FLOAT);
-		return new_BinOp(T_STAR, cur_node,
-				 new_BinOp(T_DSTAR, new_Integer(10, parser->lex.line),
-					   new_Integer(sign * i, parser->lex.line), parser->lex.line),
-				 parser->lex.line);
-	}
 	free(parser->lex.value);
 	eattok(parser, T_FLOAT);
 	return cur_node;

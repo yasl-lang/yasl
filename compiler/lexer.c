@@ -257,7 +257,6 @@ int lex_eatnumber(Lexer *lex) {
 			do {
 				lex->value[i++] = c1;
 				lex_getchar(lex);
-				c1 = lex->c;
 				if (i == lex->val_len) {
 					lex->val_len *= 2;
 					lex->value = (char *)realloc(lex->value, lex->val_len);
@@ -265,6 +264,23 @@ int lex_eatnumber(Lexer *lex) {
 				while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
 				c1 = lex->c;
 			} while (!lxeof(lex->file) && isdigit(c1));
+
+			if (lex->c == 'e' || lex->c == 'E') {
+				lex_getchar(lex);
+				lex->value[i++] = 'e';
+				while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
+				c1 = lex->c;
+				do {
+					lex->value[i++] = c1;
+					lex_getchar(lex);
+					if (i == lex->val_len) {
+						lex->val_len *= 2;
+						lex->value = (char *)realloc(lex->value, lex->val_len);
+					}
+					while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
+					c1 = lex->c;
+				} while (!lxeof(lex->file) && isdigit(c1));
+			}
 
 			if (i == lex->val_len) lex->value = (char *)realloc(lex->value, i + 1);
 			lex->value[i] = '\0';
@@ -277,26 +293,6 @@ int lex_eatnumber(Lexer *lex) {
 		return 1;
 	}
 	return 0;
-}
-
-int lex_eatfloatexp(Lexer *lex) {
-	lex->val_len = 8;
-	lex->value = (char *)realloc(lex->value, lex->val_len);
-	size_t i = 0;
-	do {
-		lex->value[i++] = lex->c;
-		lex_getchar(lex);
-		if (i == lex->val_len) {
-			lex->val_len *= 2;
-			lex->value = (char *)realloc(lex->value, lex->val_len);
-		}
-		while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
-	} while (!lxeof(lex->file) && ((isdigit(lex->c))));
-	if (i == lex->val_len) lex->value = (char *)realloc(lex->value, i + 1);
-	lex->value[i] = '\0';
-	if (!lxeof(lex->file)) lxseek(lex->file, -1, SEEK_CUR);
-	lex->type = T_FLOAT;
-	return 1;
 }
 
 int lex_eatid(Lexer *lex) {

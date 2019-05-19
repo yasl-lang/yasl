@@ -66,19 +66,57 @@ int str_slice(struct YASL_State *S) {
 	return 0;
 }
 
-int isvaliddouble(const char *str) {
+bool isvaliddouble(const char *str) {
 	long len = strlen(str);
-	int hasdot = 0;
+	bool hasdot = false;
+	bool hase = false;
 	for (size_t i = 0; i < strlen(str); i++) {
-		if ((!isdigit(str[i]) && str[i] != '.') || (hasdot && str[i] == '.')) {
-			return 0;
+		switch (str[i]) {
+		case '0':
+		case '1':
+		case '2':
+		case '3':
+		case '4':
+		case '5':
+		case '6':
+		case '7':
+		case '8':
+		case '9':
+			break;
+		case '.':
+			if (hase || hasdot) return false;
+			hasdot = true;
+			break;
+		case 'e':
+		case 'E':
+			if (hase) return false;
+			hase = true;
+			break;
+		case '-':
+		case '+':
+			if (i > 0 && (str[i-1] == 'e' || str[i-1] == 'E')) break;
+			return false;
+		default:
+			return false;
+
 		}
-		if (str[i] == '.') hasdot = 1;
+		/*
+		if ((!isdigit(str[i]) && str[i] != '.' && str[i] != 'e' && str[i] != 'E') || (hasdot && str[i] == '.') || (hase && (str[i] == 'e' || str[i] == 'E'))) {
+			return false;
+		}
+		if (str[i] == '.') {
+			if (hase || hasdot) return false;
+			hasdot = true;
+		}
+		if (str[i] == 'e' || str[i] == 'E') {
+			if (hase) return false;
+		}
+		 */
 	}
 	return hasdot && isdigit(str[len-1]) && isdigit(str[0]);
 }
 
-double parsedouble(const char *str, int *error) {
+yasl_float parsedouble(const char *str, int *error) {
 	*error = 1;
 	if (!strcmp(str, "inf") || !strcmp(str, "+inf")) return INFINITY;
 	else if (!strcmp(str, "-inf")) return -INFINITY;
@@ -86,7 +124,8 @@ double parsedouble(const char *str, int *error) {
 		return -strtod(str+1, NULL);
 	else if (str[0] == '+' && isvaliddouble(str+1))
 		return +strtod(str+1, NULL);
-	else if (isvaliddouble(str))	return strtod(str, NULL);
+	else if (isvaliddouble(str))
+		return strtod(str, NULL);
 	*error = 0;
 	return NAN;
 }
