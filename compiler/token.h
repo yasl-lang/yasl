@@ -94,7 +94,7 @@ enum Token {
 	T_FN,
 	T_LET,
 	T_RET,
-	T_ENUM,
+	T_EXPORT,
 	T_ECHO,
 	T_LEN,
 	T_LPAR,

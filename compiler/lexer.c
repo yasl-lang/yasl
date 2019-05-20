@@ -768,6 +768,7 @@ static void YASLKeywords(Lexer *lex) {
     else if (matches_keyword(lex, "continue")) set_keyword(lex, T_CONT);
     else if (matches_keyword(lex, "else")) set_keyword(lex, T_ELSE);
     else if (matches_keyword(lex, "elseif")) set_keyword(lex, T_ELSEIF);
+    else if (matches_keyword(lex, "export")) set_keyword(lex, T_EXPORT);
     else if (matches_keyword(lex, "fn")) set_keyword(lex, T_FN);
     else if (matches_keyword(lex, "for")) set_keyword(lex, T_FOR);
     else if (matches_keyword(lex, "if")) set_keyword(lex, T_IF);
@@ -806,7 +807,7 @@ const char *YASL_TOKEN_NAMES[] = {
         "fn",           // T_FN,
 	"let",          // T_LET,
         "return",       // T_RET,
-        "enum",         // T_ENUM,
+        "export",         // T_EXPORT,
         "echo",         // T_PRINT,
         "len",
         "(",            // LPAR,
