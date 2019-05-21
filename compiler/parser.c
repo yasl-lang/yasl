@@ -119,6 +119,9 @@ static struct Node *parse_program(Parser *const parser) {
 	case T_RET:
 		eattok(parser, T_RET);
 		return new_Return(parse_expr(parser), parser->lex.line);
+	case T_EXPORT:
+		eattok(parser, T_EXPORT);
+		return new_Export(parse_expr(parser), parser->lex.line);
 	case T_CONST:
 		return parse_const(parser);
 	case T_LET:

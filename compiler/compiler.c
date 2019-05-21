@@ -472,6 +472,12 @@ static void visit_Return(struct Compiler *const compiler, const struct Node *con
 	bb_add_byte(compiler->buffer, RET);
 }
 
+static void visit_Export(struct Compiler *const compiler, const struct Node *const node) {
+	YASL_COMPILE_DEBUG_LOG("Visit Export: %s\n", node->value.sval.str);
+	visit(compiler, Export_get_expr(node));
+	bb_add_byte(compiler->buffer, EXPORT);
+}
+
 static void visit_Set(struct Compiler *const compiler, const struct Node *const node) {
 	visit(compiler, Set_get_collection(node));
 	visit(compiler, Set_get_key(node));
@@ -1004,6 +1010,7 @@ static void (*jumptable[])(struct Compiler *const, const struct Node *const) = {
 	&visit_Body,
 	&visit_FunctionDecl,
 	&visit_Return,
+	&visit_Export,
 	&visit_Call,
 	&visit_MethodCall,
 	&visit_Set,

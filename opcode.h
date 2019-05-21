@@ -52,6 +52,8 @@ enum Opcode {
 	GET             = 0x88, // gets field.
 	SLICE           = 0x8A, // slice of list or str
 
+	EXPORT          = 0x90, // export
+
 	NEWSPECIALSTR   = 0x9A, // new special string.
 	NEWSTR          = 0x9B, // make new String and push it onto stack (length (8 bytes), string (length bytes))
 	NEWTABLE        = 0x9C, // make new HashTable and push it onto stack

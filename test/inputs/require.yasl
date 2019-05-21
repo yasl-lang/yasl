@@ -1,6 +1,6 @@
 ##5\nsubmodule\n
 
-const s = require('inputs/submodule.yasl')
+const s = require('inputs/submodule.yam')
 
 echo s.add(2, 3)
 echo s.sub

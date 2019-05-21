@@ -509,6 +509,7 @@ static void (*jumptable[])(struct Node *const ) = {
 	&fold_Body,
 	NULL,
 	NULL,
+	NULL,
 	&fold_Call,
 	&fold_MethodCall,
 	&fold_Set,

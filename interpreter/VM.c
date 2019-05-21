@@ -616,6 +616,8 @@ int vm_run(struct VM *vm) {
 				  "opcode: %x\n"
 				  "vm->sp, vm->fp, vm->next_fp: %d, %d, %d\n\n", opcode, vm->sp, vm->fp, vm->next_fp);
 		switch (opcode) {
+		case EXPORT:
+			return YASL_MODULE_SUCCESS;
 		case HALT:
 			return YASL_SUCCESS;
 		case ICONST_M1:
