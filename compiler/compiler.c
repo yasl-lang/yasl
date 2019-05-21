@@ -473,6 +473,11 @@ static void visit_Return(struct Compiler *const compiler, const struct Node *con
 }
 
 static void visit_Export(struct Compiler *const compiler, const struct Node *const node) {
+	if (compiler->stack != NULL || compiler->params != NULL) {
+		YASL_PRINT_ERROR("export statement must be at top level of module. (line %zd)\n", node->line);
+		handle_error(compiler);
+		return;
+	}
 	YASL_COMPILE_DEBUG_LOG("Visit Export: %s\n", node->value.sval.str);
 	visit(compiler, Export_get_expr(node));
 	bb_add_byte(compiler->buffer, EXPORT);
