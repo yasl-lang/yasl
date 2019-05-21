@@ -202,6 +202,24 @@ static struct Node *parse_fn(Parser *const parser) {
 	char *name = parser->lex.value;
 	size_t name_len = parser->lex.val_len;
 	eattok(parser, T_ID);
+	if (TOKEN_MATCHES(parser, T_DOT)) {
+		eattok(parser, T_DOT);
+		struct Node *collection = new_Var(name, name_len, line);
+		size_t line = parser->lex.line;
+		char *name = parser->lex.value;
+		size_t name_len = parser->lex.val_len;
+		eattok(parser, T_ID);
+
+		struct Node *index = new_String(name, name_len, line);
+
+		eattok(parser, T_LPAR);
+		struct Node *block = parse_function_params(parser);
+		eattok(parser, T_RPAR);
+
+		struct Node *body = parse_body(parser);
+
+		return new_Set(collection, index, new_FnDecl(block, body, NULL, 0, parser->lex.line), line);
+	}
 	eattok(parser, T_LPAR);
 	struct Node *block = parse_function_params(parser);
 	eattok(parser, T_RPAR);
@@ -211,7 +229,6 @@ static struct Node *parse_fn(Parser *const parser) {
 	char *name2 = (char *)malloc(name_len);
 	memcpy(name2, name, name_len);
 	return new_Let(name, name_len, new_FnDecl(block, body, name2, name_len, parser->lex.line), line);
-
 }
 
 static struct Node *parse_const(Parser *const parser) {
@@ -221,9 +238,20 @@ static struct Node *parse_const(Parser *const parser) {
 	size_t name_len = parser->lex.val_len;
 	size_t line = parser->lex.line;
 	if (TOKEN_MATCHES(parser, T_FN)) {
-		struct Node *cur_node = parse_fn(parser);
-		cur_node->nodetype = N_CONST;
-		return cur_node;
+		eattok(parser, T_FN);
+		size_t line = parser->lex.line;
+		char *name = parser->lex.value;
+		size_t name_len = parser->lex.val_len;
+		eattok(parser, T_ID);
+		eattok(parser, T_LPAR);
+		struct Node *block = parse_function_params(parser);
+		eattok(parser, T_RPAR);
+
+		struct Node *body = parse_body(parser);
+
+		char *name2 = (char *)malloc(name_len);
+		memcpy(name2, name, name_len);
+		return new_Const(name, name_len, new_FnDecl(block, body, name2, name_len, parser->lex.line), line);
 	}
 	eattok(parser, T_ID);
 	eattok(parser, T_EQ);

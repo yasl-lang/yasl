@@ -386,6 +386,7 @@ static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *c
 }
 
 static void visit_FunctionDecl(struct Compiler *const compiler, const struct Node *const node) {
+	// printf("%zd\n", compiler->buffer->count);
 	if (in_function(compiler)) {
 		YASL_PRINT_ERROR_SYNTAX("Illegal function declaration outside global scope, in line %zd.\n",
 					node->line);
@@ -409,6 +410,7 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 		}
 	}
 
+	size_t old_size = compiler->buffer->count;
 	bb_add_byte(compiler->buffer, FnDecl_get_params(node)->children_len);
 	size_t index = compiler->buffer->count;
 	bb_add_byte(compiler->buffer, compiler->params->vars->count);
@@ -417,12 +419,14 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	compiler->buffer->bytes[index] = compiler->num_locals;
 
 	int64_t fn_val = compiler->header->count;
-	bb_append(compiler->header, compiler->buffer->bytes, compiler->buffer->count);
+	bb_append(compiler->header, compiler->buffer->bytes + old_size, compiler->buffer->count - old_size);
+	compiler->buffer->count = old_size;
 	bb_add_byte(compiler->header, NCONST);
 	bb_add_byte(compiler->header, RET);
 
 	// zero buffer length
-	compiler->buffer->count = 0;
+	compiler->buffer->count = old_size;
+	// compiler->buffer->count = 0;
 
 	Env_t *tmp = compiler->params->parent;
 	env_del_current_only(compiler->params);
