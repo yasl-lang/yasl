@@ -21,7 +21,7 @@ static struct Node *parse_for(Parser *parser);
 static struct Node *parse_while(Parser *parser);
 static struct Node *parse_if(Parser *parser);
 static struct Node *parse_expr(Parser *parser);
-static struct Node *parse_assign(Parser *parser);
+static struct Node *parse_assign(Parser *parser, struct Node *cur_node);
 static struct Node *parse_ternary(Parser *parser);
 static struct Node *parse_undef_or(Parser *parser);
 static struct Node *parse_or(Parser *parser);
@@ -106,6 +106,17 @@ struct Node *parse(Parser *const parser) {
 	return parse_program(parser);
 }
 
+struct Node *parse_assign_or_exprstmt(Parser *const parser) {
+	size_t line = parser->lex.line;
+	struct Node *expr = parse_expr(parser);
+
+	if (curtok(parser) == T_EQ || tok_isaugmented(curtok(parser))) {
+		return parse_assign(parser, expr);
+	}
+
+	return new_ExprStmt(expr, line);
+}
+
 static struct Node *parse_program(Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("parsing statement in line %zd\n", parser->lex.line);
 	size_t line;
@@ -148,22 +159,7 @@ static struct Node *parse_program(Parser *const parser) {
 		parser->status = parser->lex.status;
 		return NULL;
 	default:
-		line = parser->lex.line;
-		expr = parse_expr(parser);
-/*
-		if (curtok(parser) == T_COLONEQ) {
-			if (expr->nodetype != N_VAR) {
-				YASL_PRINT_ERROR_SYNTAX("Invalid lvalue in line %zd\n", parser->lex.line);
-				return handle_error(parser);
-			}
-			eattok(parser, T_COLONEQ);
-			struct Node *assign_node = new_Let(expr->value.sval.str, expr->value.sval.str_len,
-							   parse_expr(parser), line);
-			free(expr);
-			return assign_node;
-		}
-*/
-		return new_ExprStmt(expr, line);
+		return parse_assign_or_exprstmt(parser);
 	}
 }
 
@@ -305,7 +301,7 @@ static struct Node *parse_for(Parser *const parser) {
 		eattok(parser, T_SEMI);
 		struct Node *cond = parse_expr(parser);
 		eattok(parser, T_SEMI);
-		struct Node *post = parse_expr(parser);
+		struct Node *post = parse_assign_or_exprstmt(parser);
 		struct Node *body = parse_body(parser);
 		struct Node *outer_body = new_Body(parser->lex.line);
 		body_append(&outer_body, iter);
@@ -355,22 +351,22 @@ static struct Node *parse_if(Parser *const parser) {
 
 static struct Node *parse_expr(Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("%s\n", "parsing expression.");
-	struct Node *node = parse_assign(parser);
+	struct Node *node = parse_ternary(parser);
 	if (node)
 		fold(node);
 	return node;
 }
 
-static struct Node *parse_assign(Parser *const parser) {
+static struct Node *parse_assign(Parser *const parser, struct Node *cur_node) {
 	YASL_PARSE_DEBUG_LOG("parsing = in line %zd\n", parser->lex.line);
-	struct Node *cur_node = parse_ternary(parser);
+	// struct Node *cur_node = parse_ternary(parser);
 	size_t line = parser->lex.line;
 	if (curtok(parser) == T_EQ) {
 		eattok(parser, T_EQ);
 		switch (cur_node->nodetype) {
 		case N_VAR: {
 			struct Node *assign_node = new_Assign(cur_node->value.sval.str, cur_node->value.sval.str_len,
-							      parse_assign(parser), line);
+							      parse_expr(parser), line);
 			free(cur_node);
 			return assign_node;
 		}
@@ -393,7 +389,7 @@ static struct Node *parse_assign(Parser *const parser) {
 			size_t name_len = cur_node->value.sval.str_len;
 			struct Node *tmp = node_clone(cur_node);
 			free(cur_node);
-			return new_Assign(name, name_len, new_BinOp(op, tmp, parse_assign(parser), line), line);
+			return new_Assign(name, name_len, new_BinOp(op, tmp, parse_expr(parser), line), line);
 		}
 		case N_GET: {
 			struct Node *collection = cur_node->children[0];
