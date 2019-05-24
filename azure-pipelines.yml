@@ -14,7 +14,7 @@ pool:
 
 steps:
 - script:
-    apt install valgrind
+    sudo apt install valgrind
 
 - script: |
     cmake .
