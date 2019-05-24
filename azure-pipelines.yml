@@ -13,6 +13,9 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
+- script:
+    apt install valgrind
+
 - script: |
     cmake .
     make YASL
