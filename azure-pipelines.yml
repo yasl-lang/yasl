@@ -21,6 +21,3 @@ steps:
 
 - script:
     ./tests -m
-
-- script:
-    valgrind --version
