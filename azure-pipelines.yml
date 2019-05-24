@@ -20,4 +20,4 @@ steps:
     make yaslapi
 
 - script:
-    ./tests
+    ./tests -m
