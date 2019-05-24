@@ -6,11 +6,14 @@
 trigger:
 - master
 
+pr:
+- master
+
 pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-- script: pwd
+- script: ls
   displayName: 'Run a one-line script'
 
 - script: |
