@@ -22,5 +22,5 @@ steps:
 - script:
     ./tests -m
 
--script:
+- script:
     valgrind --version
