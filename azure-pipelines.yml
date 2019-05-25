@@ -18,10 +18,14 @@ jobs:
   - script: |
       cmake -G "Visual Studio 15"
       ls
+    displayName: "Generate Solution"
   - task: MSBuild@1
     inputs:
       solution: YASL.sln
     displayName: "Compile"
+  - script:
+    ./tests -m
+    displayName: "Run Tests"
 - job: 
   displayName: "C GCC Ubuntu"
   pool:
