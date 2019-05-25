@@ -1,6 +1,5 @@
 #include <yasl_state.h>
 #include <bytebuffer/bytebuffer.h>
-#include <zconf.h>
 #include "yasl-std-require.h"
 #include "yasl-std-math.h"
 #include "yasl-std-io.h"
