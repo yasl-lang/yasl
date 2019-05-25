@@ -41,8 +41,8 @@ struct Compiler {
     int status;
 };
 
-struct Compiler *compiler_new(FILE *fp);
-struct Compiler *compiler_new_bb(char *buf, int len);
-void compiler_cleanup(struct Compiler *compiler);
+struct Compiler *compiler_new(FILE *const fp);
+struct Compiler *compiler_new_bb(const char *const buf, const size_t len);
+void compiler_cleanup(struct Compiler *const compiler);
 unsigned char *compile(struct Compiler *const compiler);
 unsigned char *compile_REPL(struct Compiler *const compiler);

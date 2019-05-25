@@ -3,10 +3,10 @@
 #include "bytebuffer/bytebuffer.h"
 
 struct LEXINPUT;
-struct LEXINPUT *lexinput_new_file(FILE *lp);
-struct LEXINPUT *lexinput_new_bb(char *buf, size_t len);
-int lxgetc(struct LEXINPUT *lp);
-int lxtell(struct LEXINPUT *lp);
-int lxseek(struct LEXINPUT *lp, int w, int cmd);
-int lxclose(struct LEXINPUT *lp);
-int lxeof(struct LEXINPUT *lp);
+struct LEXINPUT *lexinput_new_file(FILE *const lp);
+struct LEXINPUT *lexinput_new_bb(const char *const buf, const size_t len);
+int lxgetc(struct LEXINPUT *const lp);
+int lxtell(struct LEXINPUT *const lp);
+int lxseek(struct LEXINPUT *const lp, const int w, const int cmd);
+int lxclose(struct LEXINPUT *const lp);
+int lxeof(struct LEXINPUT *const lp);

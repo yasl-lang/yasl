@@ -77,7 +77,7 @@ struct Compiler *compiler_new(FILE *const fp) {
 }
 
 
-struct Compiler *compiler_new_bb(char *buf, const int len) {
+struct Compiler *compiler_new_bb(const char *const buf, const size_t len) {
 	struct Compiler *compiler = (struct Compiler *)malloc(sizeof(struct Compiler));
 
 	compiler->globals = env_new(NULL);
