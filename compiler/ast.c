@@ -78,6 +78,11 @@ struct Node *new_Return(struct Node *expr, const size_t line) {
 	return new_Node_1(N_RET, T_UNKNOWN, expr, NULL, 0, line);
 }
 
+struct Node *new_Export(struct Node *expr, const size_t line) {
+	return new_Node_1(N_EXPORT, T_UNKNOWN, expr, NULL, 0, line);
+}
+
+
 struct Node *new_Call(struct Node *params, struct Node *object, const size_t line) {
 	return new_Node_2(N_CALL, T_UNKNOWN, params, object, NULL, 0, line);
 }

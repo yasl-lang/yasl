@@ -2,7 +2,7 @@
 
 # CTCI 5.4
 fn nextsmallest(n) {
-    p := 0
+    let p = 0
     while (n >> p) % 2 == 0 {
         p += 1
     }

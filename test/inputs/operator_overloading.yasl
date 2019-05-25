@@ -64,7 +64,7 @@ fn pow(a, b) {
     return a.val ** b.val;
 }
 
-x := {
+const x = {
     .__pow: pow,
     .__pos: pos,
     .__add: add,
@@ -83,7 +83,7 @@ x := {
     .__bandnot: bandnot,
     .val: 0xA1 }
 
-y := { .val: 0x0A }
+const y = { .val: 0x0A }
 
 
 

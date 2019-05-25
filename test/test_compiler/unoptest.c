@@ -17,7 +17,7 @@ static void test_neg() {
 		POP,
 		HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "x := 16; -x;");
+	ASSERT_GEN_BC_EQ(expected, "let x = 16; -x;");
 }
 
 static void test_len() {
@@ -36,7 +36,7 @@ static void test_len() {
 		POP,
 		HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "x := 'YASL'; len x;");
+	ASSERT_GEN_BC_EQ(expected, "let x = 'YASL'; len x;");
 }
 
 static void test_not() {
@@ -52,7 +52,7 @@ static void test_not() {
 		POP,
 		HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "x := true; !x;");
+	ASSERT_GEN_BC_EQ(expected, "let x = true; !x;");
 }
 
 static void test_bnot() {
@@ -68,7 +68,7 @@ static void test_bnot() {
 		POP,
 		HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "x := 0x00; ^x;");
+	ASSERT_GEN_BC_EQ(expected, "let x = 0x00; ^x;");
 }
 
 int unoptest(void) {

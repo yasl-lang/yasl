@@ -53,7 +53,7 @@ static void test_continue() {
 		0xC2, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 		HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "for i := 0; i < 10; i += 1 { if i == 5 { continue; }; echo i; };");
+	ASSERT_GEN_BC_EQ(expected, "for let i = 0; i < 10; i += 1 { if i == 5 { continue; }; echo i; };");
 }
 
 static void test_break() {
@@ -89,7 +89,7 @@ static void test_break() {
 		0xC1, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 		HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "for i := 0; i < 10; i += 1 { if i == 5 { break; }; echo i; };");
+	ASSERT_GEN_BC_EQ(expected, "for let i = 0; i < 10; i += 1 { if i == 5 { break; }; echo i; };");
 }
 
 int fortest(void) {

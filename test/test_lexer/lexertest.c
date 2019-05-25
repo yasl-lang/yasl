@@ -134,9 +134,9 @@ void test_return(void) {
     ASSERT_EATTOK(T_EOF, lex);
 }
 
-void test_enum(void) {
-    Lexer lex = setup_lexer("enum");
-    ASSERT_EATTOK(T_ENUM, lex);
+void test_export(void) {
+    Lexer lex = setup_lexer("export");
+    ASSERT_EATTOK(T_EXPORT, lex);
     ASSERT_EATTOK(T_EOF, lex);
 }
 
@@ -605,6 +605,7 @@ int lexertest(void) {
     test_const();
     test_fn();
     test_return();
+    test_export();
     test_dec();
     test_lpar();
     test_rpar();

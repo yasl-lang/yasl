@@ -218,7 +218,7 @@ void *YASL_UserData_getdata(struct YASL_Object *obj) {
     return obj->value.uval->data;
 }
 
-struct YASL_Object *YASL_LiteralString(char *str) {
+struct YASL_Object *YASL_LiteralString(const char *str) {
     return YASL_String(str_new_sized(strlen(str), str));
 }
 

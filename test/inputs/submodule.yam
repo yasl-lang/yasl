@@ -1,0 +1,9 @@
+##
+
+const sub = .submodule
+
+fn add(a, b) {
+    return a + b
+}
+
+export { .sub: sub, .add: add }

@@ -1,7 +1,7 @@
 ##
 # tests that strings are garbage collected properly
 
-x := 'x'
+let x = 'x'
 
 x = 'X'
 

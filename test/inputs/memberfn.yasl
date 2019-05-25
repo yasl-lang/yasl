@@ -1,0 +1,9 @@
+##9\n
+
+let m = {}
+
+fn m.add(a, b) {
+    return a + b
+}
+
+echo m.add(4, 5)

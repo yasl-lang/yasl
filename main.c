@@ -13,6 +13,17 @@
 #define VERSION "v0.4.3"
 #define VERSION_PRINTOUT "YASL " VERSION
 
+static int f() {
+	return 10;
+}
+
+static int load_libs(struct YASL_State *S) {
+	YASL_load_math(S);
+	YASL_load_io(S);
+	YASL_load_require(S);
+	return YASL_SUCCESS;
+}
+
 static int main_error(int argc, char **argv) {
 	printf("error: Invalid arguments passed (passed %d arguments). Type `yasl -h` for help (without the backticks).\n", argc);
 	return EXIT_FAILURE;
@@ -53,9 +64,7 @@ static int main_file(int argc, char **argv) {
 	}
 
 	// Load Standard Libraries
-	YASL_load_math(S);
-	YASL_load_io(S);
-	YASL_load_require(S);
+	load_libs(S);
 
 	int status = YASL_execute(S);
 
@@ -73,8 +82,7 @@ static int main_compile(int argc, char **argv) {
 	}
 
 	// Load Standard Libraries
-	YASL_load_math(S);
-	YASL_load_io(S);
+	load_libs(S);
 
 	int status = YASL_compile(S);
 
@@ -86,8 +94,7 @@ static int main_compile(int argc, char **argv) {
 static int main_command_REPL(int argc, char **argv) {
 	const size_t size = strlen(argv[2]);
 	struct YASL_State *S = YASL_newstate_bb(argv[2], size);
-	YASL_load_math(S);
-	YASL_load_io(S);
+	load_libs(S);
 	int status = YASL_execute_REPL(S);
 	YASL_delstate(S);
 	return status;
@@ -96,8 +103,7 @@ static int main_command_REPL(int argc, char **argv) {
 static int main_command(int argc, char **argv) {
 	const size_t size = strlen(argv[2]);
 	struct YASL_State *S = YASL_newstate_bb(argv[2], size);
-	YASL_load_math(S);
-	YASL_load_io(S);
+	load_libs(S);
 	int status = YASL_execute(S);
 	YASL_delstate(S);
 	return status;
@@ -108,8 +114,7 @@ static int main_REPL(int argc, char **argv) {
 	size_t size = 8, count = 0;
 	char *buffer = (char *)malloc(size);
 	struct YASL_State *S = YASL_newstate_bb(buffer, 0);
-	YASL_load_math(S);
-	YASL_load_io(S);
+	load_libs(S);
 	puts(VERSION_PRINTOUT);
 	while (1) {
 		printf("yasl> ");
@@ -156,7 +161,7 @@ int main(int argc, char **argv) {
 #else
 int main(int argc, char **argv) {
 	// Initialize prng seed
-	srand(time(NULL));
+	srand((unsigned)time(NULL));
 
 	if (argc == 2) {
 		return main_file(argc, argv);

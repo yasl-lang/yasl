@@ -10,8 +10,17 @@ endif()
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-unused-function -Wno-unused-result -Wno-unused-variable -Wno-unused-parameter -Wpedantic -Werror")
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-function -Wno-unused-result -Wno-unused-variable -Wno-unused-parameter -Werror")
+
+if(MSVC)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+endif()
+
+if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
+    set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-unused-function -Wno-unused-result -Wno-unused-variable -Wno-unused-parameter -Wpedantic -Werror")
+endif()
+if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
+    set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-function -Wno-unused-result -Wno-unused-variable -Wno-unused-parameter -Wno-deprecated -Werror")
+endif()
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 include_directories(.)
@@ -111,6 +120,8 @@ add_library(yaslapi
         interpreter/undef_methods.c
         prime/prime.c)
 
-target_link_libraries(YASL m)
-target_link_libraries(YASLTEST m)
-target_link_libraries(yaslapi m)
+if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
+    target_link_libraries(YASL m)
+    target_link_libraries(YASLTEST m)
+    target_link_libraries(yaslapi m)
+endif()

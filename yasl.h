@@ -137,7 +137,7 @@ struct YASL_Object *YASL_Integer(yasl_int value);
 struct YASL_Object *YASL_Undef(void);
 struct YASL_Object *YASL_Float(yasl_float value);
 struct YASL_Object *YASL_Boolean(int value);
-struct YASL_Object *YASL_LiteralString(char *str);
+struct YASL_Object *YASL_LiteralString(const char *str);
 struct YASL_Object *YASL_CString(char *str);
 struct YASL_Object *YASL_UserPointer(void *userdata);
 struct YASL_Object *YASL_UserData(void *userdata, int tag, struct Table *mt, void (*destructor)(void *));

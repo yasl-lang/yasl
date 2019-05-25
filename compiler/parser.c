@@ -11,15 +11,17 @@
 #include "yasl_include.h"
 #include "compiler/lexinput.h"
 #include "parser.h"
+#include "lexer.h"
 
 static struct Node *parse_program(Parser *parser);
 static struct Node *parse_const(Parser *parser);
+static struct Node *parse_let(Parser *parser);
 static struct Node *parse_fn(Parser *parser);
 static struct Node *parse_for(Parser *parser);
 static struct Node *parse_while(Parser *parser);
 static struct Node *parse_if(Parser *parser);
 static struct Node *parse_expr(Parser *parser);
-static struct Node *parse_assign(Parser *parser);
+static struct Node *parse_assign(Parser *parser, struct Node *cur_node);
 static struct Node *parse_ternary(Parser *parser);
 static struct Node *parse_undef_or(Parser *parser);
 static struct Node *parse_or(Parser *parser);
@@ -104,6 +106,17 @@ struct Node *parse(Parser *const parser) {
 	return parse_program(parser);
 }
 
+struct Node *parse_assign_or_exprstmt(Parser *const parser) {
+	size_t line = parser->lex.line;
+	struct Node *expr = parse_expr(parser);
+
+	if (curtok(parser) == T_EQ || tok_isaugmented(curtok(parser))) {
+		return parse_assign(parser, expr);
+	}
+
+	return new_ExprStmt(expr, line);
+}
+
 static struct Node *parse_program(Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("parsing statement in line %zd\n", parser->lex.line);
 	size_t line;
@@ -117,8 +130,13 @@ static struct Node *parse_program(Parser *const parser) {
 	case T_RET:
 		eattok(parser, T_RET);
 		return new_Return(parse_expr(parser), parser->lex.line);
+	case T_EXPORT:
+		eattok(parser, T_EXPORT);
+		return new_Export(parse_expr(parser), parser->lex.line);
 	case T_CONST:
 		return parse_const(parser);
+	case T_LET:
+		return parse_let(parser);
 	case T_FOR:
 		return parse_for(parser);
 	case T_WHILE:
@@ -141,20 +159,7 @@ static struct Node *parse_program(Parser *const parser) {
 		parser->status = parser->lex.status;
 		return NULL;
 	default:
-		line = parser->lex.line;
-		expr = parse_expr(parser);
-		if (curtok(parser) == T_COLONEQ) {
-			if (expr->nodetype != N_VAR) {
-				YASL_PRINT_ERROR_SYNTAX("Invalid lvalue in line %zd\n", parser->lex.line);
-				return handle_error(parser);
-			}
-			eattok(parser, T_COLONEQ);
-			struct Node *assign_node = new_Let(expr->value.sval.str, expr->value.sval.str_len,
-							   parse_expr(parser), line);
-			free(expr);
-			return assign_node;
-		}
-		return new_ExprStmt(expr, parser->lex.line);
+		return parse_assign_or_exprstmt(parser);
 	}
 }
 
@@ -193,6 +198,24 @@ static struct Node *parse_fn(Parser *const parser) {
 	char *name = parser->lex.value;
 	size_t name_len = parser->lex.val_len;
 	eattok(parser, T_ID);
+	if (TOKEN_MATCHES(parser, T_DOT)) {
+		eattok(parser, T_DOT);
+		struct Node *collection = new_Var(name, name_len, line);
+		size_t line = parser->lex.line;
+		char *name = parser->lex.value;
+		size_t name_len = parser->lex.val_len;
+		eattok(parser, T_ID);
+
+		struct Node *index = new_String(name, name_len, line);
+
+		eattok(parser, T_LPAR);
+		struct Node *block = parse_function_params(parser);
+		eattok(parser, T_RPAR);
+
+		struct Node *body = parse_body(parser);
+
+		return new_Set(collection, index, new_FnDecl(block, body, NULL, 0, parser->lex.line), line);
+	}
 	eattok(parser, T_LPAR);
 	struct Node *block = parse_function_params(parser);
 	eattok(parser, T_RPAR);
@@ -202,36 +225,56 @@ static struct Node *parse_fn(Parser *const parser) {
 	char *name2 = (char *)malloc(name_len);
 	memcpy(name2, name, name_len);
 	return new_Let(name, name_len, new_FnDecl(block, body, name2, name_len, parser->lex.line), line);
-
 }
 
 static struct Node *parse_const(Parser *const parser) {
-	YASL_PARSE_DEBUG_LOG("parsing let in line %zd\n", parser->lex.line);
+	YASL_PARSE_DEBUG_LOG("parsing const in line %zd\n", parser->lex.line);
 	eattok(parser, T_CONST);
 	char *name = parser->lex.value;
 	size_t name_len = parser->lex.val_len;
 	size_t line = parser->lex.line;
 	if (TOKEN_MATCHES(parser, T_FN)) {
-		struct Node *cur_node = parse_fn(parser);
-		cur_node->nodetype = N_CONST;
-		return cur_node;
+		eattok(parser, T_FN);
+		size_t line = parser->lex.line;
+		char *name = parser->lex.value;
+		size_t name_len = parser->lex.val_len;
+		eattok(parser, T_ID);
+		eattok(parser, T_LPAR);
+		struct Node *block = parse_function_params(parser);
+		eattok(parser, T_RPAR);
+
+		struct Node *body = parse_body(parser);
+
+		char *name2 = (char *)malloc(name_len);
+		memcpy(name2, name, name_len);
+		return new_Const(name, name_len, new_FnDecl(block, body, name2, name_len, parser->lex.line), line);
 	}
 	eattok(parser, T_ID);
-	eattok(parser, T_COLONEQ);
+	eattok(parser, T_EQ);
 	struct Node *expr = parse_expr(parser);
 	return new_Const(name, name_len, expr, line);
 }
 
-static struct Node *parse_let_iterate_or_let(Parser *const parser) {
+static struct Node *parse_let(Parser *const parser) {
+	YASL_PARSE_DEBUG_LOG("parsing let in line %zd\n", parser->lex.line);
+	eattok(parser, T_LET);
 	char *name = parser->lex.value;
 	size_t name_len = parser->lex.val_len;
 	size_t line = parser->lex.line;
 	eattok(parser, T_ID);
-	if (curtok(parser) == T_COLONEQ) {
-		eattok(parser, T_COLONEQ);
-		struct Node *expr = parse_expr(parser);
-		return new_Let(name, name_len, expr, line);
+	eattok(parser, T_EQ);
+	struct Node *expr = parse_expr(parser);
+	return new_Let(name, name_len, expr, line);
+}
+
+static struct Node *parse_let_iterate_or_let(Parser *const parser) {
+	if (curtok(parser) == T_LET) {
+		return parse_let(parser);
 	} else {
+		char *name = parser->lex.value;
+		size_t name_len = parser->lex.val_len;
+		size_t line = parser->lex.line;
+		eattok(parser, T_ID);
 		eattok(parser, T_LEFT_ARR);
 		struct Node *expr = parse_expr(parser);
 		return new_LetIter(new_Var(name, name_len, line), expr, line);
@@ -258,7 +301,7 @@ static struct Node *parse_for(Parser *const parser) {
 		eattok(parser, T_SEMI);
 		struct Node *cond = parse_expr(parser);
 		eattok(parser, T_SEMI);
-		struct Node *post = parse_expr(parser);
+		struct Node *post = parse_assign_or_exprstmt(parser);
 		struct Node *body = parse_body(parser);
 		struct Node *outer_body = new_Body(parser->lex.line);
 		body_append(&outer_body, iter);
@@ -308,22 +351,22 @@ static struct Node *parse_if(Parser *const parser) {
 
 static struct Node *parse_expr(Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("%s\n", "parsing expression.");
-	struct Node *node = parse_assign(parser);
+	struct Node *node = parse_ternary(parser);
 	if (node)
 		fold(node);
 	return node;
 }
 
-static struct Node *parse_assign(Parser *const parser) {
+static struct Node *parse_assign(Parser *const parser, struct Node *cur_node) {
 	YASL_PARSE_DEBUG_LOG("parsing = in line %zd\n", parser->lex.line);
-	struct Node *cur_node = parse_ternary(parser);
+	// struct Node *cur_node = parse_ternary(parser);
 	size_t line = parser->lex.line;
 	if (curtok(parser) == T_EQ) {
 		eattok(parser, T_EQ);
 		switch (cur_node->nodetype) {
 		case N_VAR: {
 			struct Node *assign_node = new_Assign(cur_node->value.sval.str, cur_node->value.sval.str_len,
-							      parse_assign(parser), line);
+							      parse_expr(parser), line);
 			free(cur_node);
 			return assign_node;
 		}
@@ -346,7 +389,7 @@ static struct Node *parse_assign(Parser *const parser) {
 			size_t name_len = cur_node->value.sval.str_len;
 			struct Node *tmp = node_clone(cur_node);
 			free(cur_node);
-			return new_Assign(name, name_len, new_BinOp(op, tmp, parse_assign(parser), line), line);
+			return new_Assign(name, name_len, new_BinOp(op, tmp, parse_expr(parser), line), line);
 		}
 		case N_GET: {
 			struct Node *collection = cur_node->children[0];
@@ -567,28 +610,6 @@ static double get_float(char *buffer) {
 static struct Node *parse_float(Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("%s\n", "Parsing float");
 	struct Node *cur_node = new_Float(get_float(parser->lex.value), parser->lex.line);
-	if (parser->lex.c == 'E' || parser->lex.c == 'e') {
-		lxgetc(parser->lex.file);
-		parser->lex.c = lxgetc(parser->lex.file);
-		int sign;
-		if (parser->lex.c == '-') {
-			sign = -1;
-			parser->lex.c = lxgetc(parser->lex.file);
-		} else if (parser->lex.c == '+') {
-			sign = 1;
-			parser->lex.c = lxgetc(parser->lex.file);
-		} else {
-			sign = 1;
-		}
-		lex_eatfloatexp(&parser->lex);
-		yasl_int i = get_int(parser->lex.value);
-		free(parser->lex.value);
-		eattok(parser, T_FLOAT);
-		return new_BinOp(T_STAR, cur_node,
-				 new_BinOp(T_DSTAR, new_Integer(10, parser->lex.line),
-					   new_Integer(sign * i, parser->lex.line), parser->lex.line),
-				 parser->lex.line);
-	}
 	free(parser->lex.value);
 	eattok(parser, T_FLOAT);
 	return cur_node;

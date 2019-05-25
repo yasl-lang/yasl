@@ -1,6 +1,6 @@
 ##{0: 1}\n
 
-hash := {0:0}
+const hash = {0:0}
 hash[0] += 1
 
 echo hash

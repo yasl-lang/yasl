@@ -157,22 +157,22 @@ int YASL_io_flush(struct YASL_State *S) {
 int YASL_load_io(struct YASL_State *S) {
 	struct YASL_Object *io = YASL_Table();
 
-	struct YASL_Object *open_str = YASL_CString("open");
+	struct YASL_Object *open_str = YASL_LiteralString("open");
 	struct YASL_Object *open_fn = YASL_CFunction(YASL_io_open, 2);
 
 	YASL_Table_set(io, open_str, open_fn);
 
-	struct YASL_Object *read_str = YASL_CString("read");
+	struct YASL_Object *read_str = YASL_LiteralString("read");
 	struct YASL_Object *read_fn = YASL_CFunction(YASL_io_read, 2);
 
 	YASL_Table_set(io, read_str, read_fn);
 
-	struct YASL_Object *write_str = YASL_CString("write");
+	struct YASL_Object *write_str = YASL_LiteralString("write");
 	struct YASL_Object *write_fn = YASL_CFunction(YASL_io_write, 2);
 
 	YASL_Table_set(io, write_str, write_fn);
 
-	struct YASL_Object *flush_str = YASL_CString("flush");
+	struct YASL_Object *flush_str = YASL_LiteralString("flush");
 	struct YASL_Object *flush_fn = YASL_CFunction(YASL_io_flush, 1);
 
 	YASL_Table_set(io, flush_str, flush_fn);

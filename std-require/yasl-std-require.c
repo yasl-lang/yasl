@@ -1,6 +1,5 @@
 #include <yasl_state.h>
 #include <bytebuffer/bytebuffer.h>
-#include <zconf.h>
 #include "yasl-std-require.h"
 #include "yasl-std-math.h"
 #include "yasl-std-io.h"
@@ -42,14 +41,22 @@ int YASL_require(struct YASL_State *S) {
 	Ss->compiler.header->count = (size_t)old_len;
 	int status = YASL_execute(Ss);
 
-	struct RC_UserData *table = Ss->vm.global_vars;
+	if (status != YASL_MODULE_SUCCESS) {
+		puts("Not a valid module");
+		return YASL_ERROR;
+	}
+	inc_ref(&vm_peek(&Ss->vm));
+	struct YASL_Object exported = vm_pop(&Ss->vm);
+
+	vm_pushundef(&Ss->vm);
+	// struct RC_UserData *table = Ss->vm.global_vars;
 	// printf("rc: %zd\n", table->rc->refs);
-	Ss->vm.global_vars = NULL;
+	// Ss->vm.global_vars = NULL;
 	// printf("%zd\n", Ss->compiler.code->count + Ss->compiler.header->count + 1);
 
 	size_t old_headers_size = S->vm.headers_size;
 	S->vm.headers_size += 1 + Ss->vm.headers_size;
-	S->vm.headers = realloc(S->vm.headers, sizeof(unsigned char *) * S->vm.headers_size);
+	S->vm.headers = (unsigned char **)realloc(S->vm.headers, sizeof(unsigned char *) * S->vm.headers_size);
 	S->vm.headers[old_headers_size++] = Ss->vm.code;
 	Ss->vm.code = NULL;
 	for (size_t i = 0; i < Ss->vm.headers_size; i++) {
@@ -74,11 +81,12 @@ int YASL_require(struct YASL_State *S) {
 	//*/
 	YASL_delstate(Ss);
 
-	vm_push(&S->vm, YASL_TABLE(table));
+	vm_push(&S->vm, exported);
+	dec_ref(&vm_peek(&S->vm));
 
 	free(mode_str);
 	// printf("rc: %zd\n", table->rc->refs);
-	return status;
+	return status == YASL_MODULE_SUCCESS ? YASL_SUCCESS : YASL_ERROR;
 
 }
 

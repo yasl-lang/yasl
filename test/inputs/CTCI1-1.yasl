@@ -2,7 +2,7 @@
 
 # CTCI 1.1
 fn unique(string) {
-    hash := {}
+    let hash = {}
     for char <- string {
         if hash[char] {
             return false

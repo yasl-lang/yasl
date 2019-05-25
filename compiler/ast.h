@@ -14,6 +14,7 @@ typedef enum NodeType {
 	N_BODY,
 	N_FNDECL,
 	N_RET,
+	N_EXPORT,
 	N_CALL,
 	N_MCALL,
 	N_SET,
@@ -82,6 +83,7 @@ for (size_t i = 0; i < (node)->children_len; i++ ) if (child = (node)->children[
 #define FnDecl_get_body(node) ((node)->children[1])
 #define Call_get_params(node) ((node)->children[0])
 #define Return_get_expr(node) ((node)->children[0])
+#define Export_get_expr(node) ((node)->children[0])
 #define Set_get_collection(node) ((node)->children[0])
 #define Set_get_key(node) ((node)->children[1])
 #define Set_get_value(node) ((node)->children[2])
@@ -100,6 +102,7 @@ struct Node *new_Block(const struct Node *const body, const size_t line);
 struct Node *new_Body(const size_t line);
 struct Node *new_FnDecl(const struct Node *const params, const struct Node *const body, char *name, size_t name_len, const size_t line);
 struct Node *new_Return(struct Node *expr, const size_t line);
+struct Node *new_Export(struct Node *expr, const size_t line);
 struct Node *new_Set(struct Node *collection, struct Node *key, struct Node *value, const size_t line);
 struct Node *new_Get(struct Node *collection, struct Node *value, const size_t line);
 struct Node *new_Slice(struct Node *collection, struct Node *start, struct Node *end, const size_t line);
