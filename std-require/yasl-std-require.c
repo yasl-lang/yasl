@@ -47,7 +47,7 @@ int YASL_require(struct YASL_State *S) {
 		return YASL_ERROR;
 	}
 	inc_ref(&vm_peek(&Ss->vm));
-	struct YASL_Object export = vm_pop(&Ss->vm);
+	struct YASL_Object exported = vm_pop(&Ss->vm);
 
 	vm_pushundef(&Ss->vm);
 	// struct RC_UserData *table = Ss->vm.global_vars;
@@ -57,7 +57,7 @@ int YASL_require(struct YASL_State *S) {
 
 	size_t old_headers_size = S->vm.headers_size;
 	S->vm.headers_size += 1 + Ss->vm.headers_size;
-	S->vm.headers = realloc(S->vm.headers, sizeof(unsigned char *) * S->vm.headers_size);
+	S->vm.headers = (unsigned char **)realloc(S->vm.headers, sizeof(unsigned char *) * S->vm.headers_size);
 	S->vm.headers[old_headers_size++] = Ss->vm.code;
 	Ss->vm.code = NULL;
 	for (size_t i = 0; i < Ss->vm.headers_size; i++) {
@@ -82,7 +82,7 @@ int YASL_require(struct YASL_State *S) {
 	//*/
 	YASL_delstate(Ss);
 
-	vm_push(&S->vm, export);
+	vm_push(&S->vm, exported);
 	dec_ref(&vm_peek(&S->vm));
 
 	free(mode_str);
