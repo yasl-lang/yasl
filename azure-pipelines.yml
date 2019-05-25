@@ -28,6 +28,24 @@ jobs:
       ./tests
     displayName: "Run Tests"
 - job: 
+  displayName: "C Clang Ubuntu"
+  pool:
+    vmImage: 'ubuntu-latest'
+  steps:
+  - script:
+      sudo apt install valgrind
+    displayName: "Install Valgrind"  
+  - script: |
+      export CC=clang
+      cmake .
+      make YASL
+      make YASLTEST
+      make yaslapi
+    displayName: "Compile"
+  - script:
+      ./tests
+    displayName: "Run Tests"
+- job: 
   displayName: "C++ GCC Ubuntu"
   pool:
     vmImage: 'ubuntu-latest'
