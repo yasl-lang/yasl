@@ -275,84 +275,84 @@ int YASL_math_rand(struct YASL_State *S) {
 int YASL_load_math(struct YASL_State *S) {
 	struct YASL_Object *math = YASL_Table();
 
-	struct YASL_Object *abs_str = YASL_CString("abs");
+	struct YASL_Object *abs_str = YASL_LiteralString("abs");
 	struct YASL_Object *abs_fn = YASL_CFunction(YASL_math_abs, 1);
 	YASL_Table_set(math, abs_str, abs_fn);
 
-	struct YASL_Object *exp_str = YASL_CString("exp");
+	struct YASL_Object *exp_str = YASL_LiteralString("exp");
 	struct YASL_Object *exp_fn = YASL_CFunction(YASL_math_exp, 1);
 	YASL_Table_set(math, exp_str, exp_fn);
 
-	struct YASL_Object *log_str = YASL_CString("log");
+	struct YASL_Object *log_str = YASL_LiteralString("log");
 	struct YASL_Object *log_fn = YASL_CFunction(YASL_math_log, 1);
 	YASL_Table_set(math, log_str, log_fn);
 
-	struct YASL_Object *pi_str = YASL_CString("pi");
+	struct YASL_Object *pi_str = YASL_LiteralString("pi");
 	struct YASL_Object *pi_val = (struct YASL_Object *)malloc(sizeof(struct YASL_Object));
 	pi_val->type = Y_FLOAT;
 	pi_val->value.dval = YASL_PI;
 	YASL_Table_set(math, pi_str, pi_val);
 
-	struct YASL_Object *nan_str = YASL_CString("nan");
+	struct YASL_Object *nan_str = YASL_LiteralString("nan");
 	struct YASL_Object *nan_val = (struct YASL_Object *)malloc(sizeof(struct YASL_Object));
 	nan_val->type = Y_FLOAT;
 	nan_val->value.dval = YASL_NAN;
 	YASL_Table_set(math, nan_str, nan_val);
 
-	struct YASL_Object *inf_str = YASL_CString("inf");
+	struct YASL_Object *inf_str = YASL_LiteralString("inf");
 	struct YASL_Object *inf_val = (struct YASL_Object *)malloc(sizeof(struct YASL_Object));
 	inf_val->type = Y_FLOAT;
 	inf_val->value.dval = YASL_INF;
 	YASL_Table_set(math, inf_str, inf_val);
 
-	struct YASL_Object *sqrt_str = YASL_CString("sqrt");
+	struct YASL_Object *sqrt_str = YASL_LiteralString("sqrt");
 	struct YASL_Object *sqrt_fn = YASL_CFunction(YASL_math_sqrt, 1);
 	YASL_Table_set(math, sqrt_str, sqrt_fn);
 
-	struct YASL_Object *cos_str = YASL_CString("cos");
+	struct YASL_Object *cos_str = YASL_LiteralString("cos");
 	struct YASL_Object *cos_fn = YASL_CFunction(YASL_math_cos, 1);
 	YASL_Table_set(math, cos_str, cos_fn);
-	struct YASL_Object *sin_str = YASL_CString("sin");
+	struct YASL_Object *sin_str = YASL_LiteralString("sin");
 	struct YASL_Object *sin_fn = YASL_CFunction(YASL_math_sin, 1);
 	YASL_Table_set(math, sin_str, sin_fn);
-	struct YASL_Object *tan_str = YASL_CString("tan");
+	struct YASL_Object *tan_str = YASL_LiteralString("tan");
 	struct YASL_Object *tan_fn = YASL_CFunction(YASL_math_tan, 1);
 	YASL_Table_set(math, tan_str, tan_fn);
-	struct YASL_Object *acos_str = YASL_CString("acos");
+	struct YASL_Object *acos_str = YASL_LiteralString("acos");
 	struct YASL_Object *acos_fn = YASL_CFunction(YASL_math_acos, 1);
 	YASL_Table_set(math, acos_str, acos_fn);
-	struct YASL_Object *asin_str = YASL_CString("asin");
+	struct YASL_Object *asin_str = YASL_LiteralString("asin");
 	struct YASL_Object *asin_fn = YASL_CFunction(YASL_math_asin, 1);
 	YASL_Table_set(math, asin_str, asin_fn);
-	struct YASL_Object *atan_str = YASL_CString("atan");
+	struct YASL_Object *atan_str = YASL_LiteralString("atan");
 	struct YASL_Object *atan_fn = YASL_CFunction(YASL_math_atan, 1);
 	YASL_Table_set(math, atan_str, atan_fn);
 
-	struct YASL_Object *ceil_str = YASL_CString("ceil");
+	struct YASL_Object *ceil_str = YASL_LiteralString("ceil");
 	struct YASL_Object *ceil_fn = YASL_CFunction(YASL_math_ceil, 1);
 	YASL_Table_set(math, ceil_str, ceil_fn);
-	struct YASL_Object *floor_str = YASL_CString("floor");
+	struct YASL_Object *floor_str = YASL_LiteralString("floor");
 	struct YASL_Object *floor_fn = YASL_CFunction(YASL_math_floor, 1);
 	YASL_Table_set(math, floor_str, floor_fn);
 
-	struct YASL_Object *deg_str = YASL_CString("deg");
+	struct YASL_Object *deg_str = YASL_LiteralString("deg");
 	struct YASL_Object *deg_fn = YASL_CFunction(YASL_math_deg, 1);
 	YASL_Table_set(math, deg_str, deg_fn);
-	struct YASL_Object *rad_str = YASL_CString("rad");
+	struct YASL_Object *rad_str = YASL_LiteralString("rad");
 	struct YASL_Object *rad_fn = YASL_CFunction(YASL_math_rad, 1);
 	YASL_Table_set(math, rad_str, rad_fn);
 
-	struct YASL_Object *isprime_str = YASL_CString("isprime");
+	struct YASL_Object *isprime_str = YASL_LiteralString("isprime");
 	struct YASL_Object *isprime_fn = YASL_CFunction(YASL_math_isprime, 1);
 	YASL_Table_set(math, isprime_str, isprime_fn);
-	struct YASL_Object *gcd_str = YASL_CString("gcd");
+	struct YASL_Object *gcd_str = YASL_LiteralString("gcd");
 	struct YASL_Object *gcd_fn = YASL_CFunction(YASL_math_gcd, 2);
 	YASL_Table_set(math, gcd_str, gcd_fn);
-	struct YASL_Object *lcm_str = YASL_CString("lcm");
+	struct YASL_Object *lcm_str = YASL_LiteralString("lcm");
 	struct YASL_Object *lcm_fn = YASL_CFunction(YASL_math_lcm, 2);
 	YASL_Table_set(math, lcm_str, lcm_fn);
 
-	struct YASL_Object *rand_str = YASL_CString("rand");
+	struct YASL_Object *rand_str = YASL_LiteralString("rand");
 	struct YASL_Object *rand_fn = YASL_CFunction(YASL_math_rand, 1);
 	YASL_Table_set(math, rand_str, rand_fn);
 
