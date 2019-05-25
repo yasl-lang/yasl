@@ -89,9 +89,6 @@ jobs:
   pool:
     vmImage: 'macOS-10.14'
   steps:
-  - script:
-      sudo apt install valgrind
-    displayName: "Install Valgrind"  
   - script: |
       export CC=clang
       export CXX=clang++
@@ -101,5 +98,5 @@ jobs:
       make yaslapi
     displayName: "Compile"
   - script:
-      ./tests
+      ./tests -m
     displayName: "Run Tests"  
