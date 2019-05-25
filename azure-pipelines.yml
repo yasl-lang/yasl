@@ -9,18 +9,39 @@ trigger:
 pr:
 - master
 
-pool:
-  vmImage: 'ubuntu-latest'
-
-steps:
-- script:
-    sudo apt install valgrind
-
-- script: |
-    cmake .
-    make YASL
-    make YASLTEST
-    make yaslapi
-
-- script:
-    ./tests
+jobs:
+- job: 
+  displayName: "C GCC Ubuntu"
+  pool:
+    vmImage: 'ubuntu-latest'
+  steps:
+  - script:
+      sudo apt install valgrind
+    displayName: "Install Valgrind"  
+  - script: |
+      cmake .
+      make YASL
+      make YASLTEST
+      make yaslapi
+    displayName: "Compile"
+  - script:
+      ./tests
+    displayName: "Run Tests"
+- job: 
+  displayName: "C++ GCC Ubuntu"
+  pool:
+    vmImage: 'ubuntu-latest'
+  steps:
+  - script:
+      sudo apt install valgrind
+    displayName: "Install Valgrind"  
+  - script: |
+      cmake -Dcpp=true
+      cmake .
+      make YASL
+      make YASLTEST
+      make yaslapi
+    displayName: "Compile"
+  - script:
+      ./tests
+    displayName: "Run Tests"  
