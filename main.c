@@ -13,6 +13,10 @@
 #define VERSION "v0.4.3"
 #define VERSION_PRINTOUT "YASL " VERSION
 
+static int f() {
+	return 10;
+}
+
 static int load_libs(struct YASL_State *S) {
 	YASL_load_math(S);
 	YASL_load_io(S);
