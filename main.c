@@ -161,7 +161,7 @@ int main(int argc, char **argv) {
 #else
 int main(int argc, char **argv) {
 	// Initialize prng seed
-	srand(time(NULL));
+	srand((unsigned)time(NULL));
 
 	if (argc == 2) {
 		return main_file(argc, argv);
