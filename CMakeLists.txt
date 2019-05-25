@@ -115,6 +115,8 @@ add_library(yaslapi
         interpreter/undef_methods.c
         prime/prime.c)
 
-target_link_libraries(YASL m)
-target_link_libraries(YASLTEST m)
-target_link_libraries(yaslapi m)
+if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
+    target_link_libraries(YASL m)
+    target_link_libraries(YASLTEST m)
+    target_link_libraries(yaslapi m)
+endif()
