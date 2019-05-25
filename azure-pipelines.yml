@@ -15,9 +15,9 @@ jobs:
   pool:
     vmImage: 'vs2017-win2016'
   steps:
-  - script: |
-      cmake -G "Visual Studio 15"
-      ls
+  - script:
+      cmake -G "Visual Studio 15" .
+    displayName: "Generate Solution"  
   - task: MSBuild@1
     inputs:
       solution: YASL.sln
