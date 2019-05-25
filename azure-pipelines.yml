@@ -9,11 +9,10 @@ trigger:
 pr:
 - master
 
-jobs:
-- pool:
+pool:
     vmImage: 'ubuntu-latest'
     
-  steps:
+steps:
   - script:
     sudo apt install valgrind
     
