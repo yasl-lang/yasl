@@ -11,6 +11,18 @@ pr:
 
 jobs:
 - job: 
+  displayName: "C MSVC Windows"
+  pool:
+    vmImage: 'vs2017-win2016'
+  steps:
+  - script: |
+      cmake -G "Visual Studio 15"
+      ls
+  - task: MSBuild@1
+    inputs:
+      solution: YASL.sln
+    displayName: "Compile"
+- job: 
   displayName: "C GCC Ubuntu"
   pool:
     vmImage: 'ubuntu-latest'
