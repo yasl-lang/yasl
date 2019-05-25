@@ -717,174 +717,194 @@ static void set_keyword(Lexer *lex, enum Token type) {
 }
 
 static void YASLKeywords(Lexer *lex) {
-    /* keywords:
-     *  let
-     *  print
-     *  if
-     *  in
-     *  elseif
-     *  else
-     *  while
-     *  for
-     *  break
-     *  continue
-     *  true
-     *  false
-     *  or
-     *  and
-     *  undef
-     *  fn
-     *  return
-     */
+	/* keywords:
+	 *  let
+	 *  print
+	 *  if
+	 *  in
+	 *  elseif
+	 *  else
+	 *  while
+	 *  for
+	 *  break
+	 *  continue
+	 *  true
+	 *  false
+	 *  or
+	 *  and
+	 *  undef
+	 *  fn
+	 *  return
+	 */
 
-    if (matches_keyword(lex, "enum")) {
-        YASL_PRINT_ERROR_SYNTAX("enum is an unused reserved word and cannot be used (line %zd).\n", lex->line);
-        lex_error(lex);
-        return;
-    } else if (matches_keyword(lex, "yield")) {
-        YASL_PRINT_ERROR_SYNTAX("yield is an unused reserved word and cannot be used (line %zd).\n", lex->line);
-        lex_error(lex);
-        return;
-    } else if (matches_keyword(lex, "do")) {
-        YASL_PRINT_ERROR_SYNTAX("do is an unused reserved word and cannot be used (line %zd).\n", lex->line);
-        lex_error(lex);
-        return;
-    } else if (matches_keyword(lex, "use")) {
-        YASL_PRINT_ERROR_SYNTAX("use is an unused reserved word and cannot be used (line %zd).\n", lex->line);
-        lex_error(lex);
-        return;
-    } else if (matches_keyword(lex, "no")) {
-        YASL_PRINT_ERROR_SYNTAX("no is an unused reserved word and cannot be used (line %zd).\n", lex->line);
-        lex_error(lex);
-        return;
-    } /*else if (matches_keyword(lex, "require")) {
-        YASL_PRINT_ERROR_SYNTAX("require is an unused reserved word and cannot be used (line %zd).\n", lex->line);
-        lex_error(lex);
-        return;
-    } */
+	if (matches_keyword(lex, "enum")) {
+		YASL_PRINT_ERROR_SYNTAX("enum is an unused reserved word and cannot be used (line %zd).\n", lex->line);
+		lex_error(lex);
+		return;
+	} else if (matches_keyword(lex, "yield")) {
+		YASL_PRINT_ERROR_SYNTAX("yield is an unused reserved word and cannot be used (line %zd).\n", lex->line);
+		lex_error(lex);
+		return;
+	} else if (matches_keyword(lex, "do")) {
+		YASL_PRINT_ERROR_SYNTAX("do is an unused reserved word and cannot be used (line %zd).\n", lex->line);
+		lex_error(lex);
+		return;
+	} else if (matches_keyword(lex, "use")) {
+		YASL_PRINT_ERROR_SYNTAX("use is an unused reserved word and cannot be used (line %zd).\n", lex->line);
+		lex_error(lex);
+		return;
+	} else if (matches_keyword(lex, "no")) {
+		YASL_PRINT_ERROR_SYNTAX("no is an unused reserved word and cannot be used (line %zd).\n", lex->line);
+		lex_error(lex);
+		return;
+	} else if (matches_keyword(lex, "pure")) {
+		YASL_PRINT_ERROR_SYNTAX("yield is an unused reserved word and cannot be used (line %zd).\n", lex->line);
+		lex_error(lex);
+		return;
+	} else if (matches_keyword(lex, "consteval")) {
+		YASL_PRINT_ERROR_SYNTAX("consteval is an unused reserved word and cannot be used (line %zd).\n",
+					lex->line);
+		lex_error(lex);
+		return;
+	} else if (matches_keyword(lex, "constexpr")) {
+		YASL_PRINT_ERROR_SYNTAX("constexpr is an unused reserved word and cannot be used (line %zd).\n",
+					lex->line);
+		lex_error(lex);
+		return;
+	} else if (matches_keyword(lex, "constfold")) {
+		YASL_PRINT_ERROR_SYNTAX("constfold is an unused reserved word and cannot be used (line %zd).\n",
+					lex->line);
+		lex_error(lex);
+		return;
+	} else if (matches_keyword(lex, "extern")) {
+		YASL_PRINT_ERROR_SYNTAX("extern is an unused reserved word and cannot be used (line %zd).\n",
+					lex->line);
+		lex_error(lex);
+		return;
+	}
 
-    if (matches_keyword(lex, "break")) set_keyword(lex, T_BREAK);
-    else if (matches_keyword(lex, "const")) set_keyword(lex, T_CONST);
-    else if (matches_keyword(lex, "continue")) set_keyword(lex, T_CONT);
-    else if (matches_keyword(lex, "else")) set_keyword(lex, T_ELSE);
-    else if (matches_keyword(lex, "elseif")) set_keyword(lex, T_ELSEIF);
-    else if (matches_keyword(lex, "export")) set_keyword(lex, T_EXPORT);
-    else if (matches_keyword(lex, "fn")) set_keyword(lex, T_FN);
-    else if (matches_keyword(lex, "for")) set_keyword(lex, T_FOR);
-    else if (matches_keyword(lex, "if")) set_keyword(lex, T_IF);
-    else if (matches_keyword(lex, "in")) set_keyword(lex, T_IN);
-    else if (matches_keyword(lex, "echo")) set_keyword(lex, T_ECHO);
-    else if (matches_keyword(lex, "let")) set_keyword(lex, T_LET);
-    else if (matches_keyword(lex, "return")) set_keyword(lex, T_RET);
-    else if (matches_keyword(lex, "undef")) set_keyword(lex, T_UNDEF);
-    else if (matches_keyword(lex, "while")) set_keyword(lex, T_WHILE);
-    else if (matches_keyword(lex, "len")) set_keyword(lex, T_LEN);
-    // NOTE: special case for bools and floats
-    // else if (matches_keyword(lex, "nan") || matches_keyword(lex, "inf")) lex->type = T_FLOAT;
-    else if (matches_keyword(lex, "true") || matches_keyword(lex, "false")) lex->type = T_BOOL;
+	if (matches_keyword(lex, "break")) set_keyword(lex, T_BREAK);
+	else if (matches_keyword(lex, "const")) set_keyword(lex, T_CONST);
+	else if (matches_keyword(lex, "continue")) set_keyword(lex, T_CONT);
+	else if (matches_keyword(lex, "else")) set_keyword(lex, T_ELSE);
+	else if (matches_keyword(lex, "elseif")) set_keyword(lex, T_ELSEIF);
+	else if (matches_keyword(lex, "export")) set_keyword(lex, T_EXPORT);
+	else if (matches_keyword(lex, "fn")) set_keyword(lex, T_FN);
+	else if (matches_keyword(lex, "for")) set_keyword(lex, T_FOR);
+	else if (matches_keyword(lex, "if")) set_keyword(lex, T_IF);
+	else if (matches_keyword(lex, "in")) set_keyword(lex, T_IN);
+	else if (matches_keyword(lex, "echo")) set_keyword(lex, T_ECHO);
+	else if (matches_keyword(lex, "let")) set_keyword(lex, T_LET);
+	else if (matches_keyword(lex, "return")) set_keyword(lex, T_RET);
+	else if (matches_keyword(lex, "undef")) set_keyword(lex, T_UNDEF);
+	else if (matches_keyword(lex, "while")) set_keyword(lex, T_WHILE);
+	else if (matches_keyword(lex, "len")) set_keyword(lex, T_LEN);
+		// NOTE: special case for bools and floats
+		// else if (matches_keyword(lex, "nan") || matches_keyword(lex, "inf")) lex->type = T_FLOAT;
+	else if (matches_keyword(lex, "true") || matches_keyword(lex, "false")) lex->type = T_BOOL;
 }
 
 // Note: keep in sync with token.h
 const char *YASL_TOKEN_NAMES[] = {
-        "END OF FILE",  // T_EOF,
-        ";",            // T_SEMI,
-        "undef",        // T_UNDEF,
-        "float",        // T_FLOAT,
-        "int",          // T_INT,
-        "bool",         // T_BOOL,
-        "str",          // T_STR,
-        "if",           // T_IF,
-        "elseif",       // T_ELSEIF,
-        "else",         // T_ELSE,
-        "while",        // T_WHILE,
-        "break",        // T_BREAK,
-        "continue",     // T_CONT,
-        "for",          // T_FOR,
-        "in",           // T_IN
-        "!in",          // T_BANGIN,
-        "id",           // T_ID,
-        "const",        // T_CONST,
-        "fn",           // T_FN,
+	"END OF FILE",  // T_EOF,
+	";",            // T_SEMI,
+	"undef",        // T_UNDEF,
+	"float",        // T_FLOAT,
+	"int",          // T_INT,
+	"bool",         // T_BOOL,
+	"str",          // T_STR,
+	"if",           // T_IF,
+	"elseif",       // T_ELSEIF,
+	"else",         // T_ELSE,
+	"while",        // T_WHILE,
+	"break",        // T_BREAK,
+	"continue",     // T_CONT,
+	"for",          // T_FOR,
+	"in",           // T_IN
+	"!in",          // T_BANGIN,
+	"id",           // T_ID,
+	"const",        // T_CONST,
+	"fn",           // T_FN,
 	"let",          // T_LET,
-        "return",       // T_RET,
-        "export",         // T_EXPORT,
-        "echo",         // T_PRINT,
-        "len",
-        "(",            // LPAR,
-        ")",            // RPAR,
-        "[",            // LSQB,
-        "]",            // RSQB,
-        "{",            // LBRC,
-        "}",            // RBRC,
-        ".",            // DOT,
-        ",",            // COMMA,
-        "^",            // CARET,
-        "^=",           //CARETEQ,
-        "+",            // PLUS,
-        "+=",           // PLUSEQ,
-        "-",            // MINUS,
-        "-=",           // MINUSEQ,
-        "#",            // HASH,
-        "@",            // AT,
-        "!",            // BANG,
-        "!=",           // BANGEQ,
-        "!==",          // BANGDEQ,
-        "!~",           // BANGTILDE,
-        "~",            // TILDE,
-        "~=",           // TILDEEQ,
-        "*",            // STAR,
-        "*=",           // STAREQ,
-        "**",           // DSTAR,
-        "**=",          // DSTAREQ,
-        "/",            // SLASH,
-        "/=",           // SLASHEQ,
-        "//",           // DSLASH,
-        "//=",          // DSLASHEQ,
-        "%",            // MOD,
-        "%=",           // MODEQ,
-        "<",            // LT,
-        "<=",           // LTEQ,
-        "<<",           // DLT,
-        "<<=",          // DLTEQ,
-        ">",            // GT,
-        ">=",           // GTEQ,
-        ">>",           // DGT,
-        ">>=",          // DGTEQ,
-        "=",            // EQ,
-        "==",           // DEQ,
-        "===",          // TEQ,
-        "=~",           // EQTILDE,
-        "&",            // AMP,
-        "&=",           // AMPEQ,
-        "&&",           // DAMP,
-        "&&=",          // DAMPEQ,
-        "&^",           // AMPCARET,
-        "&^=",          // AMPCARETEQ,
-        "|",            // BAR,
-        "|=",           // BAREQ,
-        "||",           // DBAR,
-        "||=",          // DBAREQ,
-        "?",            // QMARK,
-        "??",           // DQMARK,
-        "?\?=",         // DQMARKEQ,
-        ":",            // COLON,
-        ":=",           // COLONEQ
-        "->",           // RIGHT_ARR
-        "<-",           // LEFT_ARR
+	"return",       // T_RET,
+	"export",         // T_EXPORT,
+	"echo",         // T_PRINT,
+	"len",
+	"(",            // LPAR,
+	")",            // RPAR,
+	"[",            // LSQB,
+	"]",            // RSQB,
+	"{",            // LBRC,
+	"}",            // RBRC,
+	".",            // DOT,
+	",",            // COMMA,
+	"^",            // CARET,
+	"^=",           //CARETEQ,
+	"+",            // PLUS,
+	"+=",           // PLUSEQ,
+	"-",            // MINUS,
+	"-=",           // MINUSEQ,
+	"#",            // HASH,
+	"@",            // AT,
+	"!",            // BANG,
+	"!=",           // BANGEQ,
+	"!==",          // BANGDEQ,
+	"!~",           // BANGTILDE,
+	"~",            // TILDE,
+	"~=",           // TILDEEQ,
+	"*",            // STAR,
+	"*=",           // STAREQ,
+	"**",           // DSTAR,
+	"**=",          // DSTAREQ,
+	"/",            // SLASH,
+	"/=",           // SLASHEQ,
+	"//",           // DSLASH,
+	"//=",          // DSLASHEQ,
+	"%",            // MOD,
+	"%=",           // MODEQ,
+	"<",            // LT,
+	"<=",           // LTEQ,
+	"<<",           // DLT,
+	"<<=",          // DLTEQ,
+	">",            // GT,
+	">=",           // GTEQ,
+	">>",           // DGT,
+	">>=",          // DGTEQ,
+	"=",            // EQ,
+	"==",           // DEQ,
+	"===",          // TEQ,
+	"=~",           // EQTILDE,
+	"&",            // AMP,
+	"&=",           // AMPEQ,
+	"&&",           // DAMP,
+	"&&=",          // DAMPEQ,
+	"&^",           // AMPCARET,
+	"&^=",          // AMPCARETEQ,
+	"|",            // BAR,
+	"|=",           // BAREQ,
+	"||",           // DBAR,
+	"||=",          // DBAREQ,
+	"?",            // QMARK,
+	"??",           // DQMARK,
+	"?\?=",         // DQMARKEQ,
+	":",            // COLON,
+	":=",           // COLONEQ
+	"->",           // RIGHT_ARR
+	"<-",           // LEFT_ARR
 };
 
 Lexer *lex_new(FILE *file /* OWN */) {
-    Lexer *lex = (Lexer *)malloc(sizeof(Lexer));
-    lex->line = 1;
-    lex->value = NULL;
-    lex->val_len = 0;
-    lex->file = lexinput_new_file(file);
-    lex->type = T_UNKNOWN;
-    lex->status = YASL_SUCCESS;
-    lex->mode = L_NORMAL;
-    return lex;
+	Lexer *lex = (Lexer *) malloc(sizeof(Lexer));
+	lex->line = 1;
+	lex->value = NULL;
+	lex->val_len = 0;
+	lex->file = lexinput_new_file(file);
+	lex->type = T_UNKNOWN;
+	lex->status = YASL_SUCCESS;
+	lex->mode = L_NORMAL;
+	return lex;
 }
 
 void lex_cleanup(Lexer *lex) {
-    lxclose(lex->file);
+	lxclose(lex->file);
 }
