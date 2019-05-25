@@ -15,16 +15,13 @@ jobs:
   pool:
     vmImage: 'vs2017-win2016'
   steps:
-  - script: |
+  - script:
       cmake -G "Visual Studio 15"
-      ls
+    displayName "Generate Solution"  
   - task: MSBuild@1
     inputs:
       solution: YASL.sln
     displayName: "Compile"
-  - script:
-      ./tests
-    displayName: "Run Tests"
 - job: 
   displayName: "C GCC Ubuntu"
   pool:
