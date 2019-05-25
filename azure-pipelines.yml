@@ -14,13 +14,13 @@ pool:
     
 steps:
   - script:
-    sudo apt install valgrind
+      sudo apt install valgrind
     
   - script: |
-    cmake .
-    make YASL
-    make YASLTEST
-    make yaslapi
+      cmake .
+      make YASL
+      make YASLTEST
+      make yaslapi
   
   - script:
-    ./tests
+      ./tests
