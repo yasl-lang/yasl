@@ -10,13 +10,7 @@
 #include "VM.h"
 
 void yasl_print(struct VM* vm) {
-	if (!YASL_ISSTR(VM_PEEK(vm, vm->sp))) {
-		YASL_Types index = vm_peek(vm).type;
-		struct YASL_Object key = YASL_STR(str_new_sized(strlen("tostr"), "tostr"));
-		struct YASL_Object result = table_search(vm->builtins_htable[index], key);
-		str_del(YASL_GETSTR(key));
-		YASL_GETCFN(result)->value((struct YASL_State *) vm);
-	}
+	vm_stringify_top(vm);
 	struct YASL_Object v = vm_pop(vm);
 	for (int64_t i = 0; i < yasl_string_len(YASL_GETSTR(v)); i++) {
 		printf("%c", YASL_GETSTR(v)->str[i + YASL_GETSTR(v)->start]);
