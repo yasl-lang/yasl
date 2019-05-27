@@ -25,7 +25,7 @@ sub assert_output {
     return $exitcode;
 }
 
-my $branch =  `git --version`; #`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'`;
+my $branch =  `git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ \1/'`;
 if ($branch ne 'master') {
     assert_output("YASL -V", "YASL " . $branch . "\n", 0);
 }
