@@ -1,44 +1,41 @@
-#include "hashtable/hashtable.h"
+#include "hashtable.h"
+
+#include <interpreter/YASL_Object.h>
+#include <interpreter/YASL_string.h>
+#include "interpreter/refcount.h"
 
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include <stdio.h>
-#include <interpreter/YASL_Object.h>
-#include <interpreter/YASL_string.h>
-
-//#include "YASL_Object.h"
-//#include "YASL_string.h"
-#include "interpreter/refcount.h"
-
 #define HT_BASESIZE 30
 
-static int hash_function(const struct YASL_Object s, const int a, const int m) {
-	long hash = 0;
+static size_t hash_function(const struct YASL_Object s, const size_t a, const size_t m) {
+	size_t hash = 0;
 	if (YASL_ISSTR(s)) {
 		const int64_t len_s = yasl_string_len(s.value.sval);
-		for (int i = 0; i < len_s; i++) {
+		for (int64_t i = 0; i < len_s; i++) {
 			hash = (hash * a) ^ (s.value.sval->str + s.value.sval->start)[i];
 			hash %= m;
 		}
-		return (int) hash;
+		return (size_t) hash;
 	} else {
-		long ll = s.value.ival & 0xFFFF;
-		long lu = (s.value.ival & 0xFFFF0000) >> 16;
-		long ul = (s.value.ival & 0xFFFF00000000) >> 32;
-		long uu = (s.value.ival & 0xFFFF000000000000) >> 48;
-		return (int) (((long) a * ll * ll * ll * ll ^ a * a * lu * lu * lu ^ a * a * a * ul * ul ^
+		int64_t ll = s.value.ival & 0xFFFF;
+		int64_t lu = (s.value.ival & 0xFFFF0000) >> 16;
+		int64_t ul = (s.value.ival & 0xFFFF00000000) >> 32;
+		int64_t uu = (s.value.ival & 0xFFFF000000000000) >> 48;
+		return (size_t) (((size_t) a * ll * ll * ll * ll ^ a * a * lu * lu * lu ^ a * a * a * ul * ul ^
 			       a * a * a * a * uu) % m);
 	}
 }
 
-static unsigned int get_hash(const struct YASL_Object s, const int num_buckets, const int attempt) {
-	const int hash_a = hash_function(s, PRIME_A, num_buckets);
+static size_t get_hash(const struct YASL_Object s, const size_t num_buckets, const size_t attempt) {
+	const size_t hash_a = hash_function(s, PRIME_A, num_buckets);
 	if (attempt == 0) {
-		return ((unsigned int)hash_a) % num_buckets;
+		return ((size_t)hash_a) % num_buckets;
 	}
-	const int hash_b = hash_function(s, PRIME_B, num_buckets);
-	return ((unsigned int) (hash_a + (attempt * (hash_b + (hash_b == 0))))) % num_buckets;
+	const size_t hash_b = hash_function(s, PRIME_B, num_buckets);
+	return ((size_t) (hash_a + (attempt * (hash_b + (hash_b == 0))))) % num_buckets;
 }
 
 static Item_t new_item(const struct YASL_Object k, const struct YASL_Object v) {
@@ -138,12 +135,12 @@ static void table_resize_down(struct Table *table) {
 }
 
 void table_insert(struct Table *const table, const struct YASL_Object key, const struct YASL_Object value) {
-	const int load = table->count * 100 / table->size;
+	const size_t load = table->count * 100 / table->size;
 	if (load > 70) table_resize_up(table);
 	Item_t item = new_item(key, value);
-	int index = get_hash(item.key, table->size, 0);
+	size_t index = get_hash(item.key, table->size, 0);
 	Item_t curr_item = table->items[index];
-	int i = 1;
+	size_t i = 1;
 	while (!YASL_ISUNDEF(curr_item.key)) {
 		if (curr_item.key.type != Y_END) {
 			if (!isfalsey(isequal(curr_item.key, item.key))) {
@@ -159,7 +156,7 @@ void table_insert(struct Table *const table, const struct YASL_Object key, const
 	table->count++;
 }
 
-void table_insert_string_int(struct Table *const table, const char *const key, const int64_t key_len, const int64_t val) {
+void table_insert_string_int(struct Table *const table, const char *const key, const size_t key_len, const int64_t val) {
 	String_t *string = str_new_sized_heap(0, key_len, copy_char_buffer(key_len, key));
 	struct YASL_Object ko = YASL_STR(string),
 	  vo = YASL_INT(val);
@@ -182,7 +179,7 @@ struct YASL_Object table_search(const struct Table *const table, const struct YA
 	return YASL_END();
 }
 
-struct YASL_Object table_search_string_int(const struct Table *const table, const char *const key, const int64_t key_len) {
+struct YASL_Object table_search_string_int(const struct Table *const table, const char *const key, const size_t key_len) {
 	String_t *string = str_new_sized_heap(0, key_len, copy_char_buffer(key_len, key));
 	struct YASL_Object object = YASL_STR(string);
 
@@ -192,11 +189,11 @@ struct YASL_Object table_search_string_int(const struct Table *const table, cons
 }
 
 void table_rm(struct Table *table, struct YASL_Object key) {
-	const int load = table->count * 100 / table->size;
+	const size_t load = table->count * 100 / table->size;
 	if (load < 10) table_resize_down(table);
-	int index = get_hash(key, table->size, 0);
+	size_t index = get_hash(key, table->size, 0);
 	Item_t item = table->items[index];
-	int i = 1;
+	size_t i = 1;
 	while (!YASL_ISUNDEF(item.key)) {
 		if (item.key.type != Y_END) {
 			if (!isfalsey(isequal(item.key, key))) {
