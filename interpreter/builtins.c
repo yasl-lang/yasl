@@ -8,14 +8,12 @@
 #include "table_methods.h"
 #include "list_methods.h"
 #include "VM.h"
+#include "YASL_string.h"
 
 void yasl_print(struct VM* vm) {
 	vm_stringify_top(vm);
-	struct YASL_Object v = vm_pop(vm);
-	for (int64_t i = 0; i < yasl_string_len(YASL_GETSTR(v)); i++) {
-		printf("%c", YASL_GETSTR(v)->str[i + YASL_GETSTR(v)->start]);
-	}
-	printf("\n");
+	String_t *v = vm_popstr(vm);
+	printf("%.*s\n", (int)yasl_string_len(v), v->start + v->str);
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -46,7 +44,6 @@ struct Table* float_builtins(struct VM *vm) {
 	return table;
 }
 
-
 struct Table* int_builtins(struct VM *vm) {
 	struct Table *table = table_new();
 	table_insert_specialstring_cfunction(vm, table, S_TOINT, &int_toint, 1);
@@ -61,7 +58,6 @@ struct Table* bool_builtins(struct VM *vm) {
 	table_insert_specialstring_cfunction(vm, table, S_TOBOOL, &bool_tobool, 1);
 	return table;
 }
-
 
 struct Table* str_builtins(struct VM *vm) {
 	struct Table *table = table_new();
