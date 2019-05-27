@@ -1,7 +1,7 @@
-#include <compiler/ast.h>
-#include <interpreter/YASL_Object.h>
 #include "compiler.h"
 
+#include "ast.h"
+#include "interpreter/YASL_Object.h"
 #include "middleend.h"
 #include "interpreter/YASL_string.h"
 #include "bytebuffer/bytebuffer.h"
@@ -9,8 +9,8 @@
 #include "yasl_error.h"
 #include "yasl_include.h"
 #include "lexinput.h"
+
 #include <math.h>
-#include <bytebuffer/bytebuffer.h>
 
 #define break_checkpoint(compiler)    ((compiler)->checkpoints[(compiler)->checkpoints_count-1])
 #define continue_checkpoint(compiler) ((compiler)->checkpoints[(compiler)->checkpoints_count-2])

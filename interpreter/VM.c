@@ -960,7 +960,7 @@ int vm_run(struct VM *vm) {
 			vm->next_fp = vm->stack[vm->fp + 3].value.ival;
 			vm_pop(vm);
 			vm->fp = vm_popint(vm);
-			vm->pc = vm_pop(vm).value.fval;   //vm_popint(vm);
+			vm->pc = vm_pop(vm).value.fval;
 			vm_pop(vm);
 			vm_push(vm, v);
 			break;

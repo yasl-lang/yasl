@@ -1,10 +1,10 @@
-#include <interpreter/undef_methods.h>
 #include "builtins.h"
 
 #include "str_methods.h"
+#include "undef_methods.h"
 #include "float_methods.h"
 #include "int_methods.h"
-#include "interpreter/bool_methods.h"
+#include "bool_methods.h"
 #include "table_methods.h"
 #include "list_methods.h"
 #include "VM.h"

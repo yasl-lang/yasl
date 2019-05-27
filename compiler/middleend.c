@@ -1,8 +1,5 @@
 #include "middleend.h"
 
-#include "compiler/ast.h"
-#include "ast.h"
-
 void fold_ExprStmt(struct Node *const node) {
 	fold(ExprStmt_get_expr(node));
 }
