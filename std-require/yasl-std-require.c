@@ -18,16 +18,6 @@ int YASL_require(struct YASL_State *S) {
 	struct YASL_State *Ss = YASL_newstate(mode_str);
 
 	if (!Ss) {
-		/*
-		char cwd[PATH_MAX];
-		if (getcwd(cwd, sizeof(cwd)) != NULL) {
-			printf("Current working dir: %s\n", cwd);
-		}
-		puts("Cannot open");
-		// puts("ERROR: cannot open file.");
-		//exit(EXIT_FAILURE);
-		// YASL_pushundef(S);
-		 */
 		return -1;
 	}
 
@@ -36,9 +26,6 @@ int YASL_require(struct YASL_State *S) {
 	YASL_load_io(Ss);
 	YASL_load_require(Ss);
 
-	int64_t old_len = *((int64_t *)(S->vm.code + 8));
-	//printf("%ld\n", old_len);
-	Ss->compiler.header->count = (size_t)old_len;
 	int status = YASL_execute(Ss);
 
 	if (status != YASL_MODULE_SUCCESS) {
@@ -49,10 +36,6 @@ int YASL_require(struct YASL_State *S) {
 	struct YASL_Object exported = vm_pop(&Ss->vm);
 
 	vm_pushundef(&Ss->vm);
-	// struct RC_UserData *table = Ss->vm.global_vars;
-	// printf("rc: %zd\n", table->rc->refs);
-	// Ss->vm.global_vars = NULL;
-	// printf("%zd\n", Ss->compiler.code->count + Ss->compiler.header->count + 1);
 
 	size_t old_headers_size = S->vm.headers_size;
 	S->vm.headers_size += 1 + Ss->vm.headers_size;
@@ -64,21 +47,6 @@ int YASL_require(struct YASL_State *S) {
 		Ss->vm.headers[i] = NULL;
 	}
 
-	//printf("%zd\n", Ss->compiler.header->count);
-	//S->vm.code = (unsigned char *)realloc(S->vm.code, old_len + Ss->compiler.header->count);
-
-	//memcpy(S->vm.code + 8, &Ss->compiler.header->count, sizeof(int64_t));
-
-	//printf("%ld\n%ld\n", *((int64_t *)(S->vm.code + 8)), Ss->compiler.header->count - old_len);
-	//memcpy(S->vm.code + old_len, Ss->compiler.header->bytes + old_len, Ss->compiler.header->count - old_len);
-	/*
-	for (size_t i = 0; i <  (size_t)*((int64_t *)(S->vm.code + 8)); i++) {
-		if (i % 16 == 15)
-			YASL_BYTECODE_DEBUG_LOG("%02x\n", S->vm.code[i]);
-		else
-			YASL_BYTECODE_DEBUG_LOG("%02x ", S->vm.code[i]);
-	}
-	//*/
 	YASL_delstate(Ss);
 
 	vm_push(&S->vm, exported);
