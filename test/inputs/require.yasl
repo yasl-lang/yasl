@@ -1,6 +1,22 @@
-##5\nsubmodule\n
+##10\nG: 10\n10\nG: 11\n11\n11\n11\n3\nsubmodule\n11\nG: 11\n11\nG: 12\n12\n12\n12\n10\nG: 10\n10\nG: 11\n11\n11\n11\n20\n
 
+let xyz = 20
 const s = require('inputs/submodule.yam')
 
-echo s.add(2, 3)
+echo s.g()
+echo s.f()
+echo s.g()
+
+echo s.add(1, 2)
 echo s.sub
+echo s.g()
+echo s.f()
+echo s.g()
+
+let s2 = require('inputs/submodule.yam')
+
+echo s2.g()
+echo s2.f()
+echo s2.g()
+
+echo xyz
