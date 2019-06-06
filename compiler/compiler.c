@@ -55,16 +55,16 @@ static enum SpecialStrings get_special_string(const struct Node *const node) {
 #undef STR_EQ
 }
 
-struct Compiler *compiler_new(FILE *const fp) {
-	struct Compiler *compiler = (struct Compiler *)malloc(sizeof(struct Compiler));
-
+/*
+ * Initialise everything in the compiler except the parser
+ */
+static void *init_compiler(struct Compiler *compiler) {
 	compiler->globals = env_new(NULL);
 	compiler->stack = NULL;
 	compiler->params = NULL;
 
-	struct LEXINPUT *lp = lexinput_new_file(fp);
+	compiler->num = 0;
 	compiler->strings = table_new();
-	compiler->parser = NEW_PARSER(lp);
 	compiler->buffer = bb_new(16);
 	compiler->header = bb_new(16);
 	compiler->header->count = 16;
@@ -76,25 +76,22 @@ struct Compiler *compiler_new(FILE *const fp) {
 	return compiler;
 }
 
+struct Compiler *compiler_new(FILE *const fp) {
+	struct Compiler *compiler = (struct Compiler *)malloc(sizeof(struct Compiler));
+	init_compiler(compiler);
+
+	struct LEXINPUT *lp = lexinput_new_file(fp);
+	compiler->parser = NEW_PARSER(lp);
+	return compiler;
+}
+
 
 struct Compiler *compiler_new_bb(const char *const buf, const size_t len) {
 	struct Compiler *compiler = (struct Compiler *)malloc(sizeof(struct Compiler));
-
-	compiler->globals = env_new(NULL);
-	compiler->stack = NULL;
-	compiler->params = NULL;
+	init_compiler(compiler);
 
 	struct LEXINPUT *lp = lexinput_new_bb(buf, len);
-	compiler->strings = table_new();
 	compiler->parser = NEW_PARSER(lp);
-	compiler->buffer = bb_new(16);
-	compiler->header = bb_new(16);
-	compiler->header->count = 16;
-	compiler->status = YASL_SUCCESS;
-	compiler->checkpoints_size = 4;
-	compiler->checkpoints = (size_t *)malloc(sizeof(size_t) * compiler->checkpoints_size);
-	compiler->checkpoints_count = 0;
-	compiler->code = bb_new(16);
 	return compiler;
 }
 
@@ -196,6 +193,7 @@ static void load_var(struct Compiler *const compiler, char *const name, const si
 		bb_add_byte(compiler->buffer, (unsigned char) index);
 	} else if (env_contains(compiler->globals, name, name_len)) {
 		bb_add_byte(compiler->buffer, GLOAD_8);
+		bb_intbytes8(compiler->buffer, compiler->num);
 		bb_intbytes8(compiler->buffer, table_search_string_int(compiler->strings, name, name_len).value.ival);
 	} else {
 		YASL_PRINT_ERROR_UNDECLARED_VAR(name, line);
@@ -231,6 +229,7 @@ static void store_var(struct Compiler *const compiler, char *const name, const s
 			return;
 		}
 		bb_add_byte(compiler->buffer, GSTORE_8);
+		bb_intbytes8(compiler->buffer, compiler->num);
 		bb_intbytes8(compiler->buffer, table_search_string_int(compiler->strings, name, name_len).value.ival);
 	} else {
 		YASL_PRINT_ERROR_UNDECLARED_VAR(name, line);
@@ -377,8 +376,8 @@ static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *c
 		return;
 	default:
 		visit(compiler, expr);
-		if (expr->nodetype == N_ASSIGN && (compiler->buffer->bytes[compiler->buffer->count-2] == GLOAD_1 || compiler->buffer->bytes[compiler->buffer->count-2] == LLOAD_1)) {
-			compiler->buffer->count -= 2;
+		if (expr->nodetype == N_ASSIGN || expr->nodetype == N_SET) {
+			return;
 		} else {
 			bb_add_byte(compiler->buffer, POP);
 		}
@@ -386,7 +385,6 @@ static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *c
 }
 
 static void visit_FunctionDecl(struct Compiler *const compiler, const struct Node *const node) {
-	// printf("%zd\n", compiler->buffer->count);
 	if (in_function(compiler)) {
 		YASL_PRINT_ERROR_SYNTAX("Illegal function declaration outside global scope, in line %zd.\n",
 					node->line);
@@ -463,6 +461,7 @@ static void visit_MethodCall(struct Compiler *const compiler, const struct Node 
 		value = table_search_string_int(compiler->strings, node->value.sval.str, node->value.sval.str_len);
 
 		bb_add_byte(compiler->buffer, INIT_MC);
+		bb_intbytes8(compiler->buffer, compiler->num);
 		bb_intbytes8(compiler->buffer, value.value.ival);
 	}
 
@@ -739,7 +738,6 @@ static void declare_with_let_or_const(struct Compiler *const compiler, const str
 }
 
 static void visit_Let(struct Compiler *const compiler, const struct Node *const node) {
-	// printf("node type: %d\n", node->nodetype);
 	declare_with_let_or_const(compiler, node);
 }
 
@@ -912,7 +910,7 @@ static void visit_Assign(struct Compiler *const compiler, const struct Node *con
 	}
 	visit(compiler, Assign_get_expr(node));
 	store_var(compiler, node->value.sval.str, node->value.sval.str_len, node->line);
-	load_var(compiler, node->value.sval.str, node->value.sval.str_len, node->line);
+	// load_var(compiler, node->value.sval.str, node->value.sval.str_len, node->line);
 }
 
 static void visit_Var(struct Compiler *const compiler, const struct Node *const node) {
@@ -994,6 +992,7 @@ static void visit_String(struct Compiler *const compiler, const struct Node *con
 		bb_add_byte(compiler->buffer, index);
 	} else {
 		bb_add_byte(compiler->buffer, NEWSTR);
+		bb_intbytes8(compiler->buffer, compiler->num);
 		bb_intbytes8(compiler->buffer, value.value.ival);
 	}
 }
