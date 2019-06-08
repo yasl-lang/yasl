@@ -758,7 +758,7 @@ static void YASLKeywords(Lexer *lex) {
 		lex_error(lex);
 		return;
 	} else if (matches_keyword(lex, "pure")) {
-		YASL_PRINT_ERROR_SYNTAX("yield is an unused reserved word and cannot be used (line %zd).\n", lex->line);
+		YASL_PRINT_ERROR_SYNTAX("pure is an unused reserved word and cannot be used (line %zd).\n", lex->line);
 		lex_error(lex);
 		return;
 	} else if (matches_keyword(lex, "consteval")) {

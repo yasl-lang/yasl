@@ -9,7 +9,8 @@
 #include <string.h>
 #include <math.h>
 
-#define STACK_SIZE 100024
+#define STACK_SIZE 1024
+#define NUM_GLOBALS 256
 #define NUM_TYPES 13                                     // number of builtin types, each needs a vtable
 
 #define VM_PUSH(vm, x) do {struct YASL_Object to = x; vm_push(vm, to);} while(0)
@@ -62,8 +63,8 @@
                             vm_pushbool(vm, c);} while(0);
 
 struct VM {
-	struct RC_UserData *global_vars;
-	struct YASL_Object *globals;          // variables, see "constant.c" for details on YASL_Object.
+	struct YASL_Object *global_vars;
+	struct Table **globals;         // variables, see "constant.c" for details on YASL_Object.
 	size_t num_globals;
 	struct YASL_Object *stack;            // stack
 	unsigned char *code;           // bytecode

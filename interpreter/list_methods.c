@@ -37,17 +37,17 @@ int list___set(struct YASL_State *S) {
     struct List *ls = YASL_GETLIST(vm_pop((struct VM *)S));
     if (!YASL_ISINT(index)) {
         printf("TypeError: cannot index list with non-integer\n");
-	VM_PUSH((struct VM *)S, YASL_UNDEF());
+	//VM_PUSH((struct VM *)S, YASL_UNDEF());
         return -1;
     } else if (YASL_GETINT(index) < -ls->count || YASL_GETINT(index) >= ls->count) {
         printf("%d || %d\n", YASL_GETINT(index) < -ls->count, YASL_GETINT(index) >= ls->count);
         printf("IndexError\n");
-        VM_PUSH((struct VM *)S, YASL_UNDEF());
+        //VM_PUSH((struct VM *)S, YASL_UNDEF());
         return -1;
     } else {
         if (YASL_GETINT(index) >= 0) ls->items[YASL_GETINT(index)] = value;
         else ls->items[YASL_GETINT(index) + ls->count] = value;
-        vm_push((struct VM *)S, value);
+        //vm_push((struct VM *)S, value);
     }
     return 0;
 }
@@ -86,6 +86,7 @@ int list_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, s
 				}
 				memcpy(string + string_count, "[...], ", strlen("[...], "));
 				string_count += strlen("[...], ");
+				vm_pop((struct VM *)S);
 				continue;
 			} else {
 				size_t tmp_buffer_size = buffer_count == buffer_size ? buffer_size * 2 : buffer_size;
@@ -109,6 +110,7 @@ int list_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, s
 				}
 				memcpy(string + string_count, "{...}, ", strlen("{...}, "));
 				string_count += strlen("{...}, ");
+				vm_pop((struct VM *)S);
 				continue;
 			} else {
 				size_t tmp_buffer_size = buffer_count == buffer_size ? buffer_size * 2 : buffer_size;
@@ -155,7 +157,6 @@ int list_tostr(struct YASL_State *S) {
 	buffer[0] = vm_peeklist((struct VM *)S, S->vm.sp);
 	list_tostr_helper(S, buffer, 8, 1);
 	free(buffer);
-
 	return 0;
 }
 

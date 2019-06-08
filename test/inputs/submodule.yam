@@ -1,9 +1,24 @@
 ##
 
+let G = 10
+
+fn f() {
+    echo "G: #{G}"
+    echo G
+    G += 1
+    echo "G: #{G}"
+    echo G
+    return G
+}
+
+fn g() {
+    return G
+}
+
 const sub = .submodule
 
 fn add(a, b) {
     return a + b
 }
 
-export { .sub: sub, .add: add }
+export { .f: f, .g: g, .sub: sub, .add: add }

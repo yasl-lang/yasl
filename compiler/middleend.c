@@ -1,7 +1,12 @@
 #include "middleend.h"
 
-#include "compiler/ast.h"
-#include "ast.h"
+void fold_ExprStmt(struct Node *const node) {
+	fold(ExprStmt_get_expr(node));
+}
+
+void fold_Block(struct Node *const node) {
+	fold(node->children[0]);
+}
 
 void fold_Body(struct Node *const node) {
 	FOR_CHILDREN(i, child, node) {
@@ -177,6 +182,9 @@ void fold_BinOp(struct Node *const node) {
 			node_del(right);
 			break;
 		case T_SLASH:
+			make_float(node, (yasl_float)left->value.ival / (yasl_float)right->value.ival);
+			node_del(left);
+			node_del(right);
 			break;
 		case T_DSLASH:
 			if (right->value.ival != 0) {
@@ -502,10 +510,46 @@ void fold_Table(struct Node *const node) {
 	}
 }
 
+/*
+	&visit_ExprStmt,
+	&visit_Block,
+	&visit_Body,
+	&visit_FunctionDecl,
+	&visit_Return,
+	&visit_Export,
+	&visit_Call,
+	&visit_MethodCall,
+	&visit_Set,
+	&visit_Get,
+	&visit_Slice,
+	NULL,
+	&visit_ListComp,
+	&visit_TableComp,
+	&visit_ForIter,
+	&visit_While,
+	&visit_Break,
+	&visit_Continue,
+	&visit_If,
+	&visit_Print,
+	&visit_Let,
+	&visit_Const,
+	&visit_TriOp,
+	&visit_BinOp,
+	&visit_UnOp,
+	&visit_Assign,
+	&visit_Var,
+	&visit_Undef,
+	&visit_Float,
+	&visit_Integer,
+	&visit_Boolean,
+	&visit_String,
+	&visit_List,
+	&visit_Table
+ */
 
 static void (*jumptable[])(struct Node *const ) = {
-	NULL,
-	NULL,
+	&fold_ExprStmt,
+	&fold_Block,
 	&fold_Body,
 	NULL,
 	NULL,

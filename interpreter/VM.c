@@ -38,18 +38,24 @@ void vm_init(struct VM *vm,
              const size_t pc,              // address of instruction to be executed first -- entrypoint
              const size_t datasize) {      // total params size required to perform a program operations
 	vm->code = code;
-	vm->headers = NULL;
-	vm->headers_size = 0;
+	vm->headers = (unsigned char **)calloc(sizeof(unsigned char *), datasize);
+	// vm->headers[0] = code;
+	vm->headers_size = datasize;
+	vm->num_globals = datasize;
+	vm->globals = (struct Table **)calloc(sizeof(struct Table *), datasize);
+	//vm->globals[0] = table_new();
+	//vm->globals[1] = table_new();
+	for (size_t i = 0; i < datasize; i++) {
+		vm->headers[i] = NULL;
+		vm->globals[i] = NULL;
+	}
+	vm->headers[datasize - 1] = code;
+	vm->globals[0] = table_new();
 	vm->pc = code + pc;
 	vm->fp = -1;
 	vm->lp = -1;
 	vm->sp = -1;
-	vm->global_vars = rcht_new();
-	// vm->global_vars->rc->refs++;
-	// printf("inc: %zd\n", vm->global_vars->rc->refs);
-	vm->globals = (struct YASL_Object *)calloc(sizeof(struct YASL_Object), datasize);
-
-	vm->num_globals = datasize;
+	vm->global_vars = (struct YASL_Object *)calloc(sizeof(struct YASL_Object), NUM_GLOBALS);
 
 	vm->stack = (struct YASL_Object *)calloc(sizeof(struct YASL_Object), STACK_SIZE);
 
@@ -97,30 +103,26 @@ void vm_init(struct VM *vm,
 
 
 void vm_cleanup(struct VM *vm) {
+	YASL_ASSERT(vm->sp == -1, "VM stack pointer should have been -1.");
+	YASL_ASSERT(vm->fp == -1, "VM frame pointer should have been -1.");
 	for (size_t i = 0; i < STACK_SIZE; i++) dec_ref(&vm->stack[i]);
-	for (size_t i = 0; i < vm->num_globals; i++) {
-		dec_ref(&vm->globals[i]);
+	for (size_t i = 0; i < NUM_GLOBALS; i++) {
+		dec_ref(&vm->global_vars[i]);
 	}
 
-	if (vm->global_vars) rcht_del(vm->global_vars);
-	// struct YASL_Object table = YASL_TABLE(vm->global_vars);
-
-	//	dec_ref(&table);
-	// table_del(vm->global_vars->data);
-	// rc_del(vm->global_vars->rc);
-	// free(vm->global_vars);
-//		printf("%zd\n", vm->global_vars->rc->refs);
-
-	//free(vm->global_vars->items);
-	//free(vm->global_vars);
-	free(vm->globals);
+	free(vm->global_vars);
 	free(vm->stack);
 
-	free(vm->code);
+	// free(vm->code);
 	for (size_t i = 0; i < vm->headers_size; i++) {
 		free(vm->headers[i]);
 	}
 	free(vm->headers);
+
+	for (size_t i = 0; i < vm->num_globals; i++) {
+		table_del(vm->globals[i]);
+	}
+	free(vm->globals);
 
 	table_del(vm->builtins_htable[Y_UNDEF]);
 	table_del(vm->builtins_htable[Y_FLOAT]);
@@ -307,9 +309,9 @@ NUM_UNOP(neg, -)
 NUM_UNOP(pos, +)
 
 int vm_int_unop(struct VM *vm, yasl_int (*op)(yasl_int), const char *opstr, const char *overload_name) {
-	struct YASL_Object a = vm_peek(vm);
+	struct YASL_Object a = vm_pop(vm);
 	if (YASL_ISINT(a)) {
-		vm_peek(vm).value.ival = op(YASL_GETINT(a));
+		vm_push(vm, YASL_INT(op(YASL_GETINT(a))));
 		return YASL_SUCCESS;
 	} else {
 		struct YASL_Object op_name = YASL_STR(str_new_sized(strlen(overload_name), overload_name));
@@ -360,7 +362,7 @@ int vm_stringify_top(struct VM *vm) {
 	if (YASL_ISFN(VM_PEEK(vm, vm->sp)) || YASL_ISCFN(VM_PEEK(vm, vm->sp))) {
 		int n;	  
 		char *buffer = (char *)malloc(n = snprintf(NULL, 0, "<fn: %d>", (int)vm_peek(vm).value.ival) + 1);
-		snprintf(buffer, n, "<fn: %d>", (int)vm_peek(vm).value.ival);
+		snprintf(buffer, n, "<fn: %d>", (int)vm_pop(vm).value.ival);
 		vm_pushstr(vm, str_new_sized_heap(0, strlen(buffer), buffer));
 	} else {
 		struct YASL_Object key = YASL_STR(str_new_sized(strlen("tostr"), "tostr"));
@@ -478,41 +480,47 @@ int vm_NEWSPECIALSTR(struct VM *vm) {
 }
 
 int vm_NEWSTR(struct VM *vm) {
+	yasl_int table = vm_read_int(vm);
 	yasl_int addr = vm_read_int(vm);
 
+	//printf("table: %" PRId64 "\n", table);
+	//printf("addr: %" PRId64 "\n", addr);
 	yasl_int size;
-	memcpy(&size, vm->code + addr, sizeof(yasl_int));
+	memcpy(&size, vm->headers[table] + addr, sizeof(yasl_int));
 
 	addr += sizeof(yasl_int);
-	String_t *string = str_new_sized(size, ((char *) vm->code) + addr);
+	String_t *string = str_new_sized(size, ((char *) vm->headers[table]) + addr);
 	vm_pushstr(vm, string);
 	return YASL_SUCCESS;
 }
 
 int vm_GSTORE_8(struct VM *vm) {
+	yasl_int table = vm_read_int(vm);
 	yasl_int addr = vm_read_int(vm);
 
 	yasl_int size;
-	memcpy(&size, vm->code + addr, sizeof(yasl_int));
+	memcpy(&size, vm->headers[table] + addr, sizeof(yasl_int));
 
 	addr += sizeof(yasl_int);
-	String_t *string = str_new_sized(size, ((char *) vm->code) + addr);
+	String_t *string = str_new_sized(size, ((char *) vm->headers[table]) + addr);
 
-	table_insert((struct Table *)vm->global_vars->data, YASL_STR(string), vm_pop(vm));
+	table_insert(vm->globals[table], YASL_STR(string), vm_pop(vm));
 	return YASL_SUCCESS;
 }
 
 int vm_GLOAD_8(struct VM *vm) {
+	yasl_int table = vm_read_int(vm);
 	yasl_int addr = vm_read_int(vm);
 
 	yasl_int size;
-	memcpy(&size, vm->code + addr, sizeof(yasl_int));
+	memcpy(&size, vm->headers[table] + addr, sizeof(yasl_int));
 
 	addr += sizeof(yasl_int);
-	String_t *string = str_new_sized(size, ((char *) vm->code) + addr);
+	String_t *string = str_new_sized(size, ((char *) vm->headers[table]) + addr);
 
-	vm_push(vm, table_search((struct Table *)vm->global_vars->data, YASL_STR(string)));
+	vm_push(vm, table_search(vm->globals[table], YASL_STR(string)));
 
+	if (vm_peek(vm).type == Y_END) puts("asddas");
 	str_del(string);
 	return YASL_SUCCESS;
 }
@@ -536,8 +544,6 @@ int vm_INIT_MC(struct VM *vm) {
 	struct YASL_Object top = vm_peek(vm);
 	inc_ref(&top);
 	vm_NEWSTR(vm);
-	//vm_SWAP(vm);
-	//vm_push(vm, top);
 	vm_GET(vm);
 	vm_INIT_CALL(vm);
 	vm_push(vm, top);
@@ -571,10 +577,9 @@ int vm_CALL(struct VM *vm) {
 			vm_pop(vm);
 		}
 
-		// vm->sp += vm->code[vm_peekint(vm, vm->fp) + 1];
 		vm->sp += vm->stack[vm->fp].value.fval[1];
 
-		vm->pc =  vm->stack[vm->fp].value.fval + 2; //vm_peekint(vm, vm->fp) + 2;
+		vm->pc =  vm->stack[vm->fp].value.fval + 2;
 		return YASL_SUCCESS;
 	} else if (YASL_ISCFN(vm->stack[vm->fp])) {
 		while (vm->sp - (vm->fp + 3) < vm_peekcfn(vm, vm->fp)->num_args) {
@@ -918,18 +923,17 @@ int vm_run(struct VM *vm) {
 			if ((res = vm_GLOAD_8(vm))) return res;
 			break;
 		case GSTORE_8:
-			// printf("asdasds\n");
 			if ((res = vm_GSTORE_8(vm))) return res;
 			break;
 		case GLOAD_1:
 			addr = vm->code[vm->pc++ - vm->code];
-			vm_push(vm, vm->globals[addr]);
+			vm_push(vm, vm->global_vars[addr]);
 			break;
 		case GSTORE_1:
 			addr = vm->code[vm->pc++ - vm->code];
-			dec_ref(&vm->globals[addr]);
-			vm->globals[addr] = vm_pop(vm);
-			inc_ref(&vm->globals[addr]);
+			dec_ref(&vm->global_vars[addr]);
+			vm->global_vars[addr] = vm_pop(vm);
+			inc_ref(&vm->global_vars[addr]);
 			break;
 		case LLOAD_1:
 			offset = NCODE(vm);
@@ -960,7 +964,7 @@ int vm_run(struct VM *vm) {
 			vm->next_fp = vm->stack[vm->fp + 3].value.ival;
 			vm_pop(vm);
 			vm->fp = vm_popint(vm);
-			vm->pc = vm_pop(vm).value.fval;   //vm_popint(vm);
+			vm->pc = vm_pop(vm).value.fval;
 			vm_pop(vm);
 			vm_push(vm, v);
 			break;

@@ -36,7 +36,8 @@ static void inc_weak_ref(struct YASL_Object *v) {
 
 static void inc_strong_ref(struct YASL_Object *v) {
 	switch (v->type) {
-	case Y_STR:v->value.sval->rc->refs++;
+	case Y_STR:
+		v->value.sval->rc->refs++;
 		//printf(K_BLU "after : %zd\n" K_END, v->value.sval->rc->refs);
 		//print(*v);
 		//puts("");

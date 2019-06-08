@@ -5,6 +5,8 @@
 #include "yasl-std-io.h"
 
 
+struct YASL_State *YASL_newstate_num(char *filename, size_t num);
+
 int YASL_require(struct YASL_State *S) {
 	struct YASL_Object *mode = YASL_popobject(S);
 	char *mode_str;
@@ -15,19 +17,9 @@ int YASL_require(struct YASL_State *S) {
 		return -1;
 	}
 
-	struct YASL_State *Ss = YASL_newstate(mode_str);
+	struct YASL_State *Ss = YASL_newstate_num(mode_str, S->vm.headers_size);
 
 	if (!Ss) {
-		/*
-		char cwd[PATH_MAX];
-		if (getcwd(cwd, sizeof(cwd)) != NULL) {
-			printf("Current working dir: %s\n", cwd);
-		}
-		puts("Cannot open");
-		// puts("ERROR: cannot open file.");
-		//exit(EXIT_FAILURE);
-		// YASL_pushundef(S);
-		 */
 		return -1;
 	}
 
@@ -36,9 +28,8 @@ int YASL_require(struct YASL_State *S) {
 	YASL_load_io(Ss);
 	YASL_load_require(Ss);
 
-	int64_t old_len = *((int64_t *)(S->vm.code + 8));
-	//printf("%ld\n", old_len);
-	Ss->compiler.header->count = (size_t)old_len;
+	Ss->vm.globals[Ss->vm.headers_size - 1] = Ss->vm.globals[0];
+	Ss->vm.globals[0] = NULL;
 	int status = YASL_execute(Ss);
 
 	if (status != YASL_MODULE_SUCCESS) {
@@ -49,43 +40,27 @@ int YASL_require(struct YASL_State *S) {
 	struct YASL_Object exported = vm_pop(&Ss->vm);
 
 	vm_pushundef(&Ss->vm);
-	// struct RC_UserData *table = Ss->vm.global_vars;
-	// printf("rc: %zd\n", table->rc->refs);
-	// Ss->vm.global_vars = NULL;
-	// printf("%zd\n", Ss->compiler.code->count + Ss->compiler.header->count + 1);
 
 	size_t old_headers_size = S->vm.headers_size;
-	S->vm.headers_size += 1 + Ss->vm.headers_size;
-	S->vm.headers = (unsigned char **)realloc(S->vm.headers, sizeof(unsigned char *) * S->vm.headers_size);
-	S->vm.headers[old_headers_size++] = Ss->vm.code;
-	Ss->vm.code = NULL;
-	for (size_t i = 0; i < Ss->vm.headers_size; i++) {
-		S->vm.headers[i + old_headers_size] = Ss->vm.headers[i];
+	size_t new_headers_size = Ss->vm.headers_size;
+	S->vm.headers = (unsigned char **)realloc(S->vm.headers, new_headers_size * sizeof(unsigned char *));
+	S->vm.globals = (struct Table **)realloc(S->vm.globals, new_headers_size * sizeof(struct Table *));
+	// printf("old header size, new header size: %zd, %zd\n", old_headers_size, new_headers_size);
+	for (size_t i = old_headers_size; i < new_headers_size; i++) {
+		S->vm.headers[i] = Ss->vm.headers[i];
 		Ss->vm.headers[i] = NULL;
+		S->vm.globals[i] = Ss->vm.globals[i];
+		Ss->vm.globals[i] = NULL;
 	}
-
-	//printf("%zd\n", Ss->compiler.header->count);
-	//S->vm.code = (unsigned char *)realloc(S->vm.code, old_len + Ss->compiler.header->count);
-
-	//memcpy(S->vm.code + 8, &Ss->compiler.header->count, sizeof(int64_t));
-
-	//printf("%ld\n%ld\n", *((int64_t *)(S->vm.code + 8)), Ss->compiler.header->count - old_len);
-	//memcpy(S->vm.code + old_len, Ss->compiler.header->bytes + old_len, Ss->compiler.header->count - old_len);
-	/*
-	for (size_t i = 0; i <  (size_t)*((int64_t *)(S->vm.code + 8)); i++) {
-		if (i % 16 == 15)
-			YASL_BYTECODE_DEBUG_LOG("%02x\n", S->vm.code[i]);
-		else
-			YASL_BYTECODE_DEBUG_LOG("%02x ", S->vm.code[i]);
-	}
-	//*/
+	Ss->vm.code = NULL;
+	S->vm.headers_size = S->vm.num_globals = new_headers_size;
 	YASL_delstate(Ss);
 
 	vm_push(&S->vm, exported);
 	dec_ref(&vm_peek(&S->vm));
 
 	free(mode_str);
-	// printf("rc: %zd\n", table->rc->refs);
+
 	return status == YASL_MODULE_SUCCESS ? YASL_SUCCESS : YASL_ERROR;
 
 }

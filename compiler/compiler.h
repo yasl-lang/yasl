@@ -22,7 +22,8 @@
         .checkpoints = (size_t *)malloc(sizeof(size_t) * 4),\
 	.checkpoints_count = 0,\
 	.checkpoints_size = 4,\
-	.status = YASL_SUCCESS\
+	.status = YASL_SUCCESS,\
+	.num = 0\
   })
 
 struct Compiler {
@@ -39,6 +40,7 @@ struct Compiler {
     size_t checkpoints_count;
     size_t checkpoints_size;
     int status;
+    int64_t num;
 };
 
 struct Compiler *compiler_new(FILE *const fp);

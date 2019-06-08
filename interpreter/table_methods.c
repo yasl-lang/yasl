@@ -34,7 +34,7 @@ int table___set(struct YASL_State *S) {
 		return -1;
 	}
 	table_insert(ht, key, val);
-	vm_push((struct VM *)S, val);
+	//vm_push((struct VM *)S, val);
 	return 0;
 }
 
@@ -57,6 +57,7 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 	string[string_count++] = '{';
 	struct Table *table = vm_peektable((struct VM *)S, S->vm.sp);
 	if (table->count == 0) {
+		vm_pop((struct VM *)S);
 		string[string_count++] = '}';
 		VM_PUSH((struct VM *)S, YASL_STR(str_new_sized_heap(0, string_count, string)));
 		return 0;
@@ -101,6 +102,7 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 				}
 				memcpy(string + string_count, "[...], ", strlen("[...], "));
 				string_count += strlen("[...], ");
+				vm_pop((struct VM *)S);
 				continue;
 			} else {
 				size_t tmp_buffer_size = buffer_count == buffer_size ? buffer_size * 2 : buffer_size;
@@ -125,6 +127,7 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 				}
 				memcpy(string + string_count, "{...}, ", strlen("{...}, "));
 				string_count += strlen("{...}, ");
+				vm_pop((struct VM *)S);
 				continue;
 			} else {
 				size_t tmp_buffer_size = buffer_count == buffer_size ? buffer_size * 2 : buffer_size;
