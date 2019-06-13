@@ -25,7 +25,7 @@ sub assert_output {
     return $exitcode;
 }
 
-assert_output("YASL -V", "YASL v0.5.1\n", 0);
+assert_output("YASL -V", "YASL v0.5.2\n", 0);
 assert_output("YASL -e 'let x = 10; x;'", "10\n", 0);
 assert_output("YASL -E 'let x = 10; x;'", "", 0);
 assert_output("YASL -E 'let x = 10; echo x;'", "10\n", 0);
