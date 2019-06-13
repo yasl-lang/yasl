@@ -451,6 +451,17 @@ int vm_GET(struct VM *vm) {
 		if (!str___get((struct YASL_State *) vm)) {
 			return YASL_SUCCESS;
 		}
+	} else if (YASL_ISUSERDATA(vm_peek(vm))) {
+		vm->sp++;
+		struct YASL_Object key = vm_pop(vm);
+		struct YASL_Object result = table_search(vm_peek(vm).value.uval->mt, key);
+		vm_pop(vm);
+		if (result.type == Y_END) {
+			vm_pushundef(vm);
+		} else {
+			vm_push(vm, result);
+		}
+		return YASL_SUCCESS;
 	} else {
 		vm->sp++;
 	}

@@ -8,6 +8,8 @@
 #include <string.h>
 #include <math.h>
 #include <stdio.h>
+#include <debug.h>
+
 #define HT_BASESIZE 30
 
 static size_t hash_function(const struct YASL_Object s, const size_t a, const size_t m) {
@@ -166,6 +168,7 @@ void table_insert_string_int(struct Table *const table, const char *const key, c
 }
 
 struct YASL_Object table_search(const struct Table *const table, const struct YASL_Object key) {
+	YASL_ASSERT(table != NULL, "table to search should not be NULL");
 	size_t index = get_hash(key, table->size, 0);
 	Item_t item = table->items[index];
 	int i = 1;

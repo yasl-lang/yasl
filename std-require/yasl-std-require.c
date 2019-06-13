@@ -45,7 +45,6 @@ int YASL_require(struct YASL_State *S) {
 	size_t new_headers_size = Ss->vm.headers_size;
 	S->vm.headers = (unsigned char **)realloc(S->vm.headers, new_headers_size * sizeof(unsigned char *));
 	S->vm.globals = (struct Table **)realloc(S->vm.globals, new_headers_size * sizeof(struct Table *));
-	// printf("old header size, new header size: %zd, %zd\n", old_headers_size, new_headers_size);
 	for (size_t i = old_headers_size; i < new_headers_size; i++) {
 		S->vm.headers[i] = Ss->vm.headers[i];
 		Ss->vm.headers[i] = NULL;
@@ -61,7 +60,7 @@ int YASL_require(struct YASL_State *S) {
 
 	free(mode_str);
 
-	return status == YASL_MODULE_SUCCESS ? YASL_SUCCESS : YASL_ERROR;
+	return YASL_SUCCESS;
 
 }
 
