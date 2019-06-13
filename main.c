@@ -10,7 +10,7 @@
 #include "yasl_state.h"
 
 
-#define VERSION "v0.5.1"
+#define VERSION "v0.5.2"
 #define VERSION_PRINTOUT "YASL " VERSION
 
 static int f() {
