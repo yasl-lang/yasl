@@ -27,6 +27,7 @@ include_directories(.)
 include_directories(std-io)
 include_directories(std-math)
 include_directories(std-require)
+include_directories(std-collections)
 include_directories(test)
 
 add_executable(YASL
@@ -40,6 +41,7 @@ add_executable(YASL
         compiler/lexinput.c
         compiler/parser.c
         compiler/middleend.c
+        hash_function/hash_function.c
         hashtable/hashtable.c
         interpreter/bool_methods.c
         interpreter/builtins.c
@@ -81,6 +83,7 @@ add_executable(YASLTEST
         compiler/parser.c
         compiler/ast.c
         compiler/middleend.c
+        hash_function/hash_function.c
         hashtable/hashtable.c
         interpreter/yasl_float.c
         interpreter/YASL_Object.c
@@ -90,6 +93,7 @@ add_executable(YASLTEST
         interpreter/list.c
         interpreter/userdata.c
         prime/prime.c
+        std-collections/set.c
         compiler/env.c)
 
 add_library(yaslapi
@@ -102,6 +106,7 @@ add_library(yaslapi
         compiler/lexinput.c
         compiler/parser.c
         compiler/middleend.c
+        hash_function/hash_function.c
         hashtable/hashtable.c
         interpreter/bool_methods.c
         interpreter/builtins.c
