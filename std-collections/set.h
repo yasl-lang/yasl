@@ -22,3 +22,4 @@ struct Set *set_union(struct Set *left, struct Set *right);
 struct Set *set_intersection(struct Set *left, struct Set *right);
 struct Set *set_symmetric_difference(struct Set *left, struct Set *right);
 struct Set *set_difference(struct Set *left, struct Set *right);
+size_t set_length(struct Set *set);

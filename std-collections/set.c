@@ -163,6 +163,10 @@ struct Set *set_difference(struct Set *left, struct Set *right) {
 	return tmp;
 }
 
+size_t set_length(struct Set *set) {
+	return set->count;
+}
+
 
 
 
