@@ -1,4 +1,5 @@
 
+#include <interpreter/YASL_Object.h>
 #include "set.h"
 #include "hash_function/hash_function.h"
 
@@ -110,3 +111,58 @@ void set_rm(struct Set *table, struct YASL_Object key) {
 	}
 	table->count--;
 }
+
+struct Set *set_union(struct Set *left, struct Set *right) {
+	struct Set *tmp = set_new();
+	FOR_SET(i, iteml, left) {
+		set_insert(tmp, *iteml);
+	}
+	FOR_SET(i, itemr, right) {
+		set_insert(tmp, *itemr);
+	}
+	return tmp;
+}
+
+struct Set *set_intersection(struct Set *left, struct Set *right) {
+	struct Set *tmp = set_new();
+	FOR_SET(i, iteml, left) {
+		struct YASL_Object cond = set_search(right, *iteml);
+		if (YASL_GETBOOL(cond)) {
+			set_insert(tmp, *iteml);
+		}
+	}
+	return tmp;
+}
+
+struct Set *set_symmetric_difference(struct Set *left, struct Set *right) {
+	struct Set *tmp = set_new();
+	FOR_SET(i, iteml, left) {
+		struct YASL_Object cond = set_search(right, *iteml);
+		if (!YASL_GETBOOL(cond)) {
+			set_insert(tmp, *iteml);
+		}
+	}
+	FOR_SET(i, itemr, right) {
+		struct YASL_Object cond = set_search(left, *itemr);
+		if (!YASL_GETBOOL(cond)) {
+			set_insert(tmp, *itemr);
+		}
+	}
+
+	return tmp;
+}
+
+struct Set *set_difference(struct Set *left, struct Set *right) {
+	struct Set *tmp = set_new();
+	FOR_SET(i, iteml, left) {
+		struct YASL_Object cond = set_search(right, *iteml);
+		if (!YASL_GETBOOL(cond)) {
+			set_insert(tmp, *iteml);
+		}
+	}
+	return tmp;
+}
+
+
+
+

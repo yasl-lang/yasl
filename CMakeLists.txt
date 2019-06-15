@@ -77,6 +77,8 @@ add_executable(YASLTEST
         test/test_compiler/foreachtest.c
         test/test_compiler/foldingtest.c
         test/test_compiler/comprehensiontest.c
+        test/test_collections/collectiontest.c
+        test/test_collections/settest.c
         compiler/lexer.c
         compiler/lexinput.c
         compiler/compiler.c
