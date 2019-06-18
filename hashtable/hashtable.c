@@ -136,7 +136,7 @@ void table_insert_string_int(struct Table *const table, const char *const key, c
 	table_insert(table, ko, vo);
 }
 
-void table_insert_literalcstring_cfunction(struct Table *ht, char *key, int (*addr)(struct YASL_State *), int num_args) {
+void table_insert_literalcstring_cfunction(struct Table *ht, const char *key, int (*addr)(struct YASL_State *), int num_args) {
 	String_t *string = str_new_sized(strlen(key), key);
 	struct YASL_Object f = YASL_CFN(addr, num_args);
 	struct YASL_Object s = YASL_STR(string);
