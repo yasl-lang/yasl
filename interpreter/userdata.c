@@ -13,7 +13,7 @@ struct RC_UserData *ud_new(void *data, int tag, struct Table *mt, void (*destruc
 }
 
 void ud_del_data(struct RC_UserData *ud) {
-	ud->destructor(ud->data);
+	if (ud->destructor) ud->destructor(ud->data);
 }
 
 void ud_del_rc(struct RC_UserData *ud) {

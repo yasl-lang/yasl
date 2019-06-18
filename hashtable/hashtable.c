@@ -9,6 +9,8 @@
 #include <string.h>
 #include <math.h>
 #include <stdio.h>
+#include <debug.h>
+
 #define HT_BASESIZE 30
 
 static Item_t new_item(const struct YASL_Object k, const struct YASL_Object v) {
@@ -144,6 +146,7 @@ void table_insert_literalcstring_cfunction(struct Table *ht, const char *key, in
 }
 
 struct YASL_Object table_search(const struct Table *const table, const struct YASL_Object key) {
+	YASL_ASSERT(table != NULL, "table to search should not be NULL");
 	size_t index = get_hash(key, table->size, 0);
 	Item_t item = table->items[index];
 	int i = 1;
