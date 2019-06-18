@@ -414,6 +414,8 @@ int YASL_load_math(struct YASL_State *S) {
 	free(rand_str);
 	free(rand_fn);
 
+	// free(math);
+
 	return YASL_SUCCESS;
 }
 

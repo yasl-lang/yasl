@@ -5,9 +5,11 @@
 
 trigger:
 - master
+- v0.*
 
 pr:
 - master
+- v0.*
 
 jobs:
 - job: 

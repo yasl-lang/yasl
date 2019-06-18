@@ -42,6 +42,7 @@ static void inc_strong_ref(struct YASL_Object *v) {
 		//print(*v);
 		//puts("");
 		break;
+	case Y_USERDATA:
 	case Y_LIST:
 	case Y_TABLE:v->value.uval->rc->refs++;
 		break;
@@ -57,6 +58,7 @@ void inc_ref(struct YASL_Object *v) {
 	case Y_STR:
 	case Y_LIST:
 	case Y_TABLE:
+	case Y_USERDATA:
 	case Y_CFN:inc_strong_ref(v);
 		break;
 	case Y_STR_W:
@@ -136,6 +138,7 @@ void dec_ref(struct YASL_Object *v) {
 	case Y_STR:
 	case Y_LIST:
 	case Y_TABLE:
+	case Y_USERDATA:
 	case Y_CFN:dec_strong_ref(v);
 		break;
 	case Y_STR_W:

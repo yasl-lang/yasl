@@ -172,9 +172,13 @@ int YASL_io_flush(struct YASL_State *S) {
 }
 
 int YASL_load_io(struct YASL_State *S) {
-	// TODO: DELETING THIS PROBABLY CAUSES HUGE BUGS
-	table_del(mt);
-	mt = table_new();
+  if (!mt) {
+  	mt = table_new();
+    table_insert(mt, YASL_STR(str_new_sized(strlen("read"), "read")), YASL_CFN(YASL_io_read, 2));
+	  table_insert(mt, YASL_STR(str_new_sized(strlen("write"), "write")), YASL_CFN(YASL_io_write, 2));
+	  table_insert(mt, YASL_STR(str_new_sized(strlen("flush"), "flush")), YASL_CFN(YASL_io_flush, 1));
+  }
+  
 	struct YASL_Object *io = YASL_Table();
 
 	struct YASL_Object *open_str = YASL_LiteralString("open");
@@ -209,10 +213,6 @@ int YASL_load_io(struct YASL_State *S) {
 	struct YASL_Object *stderr_str = YASL_LiteralString("stderr");
 	YASL_Table_set(io, stderr_str, stderr_file);
 
-	table_insert(mt, YASL_STR(str_new_sized(strlen("read"), "read")), YASL_CFN(YASL_io_read, 2));
-	table_insert(mt, YASL_STR(str_new_sized(strlen("write"), "write")), YASL_CFN(YASL_io_write, 2));
-	table_insert(mt, YASL_STR(str_new_sized(strlen("flush"), "flush")), YASL_CFN(YASL_io_flush, 1));
-
 	YASL_declglobal(S, "io");
 	YASL_pushobject(S, io);
 	YASL_setglobal(S, "io");
@@ -232,6 +232,8 @@ int YASL_load_io(struct YASL_State *S) {
 	free(stdout_str);
 	free(stderr_file);
 	free(stderr_str);
+
+	// free(io);
 
 	return YASL_SUCCESS;
 }

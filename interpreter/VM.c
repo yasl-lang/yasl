@@ -364,6 +364,15 @@ int vm_stringify_top(struct VM *vm) {
 		char *buffer = (char *)malloc(n = snprintf(NULL, 0, "<fn: %d>", (int)vm_peek(vm).value.ival) + 1);
 		snprintf(buffer, n, "<fn: %d>", (int)vm_pop(vm).value.ival);
 		vm_pushstr(vm, str_new_sized_heap(0, strlen(buffer), buffer));
+	} else if (YASL_ISUSERDATA(VM_PEEK(vm, vm->sp))) {
+		struct YASL_Object key = YASL_STR(str_new_sized(strlen("tostr"), "tostr"));
+		struct YASL_Object result = table_search(vm_peek(vm).value.uval->mt, key);
+		str_del(YASL_GETSTR(key));
+		if (result.type == Y_END) {
+			exit(EXIT_FAILURE);
+		}
+		YASL_GETCFN(result)->value((struct YASL_State *)vm);
+		// vm_push(vm, result);
 	} else {
 		struct YASL_Object key = YASL_STR(str_new_sized(strlen("tostr"), "tostr"));
 		struct YASL_Object result = table_search(vm->builtins_htable[index], key);
@@ -446,7 +455,7 @@ int vm_GET(struct VM *vm) {
 		if (!table___get((struct YASL_State *) vm)) {
 			return YASL_SUCCESS;
 		}
-	} else if (YASL_ISSTR(vm_peek(vm)) && VM_PEEK(vm, vm->sp+1).type == Y_INT) {
+	} else if (YASL_ISSTR(vm_peek(vm)) && VM_PEEK(vm, vm->sp + 1).type == Y_INT) {
 		vm->sp++;
 		if (!str___get((struct YASL_State *) vm)) {
 			return YASL_SUCCESS;
@@ -747,9 +756,19 @@ int vm_run(struct VM *vm) {
 			} else if (YASL_ISLIST(v)) {
 				vm_pushint(vm, (yasl_int)YASL_GETLIST(v)->count);
 			} else {
-				YASL_PRINT_ERROR_TYPE("len not supported for operand of type %s.\n",
+				struct YASL_Object op_name = YASL_STR(str_new_sized(strlen("__len"), "__len"));
+				vm_push(vm, v);
+				vm_push(vm, op_name);
+				vm_GET(vm);
+				if (YASL_ISUNDEF(vm_peek(vm))) {
+					YASL_PRINT_ERROR_TYPE("len not supported for operand of types %s.\n",
 							      YASL_TYPE_NAMES[v.type]);
-				return YASL_TYPE_ERROR;
+					return YASL_TYPE_ERROR;
+				} else {
+					vm_INIT_CALL(vm);
+					vm_push(vm, v);
+					vm_CALL(vm);
+				}
 			}
 			break;
 		case CNCT:
