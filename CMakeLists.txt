@@ -61,7 +61,9 @@ add_executable(YASL
         prime/prime.c
         std-io/yasl-std-io.c
         std-math/yasl-std-math.c
-        std-require/yasl-std-require.c)
+        std-require/yasl-std-require.c
+        std-collections/set.c
+        std-collections/yasl-std-collections.c)
 
 add_executable(YASLTEST
         test/test_compiler/yats.c

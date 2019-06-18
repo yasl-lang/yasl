@@ -18,8 +18,9 @@ struct Set *set_new(void) {
 	return set_new_sized(SET_BASESIZE);
 }
 
-void set_del(struct Set *const set) {
-	if (!set) return;
+void set_del(void *s) {
+	if (!s) return;
+	struct Set *set = (struct Set *)s;
 	FOR_SET(i, item, set) {
 		dec_ref(item);
 	}

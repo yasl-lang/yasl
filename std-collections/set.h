@@ -13,7 +13,7 @@ struct Set {
 };
 
 struct Set *set_new(void);
-void set_del(struct Set *const set);
+void set_del(void *s);
 void set_insert(struct Set *const set, struct YASL_Object value);
 struct YASL_Object set_search(const struct Set *const table, const struct YASL_Object key);
 void set_rm(struct Set *table, struct YASL_Object key);
