@@ -32,7 +32,7 @@ void del_item(Item_t* item);
 struct Table *table_new(void);
 void table_insert(struct Table *table, const struct YASL_Object key, const struct YASL_Object value);
 void table_insert_string_int(struct Table *const table, const char *const key, const size_t key_len, const int64_t val);
-void table_insert_literalcstring_cfunction(struct Table *ht, char *key, int (*addr)(struct YASL_State *), int num_args);
+void table_insert_literalcstring_cfunction(struct Table *ht, const char *key, int (*addr)(struct YASL_State *), int num_args);
 struct YASL_Object table_search(const struct Table *const table, const struct YASL_Object key);
 struct YASL_Object table_search_string_int(const struct Table *const table, const char *const key, const size_t key_len);
 void table_del(struct Table *table);

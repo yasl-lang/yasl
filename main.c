@@ -7,20 +7,18 @@
 #include "yasl-std-io.h"
 #include "yasl-std-math.h"
 #include "yasl-std-require.h"
+#include "yasl-std-collections.h"
 #include "yasl_state.h"
 
 
 #define VERSION "v0.5.2"
 #define VERSION_PRINTOUT "YASL " VERSION
 
-static int f() {
-	return 10;
-}
-
 static int load_libs(struct YASL_State *S) {
 	YASL_load_math(S);
 	YASL_load_io(S);
 	YASL_load_require(S);
+	YASL_load_collections(S);
 	return YASL_SUCCESS;
 }
 
@@ -134,11 +132,9 @@ static int main_REPL(int argc, char **argv) {
 		if (count == strlen("quit\n") && !memcmp(buffer, "quit\n", strlen("quit\n"))) {
 			break;
 		}
-		// printf("`%s`", buffer);
-		YASL_resetstate_bb(S, buffer, count); // *S = YASL_newstate_bb(buffer, count);
+		YASL_resetstate_bb(S, buffer, count); 
 
 		count = 0;
-		// Load Standard Libraries
 
 		YASL_execute_REPL(S);
 	}

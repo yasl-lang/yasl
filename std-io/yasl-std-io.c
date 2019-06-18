@@ -209,6 +209,7 @@ int YASL_load_io(struct YASL_State *S) {
 	free(stderr_str);
 	free(stderr_file);
 */
+	// free(io);
 	return YASL_SUCCESS;
 }
 
