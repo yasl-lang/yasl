@@ -201,7 +201,7 @@ int YASL_pushuserpointer(struct YASL_State *S, void *userpointer) {
 }
 
 int YASL_pushstring(struct YASL_State *S, char *value, int64_t size) {
-	VM_PUSH((struct VM *) S, YASL_STR(str_new_sized(size, value)));
+	VM_PUSH((struct VM *) S, YASL_STR(str_new_sized_heap(0, size, value)));
 	return YASL_SUCCESS;
 }
 
