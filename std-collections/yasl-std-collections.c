@@ -128,6 +128,62 @@ static int YASL_collections_set_add(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
+static int YASL_collections_set_remove(struct YASL_State *S) {
+	struct YASL_Object *right_obj = YASL_popobject(S);
+
+
+	if (YASL_ISLIST(*right_obj) || YASL_ISTABLE(*right_obj) || YASL_ISUSERDATA(*right_obj)) {
+		printf("Error: unable to insert mutable object of type %x into set.\n", right_obj->type);
+		return -1;
+	}
+	struct YASL_Object left_obj = vm_peek((struct VM *)S);
+
+	struct Set *left;
+	if (YASL_isuserdata(&left_obj, YASL_SET) == YASL_SUCCESS) {
+		left = (struct Set *)YASL_UserData_getdata(&left_obj);
+	} else {
+		return -1;
+	}
+
+	set_rm(left, *right_obj);
+
+	return YASL_SUCCESS;
+}
+
+static int YASL_collections_set_copy(struct YASL_State *S) {
+	struct YASL_Object *set_obj = YASL_popobject(S);
+	struct Set *set;
+	if (YASL_isuserdata(set_obj, YASL_SET) == YASL_SUCCESS) {
+		set = (struct Set *)YASL_UserData_getdata(set_obj);
+	} else {
+		return -1;
+	}
+
+	struct Set *tmp = set_new();
+	FOR_SET(i, item, set) {
+		set_insert(tmp, *item);
+	}
+
+	YASL_pushobject(S, YASL_UserData(tmp, YASL_SET, set_mt, set_del));
+	return YASL_SUCCESS;
+}
+
+static int YASL_collections_set_clear(struct YASL_State *S) {
+	struct YASL_Object set_obj = vm_peek((struct VM *)S);
+	struct Set *set;
+	if (YASL_isuserdata(&set_obj, YASL_SET) == YASL_SUCCESS) {
+		set = (struct Set *)YASL_UserData_getdata(&set_obj);
+	} else {
+		return -1;
+	}
+
+	FOR_SET(i, item, set) {
+			set_rm(set, *item);
+	}
+
+	return YASL_SUCCESS;
+}
+
 int YASL_load_collections(struct YASL_State *S) {
 
 	if (!set_mt) {
@@ -137,8 +193,11 @@ int YASL_load_collections(struct YASL_State *S) {
 		table_insert_literalcstring_cfunction(set_mt, "__bor", YASL_collections_set___bor, 2);
 		table_insert_literalcstring_cfunction(set_mt, "__bxor", YASL_collections_set___bxor, 2);
 		table_insert_literalcstring_cfunction(set_mt, "__sub", YASL_collections_set___sub, 2);
-		table_insert_literalcstring_cfunction(set_mt, "add", YASL_collections_set_add, 2);
 		table_insert_literalcstring_cfunction(set_mt, "__len", YASL_collections_set___len, 1);
+		table_insert_literalcstring_cfunction(set_mt, "add", YASL_collections_set_add, 2);
+		table_insert_literalcstring_cfunction(set_mt, "remove", YASL_collections_set_remove, 2);
+		table_insert_literalcstring_cfunction(set_mt, "copy", YASL_collections_set_copy, 1);
+		table_insert_literalcstring_cfunction(set_mt, "clear", YASL_collections_set_clear, 1);
 	}
 
 	struct YASL_Object *collections = YASL_Table();
