@@ -13,17 +13,17 @@ struct RC_UserData *ud_new(void *data, int tag, struct Table *mt, void (*destruc
 }
 
 void ud_del_data(struct RC_UserData *ud) {
-	ud->destructor(ud->data);
+	if (ud->destructor) ud->destructor(ud->data);
 }
 
 void ud_del_rc(struct RC_UserData *ud) {
-    rc_del(ud->rc);
-    free(ud);
+	rc_del(ud->rc);
+	free(ud);
 }
 
 void ud_del(struct RC_UserData *ud) {
-    ud->destructor(ud->data);
-    // dec_ref(ud->mt);
-    rc_del(ud->rc);
-    free(ud);
+	ud->destructor(ud->data);
+	// dec_ref(ud->mt);
+	rc_del(ud->rc);
+	free(ud);
 }
