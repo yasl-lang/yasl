@@ -129,14 +129,14 @@ static int YASL_collections_set_add(struct YASL_State *S) {
 }
 
 static int YASL_collections_set_remove(struct YASL_State *S) {
-	struct YASL_Object right_obj =  vm_peek((struct VM *)S);
+	struct YASL_Object right_obj =  vm_pop((struct VM *)S);
 
 
 	if (YASL_ISLIST(right_obj) || YASL_ISTABLE(right_obj) || YASL_ISUSERDATA(right_obj)) {
 		printf("Error: unable to insert mutable object of type %x into set.\n", right_obj.type);
 		return -1;
 	}
-	struct YASL_Object left_obj = vm_peek((struct VM *)S);
+	struct YASL_Object left_obj = vm_pop((struct VM *)S);
 
 	struct Set *left;
 	if (YASL_isuserdata(&left_obj, YASL_SET) == YASL_SUCCESS) {
@@ -147,6 +147,7 @@ static int YASL_collections_set_remove(struct YASL_State *S) {
 
 	set_rm(left, right_obj);
 
+	vm_push((struct VM *)S, right_obj);
 	return YASL_SUCCESS;
 }
 
