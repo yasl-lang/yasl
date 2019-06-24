@@ -26,7 +26,7 @@ const double YASL_NAN = 0.0 / 0.0;
 const double YASL_INF = 1.0 / 0.0;
 #endif
 
-int YASL_math_abs(struct YASL_State *S) {
+static int YASL_math_abs(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.abs");
 
 	if (YASL_ISINT(*num)) {
@@ -40,7 +40,7 @@ int YASL_math_abs(struct YASL_State *S) {
 	}
 }
 
-int YASL_math_exp(struct YASL_State *S) {
+static int YASL_math_exp(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.exp");
 
 	double n;
@@ -52,7 +52,7 @@ int YASL_math_exp(struct YASL_State *S) {
 	return YASL_pushfloat(S, exp(n));
 }
 
-int YASL_math_log(struct YASL_State *S) {
+static int YASL_math_log(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.log");
 
 	double n;
@@ -64,7 +64,7 @@ int YASL_math_log(struct YASL_State *S) {
 	return YASL_pushfloat(S, log(n));
 }
 
-int YASL_math_sqrt(struct YASL_State *S) {
+static int YASL_math_sqrt(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.sqrt");
 
 	double n;
@@ -76,7 +76,7 @@ int YASL_math_sqrt(struct YASL_State *S) {
 	return YASL_pushfloat(S, sqrt(n));
 }
 
-int YASL_math_cos(struct YASL_State *S) {
+static int YASL_math_cos(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.cos");
 
 	double n;
@@ -87,7 +87,7 @@ int YASL_math_cos(struct YASL_State *S) {
 	}
 	return YASL_pushfloat(S, cos(n));
 }
-int YASL_math_sin(struct YASL_State *S) {
+static int YASL_math_sin(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.sin");
 
 	double n;
@@ -98,7 +98,7 @@ int YASL_math_sin(struct YASL_State *S) {
 	}
 	return YASL_pushfloat(S, sin(n));
 }
-int YASL_math_tan(struct YASL_State *S) {
+static int YASL_math_tan(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.tan");
 
 	double n;
@@ -109,7 +109,7 @@ int YASL_math_tan(struct YASL_State *S) {
 	}
 	return YASL_pushfloat(S, tan(n));
 }
-int YASL_math_acos(struct YASL_State *S) {
+static int YASL_math_acos(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.acos");
 
 	double n;
@@ -120,7 +120,7 @@ int YASL_math_acos(struct YASL_State *S) {
 	}
 	return YASL_pushfloat(S, acos(n));
 }
-int YASL_math_asin(struct YASL_State *S) {
+static int YASL_math_asin(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.asin");
 
 	double n;
@@ -131,7 +131,7 @@ int YASL_math_asin(struct YASL_State *S) {
 	}
 	return YASL_pushfloat(S, asin(n));
 }
-int YASL_math_atan(struct YASL_State *S) {
+static int YASL_math_atan(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.atan");
 
 	double n;
@@ -143,7 +143,7 @@ int YASL_math_atan(struct YASL_State *S) {
 	return YASL_pushfloat(S, atan(n));
 }
 
-int YASL_math_ceil(struct YASL_State *S) {
+static int YASL_math_ceil(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.ceil");
 
 	double n;
@@ -154,7 +154,7 @@ int YASL_math_ceil(struct YASL_State *S) {
 	}
 	return YASL_pushfloat(S, ceil(n));
 }
-int YASL_math_floor(struct YASL_State *S) {
+static int YASL_math_floor(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.floor");
 
 	double n;
@@ -166,7 +166,7 @@ int YASL_math_floor(struct YASL_State *S) {
 	return YASL_pushfloat(S, floor(n));
 }
 
-int YASL_math_deg(struct YASL_State *S) {
+static int YASL_math_deg(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.deg");
 
 	double n;
@@ -179,7 +179,7 @@ int YASL_math_deg(struct YASL_State *S) {
 	n *= (double)180.0/YASL_PI;
 	return YASL_pushfloat(S, n);
 }
-int YASL_math_rad(struct YASL_State *S) {
+static int YASL_math_rad(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.rad");
 
 	double n;
@@ -193,7 +193,7 @@ int YASL_math_rad(struct YASL_State *S) {
 	return YASL_pushfloat(S, n);
 }
 
-int YASL_math_isprime(struct YASL_State *S) {
+static int YASL_math_isprime(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.isprime");
 
 	yasl_int n;
@@ -222,7 +222,7 @@ yasl_int gcd_helper(yasl_int a, yasl_int b) {
 	};
 	return a;
 }
-int YASL_math_gcd(struct YASL_State *S) {
+static int YASL_math_gcd(struct YASL_State *S) {
 	POP_NUMBER(S, numA, "math.gcd");
 	POP_NUMBER(S, numB, "math.gcd");
 
@@ -243,7 +243,7 @@ int YASL_math_gcd(struct YASL_State *S) {
 
 	return YASL_pushinteger(S, gcd_helper(a, b));
 }
-int YASL_math_lcm(struct YASL_State *S) {
+static int YASL_math_lcm(struct YASL_State *S) {
 	POP_NUMBER(S, numA, "math.lcm");
 	POP_NUMBER(S, numB, "math.lcm");
 
@@ -266,7 +266,7 @@ int YASL_math_lcm(struct YASL_State *S) {
 	return YASL_pushinteger(S, b*a/gcd);
 }
 
-int YASL_math_rand(struct YASL_State *S) {
+static int YASL_math_rand(struct YASL_State *S) {
 	// rand() is only guarenteed to return a maximum of ~32000. Ensure all 64 bits are used
 	yasl_int r = (yasl_int) rand() ^((yasl_int) rand() << 16) ^((yasl_int) rand() << 32) ^((yasl_int) rand() << 48);
 	return YASL_pushinteger(S, r);

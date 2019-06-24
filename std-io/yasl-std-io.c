@@ -7,7 +7,7 @@
 
 static struct Table *mt;
 
-int YASL_io_open(struct YASL_State *S) {
+static int YASL_io_open(struct YASL_State *S) {
 	struct YASL_Object *mode = YASL_popobject(S);
 	const char *mode_str;
 	if (YASL_isundef(mode) == YASL_SUCCESS) {
@@ -67,7 +67,7 @@ int YASL_io_open(struct YASL_State *S) {
 	return 0;
 }
 
-int YASL_io_read(struct YASL_State *S) {
+static int YASL_io_read(struct YASL_State *S) {
 	struct YASL_Object *mode = YASL_popobject(S);
 	const char *mode_str;
 
@@ -126,7 +126,7 @@ int YASL_io_read(struct YASL_State *S) {
 	}
 }
 
-int YASL_io_write(struct YASL_State *S) {
+static int YASL_io_write(struct YASL_State *S) {
 	struct YASL_Object *obj = YASL_popobject(S);
 
 	if (YASL_isstring(obj) != YASL_SUCCESS) {
@@ -153,7 +153,7 @@ int YASL_io_write(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
-int YASL_io_flush(struct YASL_State *S) {
+static int YASL_io_flush(struct YASL_State *S) {
 	struct YASL_Object *file = YASL_popobject(S);
 	FILE *f;
 
