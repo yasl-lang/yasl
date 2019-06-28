@@ -30,7 +30,7 @@ String_t *str_new_substring(const size_t start, const size_t end, const String_t
 	String_t *str = (String_t *) malloc(sizeof(String_t));
 	str->on_heap = string->on_heap;
 	if (str->on_heap) {
-		str->str = malloc(end - start);
+		str->str = (char *)malloc(end - start);
 		memcpy(str->str, string->str + start, end - start);
 		str->start = 0;
 		str->end = end - start;
