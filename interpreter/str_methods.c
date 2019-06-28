@@ -541,6 +541,8 @@ int str_trim(struct YASL_State *S) {
 	ASSERT_TYPE((struct VM *)S, Y_STR, "str.split");
 	String_t *needle = YASL_GETSTR(vm_pop((struct VM *)S));
 	ASSERT_TYPE((struct VM *)S, Y_STR, "str.split");
+	struct YASL_Object top = vm_peek((struct VM *)S);
+	inc_ref(&top);
 	String_t *haystack = YASL_GETSTR(vm_pop((struct VM *)S));
 
 	int64_t start = 0;
@@ -561,7 +563,7 @@ int str_trim(struct YASL_State *S) {
 
 	// TODO: fix possible mem leak here
 	VM_PUSH((struct VM *)S, YASL_STR(str_new_substring(haystack->start + start, haystack->start + end, haystack)));
-
+	dec_ref(&top);
 	return 0;
 }
 

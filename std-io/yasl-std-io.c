@@ -69,10 +69,12 @@ static int YASL_io_open(struct YASL_State *S) {
 
 static int YASL_io_read(struct YASL_State *S) {
 	struct YASL_Object *mode = YASL_popobject(S);
-	const char *mode_str;
+	char *mode_str;
 
 	if (YASL_isundef(mode) == YASL_SUCCESS) {
-		mode_str = "a";
+		mode_str = malloc(2);
+		mode_str[0] = 'a';
+		mode_str[1] = '\0';
 	} else if (YASL_isstring(mode) == YASL_SUCCESS) {
 		mode_str = YASL_getcstring(mode);
 	} else {
@@ -92,6 +94,7 @@ static int YASL_io_read(struct YASL_State *S) {
 	size_t mode_len = strlen(mode_str);
 
 	if (mode_len != 1) {
+		free(mode_str);
 		return -1;
 	}
 
@@ -104,6 +107,7 @@ static int YASL_io_read(struct YASL_State *S) {
 		char *string = (char *)malloc(fsize);
 		fread(string, fsize, 1, f);
 		YASL_pushstring(S, string, fsize); }
+		free(mode_str);
 		return 0;
 	case 'l': {
 		size_t size = 16;
@@ -119,9 +123,11 @@ static int YASL_io_read(struct YASL_State *S) {
 			string[i++] = (char) c;
 		}
 		YASL_pushstring(S, string, i);
+		free(mode_str);
 		return YASL_SUCCESS;
 	}
 	default:
+		free(mode_str);
 		return -1;
 	}
 }

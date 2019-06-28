@@ -8,7 +8,7 @@
 
 typedef struct {
     struct RC* rc;      // NOTE: RC MUST BE THE FIRST MEMBER OF THIS STRUCT. DO NOT REARRANGE.
-    const char *str;
+    char *str;
     size_t start;
     size_t end;
     bool on_heap;

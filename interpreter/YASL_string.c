@@ -28,10 +28,17 @@ char *copy_char_buffer(const size_t size, const char *const ptr) {
 
 String_t *str_new_substring(const size_t start, const size_t end, const String_t *const string) {
 	String_t* str = (String_t *)malloc(sizeof(String_t));
-	str->start = start;
-	str->end = end;
-	str->str = string->str;
 	str->on_heap = string->on_heap;
+	if (str->on_heap) {
+		str->str = malloc(end - start);
+		memcpy(str->str, string->str + start, end - start);
+		str->start = 0;
+		str->end = end - start;
+	} else {
+		str->start = start;
+		str->end = end;
+		str->str = string->str;
+	}
 	str->rc = rc_new();
 	return str;
 }
@@ -40,7 +47,7 @@ String_t *str_new_sized(const size_t base_size, const char *const ptr) {
     String_t* str = (String_t *)malloc(sizeof(String_t));
     str->start = 0;
     str->end = base_size;
-    str->str = ptr;
+    str->str = (char *)ptr;
     str->on_heap = 0;
     str->rc = rc_new();
     return str;
@@ -50,7 +57,7 @@ String_t* str_new_sized_heap(const size_t start, const size_t end, const char *c
     String_t* str = (String_t *)malloc(sizeof(String_t));
     str->start = start;
     str->end = end;
-    str->str = mem;
+    str->str = (char *)mem;
     str->on_heap = 1;
     str->rc = rc_new();
     return str;

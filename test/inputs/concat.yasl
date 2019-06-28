@@ -1,3 +1,5 @@
-##YASL\n
+##YASL\nYA\n
 
 echo 'YA' ~ 'SL'
+
+echo (' Y' ~ 'A ')->trim(' ')
