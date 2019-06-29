@@ -612,7 +612,7 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 
 	decl_var(compiler, node->children[0]->children[0]->value.sval.str, node->children[0]->children[0]->value.sval.str_len, node->children[0]->children[0]->line);
 
-	int64_t index_start = compiler->buffer->count;
+	size_t index_start = compiler->buffer->count;
 	add_checkpoint(compiler, index_start);
 
 	bb_add_byte(compiler->buffer, ITER_1);
@@ -643,7 +643,7 @@ static void visit_While(struct Compiler *const compiler, const struct Node *cons
 
 	if (node->children[2] != NULL) {
 		bb_add_byte(compiler->buffer, BR_8);
-		int64_t index = compiler->buffer->count;
+		size_t index = compiler->buffer->count;
 		bb_intbytes8(compiler->buffer, 0);
 		index_start = compiler->buffer->count;
 		visit(compiler, node->children[2]);
@@ -756,7 +756,7 @@ static void visit_TriOp(struct Compiler *const compiler, const struct Node *cons
 	visit(compiler, node->children[1]);
 
 	bb_add_byte(compiler->buffer, BR_8);
-	int64_t index_r = compiler->buffer->count;
+	size_t index_r = compiler->buffer->count;
 	bb_intbytes8(compiler->buffer, 0);
 
 	exit_conditional_false(compiler, &index_l);

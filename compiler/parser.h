@@ -32,7 +32,7 @@ struct Node *parse(Parser *const parser);
 #ifdef _MSC_VER
 #include <stdarg.h>
 // To avoid MSVC _VA_ARGS_ macro expansion bug
-int token_matches(Parser *parser, ...);
+int token_matches(Parser *const parser, ...);
 #undef TOKEN_MATCHES
 #define TOKEN_MATCHES(px, ...) token_matches(parser, __VA_ARGS__, (enum Token)-1)
 #endif

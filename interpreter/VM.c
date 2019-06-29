@@ -574,7 +574,7 @@ static int vm_NEWSTR(struct VM *vm) {
 static int vm_ITER_1(struct VM *vm) {
 	switch (VM_PEEK(vm, vm->lp).type) {
 	case Y_LIST:
-		if (vm_peeklist(vm, vm->lp)->count <= vm_peekint(vm, vm->lp + 1)) {
+		if ((yasl_int)vm_peeklist(vm, vm->lp)->count <= vm_peekint(vm, vm->lp + 1)) {
 			vm_pushbool(vm, 0);
 		} else {
 			vm_push(vm, vm_peeklist(vm, vm->lp)->items[vm_peekint(vm, vm->lp + 1)++]);
