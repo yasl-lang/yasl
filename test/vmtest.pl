@@ -212,6 +212,7 @@ assert_output("echo 'YASL'->search('0')\n", "undef\n", 0);
 assert_output("echo len 'the quick brown fox'->split(' ')\n", "4\n", 0);
 assert_output("for x <- 'the quick brown fox'->split(' ') { echo x; };", "the\nquick\nbrown\nfox\n", 0);
 assert_output("echo len 'the quick brown fox'->split('0')\n", "1\n", 0);
+assert_output("echo ' a b c         d     e         '->split()\n", "[a, b, c, d, e]\n", 0);
 assert_output("echo 'YAY'->ltrim('Y')\n", "AY\n", 0);
 assert_output("echo 'YYYYAY'->ltrim('Y')\n", "AY\n", 0);
 assert_output("echo 'YAY'->ltrim('A')\n", "YAY\n", 0);
