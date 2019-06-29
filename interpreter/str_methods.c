@@ -458,7 +458,34 @@ int str_count(struct YASL_State *S) {
 
 // TODO: fix all of these
 
+static int str_split_default(struct YASL_State *S) {
+	ASSERT_TYPE((struct VM *)S, Y_STR, "str.split");
+	String_t *haystack = YASL_GETSTR(vm_pop((struct VM *)S));
+
+	int64_t end = 0, start = 0;
+	struct RC_UserData *result = ls_new();
+	while (true) {
+		// printf("end: %d\n", (int)end);
+		while (iswhitespace(*(haystack->str + haystack->start + end)) && end < yasl_string_len(haystack)) {
+			end++;
+		}
+		if (end >= yasl_string_len(haystack)) break;
+		start = end;
+		while (!iswhitespace(*(haystack->str + haystack->start + end)) && end < yasl_string_len(haystack)) {
+			end++;
+		}
+		struct YASL_Object to = YASL_STR(str_new_substring(start + haystack->start, end + haystack->start, haystack));
+		ls_append((struct List *)result->data, to);
+	}
+	VM_PUSH((struct VM *)S, YASL_LIST(result));
+	return 0;
+}
+
 int str_split(struct YASL_State *S) {
+	if (YASL_ISUNDEF(vm_peek((struct VM *)S))) {
+		vm_pop((struct VM *)S);
+		return str_split_default(S);
+	}
 	ASSERT_TYPE((struct VM *)S, Y_STR, "str.split");
 	String_t *needle = YASL_GETSTR(vm_pop((struct VM *)S));
 	ASSERT_TYPE((struct VM *)S, Y_STR, "str.split");
