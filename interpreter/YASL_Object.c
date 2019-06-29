@@ -123,12 +123,12 @@ int yasl_object_cmp(struct YASL_Object a, struct YASL_Object b) {
 	} else if (YASL_ISNUM(a) && YASL_ISNUM(b)) {
 		double aVal, bVal;
 		if(YASL_ISINT(a)) {
-			aVal = YASL_GETINT(a);
+			aVal = (double)YASL_GETINT(a);
 		} else {
 			aVal = YASL_GETFLOAT(a);
 		}
 		if(YASL_ISINT(b)) {
-			bVal = YASL_GETINT(b);
+			bVal = (double)YASL_GETINT(b);
 		} else {
 			bVal = YASL_GETFLOAT(b);
 		}
@@ -245,7 +245,7 @@ int print(struct YASL_Object v) {
 	case Y_UNDEF:printf("undef");
 		break;
 	case Y_STR:
-		for (i = 0; i < yasl_string_len(YASL_GETSTR(v)); i++) {
+		for (i = 0; i < (yasl_int)yasl_string_len(YASL_GETSTR(v)); i++) {
 			printf("%c", YASL_GETSTR(v)->str[i + YASL_GETSTR(v)->start]);
 		}
 		break;

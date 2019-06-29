@@ -21,7 +21,7 @@ int str___get(struct YASL_State *S) {
 	if (index.type != Y_INT) {
 		return -1;
 		VM_PUSH((struct VM *)S, YASL_UNDEF());
-	} else if (YASL_GETINT(index) < -yasl_string_len(str) || YASL_GETINT(index) >= yasl_string_len(str)) {
+	} else if (YASL_GETINT(index) < -(yasl_int)yasl_string_len(str) || YASL_GETINT(index) >= (yasl_int)yasl_string_len(str)) {
 		printf("IndexError\n");
 		return -1;
 		VM_PUSH((struct VM *)S, YASL_UNDEF());
@@ -46,17 +46,17 @@ int str_slice(struct YASL_State *S) {
 	String_t *str = YASL_GETSTR(vm_pop((struct VM *)S));
 	if (!YASL_ISINT(start_index) || !YASL_ISINT(end_index)) {
 		return -1;
-	} else if (YASL_GETINT(start_index) < -yasl_string_len(str) ||
-		   YASL_GETINT(start_index) > yasl_string_len(str)) {
+	} else if (YASL_GETINT(start_index) < -(yasl_int)yasl_string_len(str) ||
+		   YASL_GETINT(start_index) > (yasl_int)yasl_string_len(str)) {
 		return -1;
-	} else if (YASL_GETINT(end_index) < -yasl_string_len(str) || YASL_GETINT(end_index) > yasl_string_len(str)) {
+	} else if (YASL_GETINT(end_index) < -(yasl_int)yasl_string_len(str) || YASL_GETINT(end_index) > (yasl_int)yasl_string_len(str)) {
 		return -1;
 	}
 
-	int64_t start = YASL_GETINT(start_index) < 0 ? YASL_GETINT(start_index) + yasl_string_len(str) : YASL_GETINT(
+	int64_t start = YASL_GETINT(start_index) < 0 ? YASL_GETINT(start_index) + (yasl_int)yasl_string_len(str) : YASL_GETINT(
 		start_index);
 	int64_t end =
-		YASL_GETINT(end_index) < 0 ? YASL_GETINT(end_index) + yasl_string_len(str) : YASL_GETINT(end_index);
+		YASL_GETINT(end_index) < 0 ? YASL_GETINT(end_index) + (yasl_int)yasl_string_len(str) : YASL_GETINT(end_index);
 
 	if (start > end) {
 		return -1;
@@ -145,7 +145,7 @@ int str_tofloat(struct YASL_State *S) {
 		return 0;
 	}
 	size_t curr = 0;
-	for (int64_t i = 0; i < yasl_string_len(str); ++i) {
+	for (size_t i = 0; i < yasl_string_len(str); ++i) {
 		if (str->str[str->start + i] == '_' && str->str[str->start + i - 1] != '.') {
 			continue;
 		}
@@ -160,7 +160,7 @@ int str_tofloat(struct YASL_State *S) {
 		return 0;
 	}
 
-	result = parseint64(buffer, &ok);
+	result = (yasl_float)parseint64(buffer, &ok);
 	if (ok) {
 		VM_PUSH((struct VM *)S, YASL_FLOAT(result));
 		free(buffer);
@@ -191,7 +191,7 @@ int str_toint(struct YASL_State *S) {
 		size_t curr = 2;
 		buffer[0] = str->str[str->start + 0];
 		buffer[1] = str->str[str->start + 1];
-		for (int64_t i = 2; i < yasl_string_len(str); ++i) {
+		for (size_t i = 2; i < yasl_string_len(str); ++i) {
 			if (str->str[str->start + i] == '_') {
 				continue;
 			}
@@ -205,7 +205,7 @@ int str_toint(struct YASL_State *S) {
 	}
 
 	size_t curr = 0;
-	for (int64_t i = 0; i < yasl_string_len(str); ++i) {
+	for (size_t i = 0; i < yasl_string_len(str); ++i) {
 		if (str->str[str->start + i] == '_') {
 			continue;
 		}
@@ -353,7 +353,7 @@ int str_startswith(struct YASL_State *S) {
 		VM_PUSH((struct VM *)S, YASL_BOOL(0));
 		return 0;
 	}
-	int64_t i = 0;
+	size_t i = 0;
 	while (i < yasl_string_len(needle)) {
 		if (haystack->str[i + haystack->start] != needle->str[i + needle->start]) {
 			VM_PUSH((struct VM *)S, YASL_BOOL(0));
@@ -375,7 +375,7 @@ int str_endswith(struct YASL_State *S) {
 		VM_PUSH((struct VM *)S, YASL_BOOL(0));
 		return 0;
 	}
-	int64_t i = 0;
+	size_t i = 0;
 	while (i < yasl_string_len(needle)) {
 		if ((haystack)->str[i + haystack->start + yasl_string_len(haystack) - yasl_string_len(needle)]
 		    != (needle)->str[i + needle->start]) {
@@ -558,7 +558,7 @@ int str_rtrim(struct YASL_State *S) {
 	ASSERT_TYPE((struct VM *)S, Y_STR, "str.rtrim");
 	String_t *haystack = YASL_GETSTR(vm_pop((struct VM *)S));
 
-	int64_t end = yasl_string_len(haystack);
+	size_t end = yasl_string_len(haystack);
 	while (end >= yasl_string_len(needle) &&
 	       !memcmp(haystack->str + haystack->start + end - yasl_string_len(needle),
 		       needle->str + needle->start,
@@ -613,7 +613,7 @@ int str_trim(struct YASL_State *S) {
 		start += yasl_string_len(needle);
 	}
 
-	int64_t end = yasl_string_len(haystack);
+	size_t end = yasl_string_len(haystack);
 	while (end >= yasl_string_len(needle) &&
 	       !memcmp(haystack->str + haystack->start + end - yasl_string_len(needle),
 		       needle->str + needle->start,

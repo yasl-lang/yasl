@@ -85,8 +85,8 @@ void vm_cleanup(struct VM *vm);
 
 int vm_stringify_top(struct VM *vm);
 
-struct YASL_Object vm_pop(struct VM *vm);
-void vm_push(struct VM *vm, struct YASL_Object val);
+struct YASL_Object vm_pop(struct VM *const vm);
+void vm_push(struct VM *const vm, const struct YASL_Object val);
 
 int vm_run(struct VM *vm);
 

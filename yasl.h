@@ -99,7 +99,7 @@ int YASL_pushliteralstring(struct YASL_State *S, char *value);
  * @param size size of string to be pushed onto the stack.
  * @return 0 on success, else error code.
  */
-int YASL_pushstring(struct YASL_State *S, char *value, int64_t size);
+int YASL_pushstring(struct YASL_State *S, char *value, const size_t size);
 
 /**
  * Pushes a function pointer onto the stack

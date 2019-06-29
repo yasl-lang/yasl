@@ -25,19 +25,19 @@ struct Table {
 	Item_t *items;
 };
 
-static Item_t TOMBSTONE = { { Y_END, { Y_END } }, { Y_END, { Y_END } } }; //(struct YASL_Object) {Y_END, Y_END};
+extern Item_t TOMBSTONE; //(struct YASL_Object) {Y_END, Y_END};
 
-void del_item(Item_t* item);
+void del_item(Item_t *const item);
 
 struct Table *table_new(void);
-void table_insert(struct Table *table, const struct YASL_Object key, const struct YASL_Object value);
+void table_insert(struct Table *const table, const struct YASL_Object key, const struct YASL_Object value);
 void table_insert_string_int(struct Table *const table, const char *const key, const size_t key_len, const int64_t val);
 void table_insert_literalcstring_cfunction(struct Table *ht, const char *key, int (*addr)(struct YASL_State *), int num_args);
 struct YASL_Object table_search(const struct Table *const table, const struct YASL_Object key);
 struct YASL_Object table_search_string_int(const struct Table *const table, const char *const key, const size_t key_len);
 void table_rm(struct Table *table, struct YASL_Object key);
-void table_del(struct Table *table);
-void table_del_string_int(struct Table *table);
+void table_del(struct Table *const table);
+void table_del_string_int(struct Table *const table);
 
 struct RC_UserData* rcht_new(void);
 struct RC_UserData* rcht_new_sized(const size_t base_size);

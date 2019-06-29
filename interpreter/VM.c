@@ -33,7 +33,7 @@ static struct Table **builtins_htable_new(struct VM *vm) {
     return ht;
 }
 
-void vm_init(struct VM *vm,
+void vm_init(struct VM *const vm,
 	     unsigned char *const code,    // pointer to bytecode
              const size_t pc,              // address of instruction to be executed first -- entrypoint
              const size_t datasize) {      // total params size required to perform a program operations
@@ -210,7 +210,7 @@ NUM_BINOP(sub, -)
 NUM_BINOP(mul, *)
 
 static yasl_int int_pow(yasl_int left, yasl_int right) {
-    return (yasl_int)pow(left, right);
+    return (yasl_int)pow((double)left, (double)right);
 }
 
 static int vm_num_binop(
@@ -225,9 +225,9 @@ static int vm_num_binop(
 	} else if (YASL_ISFLOAT(left) && YASL_ISFLOAT(right)) {
 		vm_pushfloat(vm, float_op(YASL_GETFLOAT(left), YASL_GETFLOAT(right)));
 	} else if (YASL_ISFLOAT(left) && YASL_ISINT(right)) {
-		vm_pushfloat(vm, float_op(YASL_GETFLOAT(left), YASL_GETINT(right)));
+		vm_pushfloat(vm, float_op(YASL_GETFLOAT(left), (yasl_float)YASL_GETINT(right)));
 	} else if (YASL_ISINT(left) && YASL_ISFLOAT(right)) {
-		vm_pushfloat(vm, float_op(YASL_GETINT(left), YASL_GETFLOAT(right)));
+		vm_pushfloat(vm, float_op((yasl_float)YASL_GETINT(left), YASL_GETFLOAT(right)));
 	} else {
 		inc_ref(&left);
 		inc_ref(&right);
@@ -292,7 +292,7 @@ static int vm_pow(struct VM *vm) {
 	struct YASL_Object left = vm_peek(vm);
 	if (YASL_ISINT(left) && YASL_ISINT(right) && YASL_GETINT(right) < 0) {
 		vm_pop(vm);
-		vm_pushfloat(vm, pow(YASL_GETINT(left), YASL_GETINT(right)));
+		vm_pushfloat(vm, pow((double)YASL_GETINT(left), (double)YASL_GETINT(right)));
 	} else {
 		vm->sp++;
 		int res = vm_num_binop(vm, &int_pow, &pow, "**", OP_BIN_POWER);
@@ -361,7 +361,7 @@ static int vm_num_unop(struct VM *vm, yasl_int (*int_op)(yasl_int), yasl_float (
 static int vm_len_unop(struct VM *vm) {
 	struct YASL_Object v = vm_pop(vm);
 	if (YASL_ISSTR(v)) {
-		vm_pushint(vm, yasl_string_len(YASL_GETSTR(v)));
+		vm_pushint(vm, (yasl_int)yasl_string_len(YASL_GETSTR(v)));
 	} else if (YASL_ISTABLE(v)) {
 		vm_pushint(vm, (yasl_int)YASL_GETTABLE(v)->count);
 	} else if (YASL_ISLIST(v)) {
@@ -575,7 +575,7 @@ static int vm_NEWSTR(struct VM *vm) {
 static int vm_ITER_1(struct VM *vm) {
 	switch (VM_PEEK(vm, vm->lp).type) {
 	case Y_LIST:
-		if (vm_peeklist(vm, vm->lp)->count <= vm_peekint(vm, vm->lp + 1)) {
+		if ((yasl_int)vm_peeklist(vm, vm->lp)->count <= vm_peekint(vm, vm->lp + 1)) {
 			vm_pushbool(vm, 0);
 		} else {
 			vm_push(vm, vm_peeklist(vm, vm->lp)->items[vm_peekint(vm, vm->lp + 1)++]);
@@ -599,10 +599,10 @@ static int vm_ITER_1(struct VM *vm) {
 		vm_pushbool(vm, 1);
 		return YASL_SUCCESS;
 	case Y_STR:
-		if (yasl_string_len(vm_peekstr(vm, vm->lp)) <= vm_peekint(vm, vm->lp + 1)) {
+		if ((yasl_int)yasl_string_len(vm_peekstr(vm, vm->lp)) <= vm_peekint(vm, vm->lp + 1)) {
 			vm_push(vm, YASL_BOOL(0));
 		} else {
-			int64_t i = vm_peekint(vm, vm->lp + 1);
+			size_t i = (size_t)vm_peekint(vm, vm->lp + 1);
 			VM_PUSH(vm, YASL_STR(str_new_substring(i, i+1, vm_peekstr(vm, vm->lp))));
 			vm_peekint(vm, vm->lp + 1)++;
 			vm_pushbool(vm, 1);
@@ -636,7 +636,7 @@ static int vm_GLOAD_8(struct VM *vm) {
 	memcpy(&size, vm->headers[table] + addr, sizeof(yasl_int));
 
 	addr += sizeof(yasl_int);
-	String_t *string = str_new_sized(size, ((char *) vm->headers[table]) + addr);
+	String_t *string = str_new_sized((size_t)size, ((char *) vm->headers[table]) + addr);
 
 	vm_push(vm, table_search(vm->globals[table], YASL_STR(string)));
 
@@ -737,9 +737,9 @@ static int vm_RET(struct VM *vm) {
 	// TODO: handle multiple returns
 	struct YASL_Object v = vm_pop(vm);
 	vm->sp = vm->fp + 3;
-	vm->next_fp = vm->stack[vm->fp + 3].value.ival;
+	vm->next_fp = (int)YASL_GETINT(vm->stack[vm->fp + 3]);
 	vm_pop(vm);
-	vm->fp = vm_popint(vm);
+	vm->fp = (int)vm_popint(vm);
 	vm->pc = vm_pop(vm).value.fval;
 	vm_pop(vm);
 	vm_push(vm, v);
@@ -750,7 +750,7 @@ int vm_run(struct VM *vm) {
 	while (1) {
 		unsigned char opcode = NCODE(vm);        // fetch
 		signed char offset;
-		size_t size;
+		// size_t size;
 		yasl_int addr;
 		struct YASL_Object a, b, v;
 		yasl_int c;

@@ -30,11 +30,11 @@ static int YASL_math_abs(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.abs");
 
 	if (YASL_ISINT(*num)) {
-		yasl_int i = num->value.ival;
+		yasl_int i = YASL_GETINT(*num);
 		if (i < 0) i = -i;
 		return YASL_pushinteger(S, i);
 	} else {
-		double n = num->value.dval;
+		double n = YASL_GETFLOAT(*num);
 		if (n < 0) n = -n;
 		return YASL_pushfloat(S, n);
 	}
@@ -43,11 +43,11 @@ static int YASL_math_abs(struct YASL_State *S) {
 static int YASL_math_exp(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.exp");
 
-	double n;
+	yasl_float n;
 	if (YASL_ISINT(*num)) {
-		n = num->value.ival;
+		n = (yasl_float)YASL_GETINT(*num);
 	} else {
-		n = num->value.dval;
+		n = YASL_GETFLOAT(*num);
 	}
 	return YASL_pushfloat(S, exp(n));
 }
@@ -55,11 +55,11 @@ static int YASL_math_exp(struct YASL_State *S) {
 static int YASL_math_log(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.log");
 
-	double n;
+	yasl_float n;
 	if (YASL_ISINT(*num)) {
-		n = num->value.ival;
+		n = (yasl_float)YASL_GETINT(*num);;
 	} else {
-		n = num->value.dval;
+		n = YASL_GETFLOAT(*num);
 	}
 	return YASL_pushfloat(S, log(n));
 }
@@ -67,11 +67,11 @@ static int YASL_math_log(struct YASL_State *S) {
 static int YASL_math_sqrt(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.sqrt");
 
-	double n;
+	yasl_float n;
 	if (YASL_ISINT(*num)) {
-		n = num->value.ival;
+		n = (yasl_float)YASL_GETINT(*num);;
 	} else {
-		n = num->value.dval;
+		n = YASL_GETFLOAT(*num);
 	}
 	return YASL_pushfloat(S, sqrt(n));
 }
@@ -79,66 +79,66 @@ static int YASL_math_sqrt(struct YASL_State *S) {
 static int YASL_math_cos(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.cos");
 
-	double n;
+	yasl_float n;
 	if (YASL_ISINT(*num)) {
-		n = num->value.ival;
+		n = (yasl_float)YASL_GETINT(*num);;
 	} else {
-		n = num->value.dval;
+		n = YASL_GETFLOAT(*num);
 	}
 	return YASL_pushfloat(S, cos(n));
 }
 static int YASL_math_sin(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.sin");
 
-	double n;
+	yasl_float n;
 	if (YASL_ISINT(*num)) {
-		n = num->value.ival;
+		n = (yasl_float)YASL_GETINT(*num);;
 	} else {
-		n = num->value.dval;
+		n = YASL_GETFLOAT(*num);
 	}
 	return YASL_pushfloat(S, sin(n));
 }
 static int YASL_math_tan(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.tan");
 
-	double n;
+	yasl_float n;
 	if (YASL_ISINT(*num)) {
-		n = num->value.ival;
+		n = (yasl_float)YASL_GETINT(*num);;
 	} else {
-		n = num->value.dval;
+		n = YASL_GETFLOAT(*num);
 	}
 	return YASL_pushfloat(S, tan(n));
 }
 static int YASL_math_acos(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.acos");
 
-	double n;
+	yasl_float n;
 	if (YASL_ISINT(*num)) {
-		n = num->value.ival;
+		n = (yasl_float)YASL_GETINT(*num);;
 	} else {
-		n = num->value.dval;
+		n = YASL_GETFLOAT(*num);
 	}
 	return YASL_pushfloat(S, acos(n));
 }
 static int YASL_math_asin(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.asin");
 
-	double n;
+	yasl_float n;
 	if (YASL_ISINT(*num)) {
-		n = num->value.ival;
+		n = (yasl_float)YASL_GETINT(*num);;
 	} else {
-		n = num->value.dval;
+		n = YASL_GETFLOAT(*num);
 	}
 	return YASL_pushfloat(S, asin(n));
 }
 static int YASL_math_atan(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.atan");
 
-	double n;
+	yasl_float n;
 	if (YASL_ISINT(*num)) {
-		n = num->value.ival;
+		n = (yasl_float)YASL_GETINT(*num);;
 	} else {
-		n = num->value.dval;
+		n = YASL_GETFLOAT(*num);
 	}
 	return YASL_pushfloat(S, atan(n));
 }
@@ -146,22 +146,22 @@ static int YASL_math_atan(struct YASL_State *S) {
 static int YASL_math_ceil(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.ceil");
 
-	double n;
+	yasl_float n;
 	if (YASL_ISINT(*num)) {
-		n = num->value.ival;
+		n = (yasl_float)YASL_GETINT(*num);;
 	} else {
-		n = num->value.dval;
+		n = YASL_GETFLOAT(*num);
 	}
 	return YASL_pushfloat(S, ceil(n));
 }
 static int YASL_math_floor(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.floor");
 
-	double n;
+	yasl_float n;
 	if (YASL_ISINT(*num)) {
-		n = num->value.ival;
+		n = (yasl_float)YASL_GETINT(*num);;
 	} else {
-		n = num->value.dval;
+		n = YASL_GETFLOAT(*num);
 	}
 	return YASL_pushfloat(S, floor(n));
 }
@@ -169,11 +169,11 @@ static int YASL_math_floor(struct YASL_State *S) {
 static int YASL_math_deg(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.deg");
 
-	double n;
+	yasl_float n;
 	if (YASL_ISINT(*num)) {
-		n = num->value.ival;
+		n = (yasl_float)YASL_GETINT(*num);;
 	} else {
-		n = num->value.dval;
+		n = YASL_GETFLOAT(*num);
 	}
 
 	n *= (double)180.0/YASL_PI;
@@ -182,11 +182,11 @@ static int YASL_math_deg(struct YASL_State *S) {
 static int YASL_math_rad(struct YASL_State *S) {
 	POP_NUMBER(S, num, "math.rad");
 
-	double n;
+	yasl_float n;
 	if (YASL_ISINT(*num)) {
-		n = num->value.ival;
+		n = (yasl_float)YASL_GETINT(*num);;
 	} else {
-		n = num->value.dval;
+		n = YASL_GETFLOAT(*num);
 	}
 
 	n *= YASL_PI/(double)180.0;

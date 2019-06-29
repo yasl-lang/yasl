@@ -13,10 +13,11 @@ set(CMAKE_CXX_STANDARD 11)
 
 if(MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+    set(CMAKE_C_FLAGS "/WX")
 endif()
 
 if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
-    set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-unused-function -Wno-unused-result -Wno-unused-variable -Wno-unused-parameter -Wpedantic -Werror")
+    set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-unused-function -Wno-unused-result -Wno-unused-parameter -Wpedantic -Werror")
 endif()
 if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
     set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-function -Wno-unused-result -Wno-unused-variable -Wno-unused-parameter -Wno-deprecated -Werror")

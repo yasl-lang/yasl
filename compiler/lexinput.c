@@ -24,7 +24,7 @@ int lxtell(struct LEXINPUT *const lp) {
 	return d;
 }
 
-int lxseek(struct LEXINPUT *const lp, int w, int cmd) {
+int lxseek(struct LEXINPUT *const lp, const int w, const int cmd) {
 	int r = lp->seek(lp, w, cmd);
 	return r;
 }

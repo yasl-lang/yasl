@@ -6,7 +6,7 @@
 
 int bool_tostr(struct YASL_State *S) {
 	ASSERT_TYPE((struct VM *) S, Y_BOOL, "bool.tostr");
-	int val = YASL_GETBOOL(vm_pop((struct VM *) S));
+	bool val = (bool)YASL_GETBOOL(vm_pop((struct VM *) S));
 	String_t *string;
 	if (val == 0) {
 		string = str_new_sized(strlen("false"), "false");
