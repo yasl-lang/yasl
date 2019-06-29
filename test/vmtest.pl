@@ -280,6 +280,12 @@ assert_output(qq"let x = { 3:'three', 1:'one', 2:'two'}
 assert_output(qq"let x = {1:'one', 2:'two', 3:'three'};
                  for e <- x->copy() { echo e; echo x[e]; };", "2\ntwo\n1\none\n3\nthree\n", 0);
 assert_output(qq"echo {}\n", "{}\n", 0);
+assert_output(qq"const x = { .one: 1, .two: 2 }
+                 echo x.one
+                 echo x.two
+                 x->remove(.two)
+                 echo x.one
+                 echo x.two;", "1\n2\n1\nundef\n", 0);
 assert_output(qq"let y = []
                  let x = {}
                  x.x = x
