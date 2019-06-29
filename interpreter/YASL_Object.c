@@ -245,7 +245,7 @@ int print(struct YASL_Object v) {
 	case Y_UNDEF:printf("undef");
 		break;
 	case Y_STR:
-		for (i = 0; i < yasl_string_len(YASL_GETSTR(v)); i++) {
+		for (i = 0; i < (yasl_int)yasl_string_len(YASL_GETSTR(v)); i++) {
 			printf("%c", YASL_GETSTR(v)->str[i + YASL_GETSTR(v)->start]);
 		}
 		break;

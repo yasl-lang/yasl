@@ -784,7 +784,7 @@ static void visit_BinOp(struct Compiler *const compiler, const struct Node *cons
 		bb_intbytes8(compiler->buffer, 0);
 		bb_add_byte(compiler->buffer, POP);
 		visit(compiler, node->children[1]);
-		bb_rewrite_intbytes8(compiler->buffer, size_t, compiler->buffer->count - index - 8);
+		bb_rewrite_intbytes8(compiler->buffer, index, compiler->buffer->count - index - 8);
 		return;
 	} else if (node->type == T_DAMP) {   // and operator
 		visit(compiler, node->children[0]);

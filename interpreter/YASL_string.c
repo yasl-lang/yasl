@@ -82,7 +82,7 @@ void str_del(String_t *str) {
 int64_t str_find_index(const String_t *haystack, const String_t *needle) {
 	// TODO: implement non-naive algorithm for string search.
 	if (yasl_string_len(haystack) < yasl_string_len(needle)) return -1;
-	int64_t i = 0;
+	size_t i = 0;
 	const char *hayStr = haystack->str + haystack->start;
 	const char *needleStr = needle->str + needle->start;
 	while (i <= yasl_string_len(haystack) - yasl_string_len(needle)) {

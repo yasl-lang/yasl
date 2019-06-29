@@ -598,7 +598,7 @@ static int vm_ITER_1(struct VM *vm) {
 		vm_pushbool(vm, 1);
 		return YASL_SUCCESS;
 	case Y_STR:
-		if (yasl_string_len(vm_peekstr(vm, vm->lp)) <= vm_peekint(vm, vm->lp + 1)) {
+		if ((yasl_int)yasl_string_len(vm_peekstr(vm, vm->lp)) <= vm_peekint(vm, vm->lp + 1)) {
 			vm_push(vm, YASL_BOOL(0));
 		} else {
 			int64_t i = vm_peekint(vm, vm->lp + 1);
