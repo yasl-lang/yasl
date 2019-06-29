@@ -120,7 +120,6 @@ struct Node *parse_assign_or_exprstmt(Parser *const parser) {
 static struct Node *parse_program(Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("parsing statement in line %zd\n", parser->lex.line);
 	size_t line;
-	struct Node *expr;
 	switch (curtok(parser)) {
 	case T_ECHO:
 		eattok(parser, T_ECHO);

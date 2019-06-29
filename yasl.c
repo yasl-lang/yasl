@@ -132,7 +132,7 @@ int YASL_declglobal(struct YASL_State *S, const char *name) {
 		bb_intbytes8(S->compiler.header, strlen(name));
 		bb_append(S->compiler.header, (unsigned char *) name, strlen(name));
 	}
-	int64_t index = env_decl_var(S->compiler.globals, name, strlen(name));
+	/* int64_t index =*/ env_decl_var(S->compiler.globals, name, strlen(name));
 	return YASL_SUCCESS;
 }
 

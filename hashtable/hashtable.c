@@ -13,6 +13,8 @@
 
 #define HT_BASESIZE 30
 
+Item_t TOMBSTONE = { { Y_END, { Y_END } }, { Y_END, { Y_END } } };
+
 static Item_t new_item(const struct YASL_Object k, const struct YASL_Object v) {
 	Item_t item = {k, v};
 	inc_ref(&item.value);

@@ -749,7 +749,7 @@ int vm_run(struct VM *vm) {
 	while (1) {
 		unsigned char opcode = NCODE(vm);        // fetch
 		signed char offset;
-		size_t size;
+		// size_t size;
 		yasl_int addr;
 		struct YASL_Object a, b, v;
 		yasl_int c;

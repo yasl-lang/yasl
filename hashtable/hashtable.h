@@ -25,7 +25,7 @@ struct Table {
 	Item_t *items;
 };
 
-static Item_t TOMBSTONE = { { Y_END, { Y_END } }, { Y_END, { Y_END } } }; //(struct YASL_Object) {Y_END, Y_END};
+Item_t TOMBSTONE; //(struct YASL_Object) {Y_END, Y_END};
 
 void del_item(Item_t* item);
 

@@ -26,7 +26,7 @@ typedef struct {
 int peof(const Parser *const parser);
 // Parser *parser_new(FILE *fp);
 void parser_cleanup(Parser *const parser);
-enum Token eattok(Parser *parser, enum Token token);
+enum Token eattok(Parser *const parser, const enum Token token);
 struct Node *parse(Parser *const parser);
 
 #ifdef _MSC_VER

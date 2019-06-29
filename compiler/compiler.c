@@ -409,12 +409,13 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	}
 
 	size_t old_size = compiler->buffer->count;
-	bb_add_byte(compiler->buffer, FnDecl_get_params(node)->children_len);
+	// TODO: verfiy that number of params is small enough. (same for the other casts below.)
+	bb_add_byte(compiler->buffer, (unsigned char)FnDecl_get_params(node)->children_len);
 	size_t index = compiler->buffer->count;
-	bb_add_byte(compiler->buffer, compiler->params->vars->count);
+	bb_add_byte(compiler->buffer, (unsigned char)compiler->params->vars->count);
 	visit_Body(compiler, FnDecl_get_body(node));
 	exit_scope(compiler);
-	compiler->buffer->bytes[index] = compiler->num_locals;
+	compiler->buffer->bytes[index] = (unsigned char)compiler->num_locals;
 
 	int64_t fn_val = compiler->header->count;
 	bb_append(compiler->header, compiler->buffer->bytes + old_size, compiler->buffer->count - old_size);
