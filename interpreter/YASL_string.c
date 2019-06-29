@@ -63,23 +63,23 @@ String_t* str_new_sized_heap(const size_t start, const size_t end, const char *c
 	return str;
 }
 
-void str_del_data(String_t *str) {
+void str_del_data(String_t *const str) {
 	if (str->on_heap) free((void *) str->str);
 }
 
-void str_del_rc(String_t *str) {
+void str_del_rc(String_t *const str) {
 	rc_del(str->rc);
 	free(str);
 }
 
-void str_del(String_t *str) {
+void str_del(String_t *const str) {
 	if (str->on_heap) free((void *) str->str);
 	rc_del(str->rc);
 	free(str);
 }
 
 
-int64_t str_find_index(const String_t *haystack, const String_t *needle) {
+int64_t str_find_index(const String_t *const haystack, const String_t *const needle) {
 	// TODO: implement non-naive algorithm for string search.
 	if (yasl_string_len(haystack) < yasl_string_len(needle)) return -1;
 	size_t i = 0;

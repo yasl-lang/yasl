@@ -33,7 +33,7 @@ static struct Table **builtins_htable_new(struct VM *vm) {
     return ht;
 }
 
-void vm_init(struct VM *vm,
+void vm_init(struct VM *const vm,
 	     unsigned char *const code,    // pointer to bytecode
              const size_t pc,              // address of instruction to be executed first -- entrypoint
              const size_t datasize) {      // total params size required to perform a program operations
