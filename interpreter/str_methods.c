@@ -160,7 +160,7 @@ int str_tofloat(struct YASL_State *S) {
 		return 0;
 	}
 
-	result = parseint64(buffer, &ok);
+	result = (yasl_float)parseint64(buffer, &ok);
 	if (ok) {
 		VM_PUSH((struct VM *)S, YASL_FLOAT(result));
 		free(buffer);
