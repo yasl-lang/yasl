@@ -1,4 +1,4 @@
-##
+##123 .\n123 .\n123 .\n
 # tests that strings are garbage collected properly
 
 let x = 'x'
@@ -6,4 +6,13 @@ let x = 'x'
 x = 'X'
 
 x = '$'
+
+# tests that string interpolation parses properly
+const t = { .s: collections.set() }
+
+echo "123 #{t.s->tostr()->ltrim('set(')->rtrim(")")}."
+
+echo "#{'123'} ."
+
+echo "#{"123"} ."
 
