@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int64_t yasl_string_len(const String_t *const str) {
-	return str->end - str->start;
+size_t yasl_string_len(const String_t *const str) {
+	return (size_t)(str->end - str->start);
 }
 
 int64_t yasl_string_cmp(const String_t *const left, const String_t *const right) {

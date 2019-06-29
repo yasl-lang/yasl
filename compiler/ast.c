@@ -60,7 +60,7 @@ struct Node *new_Block(const struct Node *const body, const size_t line) {
 	return new_Node_1(N_BLOCK, T_UNKNOWN, body, NULL, 0, line);
 }
 
-struct Node *new_Body(size_t line) {
+struct Node *new_Body(const size_t line) {
 	return new_Node_0(N_BODY, T_UNKNOWN, NULL, 0, line);
 }
 

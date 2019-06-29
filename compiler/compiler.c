@@ -107,7 +107,7 @@ static void compiler_buffers_del(const struct Compiler *const compiler) {
 	bb_del(compiler->code);
 }
 
-void compiler_cleanup(struct Compiler *compiler) {
+void compiler_cleanup(struct Compiler *const compiler) {
 	compiler_tables_del(compiler);
 	env_del(compiler->globals);
 	env_del(compiler->stack);
@@ -150,7 +150,7 @@ static inline void enter_conditional_false(struct Compiler *const compiler, int6
 }
 
 static inline void exit_conditional_false(struct Compiler *const compiler, const int64_t *const index) {
-	bb_rewrite_intbytes8(compiler->buffer, *index, compiler->buffer->count - *index - 8);
+	bb_rewrite_intbytes8(compiler->buffer, (size_t)*index, compiler->buffer->count - *index - 8);
 }
 
 static void add_checkpoint(struct Compiler *const compiler, const size_t cp) {
@@ -770,7 +770,7 @@ static void visit_BinOp(struct Compiler *const compiler, const struct Node *cons
 		visit(compiler, node->children[0]);
 		bb_add_byte(compiler->buffer, DUP);
 		bb_add_byte(compiler->buffer, BRN_8);
-		int64_t index = compiler->buffer->count;
+		size_t index = compiler->buffer->count;
 		bb_intbytes8(compiler->buffer, 0);
 		bb_add_byte(compiler->buffer, POP);
 		visit(compiler, node->children[1]);
@@ -780,11 +780,11 @@ static void visit_BinOp(struct Compiler *const compiler, const struct Node *cons
 		visit(compiler, node->children[0]);
 		bb_add_byte(compiler->buffer, DUP);
 		bb_add_byte(compiler->buffer, BRT_8);
-		int64_t index = compiler->buffer->count;
+		size_t index = compiler->buffer->count;
 		bb_intbytes8(compiler->buffer, 0);
 		bb_add_byte(compiler->buffer, POP);
 		visit(compiler, node->children[1]);
-		bb_rewrite_intbytes8(compiler->buffer, index, compiler->buffer->count - index - 8);
+		bb_rewrite_intbytes8(compiler->buffer, size_t, compiler->buffer->count - index - 8);
 		return;
 	} else if (node->type == T_DAMP) {   // and operator
 		visit(compiler, node->children[0]);
