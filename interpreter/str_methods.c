@@ -538,9 +538,9 @@ int str_rtrim(struct YASL_State *S) {
 }
 
 int str_trim(struct YASL_State *S) {
-	ASSERT_TYPE((struct VM *)S, Y_STR, "str.split");
+	ASSERT_TYPE((struct VM *)S, Y_STR, "str.trim");
 	String_t *needle = YASL_GETSTR(vm_pop((struct VM *)S));
-	ASSERT_TYPE((struct VM *)S, Y_STR, "str.split");
+	ASSERT_TYPE((struct VM *)S, Y_STR, "str.trim");
 	struct YASL_Object top = vm_peek((struct VM *)S);
 	inc_ref(&top);
 	String_t *haystack = YASL_GETSTR(vm_pop((struct VM *)S));
