@@ -224,9 +224,9 @@ static int vm_num_binop(
 	} else if (YASL_ISFLOAT(left) && YASL_ISFLOAT(right)) {
 		vm_pushfloat(vm, float_op(YASL_GETFLOAT(left), YASL_GETFLOAT(right)));
 	} else if (YASL_ISFLOAT(left) && YASL_ISINT(right)) {
-		vm_pushfloat(vm, float_op(YASL_GETFLOAT(left), YASL_GETINT(right)));
+		vm_pushfloat(vm, float_op(YASL_GETFLOAT(left), (yasl_float)YASL_GETINT(right)));
 	} else if (YASL_ISINT(left) && YASL_ISFLOAT(right)) {
-		vm_pushfloat(vm, float_op(YASL_GETINT(left), YASL_GETFLOAT(right)));
+		vm_pushfloat(vm, float_op((yasl_float)YASL_GETINT(left), YASL_GETFLOAT(right)));
 	} else {
 		inc_ref(&left);
 		inc_ref(&right);

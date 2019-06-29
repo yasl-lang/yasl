@@ -70,7 +70,7 @@ static void ls_resize_down(struct RC_List* ls) {
 }
 */
 
-void ls_insert(struct List* ls, const int64_t index, struct YASL_Object value) {
+void ls_insert(struct List *const ls, const int64_t index, struct YASL_Object value) {
     if (ls->count >= ls->size) ls_resize_up(ls);
     dec_ref(ls->items+index);
     ls->items[index] = value;

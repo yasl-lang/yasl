@@ -639,7 +639,7 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 }
 
 static void visit_While(struct Compiler *const compiler, const struct Node *const node) {
-	int64_t index_start = compiler->buffer->count;
+	size_t index_start = compiler->buffer->count;
 
 	if (node->children[2] != NULL) {
 		bb_add_byte(compiler->buffer, BR_8);
@@ -699,7 +699,7 @@ static void visit_If(struct Compiler *const compiler, const struct Node *const n
 
 	visit(compiler, node->children[1]);
 
-	int64_t index_else = 0;
+	size_t index_else = 0;
 
 	if (node->children[2] != NULL) {
 		bb_add_byte(compiler->buffer, BR_8);
