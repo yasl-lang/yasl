@@ -233,7 +233,7 @@ int list_search(struct YASL_State *S) {
 
 	FOR_LIST(i, obj, haystack) {
 		if (!isfalsey(isequal(obj, needle)))
-			index = YASL_INT(i);
+			index = YASL_INT((yasl_int)i);
 	}
 
 	vm_push((struct VM *)S, index);
