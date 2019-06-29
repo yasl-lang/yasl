@@ -360,7 +360,7 @@ static int vm_num_unop(struct VM *vm, yasl_int (*int_op)(yasl_int), yasl_float (
 static int vm_len_unop(struct VM *vm) {
 	struct YASL_Object v = vm_pop(vm);
 	if (YASL_ISSTR(v)) {
-		vm_pushint(vm, yasl_string_len(YASL_GETSTR(v)));
+		vm_pushint(vm, (yasl_int)yasl_string_len(YASL_GETSTR(v)));
 	} else if (YASL_ISTABLE(v)) {
 		vm_pushint(vm, (yasl_int)YASL_GETTABLE(v)->count);
 	} else if (YASL_ISLIST(v)) {
