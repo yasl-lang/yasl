@@ -107,6 +107,7 @@ struct Table* list_builtins(struct VM *vm) {
 
 struct Table* table_builtins(struct VM *vm) {
 	struct Table *table = table_new();
+	table_insert_specialstring_cfunction(vm, table, S_REMOVE, &table_remove, 2);
 	table_insert_specialstring_cfunction(vm, table, S_KEYS, &table_keys, 1);
 	table_insert_specialstring_cfunction(vm, table, S_VALUES, &table_values, 1);
 	table_insert_specialstring_cfunction(vm, table, S_COPY, &table_clone, 1);

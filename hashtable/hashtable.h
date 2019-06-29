@@ -35,6 +35,7 @@ void table_insert_string_int(struct Table *const table, const char *const key, c
 void table_insert_literalcstring_cfunction(struct Table *ht, const char *key, int (*addr)(struct YASL_State *), int num_args);
 struct YASL_Object table_search(const struct Table *const table, const struct YASL_Object key);
 struct YASL_Object table_search_string_int(const struct Table *const table, const char *const key, const size_t key_len);
+void table_rm(struct Table *table, struct YASL_Object key);
 void table_del(struct Table *const table);
 void table_del_string_int(struct Table *const table);
 

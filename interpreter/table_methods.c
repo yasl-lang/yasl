@@ -208,6 +208,15 @@ int table_values(struct YASL_State *S) {
 	return 0;
 }
 
+int table_remove(struct YASL_State *S) {
+	struct YASL_Object key = vm_pop((struct VM *)S);
+	ASSERT_TYPE((struct VM *)S, Y_TABLE, "table.clone");
+	struct Table *ht = YASL_GETTABLE(vm_peek((struct VM *)S));
+
+	table_rm(ht, key);
+	return 0;
+}
+
 int table_clone(struct YASL_State *S) {
 	ASSERT_TYPE((struct VM *)S, Y_TABLE, "table.clone");
 	struct Table *ht = YASL_GETTABLE(vm_pop((struct VM *)S));
