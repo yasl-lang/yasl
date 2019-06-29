@@ -462,7 +462,7 @@ static int str_split_default(struct YASL_State *S) {
 	ASSERT_TYPE((struct VM *)S, Y_STR, "str.split");
 	String_t *haystack = YASL_GETSTR(vm_pop((struct VM *)S));
 
-	int64_t end = 0, start = 0;
+	size_t end = 0, start = 0;
 	struct RC_UserData *result = ls_new();
 	while (true) {
 		// printf("end: %d\n", (int)end);
