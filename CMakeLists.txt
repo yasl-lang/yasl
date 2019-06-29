@@ -13,7 +13,7 @@ set(CMAKE_CXX_STANDARD 11)
 
 if(MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-    set("/WX")
+    set(CMAKE_C_FLAGS "/WX")
 endif()
 
 if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
