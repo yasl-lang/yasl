@@ -271,7 +271,7 @@ int list_slice(struct YASL_State *S) {
 		return -1;
 	}
 
-	struct RC_UserData *new_list = ls_new_sized(end - start);
+	struct RC_UserData *new_list = ls_new_sized((size_t)(end - start));
 
 	for (int64_t i = start; i < end; i++) {
 		ls_append((struct List *)new_list->data, list->items[i]); // = list->items[i];

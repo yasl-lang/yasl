@@ -210,7 +210,7 @@ NUM_BINOP(sub, -)
 NUM_BINOP(mul, *)
 
 static yasl_int int_pow(yasl_int left, yasl_int right) {
-    return (yasl_int)pow(left, right);
+    return (yasl_int)pow((double)left, (double)right);
 }
 
 static int vm_num_binop(
@@ -292,7 +292,7 @@ static int vm_pow(struct VM *vm) {
 	struct YASL_Object left = vm_peek(vm);
 	if (YASL_ISINT(left) && YASL_ISINT(right) && YASL_GETINT(right) < 0) {
 		vm_pop(vm);
-		vm_pushfloat(vm, pow(YASL_GETINT(left), YASL_GETINT(right)));
+		vm_pushfloat(vm, pow((double)YASL_GETINT(left), (double)YASL_GETINT(right)));
 	} else {
 		vm->sp++;
 		int res = vm_num_binop(vm, &int_pow, &pow, "**", OP_BIN_POWER);
@@ -602,7 +602,7 @@ static int vm_ITER_1(struct VM *vm) {
 		if ((yasl_int)yasl_string_len(vm_peekstr(vm, vm->lp)) <= vm_peekint(vm, vm->lp + 1)) {
 			vm_push(vm, YASL_BOOL(0));
 		} else {
-			int64_t i = vm_peekint(vm, vm->lp + 1);
+			size_t i = (size_t)vm_peekint(vm, vm->lp + 1);
 			VM_PUSH(vm, YASL_STR(str_new_substring(i, i+1, vm_peekstr(vm, vm->lp))));
 			vm_peekint(vm, vm->lp + 1)++;
 			vm_pushbool(vm, 1);
@@ -636,7 +636,7 @@ static int vm_GLOAD_8(struct VM *vm) {
 	memcpy(&size, vm->headers[table] + addr, sizeof(yasl_int));
 
 	addr += sizeof(yasl_int);
-	String_t *string = str_new_sized(size, ((char *) vm->headers[table]) + addr);
+	String_t *string = str_new_sized((size_t)size, ((char *) vm->headers[table]) + addr);
 
 	vm_push(vm, table_search(vm->globals[table], YASL_STR(string)));
 
@@ -737,9 +737,9 @@ static int vm_RET(struct VM *vm) {
 	// TODO: handle multiple returns
 	struct YASL_Object v = vm_pop(vm);
 	vm->sp = vm->fp + 3;
-	vm->next_fp = vm->stack[vm->fp + 3].value.ival;
+	vm->next_fp = (int)YASL_GETINT(vm->stack[vm->fp + 3]);
 	vm_pop(vm);
-	vm->fp = vm_popint(vm);
+	vm->fp = (int)vm_popint(vm);
 	vm->pc = vm_pop(vm).value.fval;
 	vm_pop(vm);
 	vm_push(vm, v);
