@@ -12,8 +12,8 @@ typedef struct {
     size_t count;
 } ByteBuffer;
 
-ByteBuffer *bb_new(size_t size);
-void bb_del(ByteBuffer *bb);
+ByteBuffer *bb_new(const size_t size);
+void bb_del(ByteBuffer *const bb);
 
 void bb_add_byte(ByteBuffer *const bb, const unsigned char byte);
 void bb_append(ByteBuffer *const bb, const unsigned char *const bytes, const size_t bytes_len);

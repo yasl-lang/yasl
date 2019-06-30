@@ -14,7 +14,7 @@ int list___get(struct YASL_State *S) {
     if (!YASL_ISINT(index)) {
         S->vm.sp++;
         return -1;
-    } else if (YASL_GETINT(index) < -ls->count || YASL_GETINT(index) >= ls->count) {
+    } else if (YASL_GETINT(index) < -(int64_t)ls->count || YASL_GETINT(index) >= (int64_t)ls->count) {
         printf("IndexError\n");
         return -1;
     } else {
@@ -39,8 +39,8 @@ int list___set(struct YASL_State *S) {
         printf("TypeError: cannot index list with non-integer\n");
 	//VM_PUSH((struct VM *)S, YASL_UNDEF());
         return -1;
-    } else if (YASL_GETINT(index) < -ls->count || YASL_GETINT(index) >= ls->count) {
-        printf("%d || %d\n", YASL_GETINT(index) < -ls->count, YASL_GETINT(index) >= ls->count);
+    } else if (YASL_GETINT(index) < -(int64_t)ls->count || YASL_GETINT(index) >= (int64_t)ls->count) {
+        printf("%d || %d\n", YASL_GETINT(index) < -(int64_t)ls->count, YASL_GETINT(index) >= (int64_t)ls->count);
         printf("IndexError\n");
         //VM_PUSH((struct VM *)S, YASL_UNDEF());
         return -1;
@@ -184,10 +184,10 @@ int list___add(struct YASL_State *S) {
 	struct List *b = YASL_GETLIST(vm_pop((struct VM *) S));
 	ASSERT_TYPE((struct VM *) S, Y_LIST, "list.__add");
 	struct List *a = YASL_GETLIST(vm_pop((struct VM *) S));
-	int64_t size = a->count + b->count;
+	size_t size = a->count + b->count;
 	struct RC_UserData *ptr = ls_new_sized(size);
-	int64_t i;
-	for (i = 0; i < a->count; i++) {
+	size_t i;
+	for (size_t i = 0; i < a->count; i++) {
 		ls_append((struct List *)ptr->data, (a)->items[i]);
 	}
 	for (i = 0; i < (b)->count; i++) {
@@ -233,7 +233,7 @@ int list_search(struct YASL_State *S) {
 
 	FOR_LIST(i, obj, haystack) {
 		if (!isfalsey(isequal(obj, needle)))
-			index = YASL_INT(i);
+			index = YASL_INT((yasl_int)i);
 	}
 
 	vm_push((struct VM *)S, index);
@@ -255,23 +255,23 @@ int list_slice(struct YASL_State *S) {
 	struct List *list = vm_poplist((struct VM *)S);
 	if (!YASL_ISINT(start_index) || !YASL_ISINT(end_index)) {
 		return -1;
-	} else if (YASL_GETINT(start_index) < -list->count ||
-		   YASL_GETINT(start_index) > list->count) {
+	} else if (YASL_GETINT(start_index) < -(int64_t)list->count ||
+		   YASL_GETINT(start_index) > (int64_t)list->count) {
 		return -1;
-	} else if (YASL_GETINT(end_index) < -list->count || YASL_GETINT(end_index) > list->count) {
+	} else if (YASL_GETINT(end_index) < -(int64_t)list->count || YASL_GETINT(end_index) > (int64_t)list->count) {
 		return -1;
 	}
 
-	int64_t start = YASL_GETINT(start_index) < 0 ? YASL_GETINT(start_index) + list->count : YASL_GETINT(
+	int64_t start = YASL_GETINT(start_index) < 0 ? YASL_GETINT(start_index) + (int64_t)list->count : YASL_GETINT(
 		start_index);
 	int64_t end =
-		YASL_GETINT(end_index) < 0 ? YASL_GETINT(end_index) + list->count : YASL_GETINT(end_index);
+		YASL_GETINT(end_index) < 0 ? YASL_GETINT(end_index) + (int64_t)list->count : YASL_GETINT(end_index);
 
 	if (start > end) {
 		return -1;
 	}
 
-	struct RC_UserData *new_list = ls_new_sized(end - start);
+	struct RC_UserData *new_list = ls_new_sized((size_t)(end - start));
 
 	for (int64_t i = start; i < end; i++) {
 		ls_append((struct List *)new_list->data, list->items[i]); // = list->items[i];
@@ -330,7 +330,7 @@ int list_join(struct YASL_State *S) {
 	buffer_count += yasl_string_len(str);
 
 
-	for (int64_t i = 1; i < list->count; i++) {
+	for (size_t i = 1; i < list->count; i++) {
 		while (buffer_count + yasl_string_len(string) >= buffer_size) {
 			buffer_size *= 2;
 			buffer = (char *)realloc(buffer, buffer_size);
@@ -427,7 +427,7 @@ int list_sort(struct YASL_State *S) {
 	int type = SORT_TYPE_EMPTY;
 
 	int err = 0;
-	for (int64_t i = 0; i < list->count; i++) {
+	for (size_t i = 0; i < list->count; i++) {
 		switch (list->items[i].type) {
 		case Y_STR:
 			if (type == SORT_TYPE_EMPTY) {

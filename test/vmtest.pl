@@ -212,6 +212,8 @@ assert_output("echo 'YASL'->search('0')\n", "undef\n", 0);
 assert_output("echo len 'the quick brown fox'->split(' ')\n", "4\n", 0);
 assert_output("for x <- 'the quick brown fox'->split(' ') { echo x; };", "the\nquick\nbrown\nfox\n", 0);
 assert_output("echo len 'the quick brown fox'->split('0')\n", "1\n", 0);
+assert_output("echo ' a b c         d     e         '->split()\n", "[a, b, c, d, e]\n", 0);
+assert_output("echo '               '->split()\n", "[]\n", 0);
 assert_output("echo 'YAY'->ltrim('Y')\n", "AY\n", 0);
 assert_output("echo 'YYYYAY'->ltrim('Y')\n", "AY\n", 0);
 assert_output("echo 'YAY'->ltrim('A')\n", "YAY\n", 0);
@@ -221,6 +223,9 @@ assert_output("echo 'YAY'->rtrim('A')\n", "YAY\n", 0);
 assert_output("echo 'YAY'->trim('Y')\n", "A\n", 0);
 assert_output("echo 'YAY'->trim('A')\n", "YAY\n", 0);
 assert_output("echo 'YYAYYY'->trim('Y')\n", "A\n", 0);
+assert_output("echo '	 	 YASL	    '->trim()\n", "YASL\n", 0);
+assert_output("echo '	 	 YASL'->ltrim()\n", "YASL\n", 0);
+assert_output("echo 'YASL	    '->rtrim()\n", "YASL\n", 0);
 assert_output("echo 'YASL'->__get(3)\n", "L\n", 0);
 assert_output("echo 'YASL'[3]\n", "L\n", 0);
 assert_output("echo 'YASL'->__get(-1)\n", "L\n", 0);
@@ -277,6 +282,12 @@ assert_output(qq"let x = { 3:'three', 1:'one', 2:'two'}
 assert_output(qq"let x = {1:'one', 2:'two', 3:'three'};
                  for e <- x->copy() { echo e; echo x[e]; };", "2\ntwo\n1\none\n3\nthree\n", 0);
 assert_output(qq"echo {}\n", "{}\n", 0);
+assert_output(qq"const x = { .one: 1, .two: 2 }
+                 echo x.one
+                 echo x.two
+                 x->remove(.two)
+                 echo x.one
+                 echo x.two;", "1\n2\n1\nundef\n", 0);
 assert_output(qq"let y = []
                  let x = {}
                  x.x = x

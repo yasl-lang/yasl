@@ -12,6 +12,8 @@
 #include "interpreter/list.h"
 #include "YASL_string.h"
 
+#define iswhitespace(c) ((c) == ' ' || (c) == '\t' || (c) == '\n' || (c) == '\v' || (c) == '\r')
+
 int str___get(struct YASL_State *S) {
 	struct YASL_Object index = vm_pop((struct VM *)S);
 	ASSERT_TYPE((struct VM *)S, Y_STR, "str.__get");
@@ -19,7 +21,7 @@ int str___get(struct YASL_State *S) {
 	if (index.type != Y_INT) {
 		return -1;
 		VM_PUSH((struct VM *)S, YASL_UNDEF());
-	} else if (YASL_GETINT(index) < -yasl_string_len(str) || YASL_GETINT(index) >= yasl_string_len(str)) {
+	} else if (YASL_GETINT(index) < -(yasl_int)yasl_string_len(str) || YASL_GETINT(index) >= (yasl_int)yasl_string_len(str)) {
 		printf("IndexError\n");
 		return -1;
 		VM_PUSH((struct VM *)S, YASL_UNDEF());
@@ -44,17 +46,17 @@ int str_slice(struct YASL_State *S) {
 	String_t *str = YASL_GETSTR(vm_pop((struct VM *)S));
 	if (!YASL_ISINT(start_index) || !YASL_ISINT(end_index)) {
 		return -1;
-	} else if (YASL_GETINT(start_index) < -yasl_string_len(str) ||
-		   YASL_GETINT(start_index) > yasl_string_len(str)) {
+	} else if (YASL_GETINT(start_index) < -(yasl_int)yasl_string_len(str) ||
+		   YASL_GETINT(start_index) > (yasl_int)yasl_string_len(str)) {
 		return -1;
-	} else if (YASL_GETINT(end_index) < -yasl_string_len(str) || YASL_GETINT(end_index) > yasl_string_len(str)) {
+	} else if (YASL_GETINT(end_index) < -(yasl_int)yasl_string_len(str) || YASL_GETINT(end_index) > (yasl_int)yasl_string_len(str)) {
 		return -1;
 	}
 
-	int64_t start = YASL_GETINT(start_index) < 0 ? YASL_GETINT(start_index) + yasl_string_len(str) : YASL_GETINT(
+	int64_t start = YASL_GETINT(start_index) < 0 ? YASL_GETINT(start_index) + (yasl_int)yasl_string_len(str) : YASL_GETINT(
 		start_index);
 	int64_t end =
-		YASL_GETINT(end_index) < 0 ? YASL_GETINT(end_index) + yasl_string_len(str) : YASL_GETINT(end_index);
+		YASL_GETINT(end_index) < 0 ? YASL_GETINT(end_index) + (yasl_int)yasl_string_len(str) : YASL_GETINT(end_index);
 
 	if (start > end) {
 		return -1;
@@ -100,18 +102,6 @@ bool isvaliddouble(const char *str) {
 			return false;
 
 		}
-		/*
-		if ((!isdigit(str[i]) && str[i] != '.' && str[i] != 'e' && str[i] != 'E') || (hasdot && str[i] == '.') || (hase && (str[i] == 'e' || str[i] == 'E'))) {
-			return false;
-		}
-		if (str[i] == '.') {
-			if (hase || hasdot) return false;
-			hasdot = true;
-		}
-		if (str[i] == 'e' || str[i] == 'E') {
-			if (hase) return false;
-		}
-		 */
 	}
 	return hasdot && isdigit(str[len-1]) && isdigit(str[0]);
 }
@@ -155,7 +145,7 @@ int str_tofloat(struct YASL_State *S) {
 		return 0;
 	}
 	size_t curr = 0;
-	for (int64_t i = 0; i < yasl_string_len(str); ++i) {
+	for (size_t i = 0; i < yasl_string_len(str); ++i) {
 		if (str->str[str->start + i] == '_' && str->str[str->start + i - 1] != '.') {
 			continue;
 		}
@@ -170,7 +160,7 @@ int str_tofloat(struct YASL_State *S) {
 		return 0;
 	}
 
-	result = parseint64(buffer, &ok);
+	result = (yasl_float)parseint64(buffer, &ok);
 	if (ok) {
 		VM_PUSH((struct VM *)S, YASL_FLOAT(result));
 		free(buffer);
@@ -201,7 +191,7 @@ int str_toint(struct YASL_State *S) {
 		size_t curr = 2;
 		buffer[0] = str->str[str->start + 0];
 		buffer[1] = str->str[str->start + 1];
-		for (int64_t i = 2; i < yasl_string_len(str); ++i) {
+		for (size_t i = 2; i < yasl_string_len(str); ++i) {
 			if (str->str[str->start + i] == '_') {
 				continue;
 			}
@@ -215,7 +205,7 @@ int str_toint(struct YASL_State *S) {
 	}
 
 	size_t curr = 0;
-	for (int64_t i = 0; i < yasl_string_len(str); ++i) {
+	for (size_t i = 0; i < yasl_string_len(str); ++i) {
 		if (str->str[str->start + i] == '_') {
 			continue;
 		}
@@ -363,7 +353,7 @@ int str_startswith(struct YASL_State *S) {
 		VM_PUSH((struct VM *)S, YASL_BOOL(0));
 		return 0;
 	}
-	int64_t i = 0;
+	size_t i = 0;
 	while (i < yasl_string_len(needle)) {
 		if (haystack->str[i + haystack->start] != needle->str[i + needle->start]) {
 			VM_PUSH((struct VM *)S, YASL_BOOL(0));
@@ -385,7 +375,7 @@ int str_endswith(struct YASL_State *S) {
 		VM_PUSH((struct VM *)S, YASL_BOOL(0));
 		return 0;
 	}
-	int64_t i = 0;
+	size_t i = 0;
 	while (i < yasl_string_len(needle)) {
 		if ((haystack)->str[i + haystack->start + yasl_string_len(haystack) - yasl_string_len(needle)]
 		    != (needle)->str[i + needle->start]) {
@@ -468,7 +458,34 @@ int str_count(struct YASL_State *S) {
 
 // TODO: fix all of these
 
+static int str_split_default(struct YASL_State *S) {
+	ASSERT_TYPE((struct VM *)S, Y_STR, "str.split");
+	String_t *haystack = YASL_GETSTR(vm_pop((struct VM *)S));
+
+	size_t end = 0, start = 0;
+	struct RC_UserData *result = ls_new();
+	while (true) {
+		// printf("end: %d\n", (int)end);
+		while (iswhitespace(*(haystack->str + haystack->start + end)) && end < yasl_string_len(haystack)) {
+			end++;
+		}
+		if (end >= yasl_string_len(haystack)) break;
+		start = end;
+		while (!iswhitespace(*(haystack->str + haystack->start + end)) && end < yasl_string_len(haystack)) {
+			end++;
+		}
+		struct YASL_Object to = YASL_STR(str_new_substring(start + haystack->start, end + haystack->start, haystack));
+		ls_append((struct List *)result->data, to);
+	}
+	VM_PUSH((struct VM *)S, YASL_LIST(result));
+	return 0;
+}
+
 int str_split(struct YASL_State *S) {
+	if (YASL_ISUNDEF(vm_peek((struct VM *)S))) {
+		vm_pop((struct VM *)S);
+		return str_split_default(S);
+	}
 	ASSERT_TYPE((struct VM *)S, Y_STR, "str.split");
 	String_t *needle = YASL_GETSTR(vm_pop((struct VM *)S));
 	ASSERT_TYPE((struct VM *)S, Y_STR, "str.split");
@@ -497,8 +514,29 @@ int str_split(struct YASL_State *S) {
 	return 0;
 }
 
+static int str_ltrim_default(struct YASL_State *S) {
+	ASSERT_TYPE((struct VM *)S, Y_STR, "str.trim");
+	struct YASL_Object top = vm_peek((struct VM *)S);
+	inc_ref(&top);
+	String_t *haystack = YASL_GETSTR(vm_pop((struct VM *)S));
+
+	int64_t start = 0;
+	while (yasl_string_len(haystack) - start >= 1 && iswhitespace(*(haystack->str + haystack->start + start))) {
+		start++;
+	}
+
+	int64_t end = yasl_string_len(haystack);
+
+	VM_PUSH((struct VM *)S, YASL_STR(str_new_substring(haystack->start + start, haystack->start + end, haystack)));
+	dec_ref(&top);
+	return 0;
+}
 
 int str_ltrim(struct YASL_State *S) {
+	if (YASL_ISUNDEF(vm_peek((struct VM *)S))) {
+		vm_pop((struct VM *)S);
+		return str_ltrim_default(S);
+	}
 	ASSERT_TYPE((struct VM *)S, Y_STR, "str.ltrim");
 	String_t *needle = YASL_GETSTR(vm_pop((struct VM *)S));
 	ASSERT_TYPE((struct VM *)S, Y_STR, "str.ltrim");
@@ -519,13 +557,35 @@ int str_ltrim(struct YASL_State *S) {
     return 0;
 }
 
+static int str_rtrim_default(struct YASL_State *S) {
+	ASSERT_TYPE((struct VM *)S, Y_STR, "str.trim");
+	struct YASL_Object top = vm_peek((struct VM *)S);
+	inc_ref(&top);
+	String_t *haystack = YASL_GETSTR(vm_pop((struct VM *)S));
+
+	int64_t start = 0;
+
+	int64_t end = yasl_string_len(haystack);
+	while (end >= 1 && iswhitespace(*(haystack->str + haystack->start + end - 1))) {
+		end--;
+	}
+
+	VM_PUSH((struct VM *)S, YASL_STR(str_new_substring(haystack->start + start, haystack->start + end, haystack)));
+	dec_ref(&top);
+	return 0;
+}
+
 int str_rtrim(struct YASL_State *S) {
+	if (YASL_ISUNDEF(vm_peek((struct VM *)S))) {
+		vm_pop((struct VM *)S);
+		return str_rtrim_default(S);
+	}
 	ASSERT_TYPE((struct VM *)S, Y_STR, "str.rtrim");
 	String_t *needle = YASL_GETSTR(vm_pop((struct VM *)S));
 	ASSERT_TYPE((struct VM *)S, Y_STR, "str.rtrim");
 	String_t *haystack = YASL_GETSTR(vm_pop((struct VM *)S));
 
-	int64_t end = yasl_string_len(haystack);
+	size_t end = yasl_string_len(haystack);
 	while (end >= yasl_string_len(needle) &&
 	       !memcmp(haystack->str + haystack->start + end - yasl_string_len(needle),
 		       needle->str + needle->start,
@@ -537,10 +597,39 @@ int str_rtrim(struct YASL_State *S) {
 	return 0;
 }
 
+
+
+static int str_trim_default(struct YASL_State *S) {
+	ASSERT_TYPE((struct VM *)S, Y_STR, "str.trim");
+	struct YASL_Object top = vm_peek((struct VM *)S);
+	inc_ref(&top);
+	String_t *haystack = YASL_GETSTR(vm_pop((struct VM *)S));
+
+	int64_t start = 0;
+	while (yasl_string_len(haystack) - start >= 1 && iswhitespace(*(haystack->str + haystack->start + start))) {
+		start++;
+	}
+
+	int64_t end = yasl_string_len(haystack);
+	while (end >= 1 && iswhitespace(*(haystack->str + haystack->start + end - 1))) {
+		end--;
+	}
+
+	VM_PUSH((struct VM *)S, YASL_STR(str_new_substring(haystack->start + start, haystack->start + end, haystack)));
+	dec_ref(&top);
+	return 0;
+}
+
 int str_trim(struct YASL_State *S) {
-	ASSERT_TYPE((struct VM *)S, Y_STR, "str.split");
+	if (YASL_ISUNDEF(vm_peek((struct VM *)S))) {
+		vm_pop((struct VM *)S);
+		return str_trim_default(S);
+	}
+	ASSERT_TYPE((struct VM *)S, Y_STR, "str.trim");
 	String_t *needle = YASL_GETSTR(vm_pop((struct VM *)S));
-	ASSERT_TYPE((struct VM *)S, Y_STR, "str.split");
+	ASSERT_TYPE((struct VM *)S, Y_STR, "str.trim");
+	struct YASL_Object top = vm_peek((struct VM *)S);
+	inc_ref(&top);
 	String_t *haystack = YASL_GETSTR(vm_pop((struct VM *)S));
 
 	int64_t start = 0;
@@ -551,7 +640,7 @@ int str_trim(struct YASL_State *S) {
 		start += yasl_string_len(needle);
 	}
 
-	int64_t end = yasl_string_len(haystack);
+	size_t end = yasl_string_len(haystack);
 	while (end >= yasl_string_len(needle) &&
 	       !memcmp(haystack->str + haystack->start + end - yasl_string_len(needle),
 		       needle->str + needle->start,
@@ -561,7 +650,7 @@ int str_trim(struct YASL_State *S) {
 
 	// TODO: fix possible mem leak here
 	VM_PUSH((struct VM *)S, YASL_STR(str_new_substring(haystack->start + start, haystack->start + end, haystack)));
-
+	dec_ref(&top);
 	return 0;
 }
 

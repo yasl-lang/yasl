@@ -99,7 +99,7 @@ struct YASL_Object {
 struct YASL_Object *YASL_Undef(void);
 struct YASL_Object *YASL_Float(yasl_float value);
 struct YASL_Object *YASL_Integer(yasl_int value);
-struct YASL_Object *YASL_Boolean(int value);
+struct YASL_Object *YASL_Boolean(bool value);
 struct YASL_Object *YASL_String(String_t *str);
 struct YASL_Object *YASL_Table(void);
 struct YASL_Object *YASL_UserPointer(void *userdata);

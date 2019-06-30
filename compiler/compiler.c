@@ -35,6 +35,7 @@ static enum SpecialStrings get_special_string(const struct Node *const node) {
 	else if (STR_EQ(node, "ltrim")) return S_LTRIM;
 	else if (STR_EQ(node, "pop")) return S_POP;
 	else if (STR_EQ(node, "push")) return S_PUSH;
+	else if (STR_EQ(node, "remove")) return S_REMOVE;
 	else if (STR_EQ(node, "rep")) return S_REP;
 	else if (STR_EQ(node, "replace")) return S_REPLACE;
 	else if (STR_EQ(node, "reverse")) return S_REVERSE;
@@ -107,7 +108,7 @@ static void compiler_buffers_del(const struct Compiler *const compiler) {
 	bb_del(compiler->code);
 }
 
-void compiler_cleanup(struct Compiler *compiler) {
+void compiler_cleanup(struct Compiler *const compiler) {
 	compiler_tables_del(compiler);
 	env_del(compiler->globals);
 	env_del(compiler->stack);
@@ -150,7 +151,7 @@ static inline void enter_conditional_false(struct Compiler *const compiler, int6
 }
 
 static inline void exit_conditional_false(struct Compiler *const compiler, const int64_t *const index) {
-	bb_rewrite_intbytes8(compiler->buffer, *index, compiler->buffer->count - *index - 8);
+	bb_rewrite_intbytes8(compiler->buffer, (size_t)*index, compiler->buffer->count - *index - 8);
 }
 
 static void add_checkpoint(struct Compiler *const compiler, const size_t cp) {
@@ -409,12 +410,13 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	}
 
 	size_t old_size = compiler->buffer->count;
-	bb_add_byte(compiler->buffer, FnDecl_get_params(node)->children_len);
+	// TODO: verfiy that number of params is small enough. (same for the other casts below.)
+	bb_add_byte(compiler->buffer, (unsigned char)FnDecl_get_params(node)->children_len);
 	size_t index = compiler->buffer->count;
-	bb_add_byte(compiler->buffer, compiler->params->vars->count);
+	bb_add_byte(compiler->buffer, (unsigned char)compiler->params->vars->count);
 	visit_Body(compiler, FnDecl_get_body(node));
 	exit_scope(compiler);
-	compiler->buffer->bytes[index] = compiler->num_locals;
+	compiler->buffer->bytes[index] = (unsigned char)compiler->num_locals;
 
 	int64_t fn_val = compiler->header->count;
 	bb_append(compiler->header, compiler->buffer->bytes + old_size, compiler->buffer->count - old_size);
@@ -611,7 +613,7 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 
 	decl_var(compiler, node->children[0]->children[0]->value.sval.str, node->children[0]->children[0]->value.sval.str_len, node->children[0]->children[0]->line);
 
-	int64_t index_start = compiler->buffer->count;
+	size_t index_start = compiler->buffer->count;
 	add_checkpoint(compiler, index_start);
 
 	bb_add_byte(compiler->buffer, ITER_1);
@@ -638,11 +640,11 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 }
 
 static void visit_While(struct Compiler *const compiler, const struct Node *const node) {
-	int64_t index_start = compiler->buffer->count;
+	size_t index_start = compiler->buffer->count;
 
 	if (node->children[2] != NULL) {
 		bb_add_byte(compiler->buffer, BR_8);
-		int64_t index = compiler->buffer->count;
+		size_t index = compiler->buffer->count;
 		bb_intbytes8(compiler->buffer, 0);
 		index_start = compiler->buffer->count;
 		visit(compiler, node->children[2]);
@@ -698,7 +700,7 @@ static void visit_If(struct Compiler *const compiler, const struct Node *const n
 
 	visit(compiler, node->children[1]);
 
-	int64_t index_else = 0;
+	size_t index_else = 0;
 
 	if (node->children[2] != NULL) {
 		bb_add_byte(compiler->buffer, BR_8);
@@ -755,7 +757,7 @@ static void visit_TriOp(struct Compiler *const compiler, const struct Node *cons
 	visit(compiler, node->children[1]);
 
 	bb_add_byte(compiler->buffer, BR_8);
-	int64_t index_r = compiler->buffer->count;
+	size_t index_r = compiler->buffer->count;
 	bb_intbytes8(compiler->buffer, 0);
 
 	exit_conditional_false(compiler, &index_l);
@@ -770,7 +772,7 @@ static void visit_BinOp(struct Compiler *const compiler, const struct Node *cons
 		visit(compiler, node->children[0]);
 		bb_add_byte(compiler->buffer, DUP);
 		bb_add_byte(compiler->buffer, BRN_8);
-		int64_t index = compiler->buffer->count;
+		size_t index = compiler->buffer->count;
 		bb_intbytes8(compiler->buffer, 0);
 		bb_add_byte(compiler->buffer, POP);
 		visit(compiler, node->children[1]);
@@ -780,7 +782,7 @@ static void visit_BinOp(struct Compiler *const compiler, const struct Node *cons
 		visit(compiler, node->children[0]);
 		bb_add_byte(compiler->buffer, DUP);
 		bb_add_byte(compiler->buffer, BRT_8);
-		int64_t index = compiler->buffer->count;
+		size_t index = compiler->buffer->count;
 		bb_intbytes8(compiler->buffer, 0);
 		bb_add_byte(compiler->buffer, POP);
 		visit(compiler, node->children[1]);
