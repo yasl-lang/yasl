@@ -99,23 +99,6 @@ jobs:
       ./tests
     displayName: "Run Tests"
 - job: 
-  displayName: "C GCC CentOS"
-  pool:
-    vmImage: 'centos-latest'
-  steps:
-  - script:
-      sudo yum install valgrind
-    displayName: "Install Valgrind"  
-  - script: |
-      cmake .
-      make YASL
-      make YASLTEST
-      make yaslapi
-    displayName: "Compile"
-  - script:
-      ./tests
-    displayName: "Run Tests"
-- job: 
   displayName: "C Clang MacOS"
   pool:
     vmImage: 'macOS-10.14'
