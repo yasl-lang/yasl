@@ -44,7 +44,7 @@ void ls_del(struct RC_UserData *ls) {
 }
 
 static void ls_resize(struct List* ls, const size_t base_size) {
-	ls->items = realloc(ls->items, base_size * sizeof(struct YASL_Object));
+	ls->items = (struct YASL_Object *)realloc(ls->items, base_size * sizeof(struct YASL_Object));
 	ls->size = base_size;
 }
 
