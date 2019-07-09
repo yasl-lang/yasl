@@ -44,22 +44,12 @@ void ls_del(struct RC_UserData *ls) {
 }
 
 static void ls_resize(struct List* ls, const size_t base_size) {
-    if (base_size < LS_BASESIZE) return;
-    struct RC_UserData *new_ls = ls_new_sized(base_size);
-    for (size_t i = 0; i < ls->size; i++) {
-	    ((struct List *)new_ls->data)->items[i] = ls->items[i];
-    }
-    ls->size = ((struct List *)new_ls->data)->size;
-
-    struct YASL_Object* tmp_items = ls->items;
-    ls->items = ((struct List *)new_ls->data)->items;
-	((struct List *)new_ls->data)->items = tmp_items;
-
-    ls_del(new_ls);
+	ls->items = realloc(ls->items, base_size * sizeof(struct YASL_Object));
+	ls->size = base_size;
 }
 
 static void ls_resize_up(struct List* ls) {
-    const int new_size = ls->size * 2;
+    const size_t new_size = ls->size ? ls->size * 2 : 1;
     ls_resize(ls, new_size);
 }
 
