@@ -79,7 +79,7 @@ void ls_insert(struct List *const ls, const int64_t index, struct YASL_Object va
 }
 
 void ls_append(struct List* ls, struct YASL_Object value) {
-    if (ls->count >= ls->size) ls_resize_up(ls);
+    while (ls->count >= ls->size) ls_resize_up(ls);
     ls->items[ls->count++] = value;
     inc_ref(&value);
 }
