@@ -97,7 +97,7 @@ jobs:
     displayName: "Compile"
   - script:
       ./tests
-    displayName: "Run Tests"  
+    displayName: "Run Tests"
 - job: 
   displayName: "C Clang MacOS"
   pool:
