@@ -292,7 +292,7 @@ bool string_isalnum(String_t *a) {
 	char curr;
 	while (i < length) {
 		curr = (a)->str[i++ + a->start];
-		if (isalpha(curr) || isdigit(curr)) {
+		if (!isalpha(curr) && !isdigit(curr)) {
 			return false;
 		}
 	}
@@ -305,7 +305,7 @@ bool string_isal(String_t *a) {
 	char curr;
 	while (i < length) {
 		curr = ((a)->str[i++ + a->start]);
-		if (isalpha(curr)) {
+		if (!isalpha(curr)) {
 			return false;
 		}
 	}
@@ -318,7 +318,7 @@ bool string_isnum(String_t *a) {
 	char curr;
 	while (i < length) {
 		curr = (a)->str[i++ + a->start];
-		if (isdigit(curr)) {
+		if (!isdigit(curr)) {
 			return false;
 		}
 	}
@@ -331,7 +331,7 @@ bool string_isspace(String_t *a) {
 	unsigned char curr;
 	while (i < length) {
 		curr = (unsigned char) ((a)->str[i++ + a->start]);
-		if (iswhitespace(curr)) {
+		if (!iswhitespace(curr)) {
 			return false;
 		}
 	}
