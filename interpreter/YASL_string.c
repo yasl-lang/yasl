@@ -11,6 +11,8 @@
 #include "bytebuffer/bytebuffer.h"
 
 #define iswhitespace(c) ((c) == ' ' || (c) == '\t' || (c) == '\n' || (c) == '\v' || (c) == '\r')
+#define isalphabetic
+#define isnumeric
 
 size_t yasl_string_len(const String_t *const str) {
 	return (size_t)(str->end - str->start);
@@ -290,7 +292,7 @@ bool string_isalnum(String_t *a) {
 	char curr;
 	while (i < length) {
 		curr = (a)->str[i++ + a->start];
-		if (curr < 0x30 || (0x3A <= curr && curr < 0x41) || (0x5B <= curr && curr < 0x61) || (0x7B <= curr)) {
+		if (isalpha(curr) || isdigit(curr)) {
 			return false;
 		}
 	}
@@ -303,7 +305,7 @@ bool string_isal(String_t *a) {
 	char curr;
 	while (i < length) {
 		curr = ((a)->str[i++ + a->start]);
-		if (curr < 0x41 || (0x5B <= curr && curr < 0x61) || (0x7B <= curr)) {
+		if (isalpha(curr)) {
 			return false;
 		}
 	}
@@ -316,7 +318,7 @@ bool string_isnum(String_t *a) {
 	char curr;
 	while (i < length) {
 		curr = (a)->str[i++ + a->start];
-		if (curr < 0x30 || 0x3A <= curr) {
+		if (isdigit(curr)) {
 			return false;
 		}
 	}
@@ -329,7 +331,7 @@ bool string_isspace(String_t *a) {
 	unsigned char curr;
 	while (i < length) {
 		curr = (unsigned char) ((a)->str[i++ + a->start]);
-		if (curr <= 0x08 || (0x0D < curr && curr != 0x20 && curr != 0x85 && curr != 0xA0)) {
+		if (iswhitespace(curr)) {
 			return false;
 		}
 	}
