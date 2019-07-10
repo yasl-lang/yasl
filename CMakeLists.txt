@@ -82,6 +82,8 @@ add_executable(YASLTEST
         test/test_compiler/comprehensiontest.c
         test/test_collections/collectiontest.c
         test/test_collections/settest.c
+        test/test_methods/methodtest.c
+        test/test_methods/listtest.c
         compiler/lexer.c
         compiler/lexinput.c
         compiler/compiler.c

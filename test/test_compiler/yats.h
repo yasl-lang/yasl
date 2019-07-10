@@ -4,6 +4,8 @@
 #include "yasl_include.h"
 #include "opcode.h"
 
+#define RUN(test) __YASL_TESTS_FAILED__ |= test()
+
 #define SETUP_YATS() \
 	static int __YASL_TESTS_FAILED__ = 0
 

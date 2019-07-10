@@ -17,7 +17,7 @@ printf "========================================\n"
 printf "Running compiler tests...\n"
 ./YASLTEST
 C_TESTS_OUTPUT=$?
-printf "Compiler tests exited with code $C_TESTS_OUTPUT\n\n"
+printf "C Unit tests exited with code $C_TESTS_OUTPUT\n\n"
 
 printf "========================================\n"
 printf "Running VM tests...\n"

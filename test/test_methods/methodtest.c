@@ -1,4 +1,4 @@
-#include "settest.h"
+#include "listtest.h"
 #include "test/test_compiler/yats.h"
 
 SETUP_YATS();
@@ -7,7 +7,7 @@ SETUP_YATS();
 
 ////////////////////////////////////////////////////////////////////////////////
 
-int collectiontest() {
-	RUN(settest);
+int methodtest() {
+	RUN(listtest);
 	return __YASL_TESTS_FAILED__;
 }
