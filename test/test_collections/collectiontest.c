@@ -1,5 +1,5 @@
 #include "settest.h"
-#include "test/test_compiler/yats.h"
+#include "test/yats.h"
 
 SETUP_YATS();
 

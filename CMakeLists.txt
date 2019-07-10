@@ -67,7 +67,7 @@ add_executable(YASL
         std-collections/yasl-std-collections.c)
 
 add_executable(YASLTEST
-        test/test_compiler/yats.c
+        test/yats.c
         test/yasl_test.c
         test/test_lexer/lexertest.c
         test/test_compiler/compilertest.c
@@ -84,6 +84,7 @@ add_executable(YASLTEST
         test/test_collections/settest.c
         test/test_methods/methodtest.c
         test/test_methods/listtest.c
+        test/test_methods/strtest.c
         compiler/lexer.c
         compiler/lexinput.c
         compiler/compiler.c

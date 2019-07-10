@@ -1,6 +1,6 @@
 #include <interpreter/YASL_Object.h>
 #include "settest.h"
-#include "test/test_compiler/yats.h"
+#include "test/yats.h"
 #include "std-collections/set.h"
 
 SETUP_YATS();

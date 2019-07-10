@@ -1,5 +1,6 @@
 #include "listtest.h"
-#include "test/test_compiler/yats.h"
+#include "strtest.h"
+#include "test/yats.h"
 
 SETUP_YATS();
 
@@ -9,5 +10,6 @@ SETUP_YATS();
 
 int methodtest() {
 	RUN(listtest);
+	RUN(strtest);
 	return __YASL_TESTS_FAILED__;
 }
