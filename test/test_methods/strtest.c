@@ -3,13 +3,11 @@
 
 SETUP_YATS();
 
-/// check that list_append is resizing the list properly.
-/// Does not check that correct elements are appended
+/// check that yasl_string_len returns correct length.
 static void teststrlen(void) {
 	String_t *string = str_new_sized(strlen("hello"), "hello");
 	ASSERT_EQ(yasl_string_len(string), strlen("hello"));
 }
-
 
 
 int strtest(void) {
