@@ -1,7 +1,7 @@
-#include "test/test_lexer/lexertest.h"
-#include "test/test_compiler/compilertest.h"
-#include "test/test_collections/collectiontest.h"
-#include "test/test_methods/methodtest.h"
+#include "test/unit_tests/test_lexer/lexertest.h"
+#include "test/unit_tests/test_compiler/compilertest.h"
+#include "test/unit_tests/test_collections/collectiontest.h"
+#include "test/unit_tests/test_methods/methodtest.h"
 
 int main() {
 	int failed = 0;

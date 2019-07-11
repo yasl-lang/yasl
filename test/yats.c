@@ -5,7 +5,7 @@
 #include "compiler/parser.h"
 #include "compiler/compiler.h"
 #include "yats.h"
-#include "test/test_compiler/compilertest.h"
+#include "test/unit_tests/test_compiler/compilertest.h"
 #include "compiler/lexinput.h"
 
 Lexer setup_lexer(const char *file_contents) {

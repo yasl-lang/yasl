@@ -69,22 +69,22 @@ add_executable(YASL
 add_executable(YASLTEST
         test/yats.c
         test/yasl_test.c
-        test/test_lexer/lexertest.c
-        test/test_compiler/compilertest.c
-        test/test_compiler/binoptest.c
-        test/test_compiler/unoptest.c
-        test/test_compiler/literaltest.c
-        test/test_compiler/iftest.c
-        test/test_compiler/whiletest.c
-        test/test_compiler/fortest.c
-        test/test_compiler/foreachtest.c
-        test/test_compiler/foldingtest.c
-        test/test_compiler/comprehensiontest.c
-        test/test_collections/collectiontest.c
-        test/test_collections/settest.c
-        test/test_methods/methodtest.c
-        test/test_methods/listtest.c
-        test/test_methods/strtest.c
+        test/unit_tests/test_lexer/lexertest.c
+        test/unit_tests/test_compiler/compilertest.c
+        test/unit_tests/test_compiler/binoptest.c
+        test/unit_tests/test_compiler/unoptest.c
+        test/unit_tests/test_compiler/literaltest.c
+        test/unit_tests/test_compiler/iftest.c
+        test/unit_tests/test_compiler/whiletest.c
+        test/unit_tests/test_compiler/fortest.c
+        test/unit_tests/test_compiler/foreachtest.c
+        test/unit_tests/test_compiler/foldingtest.c
+        test/unit_tests/test_compiler/comprehensiontest.c
+        test/unit_tests/test_collections/collectiontest.c
+        test/unit_tests/test_collections/settest.c
+        test/unit_tests/test_methods/methodtest.c
+        test/unit_tests/test_methods/listtest.c
+        test/unit_tests/test_methods/strtest.c
         compiler/lexer.c
         compiler/lexinput.c
         compiler/compiler.c
