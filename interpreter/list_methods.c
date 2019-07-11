@@ -167,6 +167,7 @@ int list_push(struct YASL_State *S) {
 	return 0;
 }
 
+// TODO: fix bug with copying (double free)
 int list_copy(struct YASL_State *S) {
 	ASSERT_TYPE((struct VM *)S, Y_LIST, "list.copy");
 	struct List *ls = YASL_GETLIST(vm_pop((struct VM *)S));
@@ -179,39 +180,43 @@ int list_copy(struct YASL_State *S) {
 	return 0;
 }
 
+static struct RC_UserData *list_concat(struct List *a, struct List *b) {
+	size_t size = a->count + b->count;
+	struct RC_UserData *ptr = ls_new_sized(size);
+	for (size_t i = 0; i < a->count; i++) {
+		ls_append((struct List *)ptr->data, (a)->items[i]);
+	}
+	for (size_t i = 0; i < (b)->count; i++) {
+		ls_append((struct List *)ptr->data, (b)->items[i]);
+	}
+
+	return ptr;
+}
+
 int list___add(struct YASL_State *S) {
 	ASSERT_TYPE((struct VM *) S, Y_LIST, "list.__add");
 	struct List *b = YASL_GETLIST(vm_pop((struct VM *) S));
 	ASSERT_TYPE((struct VM *) S, Y_LIST, "list.__add");
 	struct List *a = YASL_GETLIST(vm_pop((struct VM *) S));
-	size_t size = a->count + b->count;
-	struct RC_UserData *ptr = ls_new_sized(size);
-	size_t i;
-	for (size_t i = 0; i < a->count; i++) {
-		ls_append((struct List *)ptr->data, (a)->items[i]);
-	}
-	for (i = 0; i < (b)->count; i++) {
-		ls_append((struct List *)ptr->data, (b)->items[i]);
-	}
-	vm_pushlist((struct VM *) S, ptr);
+
+	vm_pushlist((struct VM *) S, list_concat(a, b));
 	return 0;
 }
 
-
 int list_extend(struct YASL_State *S) {
-    ASSERT_TYPE((struct VM *)S, Y_LIST, "list.extend");
-    struct List *extend_ls = YASL_GETLIST(vm_pop((struct VM *)S));
-    ASSERT_TYPE((struct VM *)S, Y_LIST, "list.extend");
-    struct List *ls  = YASL_GETLIST(vm_pop((struct VM *)S));
+	ASSERT_TYPE((struct VM *) S, Y_LIST, "list.extend");
+	struct List *extend_ls = YASL_GETLIST(vm_pop((struct VM *) S));
+	ASSERT_TYPE((struct VM *) S, Y_LIST, "list.extend");
+	struct List *ls = YASL_GETLIST(vm_pop((struct VM *) S));
 
-    struct List *exls = extend_ls;
+	struct List *exls = extend_ls;
 
-    FOR_LIST(i, obj, exls) {
-    	ls_append(ls, obj);
-    }
+	FOR_LIST(i, obj, exls) {
+		ls_append(ls, obj);
+	}
 
-    vm_pushundef((struct VM *)S);
-    return 0;
+	vm_pushundef((struct VM *) S);
+	return 0;
 }
 
 int list_pop(struct YASL_State *S) {
@@ -219,7 +224,7 @@ int list_pop(struct YASL_State *S) {
 	struct List *ls = YASL_GETLIST(vm_pop((struct VM *)S));
 	if (ls->count == 0) {
 		puts("cannot pop from empty list.");
-		exit(EXIT_FAILURE);
+		return -1;
 	}
 	vm_push((struct VM *)S, ls->items[--ls->count]);
 	return 0;
@@ -421,6 +426,7 @@ void sort(struct YASL_Object *list, const size_t len) {
 	sort(list, ltCount);
 	sort(&list[ltCount], len - ltCount);
 }
+
 int list_sort(struct YASL_State *S) {
 	ASSERT_TYPE((struct VM *)S, Y_LIST, "list.sort");
 	struct List *list = vm_poplist((struct VM *)S);
