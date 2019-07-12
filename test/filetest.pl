@@ -25,14 +25,29 @@ sub assert_output {
     return $exitcode;
 }
 
-while (defined(my $file = glob 'inputs/*.yasl')) {
-    # print "Testing $file for leaks...\n";
-    local $/;
-    open my ($filename), "$file.out";
-    my $line = <$filename>;
-    close $filename;
-    assert_output($file, $line, 0);
+sub process_dir {
+    my ($dir) = @_;
+    my @subdirs = ();
+    while (defined(my $file = glob $dir)) {
+        if (-d $file) {
+            push(@subdirs, "$file/*");
+            next;
+        }
+        if ($file !~ /.*\.yasl$/) {
+            next;
+        }
+        # print "Testing $file for leaks...\n";
+        local $/;
+        open my ($filename), "$file.out";
+        my $line = <$filename>;
+        close $filename;
+        assert_output($file, $line, 0);
+    }
+    foreach my $file (@subdirs) {
+        process_dir($file);
+    }
 }
 
+process_dir('inputs/*');
 
 exit $__MEM_TESTS_FAILED__;
