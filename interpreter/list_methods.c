@@ -173,7 +173,7 @@ int list_copy(struct YASL_State *S) {
 	ASSERT_TYPE((struct VM *)S, Y_LIST, "list.copy");
 	struct List *ls = YASL_GETLIST(vm_pop((struct VM *)S));
 	struct RC_UserData *new_ls = ls_new_sized(ls->size);
-	struct List *new_list = new_ls->data;
+	struct List *new_list = (struct List *)new_ls->data;
 	FOR_LIST(i, elmt, ls) {
 		ls_append(new_list, elmt);
 	}
