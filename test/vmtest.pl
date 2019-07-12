@@ -236,22 +236,6 @@ assert_output("echo ''->rep(3)\n", "\n", 0);
 assert_output("echo ''->rep(0)\n", "\n", 0);
 
 # List Methods
-assert_output(qq"let x = [0]
-                 x->push(1)
-                 echo x\n", "[0, 1]\n", 0);
-assert_output(qq"let x = [1, 2, 3]
-               echo x->pop()
-               echo x\n", "3\n[1, 2]\n", 0);
-assert_output(qq"let x = [1, 2, 3]
-                 x->extend([4, 5, 6])
-                 echo x\n", "[1, 2, 3, 4, 5, 6]\n", 0);
-assert_output(qq"let x = [1, 2, 3]
-                 echo x->search(4)\n", "undef\n", 0);
-assert_output(qq"let x = [1, 2, 4]
-                 echo x->search(4)\n", "2\n", 0);
-assert_output(qq"let x = [1, 2, 3, 4, 5]
-                 x->reverse()
-                 echo x\n", "[5, 4, 3, 2, 1]\n", 0);
 assert_output(qq"for e <- [1, 2, 3]->copy() { echo e; };", "1\n2\n3\n", 0);
 assert_output(qq"let x = [1, 2, 3]
                  x[1] = 0
