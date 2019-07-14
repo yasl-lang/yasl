@@ -1,0 +1,5 @@
+let x = [0]
+x->push(1)
+echo x
+x->push(2)
+echo x

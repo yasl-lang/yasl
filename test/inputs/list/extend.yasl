@@ -1,0 +1,11 @@
+let x = [1, 2, 3]
+x->extend([4, 5, 6])
+echo x
+
+let y = []
+y->extend([1, 2, 3])
+echo y
+
+let z = [1, 2, 3]
+z->extend([])
+echo z

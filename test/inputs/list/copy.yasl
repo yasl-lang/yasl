@@ -1,0 +1,2 @@
+const y = [ [], {}, 1, 2, 3 ]
+echo y->copy()

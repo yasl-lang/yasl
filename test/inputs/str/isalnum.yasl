@@ -1,0 +1,2 @@
+echo 'Yasl12_'->isalnum()
+echo 'YASL1223121321'->isalnum()

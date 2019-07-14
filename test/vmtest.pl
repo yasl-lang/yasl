@@ -169,7 +169,7 @@ assert_output(qq"fn add(a, b) { return a + b; }
                  echo add(10, 11);",
               "21\n", 0);
 assert_output(qq"let x = 10
-                 fn add(a, b) { let sum =a + b; return sum; }
+                 fn add(a, b) { let sum = a + b; return sum; }
                  echo add(10, 11)
                  echo x;",
               "21\n10\n", 0);
@@ -182,25 +182,8 @@ assert_output("echo 5->tostr()\n", "5\n", 0);
 assert_output("echo 2.1->toint()\n", "2\n", 0);
 assert_output("echo 5.7->tostr()\n", "5.7\n", 0);
 
-# Boolean Methods
-assert_output("echo true->tostr()\n", "true\n", 0);
-assert_output("echo false->tostr()\n", "false\n", 0);
-
 # String Methods
-assert_output("echo 'yasl'->tobool()\n", "true\n", 0);
-assert_output("echo ''->tobool()\n", "false\n", 0);
 assert_output("echo 'yasl'->tostr()\n", "yasl\n", 0);
-assert_output("echo 'yasl'->toupper()\n", "YASL\n", 0);
-assert_output("echo 'Yasl'->toupper()\n", "YASL\n", 0);
-assert_output("echo 'Yasl'->tolower()\n", "yasl\n", 0);
-assert_output("echo 'Yasl12_'->isalnum()\n", "false\n", 0);
-assert_output("echo 'YASL1223121321'->isalnum()\n", "true\n", 0);
-assert_output("echo 'YASL1223121321'->isal()\n", "false\n", 0);
-assert_output("echo 'YASLDSADASDAS'->isal()\n", "true\n", 0);
-assert_output("echo 'YASLDSADASDAS'->isnum()\n", "false\n", 0);
-assert_output("echo '12341213421'->isnum()\n", "true\n", 0);
-assert_output("echo '12341213421'->isspace()\n", "false\n", 0);
-assert_output("echo '  '->isspace()\n", "true\n", 0);
 assert_output("echo 'YASL'->startswith('YA')\n", "true\n", 0);
 assert_output("echo 'YASL'->startswith('A')\n", "false\n", 0);
 assert_output("echo 'YASL'->endswith('ASL')\n", "true\n", 0);
@@ -209,50 +192,23 @@ assert_output("echo 'YASL'->replace('T', 'S')\n", "YASL\n", 0);
 assert_output("echo 'YASL'->replace('SL', '')\n", "YA\n", 0);
 assert_output("echo 'YASL'->search('A')\n", "1\n", 0);
 assert_output("echo 'YASL'->search('0')\n", "undef\n", 0);
-assert_output("echo len 'the quick brown fox'->split(' ')\n", "4\n", 0);
-assert_output("for x <- 'the quick brown fox'->split(' ') { echo x; };", "the\nquick\nbrown\nfox\n", 0);
-assert_output("echo len 'the quick brown fox'->split('0')\n", "1\n", 0);
-assert_output("echo ' a b c         d     e         '->split()\n", "[a, b, c, d, e]\n", 0);
-assert_output("echo '               '->split()\n", "[]\n", 0);
 assert_output("echo 'YAY'->ltrim('Y')\n", "AY\n", 0);
 assert_output("echo 'YYYYAY'->ltrim('Y')\n", "AY\n", 0);
 assert_output("echo 'YAY'->ltrim('A')\n", "YAY\n", 0);
 assert_output("echo 'YAY'->rtrim('Y')\n", "YA\n", 0);
 assert_output("echo 'YAYYYY'->rtrim('Y')\n", "YA\n", 0);
 assert_output("echo 'YAY'->rtrim('A')\n", "YAY\n", 0);
-assert_output("echo 'YAY'->trim('Y')\n", "A\n", 0);
-assert_output("echo 'YAY'->trim('A')\n", "YAY\n", 0);
-assert_output("echo 'YYAYYY'->trim('Y')\n", "A\n", 0);
-assert_output("echo '	 	 YASL	    '->trim()\n", "YASL\n", 0);
 assert_output("echo '	 	 YASL'->ltrim()\n", "YASL\n", 0);
 assert_output("echo 'YASL	    '->rtrim()\n", "YASL\n", 0);
 assert_output("echo 'YASL'->__get(3)\n", "L\n", 0);
 assert_output("echo 'YASL'[3]\n", "L\n", 0);
 assert_output("echo 'YASL'->__get(-1)\n", "L\n", 0);
-assert_output("echo '12345'->slice(1, 4)\n", "234\n", 0);
 assert_output("echo 'YASL'->rep(3)\n", "YASLYASLYASL\n", 0);
 assert_output("echo 'YASL'->rep(0)\n", "\n", 0);
 assert_output("echo ''->rep(3)\n", "\n", 0);
 assert_output("echo ''->rep(0)\n", "\n", 0);
 
 # List Methods
-assert_output(qq"let x = [0]
-                 x->push(1)
-                 echo x\n", "[0, 1]\n", 0);
-assert_output(qq"let x = [1, 2, 3]
-               echo x->pop()
-               echo x\n", "3\n[1, 2]\n", 0);
-assert_output(qq"let x = [1, 2, 3]
-                 x->extend([4, 5, 6])
-                 echo x\n", "[1, 2, 3, 4, 5, 6]\n", 0);
-assert_output(qq"let x = [1, 2, 3]
-                 echo x->search(4)\n", "undef\n", 0);
-assert_output(qq"let x = [1, 2, 4]
-                 echo x->search(4)\n", "2\n", 0);
-assert_output(qq"let x = [1, 2, 3, 4, 5]
-                 x->reverse()
-                 echo x\n", "[5, 4, 3, 2, 1]\n", 0);
-assert_output(qq"for e <- [1, 2, 3]->copy() { echo e; };", "1\n2\n3\n", 0);
 assert_output(qq"let x = [1, 2, 3]
                  x[1] = 0
                  echo x\n", "[1, 0, 3]\n", 0);
@@ -263,13 +219,10 @@ assert_output(qq"let x = [1, 2, 3]
 assert_output(qq"let x = [0, 1, 2, 3, 4, 5, 6]
                  let y = x->slice(1, 5)
                  echo y\n", "[1, 2, 3, 4]\n", 0);
-assert_output(qq"echo []\n", "[]\n", 0);
 assert_output(qq"let x = []
                  x->push(x)
                  echo x
                  x->clear()\n", "[[...]]\n", 0);
-assert_output(qq"let x = [1, 2, 3, [1, 2, 3]]
-                 echo x->join('; ')\n", "1; 2; 3; [1, 2, 3]\n", 0);
  
 # Table Methods
 assert_output(qq"let x = {1:'one', 2:'two', 3:'three'}
@@ -325,10 +278,12 @@ assert_output(qq"const x = 10
               "10\n20\n",
               0);
 
+# Errors
+
 my $YASL_SYNTAX_ERROR = 4;
 my $YASL_TYPE_ERROR = 5;
 my $YASL_DIVISION_BY_ZERO_ERROR = 6;
-# Errors
+
 assert_output(qq"for let x = 0; x < 5; x += 1 { };
                  echo x;", $RED . "SyntaxError: Undeclared variable x (line 2).\n" . $END, $YASL_SYNTAX_ERROR);
 assert_output(qq"const x = 10; x = 11;", $RED . "SyntaxError: Cannot assign to constant x (line 1).\n" . $END, $YASL_SYNTAX_ERROR);

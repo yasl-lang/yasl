@@ -1,0 +1,4 @@
+{}
+{a: A}
+{a: @}
+{io: {flush: 0, seek: 1}, math: {tan: 2, sin: 1, cos: 0}}

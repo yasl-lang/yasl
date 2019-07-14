@@ -5,8 +5,6 @@ my $__MEM_TESTS_FAILED__ = 0;
 
 sub assert_output {
     my ($string, $exp_out, $exp_stat) = @_;
-    my (undef, $filename, $line) = caller;
-
 
     my $RED = "\x1B[31m";
     my $END = "\x1B[0m";
@@ -16,26 +14,40 @@ sub assert_output {
     my $exitcode = !($output eq $exp_out && $status == $exp_stat) || 0;
 
     if ($status != $exp_stat) {
-            print $RED . "exitcode assert failed in $filename (line $line): $status =/= $exp_stat" . $END . "\n";
+            print $RED . "exitcode assert failed in $string: $status =/= $exp_stat" . $END . "\n";
     }
 
     if ($output ne $exp_out) {
-        print $RED . "output assert failed in $filename (line $line): $exp_out =/= $output" . $END . "\n";
+        print $RED . "output assert failed in $string: $exp_out =/= $output" . $END . "\n";
     }
 
     $__MEM_TESTS_FAILED__ ||= $exitcode;
     return $exitcode;
 }
 
-while (defined(my $file = glob 'inputs/*.yasl')) {
-    # print "Testing $file for leaks...\n";
-    open my ($filename), $file;
-    my $line = <$filename>;
-    close $filename;
-    $line =~ s/^##//;
-    $line =~ s/\n$//;
-    assert_output($file, eval '"' . $line . '"', 0);
+sub process_dir {
+    my ($dir) = @_;
+    my @subdirs = ();
+    while (defined(my $file = glob $dir)) {
+        if (-d $file) {
+            push(@subdirs, "$file/*");
+            next;
+        }
+        if ($file !~ /.*\.yasl$/) {
+            next;
+        }
+        # print "Testing $file for leaks...\n";
+        local $/;
+        open my ($filename), "$file.out";
+        my $line = <$filename>;
+        close $filename;
+        assert_output($file, $line, 0);
+    }
+    foreach my $file (@subdirs) {
+        process_dir($file);
+    }
 }
 
+process_dir('inputs/*');
 
 exit $__MEM_TESTS_FAILED__;

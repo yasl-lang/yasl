@@ -1,0 +1,7 @@
+let x = [1, 2, 3]
+echo x->pop()
+echo x
+echo x->pop()
+echo x
+echo x->pop()
+echo x

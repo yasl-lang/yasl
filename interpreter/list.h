@@ -15,6 +15,7 @@ struct List {
 
 int isvalueinarray(int64_t val, int64_t *arr, int size);
 struct RC_UserData *ls_new(void);
+struct List *list_new_sized(const size_t base_size);
 struct RC_UserData* ls_new_sized(const size_t base_size);
 void ls_del_data(void *ls);
 void ls_insert(struct List *const ls, const int64_t index, struct YASL_Object value);

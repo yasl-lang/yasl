@@ -1,0 +1,2 @@
+echo '12341213421'->isspace()
+echo '  '->isspace()

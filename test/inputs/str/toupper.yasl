@@ -1,0 +1,2 @@
+echo 'yasl'->toupper()
+echo 'Yasl'->toupper()
