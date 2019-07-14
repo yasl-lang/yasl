@@ -1,0 +1,4 @@
+echo 'YAY'->trim('Y')
+echo 'YAY'->trim('A')
+echo 'YYAYYY'->trim('Y')
+echo '	 	 YASL	    '->trim()
