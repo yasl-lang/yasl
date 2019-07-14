@@ -236,7 +236,6 @@ assert_output("echo ''->rep(3)\n", "\n", 0);
 assert_output("echo ''->rep(0)\n", "\n", 0);
 
 # List Methods
-assert_output(qq"for e <- [1, 2, 3]->copy() { echo e; };", "1\n2\n3\n", 0);
 assert_output(qq"let x = [1, 2, 3]
                  x[1] = 0
                  echo x\n", "[1, 0, 3]\n", 0);
@@ -247,13 +246,10 @@ assert_output(qq"let x = [1, 2, 3]
 assert_output(qq"let x = [0, 1, 2, 3, 4, 5, 6]
                  let y = x->slice(1, 5)
                  echo y\n", "[1, 2, 3, 4]\n", 0);
-assert_output(qq"echo []\n", "[]\n", 0);
 assert_output(qq"let x = []
                  x->push(x)
                  echo x
                  x->clear()\n", "[[...]]\n", 0);
-assert_output(qq"let x = [1, 2, 3, [1, 2, 3]]
-                 echo x->join('; ')\n", "1; 2; 3; [1, 2, 3]\n", 0);
  
 # Table Methods
 assert_output(qq"let x = {1:'one', 2:'two', 3:'three'}
