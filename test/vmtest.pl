@@ -182,10 +182,6 @@ assert_output("echo 5->tostr()\n", "5\n", 0);
 assert_output("echo 2.1->toint()\n", "2\n", 0);
 assert_output("echo 5.7->tostr()\n", "5.7\n", 0);
 
-# Boolean Methods
-assert_output("echo true->tostr()\n", "true\n", 0);
-assert_output("echo false->tostr()\n", "false\n", 0);
-
 # String Methods
 assert_output("echo 'yasl'->tostr()\n", "yasl\n", 0);
 assert_output("echo 'YASL'->startswith('YA')\n", "true\n", 0);
