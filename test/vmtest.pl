@@ -169,7 +169,7 @@ assert_output(qq"fn add(a, b) { return a + b; }
                  echo add(10, 11);",
               "21\n", 0);
 assert_output(qq"let x = 10
-                 fn add(a, b) { let sum =a + b; return sum; }
+                 fn add(a, b) { let sum = a + b; return sum; }
                  echo add(10, 11)
                  echo x;",
               "21\n10\n", 0);
@@ -278,10 +278,12 @@ assert_output(qq"const x = 10
               "10\n20\n",
               0);
 
+# Errors
+
 my $YASL_SYNTAX_ERROR = 4;
 my $YASL_TYPE_ERROR = 5;
 my $YASL_DIVISION_BY_ZERO_ERROR = 6;
-# Errors
+
 assert_output(qq"for let x = 0; x < 5; x += 1 { };
                  echo x;", $RED . "SyntaxError: Undeclared variable x (line 2).\n" . $END, $YASL_SYNTAX_ERROR);
 assert_output(qq"const x = 10; x = 11;", $RED . "SyntaxError: Cannot assign to constant x (line 1).\n" . $END, $YASL_SYNTAX_ERROR);
