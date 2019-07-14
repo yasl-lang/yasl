@@ -187,20 +187,7 @@ assert_output("echo true->tostr()\n", "true\n", 0);
 assert_output("echo false->tostr()\n", "false\n", 0);
 
 # String Methods
-assert_output("echo 'yasl'->tobool()\n", "true\n", 0);
-assert_output("echo ''->tobool()\n", "false\n", 0);
 assert_output("echo 'yasl'->tostr()\n", "yasl\n", 0);
-assert_output("echo 'yasl'->toupper()\n", "YASL\n", 0);
-assert_output("echo 'Yasl'->toupper()\n", "YASL\n", 0);
-assert_output("echo 'Yasl'->tolower()\n", "yasl\n", 0);
-assert_output("echo 'Yasl12_'->isalnum()\n", "false\n", 0);
-assert_output("echo 'YASL1223121321'->isalnum()\n", "true\n", 0);
-assert_output("echo 'YASL1223121321'->isal()\n", "false\n", 0);
-assert_output("echo 'YASLDSADASDAS'->isal()\n", "true\n", 0);
-assert_output("echo 'YASLDSADASDAS'->isnum()\n", "false\n", 0);
-assert_output("echo '12341213421'->isnum()\n", "true\n", 0);
-assert_output("echo '12341213421'->isspace()\n", "false\n", 0);
-assert_output("echo '  '->isspace()\n", "true\n", 0);
 assert_output("echo 'YASL'->startswith('YA')\n", "true\n", 0);
 assert_output("echo 'YASL'->startswith('A')\n", "false\n", 0);
 assert_output("echo 'YASL'->endswith('ASL')\n", "true\n", 0);

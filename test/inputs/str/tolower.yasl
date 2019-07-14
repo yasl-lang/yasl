@@ -1,0 +1,2 @@
+echo 'YASL'->tolower()
+echo 'Yasl'->tolower()
