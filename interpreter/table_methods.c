@@ -223,8 +223,6 @@ int table_clone(struct YASL_State *S) {
 	struct RC_UserData *new_ht = rcht_new_sized(ht->base_size);
 
 	FOR_TABLE(i, item, ht) {
-		inc_ref(&item->key);
-		inc_ref(&item->value);
 		table_insert((struct Table *)new_ht->data, item->key, item->value);
 	}
 
