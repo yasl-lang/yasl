@@ -1,0 +1,2 @@
+echo 'YASL'->endswith('ASL')
+echo 'YASL'->endswith('YA')

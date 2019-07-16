@@ -174,22 +174,8 @@ assert_output(qq"let x = 10
                  echo x;",
               "21\n10\n", 0);
 
-# Integer Methods
-assert_output("echo 2->tofloat()\n", "2.0\n", 0);
-assert_output("echo 5->tostr()\n", "5\n", 0);
-
-# Float Methods
-assert_output("echo 2.1->toint()\n", "2\n", 0);
-assert_output("echo 5.7->tostr()\n", "5.7\n", 0);
-
 # String Methods
 assert_output("echo 'yasl'->tostr()\n", "yasl\n", 0);
-assert_output("echo 'YASL'->startswith('YA')\n", "true\n", 0);
-assert_output("echo 'YASL'->startswith('A')\n", "false\n", 0);
-assert_output("echo 'YASL'->endswith('ASL')\n", "true\n", 0);
-assert_output("echo 'YASL'->endswith('YA')\n", "false\n", 0);
-assert_output("echo 'YASL'->replace('T', 'S')\n", "YASL\n", 0);
-assert_output("echo 'YASL'->replace('SL', '')\n", "YA\n", 0);
 assert_output("echo 'YASL'->search('A')\n", "1\n", 0);
 assert_output("echo 'YASL'->search('0')\n", "undef\n", 0);
 assert_output("echo 'YAY'->ltrim('Y')\n", "AY\n", 0);
@@ -225,22 +211,6 @@ assert_output(qq"let x = []
                  x->clear()\n", "[[...]]\n", 0);
  
 # Table Methods
-assert_output(qq"let x = {1:'one', 2:'two', 3:'three'}
-                 echo x->keys()\n", "[2, 1, 3]\n", 0);
-assert_output(qq"let x = {1:'one', 2:'two', 3:'three'}
-                 echo x->values()\n", "[two, one, three]\n", 0);
-assert_output(qq"let x = { 3:'three', 1:'one', 2:'two'}
-                 x[1] = 'un'
-                 echo x\n", "{2: two, 1: un, 3: three}\n", 0);
-assert_output(qq"let x = {1:'one', 2:'two', 3:'three'};
-                 for e <- x->copy() { echo e; echo x[e]; };", "2\ntwo\n1\none\n3\nthree\n", 0);
-assert_output(qq"echo {}\n", "{}\n", 0);
-assert_output(qq"const x = { .one: 1, .two: 2 }
-                 echo x.one
-                 echo x.two
-                 x->remove(.two)
-                 echo x.one
-                 echo x.two;", "1\n2\n1\nundef\n", 0);
 assert_output(qq"let y = []
                  let x = {}
                  x.x = x

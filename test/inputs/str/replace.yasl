@@ -1,0 +1,2 @@
+echo 'YASL'->replace('T', 'S')
+echo 'YASL'->replace('SL', '')

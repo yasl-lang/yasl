@@ -1,0 +1,6 @@
+const x = { .one: 1, .two: 2 }
+echo x.one
+echo x.two
+x->remove(.two)
+echo x.one
+echo x.two
