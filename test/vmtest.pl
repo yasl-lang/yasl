@@ -33,13 +33,6 @@ sub assert_output {
 
 
 # Literals
-assert_output(q+echo '\ttab'
-               +,
-              "\ttab\n", 0);
-assert_output(q+echo `no escapes\a\b\f\n\r\t\v\0\'\\\\`
-               +,
-              'no escapes\a\b\f\n\r\t\v\0\\\'\\\\
-', 0);
 assert_output(q+let $x = 10
                 let $y = 12
                 echo "$x is #{$x}, #{$y}.";+,
@@ -55,20 +48,6 @@ assert_output(q+let $x = 10
                 echo "$x is #{$x  }#{$y}  ";+,
               "\$x is 1012  \n",
               0);
-
-# Comprehensions
-assert_output(qq"let x = { x*2:-x for x <- [1, 2, 3, 4] if x % 2 == 0}
-                 for i <- x {
-                      echo i
-                      echo x[i]
-                 }\n",
-              "4\n-2\n8\n-4\n", 0);
-assert_output(qq"let x = { x*2:-x for x <- [1, 2, 3]}
-                 for i <- x {
-                      echo i
-                      echo x[i]
-                 }\n",
-              "2\n-1\n4\n-2\n6\n-3\n", 0);
 
 # Binary Operators
 assert_output("echo 2 ** 4\n", "16\n", 0);
