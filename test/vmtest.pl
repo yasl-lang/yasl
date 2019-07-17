@@ -134,36 +134,6 @@ assert_output(qq"let x = 0
                  if x > 0 { echo '+'; } elseif x < 0 { echo '-'; } else { echo '0'; };",
               "0\n", 0);
 
-# While Loops
-assert_output(qq"let n = 10
-                 while n > 0 { echo n; n -= 1; };",
-              "10\n9\n8\n7\n6\n5\n4\n3\n2\n1\n", 0);
-assert_output(qq"let n = 10
-                 while n > 0 { if n == 5 { n -= 1; continue; }; echo n; n -= 1; };",
-              "10\n9\n8\n7\n6\n4\n3\n2\n1\n", 0);
-assert_output(qq"let n = 10
-                 while n > 0 { if n == 5 { break; }; echo n; n -= 1; };",
-              "10\n9\n8\n7\n6\n", 0);
-
-# Numeric For Loops
-assert_output(qq"for let n = 10; n > 0; n -= 1 { echo n; };",
-              "10\n9\n8\n7\n6\n5\n4\n3\n2\n1\n", 0);
-assert_output(qq"for let n = 10; n > 0; n -= 1 { if n == 5 { continue; }; echo n; };",
-              "10\n9\n8\n7\n6\n4\n3\n2\n1\n", 0);
-assert_output(qq"for let n = 10; n > 0; n -= 1 { if n == 5 { break; }; echo n; };",
-              "10\n9\n8\n7\n6\n", 0);
-
-# Iterative For Loops
-assert_output(qq"for i <- [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] { echo i; };",
-              "10\n9\n8\n7\n6\n5\n4\n3\n2\n1\n", 0);
-assert_output(qq"for i <- [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] { if i == 5 { continue; }; echo i; };",
-              "10\n9\n8\n7\n6\n4\n3\n2\n1\n", 0);
-assert_output(qq"for i <- [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] { if i == 5 { break; };  echo i; };",
-              "10\n9\n8\n7\n6\n", 0);
-assert_output(qq"for i <- 'abcdef' {
-                     echo i
-                 }\n", "a\nb\nc\nd\ne\nf\n", 0);
-
 # Functions
 assert_output(qq"fn add(a, b) { return a + b; }
                  echo add(10, 11);",
@@ -175,23 +145,9 @@ assert_output(qq"let x = 10
               "21\n10\n", 0);
 
 # String Methods
-assert_output("echo 'YASL'->search('A')\n", "1\n", 0);
-assert_output("echo 'YASL'->search('0')\n", "undef\n", 0);
-assert_output("echo 'YAY'->ltrim('Y')\n", "AY\n", 0);
-assert_output("echo 'YYYYAY'->ltrim('Y')\n", "AY\n", 0);
-assert_output("echo 'YAY'->ltrim('A')\n", "YAY\n", 0);
-assert_output("echo 'YAY'->rtrim('Y')\n", "YA\n", 0);
-assert_output("echo 'YAYYYY'->rtrim('Y')\n", "YA\n", 0);
-assert_output("echo 'YAY'->rtrim('A')\n", "YAY\n", 0);
-assert_output("echo '	 	 YASL'->ltrim()\n", "YASL\n", 0);
-assert_output("echo 'YASL	    '->rtrim()\n", "YASL\n", 0);
 assert_output("echo 'YASL'->__get(3)\n", "L\n", 0);
 assert_output("echo 'YASL'[3]\n", "L\n", 0);
 assert_output("echo 'YASL'->__get(-1)\n", "L\n", 0);
-assert_output("echo 'YASL'->rep(3)\n", "YASLYASLYASL\n", 0);
-assert_output("echo 'YASL'->rep(0)\n", "\n", 0);
-assert_output("echo ''->rep(3)\n", "\n", 0);
-assert_output("echo ''->rep(0)\n", "\n", 0);
 
 # List Methods
 assert_output(qq"let x = [1, 2, 3]

@@ -1,0 +1,5 @@
+echo 'YAY'->ltrim('Y')
+echo 'YYYYAY'->ltrim('Y')
+echo 'YAY'->ltrim('A')
+
+echo '	 	 YASL'->ltrim()

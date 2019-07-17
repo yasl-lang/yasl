@@ -1,0 +1,4 @@
+echo 'YAY'->rtrim('Y')
+echo 'YAYYYY'->rtrim('Y')
+echo 'YAY'->rtrim('A')
+echo 'YASL	    '->rtrim()

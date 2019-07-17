@@ -1,0 +1,2 @@
+echo 'YASL'->search('A')
+echo 'YASL'->search('0')
