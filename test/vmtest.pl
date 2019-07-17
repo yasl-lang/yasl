@@ -175,7 +175,6 @@ assert_output(qq"let x = 10
               "21\n10\n", 0);
 
 # String Methods
-assert_output("echo 'yasl'->tostr()\n", "yasl\n", 0);
 assert_output("echo 'YASL'->search('A')\n", "1\n", 0);
 assert_output("echo 'YASL'->search('0')\n", "undef\n", 0);
 assert_output("echo 'YAY'->ltrim('Y')\n", "AY\n", 0);
