@@ -57,14 +57,6 @@ assert_output(q+let $x = 10
               0);
 
 # Comprehensions
-assert_output(qq"for i <- [x*2 for x <- [1, 2, 3]] {
-                    echo i;
-                 }\n",
-              "2\n4\n6\n", 0);
-assert_output(qq"for i <- [x*2 for x <- [1, 2, 3, 4, 5, 6] if x % 2 == 0] {
-                    echo i;
-                 }\n",
-              "4\n8\n12\n", 0);
 assert_output(qq"let x = { x*2:-x for x <- [1, 2, 3, 4] if x % 2 == 0}
                  for i <- x {
                       echo i
