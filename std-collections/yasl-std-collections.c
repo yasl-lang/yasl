@@ -185,6 +185,20 @@ static int YASL_collections_set_clear(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
+static int YASL_collections_set_contains(struct YASL_State *S) {
+	struct YASL_Object *object = YASL_popobject(S);
+	struct YASL_Object *set_obj = YASL_popobject(S);
+	struct Set *set;
+	if (YASL_isuserdata(set_obj, YASL_SET) == YASL_SUCCESS) {
+		set = (struct Set *)YASL_UserData_getdata(set_obj);
+	} else {
+		return -1;
+	}
+
+	vm_push((struct VM *)S, set_search(set, *object));
+	return YASL_SUCCESS;
+}
+
 int YASL_load_collections(struct YASL_State *S) {
 
 	if (!set_mt) {
@@ -199,6 +213,7 @@ int YASL_load_collections(struct YASL_State *S) {
 		table_insert_literalcstring_cfunction(set_mt, "remove", YASL_collections_set_remove, 2);
 		table_insert_literalcstring_cfunction(set_mt, "copy", YASL_collections_set_copy, 1);
 		table_insert_literalcstring_cfunction(set_mt, "clear", YASL_collections_set_clear, 1);
+		table_insert_literalcstring_cfunction(set_mt, "contains", YASL_collections_set_contains, 2);
 	}
 
 	struct YASL_Object *collections = YASL_Table();
