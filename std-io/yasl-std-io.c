@@ -73,7 +73,7 @@ static int YASL_io_read(struct YASL_State *S) {
 
 	if (YASL_isundef(mode) == YASL_SUCCESS) {
 		mode_str = (char *)malloc(2);
-		mode_str[0] = 'a';
+		mode_str[0] = 'l';
 		mode_str[1] = '\0';
 	} else if (YASL_isstring(mode) == YASL_SUCCESS) {
 		mode_str = YASL_getcstring(mode);
