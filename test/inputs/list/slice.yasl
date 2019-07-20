@@ -1,5 +1,10 @@
 const x = [1, 2, 3, 4, 5]
 
+echo x[0:5]
 echo x[1:3]
 echo x[0:-1]
 echo x[-10:20]
+
+echo x->slice(0, 5)
+echo x->slice(1, 3)
+echo x->slice(0, -1)

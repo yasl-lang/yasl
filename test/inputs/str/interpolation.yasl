@@ -1,0 +1,5 @@
+let $x = 10
+let $y = 12
+echo "$x is #{$x}, #{$y}."
+echo "$x is #{$x        }, #{$y}"
+echo "$x is #{$x  }#{$y}  "

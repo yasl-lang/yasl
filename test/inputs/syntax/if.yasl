@@ -1,0 +1,10 @@
+let x = true
+if x { echo 1; } else { echo 0; };
+x = false
+if x { echo 1; } else { echo 0; };
+x = 1
+if x > 0 { echo '+'; } elseif x < 0 { echo '-'; } else { echo '0'; };
+x = -1
+if x > 0 { echo '+'; } elseif x < 0 { echo '-'; } else { echo '0'; };
+x = 0
+if x > 0 { echo '+'; } elseif x < 0 { echo '-'; } else { echo '0'; };

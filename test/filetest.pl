@@ -37,6 +37,7 @@ sub process_dir {
             next;
         }
         # print "Testing $file for leaks...\n";
+        # print "$file\n";
         local $/;
         open my ($filename), "$file.out";
         my $line = <$filename>;

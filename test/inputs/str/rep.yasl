@@ -1,0 +1,4 @@
+echo 'YASL'->rep(3)
+echo 'YASL'->rep(0)
+echo ''->rep(3)
+echo ''->rep(0)

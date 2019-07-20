@@ -1,0 +1,2 @@
+echo 'YASL'->startswith('YA')
+echo 'YASL'->startswith('A')

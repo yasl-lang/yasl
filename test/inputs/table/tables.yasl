@@ -2,7 +2,6 @@
 # test overwriting keys works
 
 let x = {}
-
 echo x
 
 x = { 'a': 'A'}

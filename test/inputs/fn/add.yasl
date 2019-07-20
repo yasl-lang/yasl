@@ -6,3 +6,8 @@ const fn add(const a, const b) {
 }
 
 echo add(1, 12)
+
+let x = 10
+fn add2(a, b) { let sum = a + b; return sum; }
+echo add2(10, 11)
+echo x

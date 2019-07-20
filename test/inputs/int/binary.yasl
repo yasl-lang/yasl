@@ -1,5 +1,3 @@
-##true\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\n
-
 echo 0b_10 == 0b10
 echo 0b10___10 == 0b1010
 echo 0b10__ == 0b10

@@ -1,0 +1,7 @@
+for let n = 10; n > 0; n -= 1 {
+        if n == 5 {
+                break
+        }
+        echo n
+}
+
