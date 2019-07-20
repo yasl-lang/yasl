@@ -1,0 +1,2 @@
+echo true ? 1 : 0
+echo false ? 1 : 0

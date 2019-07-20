@@ -4,3 +4,6 @@ echo undef ?? 5
 echo 5 ?? undef
 echo 5 ?? 6
 echo undef ?? undef
+
+echo 1 || 2
+echo 1 && 2

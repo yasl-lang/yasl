@@ -6,3 +6,6 @@ echo 5 * 6
 echo 5 / 2
 echo 6 // 2
 echo 5 % 2
+
+echo 10 + 12
+echo 3 - 2
