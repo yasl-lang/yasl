@@ -31,58 +31,13 @@ sub assert_output {
     return $exitcode;
 }
 
-
-# Literals
-assert_output(q+let $x = 10
-                let $y = 12
-                echo "$x is #{$x}, #{$y}.";+,
-              "\$x is 10, 12.\n",
-              0);
-assert_output(q+let $x = 10
-                let $y = 12
-                echo "$x is #{$x        }, #{$y}";+,
-              "\$x is 10, 12\n",
-              0);
-assert_output(q+let $x = 10
-                let $y = 12
-                echo "$x is #{$x  }#{$y}  ";+,
-              "\$x is 1012  \n",
-              0);
-
 # Binary Operators
-assert_output("echo 2 ** 4\n", "16\n", 0);
-assert_output("echo 2 ** -1\n", "0.5\n", 0);
-assert_output("echo -2 ** -1\n", "-0.5\n", 0);
-
-assert_output("echo 5 * 6\n", "30\n", 0);
-assert_output("echo 5 / 2\n", "2.5\n", 0);
-assert_output("echo 6 // 2\n", "3\n", 0);
-assert_output("echo 5 % 2\n", "1\n", 0);
 
 assert_output("echo 10 + 12\n", "22\n", 0);
 assert_output("echo 3.5 - 2\n", "1.5\n", 0);
 
 assert_output("echo 1 || 2\n", "1\n", 0);
 assert_output("echo 1 && 2\n", "2\n", 0);
-
-assert_output("echo 'str1' < 'str2'\n", "true\n", 0);
-assert_output("echo 'str1' > 'str2'\n", "false\n", 0);
-assert_output("echo 'str1' <= 'str2'\n", "true\n", 0);
-assert_output("echo 'str1' >= 'str2'\n", "false\n", 0);
-
-assert_output("echo 'str1' < 'str12'\n", "true\n", 0);
-assert_output("echo 'str1' <= 'str12'\n", "true\n", 0);
-assert_output("echo 'str1' >= 'str12'\n", "false\n", 0);
-assert_output("echo 'str1' > 'str12'\n", "false\n", 0);
-
-assert_output("echo 'str1' > 'str1'\n", "false\n", 0);
-assert_output("echo 'str1' < 'str1'\n", "false\n", 0);
-assert_output("echo 'str1' >= 'str1'\n", "true\n", 0);
-assert_output("echo 'str1' <= 'str1'\n", "true\n", 0);
-
-assert_output("echo 'str1' == 'str2'\n", "false\n", 0);
-assert_output("echo 'str1' == 'str12'\n", "false\n", 0);
-assert_output("echo 'str1' == 'str1'\n", "true\n", 0);
 
 # Ternary Operator
 assert_output("echo true ? 1 : 0\n", "1\n", 0);
@@ -115,22 +70,8 @@ assert_output(qq"let x = 10
                  echo x;",
               "21\n10\n", 0);
 
-# String Methods
-assert_output("echo 'YASL'->__get(3)\n", "L\n", 0);
-assert_output("echo 'YASL'[3]\n", "L\n", 0);
-assert_output("echo 'YASL'->__get(-1)\n", "L\n", 0);
-
 # List Methods
-assert_output(qq"let x = [1, 2, 3]
-                 x[1] = 0
-                 echo x\n", "[1, 0, 3]\n", 0);
-assert_output(qq"let x = [1, 2, 3]
-                 echo x[0]
-                 echo x[1]
-                 echo x[2]\n", "1\n2\n3\n", 0);
-assert_output(qq"let x = [0, 1, 2, 3, 4, 5, 6]
-                 let y = x->slice(1, 5)
-                 echo y\n", "[1, 2, 3, 4]\n", 0);
+
 assert_output(qq"let x = []
                  x->push(x)
                  echo x

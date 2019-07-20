@@ -1,0 +1,17 @@
+const x = [.a, .b, .c]
+
+echo x[0]
+echo x[1]
+echo x[2]
+
+echo x->__get(0)
+echo x->__get(1)
+echo x->__get(2)
+
+echo x[-1]
+echo x[-2]
+echo x[-3]
+
+echo x->__get(-1)
+echo x->__get(-2)
+echo x->__get(-3)
