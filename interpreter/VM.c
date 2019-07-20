@@ -85,7 +85,7 @@ void vm_init(struct VM *const vm,
 	DEF_SPECIAL_STR(S_REVERSE, "reverse");
 	DEF_SPECIAL_STR(S_RTRIM, "rtrim");
 	DEF_SPECIAL_STR(S_SEARCH, "search");
-	DEF_SPECIAL_STR(S_SLICE, "slice");
+	// DEF_SPECIAL_STR(S_SLICE, "slice");
 	DEF_SPECIAL_STR(S_SPLIT, "split");
 	DEF_SPECIAL_STR(S_STARTSWITH, "startswith");
 	DEF_SPECIAL_STR(S_TOBOOL, "tobool");
