@@ -2,6 +2,8 @@ use strict;
 use warnings;
 
 my $__MEM_TESTS_FAILED__ = 0;
+my $__NUM_TESTS__ = 0;
+my $__NUM_FAILED__ = 0;
 
 sub assert_output {
     my ($string, $exp_stat) = @_;
@@ -18,6 +20,8 @@ sub assert_output {
     }
 
     $__MEM_TESTS_FAILED__ ||= $exitcode;
+    $__NUM_FAILED__ += $exitcode;
+    $__NUM_TESTS__++;
     return $exitcode;
 }
 
@@ -41,5 +45,6 @@ sub process_dir {
 }
 
 process_dir('inputs/*');
+print "Ran $__NUM_TESTS__ tests. ($__NUM_FAILED__ failed.)\n";
 
 exit $__MEM_TESTS_FAILED__;
