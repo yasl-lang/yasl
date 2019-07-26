@@ -4,7 +4,7 @@
 
 #define YASL_SET (-4)
 
-static struct Table *set_mt = NULL;
+static struct YASL_HashTable *set_mt = NULL;
 
 
 static int YASL_collections_set_new(struct YASL_State *S) {
@@ -37,7 +37,7 @@ static int YASL_collections_set_tostr(struct YASL_State *S) {
 	FOR_SET(i, item, set) {
 		vm_push((struct VM *)S, *item);
 		vm_stringify_top((struct VM *) S);
-		String_t *str = vm_popstr((struct VM *) S);
+		struct YASL_String *str = vm_popstr((struct VM *) S);
 		while (string_count + yasl_string_len(str) >= string_size) {
 			string_size *= 2;
 			string = (char *) realloc(string, string_size);

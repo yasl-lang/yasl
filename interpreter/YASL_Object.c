@@ -72,7 +72,7 @@ struct YASL_Object *YASL_Boolean(bool value) {
 	return boolean;
 }
 
-struct YASL_Object *YASL_String(String_t *str) {
+struct YASL_Object *YASL_String(struct YASL_String *str) {
 	struct YASL_Object *string = (struct YASL_Object *) malloc(sizeof(struct YASL_Object));
 	string->type = Y_STR;
 	string->value.sval = str;
@@ -93,7 +93,7 @@ struct YASL_Object *YASL_UserPointer(void *userpointer) {
 	return userptr;
 }
 
-struct YASL_Object *YASL_UserData(void *userdata, int tag, struct Table *mt, void (*destructor)(void *)) {
+struct YASL_Object *YASL_UserData(void *userdata, int tag, struct YASL_HashTable *mt, void (*destructor)(void *)) {
 	struct YASL_Object *obj = (struct YASL_Object *)malloc(sizeof(struct YASL_Object));
 	obj->type = Y_USERDATA;
 	obj->value.uval = ud_new(userdata, tag, mt, destructor);

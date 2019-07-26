@@ -37,8 +37,8 @@
 #define YASL_GETINT(v) ((v).value.ival)
 #define YASL_GETBOOL(v) ((v).value.ival)
 #define YASL_GETSTR(v) ((v).value.sval)
-#define YASL_GETLIST(v) ((struct List *)((v).value.uval->data))
-#define YASL_GETTABLE(v) ((struct Table *)((v).value.uval->data))
+#define YASL_GETLIST(v) ((struct YASL_List *)((v).value.uval->data))
+#define YASL_GETTABLE(v) ((struct YASL_HashTable *)((v).value.uval->data))
 #define YASL_GETUSERDATA(v) ((v).value.uval)
 #define YASL_GETUSERPTR(v) ((v).value.pval)
 #define YASL_GETFN(v) ((v).value.ival)
@@ -88,7 +88,7 @@ struct YASL_Object {
         union {
                 yasl_int ival;
                 yasl_float dval;
-                String_t *sval;
+                struct YASL_String *sval;
                 struct RC_UserData *uval;
                 struct CFunction_s *cval;
                 unsigned char *fval;
@@ -100,7 +100,7 @@ struct YASL_Object *YASL_Undef(void);
 struct YASL_Object *YASL_Float(yasl_float value);
 struct YASL_Object *YASL_Integer(yasl_int value);
 struct YASL_Object *YASL_Boolean(bool value);
-struct YASL_Object *YASL_String(String_t *str);
+struct YASL_Object *YASL_String(struct YASL_String *str);
 struct YASL_Object *YASL_Table(void);
 struct YASL_Object *YASL_UserPointer(void *userdata);
 struct YASL_Object *YASL_Function(int64_t index);

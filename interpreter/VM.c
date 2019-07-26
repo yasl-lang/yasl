@@ -20,8 +20,8 @@
 #include "operator_names.h"
 #include "YASL_Object.h"
 
-static struct Table **builtins_htable_new(struct VM *vm) {
-    struct Table **ht = (struct Table **)malloc(sizeof(struct Table*) * NUM_TYPES);
+static struct YASL_HashTable **builtins_htable_new(struct VM *vm) {
+    struct YASL_HashTable **ht = (struct YASL_HashTable **)malloc(sizeof(struct YASL_HashTable*) * NUM_TYPES);
     ht[Y_UNDEF] = undef_builtins(vm);
     ht[Y_FLOAT] = float_builtins(vm);
     ht[Y_INT] = int_builtins(vm);
@@ -42,7 +42,7 @@ void vm_init(struct VM *const vm,
 	// vm->headers[0] = code;
 	vm->headers_size = datasize;
 	vm->num_globals = datasize;
-	vm->globals = (struct Table **)calloc(sizeof(struct Table *), datasize);
+	vm->globals = (struct YASL_HashTable **)calloc(sizeof(struct YASL_HashTable *), datasize);
 	//vm->globals[0] = table_new();
 	//vm->globals[1] = table_new();
 	for (size_t i = 0; i < datasize; i++) {
@@ -386,9 +386,9 @@ static int vm_len_unop(struct VM *vm) {
 
 static int vm_CNCT(struct VM *vm) {
 		vm_stringify_top(vm);
-		String_t *b = vm_popstr(vm);
+		struct YASL_String *b = vm_popstr(vm);
 		vm_stringify_top(vm);
-		String_t *a = vm_popstr(vm);
+		struct YASL_String *a = vm_popstr(vm);
 
 		size_t size = yasl_string_len((a)) + yasl_string_len((b));
 		char *ptr = (char *)malloc(size);
@@ -439,7 +439,7 @@ static int vm_SLICE(struct VM *vm) {
 	yasl_int start = vm_popint(vm);
 
 	if (YASL_ISLIST(vm_peek(vm))) {
-		struct List *list = vm_poplist(vm);
+		struct YASL_List *list = vm_poplist(vm);
 		yasl_int len = list->count;
 		if (end < 0)
 			end += len;
@@ -456,14 +456,14 @@ static int vm_SLICE(struct VM *vm) {
 		struct RC_UserData *new_ls = ls_new();
 
 		for (yasl_int i = start; i <end; ++i) {
-			ls_append((struct List *)new_ls->data, list->items[i]);
+			ls_append((struct YASL_List *)new_ls->data, list->items[i]);
 		}
 		VM_PUSH(vm, YASL_LIST(new_ls));
 		return YASL_SUCCESS;
 	}
 
 	if (YASL_ISSTR(vm_peek(vm))) {
-		String_t *str = vm_popstr(vm);
+		struct YASL_String *str = vm_popstr(vm);
 		yasl_int len = yasl_string_len(str);
 		if (end < 0)
 			end += len;
@@ -567,7 +567,7 @@ static int vm_NEWSTR(struct VM *vm) {
 	memcpy(&size, vm->headers[table] + addr, sizeof(yasl_int));
 
 	addr += sizeof(yasl_int);
-	String_t *string = str_new_sized(size, ((char *) vm->headers[table]) + addr);
+	struct YASL_String *string = str_new_sized(size, ((char *) vm->headers[table]) + addr);
 	vm_pushstr(vm, string);
 	return YASL_SUCCESS;
 }
@@ -622,7 +622,7 @@ static int vm_GSTORE_8(struct VM *vm) {
 	memcpy(&size, vm->headers[table] + addr, sizeof(yasl_int));
 
 	addr += sizeof(yasl_int);
-	String_t *string = str_new_sized(size, ((char *) vm->headers[table]) + addr);
+	struct YASL_String *string = str_new_sized(size, ((char *) vm->headers[table]) + addr);
 
 	table_insert(vm->globals[table], YASL_STR(string), vm_pop(vm));
 	return YASL_SUCCESS;
@@ -636,7 +636,7 @@ static int vm_GLOAD_8(struct VM *vm) {
 	memcpy(&size, vm->headers[table] + addr, sizeof(yasl_int));
 
 	addr += sizeof(yasl_int);
-	String_t *string = str_new_sized((size_t)size, ((char *) vm->headers[table]) + addr);
+	struct YASL_String *string = str_new_sized((size_t)size, ((char *) vm->headers[table]) + addr);
 
 	vm_push(vm, table_search(vm->globals[table], YASL_STR(string)));
 
@@ -921,7 +921,7 @@ int vm_run(struct VM *vm) {
 			break;
 		case NEWTABLE: {
 			struct YASL_Object *table = YASL_Table();
-			struct Table *ht = YASL_GETTABLE(*table);
+			struct YASL_HashTable *ht = YASL_GETTABLE(*table);
 			while (vm_peek(vm).type != Y_END) {
 				struct YASL_Object value = vm_pop(vm);
 				struct YASL_Object key = vm_pop(vm);
@@ -935,9 +935,9 @@ int vm_run(struct VM *vm) {
 		case NEWLIST: {
 			struct RC_UserData *ls = ls_new();
 			while (vm_peek(vm).type != Y_END) {
-				ls_append((struct List *)ls->data, vm_pop(vm));
+				ls_append((struct YASL_List *)ls->data, vm_pop(vm));
 			}
-			ls_reverse((struct List *)ls->data);
+			ls_reverse((struct YASL_List *)ls->data);
 			vm_pop(vm);
 			VM_PUSH(vm, YASL_LIST(ls));
 			break;

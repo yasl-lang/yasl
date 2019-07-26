@@ -7,7 +7,7 @@
 
 struct Env_s {
     struct Env_s *parent;
-    struct Table *vars;
+    struct YASL_HashTable *vars;
 };
 
 typedef struct Env_s Env_t;

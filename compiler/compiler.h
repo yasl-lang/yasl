@@ -32,10 +32,10 @@ struct Compiler {
     Env_t *stack;
     Env_t *params;
     size_t num_locals;
-    struct Table *strings;
-    ByteBuffer *buffer;
-    ByteBuffer *header;
-    ByteBuffer *code;
+    struct YASL_HashTable *strings;
+    struct YASL_ByteBuffer *buffer;
+    struct YASL_ByteBuffer *header;
+    struct YASL_ByteBuffer *code;
     size_t *checkpoints;
     size_t checkpoints_count;
     size_t checkpoints_size;

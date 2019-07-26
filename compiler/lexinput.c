@@ -2,7 +2,7 @@
 
 struct LEXINPUT {
   FILE *fp;
-  ByteBuffer *bb;
+  struct YASL_ByteBuffer *bb;
   int pos;
   int iseof;
   int (*getc)(struct LEXINPUT *const lp);

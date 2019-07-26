@@ -18,7 +18,7 @@ typedef struct {
     struct YASL_Object value;
 } Item_t;
 
-struct Table {
+struct YASL_HashTable {
 	size_t size;
 	size_t base_size;
 	size_t count;
@@ -29,15 +29,15 @@ extern Item_t TOMBSTONE; //(struct YASL_Object) {Y_END, Y_END};
 
 void del_item(Item_t *const item);
 
-struct Table *table_new(void);
-void table_insert(struct Table *const table, const struct YASL_Object key, const struct YASL_Object value);
-void table_insert_string_int(struct Table *const table, const char *const key, const size_t key_len, const int64_t val);
-void table_insert_literalcstring_cfunction(struct Table *ht, const char *key, int (*addr)(struct YASL_State *), int num_args);
-struct YASL_Object table_search(const struct Table *const table, const struct YASL_Object key);
-struct YASL_Object table_search_string_int(const struct Table *const table, const char *const key, const size_t key_len);
-void table_rm(struct Table *table, struct YASL_Object key);
-void table_del(struct Table *const table);
-void table_del_string_int(struct Table *const table);
+struct YASL_HashTable *table_new(void);
+void table_insert(struct YASL_HashTable *const table, const struct YASL_Object key, const struct YASL_Object value);
+void table_insert_string_int(struct YASL_HashTable *const table, const char *const key, const size_t key_len, const int64_t val);
+void table_insert_literalcstring_cfunction(struct YASL_HashTable *ht, const char *key, int (*addr)(struct YASL_State *), int num_args);
+struct YASL_Object table_search(const struct YASL_HashTable *const table, const struct YASL_Object key);
+struct YASL_Object table_search_string_int(const struct YASL_HashTable *const table, const char *const key, const size_t key_len);
+void table_rm(struct YASL_HashTable *table, struct YASL_Object key);
+void table_del(struct YASL_HashTable *const table);
+void table_del_string_int(struct YASL_HashTable *const table);
 
 struct RC_UserData* rcht_new(void);
 struct RC_UserData* rcht_new_sized(const size_t base_size);

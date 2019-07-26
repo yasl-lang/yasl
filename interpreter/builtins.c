@@ -12,7 +12,7 @@
 
 void yasl_print(struct VM* vm) {
 	vm_stringify_top(vm);
-	String_t *v = vm_popstr(vm);
+	struct YASL_String *v = vm_popstr(vm);
 	printf("%.*s\n", (int)yasl_string_len(v), v->start + v->str);
 }
 
@@ -24,43 +24,43 @@ void yasl_print(struct VM* vm) {
  *                                                                                                                   *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-void table_insert_specialstring_cfunction(struct VM *vm, struct Table *ht, int index, int (*addr)(struct YASL_State *), int num_args) {
-	String_t *string = vm->special_strings[index];
+void table_insert_specialstring_cfunction(struct VM *vm, struct YASL_HashTable *ht, int index, int (*addr)(struct YASL_State *), int num_args) {
+	struct YASL_String *string = vm->special_strings[index];
 	struct YASL_Object ko = YASL_STR(string), vo = YASL_CFN(addr, num_args);
 	table_insert(ht, ko, vo);
 }
 
-struct Table *undef_builtins(struct VM *vm) {
-	struct Table* table = table_new();
+struct YASL_HashTable *undef_builtins(struct VM *vm) {
+	struct YASL_HashTable* table = table_new();
 	table_insert_specialstring_cfunction(vm, table, S_TOSTR, &undef_tostr, 1);
 	return table;
 }
 
-struct Table* float_builtins(struct VM *vm) {
-	struct Table *table = table_new();
+struct YASL_HashTable* float_builtins(struct VM *vm) {
+	struct YASL_HashTable *table = table_new();
 	table_insert_specialstring_cfunction(vm, table, S_TOINT, &float_toint, 1);
 	table_insert_specialstring_cfunction(vm, table, S_TOFLOAT, &float_tofloat, 1);
 	table_insert_specialstring_cfunction(vm, table, S_TOSTR, &float_tostr, 1);
 	return table;
 }
 
-struct Table* int_builtins(struct VM *vm) {
-	struct Table *table = table_new();
+struct YASL_HashTable* int_builtins(struct VM *vm) {
+	struct YASL_HashTable *table = table_new();
 	table_insert_specialstring_cfunction(vm, table, S_TOINT, &int_toint, 1);
 	table_insert_specialstring_cfunction(vm, table, S_TOFLOAT, &int_tofloat, 1);
 	table_insert_specialstring_cfunction(vm, table, S_TOSTR, &int_tostr, 1);
 	return table;
 }
 
-struct Table* bool_builtins(struct VM *vm) {
-	struct Table *table = table_new();
+struct YASL_HashTable* bool_builtins(struct VM *vm) {
+	struct YASL_HashTable *table = table_new();
 	table_insert_specialstring_cfunction(vm, table, S_TOSTR, &bool_tostr, 1);
 	table_insert_specialstring_cfunction(vm, table, S_TOBOOL, &bool_tobool, 1);
 	return table;
 }
 
-struct Table* str_builtins(struct VM *vm) {
-	struct Table *table = table_new();
+struct YASL_HashTable* str_builtins(struct VM *vm) {
+	struct YASL_HashTable *table = table_new();
 	table_insert_specialstring_cfunction(vm, table, S_TOFLOAT, &str_tofloat, 1);
 	table_insert_specialstring_cfunction(vm, table, S_TOINT, &str_toint, 1);
 	table_insert_specialstring_cfunction(vm, table, S_ISALNUM, &str_isalnum, 1);
@@ -86,8 +86,8 @@ struct Table* str_builtins(struct VM *vm) {
 	return table;
 }
 
-struct Table* list_builtins(struct VM *vm) {
-	struct Table *table = table_new();
+struct YASL_HashTable* list_builtins(struct VM *vm) {
+	struct YASL_HashTable *table = table_new();
 	table_insert_specialstring_cfunction(vm, table, S_PUSH, &list_push, 2);
 	table_insert_specialstring_cfunction(vm, table, S_COPY, &list_copy, 1);
 	table_insert_specialstring_cfunction(vm, table, S___ADD, &list___add, 2);
@@ -105,8 +105,8 @@ struct Table* list_builtins(struct VM *vm) {
 	return table;
 }
 
-struct Table* table_builtins(struct VM *vm) {
-	struct Table *table = table_new();
+struct YASL_HashTable* table_builtins(struct VM *vm) {
+	struct YASL_HashTable *table = table_new();
 	table_insert_specialstring_cfunction(vm, table, S_REMOVE, &table_remove, 2);
 	table_insert_specialstring_cfunction(vm, table, S_KEYS, &table_keys, 1);
 	table_insert_specialstring_cfunction(vm, table, S_VALUES, &table_values, 1);

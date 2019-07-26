@@ -7,47 +7,47 @@
 
 #include "interpreter/refcount.h"
 
-typedef struct {
+struct YASL_String {
 	struct RC *rc;      // NOTE: RC MUST BE THE FIRST MEMBER OF THIS STRUCT. DO NOT REARRANGE.
 	char *str;
 	size_t start;
 	size_t end;
 	bool on_heap;
-} String_t;
+};
 
 
-size_t yasl_string_len(const String_t *const str);
-int64_t yasl_string_cmp(const String_t *const left, const String_t *const right);
+size_t yasl_string_len(const struct YASL_String *const str);
+int64_t yasl_string_cmp(const struct YASL_String *const left, const struct YASL_String *const right);
 char *copy_char_buffer(const size_t size, const char *const ptr);
-String_t* str_new_sized(const size_t base_size, const char *const ptr);
-String_t *str_new_substring(const size_t start, const size_t end, const String_t *const string);
-String_t* str_new_sized_heap(const size_t start, const size_t end, const char *const mem);
-void str_del_data(String_t *const str);
-void str_del_rc(String_t *const str);
-void str_del(String_t *const str);
-int64_t str_find_index(const String_t *const haystack, const String_t *const needle);
+struct YASL_String* str_new_sized(const size_t base_size, const char *const ptr);
+struct YASL_String *str_new_substring(const size_t start, const size_t end, const struct YASL_String *const string);
+struct YASL_String* str_new_sized_heap(const size_t start, const size_t end, const char *const mem);
+void str_del_data(struct YASL_String *const str);
+void str_del_rc(struct YASL_String *const str);
+void str_del(struct YASL_String *const str);
+int64_t str_find_index(const struct YASL_String *const haystack, const struct YASL_String *const needle);
 
-yasl_float string_tofloat(String_t *str);
-yasl_int string_toint(String_t *str);
-String_t *string_toupper(String_t *a);
-String_t *string_tolower(String_t *a);
-bool string_isalnum(String_t *a);
-bool string_isal(String_t *a);
-bool string_isnum(String_t *a);
-bool string_isspace(String_t *a);
-bool string_startswith(String_t *haystack, String_t *needle);
-bool string_endswith(String_t *haystack, String_t *needle);
+yasl_float string_tofloat(struct YASL_String *str);
+yasl_int string_toint(struct YASL_String *str);
+struct YASL_String *string_toupper(struct YASL_String *a);
+struct YASL_String *string_tolower(struct YASL_String *a);
+bool string_isalnum(struct YASL_String *a);
+bool string_isal(struct YASL_String *a);
+bool string_isnum(struct YASL_String *a);
+bool string_isspace(struct YASL_String *a);
+bool string_startswith(struct YASL_String *haystack, struct YASL_String *needle);
+bool string_endswith(struct YASL_String *haystack, struct YASL_String *needle);
 // Caller makes sure search_str is at least length 1.
-String_t *string_replace(String_t *str, String_t *search_str, String_t *replace_str);
-yasl_int string_count(String_t *haystack, String_t *needle);
-struct RC_UserData *string_split_default(String_t *haystack);
+struct YASL_String *string_replace(struct YASL_String *str, struct YASL_String *search_str, struct YASL_String *replace_str);
+yasl_int string_count(struct YASL_String *haystack, struct YASL_String *needle);
+struct RC_UserData *string_split_default(struct YASL_String *haystack);
 // Caller makes sure needle is not 0 length
-struct RC_UserData *string_split(String_t *haystack, String_t *needle);
-String_t *string_ltrim_default(String_t *haystack);
-String_t *string_ltrim(String_t *haystack, String_t *needle);
-String_t *string_rtrim_default(String_t *haystack);
-String_t *string_rtrim(String_t *haystack, String_t *needle);
-String_t *string_trim_default(String_t *haystack);
-String_t *string_trim(String_t *haystack, String_t *needle);
+struct RC_UserData *string_split(struct YASL_String *haystack, struct YASL_String *needle);
+struct YASL_String *string_ltrim_default(struct YASL_String *haystack);
+struct YASL_String *string_ltrim(struct YASL_String *haystack, struct YASL_String *needle);
+struct YASL_String *string_rtrim_default(struct YASL_String *haystack);
+struct YASL_String *string_rtrim(struct YASL_String *haystack, struct YASL_String *needle);
+struct YASL_String *string_trim_default(struct YASL_String *haystack);
+struct YASL_String *string_trim(struct YASL_String *haystack, struct YASL_String *needle);
 // Caller ensures num is greater than or equal to zero
-String_t *string_rep(String_t *string, yasl_int num);
+struct YASL_String *string_rep(struct YASL_String *string, yasl_int num);

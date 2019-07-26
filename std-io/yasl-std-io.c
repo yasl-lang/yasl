@@ -5,7 +5,7 @@
 
 #define YASL_FILE (-3)
 
-static struct Table *mt;
+static struct YASL_HashTable *mt;
 
 static int YASL_io_open(struct YASL_State *S) {
 	struct YASL_Object *mode = YASL_popobject(S);
