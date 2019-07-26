@@ -2,9 +2,9 @@
 #include <interpreter/VM.h>
 #include <interpreter/table_methods.h>
 #include <interpreter/YASL_Object.h>
-#include <interpreter/YASL_string.h>
+#include <data-structures/YASL_string.h>
 #include <interpreter/userdata.h>
-#include <bytebuffer/bytebuffer.h>
+#include <data-structures/bytebuffer.h>
 #include "yasl.h"
 #include "yasl_state.h"
 #include "compiler/compiler.h"

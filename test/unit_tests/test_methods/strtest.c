@@ -1,6 +1,6 @@
-#include <interpreter/YASL_string.h>
+#include <data-structures/YASL_string.h>
 #include "test/yats.h"
-#include "interpreter/YASL_string.h"
+#include "data-structures/YASL_string.h"
 
 SETUP_YATS();
 

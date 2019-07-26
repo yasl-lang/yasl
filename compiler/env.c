@@ -1,6 +1,6 @@
 #include "env.h"
 
-#include "interpreter/YASL_string.h"
+#include "data-structures/YASL_string.h"
 #include "interpreter/YASL_Object.h"
 
 Env_t *env_new(Env_t *parent) {

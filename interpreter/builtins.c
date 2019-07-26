@@ -8,7 +8,7 @@
 #include "table_methods.h"
 #include "list_methods.h"
 #include "VM.h"
-#include "YASL_string.h"
+#include "data-structures/YASL_string.h"
 
 void yasl_print(struct VM* vm) {
 	vm_stringify_top(vm);

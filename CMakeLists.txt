@@ -35,28 +35,28 @@ add_executable(YASL
         yasl.c
         main.c
         compiler/ast.c
-        bytebuffer/bytebuffer.c
+        data-structures/bytebuffer.c
         compiler/compiler.c
         compiler/env.c
         compiler/lexer.c
         compiler/lexinput.c
         compiler/parser.c
         compiler/middleend.c
-        hash_function/hash_function.c
-        hashtable/hashtable.c
+        data-structures/hash_function.c
+        data-structures/hashtable.c
         interpreter/bool_methods.c
         interpreter/builtins.c
         interpreter/float_methods.c
         interpreter/yasl_float.c
         interpreter/int_methods.c
-        interpreter/list.c
+        data-structures/list.c
         interpreter/list_methods.c
         interpreter/table_methods.c
         interpreter/VM.c
         interpreter/YASL_Object.c
         interpreter/refcount.c
         interpreter/str_methods.c
-        interpreter/YASL_string.c
+        data-structures/YASL_string.c
         interpreter/userdata.c
         interpreter/undef_methods.c
         prime/prime.c
@@ -91,14 +91,14 @@ add_executable(YASLTEST
         compiler/parser.c
         compiler/ast.c
         compiler/middleend.c
-        hash_function/hash_function.c
-        hashtable/hashtable.c
+        data-structures/hash_function.c
+        data-structures/hashtable.c
         interpreter/yasl_float.c
         interpreter/YASL_Object.c
-        bytebuffer/bytebuffer.c
-        interpreter/YASL_string.c
+        data-structures/bytebuffer.c
+        data-structures/YASL_string.c
         interpreter/refcount.c
-        interpreter/list.c
+        data-structures/list.c
         interpreter/userdata.c
         prime/prime.c
         std-collections/set.c
@@ -107,28 +107,28 @@ add_executable(YASLTEST
 add_library(yaslapi
         yasl.c
         compiler/ast.c
-        bytebuffer/bytebuffer.c
+        data-structures/bytebuffer.c
         compiler/compiler.c
         compiler/env.c
         compiler/lexer.c
         compiler/lexinput.c
         compiler/parser.c
         compiler/middleend.c
-        hash_function/hash_function.c
-        hashtable/hashtable.c
+        data-structures/hash_function.c
+        data-structures/hashtable.c
         interpreter/bool_methods.c
         interpreter/builtins.c
         interpreter/float_methods.c
         interpreter/yasl_float.c
         interpreter/int_methods.c
-        interpreter/list.c
+        data-structures/list.c
         interpreter/list_methods.c
         interpreter/table_methods.c
         interpreter/VM.c
         interpreter/YASL_Object.c
         interpreter/refcount.c
         interpreter/str_methods.c
-        interpreter/YASL_string.c
+        data-structures/YASL_string.c
         interpreter/userdata.c
         interpreter/undef_methods.c
         prime/prime.c)

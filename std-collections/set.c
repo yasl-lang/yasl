@@ -1,7 +1,7 @@
 
 #include <interpreter/YASL_Object.h>
 #include "set.h"
-#include "hash_function/hash_function.h"
+#include "data-structures/hash_function.h"
 
 #define SET_BASESIZE 30
 

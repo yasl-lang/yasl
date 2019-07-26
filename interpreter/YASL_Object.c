@@ -2,8 +2,8 @@
 
 #include <string.h>
 
-#include "YASL_string.h"
-#include "hashtable/hashtable.h"
+#include "data-structures/YASL_string.h"
+#include "data-structures/hashtable.h"
 #include "interpreter/float_methods.h"
 #include "interpreter/userdata.h"
 

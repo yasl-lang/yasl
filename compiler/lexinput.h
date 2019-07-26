@@ -1,6 +1,6 @@
 #pragma once
 
-#include "bytebuffer/bytebuffer.h"
+#include "data-structures/bytebuffer.h"
 
 struct LEXINPUT;
 struct LEXINPUT *lexinput_new_file(FILE *const lp);

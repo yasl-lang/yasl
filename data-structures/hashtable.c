@@ -1,9 +1,9 @@
 #include "hashtable.h"
 
 #include <interpreter/YASL_Object.h>
-#include <interpreter/YASL_string.h>
+#include <data-structures/YASL_string.h>
 #include "interpreter/refcount.h"
-#include "hash_function/hash_function.h"
+#include "hash_function.h"
 
 #include <stdlib.h>
 #include <string.h>

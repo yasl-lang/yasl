@@ -3,15 +3,15 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include <bytebuffer/bytebuffer.h>
+#include <data-structures/bytebuffer.h>
 
-#include "bytebuffer/bytebuffer.h"
-#include "YASL_string.h"
+#include "data-structures/bytebuffer.h"
+#include "data-structures/YASL_string.h"
 #include "yasl_state.h"
 #include "interpreter/VM.h"
 #include "interpreter/YASL_Object.h"
-#include "interpreter/list.h"
-#include "YASL_string.h"
+#include "data-structures/list.h"
+#include "data-structures/YASL_string.h"
 
 int str___get(struct YASL_State *S) {
 	struct YASL_Object index = vm_pop((struct VM *)S);

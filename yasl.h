@@ -4,7 +4,7 @@
 #include "yasl_error.h"
 #include "inttypes.h"
 #include <stdlib.h>
-#include "hashtable/hashtable.h"
+#include "data-structures/hashtable.h"
 
 struct YASL_State;
 struct YASL_Object;
