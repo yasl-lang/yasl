@@ -3,8 +3,8 @@
 #include <stdlib.h>
 
 #include "YASL_Object.h"
-#include "data-structures/list.h"
-#include "data-structures/hashtable.h"
+#include "data-structures/YASL_list.h"
+#include "data-structures/YASL_hashtable.h"
 #include "yasl_include.h"
 
 struct RC *rc_new(void) {

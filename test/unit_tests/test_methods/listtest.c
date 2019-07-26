@@ -1,7 +1,7 @@
 #include "listtest.h"
 #include "interpreter/YASL_Object.h"
 #include "test/yats.h"
-#include "data-structures/list.h"
+#include "data-structures/YASL_list.h"
 
 SETUP_YATS();
 

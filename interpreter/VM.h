@@ -1,6 +1,6 @@
 #pragma once
 
-#include "data-structures/hashtable.h"
+#include "data-structures/YASL_hashtable.h"
 #include "yasl_conf.h"
 #include "opcode.h"
 

@@ -3,7 +3,7 @@
 #include <inttypes.h>
 #include "compiler/ast.h"
 #include "parser.h"
-#include "data-structures/bytebuffer.h"
+#include "data-structures/YASL_bytebuffer.h"
 #include "opcode.h"
 #include "env.h"
 #include "debug.h"

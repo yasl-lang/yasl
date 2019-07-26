@@ -1,7 +1,7 @@
 //
 // Created by thiabaud on 01/05/18.
 //
-#include "data-structures/hashtable.h"
+#include "data-structures/YASL_hashtable.h"
 #include "data-structures/YASL_string.h"
 #include <string.h>
 

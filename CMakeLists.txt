@@ -35,7 +35,7 @@ add_executable(YASL
         yasl.c
         main.c
         compiler/ast.c
-        data-structures/bytebuffer.c
+        data-structures/YASL_bytebuffer.c
         compiler/compiler.c
         compiler/env.c
         compiler/lexer.c
@@ -43,13 +43,13 @@ add_executable(YASL
         compiler/parser.c
         compiler/middleend.c
         data-structures/hash_function.c
-        data-structures/hashtable.c
+        data-structures/YASL_hashtable.c
         interpreter/bool_methods.c
         interpreter/builtins.c
         interpreter/float_methods.c
         interpreter/yasl_float.c
         interpreter/int_methods.c
-        data-structures/list.c
+        data-structures/YASL_list.c
         interpreter/list_methods.c
         interpreter/table_methods.c
         interpreter/VM.c
@@ -92,13 +92,13 @@ add_executable(YASLTEST
         compiler/ast.c
         compiler/middleend.c
         data-structures/hash_function.c
-        data-structures/hashtable.c
+        data-structures/YASL_hashtable.c
         interpreter/yasl_float.c
         interpreter/YASL_Object.c
-        data-structures/bytebuffer.c
+        data-structures/YASL_bytebuffer.c
         data-structures/YASL_string.c
         interpreter/refcount.c
-        data-structures/list.c
+        data-structures/YASL_list.c
         interpreter/userdata.c
         prime/prime.c
         std-collections/set.c
@@ -107,7 +107,7 @@ add_executable(YASLTEST
 add_library(yaslapi
         yasl.c
         compiler/ast.c
-        data-structures/bytebuffer.c
+        data-structures/YASL_bytebuffer.c
         compiler/compiler.c
         compiler/env.c
         compiler/lexer.c
@@ -115,13 +115,13 @@ add_library(yaslapi
         compiler/parser.c
         compiler/middleend.c
         data-structures/hash_function.c
-        data-structures/hashtable.c
+        data-structures/YASL_hashtable.c
         interpreter/bool_methods.c
         interpreter/builtins.c
         interpreter/float_methods.c
         interpreter/yasl_float.c
         interpreter/int_methods.c
-        data-structures/list.c
+        data-structures/YASL_list.c
         interpreter/list_methods.c
         interpreter/table_methods.c
         interpreter/VM.c

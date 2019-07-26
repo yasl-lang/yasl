@@ -4,7 +4,7 @@
 #include <interpreter/YASL_Object.h>
 #include <data-structures/YASL_string.h>
 #include <interpreter/userdata.h>
-#include <data-structures/bytebuffer.h>
+#include <data-structures/YASL_bytebuffer.h>
 #include "yasl.h"
 #include "yasl_state.h"
 #include "compiler/compiler.h"

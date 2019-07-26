@@ -1,4 +1,4 @@
-#include "hashtable.h"
+#include "YASL_hashtable.h"
 
 #include <interpreter/YASL_Object.h>
 #include <data-structures/YASL_string.h>

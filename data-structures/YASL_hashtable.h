@@ -4,7 +4,7 @@
 
 #include "prime/prime.h"
 #include "interpreter/YASL_Object.h"
-#include "list.h"
+#include "YASL_list.h"
 
 #define LEN(v) (*((int64_t*)(v).value))
 

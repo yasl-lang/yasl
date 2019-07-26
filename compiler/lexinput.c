@@ -71,7 +71,7 @@ struct LEXINPUT *lexinput_new_file(FILE *const fp) {
 	return lp;
 }
 
-#include "data-structures/bytebuffer.h"
+#include "data-structures/YASL_bytebuffer.h"
 
 static int lexinput_bb_eof(struct LEXINPUT *const lp);
 static  int lexinput_bb_getc(struct LEXINPUT *const lp) {

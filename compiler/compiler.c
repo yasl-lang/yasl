@@ -4,7 +4,7 @@
 #include "interpreter/YASL_Object.h"
 #include "middleend.h"
 #include "data-structures/YASL_string.h"
-#include "data-structures/bytebuffer.h"
+#include "data-structures/YASL_bytebuffer.h"
 #include "parser.h"
 #include "yasl_error.h"
 #include "yasl_include.h"

@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "data-structures/YASL_string.h"
-#include "data-structures/hashtable.h"
+#include "data-structures/YASL_hashtable.h"
 #include "interpreter/float_methods.h"
 #include "interpreter/userdata.h"
 
