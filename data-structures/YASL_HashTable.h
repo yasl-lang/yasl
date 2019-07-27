@@ -27,7 +27,7 @@ void table_insert_string_int(struct YASL_HashTable *const table, const char *con
 void table_insert_literalcstring_cfunction(struct YASL_HashTable *const ht, const char *key, int (*addr)(struct YASL_State *), const int num_args);
 struct YASL_Object table_search(const struct YASL_HashTable *const table, const struct YASL_Object key);
 struct YASL_Object table_search_string_int(const struct YASL_HashTable *const table, const char *const key, const size_t key_len);
-void table_rm(struct YASL_HashTable *const table, struct YASL_Object key);
+void table_rm(struct YASL_HashTable *const table, const struct YASL_Object key);
 void table_del(struct YASL_HashTable *const table);
 void table_del_string_int(struct YASL_HashTable *const table);
 
