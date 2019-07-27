@@ -3,14 +3,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include <data-structures/YASL_bytebuffer.h>
+#include <data-structures/YASL_ByteBuffer.h>
 
-#include "data-structures/YASL_bytebuffer.h"
+#include "data-structures/YASL_ByteBuffer.h"
 #include "data-structures/YASL_string.h"
 #include "yasl_state.h"
 #include "interpreter/VM.h"
 #include "interpreter/YASL_Object.h"
-#include "data-structures/YASL_list.h"
+#include "data-structures/YASL_List.h"
 #include "data-structures/YASL_string.h"
 
 int str___get(struct YASL_State *S) {

@@ -1,5 +1,5 @@
 #include <yasl_state.h>
-#include <data-structures/YASL_bytebuffer.h>
+#include <data-structures/YASL_ByteBuffer.h>
 #include "yasl-std-require.h"
 #include "yasl-std-math.h"
 #include "yasl-std-io.h"

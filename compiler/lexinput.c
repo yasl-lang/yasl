@@ -71,7 +71,7 @@ struct LEXINPUT *lexinput_new_file(FILE *const fp) {
 	return lp;
 }
 
-#include "data-structures/YASL_bytebuffer.h"
+#include "data-structures/YASL_ByteBuffer.h"
 
 static int lexinput_bb_eof(struct LEXINPUT *const lp);
 static  int lexinput_bb_getc(struct LEXINPUT *const lp) {
@@ -115,7 +115,7 @@ static  int lexinput_bb_close(struct LEXINPUT *const lp) {
 struct LEXINPUT *lexinput_new_bb(const char *const buf, const size_t len) {
 	struct LEXINPUT *lp = (struct LEXINPUT *) malloc(sizeof(struct LEXINPUT));
 	lp->bb = bb_new(8);
-	bb_append(lp->bb, (unsigned char *) buf, len);
+	bb_extend(lp->bb, (unsigned char *) buf, len);
 	lp->getc = lexinput_bb_getc;
 	lp->tell = lexinput_bb_tell;
 	lp->seek = lexinput_bb_seek;

@@ -5,6 +5,7 @@
 #include "yasl_state.h"
 #include "VM.h"
 #include "YASL_Object.h"
+#include "data-structures/YASL_List.h"
 
 int table___get(struct YASL_State *S) {
     struct YASL_Object key = vm_pop((struct VM *)S);
@@ -241,7 +242,7 @@ int table_clear(struct YASL_State *S) {
 	ht->count = 0;
 	ht->size = HT_BASESIZE;
 	free(ht->items);
-	ht->items = (Item_t *)calloc((size_t) ht->size, sizeof(Item_t));
+	ht->items = (struct YASL_HashTable_Item *)calloc((size_t) ht->size, sizeof(struct YASL_HashTable_Item));
 	dec_ref(&vm_peek((struct VM *)S));
 	vm_pop((struct VM *)S);
 	vm_pushundef((struct VM *)S);

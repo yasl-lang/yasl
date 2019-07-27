@@ -4,7 +4,7 @@
 #include <interpreter/YASL_Object.h>
 #include <data-structures/YASL_string.h>
 #include <interpreter/userdata.h>
-#include <data-structures/YASL_bytebuffer.h>
+#include <data-structures/YASL_ByteBuffer.h>
 #include "yasl.h"
 #include "yasl_state.h"
 #include "compiler/compiler.h"
@@ -129,8 +129,8 @@ int YASL_declglobal(struct YASL_State *S, const char *name) {
 	if (value.type == Y_END) {
 		YASL_COMPILE_DEBUG_LOG("%s\n", "caching string");
 		table_insert_string_int(S->compiler.strings, name, strlen(name), S->compiler.header->count);
-		bb_intbytes8(S->compiler.header, strlen(name));
-		bb_append(S->compiler.header, (unsigned char *) name, strlen(name));
+		bb_add_int(S->compiler.header, strlen(name));
+		bb_extend(S->compiler.header, (unsigned char *) name, strlen(name));
 	}
 	/* int64_t index =*/ env_decl_var(S->compiler.globals, name, strlen(name));
 	return YASL_SUCCESS;

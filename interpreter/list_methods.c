@@ -4,7 +4,7 @@
 
 #include "VM.h"
 #include "YASL_Object.h"
-#include "data-structures/YASL_list.h"
+#include "data-structures/YASL_List.h"
 #include "yasl_state.h"
 
 int list___get(struct YASL_State *S) {

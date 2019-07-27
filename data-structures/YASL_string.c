@@ -6,9 +6,10 @@
 #include <ctype.h>
 #include <math.h>
 
-#include "YASL_list.h"
+#include "debug.h"
+#include "YASL_List.h"
 #include "interpreter/YASL_Object.h"
-#include "data-structures/YASL_bytebuffer.h"
+#include "data-structures/YASL_ByteBuffer.h"
 
 #define iswhitespace(c) ((c) == ' ' || (c) == '\t' || (c) == '\n' || (c) == '\v' || (c) == '\r')
 #define isalphabetic
@@ -371,6 +372,7 @@ bool string_endswith(struct YASL_String *haystack, struct YASL_String *needle) {
 
 // Caller makes sure search_str is at least length 1.
 struct YASL_String *string_replace(struct YASL_String *str, struct YASL_String *search_str, struct YASL_String *replace_str) {
+	YASL_ASSERT(yasl_string_len(search_str) >= 1, "search_str must have length at least 1.");
 	unsigned char *str_ptr = (unsigned char *) str->str + str->start;
 	size_t str_len = yasl_string_len(str);
 	const char *search_str_ptr = search_str->str + search_str->start;
@@ -381,7 +383,7 @@ struct YASL_String *string_replace(struct YASL_String *str, struct YASL_String *
 	size_t i = 0;
 	while (i < str_len) {
 		if (search_len <= str_len - i && memcmp(str_ptr + i, search_str_ptr, search_len) == 0) {
-			bb_append(buff, replace_str_ptr, yasl_string_len(replace_str));
+			bb_extend(buff, replace_str_ptr, yasl_string_len(replace_str));
 			i += search_len;
 		} else {
 			bb_add_byte(buff, str_ptr[i++]);

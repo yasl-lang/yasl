@@ -1,16 +1,7 @@
-#include "YASL_list.h"
+#include "YASL_List.h"
 
 #include "interpreter/YASL_Object.h"
-#include "data-structures/YASL_hashtable.h"
-
-int isvalueinarray(int64_t val, int64_t *arr, int size) {
-	int i;
-	for (i = 0; i < size; i++) {
-		if (arr[i] == val)
-			return 1;
-	}
-	return 0;
-}
+#include "data-structures/YASL_HashTable.h"
 
 struct YASL_List *list_new_sized(const size_t base_size) {
 	struct YASL_List *list = (struct YASL_List *)malloc(sizeof(struct YASL_List));
@@ -40,7 +31,7 @@ void ls_del_data(void *ls) {
 	free(ls);
 }
 
-void ls_del(struct RC_UserData *ls) {
+void ls_del(struct RC_UserData *const ls) {
 	for (size_t i = 0; i < ((struct YASL_List *) ls->data)->count; i++) dec_ref(((struct YASL_List *) ls->data)->items + i);
 	free(((struct YASL_List *) ls->data)->items);
 	free(((struct YASL_List *) ls->data));
@@ -48,12 +39,12 @@ void ls_del(struct RC_UserData *ls) {
 	free(ls);
 }
 
-static void ls_resize(struct YASL_List* ls, const size_t base_size) {
+static void ls_resize(struct YASL_List *const ls, const size_t base_size) {
 	ls->items = (struct YASL_Object *)realloc(ls->items, base_size * sizeof(struct YASL_Object));
 	ls->size = base_size;
 }
 
-static void ls_resize_up(struct YASL_List* ls) {
+static void ls_resize_up(struct YASL_List *const ls) {
 	const size_t new_size = ls->size ? ls->size * 2 : 1;
 	ls_resize(ls, new_size);
 }
@@ -73,20 +64,20 @@ void ls_insert(struct YASL_List *const ls, const int64_t index, struct YASL_Obje
 	inc_ref(&value);
 }
 
-void ls_append(struct YASL_List* ls, struct YASL_Object value) {
+void ls_append(struct YASL_List *const ls, struct YASL_Object value) {
 	if (ls->count >= ls->size) ls_resize_up(ls);
 	ls->items[ls->count++] = value;
 	inc_ref(&value);
 }
 
-struct YASL_Object ls_search(struct YASL_List* ls, int64_t index) {
+struct YASL_Object ls_search(const struct YASL_List *const ls, const int64_t index) {
 	struct YASL_Object undobj = UNDEF_C;
 	if (index < -(int64_t) ls->count || index >= (int64_t) ls->count) return undobj;
 	else if (0 <= index) return ls->items[index];
 	else return ls->items[ls->count + index];
 }
 
-void ls_reverse(struct YASL_List *ls) {
+void ls_reverse(struct YASL_List *const ls) {
 	for (size_t i = 0; i < ls->count / 2; i++) {
 		struct YASL_Object tmp = ls->items[i];
 		ls->items[i] = ls->items[ls->count - i - 1];

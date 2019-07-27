@@ -7,7 +7,7 @@
 
 #include "interpreter/builtins.h"
 #include "data-structures/YASL_string.h"
-#include "data-structures/YASL_hashtable.h"
+#include "data-structures/YASL_HashTable.h"
 #include "interpreter/refcount.h"
 
 #include "interpreter/table_methods.h"

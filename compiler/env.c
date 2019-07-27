@@ -1,5 +1,7 @@
 #include "env.h"
 
+#include <stdio.h>
+
 #include "data-structures/YASL_string.h"
 #include "interpreter/YASL_Object.h"
 
@@ -19,7 +21,7 @@ void env_del(Env_t *env) {
 
 void env_del_current_only(Env_t *env) {
 	for (size_t i = 0; i < env->vars->size; i++) {
-		Item_t *item = &env->vars->items[i];
+		struct YASL_HashTable_Item *item = &env->vars->items[i];
 		if (item->key.type != Y_END && item->key.type != Y_UNDEF) {
 			str_del(item->key.value.sval);
 			// free(item);

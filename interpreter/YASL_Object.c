@@ -1,9 +1,10 @@
 #include "YASL_Object.h"
 
+#include <stdio.h>
 #include <string.h>
 
 #include "data-structures/YASL_string.h"
-#include "data-structures/YASL_hashtable.h"
+#include "data-structures/YASL_HashTable.h"
 #include "interpreter/float_methods.h"
 #include "interpreter/userdata.h"
 

@@ -1,6 +1,8 @@
 #pragma once
 
-#include "data-structures/YASL_bytebuffer.h"
+#include <stdio.h>
+
+#include "data-structures/YASL_ByteBuffer.h"
 
 struct LEXINPUT;
 struct LEXINPUT *lexinput_new_file(FILE *const lp);
