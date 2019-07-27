@@ -56,14 +56,14 @@ add_executable(YASL
         interpreter/YASL_Object.c
         interpreter/refcount.c
         interpreter/str_methods.c
-        data-structures/YASL_string.c
+        data-structures/YASL_String.c
         interpreter/userdata.c
         interpreter/undef_methods.c
         prime/prime.c
         std-io/yasl-std-io.c
         std-math/yasl-std-math.c
         std-require/yasl-std-require.c
-        std-collections/set.c
+        data-structures/YASL_Set.c
         std-collections/yasl-std-collections.c)
 
 add_executable(YASLTEST
@@ -96,12 +96,12 @@ add_executable(YASLTEST
         interpreter/yasl_float.c
         interpreter/YASL_Object.c
         data-structures/YASL_ByteBuffer.c
-        data-structures/YASL_string.c
+        data-structures/YASL_String.c
         interpreter/refcount.c
         data-structures/YASL_List.c
         interpreter/userdata.c
         prime/prime.c
-        std-collections/set.c
+        data-structures/YASL_Set.c
         compiler/env.c)
 
 add_library(yaslapi
@@ -128,7 +128,7 @@ add_library(yaslapi
         interpreter/YASL_Object.c
         interpreter/refcount.c
         interpreter/str_methods.c
-        data-structures/YASL_string.c
+        data-structures/YASL_String.c
         interpreter/userdata.c
         interpreter/undef_methods.c
         prime/prime.c)

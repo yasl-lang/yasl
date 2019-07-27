@@ -8,12 +8,12 @@
 #include "table_methods.h"
 #include "list_methods.h"
 #include "VM.h"
-#include "data-structures/YASL_string.h"
+#include "data-structures/YASL_String.h"
 
 void yasl_print(struct VM* vm) {
 	vm_stringify_top(vm);
 	struct YASL_String *v = vm_popstr(vm);
-	printf("%.*s\n", (int)yasl_string_len(v), v->start + v->str);
+	printf("%.*s\n", (int) YASL_String_len(v), v->start + v->str);
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

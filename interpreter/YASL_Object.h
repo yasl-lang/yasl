@@ -1,7 +1,7 @@
 #pragma once
 
 #include "yasl_conf.h"
-#include "data-structures/YASL_string.h"
+#include "data-structures/YASL_String.h"
 
 #define UNDEF_C ((struct YASL_Object){ .type = Y_UNDEF, .value = { .ival = 0 }  })
 #define FALSE_C ((struct YASL_Object){ .type = Y_BOOL, .value = {.ival = 0 }})

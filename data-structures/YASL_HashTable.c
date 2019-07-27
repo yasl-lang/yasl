@@ -2,13 +2,13 @@
 
 #include <string.h>
 
-#include "data-structures/YASL_string.h"
+#include "data-structures/YASL_String.h"
 #include "debug.h"
 #include "hash_function.h"
 #include "interpreter/refcount.h"
 #include "interpreter/YASL_Object.h"
 
-#define HT_BASESIZE 30
+#define TABLE_BASESIZE 30
 
 struct YASL_HashTable_Item TOMBSTONE = { { Y_END, { Y_END } }, { Y_END, { Y_END } } };
 
@@ -34,7 +34,7 @@ struct YASL_HashTable *table_new_sized(const size_t base_size) {
 }
 
 struct YASL_HashTable *table_new(void) {
-	return table_new_sized(HT_BASESIZE);
+	return table_new_sized(TABLE_BASESIZE);
 }
 
 void table_del(struct YASL_HashTable *const table) {
@@ -56,7 +56,7 @@ struct RC_UserData *rcht_new_sized(const size_t base_size) {
 }
 
 struct RC_UserData *rcht_new(void) {
-	return rcht_new_sized(HT_BASESIZE);
+	return rcht_new_sized(TABLE_BASESIZE);
 }
 
 void rcht_del(struct RC_UserData *const hashtable) {
@@ -79,7 +79,7 @@ void table_del_string_int(struct YASL_HashTable *const table) {
 }
 
 static void table_resize(struct YASL_HashTable *const table, const size_t base_size) {
-	if (base_size < HT_BASESIZE) return;
+	if (base_size < TABLE_BASESIZE) return;
 	struct YASL_HashTable *new_table = table_new_sized(base_size);
 	FOR_TABLE(i, item, table) {
 		table_insert(new_table, item->key, item->value);
@@ -131,14 +131,14 @@ void table_insert(struct YASL_HashTable *const table, const struct YASL_Object k
 }
 
 void table_insert_string_int(struct YASL_HashTable *const table, const char *const key, const size_t key_len, const int64_t val) {
-	struct YASL_String *string = str_new_sized_heap(0, key_len, copy_char_buffer(key_len, key));
+	struct YASL_String *string = YASL_String_new_sized_heap(0, key_len, copy_char_buffer(key_len, key));
 	struct YASL_Object ko = YASL_STR(string);
 	struct YASL_Object vo = YASL_INT(val);
 	table_insert(table, ko, vo);
 }
 
 void table_insert_literalcstring_cfunction(struct YASL_HashTable *const ht, const char *key, int (*addr)(struct YASL_State *), const int num_args) {
-	struct YASL_String *string = str_new_sized(strlen(key), key);
+	struct YASL_String *string = YASL_String_new_sized(strlen(key), key);
 	struct YASL_Object f = YASL_CFN(addr, num_args);
 	struct YASL_Object s = YASL_STR(string);
 	table_insert(ht, s, f);
@@ -160,7 +160,7 @@ struct YASL_Object table_search(const struct YASL_HashTable *const table, const 
 }
 
 struct YASL_Object table_search_string_int(const struct YASL_HashTable *const table, const char *const key, const size_t key_len) {
-	struct YASL_String *string = str_new_sized_heap(0, key_len, copy_char_buffer(key_len, key));
+	struct YASL_String *string = YASL_String_new_sized_heap(0, key_len, copy_char_buffer(key_len, key));
 	struct YASL_Object object = YASL_STR(string);
 
 	struct YASL_Object result = table_search(table, object);

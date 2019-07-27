@@ -3,7 +3,7 @@
 #include "ast.h"
 #include "interpreter/YASL_Object.h"
 #include "middleend.h"
-#include "data-structures/YASL_string.h"
+#include "data-structures/YASL_String.h"
 #include "data-structures/YASL_ByteBuffer.h"
 #include "parser.h"
 #include "yasl_error.h"

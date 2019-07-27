@@ -2,8 +2,6 @@
 
 #include "interpreter/YASL_Object.h"
 
-#define HT_BASESIZE 30
-
 #define FOR_TABLE(i, item, table) struct YASL_HashTable_Item *item; for (size_t i = 0; i < (table)->size; i++) \
                                                   if (item = &table->items[i], item->key.type != Y_END && !YASL_ISUNDEF(item->key))
 

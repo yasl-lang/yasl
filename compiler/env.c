@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-#include "data-structures/YASL_string.h"
+#include "data-structures/YASL_String.h"
 #include "interpreter/YASL_Object.h"
 
 Env_t *env_new(Env_t *parent) {
@@ -38,7 +38,7 @@ size_t env_len(const Env_t *const env) {
 }
 
 int env_contains_cur_scope(const Env_t *const env, const char *const name, const size_t name_len) {
-	struct YASL_String *string = str_new_sized_heap(0, name_len, copy_char_buffer(name_len, name));
+	struct YASL_String *string = YASL_String_new_sized_heap(0, name_len, copy_char_buffer(name_len, name));
 	struct YASL_Object key = YASL_STR(string); // (struct YASL_Object) { .value.sval = string, .type = Y_STR };
 
 	struct YASL_Object value = table_search(env->vars, key);
@@ -51,7 +51,7 @@ int env_contains_cur_scope(const Env_t *const env, const char *const name, const
 
 int env_contains(const Env_t *const env, const char *const name, const size_t name_len) {
 	if (env == NULL) return 0;
-	struct YASL_String *string = str_new_sized_heap(0, name_len, copy_char_buffer(name_len, name));
+	struct YASL_String *string = YASL_String_new_sized_heap(0, name_len, copy_char_buffer(name_len, name));
 	struct YASL_Object key = YASL_STR(string);
 
 	struct YASL_Object value = table_search(env->vars, key);
@@ -64,7 +64,7 @@ int env_contains(const Env_t *const env, const char *const name, const size_t na
 }
 
 int64_t env_get(const Env_t *const env, const char *const name, const size_t name_len) {
-	struct YASL_String *string = str_new_sized_heap(0, name_len, copy_char_buffer(name_len, name));
+	struct YASL_String *string = YASL_String_new_sized_heap(0, name_len, copy_char_buffer(name_len, name));
 	struct YASL_Object key = YASL_STR(string);
 
 	struct YASL_Object value = table_search(env->vars, key);
@@ -79,7 +79,7 @@ int64_t env_get(const Env_t *const env, const char *const name, const size_t nam
 }
 
 int64_t env_decl_var(Env_t *const env, const char *const name, const size_t name_len) {
-	struct YASL_String *string = str_new_sized_heap(0, name_len, copy_char_buffer(name_len, name));
+	struct YASL_String *string = YASL_String_new_sized_heap(0, name_len, copy_char_buffer(name_len, name));
 	struct YASL_Object key = YASL_STR(string);
 	struct YASL_Object value = YASL_INT((long)env_len(env));
 	table_insert(env->vars, key, value);

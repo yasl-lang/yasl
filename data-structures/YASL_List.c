@@ -3,6 +3,8 @@
 #include "interpreter/YASL_Object.h"
 #include "data-structures/YASL_HashTable.h"
 
+#define LIST_BASESIZE 4
+
 struct YASL_List *list_new_sized(const size_t base_size) {
 	struct YASL_List *list = (struct YASL_List *)malloc(sizeof(struct YASL_List));
 	list->size = base_size;
@@ -22,7 +24,7 @@ struct RC_UserData* ls_new_sized(const size_t base_size) {
 }
 
 struct RC_UserData* ls_new(void) {
-	return ls_new_sized(LS_BASESIZE);
+	return ls_new_sized(LIST_BASESIZE);
 }
 
 void ls_del_data(void *ls) {

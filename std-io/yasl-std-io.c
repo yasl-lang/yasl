@@ -180,9 +180,9 @@ static int YASL_io_flush(struct YASL_State *S) {
 int YASL_load_io(struct YASL_State *S) {
   if (!mt) {
   	mt = table_new();
-    table_insert(mt, YASL_STR(str_new_sized(strlen("read"), "read")), YASL_CFN(YASL_io_read, 2));
-	  table_insert(mt, YASL_STR(str_new_sized(strlen("write"), "write")), YASL_CFN(YASL_io_write, 2));
-	  table_insert(mt, YASL_STR(str_new_sized(strlen("flush"), "flush")), YASL_CFN(YASL_io_flush, 1));
+    table_insert(mt, YASL_STR(YASL_String_new_sized(strlen("read"), "read")), YASL_CFN(YASL_io_read, 2));
+	  table_insert(mt, YASL_STR(YASL_String_new_sized(strlen("write"), "write")), YASL_CFN(YASL_io_write, 2));
+	  table_insert(mt, YASL_STR(YASL_String_new_sized(strlen("flush"), "flush")), YASL_CFN(YASL_io_flush, 1));
   }
   
 	struct YASL_Object *io = YASL_Table();

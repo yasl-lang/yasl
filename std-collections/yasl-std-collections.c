@@ -1,6 +1,6 @@
 #include <interpreter/VM.h>
 #include "yasl-std-collections.h"
-#include "set.h"
+#include "data-structures/YASL_Set.h"
 
 #define YASL_SET (-4)
 
@@ -38,13 +38,13 @@ static int YASL_collections_set_tostr(struct YASL_State *S) {
 		vm_push((struct VM *)S, *item);
 		vm_stringify_top((struct VM *) S);
 		struct YASL_String *str = vm_popstr((struct VM *) S);
-		while (string_count + yasl_string_len(str) >= string_size) {
+		while (string_count + YASL_String_len(str) >= string_size) {
 			string_size *= 2;
 			string = (char *) realloc(string, string_size);
 		}
 
-		memcpy(string + string_count, str->str + str->start, yasl_string_len(str));
-		string_count += yasl_string_len(str);
+		memcpy(string + string_count, str->str + str->start, YASL_String_len(str));
+		string_count += YASL_String_len(str);
 
 		if (string_count + 2 >= string_size) {
 			string_size *= 2;
@@ -57,7 +57,7 @@ static int YASL_collections_set_tostr(struct YASL_State *S) {
 
 	string_count -= 2;
 	string[string_count++] = ')';
-	vm_pushstr((struct VM *)S, str_new_sized_heap(0, string_count, string));
+	vm_pushstr((struct VM *)S, YASL_String_new_sized_heap(0, string_count, string));
 	return YASL_SUCCESS;
 }
 
