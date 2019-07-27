@@ -4,6 +4,8 @@
 #include "interpreter/refcount.h"
 #include "interpreter/userdata.h"
 
+#define LIST_BASESIZE 4
+
 #define FOR_LIST(i, name, list) struct YASL_Object name; for (size_t i = 0; i < (list)->count && (name = (list)->items[i], 1); i++)
 
 struct YASL_List {

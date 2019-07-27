@@ -8,8 +8,6 @@
 #include "interpreter/refcount.h"
 #include "interpreter/YASL_Object.h"
 
-#define TABLE_BASESIZE 30
-
 struct YASL_HashTable_Item TOMBSTONE = { { Y_END, { Y_END } }, { Y_END, { Y_END } } };
 
 static struct YASL_HashTable_Item new_item(const struct YASL_Object k, const struct YASL_Object v) {

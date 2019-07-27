@@ -59,7 +59,7 @@ void vm_init(struct VM *const vm,
 
 	vm->stack = (struct YASL_Object *)calloc(sizeof(struct YASL_Object), STACK_SIZE);
 
-#define DEF_SPECIAL_STR(enum_val, str) vm->special_strings[enum_val] = str_new_sized(strlen(str), str)
+#define DEF_SPECIAL_STR(enum_val, str) vm->special_strings[enum_val] = YASL_String_new_sized(strlen(str), str)
 
 	DEF_SPECIAL_STR(S___ADD, "__add");
 	DEF_SPECIAL_STR(S___GET, "__get");

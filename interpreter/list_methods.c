@@ -295,7 +295,7 @@ int list_clear(struct YASL_State *S) {
 	struct YASL_List *list = vm_poplist((struct VM *)S);
 	FOR_LIST(i, obj, list) dec_ref(&obj);
 	list->count = 0;
-	list->size = LS_BASESIZE;
+	list->size = LIST_BASESIZE;
 	list->items = (struct YASL_Object *)realloc(list->items, sizeof(struct YASL_Object)*list->size);
 	vm_pushundef((struct VM *)S);
 	return 0;

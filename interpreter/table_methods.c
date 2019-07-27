@@ -240,7 +240,7 @@ int table_clear(struct YASL_State *S) {
 	}
 
 	ht->count = 0;
-	ht->size = HT_BASESIZE;
+	ht->size = TABLE_BASESIZE;
 	free(ht->items);
 	ht->items = (struct YASL_HashTable_Item *)calloc((size_t) ht->size, sizeof(struct YASL_HashTable_Item));
 	dec_ref(&vm_peek((struct VM *)S));
