@@ -4,7 +4,7 @@
 
 SETUP_YATS();
 
-#define str_new_cliteral(s) str_new_sized(strlen(s), s)
+#define str_new_cliteral(s) YASL_String_new_sized(strlen(s), s)
 
 /// check that yasl_string_len returns correct length.
 static void test_string_len(void) {
