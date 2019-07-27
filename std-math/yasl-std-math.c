@@ -17,13 +17,13 @@
 						return -1; \
                     }
 
-const double YASL_PI = 3.14159265358979323851280895940618620443274267017841339111328125;
+const yasl_float YASL_PI = 3.14159265358979323851280895940618620443274267017841339111328125;
 #if _MSC_VER
-const double YASL_NAN = NAN;
-const double YASL_INF = INFINITY;
+const yasl_float YASL_NAN = NAN;
+const yasl_float YASL_INF = INFINITY;
 #else
-const double YASL_NAN = 0.0 / 0.0;
-const double YASL_INF = 1.0 / 0.0;
+const yasl_float YASL_NAN = 0.0 / 0.0;
+const yasl_float YASL_INF = 1.0 / 0.0;
 #endif
 
 static int YASL_math_abs(struct YASL_State *S) {
@@ -34,7 +34,7 @@ static int YASL_math_abs(struct YASL_State *S) {
 		if (i < 0) i = -i;
 		return YASL_pushinteger(S, i);
 	} else {
-		double n = YASL_GETFLOAT(*num);
+		yasl_float n = YASL_GETFLOAT(*num);
 		if (n < 0) n = -n;
 		return YASL_pushfloat(S, n);
 	}
@@ -176,7 +176,7 @@ static int YASL_math_deg(struct YASL_State *S) {
 		n = YASL_GETFLOAT(*num);
 	}
 
-	n *= (double)180.0/YASL_PI;
+	n *= (yasl_float)180.0/YASL_PI;
 	return YASL_pushfloat(S, n);
 }
 static int YASL_math_rad(struct YASL_State *S) {
@@ -189,7 +189,7 @@ static int YASL_math_rad(struct YASL_State *S) {
 		n = YASL_GETFLOAT(*num);
 	}
 
-	n *= YASL_PI/(double)180.0;
+	n *= YASL_PI/(yasl_float)180.0;
 	return YASL_pushfloat(S, n);
 }
 
