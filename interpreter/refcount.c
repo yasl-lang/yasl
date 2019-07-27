@@ -1,10 +1,11 @@
 #include "refcount.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "YASL_Object.h"
-#include "interpreter/list.h"
-#include "hashtable/hashtable.h"
+#include "data-structures/YASL_List.h"
+#include "data-structures/YASL_HashTable.h"
 #include "yasl_include.h"
 
 struct RC *rc_new(void) {

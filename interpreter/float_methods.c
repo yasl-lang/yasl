@@ -20,7 +20,7 @@ int float_tostr(struct YASL_State *S) {
 	ASSERT_TYPE((struct VM *) S, Y_FLOAT, "float.tostr");
 	yasl_float val = YASL_GETFLOAT(vm_pop((struct VM *) S));
 	char *ptr = float64_to_str(val);
-	String_t *string = str_new_sized_heap(0, strlen(ptr), ptr);
+	struct YASL_String *string = YASL_String_new_sized_heap(0, strlen(ptr), ptr);
 	struct YASL_Object to = YASL_STR(string);
 	vm_push((struct VM *) S, to);
 	return 0;

@@ -3,7 +3,7 @@
 size_t hash_function(const struct YASL_Object s, const size_t a, const size_t m) {
 	size_t hash = 0;
 	if (YASL_ISSTR(s)) {
-		const int64_t len_s = yasl_string_len(s.value.sval);
+		const int64_t len_s = YASL_String_len(s.value.sval);
 		for (int64_t i = 0; i < len_s; i++) {
 			hash = (hash * a) ^ (s.value.sval->str + s.value.sval->start)[i];
 			hash %= m;

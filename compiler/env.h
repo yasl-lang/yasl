@@ -1,13 +1,13 @@
 //
 // Created by thiabaud on 01/05/18.
 //
-#include "hashtable/hashtable.h"
-#include "interpreter/YASL_string.h"
+#include "data-structures/YASL_HashTable.h"
+#include "data-structures/YASL_String.h"
 #include <string.h>
 
 struct Env_s {
     struct Env_s *parent;
-    struct Table *vars;
+    struct YASL_HashTable *vars;
 };
 
 typedef struct Env_s Env_t;

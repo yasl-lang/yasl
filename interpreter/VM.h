@@ -1,6 +1,7 @@
 #pragma once
 
-#include "hashtable/hashtable.h"
+#include "data-structures/YASL_HashTable.h"
+#include "data-structures/YASL_List.h"
 #include "yasl_conf.h"
 #include "opcode.h"
 
@@ -64,7 +65,7 @@
 
 struct VM {
 	struct YASL_Object *global_vars;
-	struct Table **globals;         // variables, see "constant.c" for details on YASL_Object.
+	struct YASL_HashTable **globals;         // variables, see "constant.c" for details on YASL_Object.
 	size_t num_globals;
 	struct YASL_Object *stack;            // stack
 	unsigned char *code;           // bytecode
@@ -75,8 +76,8 @@ struct VM {
 	int fp;                        // frame pointer
 	int next_fp;
 	int lp;                        // foreach pointer
-	String_t *special_strings[NUM_SPECIAL_STRINGS];
-	struct Table **builtins_htable;   // htable of builtin methods
+	struct YASL_String *special_strings[NUM_SPECIAL_STRINGS];
+	struct YASL_HashTable **builtins_htable;   // htable of builtin methods
 };
 
 void vm_init(struct VM *const vm, unsigned char *const code, const size_t pc, const size_t datasize);
@@ -90,10 +91,10 @@ void vm_push(struct VM *const vm, const struct YASL_Object val);
 
 int vm_run(struct VM *vm);
 
-struct Table *undef_builtins(struct VM *vm);
-struct Table *float_builtins(struct VM *vm);
-struct Table *int_builtins(struct VM *vm);
-struct Table *bool_builtins(struct VM *vm);
-struct Table *str_builtins(struct VM *vm);
-struct Table *list_builtins(struct VM *vm);
-struct Table *table_builtins(struct VM *vm);
+struct YASL_HashTable *undef_builtins(struct VM *vm);
+struct YASL_HashTable *float_builtins(struct VM *vm);
+struct YASL_HashTable *int_builtins(struct VM *vm);
+struct YASL_HashTable *bool_builtins(struct VM *vm);
+struct YASL_HashTable *str_builtins(struct VM *vm);
+struct YASL_HashTable *list_builtins(struct VM *vm);
+struct YASL_HashTable *table_builtins(struct VM *vm);

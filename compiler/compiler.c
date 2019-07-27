@@ -3,8 +3,8 @@
 #include "ast.h"
 #include "interpreter/YASL_Object.h"
 #include "middleend.h"
-#include "interpreter/YASL_string.h"
-#include "bytebuffer/bytebuffer.h"
+#include "data-structures/YASL_String.h"
+#include "data-structures/YASL_ByteBuffer.h"
 #include "parser.h"
 #include "yasl_error.h"
 #include "yasl_include.h"
@@ -147,11 +147,11 @@ static void exit_scope(struct Compiler *const compiler) {
 static inline void enter_conditional_false(struct Compiler *const compiler, int64_t *const index) {
 	bb_add_byte(compiler->buffer, BRF_8);
 	*index = compiler->buffer->count;
-	bb_intbytes8(compiler->buffer, 0);
+	bb_add_int(compiler->buffer, 0);
 }
 
 static inline void exit_conditional_false(struct Compiler *const compiler, const int64_t *const index) {
-	bb_rewrite_intbytes8(compiler->buffer, (size_t)*index, compiler->buffer->count - *index - 8);
+	bb_rewrite_int_fast(compiler->buffer, (size_t) *index, compiler->buffer->count - *index - 8);
 }
 
 static void add_checkpoint(struct Compiler *const compiler, const size_t cp) {
@@ -194,8 +194,8 @@ static void load_var(struct Compiler *const compiler, char *const name, const si
 		bb_add_byte(compiler->buffer, (unsigned char) index);
 	} else if (env_contains(compiler->globals, name, name_len)) {
 		bb_add_byte(compiler->buffer, GLOAD_8);
-		bb_intbytes8(compiler->buffer, compiler->num);
-		bb_intbytes8(compiler->buffer, table_search_string_int(compiler->strings, name, name_len).value.ival);
+		bb_add_int(compiler->buffer, compiler->num);
+		bb_add_int(compiler->buffer, table_search_string_int(compiler->strings, name, name_len).value.ival);
 	} else {
 		YASL_PRINT_ERROR_UNDECLARED_VAR(name, line);
 		handle_error(compiler);
@@ -230,8 +230,8 @@ static void store_var(struct Compiler *const compiler, char *const name, const s
 			return;
 		}
 		bb_add_byte(compiler->buffer, GSTORE_8);
-		bb_intbytes8(compiler->buffer, compiler->num);
-		bb_intbytes8(compiler->buffer, table_search_string_int(compiler->strings, name, name_len).value.ival);
+		bb_add_int(compiler->buffer, compiler->num);
+		bb_add_int(compiler->buffer, table_search_string_int(compiler->strings, name, name_len).value.ival);
 	} else {
 		YASL_PRINT_ERROR_UNDECLARED_VAR(name, line);
 		handle_error(compiler);
@@ -271,8 +271,8 @@ static void decl_var(struct Compiler *const compiler, char *name, size_t name_le
 		if (value.type == Y_END) {
 			YASL_COMPILE_DEBUG_LOG("%s\n", "caching string");
 			table_insert_string_int(compiler->strings, name, name_len, compiler->header->count);
-			bb_intbytes8(compiler->header, name_len);
-			bb_append(compiler->header, (unsigned char *) name, name_len);
+			bb_add_int(compiler->header, name_len);
+			bb_extend(compiler->header, (unsigned char *) name, name_len);
 		}
 		env_decl_var(compiler->globals, name, name_len);
 		//if (index > 255) {
@@ -291,8 +291,8 @@ static void make_const(struct Compiler * const compiler, char *name, size_t name
 static unsigned char *return_bytes(struct Compiler *const compiler) {
 	if (compiler->status) return NULL;
 
-	bb_rewrite_intbytes8(compiler->header, 0, compiler->header->count);
-	bb_rewrite_intbytes8(compiler->header, 8, compiler->code->count + compiler->header->count + 1);   // TODO: put num globals here eventually.
+	bb_rewrite_int_fast(compiler->header, 0, compiler->header->count);
+	bb_rewrite_int_fast(compiler->header, 8, compiler->code->count + compiler->header->count + 1);   // TODO: put num globals here eventually.
 
 	YASL_BYTECODE_DEBUG_LOG("%s\n", "header");
 	for (size_t i = 0; i < compiler->header->count; i++) {
@@ -328,7 +328,7 @@ unsigned char *compile(struct Compiler *const compiler) {
 		compiler->status |= compiler->parser.status;
 		if (!compiler->parser.status) {
 			visit(compiler, node);
-			bb_append(compiler->code, compiler->buffer->bytes, compiler->buffer->count);
+			bb_extend(compiler->code, compiler->buffer->bytes, compiler->buffer->count);
 			compiler->buffer->count = 0;
 		}
 
@@ -351,7 +351,7 @@ unsigned char *compile_REPL(struct Compiler *const compiler) {
 				node->nodetype = N_PRINT;
 			}
 			visit(compiler, node);
-			bb_append(compiler->code, compiler->buffer->bytes, compiler->buffer->count);
+			bb_extend(compiler->code, compiler->buffer->bytes, compiler->buffer->count);
 			compiler->buffer->count = 0;
 		}
 
@@ -419,7 +419,7 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	compiler->buffer->bytes[index] = (unsigned char)compiler->num_locals;
 
 	int64_t fn_val = compiler->header->count;
-	bb_append(compiler->header, compiler->buffer->bytes + old_size, compiler->buffer->count - old_size);
+	bb_extend(compiler->header, compiler->buffer->bytes + old_size, compiler->buffer->count - old_size);
 	compiler->buffer->count = old_size;
 	bb_add_byte(compiler->header, NCONST);
 	bb_add_byte(compiler->header, RET);
@@ -433,7 +433,7 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	compiler->params = tmp;
 
 	bb_add_byte(compiler->buffer, FCONST);
-	bb_intbytes8(compiler->buffer, fn_val);
+	bb_add_int(compiler->buffer, fn_val);
 }
 
 static void visit_Call(struct Compiler *const compiler, const struct Node *const node) {
@@ -456,15 +456,15 @@ static void visit_MethodCall(struct Compiler *const compiler, const struct Node 
 		if (value.type == Y_END) {
 			YASL_COMPILE_DEBUG_LOG("%s\n", "caching string");
 			table_insert_string_int(compiler->strings, node->value.sval.str, node->value.sval.str_len, compiler->header->count);
-			bb_intbytes8(compiler->header, node->value.sval.str_len);
-			bb_append(compiler->header, (unsigned char *) node->value.sval.str, node->value.sval.str_len);
+			bb_add_int(compiler->header, node->value.sval.str_len);
+			bb_extend(compiler->header, (unsigned char *) node->value.sval.str, node->value.sval.str_len);
 		}
 
 		value = table_search_string_int(compiler->strings, node->value.sval.str, node->value.sval.str_len);
 
 		bb_add_byte(compiler->buffer, INIT_MC);
-		bb_intbytes8(compiler->buffer, compiler->num);
-		bb_intbytes8(compiler->buffer, value.value.ival);
+		bb_add_int(compiler->buffer, compiler->num);
+		bb_add_int(compiler->buffer, value.value.ival);
 	}
 
 	visit_Body(compiler, Call_get_params(node));
@@ -516,7 +516,7 @@ static void visit_Block(struct Compiler *const compiler, const struct Node *cons
 
 static inline void branch_back(struct Compiler *const compiler, int64_t index) {
 	bb_add_byte(compiler->buffer, BR_8);
-	bb_intbytes8(compiler->buffer, index - compiler->buffer->count - 8);
+	bb_add_int(compiler->buffer, index - compiler->buffer->count - 8);
 }
 
 static void visit_ListComp(struct Compiler *const compiler, const struct Node *const node) {
@@ -645,10 +645,10 @@ static void visit_While(struct Compiler *const compiler, const struct Node *cons
 	if (node->children[2] != NULL) {
 		bb_add_byte(compiler->buffer, BR_8);
 		size_t index = compiler->buffer->count;
-		bb_intbytes8(compiler->buffer, 0);
+		bb_add_int(compiler->buffer, 0);
 		index_start = compiler->buffer->count;
 		visit(compiler, node->children[2]);
-		bb_rewrite_intbytes8(compiler->buffer, index, compiler->buffer->count - index - 8);
+		bb_rewrite_int_fast(compiler->buffer, index, compiler->buffer->count - index - 8);
 	}
 
 	add_checkpoint(compiler, index_start);
@@ -705,7 +705,7 @@ static void visit_If(struct Compiler *const compiler, const struct Node *const n
 	if (node->children[2] != NULL) {
 		bb_add_byte(compiler->buffer, BR_8);
 		index_else = compiler->buffer->count;
-		bb_intbytes8(compiler->buffer, 0);
+		bb_add_int(compiler->buffer, 0);
 	}
 
 	exit_scope(compiler);
@@ -715,7 +715,7 @@ static void visit_If(struct Compiler *const compiler, const struct Node *const n
 		enter_scope(compiler);
 		visit(compiler, node->children[2]);
 		exit_scope(compiler);
-		bb_rewrite_intbytes8(compiler->buffer, index_else, compiler->buffer->count - index_else - 8);
+		bb_rewrite_int_fast(compiler->buffer, index_else, compiler->buffer->count - index_else - 8);
 	}
 }
 
@@ -758,12 +758,12 @@ static void visit_TriOp(struct Compiler *const compiler, const struct Node *cons
 
 	bb_add_byte(compiler->buffer, BR_8);
 	size_t index_r = compiler->buffer->count;
-	bb_intbytes8(compiler->buffer, 0);
+	bb_add_int(compiler->buffer, 0);
 
 	exit_conditional_false(compiler, &index_l);
 
 	visit(compiler, node->children[2]);
-	bb_rewrite_intbytes8(compiler->buffer, index_r, compiler->buffer->count - index_r - 8);
+	bb_rewrite_int_fast(compiler->buffer, index_r, compiler->buffer->count - index_r - 8);
 }
 
 static void visit_BinOp(struct Compiler *const compiler, const struct Node *const node) {
@@ -773,20 +773,20 @@ static void visit_BinOp(struct Compiler *const compiler, const struct Node *cons
 		bb_add_byte(compiler->buffer, DUP);
 		bb_add_byte(compiler->buffer, BRN_8);
 		size_t index = compiler->buffer->count;
-		bb_intbytes8(compiler->buffer, 0);
+		bb_add_int(compiler->buffer, 0);
 		bb_add_byte(compiler->buffer, POP);
 		visit(compiler, node->children[1]);
-		bb_rewrite_intbytes8(compiler->buffer, index, compiler->buffer->count - index - 8);
+		bb_rewrite_int_fast(compiler->buffer, index, compiler->buffer->count - index - 8);
 		return;
 	} else if (node->type == T_DBAR) {  // or operator
 		visit(compiler, node->children[0]);
 		bb_add_byte(compiler->buffer, DUP);
 		bb_add_byte(compiler->buffer, BRT_8);
 		size_t index = compiler->buffer->count;
-		bb_intbytes8(compiler->buffer, 0);
+		bb_add_int(compiler->buffer, 0);
 		bb_add_byte(compiler->buffer, POP);
 		visit(compiler, node->children[1]);
-		bb_rewrite_intbytes8(compiler->buffer, index, compiler->buffer->count - index - 8);
+		bb_rewrite_int_fast(compiler->buffer, index, compiler->buffer->count - index - 8);
 		return;
 	} else if (node->type == T_DAMP) {   // and operator
 		visit(compiler, node->children[0]);
@@ -937,7 +937,7 @@ static void visit_Float(struct Compiler *const compiler, const struct Node *cons
 		bb_add_byte(compiler->buffer, DCONST_I);
 	} else {
 		bb_add_byte(compiler->buffer, DCONST);
-		bb_floatbytes8(compiler->buffer, val);
+		bb_add_float(compiler->buffer, val);
 	}
 }
 
@@ -968,7 +968,7 @@ static void visit_Integer(struct Compiler *const compiler, const struct Node *co
 		break;
 	default:
 		bb_add_byte(compiler->buffer, ICONST);
-		bb_intbytes8(compiler->buffer, val);
+		bb_add_int(compiler->buffer, val);
 		break;
 	}
 }
@@ -982,8 +982,8 @@ static void visit_String(struct Compiler *const compiler, const struct Node *con
 	if (value.type == Y_END) {
 		YASL_COMPILE_DEBUG_LOG("%s\n", "caching string");
 		table_insert_string_int(compiler->strings, node->value.sval.str, node->value.sval.str_len, compiler->header->count);
-		bb_intbytes8(compiler->header, node->value.sval.str_len);
-		bb_append(compiler->header, (unsigned char *) node->value.sval.str, node->value.sval.str_len);
+		bb_add_int(compiler->header, node->value.sval.str_len);
+		bb_extend(compiler->header, (unsigned char *) node->value.sval.str, node->value.sval.str_len);
 	}
 
 	value = table_search_string_int(compiler->strings, node->value.sval.str, node->value.sval.str_len);
@@ -994,8 +994,8 @@ static void visit_String(struct Compiler *const compiler, const struct Node *con
 		bb_add_byte(compiler->buffer, index);
 	} else {
 		bb_add_byte(compiler->buffer, NEWSTR);
-		bb_intbytes8(compiler->buffer, compiler->num);
-		bb_intbytes8(compiler->buffer, value.value.ival);
+		bb_add_int(compiler->buffer, compiler->num);
+		bb_add_int(compiler->buffer, value.value.ival);
 	}
 }
 

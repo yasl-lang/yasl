@@ -35,35 +35,35 @@ add_executable(YASL
         yasl.c
         main.c
         compiler/ast.c
-        bytebuffer/bytebuffer.c
+        data-structures/YASL_ByteBuffer.c
         compiler/compiler.c
         compiler/env.c
         compiler/lexer.c
         compiler/lexinput.c
         compiler/parser.c
         compiler/middleend.c
-        hash_function/hash_function.c
-        hashtable/hashtable.c
+        data-structures/hash_function.c
+        data-structures/YASL_HashTable.c
         interpreter/bool_methods.c
         interpreter/builtins.c
         interpreter/float_methods.c
         interpreter/yasl_float.c
         interpreter/int_methods.c
-        interpreter/list.c
+        data-structures/YASL_List.c
         interpreter/list_methods.c
         interpreter/table_methods.c
         interpreter/VM.c
         interpreter/YASL_Object.c
         interpreter/refcount.c
         interpreter/str_methods.c
-        interpreter/YASL_string.c
+        data-structures/YASL_String.c
         interpreter/userdata.c
         interpreter/undef_methods.c
         prime/prime.c
         std-io/yasl-std-io.c
         std-math/yasl-std-math.c
         std-require/yasl-std-require.c
-        std-collections/set.c
+        data-structures/YASL_Set.c
         std-collections/yasl-std-collections.c)
 
 add_executable(YASLTEST
@@ -91,44 +91,44 @@ add_executable(YASLTEST
         compiler/parser.c
         compiler/ast.c
         compiler/middleend.c
-        hash_function/hash_function.c
-        hashtable/hashtable.c
+        data-structures/hash_function.c
+        data-structures/YASL_HashTable.c
         interpreter/yasl_float.c
         interpreter/YASL_Object.c
-        bytebuffer/bytebuffer.c
-        interpreter/YASL_string.c
+        data-structures/YASL_ByteBuffer.c
+        data-structures/YASL_String.c
         interpreter/refcount.c
-        interpreter/list.c
+        data-structures/YASL_List.c
         interpreter/userdata.c
         prime/prime.c
-        std-collections/set.c
+        data-structures/YASL_Set.c
         compiler/env.c)
 
 add_library(yaslapi
         yasl.c
         compiler/ast.c
-        bytebuffer/bytebuffer.c
+        data-structures/YASL_ByteBuffer.c
         compiler/compiler.c
         compiler/env.c
         compiler/lexer.c
         compiler/lexinput.c
         compiler/parser.c
         compiler/middleend.c
-        hash_function/hash_function.c
-        hashtable/hashtable.c
+        data-structures/hash_function.c
+        data-structures/YASL_HashTable.c
         interpreter/bool_methods.c
         interpreter/builtins.c
         interpreter/float_methods.c
         interpreter/yasl_float.c
         interpreter/int_methods.c
-        interpreter/list.c
+        data-structures/YASL_List.c
         interpreter/list_methods.c
         interpreter/table_methods.c
         interpreter/VM.c
         interpreter/YASL_Object.c
         interpreter/refcount.c
         interpreter/str_methods.c
-        interpreter/YASL_string.c
+        data-structures/YASL_String.c
         interpreter/userdata.c
         interpreter/undef_methods.c
         prime/prime.c)

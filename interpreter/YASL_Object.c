@@ -1,9 +1,10 @@
 #include "YASL_Object.h"
 
+#include <stdio.h>
 #include <string.h>
 
-#include "YASL_string.h"
-#include "hashtable/hashtable.h"
+#include "data-structures/YASL_String.h"
+#include "data-structures/YASL_HashTable.h"
 #include "interpreter/float_methods.h"
 #include "interpreter/userdata.h"
 
@@ -72,7 +73,7 @@ struct YASL_Object *YASL_Boolean(bool value) {
 	return boolean;
 }
 
-struct YASL_Object *YASL_String(String_t *str) {
+struct YASL_Object *YASL_String(struct YASL_String *str) {
 	struct YASL_Object *string = (struct YASL_Object *) malloc(sizeof(struct YASL_Object));
 	string->type = Y_STR;
 	string->value.sval = str;
@@ -93,7 +94,7 @@ struct YASL_Object *YASL_UserPointer(void *userpointer) {
 	return userptr;
 }
 
-struct YASL_Object *YASL_UserData(void *userdata, int tag, struct Table *mt, void (*destructor)(void *)) {
+struct YASL_Object *YASL_UserData(void *userdata, int tag, struct YASL_HashTable *mt, void (*destructor)(void *)) {
 	struct YASL_Object *obj = (struct YASL_Object *)malloc(sizeof(struct YASL_Object));
 	obj->type = Y_USERDATA;
 	obj->value.uval = ud_new(userdata, tag, mt, destructor);
@@ -119,7 +120,7 @@ struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *), int num_ar
 
 int yasl_object_cmp(struct YASL_Object a, struct YASL_Object b) {
 	if (YASL_ISSTR(a) && YASL_ISSTR(b)) {
-		return yasl_string_cmp(YASL_GETSTR(a), YASL_GETSTR(b));
+		return YASL_String_cmp(YASL_GETSTR(a), YASL_GETSTR(b));
 	} else if (YASL_ISNUM(a) && YASL_ISNUM(b)) {
 		double aVal, bVal;
 		if(YASL_ISINT(a)) {
@@ -153,7 +154,7 @@ int isfalsey(struct YASL_Object v) {
 	return (
 		YASL_ISUNDEF(v) ||
 		(YASL_ISBOOL(v) && YASL_GETBOOL(v) == 0) ||
-		(YASL_ISSTR(v) && yasl_string_len(YASL_GETSTR(v)) == 0) ||
+		(YASL_ISSTR(v) && YASL_String_len(YASL_GETSTR(v)) == 0) ||
 		(YASL_ISFLOAT(v) && YASL_GETFLOAT(v) != YASL_GETFLOAT(v))
 	);
 }
@@ -196,12 +197,12 @@ struct YASL_Object isequal(struct YASL_Object a, struct YASL_Object b) {
 			if (YASL_GETSTR(a) == YASL_GETSTR(b)) {
 				return true_c;
 			}
-			if (yasl_string_len(YASL_GETSTR(a)) != yasl_string_len(YASL_GETSTR(b))) {
+			if (YASL_String_len(YASL_GETSTR(a)) != YASL_String_len(YASL_GETSTR(b))) {
 				return false_c;
 			} else {
 				return memcmp(YASL_GETSTR(a)->str + YASL_GETSTR(a)->start,
 					      YASL_GETSTR(b)->str + YASL_GETSTR(b)->start,
-					      yasl_string_len(YASL_GETSTR(a))) ? false_c : true_c;
+					      YASL_String_len(YASL_GETSTR(a))) ? false_c : true_c;
 			}
 		}
 		return false_c;
@@ -245,7 +246,7 @@ int print(struct YASL_Object v) {
 	case Y_UNDEF:printf("undef");
 		break;
 	case Y_STR:
-		for (i = 0; i < (yasl_int)yasl_string_len(YASL_GETSTR(v)); i++) {
+		for (i = 0; i < (yasl_int) YASL_String_len(YASL_GETSTR(v)); i++) {
 			printf("%c", YASL_GETSTR(v)->str[i + YASL_GETSTR(v)->start]);
 		}
 		break;

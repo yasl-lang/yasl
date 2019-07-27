@@ -1,0 +1,8 @@
+const s = collections.set()
+
+
+s->add(1)
+
+echo s->contains(1)
+echo s->contains(2)
+echo s->contains(.abc)

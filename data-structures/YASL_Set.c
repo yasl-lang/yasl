@@ -1,7 +1,6 @@
+#include "YASL_Set.h"
 
-#include <interpreter/YASL_Object.h>
-#include "set.h"
-#include "hash_function/hash_function.h"
+#include "data-structures/hash_function.h"
 
 #define SET_BASESIZE 30
 
@@ -94,7 +93,7 @@ struct YASL_Object set_search(const struct Set *const table, const struct YASL_O
 	return YASL_BOOL(false);
 }
 
-void set_rm(struct Set *table, struct YASL_Object key) {
+void set_rm(struct Set *const table, struct YASL_Object key) {
 	const size_t load = table->count * 100 / table->size;
 	if (load < 10) set_resize_down(table);
 	size_t index = get_hash(key, table->size, 0);
@@ -113,7 +112,7 @@ void set_rm(struct Set *table, struct YASL_Object key) {
 	table->count--;
 }
 
-struct Set *set_union(struct Set *left, struct Set *right) {
+struct Set *set_union(const struct Set *const left, const struct Set *const right) {
 	struct Set *tmp = set_new();
 	FOR_SET(i, iteml, left) {
 		set_insert(tmp, *iteml);
@@ -124,7 +123,7 @@ struct Set *set_union(struct Set *left, struct Set *right) {
 	return tmp;
 }
 
-struct Set *set_intersection(struct Set *left, struct Set *right) {
+struct Set *set_intersection(const struct Set *const left, const struct Set *const right) {
 	struct Set *tmp = set_new();
 	FOR_SET(i, iteml, left) {
 		struct YASL_Object cond = set_search(right, *iteml);
@@ -135,7 +134,7 @@ struct Set *set_intersection(struct Set *left, struct Set *right) {
 	return tmp;
 }
 
-struct Set *set_symmetric_difference(struct Set *left, struct Set *right) {
+struct Set *set_symmetric_difference(const struct Set *const left, const struct Set *const right) {
 	struct Set *tmp = set_new();
 	FOR_SET(i, iteml, left) {
 		struct YASL_Object cond = set_search(right, *iteml);
@@ -153,7 +152,7 @@ struct Set *set_symmetric_difference(struct Set *left, struct Set *right) {
 	return tmp;
 }
 
-struct Set *set_difference(struct Set *left, struct Set *right) {
+struct Set *set_difference(const struct Set *const left, const struct Set *const right) {
 	struct Set *tmp = set_new();
 	FOR_SET(i, iteml, left) {
 		struct YASL_Object cond = set_search(right, *iteml);
@@ -164,10 +163,6 @@ struct Set *set_difference(struct Set *left, struct Set *right) {
 	return tmp;
 }
 
-size_t set_length(struct Set *set) {
+size_t set_length(const struct Set *const set) {
 	return set->count;
 }
-
-
-
-

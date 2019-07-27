@@ -5,7 +5,7 @@
 
 #define YASL_FILE (-3)
 
-static struct Table *mt;
+static struct YASL_HashTable *mt;
 
 static int YASL_io_open(struct YASL_State *S) {
 	struct YASL_Object *mode = YASL_popobject(S);
@@ -73,7 +73,7 @@ static int YASL_io_read(struct YASL_State *S) {
 
 	if (YASL_isundef(mode) == YASL_SUCCESS) {
 		mode_str = (char *)malloc(2);
-		mode_str[0] = 'a';
+		mode_str[0] = 'l';
 		mode_str[1] = '\0';
 	} else if (YASL_isstring(mode) == YASL_SUCCESS) {
 		mode_str = YASL_getcstring(mode);
@@ -180,9 +180,9 @@ static int YASL_io_flush(struct YASL_State *S) {
 int YASL_load_io(struct YASL_State *S) {
   if (!mt) {
   	mt = table_new();
-    table_insert(mt, YASL_STR(str_new_sized(strlen("read"), "read")), YASL_CFN(YASL_io_read, 2));
-	  table_insert(mt, YASL_STR(str_new_sized(strlen("write"), "write")), YASL_CFN(YASL_io_write, 2));
-	  table_insert(mt, YASL_STR(str_new_sized(strlen("flush"), "flush")), YASL_CFN(YASL_io_flush, 1));
+    table_insert(mt, YASL_STR(YASL_String_new_sized(strlen("read"), "read")), YASL_CFN(YASL_io_read, 2));
+	  table_insert(mt, YASL_STR(YASL_String_new_sized(strlen("write"), "write")), YASL_CFN(YASL_io_write, 2));
+	  table_insert(mt, YASL_STR(YASL_String_new_sized(strlen("flush"), "flush")), YASL_CFN(YASL_io_flush, 1));
   }
   
 	struct YASL_Object *io = YASL_Table();

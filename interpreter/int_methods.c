@@ -20,7 +20,7 @@ int int_tostr(struct YASL_State *S) {
 	yasl_int val = YASL_GETINT(vm_pop((struct VM *) S));
 	char *ptr = (char *)malloc(snprintf(NULL, 0, "%" PRId64 "", val) + 1);
 	sprintf(ptr, "%" PRId64 "", val);
-	String_t *string = str_new_sized_heap(0, snprintf(NULL, 0, "%" PRId64 "", val), ptr);
+	struct YASL_String *string = YASL_String_new_sized_heap(0, snprintf(NULL, 0, "%" PRId64 "", val), ptr);
 	VM_PUSH((struct VM *) S, YASL_STR(string));
 	return 0;
 }

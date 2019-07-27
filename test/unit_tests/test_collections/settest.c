@@ -1,7 +1,7 @@
 #include <interpreter/YASL_Object.h>
 #include "settest.h"
 #include "test/yats.h"
-#include "std-collections/set.h"
+#include "data-structures/YASL_Set.h"
 
 SETUP_YATS();
 

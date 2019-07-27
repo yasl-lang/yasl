@@ -1,14 +1,14 @@
 #include "listtest.h"
 #include "interpreter/YASL_Object.h"
 #include "test/yats.h"
-#include "interpreter/list.h"
+#include "data-structures/YASL_List.h"
 
 SETUP_YATS();
 
 /// check that list_append is resizing the list properly.
 /// Does not check that correct elements are appended
 static void testlistresizing(void) {
-	struct List *list = list_new_sized(0);
+	struct YASL_List *list = list_new_sized(0);
 	ls_append(list, YASL_INT(0));
 	ASSERT_EQ(list->size, 1);
 	ASSERT_EQ(list->count, 1);
