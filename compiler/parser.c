@@ -261,11 +261,7 @@ static struct Node *parse_const(struct Parser *const parser) {
 	return new_Const(name, name_len, expr, line);
 }
 
-<<<<<<< a2974c148dde82b574929f555a2307d437b494df
 static struct Node *parse_decl(struct Parser *const parser) {
-=======
-static struct Node *parse_decl(Parser *const parser) {
->>>>>>> first pass
 	YASL_PARSE_DEBUG_LOG("parsing let in line %zd\n", parser->lex.line);
 	size_t i = 0;
 	struct Node *buffer = new_Body(parser->lex.line);
@@ -291,11 +287,7 @@ static struct Node *parse_decl(Parser *const parser) {
 	return buffer;
 }
 
-<<<<<<< a2974c148dde82b574929f555a2307d437b494df
 static struct Node *parse_let(struct Parser *const parser) {
-=======
-static struct Node *parse_let(Parser *const parser) {
->>>>>>> first pass
 	YASL_PARSE_DEBUG_LOG("parsing let in line %zd\n", parser->lex.line);
 	eattok(parser, T_LET);
 	char *name = parser->lex.value;
