@@ -3,9 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "data-structures/YASL_String.h"
 #include "data-structures/YASL_HashTable.h"
-#include "interpreter/float_methods.h"
 #include "interpreter/userdata.h"
 
 char *float64_to_str(double d);

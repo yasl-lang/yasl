@@ -1,9 +1,5 @@
 #include "list_methods.h"
 
-#include <stdio.h>
-
-#include "VM.h"
-#include "YASL_Object.h"
 #include "data-structures/YASL_List.h"
 #include "yasl_state.h"
 

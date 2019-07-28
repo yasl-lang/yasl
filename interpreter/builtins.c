@@ -1,5 +1,6 @@
 #include "builtins.h"
 
+#include "data-structures/YASL_String.h"
 #include "str_methods.h"
 #include "undef_methods.h"
 #include "float_methods.h"
@@ -8,7 +9,6 @@
 #include "table_methods.h"
 #include "list_methods.h"
 #include "VM.h"
-#include "data-structures/YASL_String.h"
 
 void yasl_print(struct VM* vm) {
 	vm_stringify_top(vm);

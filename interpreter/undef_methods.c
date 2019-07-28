@@ -1,8 +1,6 @@
 #include "undef_methods.h"
 
-#include "VM.h"
 #include "yasl_state.h"
-#include "yasl_conf.h"
 
 int undef_tostr(struct YASL_State *S) {
 	ASSERT_TYPE((struct VM *)S, Y_UNDEF, "undef.tostr");

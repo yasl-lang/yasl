@@ -1,11 +1,7 @@
 #include "table_methods.h"
 
-#include <stdio.h>
-
 #include "yasl_state.h"
-#include "VM.h"
-#include "YASL_Object.h"
-#include "data-structures/YASL_List.h"
+
 
 int table___get(struct YASL_State *S) {
     struct YASL_Object key = vm_pop((struct VM *)S);

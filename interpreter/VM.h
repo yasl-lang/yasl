@@ -10,7 +10,6 @@
 #include <string.h>
 #include <math.h>
 
-#define STACK_SIZE 1024
 #define NUM_GLOBALS 256
 #define NUM_TYPES 13                                     // number of builtin types, each needs a vtable
 

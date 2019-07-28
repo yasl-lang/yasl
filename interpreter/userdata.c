@@ -1,6 +1,6 @@
 #include "userdata.h"
 
-#include <stdlib.h>
+#include "interpreter/refcount.h"
 
 struct RC_UserData *ud_new(void *data, int tag, struct YASL_HashTable *mt, void (*destructor)(void *)) {
 	struct RC_UserData *ud = (struct RC_UserData *)malloc(sizeof(struct RC_UserData));

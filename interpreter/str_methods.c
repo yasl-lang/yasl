@@ -1,17 +1,6 @@
 #include "str_methods.h"
 
-#include <stdio.h>
-#include <string.h>
-#include <ctype.h>
-#include <data-structures/YASL_ByteBuffer.h>
-
-#include "data-structures/YASL_ByteBuffer.h"
-#include "data-structures/YASL_String.h"
 #include "yasl_state.h"
-#include "interpreter/VM.h"
-#include "interpreter/YASL_Object.h"
-#include "data-structures/YASL_List.h"
-#include "data-structures/YASL_String.h"
 
 int str___get(struct YASL_State *S) {
 	struct YASL_Object index = vm_pop((struct VM *)S);
