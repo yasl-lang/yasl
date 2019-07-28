@@ -380,7 +380,7 @@ void sort(struct YASL_Object *list, const size_t len) {
 		return;
 	}
 
-	// Set sorting bounds
+	// YASL_Set sorting bounds
 	size_t left = 0;
 	size_t right = len-1;
 

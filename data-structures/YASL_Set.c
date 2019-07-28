@@ -4,8 +4,8 @@
 
 #define SET_BASESIZE 30
 
-struct Set *set_new_sized(const size_t base_size) {
-	struct Set *set = (struct Set *)malloc(sizeof(struct Set));
+struct YASL_Set *set_new_sized(const size_t base_size) {
+	struct YASL_Set *set = (struct YASL_Set *)malloc(sizeof(struct YASL_Set));
 	set->base_size = base_size;
 	set->size = next_prime(set->base_size);
 	set->count = 0;
@@ -13,13 +13,13 @@ struct Set *set_new_sized(const size_t base_size) {
 	return set;
 }
 
-struct Set *set_new(void) {
+struct YASL_Set *set_new(void) {
 	return set_new_sized(SET_BASESIZE);
 }
 
 void set_del(void *s) {
 	if (!s) return;
-	struct Set *set = (struct Set *)s;
+	struct YASL_Set *set = (struct YASL_Set *)s;
 	FOR_SET(i, item, set) {
 		dec_ref(item);
 	}
@@ -27,9 +27,9 @@ void set_del(void *s) {
 	free(set);
 }
 
-static void set_resize(struct Set *const set, const size_t base_size) {
+static void set_resize(struct YASL_Set *const set, const size_t base_size) {
 	if (base_size < SET_BASESIZE) return;
-	struct Set *new_set = set_new_sized(base_size);
+	struct YASL_Set *new_set = set_new_sized(base_size);
 	FOR_SET(i, item, set) {
 		set_insert(new_set, *item);
 	}
@@ -47,17 +47,17 @@ static void set_resize(struct Set *const set, const size_t base_size) {
 	set_del(new_set);
 }
 
-static void set_resize_up(struct Set *set) {
+static void set_resize_up(struct YASL_Set *set) {
 	const size_t new_size = set->base_size * 2;
 	set_resize(set, new_size);
 }
 
-static void set_resize_down(struct Set *set) {
+static void set_resize_down(struct YASL_Set *set) {
 	const size_t new_size = set->base_size / 2;
 	set_resize(set, new_size);
 }
 
-void set_insert(struct Set *const set, struct YASL_Object value) {
+void set_insert(struct YASL_Set *const set, struct YASL_Object value) {
 	const size_t load = set->count * 100 / set->size;
 	if (load > 70) set_resize_up(set);
 	size_t index = get_hash(value, set->size, 0);
@@ -79,7 +79,7 @@ void set_insert(struct Set *const set, struct YASL_Object value) {
 	set->count++;
 }
 
-struct YASL_Object set_search(const struct Set *const table, const struct YASL_Object key) {
+struct YASL_Object set_search(const struct YASL_Set *const table, const struct YASL_Object key) {
 	size_t index = get_hash(key, table->size, 0);
 	struct YASL_Object item = table->items[index];
 	size_t i = 1;
@@ -93,7 +93,7 @@ struct YASL_Object set_search(const struct Set *const table, const struct YASL_O
 	return YASL_BOOL(false);
 }
 
-void set_rm(struct Set *const table, struct YASL_Object key) {
+void set_rm(struct YASL_Set *const table, struct YASL_Object key) {
 	const size_t load = table->count * 100 / table->size;
 	if (load < 10) set_resize_down(table);
 	size_t index = get_hash(key, table->size, 0);
@@ -112,8 +112,8 @@ void set_rm(struct Set *const table, struct YASL_Object key) {
 	table->count--;
 }
 
-struct Set *set_union(const struct Set *const left, const struct Set *const right) {
-	struct Set *tmp = set_new();
+struct YASL_Set *set_union(const struct YASL_Set *const left, const struct YASL_Set *const right) {
+	struct YASL_Set *tmp = set_new();
 	FOR_SET(i, iteml, left) {
 		set_insert(tmp, *iteml);
 	}
@@ -123,8 +123,8 @@ struct Set *set_union(const struct Set *const left, const struct Set *const righ
 	return tmp;
 }
 
-struct Set *set_intersection(const struct Set *const left, const struct Set *const right) {
-	struct Set *tmp = set_new();
+struct YASL_Set *set_intersection(const struct YASL_Set *const left, const struct YASL_Set *const right) {
+	struct YASL_Set *tmp = set_new();
 	FOR_SET(i, iteml, left) {
 		struct YASL_Object cond = set_search(right, *iteml);
 		if (YASL_GETBOOL(cond)) {
@@ -134,8 +134,8 @@ struct Set *set_intersection(const struct Set *const left, const struct Set *con
 	return tmp;
 }
 
-struct Set *set_symmetric_difference(const struct Set *const left, const struct Set *const right) {
-	struct Set *tmp = set_new();
+struct YASL_Set *set_symmetric_difference(const struct YASL_Set *const left, const struct YASL_Set *const right) {
+	struct YASL_Set *tmp = set_new();
 	FOR_SET(i, iteml, left) {
 		struct YASL_Object cond = set_search(right, *iteml);
 		if (!YASL_GETBOOL(cond)) {
@@ -152,8 +152,8 @@ struct Set *set_symmetric_difference(const struct Set *const left, const struct 
 	return tmp;
 }
 
-struct Set *set_difference(const struct Set *const left, const struct Set *const right) {
-	struct Set *tmp = set_new();
+struct YASL_Set *set_difference(const struct YASL_Set *const left, const struct YASL_Set *const right) {
+	struct YASL_Set *tmp = set_new();
 	FOR_SET(i, iteml, left) {
 		struct YASL_Object cond = set_search(right, *iteml);
 		if (!YASL_GETBOOL(cond)) {
@@ -163,6 +163,6 @@ struct Set *set_difference(const struct Set *const left, const struct Set *const
 	return tmp;
 }
 
-size_t set_length(const struct Set *const set) {
+size_t set_length(const struct YASL_Set *const set) {
 	return set->count;
 }

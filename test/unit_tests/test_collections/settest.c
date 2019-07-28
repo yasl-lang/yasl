@@ -7,7 +7,7 @@ SETUP_YATS();
 
 
 static void testsearchset(void) {
-	struct Set *set = set_new();
+	struct YASL_Set *set = set_new();
 	set_insert(set, YASL_INT(1));
 	set_insert(set, YASL_INT(2));
 	set_insert(set, YASL_INT(3));
@@ -21,17 +21,17 @@ static void testsearchset(void) {
 }
 
 static void testunionset(void) {
-	struct Set *left = set_new();
+	struct YASL_Set *left = set_new();
 	set_insert(left, YASL_INT(1));
 	set_insert(left, YASL_INT(2));
 	set_insert(left, YASL_INT(3));
 	ASSERT_EQ(set_length(left), 3);
-	struct Set *right = set_new();
+	struct YASL_Set *right = set_new();
 	set_insert(right, YASL_INT(1));
 	set_insert(right, YASL_INT(6));
 	set_insert(right, YASL_INT(4));
 	ASSERT_EQ(set_length(right), 3);
-	struct Set *set = set_union(left, right);
+	struct YASL_Set *set = set_union(left, right);
 	ASSERT_EQ(YASL_GETBOOL(set_search(set, YASL_INT(1))), true);
 	ASSERT_EQ(YASL_GETBOOL(set_search(set, YASL_INT(3))), true);
 	ASSERT_EQ(YASL_GETBOOL(set_search(set, YASL_INT(2))), true);
@@ -42,17 +42,17 @@ static void testunionset(void) {
 }
 
 static void testintersectionset(void) {
-	struct Set *left = set_new();
+	struct YASL_Set *left = set_new();
 	set_insert(left, YASL_INT(1));
 	set_insert(left, YASL_INT(2));
 	set_insert(left, YASL_INT(3));
 	ASSERT_EQ(set_length(left), 3);
-	struct Set *right = set_new();
+	struct YASL_Set *right = set_new();
 	set_insert(right, YASL_INT(1));
 	set_insert(right, YASL_INT(6));
 	set_insert(right, YASL_INT(4));
 	ASSERT_EQ(set_length(right), 3);
-	struct Set *set = set_intersection(left, right);
+	struct YASL_Set *set = set_intersection(left, right);
 	ASSERT_EQ(YASL_GETBOOL(set_search(set, YASL_INT(1))), true);
 	ASSERT_EQ(YASL_GETBOOL(set_search(set, YASL_INT(3))), false);
 	ASSERT_EQ(YASL_GETBOOL(set_search(set, YASL_INT(2))), false);
@@ -63,17 +63,17 @@ static void testintersectionset(void) {
 }
 
 static void testsymmetricdifferenceset(void) {
-	struct Set *left = set_new();
+	struct YASL_Set *left = set_new();
 	set_insert(left, YASL_INT(1));
 	set_insert(left, YASL_INT(2));
 	set_insert(left, YASL_INT(3));
 	ASSERT_EQ(set_length(left), 3);
-	struct Set *right = set_new();
+	struct YASL_Set *right = set_new();
 	set_insert(right, YASL_INT(1));
 	set_insert(right, YASL_INT(6));
 	set_insert(right, YASL_INT(4));
 	ASSERT_EQ(set_length(right), 3);
-	struct Set *set = set_symmetric_difference(left, right);
+	struct YASL_Set *set = set_symmetric_difference(left, right);
 	ASSERT_EQ(YASL_GETBOOL(set_search(set, YASL_INT(1))), false);
 	ASSERT_EQ(YASL_GETBOOL(set_search(set, YASL_INT(3))), true);
 	ASSERT_EQ(YASL_GETBOOL(set_search(set, YASL_INT(2))), true);
@@ -84,17 +84,17 @@ static void testsymmetricdifferenceset(void) {
 }
 
 static void testdifferenceset(void) {
-	struct Set *left = set_new();
+	struct YASL_Set *left = set_new();
 	set_insert(left, YASL_INT(1));
 	set_insert(left, YASL_INT(2));
 	set_insert(left, YASL_INT(3));
 	ASSERT_EQ(set_length(left), 3);
-	struct Set *right = set_new();
+	struct YASL_Set *right = set_new();
 	set_insert(right, YASL_INT(1));
 	set_insert(right, YASL_INT(6));
 	set_insert(right, YASL_INT(4));
 	ASSERT_EQ(set_length(left), 3);
-	struct Set *set = set_difference(left, right);
+	struct YASL_Set *set = set_difference(left, right);
 	ASSERT_EQ(YASL_GETBOOL(set_search(set, YASL_INT(1))), false);
 	ASSERT_EQ(YASL_GETBOOL(set_search(set, YASL_INT(3))), true);
 	ASSERT_EQ(YASL_GETBOOL(set_search(set, YASL_INT(2))), true);
@@ -105,7 +105,7 @@ static void testdifferenceset(void) {
 }
 
 static void testremoveset(void) {
-	struct Set *set = set_new();
+	struct YASL_Set *set = set_new();
 	set_insert(set, YASL_INT(1));
 	ASSERT_EQ(set_length(set), 1);
 	ASSERT_EQ(YASL_GETBOOL(set_search(set, YASL_INT(1))), true);
