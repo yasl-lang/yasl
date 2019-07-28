@@ -125,7 +125,7 @@ struct Node *new_UnOp(enum Token op, struct Node *child, const size_t line);
 struct Node *new_Assign(char *name, size_t name_len, struct Node *child, const size_t line);
 struct Node *new_Var(char *name, size_t name_len, const size_t line);
 struct Node *new_Undef(size_t line);
-struct Node *new_Float(double val, const size_t line);
+struct Node *new_Float(yasl_float val, const size_t line);
 struct Node *new_Integer(yasl_int val, const size_t line);
 struct Node *new_Boolean(int value, const size_t line);
 struct Node *new_String(char *value, size_t len, const size_t line);

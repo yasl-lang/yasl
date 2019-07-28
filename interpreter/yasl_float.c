@@ -2,9 +2,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <inttypes.h>
 
-char *float64_to_str(double d) {
+char *float64_to_str(yasl_float d) {
 	int size = snprintf(NULL, 0, "%f", d);
 	char *ptr = (char *)malloc((size_t)size+ 1);
 	snprintf(ptr, (size_t)size+1, "%f", d);
