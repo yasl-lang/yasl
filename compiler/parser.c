@@ -1,7 +1,6 @@
 #include "parser.h"
 
 #include <inttypes.h>
-#include <compiler/lexer.h>
 
 #include "compiler/ast.h"
 #include "compiler/lexer.h"
@@ -9,13 +8,12 @@
 #include "yasl_conf.h"
 #include "yasl_error.h"
 #include "yasl_include.h"
-#include "compiler/lexinput.h"
-#include "parser.h"
-#include "lexer.h"
+
 
 static struct Node *parse_program(struct Parser *const parser);
 static struct Node *parse_const(struct Parser *const parser);
 static struct Node *parse_let(struct Parser *const parser);
+static struct Node *parse_decl(struct Parser *const parser);
 static struct Node *parse_fn(struct Parser *const parser);
 static struct Node *parse_for(struct Parser *const parser);
 static struct Node *parse_while(struct Parser *const parser);
@@ -102,6 +100,14 @@ enum Token eattok(struct Parser *const parser, const enum Token token) {
 	return token;
 }
 
+bool matcheattok(struct Parser *const parser, const enum Token token) {
+	if (TOKEN_MATCHES(parser, token)) {
+		eattok(parser, token);
+		return true;
+	}
+	return false;
+}
+
 struct Node *parse(struct Parser *const parser) {
 	return parse_program(parser);
 }
@@ -135,7 +141,7 @@ static struct Node *parse_program(struct Parser *const parser) {
 	case T_CONST:
 		return parse_const(parser);
 	case T_LET:
-		return parse_let(parser);
+		return parse_decl(parser);
 	case T_FOR:
 		return parse_for(parser);
 	case T_WHILE:
@@ -252,6 +258,32 @@ static struct Node *parse_const(struct Parser *const parser) {
 	eattok(parser, T_EQ);
 	struct Node *expr = parse_expr(parser);
 	return new_Const(name, name_len, expr, line);
+}
+
+static struct Node *parse_decl(struct Parser *const parser) {
+	YASL_PARSE_DEBUG_LOG("parsing let in line %zd\n", parser->lex.line);
+	size_t i = 0;
+	struct Node *buffer = new_Body(parser->lex.line);
+
+	do {
+		eattok(parser, T_LET);
+		char *name = parser->lex.value;
+		size_t name_len = parser->lex.val_len;
+		size_t line = parser->lex.line;
+		eattok(parser, T_ID);
+		body_append(&buffer, new_Let(name, name_len, NULL, line));
+		i++;
+	} while (matcheattok(parser, T_COMMA));
+
+	eattok(parser, T_EQ);
+
+	size_t j = 0;
+	do {
+		buffer->children[j]->children[0] = parse_expr(parser);
+	} while (j++ < i && matcheattok(parser, T_COMMA));
+
+	buffer->nodetype = N_DECL;
+	return buffer;
 }
 
 static struct Node *parse_let(struct Parser *const parser) {

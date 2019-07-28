@@ -568,8 +568,9 @@ static void (*jumptable[])(struct Node *const ) = {
 	NULL,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
+	NULL, // N_LET
+	NULL, // N_CONST
+	NULL, // N_DECL
 	&fold_TriOp,
 	&fold_BinOp,
 	&fold_UnOp,
