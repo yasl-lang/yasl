@@ -63,7 +63,7 @@ void fold_TriOp(struct Node *const node) {
 	}
 }
 
-void make_float(struct Node *const node, double val) {
+void make_float(struct Node *const node, yasl_float val) {
 	node->nodetype = N_FLOAT;
 	node->value.dval = val;
 	node->children_len = 0;

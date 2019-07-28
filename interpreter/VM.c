@@ -776,7 +776,7 @@ int vm_run(struct VM *vm) {
 		case DCONST_0:
 		case DCONST_1:
 		case DCONST_2:
-			vm_pushfloat(vm, (double)(opcode - DCONST_0)); // make sure no changes to opcodes ruin this
+			vm_pushfloat(vm, (yasl_float)(opcode - DCONST_0)); // make sure no changes to opcodes ruin this
 			break;
 		case DCONST_N:
 			vm_pushfloat(vm, NAN);
