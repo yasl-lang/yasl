@@ -171,7 +171,7 @@ struct Node *new_Undef(size_t line) {
 	return new_Node_0(N_UNDEF, T_UNKNOWN, NULL, 0, line);
 }
 
-struct Node *new_Float(double val, const size_t line) {
+struct Node *new_Float(yasl_float val, const size_t line) {
 	struct Node *node = new_Node_0(N_FLOAT, T_UNKNOWN, NULL, 0, line);
 	node->value.dval = val;
 	return node;

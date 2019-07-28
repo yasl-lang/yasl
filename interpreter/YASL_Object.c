@@ -6,7 +6,7 @@
 #include "data-structures/YASL_HashTable.h"
 #include "interpreter/userdata.h"
 
-char *float64_to_str(double d);
+char *float64_to_str(yasl_float d);
 
 // Keep up to date with the YASL_Types
 const char *YASL_TYPE_NAMES[] = {
@@ -120,14 +120,14 @@ int yasl_object_cmp(struct YASL_Object a, struct YASL_Object b) {
 	if (YASL_ISSTR(a) && YASL_ISSTR(b)) {
 		return YASL_String_cmp(YASL_GETSTR(a), YASL_GETSTR(b));
 	} else if (YASL_ISNUM(a) && YASL_ISNUM(b)) {
-		double aVal, bVal;
+		yasl_float aVal, bVal;
 		if(YASL_ISINT(a)) {
-			aVal = (double)YASL_GETINT(a);
+			aVal = (yasl_float)YASL_GETINT(a);
 		} else {
 			aVal = YASL_GETFLOAT(a);
 		}
 		if(YASL_ISINT(b)) {
-			bVal = (double)YASL_GETINT(b);
+			bVal = (yasl_float)YASL_GETINT(b);
 		} else {
 			bVal = YASL_GETFLOAT(b);
 		}
@@ -212,9 +212,9 @@ struct YASL_Object isequal(struct YASL_Object a, struct YASL_Object b) {
 		if (YASL_ISINT(a) && YASL_ISINT(b)) {
 			c = YASL_GETINT(a) == YASL_GETINT(b);
 		} else if (YASL_ISFLOAT(a) && YASL_ISINT(b)) {
-			c = YASL_GETFLOAT(a) == (double) YASL_GETINT(b);
+			c = YASL_GETFLOAT(a) == (yasl_float) YASL_GETINT(b);
 		} else if (YASL_ISINT(a) && YASL_ISFLOAT(b)) {
-			c = (double) YASL_GETINT(a) == YASL_GETFLOAT(b);
+			c = (yasl_float) YASL_GETINT(a) == YASL_GETFLOAT(b);
 		} else if (YASL_ISFLOAT(a) && YASL_ISFLOAT(b)) {
 			c = YASL_GETFLOAT(a) == YASL_GETFLOAT(b);
 		} else {
