@@ -29,6 +29,14 @@
 #define YASL_PRINT_ERROR_SYNTAX(fmt, ...) YASL_PRINT_ERROR(MSG_SYNTAX_ERROR fmt, __VA_ARGS__)
 #define YASL_PRINT_ERROR_TYPE(fmt, ...) YASL_PRINT_ERROR(MSG_TYPE_ERROR fmt, __VA_ARGS__)
 
+#define YASL_PRINT_ERROR_BAD_ARG_TYPE(name, position, expected, actual) \
+YASL_PRINT_ERROR_TYPE("%s expected arg in position %d to be of type %s, got arg of type %s.",\
+                      name,\
+                      position,\
+                      YASL_TYPE_NAMES[expected],\
+                      YASL_TYPE_NAMES[actual]);
+
+
 #define YASL_PRINT_ERROR_UNDECLARED_VAR(name, line) YASL_PRINT_ERROR_SYNTAX("Undeclared variable %s (line %zd).\n", name, line)
 #define YASL_PRINT_ERROR_CONSTANT(name, line) YASL_PRINT_ERROR_SYNTAX("Cannot assign to constant %s (line %zd).\n", name, line)
 #define YASL_PRINT_ERROR_TOO_MANY_VAR(line) YASL_PRINT_ERROR("Too many variables in current scope (line %zd).\n", line)
