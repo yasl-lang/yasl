@@ -119,10 +119,3 @@ void inc_ref(struct YASL_Object *v);
 void dec_ref(struct YASL_Object *v);
 
 extern const char *YASL_TYPE_NAMES[15];
-
-#define ASSERT_TYPE(vm, expected_type, name) do {\
-                    if ((vm)->stack[(vm)->sp].type != (expected_type)) {\
-                        printf("%s(...) expected first argument of type %s, got %s.\n", \
-                                name, YASL_TYPE_NAMES[expected_type], YASL_TYPE_NAMES[(vm)->stack[(vm)->sp].type] );\
-                    }\
-                } while(0)
