@@ -30,7 +30,7 @@
 #define YASL_PRINT_ERROR_TYPE(fmt, ...) YASL_PRINT_ERROR(MSG_TYPE_ERROR fmt, __VA_ARGS__)
 
 #define YASL_PRINT_ERROR_BAD_ARG_TYPE(name, position, expected, actual) \
-YASL_PRINT_ERROR_TYPE("%s expected arg in position %d to be of type %s, got arg of type %s.",\
+YASL_PRINT_ERROR_TYPE("%s expected arg in position %d to be of type %s, got arg of type %s.\n",\
                       name,\
                       position,\
                       YASL_TYPE_NAMES[expected],\
