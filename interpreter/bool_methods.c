@@ -1,7 +1,7 @@
 #include "bool_methods.h"
 
-#include "yasl_state.h"
 #include "yasl_error.h"
+#include "yasl_state.h"
 
 int bool_tostr(struct YASL_State *S) {
 	if (!YASL_ISBOOL(vm_peek((struct VM *)S))) {

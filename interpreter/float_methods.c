@@ -1,8 +1,8 @@
 #include "float_methods.h"
 
+#include "yasl_error.h"
 #include "yasl_float.h"
 #include "yasl_state.h"
-#include "yasl_error.h"
 
 int float_toint(struct YASL_State *S) {
 	if (!YASL_ISFLOAT(vm_peek((struct VM *)S))) {

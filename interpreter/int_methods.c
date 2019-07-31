@@ -1,7 +1,7 @@
 #include "int_methods.h"
 
-#include "yasl_state.h"
 #include "yasl_error.h"
+#include "yasl_state.h"
 
 int int_toint(struct YASL_State *S) {
 	if (!YASL_ISINT(vm_peek((struct VM *)S))) {

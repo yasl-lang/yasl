@@ -1,8 +1,8 @@
 #include "list_methods.h"
 
 #include "data-structures/YASL_List.h"
-#include "yasl_state.h"
 #include "yasl_error.h"
+#include "yasl_state.h"
 
 int list___get(struct YASL_State *S) {
 	struct YASL_Object index = vm_pop((struct VM *) S);
