@@ -708,7 +708,7 @@ static int vm_CALL_cfn(struct VM *vm) {
 		vm_pop(vm);
 	}
 	if (vm_peekcfn(vm, vm->fp)->value((struct YASL_State *) vm)) {
-		printf("ERROR: invalid argument type(s) to builtin function.\n");
+		// TODO: check return code of function and return that?
 		return YASL_TYPE_ERROR;
 	};
 	struct YASL_Object v = vm_pop(vm);

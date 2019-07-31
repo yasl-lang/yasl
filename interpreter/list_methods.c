@@ -341,7 +341,7 @@ int list_clear(struct YASL_State *S) {
 }
 
 int list_join(struct YASL_State *S) {
-	if (!YASL_ISLIST(vm_peek((struct VM *)S))) {
+	if (!YASL_ISSTR(vm_peek((struct VM *)S))) {
 		YASL_PRINT_ERROR_BAD_ARG_TYPE("list.join", 1, Y_STR, vm_peek((struct VM *)S).type);
 		return YASL_TYPE_ERROR;
 	}

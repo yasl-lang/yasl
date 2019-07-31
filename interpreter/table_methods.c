@@ -1,33 +1,39 @@
 #include "table_methods.h"
 
+#include "yasl_error.h"
 #include "yasl_state.h"
 
 
 int table___get(struct YASL_State *S) {
-    struct YASL_Object key = vm_pop((struct VM *)S);
-    ASSERT_TYPE((struct VM *)S, Y_TABLE, "table.__get");
-    struct YASL_HashTable* ht = YASL_GETTABLE(vm_peek((struct VM *)S));
-    struct YASL_Object result = table_search(ht, key);
-    if (result.type == Y_END) {
-        S->vm.sp++;  // TODO: fix this
-        //vm_push((struct VM *)S, key);
-        return -1;
-    }
-    else {
-        vm_pop((struct VM *)S);
-        vm_push((struct VM *)S, result);
-    }
-    return 0;
+	struct YASL_Object key = vm_pop((struct VM *) S);
+	if (!YASL_ISTABLE(vm_peek((struct VM *) S))) {
+		YASL_PRINT_ERROR_BAD_ARG_TYPE("table.__get", 0, Y_TABLE, vm_peek((struct VM *) S).type);
+		return YASL_TYPE_ERROR;
+	}
+	struct YASL_HashTable *ht = YASL_GETTABLE(vm_peek((struct VM *) S));
+	struct YASL_Object result = table_search(ht, key);
+	if (result.type == Y_END) {
+		S->vm.sp++;  // TODO: fix this
+		//vm_push((struct VM *)S, key);
+		return -1;
+	} else {
+		vm_pop((struct VM *) S);
+		vm_push((struct VM *) S, result);
+	}
+	return 0;
 }
 
 int table___set(struct YASL_State *S) {
 	struct YASL_Object val = vm_pop((struct VM *)S);
 	struct YASL_Object key = vm_pop((struct VM *)S);
-	ASSERT_TYPE((struct VM *)S, Y_TABLE, "table.__set");
+	if (!YASL_ISTABLE(vm_peek((struct VM *)S))) {
+		YASL_PRINT_ERROR_BAD_ARG_TYPE("table.__set", 0, Y_TABLE, vm_peek((struct VM *)S).type);
+		return YASL_TYPE_ERROR;
+	}
 	struct YASL_HashTable *ht = YASL_GETTABLE(vm_pop((struct VM *)S));
 
 	if (YASL_ISLIST(key) || YASL_ISTABLE(key) || YASL_ISUSERDATA(key)) {
-		printf("Error: unable to use mutable object of type %x as key.\n", key.type);
+		YASL_PRINT_ERROR("Error: unable to use mutable object of type %s as key.\n", YASL_TYPE_NAMES[key.type]);
 		return -1;
 	}
 	table_insert(ht, key, val);
@@ -172,7 +178,10 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 }
 
 int table_tostr(struct YASL_State *S) {
-	ASSERT_TYPE((struct VM *)S, Y_TABLE, "table.tostr");
+	if (!YASL_ISTABLE(vm_peek((struct VM *)S))) {
+		YASL_PRINT_ERROR_BAD_ARG_TYPE("table.tostr", 0, Y_TABLE, vm_peek((struct VM *)S).type);
+		return YASL_TYPE_ERROR;
+	}
 
 	void **buffer = (void **)malloc(8*sizeof(void *));
 	buffer[0] = vm_peektable((struct VM *)S, S->vm.sp);
@@ -183,7 +192,10 @@ int table_tostr(struct YASL_State *S) {
 }
 
 int table_keys(struct YASL_State *S) {
-	ASSERT_TYPE((struct VM *)S, Y_TABLE, "table.keys");
+	if (!YASL_ISTABLE(vm_peek((struct VM *)S))) {
+		YASL_PRINT_ERROR_BAD_ARG_TYPE("table.keys", 0, Y_TABLE, vm_peek((struct VM *)S).type);
+		return YASL_TYPE_ERROR;
+	}
 	struct YASL_HashTable *ht = YASL_GETTABLE(vm_pop((struct VM *)S));
 	struct RC_UserData *ls = ls_new();
 	FOR_TABLE(i, item, ht) {
@@ -195,7 +207,10 @@ int table_keys(struct YASL_State *S) {
 }
 
 int table_values(struct YASL_State *S) {
-	ASSERT_TYPE((struct VM *)S, Y_TABLE, "table.values");
+	if (!YASL_ISTABLE(vm_peek((struct VM *)S))) {
+		YASL_PRINT_ERROR_BAD_ARG_TYPE("table.values", 0, Y_TABLE, vm_peek((struct VM *)S).type);
+		return YASL_TYPE_ERROR;
+	}
 	struct YASL_HashTable *ht = YASL_GETTABLE(vm_pop((struct VM *)S));
 	struct RC_UserData *ls = ls_new();
 	FOR_TABLE(i, item, ht) {
@@ -207,7 +222,10 @@ int table_values(struct YASL_State *S) {
 
 int table_remove(struct YASL_State *S) {
 	struct YASL_Object key = vm_pop((struct VM *)S);
-	ASSERT_TYPE((struct VM *)S, Y_TABLE, "table.clone");
+	if (!YASL_ISTABLE(vm_peek((struct VM *)S))) {
+		YASL_PRINT_ERROR_BAD_ARG_TYPE("table.remove", 0, Y_TABLE, vm_peek((struct VM *)S).type);
+		return YASL_TYPE_ERROR;
+	}
 	struct YASL_HashTable *ht = YASL_GETTABLE(vm_peek((struct VM *)S));
 
 	table_rm(ht, key);
@@ -215,7 +233,10 @@ int table_remove(struct YASL_State *S) {
 }
 
 int table_clone(struct YASL_State *S) {
-	ASSERT_TYPE((struct VM *)S, Y_TABLE, "table.clone");
+	if (!YASL_ISTABLE(vm_peek((struct VM *)S))) {
+		YASL_PRINT_ERROR_BAD_ARG_TYPE("table.clone", 0, Y_TABLE, vm_peek((struct VM *)S).type);
+		return YASL_TYPE_ERROR;
+	}
 	struct YASL_HashTable *ht = YASL_GETTABLE(vm_pop((struct VM *)S));
 	struct RC_UserData *new_ht = rcht_new_sized(ht->base_size);
 
@@ -228,7 +249,10 @@ int table_clone(struct YASL_State *S) {
 }
 
 int table_clear(struct YASL_State *S) {
-	ASSERT_TYPE((struct VM *)S, Y_TABLE, "table.clear");
+	if (!YASL_ISTABLE(vm_peek((struct VM *)S))) {
+		YASL_PRINT_ERROR_BAD_ARG_TYPE("table.clear", 0, Y_TABLE, vm_peek((struct VM *)S).type);
+		return YASL_TYPE_ERROR;
+	}
 	struct YASL_HashTable* ht = YASL_GETTABLE(vm_peek((struct VM *)S));
 	inc_ref(&vm_peek((struct VM *)S));
 	FOR_TABLE(i, item, ht) {
