@@ -11,7 +11,7 @@ int float_toint(struct YASL_State *S) {
 	}
 	struct YASL_Object a = vm_pop((struct VM *) S);
 	vm_push((struct VM *) S, YASL_INT((yasl_int) YASL_GETFLOAT(a)));
-	return 0;
+	return YASL_SUCCESS;
 }
 
 int float_tofloat(struct YASL_State *S) {
@@ -19,7 +19,7 @@ int float_tofloat(struct YASL_State *S) {
 		YASL_PRINT_ERROR_BAD_ARG_TYPE("float.tofloat", 0, Y_FLOAT, vm_peek((struct VM *)S).type);
 		return YASL_TYPE_ERROR;
 	}
-	return 0;
+	return YASL_SUCCESS;
 }
 
 int float_tostr(struct YASL_State *S) {
@@ -32,5 +32,5 @@ int float_tostr(struct YASL_State *S) {
 	struct YASL_String *string = YASL_String_new_sized_heap(0, strlen(ptr), ptr);
 	struct YASL_Object to = YASL_STR(string);
 	vm_push((struct VM *) S, to);
-	return 0;
+	return YASL_SUCCESS;
 }

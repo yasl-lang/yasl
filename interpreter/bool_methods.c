@@ -17,7 +17,7 @@ int bool_tostr(struct YASL_State *S) {
 	}
 	struct YASL_Object to = YASL_STR(string);
 	vm_push((struct VM *) S, to);
-	return 0;
+	return YASL_SUCCESS;
 }
 
 int bool_tobool(struct YASL_State *S) {
@@ -25,5 +25,5 @@ int bool_tobool(struct YASL_State *S) {
 		YASL_PRINT_ERROR_BAD_ARG_TYPE("bool.tobool", 0, Y_BOOL, vm_peek((struct VM *)S).type);
 		return YASL_TYPE_ERROR;
 	}
-	return 0;
+	return YASL_SUCCESS;
 }
