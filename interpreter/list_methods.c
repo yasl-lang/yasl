@@ -169,7 +169,7 @@ int list_tostr(struct YASL_State *S) {
 int list_push(struct YASL_State *S) {
 	struct YASL_Object val = vm_pop((struct VM *) S);
 	if (!YASL_ISLIST(vm_peek((struct VM *) S))) {
-		YASL_PRINT_ERROR_BAD_ARG_TYPE("list.push", 1, Y_LIST, vm_peek((struct VM *) S).type);
+		YASL_PRINT_ERROR_BAD_ARG_TYPE("list.push", 0, Y_LIST, vm_peek((struct VM *) S).type);
 		return YASL_TYPE_ERROR;
 	}
 	ls_append(YASL_GETLIST(vm_peek((struct VM *) S)), val);
@@ -250,8 +250,8 @@ int list_pop(struct YASL_State *S) {
 	}
 	struct YASL_List *ls = YASL_GETLIST(vm_pop((struct VM *) S));
 	if (ls->count == 0) {
-		puts("cannot pop from empty list.");
-		return -1;
+		YASL_PRINT_ERROR("ValueError: %s expected list of length greater then 0 as arg 0.\n", "list.pop");
+		return YASL_VALUE_ERROR;
 	}
 	vm_push((struct VM *) S, ls->items[--ls->count]);
 	return YASL_SUCCESS;
@@ -503,9 +503,8 @@ int list_sort(struct YASL_State *S) {
 		}
 
 		if (err != 0) {
-			// TODO: better error message here
-			printf("Only lists containing all strings or all numbers can be sorted.\n");
-			return err;
+			YASL_PRINT_ERROR("ValueError: %s expected a list of all numbers or all strings.\n", "list.sort");
+			return YASL_VALUE_ERROR;
 		}
 	}
 

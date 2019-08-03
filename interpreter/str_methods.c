@@ -228,9 +228,9 @@ int str_replace(struct YASL_State *S) {
 
 	if (YASL_String_len(search_str) < 1) {
 		YASL_PRINT_ERROR(
-			"Error: str.replace(...) expected search string with length at least 1, got string of length %zd\n",
-			YASL_String_len(search_str));
-		return -1;
+			"ValueError: %s expected a str of length greater than 0 as arg 1.\n",
+			"str.replace");
+		return YASL_VALUE_ERROR;
 	}
 
 	VM_PUSH((struct VM *) S, YASL_STR(YASL_String_replace_fast(str, search_str, replace_str)));
@@ -300,8 +300,8 @@ int str_split(struct YASL_State *S) {
 	struct YASL_String *haystack = YASL_GETSTR(vm_pop((struct VM *) S));
 
 	if (YASL_String_len(needle) == 0) {
-		printf("Error: str.split(...) requires type %x of length > 0 as second argument\n", Y_STR);
-		return -1;
+		YASL_PRINT_ERROR("ValueError: %s expected a str of length greater than 0 as arg 1.\n", "str.split");
+		return YASL_VALUE_ERROR;
 	}
 
 	VM_PUSH((struct VM *) S, YASL_LIST(YASL_String_split_fast(haystack, needle)));
@@ -428,7 +428,8 @@ int str_repeat(struct YASL_State *S) {
 	struct YASL_String *string = YASL_GETSTR(vm_pop((struct VM *) S));
 
 	if (num < 0) {
-		return -1;
+		YASL_PRINT_ERROR("ValueError: %s expected non-negative int as arg 1.\n", "str.rep");
+		return YASL_VALUE_ERROR;
 	}
 
 	VM_PUSH((struct VM *) S, YASL_STR(YASL_String_rep_fast(string, num)));
