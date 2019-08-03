@@ -169,7 +169,7 @@ int list_tostr(struct YASL_State *S) {
 int list_push(struct YASL_State *S) {
 	struct YASL_Object val = vm_pop((struct VM *) S);
 	if (!YASL_ISLIST(vm_peek((struct VM *) S))) {
-		YASL_PRINT_ERROR_BAD_ARG_TYPE("list.push", 1, Y_LIST, vm_peek((struct VM *) S).type);
+		YASL_PRINT_ERROR_BAD_ARG_TYPE("list.push", 0, Y_LIST, vm_peek((struct VM *) S).type);
 		return YASL_TYPE_ERROR;
 	}
 	ls_append(YASL_GETLIST(vm_peek((struct VM *) S)), val);
@@ -503,8 +503,7 @@ int list_sort(struct YASL_State *S) {
 		}
 
 		if (err != 0) {
-			// TODO: better error message here
-			printf("Only lists containing all strings or all numbers can be sorted.\n");
+			YASL_PRINT_ERROR("ValueError: %s expected a list of all numbers or all strings.\n", "list.sort");
 			return err;
 		}
 	}

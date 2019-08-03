@@ -244,12 +244,14 @@ static int vm_num_binop(
 			dec_ref(&right);
 			return YASL_TYPE_ERROR;
 		} else {
+			int res = YASL_SUCCESS;
 			vm_INIT_CALL(vm);
 			vm_push(vm, left);
 			vm_push(vm, right);
-			vm_CALL(vm);
+			res = vm_CALL(vm);
 			dec_ref(&left);
 			dec_ref(&right);
+			return res;
 		}
 	}
 	return YASL_SUCCESS;
