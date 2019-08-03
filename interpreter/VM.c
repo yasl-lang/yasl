@@ -702,17 +702,23 @@ static int vm_CALL_fn(struct VM *vm) {
 }
 
 static int vm_CALL_cfn(struct VM *vm) {
-	while (vm->sp - (vm->fp + 3) < vm_peekcfn(vm, vm->fp)->num_args) {
-		vm_pushundef(vm);
-	}
+	if (vm_peekcfn(vm, vm->fp)->num_args == -1) {
+		YASL_VM_DEBUG_LOG("vm->sp - vm->fp: %d\n", vm->sp - (vm->fp + 3));
+		vm_pushint(vm, vm->sp - (vm->fp + 3));
+	} else {
+		while (vm->sp - (vm->fp + 3) < vm_peekcfn(vm, vm->fp)->num_args) {
+			vm_pushundef(vm);
+		}
 
-	while (vm->sp - (vm->fp + 3) > vm_peekcfn(vm, vm->fp)->num_args) {
-		vm_pop(vm);
+		while (vm->sp - (vm->fp + 3) > vm_peekcfn(vm, vm->fp)->num_args) {
+			vm_pop(vm);
+		}
 	}
 	int result;
 	if ((result = vm_peekcfn(vm, vm->fp)->value((struct YASL_State *) vm))) {
 		return result;
 	};
+
 	struct YASL_Object v = vm_pop(vm);
 	vm->sp = vm->fp + 3;
 	vm->next_fp = vm_popint(vm);
