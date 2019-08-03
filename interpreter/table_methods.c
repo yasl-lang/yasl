@@ -236,7 +236,7 @@ int table_remove(struct YASL_State *S) {
 
 int table_clone(struct YASL_State *S) {
 	if (!YASL_ISTABLE(vm_peek((struct VM *) S))) {
-		YASL_PRINT_ERROR_BAD_ARG_TYPE("table.clone", 0, Y_TABLE, vm_peek((struct VM *) S).type);
+		YASL_PRINT_ERROR_BAD_ARG_TYPE("table.copy", 0, Y_TABLE, vm_peek((struct VM *) S).type);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_HashTable *ht = YASL_GETTABLE(vm_pop((struct VM *) S));

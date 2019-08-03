@@ -250,8 +250,8 @@ int list_pop(struct YASL_State *S) {
 	}
 	struct YASL_List *ls = YASL_GETLIST(vm_pop((struct VM *) S));
 	if (ls->count == 0) {
-		puts("cannot pop from empty list.");
-		return -1;
+		YASL_PRINT_ERROR("ValueError: %s expected list of length greater then 0 as arg 0.\n", "list.pop");
+		return YASL_VALUE_ERROR;
 	}
 	vm_push((struct VM *) S, ls->items[--ls->count]);
 	return YASL_SUCCESS;
@@ -504,7 +504,7 @@ int list_sort(struct YASL_State *S) {
 
 		if (err != 0) {
 			YASL_PRINT_ERROR("ValueError: %s expected a list of all numbers or all strings.\n", "list.sort");
-			return err;
+			return YASL_VALUE_ERROR;
 		}
 	}
 

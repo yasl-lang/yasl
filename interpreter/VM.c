@@ -709,9 +709,9 @@ static int vm_CALL_cfn(struct VM *vm) {
 	while (vm->sp - (vm->fp + 3) > vm_peekcfn(vm, vm->fp)->num_args) {
 		vm_pop(vm);
 	}
-	if (vm_peekcfn(vm, vm->fp)->value((struct YASL_State *) vm)) {
-		// TODO: check return code of function and return that?
-		return YASL_TYPE_ERROR;
+	int result;
+	if ((result = vm_peekcfn(vm, vm->fp)->value((struct YASL_State *) vm))) {
+		return result;
 	};
 	struct YASL_Object v = vm_pop(vm);
 	vm->sp = vm->fp + 3;
