@@ -320,7 +320,7 @@ static int vm_int_unop(struct VM *vm, yasl_int (*op)(yasl_int), const char *opst
 		vm_push(vm, op_name);
 		vm_GET(vm);
 		if (YASL_ISUNDEF(vm_peek(vm))) {
-			YASL_PRINT_ERROR_TYPE("%s not supported for operand of types %s.\n",
+			YASL_PRINT_ERROR_TYPE("%s not supported for operand of type %s.\n",
 					      opstr,
 					      YASL_TYPE_NAMES[a.type]);
 			return YASL_TYPE_ERROR;
@@ -345,7 +345,7 @@ static int vm_num_unop(struct VM *vm, yasl_int (*int_op)(yasl_int), yasl_float (
 		vm_push(vm, op_name);
 		vm_GET(vm);
 		if (YASL_ISUNDEF(vm_peek(vm))) {
-			YASL_PRINT_ERROR_TYPE("%s not supported for operand of types %s.\n",
+			YASL_PRINT_ERROR_TYPE("%s not supported for operand of type %s.\n",
 					      opstr,
 					      YASL_TYPE_NAMES[expr.type]);
 			return YASL_TYPE_ERROR;
@@ -372,7 +372,7 @@ static int vm_len_unop(struct VM *vm) {
 		vm_push(vm, op_name);
 		vm_GET(vm);
 		if (YASL_ISUNDEF(vm_peek(vm))) {
-			YASL_PRINT_ERROR_TYPE("len not supported for operand of types %s.\n",
+			YASL_PRINT_ERROR_TYPE("len not supported for operand of type %s.\n",
 					      YASL_TYPE_NAMES[v.type]);
 			return YASL_TYPE_ERROR;
 		} else {

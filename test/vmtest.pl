@@ -33,10 +33,21 @@ sub assert_output {
 
 # Errors
 
+sub binop_error_message {
+    my ($op, $left, $right) = @_;
+    return $RED . "TypeError: " . $op . " not supported for operands of types " . $left . " and " . $right . ".\n" . $END;
+}
+
+sub unop_error_message {
+    my ($op, $type) = @_;
+    return $RED . "TypeError: " . $op . " not supported for operand of type " . $type . ".\n" . $END;
+}
+
 my $YASL_SYNTAX_ERROR = 4;
 my $YASL_TYPE_ERROR = 5;
 my $YASL_DIVISION_BY_ZERO_ERROR = 6;
 
+# SyntaxError
 assert_output(qq"for let x = 0; x < 5; x += 1 { };
                  echo x;", $RED . "SyntaxError: Undeclared variable x (line 2).\n" . $END, $YASL_SYNTAX_ERROR);
 assert_output(qq"const x = 10; x = 11;", $RED . "SyntaxError: Cannot assign to constant x (line 1).\n" . $END, $YASL_SYNTAX_ERROR);
@@ -50,9 +61,26 @@ assert_output("x;", $RED . "SyntaxError: Undeclared variable x (line 1).\n" . $E
 assert_output("echo 'hello \\o world'\n", $RED . "SyntaxError: Invalid string escape sequence in line 1.\n" . $END, $YASL_SYNTAX_ERROR);
 assert_output("echo 'hello \\xworld'\n", $RED . "SyntaxError: Invalid hex string escape in line 1.\n" . $END, $YASL_SYNTAX_ERROR);
 
-assert_output("echo true + false;",
-              $RED . "TypeError: + not supported for operands of types bool and bool.\n" . $END, $YASL_TYPE_ERROR);
+# TypeError
+assert_output("echo .true | false;", binop_error_message("|", "str", "bool"), $YASL_TYPE_ERROR);
+assert_output("echo .true ^ false;", binop_error_message("^", "str", "bool"), $YASL_TYPE_ERROR);
+assert_output("echo .true &^ false;", binop_error_message("&^", "str", "bool"), $YASL_TYPE_ERROR);
+assert_output("echo .true & false;", binop_error_message("&", "str", "bool"), $YASL_TYPE_ERROR);
+assert_output("echo .true >> false;", binop_error_message(">>", "str", "bool"), $YASL_TYPE_ERROR);
+assert_output("echo .true << false;", binop_error_message("<<", "str", "bool"), $YASL_TYPE_ERROR);
+assert_output("echo .true + false;", binop_error_message("+", "str", "bool"), $YASL_TYPE_ERROR);
+assert_output("echo .true - false;", binop_error_message("-", "str", "bool"), $YASL_TYPE_ERROR);
+assert_output("echo .true * false;", binop_error_message("*", "str", "bool"), $YASL_TYPE_ERROR);
+assert_output("echo .true / false;", binop_error_message("/", "str", "bool"), $YASL_TYPE_ERROR);
+assert_output("echo .true // false;", binop_error_message("//", "str", "bool"), $YASL_TYPE_ERROR);
+assert_output("echo .true % false;", binop_error_message("%", "str", "bool"), $YASL_TYPE_ERROR);
+assert_output("echo .true ** false;", binop_error_message("**", "str", "bool"), $YASL_TYPE_ERROR);
+assert_output("echo -true;", unop_error_message("-", "bool"), $YASL_TYPE_ERROR);
+assert_output("echo +true;", unop_error_message("+", "bool"), $YASL_TYPE_ERROR);
+assert_output("echo len true;", unop_error_message("len", "bool"), $YASL_TYPE_ERROR);
+assert_output("echo ^true;", unop_error_message("^", "bool"), $YASL_TYPE_ERROR);
 
+#DivisionByZeroError
 assert_output(qq"echo 1 // 0;", $RED . "DivisionByZeroError\n" . $END, $YASL_DIVISION_BY_ZERO_ERROR);
 assert_output(qq"echo 1 % 0;", $RED . "DivisionByZeroError\n" . $END, $YASL_DIVISION_BY_ZERO_ERROR);
 
