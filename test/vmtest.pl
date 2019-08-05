@@ -35,19 +35,31 @@ sub assert_output {
 
 sub binop_error_message {
     my ($op, $left, $right) = @_;
-    return $RED . "TypeError: " . $op . " not supported for operands of types " .
-        $left . " and " . $right . ".\n" . $END;
+    return "${RED}TypeError: $op not supported for operands of types $left and $right.\n$END";
 }
 
 sub unop_error_message {
     my ($op, $type) = @_;
-    return $RED . "TypeError: " . $op . " not supported for operand of type " . $type . ".\n" . $END;
+    return "${RED}TypeError: $op not supported for operand of type $type.\n$END";
 }
 
 sub method_error_message {
     my ($name, $arg, $expected, $actual) = @_;
-    return $RED . "TypeError: " . $name . " expected arg in position " .
-        $arg . " to be of type " . $expected . ", got arg of type " . $actual . ".\n" . $END;
+    return "${RED}TypeError: $name expected arg in position $arg to be of type $expected, got arg of type $actual.\n$END";
+}
+
+sub syntax_error_message {
+    my ($message) = @_;
+    return "${RED}SyntaxError: $message\n$END"
+}
+
+sub value_error_message {
+    my ($message) = @_;
+    return "${RED}ValueError: $message\n$END"
+}
+
+sub div_by_zero_error_message {
+    return "${RED}DivisonByZeroError\n$END"
 }
 
 my $YASL_SYNTAX_ERROR = 4;
@@ -57,17 +69,17 @@ my $YASL_VALUE_ERROR = 7;
 
 # SyntaxError
 assert_output(qq"for let x = 0; x < 5; x += 1 { };
-                 echo x;", $RED . "SyntaxError: Undeclared variable x (line 2).\n" . $END, $YASL_SYNTAX_ERROR);
-assert_output(qq"const x = 10; x = 11;", $RED . "SyntaxError: Cannot assign to constant x (line 1).\n" . $END, $YASL_SYNTAX_ERROR);
-assert_output(qq"const x = 10; let x = 11;", $RED . "SyntaxError: Illegal redeclaration of x (line 1).\n" . $END, $YASL_SYNTAX_ERROR);
-assert_output(qq"let x = 10; let x = 11;", $RED . "SyntaxError: Illegal redeclaration of x (line 1).\n" . $END, $YASL_SYNTAX_ERROR);
+                 echo x;", syntax_error_message("Undeclared variable x (line 2)."), $YASL_SYNTAX_ERROR);
+assert_output(qq"const x = 10; x = 11;", syntax_error_message("assign to constant x (line 1)."), $YASL_SYNTAX_ERROR);
+assert_output(qq"const x = 10; let x = 11;", syntax_error_message("Illegal redeclaration of x (line 1).\n"), $YASL_SYNTAX_ERROR);
+assert_output(qq"let x = 10; let x = 11;", syntax_error_message("Illegal redeclaration of x (line 1).\n"), $YASL_SYNTAX_ERROR);
 assert_output(q"let x = [ b for b <- [1, 2, 3, 4] if b % 2 == 0 ]; echo b;",
-              $RED . "SyntaxError: Undeclared variable b (line 1).\n" . $END, $YASL_SYNTAX_ERROR);
+              syntax_error_message("Undeclared variable b (line 1).\n"), $YASL_SYNTAX_ERROR);
 assert_output("echo if;",
-              $RED . "SyntaxError: ParsingError in line 1: expected expression, got `if`\n" . $END, $YASL_SYNTAX_ERROR);
-assert_output("x;", $RED . "SyntaxError: Undeclared variable x (line 1).\n" . $END, $YASL_SYNTAX_ERROR);
-assert_output("echo 'hello \\o world'\n", $RED . "SyntaxError: Invalid string escape sequence in line 1.\n" . $END, $YASL_SYNTAX_ERROR);
-assert_output("echo 'hello \\xworld'\n", $RED . "SyntaxError: Invalid hex string escape in line 1.\n" . $END, $YASL_SYNTAX_ERROR);
+              syntax_error_message("ParsingError in line 1: expected expression, got `if`\n"), $YASL_SYNTAX_ERROR);
+assert_output("x;", syntax_error_message("Undeclared variable x (line 1).\n"), $YASL_SYNTAX_ERROR);
+assert_output("echo 'hello \\o world'\n", syntax_error_message("Invalid string escape sequence in line 1.\n"), $YASL_SYNTAX_ERROR);
+assert_output("echo 'hello \\xworld'\n", syntax_error_message("Invalid hex string escape in line 1.\n"), $YASL_SYNTAX_ERROR);
 
 # TypeError (Operators)
 assert_output("echo .true | false;", binop_error_message("|", "str", "bool"), $YASL_TYPE_ERROR);
@@ -116,7 +128,7 @@ assert_output("echo [].extend([], true);", method_error_message("list.extend", 1
 assert_output("echo []->extend(1);", method_error_message("list.extend", 1, "list", "int"), $YASL_TYPE_ERROR);
 assert_output("echo [].pop(1);", method_error_message("list.pop", 0, "list", "int"), $YASL_TYPE_ERROR);
 assert_output("echo []->pop();",
-    $RED . "ValueError: list.pop expected list of length greater then 0 as arg 0.\n" . $END, $YASL_VALUE_ERROR);
+    value_error_message("list.pop expected list of length greater then 0 as arg 0."), $YASL_VALUE_ERROR);
 # TODO: __get
 # TODO: __set
 assert_output("echo [].tostr(1);", method_error_message("list.tostr", 0, "list", "int"), $YASL_TYPE_ERROR);
@@ -128,7 +140,7 @@ assert_output("echo [].join(1, true);", method_error_message("list.join", 1, "st
 assert_output("echo [].join([], 1);", method_error_message("list.join", 1, "str", "int"), $YASL_TYPE_ERROR);
 assert_output("echo []->join(1);", method_error_message("list.join", 1, "str", "int"), $YASL_TYPE_ERROR);
 assert_output("echo [].sort(1);", method_error_message("list.sort", 0, "list", "int"), $YASL_TYPE_ERROR);
-assert_output("echo [1, .a]->sort();", $RED . "ValueError: list.sort expected a list of all numbers or all strings.\n" . $END, $YASL_VALUE_ERROR);
+assert_output("echo [1, .a]->sort();", value_error_message("list.sort expected a list of all numbers or all strings."), $YASL_VALUE_ERROR);
 
 # Type Error (Str Methods)
 assert_output("echo ''.tofloat(1);", method_error_message("str.tofloat", 0, "str", "int"), $YASL_TYPE_ERROR);
@@ -160,7 +172,7 @@ assert_output("echo ''.replace(.tr, true, .str);", method_error_message("str.rep
 assert_output("echo ''.replace(.tr, .true, 1);", method_error_message("str.replace", 2, "str", "int"), $YASL_TYPE_ERROR);
 assert_output("echo ''.replace(.tr, true, 1);", method_error_message("str.replace", 2, "str", "int"), $YASL_TYPE_ERROR);
 assert_output("echo ''.replace(.tr, '', .sad);",
-    $RED . "ValueError: str.replace expected a str of length greater than 0 as arg 1.\n". $END, $YASL_VALUE_ERROR);
+    value_error_message("str.replace expected a str of length greater than 0 as arg 1.". $END, $YASL_VALUE_ERROR);
 
 assert_output("echo ''.search(1, true);", method_error_message("str.search", 1, "str", "bool"), $YASL_TYPE_ERROR);
 assert_output("echo ''.search(1, .true);", method_error_message("str.search", 0, "str", "int"), $YASL_TYPE_ERROR);
@@ -177,7 +189,7 @@ assert_output("echo ''.split(1, .true);", method_error_message("str.split", 0, "
 assert_output("echo ''.split(.str, true);", method_error_message("str.split", 1, "str", "bool"), $YASL_TYPE_ERROR);
 assert_output("echo ''->split(1);", method_error_message("str.split", 1, "str", "int"), $YASL_TYPE_ERROR);
 assert_output("echo 'wasd'->split('');",
-    $RED . "ValueError: str.split expected a str of length greater than 0 as arg 1.\n" . $END, $YASL_VALUE_ERROR);
+    value_error_message("str.split expected a str of length greater than 0 as arg 1."), $YASL_VALUE_ERROR);
 
 assert_output("echo ''.ltrim(1, true);", method_error_message("str.ltrim", 1, "str", "bool"), $YASL_TYPE_ERROR);
 assert_output("echo ''.ltrim(1, .true);", method_error_message("str.ltrim", 0, "str", "int"), $YASL_TYPE_ERROR);
@@ -199,7 +211,7 @@ assert_output("echo ''.rep(1.0, 1);", method_error_message("str.rep", 0, "str", 
 assert_output("echo ''.rep(.str, true);", method_error_message("str.rep", 1, "int", "bool"), $YASL_TYPE_ERROR);
 assert_output("echo ''->rep(true);", method_error_message("str.rep", 1, "int", "bool"), $YASL_TYPE_ERROR);
 assert_output("echo 'as'->rep(-1);",
-    $RED . "ValueError: str.rep expected non-negative int as arg 1.\n" . $END, $YASL_VALUE_ERROR);
+    value_error_message("str.rep expected non-negative int as arg 1."), $YASL_VALUE_ERROR);
 
 # Type Error (Table Methods)
 assert_output("echo {}.remove(1, 2.0);", method_error_message("table.remove", 0, "table", "int"), $YASL_TYPE_ERROR);
@@ -215,7 +227,7 @@ assert_output("echo {}.clear(1);", method_error_message("table.clear", 0, "table
 assert_output("echo undef.tostr(1);", method_error_message("undef.tostr", 0, "undef", "int"), $YASL_TYPE_ERROR);
 
 #DivisionByZeroError
-assert_output(qq"echo 1 // 0;", $RED . "DivisionByZeroError\n" . $END, $YASL_DIVISION_BY_ZERO_ERROR);
-assert_output(qq"echo 1 % 0;", $RED . "DivisionByZeroError\n" . $END, $YASL_DIVISION_BY_ZERO_ERROR);
+assert_output(qq"echo 1 // 0;", div_by_zero_error_message(), $YASL_DIVISION_BY_ZERO_ERROR);
+assert_output(qq"echo 1 % 0;", div_by_zero_error_message(), $YASL_DIVISION_BY_ZERO_ERROR);
 
 exit $__VM_TESTS_FAILED__;
