@@ -197,12 +197,14 @@ static int vm_int_binop(struct VM *vm, yasl_int (*op)(yasl_int, yasl_int), const
 			dec_ref(&right);
 			return YASL_TYPE_ERROR;
 		} else {
+			int res;
 			vm_INIT_CALL(vm);
 			vm_push(vm, left);
 			vm_push(vm, right);
-			vm_CALL(vm);
+			res = vm_CALL(vm);
 			dec_ref(&left);
 			dec_ref(&right);
+			return res;
 		}
 	}
 	return YASL_SUCCESS;
@@ -250,7 +252,7 @@ static int vm_num_binop(
 			dec_ref(&right);
 			return YASL_TYPE_ERROR;
 		} else {
-			int res = YASL_SUCCESS;
+			int res;
 			vm_INIT_CALL(vm);
 			vm_push(vm, left);
 			vm_push(vm, right);
@@ -276,6 +278,8 @@ static int vm_fdiv(struct VM *vm) {
 	} else if (YASL_ISFLOAT(left) && YASL_ISINT(right)) {
 		vm_pushfloat(vm, YASL_GETFLOAT(left) / (yasl_float) YASL_GETINT(right));
 	} else {
+		inc_ref(&left);
+		inc_ref(&right);
 		struct YASL_Object op_name = YASL_STR(YASL_String_new_sized(strlen(overload_name), overload_name));
 		vm_push(vm, left);
 		vm_push(vm, op_name);
@@ -284,12 +288,18 @@ static int vm_fdiv(struct VM *vm) {
 			YASL_PRINT_ERROR_TYPE("/ not supported for operands of types %s and %s.\n",
 					      YASL_TYPE_NAMES[left.type],
 					      YASL_TYPE_NAMES[right.type]);
+			dec_ref(&left);
+			dec_ref(&right);
 			return YASL_TYPE_ERROR;
 		} else {
+			int res;
 			vm_INIT_CALL(vm);
 			vm_push(vm, left);
 			vm_push(vm, right);
-			vm_CALL(vm);
+			res = vm_CALL(vm);
+			dec_ref(&left);
+			dec_ref(&right);
+			return res;
 		}
 	}
 	return YASL_SUCCESS;
@@ -304,7 +314,7 @@ static int vm_pow(struct VM *vm) {
 	} else {
 		vm->sp++;
 		int res = vm_num_binop(vm, &int_pow, &pow, "**", OP_BIN_POWER);
-		if (res) return res;
+		return res;
 	}
 	return YASL_SUCCESS;
 }
