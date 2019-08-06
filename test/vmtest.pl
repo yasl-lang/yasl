@@ -59,7 +59,7 @@ sub value_error_message {
 }
 
 sub div_by_zero_error_message {
-    return "${RED}DivisonByZeroError\n$END"
+    return "${RED}DivisionByZeroError\n$END"
 }
 
 my $YASL_SYNTAX_ERROR = 4;
@@ -70,16 +70,16 @@ my $YASL_VALUE_ERROR = 7;
 # SyntaxError
 assert_output(qq"for let x = 0; x < 5; x += 1 { };
                  echo x;", syntax_error_message("Undeclared variable x (line 2)."), $YASL_SYNTAX_ERROR);
-assert_output(qq"const x = 10; x = 11;", syntax_error_message("assign to constant x (line 1)."), $YASL_SYNTAX_ERROR);
-assert_output(qq"const x = 10; let x = 11;", syntax_error_message("Illegal redeclaration of x (line 1).\n"), $YASL_SYNTAX_ERROR);
-assert_output(qq"let x = 10; let x = 11;", syntax_error_message("Illegal redeclaration of x (line 1).\n"), $YASL_SYNTAX_ERROR);
+assert_output(qq"const x = 10; x = 11;", syntax_error_message("Cannot assign to constant x (line 1)."), $YASL_SYNTAX_ERROR);
+assert_output(qq"const x = 10; let x = 11;", syntax_error_message("Illegal redeclaration of x (line 1)."), $YASL_SYNTAX_ERROR);
+assert_output(qq"let x = 10; let x = 11;", syntax_error_message("Illegal redeclaration of x (line 1)."), $YASL_SYNTAX_ERROR);
 assert_output(q"let x = [ b for b <- [1, 2, 3, 4] if b % 2 == 0 ]; echo b;",
-              syntax_error_message("Undeclared variable b (line 1).\n"), $YASL_SYNTAX_ERROR);
+              syntax_error_message("Undeclared variable b (line 1)."), $YASL_SYNTAX_ERROR);
 assert_output("echo if;",
-              syntax_error_message("ParsingError in line 1: expected expression, got `if`\n"), $YASL_SYNTAX_ERROR);
-assert_output("x;", syntax_error_message("Undeclared variable x (line 1).\n"), $YASL_SYNTAX_ERROR);
-assert_output("echo 'hello \\o world'\n", syntax_error_message("Invalid string escape sequence in line 1.\n"), $YASL_SYNTAX_ERROR);
-assert_output("echo 'hello \\xworld'\n", syntax_error_message("Invalid hex string escape in line 1.\n"), $YASL_SYNTAX_ERROR);
+              syntax_error_message("ParsingError in line 1: expected expression, got `if`"), $YASL_SYNTAX_ERROR);
+assert_output("x;", syntax_error_message("Undeclared variable x (line 1)."), $YASL_SYNTAX_ERROR);
+assert_output("echo 'hello \\o world'\n", syntax_error_message("Invalid string escape sequence in line 1."), $YASL_SYNTAX_ERROR);
+assert_output("echo 'hello \\xworld'\n", syntax_error_message("Invalid hex string escape in line 1."), $YASL_SYNTAX_ERROR);
 
 # TypeError (Operators)
 assert_output("echo .true | false;", binop_error_message("|", "str", "bool"), $YASL_TYPE_ERROR);
@@ -172,7 +172,7 @@ assert_output("echo ''.replace(.tr, true, .str);", method_error_message("str.rep
 assert_output("echo ''.replace(.tr, .true, 1);", method_error_message("str.replace", 2, "str", "int"), $YASL_TYPE_ERROR);
 assert_output("echo ''.replace(.tr, true, 1);", method_error_message("str.replace", 2, "str", "int"), $YASL_TYPE_ERROR);
 assert_output("echo ''.replace(.tr, '', .sad);",
-    value_error_message("str.replace expected a str of length greater than 0 as arg 1.". $END, $YASL_VALUE_ERROR);
+    value_error_message("str.replace expected a str of length greater than 0 as arg 1."), $YASL_VALUE_ERROR);
 
 assert_output("echo ''.search(1, true);", method_error_message("str.search", 1, "str", "bool"), $YASL_TYPE_ERROR);
 assert_output("echo ''.search(1, .true);", method_error_message("str.search", 0, "str", "int"), $YASL_TYPE_ERROR);
