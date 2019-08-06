@@ -176,27 +176,35 @@ INT_BINOP(modulo, %)
 INT_BINOP(idiv, /)
 
 static int vm_int_binop(struct VM *vm, yasl_int (*op)(yasl_int, yasl_int), const char *opstr, const char *overload_name) {
-	struct YASL_Object b = vm_pop(vm);
-	struct YASL_Object a = vm_pop(vm);
-	if (YASL_ISINT(a) && YASL_ISINT(b)) {
-		vm_push(vm, YASL_INT(op(YASL_GETINT(a), YASL_GETINT(b))));
+	struct YASL_Object right = vm_pop(vm);
+	struct YASL_Object left = vm_pop(vm);
+	if (YASL_ISINT(left) && YASL_ISINT(right)) {
+		vm_push(vm, YASL_INT(op(YASL_GETINT(left), YASL_GETINT(right))));
 		return YASL_SUCCESS;
 	} else {
+		inc_ref(&left);
+		inc_ref(&right);
 		struct YASL_Object op_name = YASL_STR(YASL_String_new_sized(strlen(overload_name), overload_name));
-		vm_push(vm, a);
+		vm_push(vm, left);
 		vm_push(vm, op_name);
 		vm_GET(vm);
 		if (YASL_ISUNDEF(vm_peek(vm))) {
 			YASL_PRINT_ERROR_TYPE("%s not supported for operands of types %s and %s.\n",
 					      opstr,
-					      YASL_TYPE_NAMES[a.type],
-					      YASL_TYPE_NAMES[b.type]);
+					      YASL_TYPE_NAMES[left.type],
+					      YASL_TYPE_NAMES[right.type]);
+			dec_ref(&left);
+			dec_ref(&right);
 			return YASL_TYPE_ERROR;
 		} else {
+			int res;
 			vm_INIT_CALL(vm);
-			vm_push(vm, a);
-			vm_push(vm, b);
-			vm_CALL(vm);
+			vm_push(vm, left);
+			vm_push(vm, right);
+			res = vm_CALL(vm);
+			dec_ref(&left);
+			dec_ref(&right);
+			return res;
 		}
 	}
 	return YASL_SUCCESS;
@@ -244,12 +252,14 @@ static int vm_num_binop(
 			dec_ref(&right);
 			return YASL_TYPE_ERROR;
 		} else {
+			int res;
 			vm_INIT_CALL(vm);
 			vm_push(vm, left);
 			vm_push(vm, right);
-			vm_CALL(vm);
+			res = vm_CALL(vm);
 			dec_ref(&left);
 			dec_ref(&right);
+			return res;
 		}
 	}
 	return YASL_SUCCESS;
@@ -268,6 +278,8 @@ static int vm_fdiv(struct VM *vm) {
 	} else if (YASL_ISFLOAT(left) && YASL_ISINT(right)) {
 		vm_pushfloat(vm, YASL_GETFLOAT(left) / (yasl_float) YASL_GETINT(right));
 	} else {
+		inc_ref(&left);
+		inc_ref(&right);
 		struct YASL_Object op_name = YASL_STR(YASL_String_new_sized(strlen(overload_name), overload_name));
 		vm_push(vm, left);
 		vm_push(vm, op_name);
@@ -276,12 +288,18 @@ static int vm_fdiv(struct VM *vm) {
 			YASL_PRINT_ERROR_TYPE("/ not supported for operands of types %s and %s.\n",
 					      YASL_TYPE_NAMES[left.type],
 					      YASL_TYPE_NAMES[right.type]);
+			dec_ref(&left);
+			dec_ref(&right);
 			return YASL_TYPE_ERROR;
 		} else {
+			int res;
 			vm_INIT_CALL(vm);
 			vm_push(vm, left);
 			vm_push(vm, right);
-			vm_CALL(vm);
+			res = vm_CALL(vm);
+			dec_ref(&left);
+			dec_ref(&right);
+			return res;
 		}
 	}
 	return YASL_SUCCESS;
@@ -296,7 +314,7 @@ static int vm_pow(struct VM *vm) {
 	} else {
 		vm->sp++;
 		int res = vm_num_binop(vm, &int_pow, &pow, "**", OP_BIN_POWER);
-		if (res) return res;
+		return res;
 	}
 	return YASL_SUCCESS;
 }
@@ -320,7 +338,7 @@ static int vm_int_unop(struct VM *vm, yasl_int (*op)(yasl_int), const char *opst
 		vm_push(vm, op_name);
 		vm_GET(vm);
 		if (YASL_ISUNDEF(vm_peek(vm))) {
-			YASL_PRINT_ERROR_TYPE("%s not supported for operand of types %s.\n",
+			YASL_PRINT_ERROR_TYPE("%s not supported for operand of type %s.\n",
 					      opstr,
 					      YASL_TYPE_NAMES[a.type]);
 			return YASL_TYPE_ERROR;
@@ -345,7 +363,7 @@ static int vm_num_unop(struct VM *vm, yasl_int (*int_op)(yasl_int), yasl_float (
 		vm_push(vm, op_name);
 		vm_GET(vm);
 		if (YASL_ISUNDEF(vm_peek(vm))) {
-			YASL_PRINT_ERROR_TYPE("%s not supported for operand of types %s.\n",
+			YASL_PRINT_ERROR_TYPE("%s not supported for operand of type %s.\n",
 					      opstr,
 					      YASL_TYPE_NAMES[expr.type]);
 			return YASL_TYPE_ERROR;
@@ -372,7 +390,7 @@ static int vm_len_unop(struct VM *vm) {
 		vm_push(vm, op_name);
 		vm_GET(vm);
 		if (YASL_ISUNDEF(vm_peek(vm))) {
-			YASL_PRINT_ERROR_TYPE("len not supported for operand of types %s.\n",
+			YASL_PRINT_ERROR_TYPE("len not supported for operand of type %s.\n",
 					      YASL_TYPE_NAMES[v.type]);
 			return YASL_TYPE_ERROR;
 		} else {
@@ -712,11 +730,11 @@ static int vm_CALL_cfn(struct VM *vm) {
 			vm_pop(vm);
 		}
 	}
-
-	if (vm_peekcfn(vm, vm->fp)->value((struct YASL_State *) vm)) {
-		printf("ERROR: invalid argument type(s) to builtin function.\n");
-		return YASL_TYPE_ERROR;
+	int result;
+	if ((result = vm_peekcfn(vm, vm->fp)->value((struct YASL_State *) vm))) {
+		return result;
 	};
+
 	struct YASL_Object v = vm_pop(vm);
 	vm->sp = vm->fp + 3;
 	vm->next_fp = vm_popint(vm);
