@@ -12,3 +12,6 @@ true
 true
 false
 true
+20   #echo math.max(1, 20, 4.0)
+-inf #echo math.max()
+nan  #echo math.max(math.nan)

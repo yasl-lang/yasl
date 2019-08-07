@@ -24,6 +24,7 @@
 #define vm_pushlist(vm, l) VM_PUSH(vm, YASL_LIST(l))
 #define vm_pushfn(vm, f) VM_PUSH(vm, YASL_FN(f))
 
+#define vm_popfloat(vm) (YASL_GETFLOAT(vm_pop(vm)))
 #define vm_popint(vm) (YASL_GETINT(vm_pop(vm)))
 #define vm_popstr(vm) (YASL_GETSTR(vm_pop(vm)))
 #define vm_poplist(vm) (YASL_GETLIST(vm_pop(vm)))

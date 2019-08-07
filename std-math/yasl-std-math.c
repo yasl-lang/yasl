@@ -3,6 +3,8 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <data-structures/YASL_Set.h>
+#include <interpreter/VM.h>
 
 #include "prime/prime.h"
 #include "interpreter/YASL_Object.h"
@@ -164,6 +166,73 @@ static int YASL_math_floor(struct YASL_State *S) {
 		n = YASL_GETFLOAT(*num);
 	}
 	return YASL_pushfloat(S, floor(n));
+}
+
+static int YASL_math_max(struct YASL_State *S) {
+	struct YASL_Object max = YASL_FLOAT(-YASL_INF);
+
+	yasl_int num_va_args = vm_popint((struct VM *)S);
+	if (num_va_args == 0) {
+		YASL_pushfloat(S, YASL_INF);
+		return YASL_SUCCESS;
+	}
+
+	for (yasl_int i = 0; i < num_va_args; i++) {
+		if (YASL_ISINT(vm_peek((struct VM *)S))) {
+			yasl_int top = vm_popint((struct VM *)S);
+			if ((top >= YASL_GETNUM(max))) {
+				max = YASL_INT(top);
+			}
+		} else if (YASL_ISFLOAT(vm_peek((struct VM *)S))) {
+			yasl_float top = vm_popfloat((struct VM *)S);
+			if (top != top) {
+				YASL_pushfloat(S, YASL_NAN);
+				return YASL_SUCCESS;
+			}
+			if ((top >= YASL_GETNUM(max))) {
+				max = YASL_FLOAT(top);
+			}
+		} else {
+			YASL_PRINT_ERROR_BAD_ARG_TYPE("math.max", (int)i, Y_FLOAT, vm_peek((struct VM *)S).type);
+			return YASL_TYPE_ERROR;
+		}
+	}
+	vm_push((struct VM *)S, max);
+
+	return YASL_SUCCESS;
+}
+static int YASL_math_min(struct YASL_State *S) {
+	struct YASL_Object max = YASL_FLOAT(YASL_INF);
+
+	yasl_int num_va_args = vm_popint((struct VM *)S);
+	if (num_va_args == 0) {
+		YASL_pushfloat(S, YASL_INF);
+		return YASL_SUCCESS;
+	}
+
+	for (yasl_int i = 0; i < num_va_args; i++) {
+		if (YASL_ISINT(vm_peek((struct VM *)S))) {
+			yasl_int top = vm_popint((struct VM *)S);
+			if ((top <= YASL_GETNUM(max))) {
+				max = YASL_INT(top);
+			}
+		} else if (YASL_ISFLOAT(vm_peek((struct VM *)S))) {
+			yasl_float top = vm_popfloat((struct VM *)S);
+			if (top != top) {
+				YASL_pushfloat(S, YASL_NAN);
+				return YASL_SUCCESS;
+			}
+			if ((top <= YASL_GETNUM(max))) {
+				max = YASL_FLOAT(top);
+			}
+		} else {
+			YASL_PRINT_ERROR_BAD_ARG_TYPE("math.min", (int)i, Y_FLOAT, vm_peek((struct VM *)S).type);
+			return YASL_TYPE_ERROR;
+		}
+	}
+	vm_push((struct VM *)S, max);
+
+	return YASL_SUCCESS;
 }
 
 static int YASL_math_deg(struct YASL_State *S) {
@@ -335,6 +404,13 @@ int YASL_load_math(struct YASL_State *S) {
 	struct YASL_Object *floor_fn = YASL_CFunction(YASL_math_floor, 1);
 	YASL_Table_set(math, floor_str, floor_fn);
 
+	struct YASL_Object *max_str = YASL_LiteralString("max");
+	struct YASL_Object *max_fn = YASL_CFunction(YASL_math_max, -1);
+	YASL_Table_set(math, max_str, max_fn);
+	struct YASL_Object *min_str = YASL_LiteralString("min");
+	struct YASL_Object *min_fn = YASL_CFunction(YASL_math_min, -1);
+	YASL_Table_set(math, min_str, min_fn);
+
 	struct YASL_Object *deg_str = YASL_LiteralString("deg");
 	struct YASL_Object *deg_fn = YASL_CFunction(YASL_math_deg, 1);
 	YASL_Table_set(math, deg_str, deg_fn);
@@ -398,6 +474,11 @@ int YASL_load_math(struct YASL_State *S) {
 	free(ceil_fn);
 	free(floor_str);
 	free(floor_fn);
+
+	free(max_str);
+	free(max_fn);
+	free(min_str);
+	free(min_fn);
 
 	free(deg_str);
 	free(deg_fn);

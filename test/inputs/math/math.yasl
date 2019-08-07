@@ -33,3 +33,7 @@ echo math.isprime(15485869.1)
 
 const x = 18408990
 echo math.isprime(x-1) && math.isprime(x+1)
+
+echo math.max(1, 20, 4.0)
+echo math.max()
+echo math.max(math.nan)

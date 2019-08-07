@@ -35,6 +35,7 @@
 
 #define YASL_GETFLOAT(v) ((v).value.dval)
 #define YASL_GETINT(v) ((v).value.ival)
+#define YASL_GETNUM(v) (YASL_ISFLOAT(v) ? YASL_GETFLOAT(v) : YASL_GETINT(v))
 #define YASL_GETBOOL(v) ((v).value.ival)
 #define YASL_GETSTR(v) ((v).value.sval)
 #define YASL_GETLIST(v) ((struct YASL_List *)((v).value.uval->data))
