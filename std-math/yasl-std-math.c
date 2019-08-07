@@ -173,7 +173,7 @@ static int YASL_math_max(struct YASL_State *S) {
 
 	yasl_int num_va_args = vm_popint((struct VM *)S);
 	if (num_va_args == 0) {
-		YASL_pushfloat(S, YASL_INF);
+		YASL_pushfloat(S, -YASL_INF);
 		return YASL_SUCCESS;
 	}
 
