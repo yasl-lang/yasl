@@ -23,9 +23,9 @@ static int YASL_collections_list_new(struct YASL_State *S) {
 	yasl_int i = vm_popint((struct VM *)S);
 	struct RC_UserData *list = ls_new();
 	while (i-- > 0) {
-		ls_append(list->data, vm_pop((struct VM *)S));
+		ls_append((struct YASL_List *)list->data, vm_pop((struct VM *)S));
 	}
-	ls_reverse(list->data);
+	ls_reverse((struct YASL_List *)list->data);
 	vm_pushlist((struct VM *)S, list);
 	return YASL_SUCCESS;
 }
@@ -37,7 +37,7 @@ static int YASL_collections_table_new(struct YASL_State *S) {
 	while (i > 0) {
 		struct YASL_Object value = vm_pop((struct VM *)S);
 		struct YASL_Object key = vm_pop((struct VM *)S);
-		table_insert(table->data, key, value);
+		table_insert((struct YASL_HashTable *)table->data, key, value);
 		i -= 2;
 	}
 	vm_pushtable((struct VM *)S, table);
