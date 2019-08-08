@@ -226,6 +226,10 @@ assert_output("echo {}.clear(1);", method_error_message("table.clear", 0, "table
 # Type Error (Undef Methods)
 assert_output("echo undef.tostr(1);", method_error_message("undef.tostr", 0, "undef", "int"), $YASL_TYPE_ERROR);
 
+# Type Errors (Math)
+assert_output("echo math.max(1, .a, 2);", method_error_message("math.max", 1, "float", "str"), $YASL_TYPE_ERROR);
+assert_output("echo math.min(1, .a, 2);", method_error_message("math.min", 1, "float", "str"), $YASL_TYPE_ERROR);
+
 #DivisionByZeroError
 assert_output(qq"echo 1 // 0;", div_by_zero_error_message(), $YASL_DIVISION_BY_ZERO_ERROR);
 assert_output(qq"echo 1 % 0;", div_by_zero_error_message(), $YASL_DIVISION_BY_ZERO_ERROR);
