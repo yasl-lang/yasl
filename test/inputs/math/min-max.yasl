@@ -1,0 +1,10 @@
+echo math.max(1.0, 20, 4.0)
+echo math.max(1, 2.0, 40)
+echo math.max()
+echo math.max(math.nan) === (math.nan)
+
+
+echo math.min(1.0, 20, 4.0)
+echo math.min(1, 2.0, 40)
+echo math.min()
+echo math.min(math.nan) === (math.nan)
