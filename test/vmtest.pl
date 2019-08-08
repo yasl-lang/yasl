@@ -108,6 +108,7 @@ assert_output("echo true.tobool(0);", method_error_message("bool.tobool", 0, "bo
 assert_output("echo 0.0.tostr(1);", method_error_message("float.tostr", 0, "float", "int"), $YASL_TYPE_ERROR);
 assert_output("echo 0.0.toint(1);", method_error_message("float.toint", 0, "float", "int"), $YASL_TYPE_ERROR);
 assert_output("echo 0.0.tofloat(1);", method_error_message("float.tofloat", 0, "float", "int"), $YASL_TYPE_ERROR);
+assert_output("echo 0.0.tobool(0);", method_error_message("float.tobool", 0, "float", "int"), $YASL_TYPE_ERROR);
 
 # TypeError (Int Methods)
 assert_output("echo 0.tostr(1.0);", method_error_message("int.tostr", 0, "int", "float"), $YASL_TYPE_ERROR);

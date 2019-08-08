@@ -39,6 +39,7 @@ struct YASL_HashTable *undef_builtins(struct VM *vm) {
 struct YASL_HashTable* float_builtins(struct VM *vm) {
 	struct YASL_HashTable *table = table_new();
 	table_insert_specialstring_cfunction(vm, table, S_TOINT, &float_toint, 1);
+	table_insert_specialstring_cfunction(vm, table, S_TOBOOL, &float_tobool, 1);
 	table_insert_specialstring_cfunction(vm, table, S_TOFLOAT, &float_tofloat, 1);
 	table_insert_specialstring_cfunction(vm, table, S_TOSTR, &float_tostr, 1);
 	return table;
