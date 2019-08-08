@@ -11,6 +11,15 @@ int int_toint(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
+int int_tobool(struct YASL_State *S) {
+	if (!YASL_ISINT(vm_peek((struct VM *)S))) {
+		YASL_PRINT_ERROR_BAD_ARG_TYPE("int.tobool", 0, Y_INT, vm_peek((struct VM *)S).type);
+		return YASL_TYPE_ERROR;
+	}
+	vm_pushbool((struct VM *) S, true);
+	return YASL_SUCCESS;
+}
+
 int int_tofloat(struct YASL_State *S) {
 	if (!YASL_ISINT(vm_peek((struct VM *)S))) {
 		YASL_PRINT_ERROR_BAD_ARG_TYPE("int.tofloat", 0, Y_INT, vm_peek((struct VM *)S).type);
