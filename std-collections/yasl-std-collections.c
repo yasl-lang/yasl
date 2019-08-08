@@ -19,6 +19,32 @@ static int YASL_collections_set_new(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
+static int YASL_collections_list_new(struct YASL_State *S) {
+	yasl_int i = vm_popint((struct VM *)S);
+	struct RC_UserData *list = ls_new();
+	while (i-- > 0) {
+		ls_append(list->data, vm_pop((struct VM *)S));
+	}
+	ls_reverse(list->data);
+	vm_pushlist((struct VM *)S, list);
+	return YASL_SUCCESS;
+}
+
+static int YASL_collections_table_new(struct YASL_State *S) {
+	yasl_int i = vm_popint((struct VM *)S);
+	// TODO: error for odd num args
+	struct RC_UserData *table = rcht_new();
+	while (i > 0) {
+		struct YASL_Object value = vm_pop((struct VM *)S);
+		struct YASL_Object key = vm_pop((struct VM *)S);
+		table_insert(table->data, key, value);
+		i -= 2;
+	}
+	vm_pushtable((struct VM *)S, table);
+	return YASL_SUCCESS;
+}
+
+
 static int YASL_collections_set_tostr(struct YASL_State *S) {
 	struct YASL_Object *set_obj = YASL_popobject(S);
 
@@ -226,10 +252,24 @@ int YASL_load_collections(struct YASL_State *S) {
 	struct YASL_Object *set_new_str = YASL_LiteralString("set");
 	struct YASL_Object *set_new_fn = YASL_CFunction(YASL_collections_set_new, -1);
 
+	struct YASL_Object *list_new_str = YASL_LiteralString("list");
+	struct YASL_Object *list_new_fn = YASL_CFunction(YASL_collections_list_new, -1);
+
+	struct YASL_Object *table_new_str = YASL_LiteralString("table");
+	struct YASL_Object *table_new_fn = YASL_CFunction(YASL_collections_table_new, -1);
+
 	YASL_Table_set(collections, set_new_str, set_new_fn);
+	YASL_Table_set(collections, list_new_str, list_new_fn);
+	YASL_Table_set(collections, table_new_str, table_new_fn);
 
 	free(set_new_str);
 	free(set_new_fn);
+
+	free(list_new_str);
+	free(list_new_fn);
+
+	free(table_new_str);
+	free(table_new_fn);
 
 	YASL_declglobal(S, "collections");
 	YASL_pushobject(S, collections);
