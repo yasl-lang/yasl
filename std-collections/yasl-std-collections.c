@@ -33,6 +33,9 @@ static int YASL_collections_list_new(struct YASL_State *S) {
 static int YASL_collections_table_new(struct YASL_State *S) {
 	yasl_int i = vm_popint((struct VM *)S);
 	// TODO: error for odd num args
+	if (i % 2 != 0) {
+		vm_pushundef((struct VM *)S);
+	}
 	struct RC_UserData *table = rcht_new();
 	while (i > 0) {
 		struct YASL_Object value = vm_pop((struct VM *)S);
