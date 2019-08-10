@@ -16,9 +16,9 @@
 	.params = NULL,\
         .num_locals = 0,	\
 	.strings = table_new(),\
-	.buffer = bb_new(16),\
-	.header = bb_new(16),\
-	.code = bb_new(16),\
+	.buffer = YASL_ByteBuffer_new(16),\
+	.header = YASL_ByteBuffer_new(16),\
+	.code = YASL_ByteBuffer_new(16),\
         .checkpoints = (size_t *)malloc(sizeof(size_t) * 4),\
 	.checkpoints_count = 0,\
 	.checkpoints_size = 4,\
