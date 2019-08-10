@@ -1,0 +1,4 @@
+echo collections.list(1, 2, 3, 4)
+echo collections.list(1, 2, 3)
+echo collections.list(.a, .b, 1, .c)
+echo collections.list()
