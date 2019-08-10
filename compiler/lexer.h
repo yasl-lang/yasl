@@ -13,7 +13,7 @@
             (l)->type == T_RBRC || (l)->type == T_UNDEF || (l)->type == T_BOOL)
 
 #define NEW_LEXER(f) \
-  ((Lexer) { .file = (f),\
+  ((struct Lexer) { .file = (f),\
              .c = 0,\
 	     .type = T_UNKNOWN,\
 	     .value = NULL,\
@@ -35,7 +35,7 @@ enum LexerModes {
     L_INTERP,     // for string interpolation.
 };
 
-typedef struct {
+struct Lexer {
     struct LEXINPUT *file;     // OWN
     char c;
     enum Token type;
@@ -44,12 +44,12 @@ typedef struct {
     size_t line;
     int status;
     int mode;
-} Lexer;
+};
 
-// Lexer *lex_new(FILE *file);
-void lex_cleanup(Lexer *lex);
-void gettok(Lexer *lex);
-int lex_eatinterpstringbody(Lexer *lex);
-int lex_eatfloatexp(Lexer *lex);
+// struct Lexer *lex_new(FILE *file);
+void lex_cleanup(struct Lexer *lex);
+void gettok(struct Lexer *lex);
+int lex_eatinterpstringbody(struct Lexer *lex);
+int lex_eatfloatexp(struct Lexer *lex);
 
 extern const char *YASL_TOKEN_NAMES[85];

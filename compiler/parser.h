@@ -13,26 +13,26 @@
 #define TOKEN_MATCHES(parser, ...)  (CHOOSE(__VA_ARGS__, T4, T3, T2, T1, T0)(parser, __VA_ARGS__))
 
 #define NEW_PARSER(fp)\
-  ((Parser) {\
+  ((struct Parser) {\
 	.lex = NEW_LEXER(fp),\
 	.status = YASL_SUCCESS\
   })
 
-typedef struct {
-    Lexer lex; /* OWN */
+struct Parser {
+    struct Lexer lex; /* OWN */
     int status;
-} Parser;
+};
 
-int peof(const Parser *const parser);
-// Parser *parser_new(FILE *fp);
-void parser_cleanup(Parser *const parser);
-enum Token eattok(Parser *const parser, const enum Token token);
-struct Node *parse(Parser *const parser);
+int peof(const struct Parser *const parser);
+// struct Parser *parser_new(FILE *fp);
+void parser_cleanup(struct Parser *const parser);
+enum Token eattok(struct Parser *const parser, const enum Token token);
+struct Node *parse(struct Parser *const parser);
 
 #ifdef _MSC_VER
 #include <stdarg.h>
 // To avoid MSVC _VA_ARGS_ macro expansion bug
-int token_matches(Parser *const parser, ...);
+int token_matches(struct Parser *const parser, ...);
 #undef TOKEN_MATCHES
 #define TOKEN_MATCHES(px, ...) token_matches(parser, __VA_ARGS__, (enum Token)-1)
 #endif

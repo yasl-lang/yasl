@@ -27,7 +27,7 @@
   })
 
 struct Compiler {
-    Parser parser;
+    struct Parser parser;
     Env_t *globals;
     Env_t *stack;
     Env_t *params;

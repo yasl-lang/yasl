@@ -13,42 +13,42 @@
 #include "parser.h"
 #include "lexer.h"
 
-static struct Node *parse_program(Parser *const parser);
-static struct Node *parse_const(Parser *const parser);
-static struct Node *parse_let(Parser *const parser);
-static struct Node *parse_fn(Parser *const parser);
-static struct Node *parse_for(Parser *const parser);
-static struct Node *parse_while(Parser *const parser);
-static struct Node *parse_if(Parser *const parser);
-static struct Node *parse_expr(Parser *const parser);
-static struct Node *parse_assign(Parser *const parser, struct Node *cur_node);
-static struct Node *parse_ternary(Parser *const parser);
-static struct Node *parse_undef_or(Parser *const parser);
-static struct Node *parse_or(Parser *const parser);
-static struct Node *parse_and(Parser *const parser);
-static struct Node *parse_bor(Parser *const parser);
-static struct Node *parse_bxor(Parser *const parser);
-static struct Node *parse_band(Parser *const parser);
-static struct Node *parse_equals(Parser *const parser);
-static struct Node *parse_comparator(Parser *const parser);
-static struct Node *parse_concat(Parser *const parser);
-static struct Node *parse_bshift(Parser *const parser);
-static struct Node *parse_add(Parser *const parser);
-static struct Node *parse_multiply(Parser *const parser);
-static struct Node *parse_unary(Parser *const parser);
-static struct Node *parse_power(Parser *const parser);
-static struct Node *parse_call(Parser *const parser);
-static struct Node *parse_constant(Parser *const parser);
-static struct Node *parse_id(Parser *const parser);
-static struct Node *parse_undef(Parser *const parser);
-static struct Node *parse_float(Parser *const parser);
-static struct Node *parse_integer(Parser *const parser);
-static struct Node *parse_boolean(Parser *const parser);
-static struct Node *parse_string(Parser *const parser);
-static struct Node *parse_table(Parser *const parser);
-static struct Node *parse_collection(Parser *const parser);
+static struct Node *parse_program(struct Parser *const parser);
+static struct Node *parse_const(struct Parser *const parser);
+static struct Node *parse_let(struct Parser *const parser);
+static struct Node *parse_fn(struct Parser *const parser);
+static struct Node *parse_for(struct Parser *const parser);
+static struct Node *parse_while(struct Parser *const parser);
+static struct Node *parse_if(struct Parser *const parser);
+static struct Node *parse_expr(struct Parser *const parser);
+static struct Node *parse_assign(struct Parser *const parser, struct Node *cur_node);
+static struct Node *parse_ternary(struct Parser *const parser);
+static struct Node *parse_undef_or(struct Parser *const parser);
+static struct Node *parse_or(struct Parser *const parser);
+static struct Node *parse_and(struct Parser *const parser);
+static struct Node *parse_bor(struct Parser *const parser);
+static struct Node *parse_bxor(struct Parser *const parser);
+static struct Node *parse_band(struct Parser *const parser);
+static struct Node *parse_equals(struct Parser *const parser);
+static struct Node *parse_comparator(struct Parser *const parser);
+static struct Node *parse_concat(struct Parser *const parser);
+static struct Node *parse_bshift(struct Parser *const parser);
+static struct Node *parse_add(struct Parser *const parser);
+static struct Node *parse_multiply(struct Parser *const parser);
+static struct Node *parse_unary(struct Parser *const parser);
+static struct Node *parse_power(struct Parser *const parser);
+static struct Node *parse_call(struct Parser *const parser);
+static struct Node *parse_constant(struct Parser *const parser);
+static struct Node *parse_id(struct Parser *const parser);
+static struct Node *parse_undef(struct Parser *const parser);
+static struct Node *parse_float(struct Parser *const parser);
+static struct Node *parse_integer(struct Parser *const parser);
+static struct Node *parse_boolean(struct Parser *const parser);
+static struct Node *parse_string(struct Parser *const parser);
+static struct Node *parse_table(struct Parser *const parser);
+static struct Node *parse_collection(struct Parser *const parser);
 
-int peof(const Parser *const parser) {
+int peof(const struct Parser *const parser) {
 	return parser->lex.type == T_EOF;
 }
 
@@ -65,15 +65,15 @@ static inline int tok_isaugmented(const enum Token t) {
 	       t == T_DQMARKEQ;
 }
 
-static inline enum Token curtok(const Parser *const parser) {
+static inline enum Token curtok(const struct Parser *const parser) {
 	return parser->lex.type;
 }
 
-void parser_cleanup(Parser *const parser) {
+void parser_cleanup(struct Parser *const parser) {
 	lex_cleanup(&parser->lex);
 }
 
-static struct Node *handle_error(Parser *const parser) {
+static struct Node *handle_error(struct Parser *const parser) {
 	parser->status = YASL_SYNTAX_ERROR;
 	free(parser->lex.value);
 	while (curtok(parser) != T_SEMI) {
@@ -83,7 +83,7 @@ static struct Node *handle_error(Parser *const parser) {
 	return NULL;
 }
 
-enum Token eattok(Parser *const parser, const enum Token token) {
+enum Token eattok(struct Parser *const parser, const enum Token token) {
 	if (curtok(parser) != token) {
 		if (curtok(parser) == T_UNKNOWN) {
 			parser->status = parser->lex.status;
@@ -102,11 +102,11 @@ enum Token eattok(Parser *const parser, const enum Token token) {
 	return token;
 }
 
-struct Node *parse(Parser *const parser) {
+struct Node *parse(struct Parser *const parser) {
 	return parse_program(parser);
 }
 
-struct Node *parse_assign_or_exprstmt(Parser *const parser) {
+struct Node *parse_assign_or_exprstmt(struct Parser *const parser) {
 	size_t line = parser->lex.line;
 	struct Node *expr = parse_expr(parser);
 
@@ -117,7 +117,7 @@ struct Node *parse_assign_or_exprstmt(Parser *const parser) {
 	return new_ExprStmt(expr, line);
 }
 
-static struct Node *parse_program(Parser *const parser) {
+static struct Node *parse_program(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("parsing statement in line %zd\n", parser->lex.line);
 	size_t line;
 	switch (curtok(parser)) {
@@ -162,7 +162,7 @@ static struct Node *parse_program(Parser *const parser) {
 	}
 }
 
-static struct Node *parse_body(Parser *const parser) {
+static struct Node *parse_body(struct Parser *const parser) {
 	eattok(parser, T_LBRC);
 	struct Node *body = new_Body(parser->lex.line);
 	while (curtok(parser) != T_RBRC && curtok(parser) != T_EOF) {
@@ -173,7 +173,7 @@ static struct Node *parse_body(Parser *const parser) {
 	return body;
 }
 
-static struct Node *parse_function_params(Parser *const parser) {
+static struct Node *parse_function_params(struct Parser *const parser) {
 	struct Node *block = new_Body(parser->lex.line);
 	while (TOKEN_MATCHES(parser, T_ID, T_CONST)) {
 		if (TOKEN_MATCHES(parser, T_ID)) {
@@ -190,7 +190,7 @@ static struct Node *parse_function_params(Parser *const parser) {
 	return block;
 }
 
-static struct Node *parse_fn(Parser *const parser) {
+static struct Node *parse_fn(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("parsing fn in line %zd\n", parser->lex.line);
 	eattok(parser, T_FN);
 	size_t line = parser->lex.line;
@@ -226,7 +226,7 @@ static struct Node *parse_fn(Parser *const parser) {
 	return new_Let(name, name_len, new_FnDecl(block, body, name2, name_len, parser->lex.line), line);
 }
 
-static struct Node *parse_const(Parser *const parser) {
+static struct Node *parse_const(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("parsing const in line %zd\n", parser->lex.line);
 	eattok(parser, T_CONST);
 	char *name = parser->lex.value;
@@ -254,7 +254,7 @@ static struct Node *parse_const(Parser *const parser) {
 	return new_Const(name, name_len, expr, line);
 }
 
-static struct Node *parse_let(Parser *const parser) {
+static struct Node *parse_let(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("parsing let in line %zd\n", parser->lex.line);
 	eattok(parser, T_LET);
 	char *name = parser->lex.value;
@@ -266,7 +266,7 @@ static struct Node *parse_let(Parser *const parser) {
 	return new_Let(name, name_len, expr, line);
 }
 
-static struct Node *parse_let_iterate_or_let(Parser *const parser) {
+static struct Node *parse_let_iterate_or_let(struct Parser *const parser) {
 	if (curtok(parser) == T_LET) {
 		return parse_let(parser);
 	} else {
@@ -280,7 +280,7 @@ static struct Node *parse_let_iterate_or_let(Parser *const parser) {
 	}
 }
 
-static struct Node *parse_iterate(Parser *const parser) {
+static struct Node *parse_iterate(struct Parser *const parser) {
 	size_t line = parser->lex.line;
 	struct Node *var = parse_id(parser);
 	eattok(parser, T_LEFT_ARR);
@@ -288,7 +288,7 @@ static struct Node *parse_iterate(Parser *const parser) {
 	return new_LetIter(var, collection, line);
 }
 
-static struct Node *parse_for(Parser *const parser) {
+static struct Node *parse_for(struct Parser *const parser) {
 	eattok(parser, T_FOR);
 
 	struct Node *iter = parse_let_iterate_or_let(parser);
@@ -310,7 +310,7 @@ static struct Node *parse_for(Parser *const parser) {
 	}
 }
 
-static struct Node *parse_while(Parser *const parser) {
+static struct Node *parse_while(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("parsing while in line %zd\n", parser->lex.line);
 	eattok(parser, T_WHILE);
 	struct Node *cond = parse_expr(parser);
@@ -318,7 +318,7 @@ static struct Node *parse_while(Parser *const parser) {
 	return new_While(cond, body, NULL, parser->lex.line);
 }
 
-static struct Node *parse_if(Parser *const parser) {
+static struct Node *parse_if(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("parsing if in line %zd\n", parser->lex.line);
 	if (curtok(parser) == T_IF) eattok(parser, T_IF);
 	else if (curtok(parser) == T_ELSEIF) eattok(parser, T_ELSEIF);
@@ -348,7 +348,7 @@ static struct Node *parse_if(Parser *const parser) {
 
 }
 
-static struct Node *parse_expr(Parser *const parser) {
+static struct Node *parse_expr(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("%s\n", "parsing expression.");
 	struct Node *node = parse_ternary(parser);
 	if (node)
@@ -356,7 +356,7 @@ static struct Node *parse_expr(Parser *const parser) {
 	return node;
 }
 
-static struct Node *parse_assign(Parser *const parser, struct Node *cur_node) {
+static struct Node *parse_assign(struct Parser *const parser, struct Node *cur_node) {
 	YASL_PARSE_DEBUG_LOG("parsing = in line %zd\n", parser->lex.line);
 	// struct Node *cur_node = parse_ternary(parser);
 	size_t line = parser->lex.line;
@@ -405,7 +405,7 @@ static struct Node *parse_assign(Parser *const parser, struct Node *cur_node) {
 	return cur_node;
 }
 
-static struct Node *parse_ternary(Parser *const parser) {
+static struct Node *parse_ternary(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("parsing ?: in line %zd\n", parser->lex.line);
 	struct Node *cur_node = parse_undef_or(parser);
 	if (curtok(parser) == T_QMARK) {
@@ -420,7 +420,7 @@ static struct Node *parse_ternary(Parser *const parser) {
 
 
 #define BINOP_R(name, next, msg, ...)\
-static struct Node *parse_##name(Parser *const parser) {\
+static struct Node *parse_##name(struct Parser *const parser) {\
         YASL_PARSE_DEBUG_LOG("parsing " msg " in line %zd\n", parser->lex.line);\
         struct Node *cur_node = parse_##next(parser);\
         if (TOKEN_MATCHES(parser, __VA_ARGS__)) {\
@@ -431,7 +431,7 @@ static struct Node *parse_##name(Parser *const parser) {\
 }
 
 #define BINOP_L(name, next, msg, ...) \
-static struct Node *parse_##name(Parser *const parser) {\
+static struct Node *parse_##name(struct Parser *const parser) {\
         YASL_PARSE_DEBUG_LOG("parsing " msg " in line %zd\n", parser->lex.line);\
         struct Node *cur_node = parse_##next(parser);\
         while (TOKEN_MATCHES(parser, __VA_ARGS__)) {\
@@ -454,7 +454,7 @@ BINOP_L(bshift, add, ">> and <<", T_DGT, T_DLT)
 BINOP_L(add, multiply, "+ and -", T_PLUS, T_MINUS)
 BINOP_L(multiply, unary, "*, %%, / and //", T_STAR, T_DSLASH, T_SLASH, T_MOD)
 
-static struct Node *parse_unary(Parser *const parser) {
+static struct Node *parse_unary(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("parsing !, -, +, ^, len in line %zd\n", parser->lex.line);
 	if (curtok(parser) == T_PLUS || curtok(parser) == T_MINUS || curtok(parser) == T_BANG ||
 	    curtok(parser) == T_CARET || curtok(parser) == T_LEN) {
@@ -465,7 +465,7 @@ static struct Node *parse_unary(Parser *const parser) {
 	}
 }
 
-static struct Node *parse_power(Parser *const parser) {
+static struct Node *parse_power(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("parsing ** in line %zd\n", parser->lex.line);
 	struct Node *cur_node = parse_call(parser);
 	if (TOKEN_MATCHES(parser, T_DSTAR)) {
@@ -475,7 +475,7 @@ static struct Node *parse_power(Parser *const parser) {
 	return cur_node;
 }
 
-static struct Node *parse_call(Parser *const parser) {
+static struct Node *parse_call(struct Parser *const parser) {
 	struct Node *cur_node = parse_constant(parser);
 	while (TOKEN_MATCHES(parser, T_LSQB, T_DOT, T_LPAR, T_RIGHT_ARR)) {
 		if (TOKEN_MATCHES(parser, T_RIGHT_ARR)) {
@@ -541,7 +541,7 @@ static struct Node *parse_call(Parser *const parser) {
 	return cur_node;
 }
 
-static struct Node *parse_constant(Parser *const parser) {
+static struct Node *parse_constant(struct Parser *const parser) {
 	switch (curtok(parser)) {
 	case T_DOT:eattok(parser, T_DOT); {
 		struct Node *cur_node = new_String(parser->lex.value, parser->lex.val_len, parser->lex.line);
@@ -584,7 +584,7 @@ static struct Node *parse_constant(Parser *const parser) {
 	}
 }
 
-static struct Node *parse_id(Parser *const parser) {
+static struct Node *parse_id(struct Parser *const parser) {
 	char *name = parser->lex.value;
 	size_t name_len = parser->lex.val_len;
 	size_t line = parser->lex.line;
@@ -594,7 +594,7 @@ static struct Node *parse_id(Parser *const parser) {
 	return cur_node;
 }
 
-static struct Node *parse_undef(Parser *const parser) {
+static struct Node *parse_undef(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("%s\n", "Parsing undef");
 	struct Node *cur_node = new_Undef(parser->lex.line);
 	eattok(parser, T_UNDEF);
@@ -606,7 +606,7 @@ static yasl_float get_float(char *buffer) {
 	return strtod(buffer, (char **) NULL);
 }
 
-static struct Node *parse_float(Parser *const parser) {
+static struct Node *parse_float(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("%s\n", "Parsing float");
 	struct Node *cur_node = new_Float(get_float(parser->lex.value), parser->lex.line);
 	free(parser->lex.value);
@@ -625,7 +625,7 @@ static yasl_int get_int(char *buffer) {
 	}
 }
 
-static struct Node *parse_integer(Parser *const parser) {
+static struct Node *parse_integer(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("%s\n", "Parsing int");
 	struct Node *cur_node = new_Integer(get_int(parser->lex.value), parser->lex.line);
 	free(parser->lex.value);
@@ -633,7 +633,7 @@ static struct Node *parse_integer(Parser *const parser) {
 	return cur_node;
 }
 
-static struct Node *parse_boolean(Parser *const parser) {
+static struct Node *parse_boolean(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("%s\n", "Parsing bool");
 	struct Node *cur_node = new_Boolean(!strcmp(parser->lex.value, "true"), parser->lex.line);
 	free(parser->lex.value);
@@ -641,7 +641,7 @@ static struct Node *parse_boolean(Parser *const parser) {
 	return cur_node;
 }
 
-static struct Node *parse_string(Parser *const parser) {
+static struct Node *parse_string(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("%s\n", "Parsing str");
 	struct Node *cur_node = new_String(parser->lex.value, parser->lex.val_len, parser->lex.line);
 
@@ -666,7 +666,7 @@ static struct Node *parse_string(Parser *const parser) {
 }
 
 
-static struct Node *parse_table(Parser *const parser) {
+static struct Node *parse_table(struct Parser *const parser) {
 	eattok(parser, T_LBRC);
 	struct Node *keys = new_Body(parser->lex.line);
 
@@ -710,7 +710,7 @@ static struct Node *parse_table(Parser *const parser) {
 
 
 // parse list and table literals
-static struct Node *parse_collection(Parser *const parser) {
+static struct Node *parse_collection(struct Parser *const parser) {
 	eattok(parser, T_LSQB);
 	struct Node *keys = new_Body(parser->lex.line);
 
@@ -751,7 +751,7 @@ static struct Node *parse_collection(Parser *const parser) {
 
 #ifdef _MSC_VER
 // To avoid MSVC _VA_ARGS_ macro expansion bug
-int token_matches(Parser *const parser, ...) {
+int token_matches(struct Parser *const parser, ...) {
     va_list ap;
     int ret = 0;
     va_start(ap, parser);
