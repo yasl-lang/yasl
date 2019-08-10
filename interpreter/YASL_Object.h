@@ -35,6 +35,7 @@
 
 #define YASL_GETFLOAT(v) ((v).value.dval)
 #define YASL_GETINT(v) ((v).value.ival)
+#define YASL_GETNUM(v) (YASL_ISFLOAT(v) ? YASL_GETFLOAT(v) : YASL_GETINT(v))
 #define YASL_GETBOOL(v) ((v).value.ival)
 #define YASL_GETSTR(v) ((v).value.sval)
 #define YASL_GETLIST(v) ((struct YASL_List *)((v).value.uval->data))
@@ -119,10 +120,3 @@ void inc_ref(struct YASL_Object *v);
 void dec_ref(struct YASL_Object *v);
 
 extern const char *YASL_TYPE_NAMES[15];
-
-#define ASSERT_TYPE(vm, expected_type, name) do {\
-                    if ((vm)->stack[(vm)->sp].type != (expected_type)) {\
-                        printf("%s(...) expected first argument of type %s, got %s.\n", \
-                                name, YASL_TYPE_NAMES[expected_type], YASL_TYPE_NAMES[(vm)->stack[(vm)->sp].type] );\
-                    }\
-                } while(0)

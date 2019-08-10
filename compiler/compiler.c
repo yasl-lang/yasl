@@ -924,7 +924,7 @@ static void visit_Undef(struct Compiler *const compiler, const struct Node *cons
 }
 
 static void visit_Float(struct Compiler *const compiler, const struct Node *const node) {
-	double val = node->value.dval;
+	yasl_float val = node->value.dval;
 	if (val == 0.0) {
 		bb_add_byte(compiler->buffer, DCONST_0);
 	} else if (val == 1.0) {

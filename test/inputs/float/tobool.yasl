@@ -1,0 +1,3 @@
+echo math.nan->tobool()
+echo 0.0->tobool()
+echo 1.0->tobool()

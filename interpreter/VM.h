@@ -10,7 +10,6 @@
 #include <string.h>
 #include <math.h>
 
-#define STACK_SIZE 1024
 #define NUM_GLOBALS 256
 #define NUM_TYPES 13                                     // number of builtin types, each needs a vtable
 
@@ -25,6 +24,7 @@
 #define vm_pushlist(vm, l) VM_PUSH(vm, YASL_LIST(l))
 #define vm_pushfn(vm, f) VM_PUSH(vm, YASL_FN(f))
 
+#define vm_popfloat(vm) (YASL_GETFLOAT(vm_pop(vm)))
 #define vm_popint(vm) (YASL_GETINT(vm_pop(vm)))
 #define vm_popstr(vm) (YASL_GETSTR(vm_pop(vm)))
 #define vm_poplist(vm) (YASL_GETLIST(vm_pop(vm)))

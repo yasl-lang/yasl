@@ -1,8 +1,7 @@
 #pragma once
 
-#include "interpreter/refcount.h"
-
 struct YASL_HashTable;
+struct RC;
 
 struct RC_UserData {
 	struct RC *rc;        // DO NOT REARRANGE. RC MUST BE THE FIRST MEMBER OF THIS STRUCT.

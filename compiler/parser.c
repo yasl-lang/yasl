@@ -602,7 +602,7 @@ static struct Node *parse_undef(Parser *const parser) {
 }
 
 static yasl_int get_int(char *buffer);
-static double get_float(char *buffer) {
+static yasl_float get_float(char *buffer) {
 	return strtod(buffer, (char **) NULL);
 }
 

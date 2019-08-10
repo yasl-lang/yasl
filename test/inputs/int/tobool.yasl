@@ -1,0 +1,2 @@
+echo 2->tobool()
+echo 0->tobool()
