@@ -63,7 +63,7 @@ void rcht_del(struct RC_UserData *const hashtable) {
 	free(hashtable);
 }
 
-void rcht_del_data(void *const hashtable) {
+void rcht_del_data(void *hashtable) {
         table_del((struct YASL_HashTable *)hashtable);
 }
 

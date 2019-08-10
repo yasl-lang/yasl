@@ -182,7 +182,7 @@ int list_copy(struct YASL_State *S) {
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_List *ls = YASL_GETLIST(vm_pop((struct VM *) S));
-	struct RC_UserData *new_ls = ls_new_sized(ls->size);
+	struct RC_UserData *new_ls = rcls_new_sized(ls->size);
 	struct YASL_List *new_list = (struct YASL_List *) new_ls->data;
 	FOR_LIST(i, elmt, ls) {
 		ls_append(new_list, elmt);
@@ -194,7 +194,7 @@ int list_copy(struct YASL_State *S) {
 
 static struct RC_UserData *list_concat(struct YASL_List *a, struct YASL_List *b) {
 	size_t size = a->count + b->count;
-	struct RC_UserData *ptr = ls_new_sized(size);
+	struct RC_UserData *ptr = rcls_new_sized(size);
 	for (size_t i = 0; i < a->count; i++) {
 		ls_append((struct YASL_List *) ptr->data, (a)->items[i]);
 	}
@@ -313,7 +313,7 @@ int list_slice(struct YASL_State *S) {
 		return -1;
 	}
 
-	struct RC_UserData *new_list = ls_new_sized((size_t) (end - start));
+	struct RC_UserData *new_list = rcls_new_sized((size_t) (end - start));
 
 	for (int64_t i = start; i < end; i++) {
 		ls_append((struct YASL_List *) new_list->data, list->items[i]); // = list->items[i];

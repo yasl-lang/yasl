@@ -199,7 +199,7 @@ int table_keys(struct YASL_State *S) {
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_HashTable *ht = YASL_GETTABLE(vm_pop((struct VM *) S));
-	struct RC_UserData *ls = ls_new();
+	struct RC_UserData *ls = rcls_new();
 	FOR_TABLE(i, item, ht) {
 		ls_append((struct YASL_List *) ls->data, (item->key));
 	}
@@ -214,7 +214,7 @@ int table_values(struct YASL_State *S) {
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_HashTable *ht = YASL_GETTABLE(vm_pop((struct VM *) S));
-	struct RC_UserData *ls = ls_new();
+	struct RC_UserData *ls = rcls_new();
 	FOR_TABLE(i, item, ht) {
 		ls_append((struct YASL_List *) ls->data, (item->value));
 	}

@@ -381,14 +381,14 @@ struct YASL_String *YASL_String_replace_fast(struct YASL_String *str, struct YAS
 	size_t search_len = YASL_String_len(search_str);
 	unsigned char *replace_str_ptr = (unsigned char *) replace_str->str + replace_str->start;
 
-	struct YASL_ByteBuffer *buff = bb_new(YASL_String_len(str));
+	struct YASL_ByteBuffer *buff = YASL_ByteBuffer_new(YASL_String_len(str));
 	size_t i = 0;
 	while (i < str_len) {
 		if (search_len <= str_len - i && memcmp(str_ptr + i, search_str_ptr, search_len) == 0) {
-			bb_extend(buff, replace_str_ptr, YASL_String_len(replace_str));
+			YASL_ByteBuffer_extend(buff, replace_str_ptr, YASL_String_len(replace_str));
 			i += search_len;
 		} else {
-			bb_add_byte(buff, str_ptr[i++]);
+			YASL_ByteBuffer_add_byte(buff, str_ptr[i++]);
 		}
 	}
 
@@ -396,7 +396,7 @@ struct YASL_String *YASL_String_replace_fast(struct YASL_String *str, struct YAS
 	buff->bytes = NULL;
 	size_t count = buff->count;
 
-	bb_del(buff);
+	YASL_ByteBuffer_del(buff);
 	return YASL_String_new_sized_heap(0, count, bytes);
 }
 
@@ -416,7 +416,7 @@ yasl_int YASL_String_count(struct YASL_String *haystack, struct YASL_String *nee
 
 struct RC_UserData *string_split_default(struct YASL_String *haystack) {
 	size_t end = 0, start = 0;
-	struct RC_UserData *result = ls_new();
+	struct RC_UserData *result = rcls_new();
 	while (true) {
 		// printf("end: %d\n", (int)end);
 		while (iswhitespace(*(haystack->str + haystack->start + end)) && end < YASL_String_len(haystack)) {
@@ -439,7 +439,7 @@ struct RC_UserData *string_split_default(struct YASL_String *haystack) {
 struct RC_UserData *YASL_String_split_fast(struct YASL_String *haystack, struct YASL_String *needle) {
 	YASL_ASSERT(YASL_String_len(needle) != 0, "needle must have non-zero length")
 	int64_t end = 0, start = 0;
-	struct RC_UserData *result = ls_new();
+	struct RC_UserData *result = rcls_new();
 	while (end + YASL_String_len(needle) <= YASL_String_len(haystack)) {
 		if (!memcmp(haystack->str + haystack->start + end,
 			    needle->str + needle->start,

@@ -11,7 +11,7 @@ struct YASL_List *list_new_sized(const size_t base_size) {
 	return list;
 }
 
-struct RC_UserData* ls_new_sized(const size_t base_size) {
+struct RC_UserData* rcls_new_sized(const size_t base_size) {
 	struct RC_UserData *ls = (struct RC_UserData *)malloc(sizeof(struct RC_UserData));
 
 	ls->data = list_new_sized(base_size);
@@ -21,8 +21,8 @@ struct RC_UserData* ls_new_sized(const size_t base_size) {
 	return ls;
 }
 
-struct RC_UserData* ls_new(void) {
-	return ls_new_sized(LIST_BASESIZE);
+struct RC_UserData* rcls_new(void) {
+	return rcls_new_sized(LIST_BASESIZE);
 }
 
 void ls_del_data(void *ls) {
@@ -31,7 +31,7 @@ void ls_del_data(void *ls) {
 	free(ls);
 }
 
-void ls_del(struct RC_UserData *const ls) {
+void rcls_del(struct RC_UserData *const ls) {
 	for (size_t i = 0; i < ((struct YASL_List *) ls->data)->count; i++) dec_ref(((struct YASL_List *) ls->data)->items + i);
 	free(((struct YASL_List *) ls->data)->items);
 	free(((struct YASL_List *) ls->data));

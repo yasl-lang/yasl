@@ -129,8 +129,8 @@ int YASL_declglobal(struct YASL_State *S, const char *name) {
 	if (value.type == Y_END) {
 		YASL_COMPILE_DEBUG_LOG("%s\n", "caching string");
 		table_insert_string_int(S->compiler.strings, name, strlen(name), S->compiler.header->count);
-		bb_add_int(S->compiler.header, strlen(name));
-		bb_extend(S->compiler.header, (unsigned char *) name, strlen(name));
+		YASL_ByteBuffer_add_int(S->compiler.header, strlen(name));
+		YASL_ByteBuffer_extend(S->compiler.header, (unsigned char *) name, strlen(name));
 	}
 	/* int64_t index =*/ env_decl_var(S->compiler.globals, name, strlen(name));
 	return YASL_SUCCESS;

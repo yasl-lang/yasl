@@ -471,7 +471,7 @@ static int vm_SLICE(struct VM *vm) {
 		if (start < 0)
 			start = 0;
 
-		struct RC_UserData *new_ls = ls_new();
+		struct RC_UserData *new_ls = rcls_new();
 
 		for (yasl_int i = start; i <end; ++i) {
 			ls_append((struct YASL_List *)new_ls->data, list->items[i]);
@@ -957,7 +957,7 @@ int vm_run(struct VM *vm) {
 			break;
 		}
 		case NEWLIST: {
-			struct RC_UserData *ls = ls_new();
+			struct RC_UserData *ls = rcls_new();
 			while (vm_peek(vm).type != Y_END) {
 				ls_append((struct YASL_List *)ls->data, vm_pop(vm));
 			}
