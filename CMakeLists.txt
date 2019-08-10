@@ -43,7 +43,7 @@ add_executable(YASL
         compiler/parser.c
         compiler/middleend.c
         data-structures/hash_function.c
-        data-structures/YASL_HashTable.c
+        data-structures/YASL_Table.c
         interpreter/bool_methods.c
         interpreter/builtins.c
         interpreter/float_methods.c
@@ -92,7 +92,7 @@ add_executable(YASLTEST
         compiler/ast.c
         compiler/middleend.c
         data-structures/hash_function.c
-        data-structures/YASL_HashTable.c
+        data-structures/YASL_Table.c
         interpreter/yasl_float.c
         interpreter/YASL_Object.c
         data-structures/YASL_ByteBuffer.c
@@ -115,7 +115,7 @@ add_library(yaslapi
         compiler/parser.c
         compiler/middleend.c
         data-structures/hash_function.c
-        data-structures/YASL_HashTable.c
+        data-structures/YASL_Table.c
         interpreter/bool_methods.c
         interpreter/builtins.c
         interpreter/float_methods.c

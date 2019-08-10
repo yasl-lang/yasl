@@ -65,7 +65,7 @@ static void *init_compiler(struct Compiler *compiler) {
 	compiler->params = NULL;
 
 	compiler->num = 0;
-	compiler->strings = table_new();
+	compiler->strings = YASL_Table_new();
 	compiler->buffer = YASL_ByteBuffer_new(16);
 	compiler->header = YASL_ByteBuffer_new(16);
 	compiler->header->count = 16;
@@ -99,7 +99,7 @@ struct Compiler *compiler_new_bb(const char *const buf, const size_t len) {
 
 
 void compiler_tables_del(struct Compiler *compiler) {
-	table_del_string_int(compiler->strings);
+	YASL_Table_del(compiler->strings);
 }
 
 static void compiler_buffers_del(const struct Compiler *const compiler) {
@@ -196,7 +196,7 @@ static void load_var(struct Compiler *const compiler, char *const name, const si
 		YASL_ByteBuffer_add_byte(compiler->buffer, GLOAD_8);
 		YASL_ByteBuffer_add_int(compiler->buffer, compiler->num);
 		YASL_ByteBuffer_add_int(compiler->buffer,
-					table_search_string_int(compiler->strings, name, name_len).value.ival);
+					YASL_Table_search_string_int(compiler->strings, name, name_len).value.ival);
 	} else {
 		YASL_PRINT_ERROR_UNDECLARED_VAR(name, line);
 		handle_error(compiler);
@@ -233,7 +233,7 @@ static void store_var(struct Compiler *const compiler, char *const name, const s
 		YASL_ByteBuffer_add_byte(compiler->buffer, GSTORE_8);
 		YASL_ByteBuffer_add_int(compiler->buffer, compiler->num);
 		YASL_ByteBuffer_add_int(compiler->buffer,
-					table_search_string_int(compiler->strings, name, name_len).value.ival);
+					YASL_Table_search_string_int(compiler->strings, name, name_len).value.ival);
 	} else {
 		YASL_PRINT_ERROR_UNDECLARED_VAR(name, line);
 		handle_error(compiler);
@@ -269,10 +269,10 @@ static void decl_var(struct Compiler *const compiler, char *name, size_t name_le
 			handle_error(compiler);
 		}
 	} else {
-		struct YASL_Object value = table_search_string_int(compiler->strings, name, name_len);
+		struct YASL_Object value = YASL_Table_search_string_int(compiler->strings, name, name_len);
 		if (value.type == Y_END) {
 			YASL_COMPILE_DEBUG_LOG("%s\n", "caching string");
-			table_insert_string_int(compiler->strings, name, name_len, compiler->header->count);
+			YASL_Table_insert_string_int(compiler->strings, name, name_len, compiler->header->count);
 			YASL_ByteBuffer_add_int(compiler->header, name_len);
 			YASL_ByteBuffer_extend(compiler->header, (unsigned char *) name, name_len);
 		}
@@ -454,16 +454,18 @@ static void visit_MethodCall(struct Compiler *const compiler, const struct Node 
 		YASL_ByteBuffer_add_byte(compiler->buffer, INIT_MC_SPECIAL);
 		YASL_ByteBuffer_add_byte(compiler->buffer, index);
 	} else {
-		struct YASL_Object value = table_search_string_int(compiler->strings, node->value.sval.str, node->value.sval.str_len);
+		struct YASL_Object value = YASL_Table_search_string_int(compiler->strings, node->value.sval.str,
+									node->value.sval.str_len);
 		if (value.type == Y_END) {
 			YASL_COMPILE_DEBUG_LOG("%s\n", "caching string");
-			table_insert_string_int(compiler->strings, node->value.sval.str, node->value.sval.str_len, compiler->header->count);
+			YASL_Table_insert_string_int(compiler->strings, node->value.sval.str, node->value.sval.str_len,
+						     compiler->header->count);
 			YASL_ByteBuffer_add_int(compiler->header, node->value.sval.str_len);
 			YASL_ByteBuffer_extend(compiler->header, (unsigned char *) node->value.sval.str,
 					       node->value.sval.str_len);
 		}
 
-		value = table_search_string_int(compiler->strings, node->value.sval.str, node->value.sval.str_len);
+		value = YASL_Table_search_string_int(compiler->strings, node->value.sval.str, node->value.sval.str_len);
 
 		YASL_ByteBuffer_add_byte(compiler->buffer, INIT_MC);
 		YASL_ByteBuffer_add_int(compiler->buffer, compiler->num);
@@ -946,16 +948,18 @@ static void visit_Boolean(struct Compiler *const compiler, const struct Node *co
 }
 
 static void visit_String(struct Compiler *const compiler, const struct Node *const node) {
-	struct YASL_Object value = table_search_string_int(compiler->strings, node->value.sval.str, node->value.sval.str_len);
+	struct YASL_Object value = YASL_Table_search_string_int(compiler->strings, node->value.sval.str,
+								node->value.sval.str_len);
 	if (value.type == Y_END) {
 		YASL_COMPILE_DEBUG_LOG("%s\n", "caching string");
-		table_insert_string_int(compiler->strings, node->value.sval.str, node->value.sval.str_len, compiler->header->count);
+		YASL_Table_insert_string_int(compiler->strings, node->value.sval.str, node->value.sval.str_len,
+					     compiler->header->count);
 		YASL_ByteBuffer_add_int(compiler->header, node->value.sval.str_len);
 		YASL_ByteBuffer_extend(compiler->header, (unsigned char *) node->value.sval.str,
 				       node->value.sval.str_len);
 	}
 
-	value = table_search_string_int(compiler->strings, node->value.sval.str, node->value.sval.str_len);
+	value = YASL_Table_search_string_int(compiler->strings, node->value.sval.str, node->value.sval.str_len);
 
 	enum SpecialStrings index = get_special_string(node);
 	if (index != S_UNKNOWN_STR) {

@@ -74,8 +74,8 @@ void YASL_resetstate_bb(struct YASL_State *S, char *buf, size_t len) {
 	S->compiler.code->count = 0;
 	S->compiler.buffer->count = 0;
 	// S->compiler.header->count = 16;
-	// table_del_string_int(S->compiler.strings);
-	// S->compiler.strings = table_new();
+	// YASL_Table_del_string_int(S->compiler.strings);
+	// S->compiler.strings = YASL_Table_new();
 	if (S->vm.code)	free(S->vm.code);
 	S->vm.code = NULL;
 }
@@ -125,10 +125,10 @@ int YASL_execute(struct YASL_State *S) {
 
 
 int YASL_declglobal(struct YASL_State *S, const char *name) {
-	struct YASL_Object value = table_search_string_int(S->compiler.strings, name, strlen(name));
+	struct YASL_Object value = YASL_Table_search_string_int(S->compiler.strings, name, strlen(name));
 	if (value.type == Y_END) {
 		YASL_COMPILE_DEBUG_LOG("%s\n", "caching string");
-		table_insert_string_int(S->compiler.strings, name, strlen(name), S->compiler.header->count);
+		YASL_Table_insert_string_int(S->compiler.strings, name, strlen(name), S->compiler.header->count);
 		YASL_ByteBuffer_add_int(S->compiler.header, strlen(name));
 		YASL_ByteBuffer_extend(S->compiler.header, (unsigned char *) name, strlen(name));
 	}
@@ -153,10 +153,10 @@ int YASL_setglobal(struct YASL_State *S, const char *name) {
 	// S->vm.globals = realloc(S->vm.globals, num_globals * sizeof(YASL_Object));
 
 	struct YASL_String *string = YASL_String_new_sized(strlen(name), name);
-	struct YASL_Object obj = table_search(S->vm.globals[0], YASL_STR(string));
+	struct YASL_Object obj = YASL_Table_search(S->vm.globals[0], YASL_STR(string));
 	dec_ref(&obj);
 	// inc_ref(S->vm.stack + S->vm.sp);
-	table_insert(S->vm.globals[0], YASL_STR(string), vm_peek((struct VM *) S));
+	YASL_Table_insert(S->vm.globals[0], YASL_STR(string), vm_peek((struct VM *) S));
 	S->vm.sp--;
 //	vm_pop((struct VM *) S);
 	// inc_ref(S->vm.globals + index);
@@ -227,7 +227,7 @@ int YASL_Table_set(struct YASL_Object *table, struct YASL_Object *key, struct YA
 	// TODO: fix this to YASL_isTable(table)
 	if (table->type != Y_TABLE)
 		return YASL_ERROR;
-	table_insert(YASL_GETTABLE(*table), *key, *value);
+	YASL_Table_insert(YASL_GETTABLE(*table), *key, *value);
 
 	return YASL_SUCCESS;
 }

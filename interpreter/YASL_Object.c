@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "data-structures/YASL_HashTable.h"
+#include "data-structures/YASL_Table.h"
 #include "interpreter/userdata.h"
 
 char *float64_to_str(yasl_float d);
@@ -92,7 +92,7 @@ struct YASL_Object *YASL_UserPointer(void *userpointer) {
 	return userptr;
 }
 
-struct YASL_Object *YASL_UserData(void *userdata, int tag, struct YASL_HashTable *mt, void (*destructor)(void *)) {
+struct YASL_Object *YASL_UserData(void *userdata, int tag, struct YASL_Table *mt, void (*destructor)(void *)) {
 	struct YASL_Object *obj = (struct YASL_Object *)malloc(sizeof(struct YASL_Object));
 	obj->type = Y_USERDATA;
 	obj->value.uval = ud_new(userdata, tag, mt, destructor);

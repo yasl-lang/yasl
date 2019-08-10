@@ -39,7 +39,7 @@
 #define YASL_GETBOOL(v) ((v).value.ival)
 #define YASL_GETSTR(v) ((v).value.sval)
 #define YASL_GETLIST(v) ((struct YASL_List *)((v).value.uval->data))
-#define YASL_GETTABLE(v) ((struct YASL_HashTable *)((v).value.uval->data))
+#define YASL_GETTABLE(v) ((struct YASL_Table *)((v).value.uval->data))
 #define YASL_GETUSERDATA(v) ((v).value.uval)
 #define YASL_GETUSERPTR(v) ((v).value.pval)
 #define YASL_GETFN(v) ((v).value.ival)

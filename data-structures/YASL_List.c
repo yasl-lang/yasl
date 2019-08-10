@@ -1,7 +1,7 @@
 #include "YASL_List.h"
 
 #include "interpreter/YASL_Object.h"
-#include "data-structures/YASL_HashTable.h"
+#include "data-structures/YASL_Table.h"
 
 struct YASL_List *list_new_sized(const size_t base_size) {
 	struct YASL_List *list = (struct YASL_List *)malloc(sizeof(struct YASL_List));

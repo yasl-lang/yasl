@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 #include "data-structures/YASL_List.h"
-#include "data-structures/YASL_HashTable.h"
+#include "data-structures/YASL_Table.h"
 
 struct RC *rc_new(void) {
 	struct RC *rc = (struct RC *)malloc(sizeof(struct RC));
