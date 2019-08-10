@@ -1,0 +1,4 @@
+echo collections.table(1, 2, 3, 4)
+echo collections.table(1, 2, 3)
+echo collections.table(.a, .b, 1, .c)
+echo collections.table()
