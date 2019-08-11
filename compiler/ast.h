@@ -31,6 +31,7 @@ typedef enum NodeType {
 	N_PRINT,
 	N_LET,
 	N_CONST,
+	N_DECL,
 	N_TRIOP,
 	N_BINOP,
 	N_UNOP,

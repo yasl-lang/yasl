@@ -753,6 +753,12 @@ static void visit_Const(struct Compiler *const compiler, const struct Node *cons
 	make_const(compiler, node->value.sval.str, node->value.sval.str_len);
 }
 
+static void visit_Decl(struct Compiler *const compiler, const struct Node *const node) {
+	FOR_CHILDREN(i, child, node) {
+		visit(compiler, child);
+	}
+}
+
 static void visit_TriOp(struct Compiler *const compiler, const struct Node *const node) {
 	visit(compiler, node->children[0]);
 
@@ -1010,6 +1016,7 @@ static void (*jumptable[])(struct Compiler *const, const struct Node *const) = {
 	&visit_Print,
 	&visit_Let,
 	&visit_Const,
+	&visit_Decl,
 	&visit_TriOp,
 	&visit_BinOp,
 	&visit_UnOp,
