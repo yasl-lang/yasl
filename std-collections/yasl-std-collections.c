@@ -114,7 +114,7 @@ static int YASL_collections_set_##name(struct YASL_State *S) {\
 \
 	struct YASL_Set *tmp = fn(left, right);\
 \
-	YASL_pushobject(S, YASL_UserData(tmp, T_SET, set_mt, set_del));\
+	YASL_pushobject(S, YASL_UserData(tmp, T_SET, set_mt, YASL_Set_del));\
 	return YASL_SUCCESS;\
 }
 
