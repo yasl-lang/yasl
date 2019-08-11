@@ -30,7 +30,7 @@ static int YASL_collections_list_new(struct YASL_State *S) {
 
 static int YASL_collections_table_new(struct YASL_State *S) {
 	yasl_int i = vm_popint((struct VM *)S);
-	// TODO: error for odd num args
+	// TODO: error for odd num args?
 	if (i % 2 != 0) {
 		vm_pushundef((struct VM *)S);
 	}
@@ -119,11 +119,8 @@ static int YASL_collections_set_##name(struct YASL_State *S) {\
 }
 
 YASL_COLLECTIONS_SET_BINOP(__band, YASL_Set_intersection)
-
 YASL_COLLECTIONS_SET_BINOP(__bor, YASL_Set_union)
-
 YASL_COLLECTIONS_SET_BINOP(__bxor, YASL_Set_symmetric_difference)
-
 YASL_COLLECTIONS_SET_BINOP(__sub, YASL_Set_difference)
 
 static int YASL_collections_set___len(struct YASL_State *S) {
