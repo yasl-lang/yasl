@@ -422,8 +422,8 @@ static int vm_CNCT(struct VM *vm) {
 int vm_stringify_top(struct VM *vm) {
 	enum YASL_Types index = VM_PEEK(vm, vm->sp).type;
 	if (YASL_ISFN(VM_PEEK(vm, vm->sp)) || YASL_ISCFN(VM_PEEK(vm, vm->sp))) {
-		int n;	  
-		char *buffer = (char *)malloc(n = snprintf(NULL, 0, "<fn: %d>", (int)vm_peek(vm).value.ival) + 1);
+		size_t n = (size_t)snprintf(NULL, 0, "<fn: %d>", (int)YASL_GETINT(vm_peek(vm))) + 1;
+		char *buffer = (char *)malloc(n);
 		snprintf(buffer, n, "<fn: %d>", (int)vm_pop(vm).value.ival);
 		vm_pushstr(vm, YASL_String_new_sized_heap(0, strlen(buffer), buffer));
 	} else if (YASL_ISUSERDATA(VM_PEEK(vm, vm->sp))) {
@@ -517,7 +517,7 @@ static int vm_GET(struct VM *vm) {
 		if (!table___get((struct YASL_State *) vm)) {
 			return YASL_SUCCESS;
 		}
-	} else if (YASL_ISSTR(vm_peek(vm)) && VM_PEEK(vm, vm->sp + 1).type == Y_INT) {
+	} else if (YASL_ISSTR(vm_peek(vm)) && YASL_ISINT(VM_PEEK(vm, vm->sp + 1))) {
 		vm->sp++;
 		if (!str___get((struct YASL_State *) vm)) {
 			return YASL_SUCCESS;
