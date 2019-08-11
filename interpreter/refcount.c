@@ -104,7 +104,7 @@ void dec_strong_ref(struct YASL_Object *v) {
 		break;
 	/* case Y_LIST:
 		if (--(v->value.uval->rc->refs)) return;
-		ls_del_data(v->value.uval);
+		YASL_List_del_data(v->value.uval);
 		if (v->value.uval->rc->weak_refs) return;
 		ls_del_rc(v->value.uval);
 		break;

@@ -474,7 +474,7 @@ static int vm_SLICE(struct VM *vm) {
 		struct RC_UserData *new_ls = rcls_new();
 
 		for (yasl_int i = start; i <end; ++i) {
-			ls_append((struct YASL_List *)new_ls->data, list->items[i]);
+			YASL_List_append((struct YASL_List *) new_ls->data, list->items[i]);
 		}
 		VM_PUSH(vm, YASL_LIST(new_ls));
 		return YASL_SUCCESS;
@@ -959,9 +959,9 @@ int vm_run(struct VM *vm) {
 		case NEWLIST: {
 			struct RC_UserData *ls = rcls_new();
 			while (vm_peek(vm).type != Y_END) {
-				ls_append((struct YASL_List *)ls->data, vm_pop(vm));
+				YASL_List_append((struct YASL_List *) ls->data, vm_pop(vm));
 			}
-			ls_reverse((struct YASL_List *)ls->data);
+			YASL_reverse((struct YASL_List *) ls->data);
 			vm_pop(vm);
 			VM_PUSH(vm, YASL_LIST(ls));
 			break;

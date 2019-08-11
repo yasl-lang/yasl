@@ -14,12 +14,12 @@ struct YASL_List {
 	struct YASL_Object *items;
 };
 
-struct YASL_List *list_new_sized(const size_t base_size);
-void ls_del_data(void *ls);
-void ls_insert(struct YASL_List *const ls, const int64_t index, struct YASL_Object value);
-void ls_append(struct YASL_List *const ls, struct YASL_Object value);
-struct YASL_Object ls_search(const struct YASL_List *const ls, const int64_t index);
-void ls_reverse(struct YASL_List *const ls);
+struct YASL_List *YASL_List_new_sized(const size_t base_size);
+void YASL_List_del_data(void *ls);
+void YASL_List_insert(struct YASL_List *const ls, const int64_t index, struct YASL_Object value);
+void YASL_List_append(struct YASL_List *const ls, struct YASL_Object value);
+struct YASL_Object YASL_List_search(const struct YASL_List *const ls, const int64_t index);
+void YASL_reverse(struct YASL_List *const ls);
 
 struct RC_UserData *rcls_new(void);
 struct RC_UserData* rcls_new_sized(const size_t base_size);

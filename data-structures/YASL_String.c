@@ -429,7 +429,7 @@ struct RC_UserData *string_split_default(struct YASL_String *haystack) {
 		}
 		struct YASL_Object to = YASL_STR(
 			YASL_String_new_substring(start + haystack->start, end + haystack->start, haystack));
-		ls_append((struct YASL_List *)result->data, to);
+		YASL_List_append((struct YASL_List *) result->data, to);
 	}
 
 	return result;
@@ -446,7 +446,7 @@ struct RC_UserData *YASL_String_split_fast(struct YASL_String *haystack, struct 
 			    YASL_String_len(needle))) {
 			struct YASL_Object to = YASL_STR(
 				YASL_String_new_substring(start + haystack->start, end + haystack->start, haystack));
-			ls_append((struct YASL_List *)result->data, to);
+			YASL_List_append((struct YASL_List *) result->data, to);
 			end += YASL_String_len(needle);
 			start = end;
 		} else {
@@ -455,7 +455,7 @@ struct RC_UserData *YASL_String_split_fast(struct YASL_String *haystack, struct 
 	}
 	struct YASL_Object to = YASL_STR(
 		YASL_String_new_substring(start + haystack->start, end + haystack->start, haystack));
-	ls_append((struct YASL_List *)result->data, to);
+	YASL_List_append((struct YASL_List *) result->data, to);
 
 	return result;
 }

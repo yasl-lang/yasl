@@ -201,7 +201,7 @@ int table_keys(struct YASL_State *S) {
 	struct YASL_Table *ht = YASL_GETTABLE(vm_pop((struct VM *) S));
 	struct RC_UserData *ls = rcls_new();
 	FOR_TABLE(i, item, ht) {
-		ls_append((struct YASL_List *) ls->data, (item->key));
+			YASL_List_append((struct YASL_List *) ls->data, (item->key));
 	}
 
 	VM_PUSH((struct VM *) S, YASL_LIST(ls));
@@ -216,7 +216,7 @@ int table_values(struct YASL_State *S) {
 	struct YASL_Table *ht = YASL_GETTABLE(vm_pop((struct VM *) S));
 	struct RC_UserData *ls = rcls_new();
 	FOR_TABLE(i, item, ht) {
-		ls_append((struct YASL_List *) ls->data, (item->value));
+			YASL_List_append((struct YASL_List *) ls->data, (item->value));
 	}
 	VM_PUSH((struct VM *) S, YASL_LIST(ls));
 	return YASL_SUCCESS;
