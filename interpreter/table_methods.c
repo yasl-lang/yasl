@@ -42,7 +42,7 @@ int table___set(struct YASL_State *S) {
 }
 
 int object_tostr(struct YASL_State *S) {
-	YASL_Types index = VM_PEEK((struct VM *) S, S->vm.sp).type;
+	enum YASL_Types index = VM_PEEK((struct VM *) S, S->vm.sp).type;
 	struct YASL_Object key = YASL_STR(YASL_String_new_sized(strlen("tostr"), "tostr"));
 	struct YASL_Object result = YASL_Table_search(S->vm.builtins_htable[index], key);
 	str_del(YASL_GETSTR(key));

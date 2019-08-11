@@ -1,11 +1,9 @@
-#include <interpreter/VM.h>
 #include "yasl-std-collections.h"
-#include "data-structures/YASL_Set.h"
 
-#define YASL_SET (-4)
+#include "data-structures/YASL_Set.h"
+#include "interpreter/VM.h"
 
 static struct YASL_Table *set_mt = NULL;
-
 
 static int YASL_collections_set_new(struct YASL_State *S) {
 	struct YASL_Set *set = set_new();
@@ -13,7 +11,7 @@ static int YASL_collections_set_new(struct YASL_State *S) {
 	while (i-- > 0) {
 		set_insert(set, vm_pop((struct VM *)S));
 	}
-	struct YASL_Object *obj = YASL_UserData(set, YASL_SET, set_mt, set_del);
+	struct YASL_Object *obj = YASL_UserData(set, T_SET, set_mt, set_del);
 	vm_push((struct VM *)S, *obj);
 	free(obj);
 	return YASL_SUCCESS;
@@ -47,12 +45,11 @@ static int YASL_collections_table_new(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
-
 static int YASL_collections_set_tostr(struct YASL_State *S) {
 	struct YASL_Object *set_obj = YASL_popobject(S);
 
 	struct YASL_Set *set;
-	if (YASL_isuserdata(set_obj, YASL_SET) == YASL_SUCCESS) {
+	if (YASL_isuserdata(set_obj, T_SET) == YASL_SUCCESS) {
 		set = (struct YASL_Set *)YASL_UserData_getdata(set_obj);
 	} else {
 		return -1;
@@ -100,7 +97,7 @@ static int YASL_collections_set_##name(struct YASL_State *S) {\
 	struct YASL_Object *right_obj = YASL_popobject(S);\
 \
 	struct YASL_Set *right;\
-	if (YASL_isuserdata(right_obj, YASL_SET) == YASL_SUCCESS) {\
+	if (YASL_isuserdata(right_obj, T_SET) == YASL_SUCCESS) {\
 		right = (struct YASL_Set *)YASL_UserData_getdata(right_obj);\
 	} else {\
 		return -1;\
@@ -109,7 +106,7 @@ static int YASL_collections_set_##name(struct YASL_State *S) {\
 	struct YASL_Object *left_obj = YASL_popobject(S);\
 \
 	struct YASL_Set *left;\
-	if (YASL_isuserdata(left_obj, YASL_SET) == YASL_SUCCESS) {\
+	if (YASL_isuserdata(left_obj, T_SET) == YASL_SUCCESS) {\
 		left = (struct YASL_Set *)YASL_UserData_getdata(left_obj);\
 	} else {\
 		return -1;\
@@ -117,7 +114,7 @@ static int YASL_collections_set_##name(struct YASL_State *S) {\
 \
 	struct YASL_Set *tmp = fn(left, right);\
 \
-	YASL_pushobject(S, YASL_UserData(tmp, YASL_SET, set_mt, set_del));\
+	YASL_pushobject(S, YASL_UserData(tmp, T_SET, set_mt, set_del));\
 	return YASL_SUCCESS;\
 }
 
@@ -130,7 +127,7 @@ static int YASL_collections_set___len(struct YASL_State *S) {
 	struct YASL_Object *set_obj = YASL_popobject(S);
 
 	struct YASL_Set *set;
-	if (YASL_isuserdata(set_obj, YASL_SET) == YASL_SUCCESS) {
+	if (YASL_isuserdata(set_obj, T_SET) == YASL_SUCCESS) {
 		set = (struct YASL_Set *)YASL_UserData_getdata(set_obj);
 	} else {
 		return -1;
@@ -151,7 +148,7 @@ static int YASL_collections_set_add(struct YASL_State *S) {
 	struct YASL_Object left_obj = vm_peek((struct VM *)S);
 
 	struct YASL_Set *left;
-	if (YASL_isuserdata(&left_obj, YASL_SET) == YASL_SUCCESS) {
+	if (YASL_isuserdata(&left_obj, T_SET) == YASL_SUCCESS) {
 		left = (struct YASL_Set *)YASL_UserData_getdata(&left_obj);
 	} else {
 		return -1;
@@ -173,7 +170,7 @@ static int YASL_collections_set_remove(struct YASL_State *S) {
 	struct YASL_Object left_obj = vm_pop((struct VM *)S);
 
 	struct YASL_Set *left;
-	if (YASL_isuserdata(&left_obj, YASL_SET) == YASL_SUCCESS) {
+	if (YASL_isuserdata(&left_obj, T_SET) == YASL_SUCCESS) {
 		left = (struct YASL_Set *)YASL_UserData_getdata(&left_obj);
 	} else {
 		return -1;
@@ -188,7 +185,7 @@ static int YASL_collections_set_remove(struct YASL_State *S) {
 static int YASL_collections_set_copy(struct YASL_State *S) {
 	struct YASL_Object *set_obj = YASL_popobject(S);
 	struct YASL_Set *set;
-	if (YASL_isuserdata(set_obj, YASL_SET) == YASL_SUCCESS) {
+	if (YASL_isuserdata(set_obj, T_SET) == YASL_SUCCESS) {
 		set = (struct YASL_Set *)YASL_UserData_getdata(set_obj);
 	} else {
 		return -1;
@@ -199,14 +196,14 @@ static int YASL_collections_set_copy(struct YASL_State *S) {
 		set_insert(tmp, *item);
 	}
 
-	YASL_pushobject(S, YASL_UserData(tmp, YASL_SET, set_mt, set_del));
+	YASL_pushobject(S, YASL_UserData(tmp, T_SET, set_mt, set_del));
 	return YASL_SUCCESS;
 }
 
 static int YASL_collections_set_clear(struct YASL_State *S) {
 	struct YASL_Object set_obj = vm_peek((struct VM *)S);
 	struct YASL_Set *set;
-	if (YASL_isuserdata(&set_obj, YASL_SET) == YASL_SUCCESS) {
+	if (YASL_isuserdata(&set_obj, T_SET) == YASL_SUCCESS) {
 		set = (struct YASL_Set *)YASL_UserData_getdata(&set_obj);
 	} else {
 		return -1;
@@ -223,7 +220,7 @@ static int YASL_collections_set_contains(struct YASL_State *S) {
 	struct YASL_Object *object = YASL_popobject(S);
 	struct YASL_Object *set_obj = YASL_popobject(S);
 	struct YASL_Set *set;
-	if (YASL_isuserdata(set_obj, YASL_SET) == YASL_SUCCESS) {
+	if (YASL_isuserdata(set_obj, T_SET) == YASL_SUCCESS) {
 		set = (struct YASL_Set *)YASL_UserData_getdata(set_obj);
 	} else {
 		return -1;

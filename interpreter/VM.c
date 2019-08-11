@@ -420,7 +420,7 @@ static int vm_CNCT(struct VM *vm) {
 }
 
 int vm_stringify_top(struct VM *vm) {
-	YASL_Types index = VM_PEEK(vm, vm->sp).type;
+	enum YASL_Types index = VM_PEEK(vm, vm->sp).type;
 	if (YASL_ISFN(VM_PEEK(vm, vm->sp)) || YASL_ISCFN(VM_PEEK(vm, vm->sp))) {
 		int n;	  
 		char *buffer = (char *)malloc(n = snprintf(NULL, 0, "<fn: %d>", (int)vm_peek(vm).value.ival) + 1);

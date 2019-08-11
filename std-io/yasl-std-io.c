@@ -3,8 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#define YASL_FILE (-3)
-
 static struct YASL_Table *mt;
 
 static int YASL_io_open(struct YASL_State *S) {
@@ -61,7 +59,7 @@ static int YASL_io_open(struct YASL_State *S) {
 			return -1;
 		}
 	}
-	struct YASL_Object *ud = f ? YASL_UserData(f, YASL_FILE, mt, NULL) : YASL_Undef();
+	struct YASL_Object *ud = f ? YASL_UserData(f, T_FILE, mt, NULL) : YASL_Undef();
 	YASL_pushobject(S, ud);
 	free(filename_str);
 	return 0;
@@ -85,7 +83,7 @@ static int YASL_io_read(struct YASL_State *S) {
 	FILE *f;
 
 
-	if (YASL_isuserdata(file, YASL_FILE) == YASL_SUCCESS) {
+	if (YASL_isuserdata(file, T_FILE) == YASL_SUCCESS) {
 		f = (FILE *)YASL_UserData_getdata(file);
 	} else {
 		return -1;
@@ -143,7 +141,7 @@ static int YASL_io_write(struct YASL_State *S) {
 	FILE *f;
 
 
-	if (YASL_isuserdata(file, YASL_FILE) == YASL_SUCCESS) {
+	if (YASL_isuserdata(file, T_FILE) == YASL_SUCCESS) {
 		f = (FILE *)YASL_UserData_getdata(file);
 	} else {
 		return -1;
@@ -164,7 +162,7 @@ static int YASL_io_flush(struct YASL_State *S) {
 	FILE *f;
 
 
-	if (YASL_isuserdata(file, YASL_FILE) == YASL_SUCCESS) {
+	if (YASL_isuserdata(file, T_FILE) == YASL_SUCCESS) {
 		f = (FILE *)YASL_UserData_getdata(file);
 	} else {
 		return -1;
@@ -207,15 +205,15 @@ int YASL_load_io(struct YASL_State *S) {
 
 	YASL_Table_set(io, flush_str, flush_fn);
 
-	struct YASL_Object *stdin_file = YASL_UserData(stdin, YASL_FILE, mt, NULL);
+	struct YASL_Object *stdin_file = YASL_UserData(stdin, T_FILE, mt, NULL);
 	struct YASL_Object *stdin_str = YASL_LiteralString("stdin");
 	YASL_Table_set(io, stdin_str, stdin_file);
 
-	struct YASL_Object *stdout_file = YASL_UserData(stdout, YASL_FILE, mt, NULL);
+	struct YASL_Object *stdout_file = YASL_UserData(stdout, T_FILE, mt, NULL);
 	struct YASL_Object *stdout_str = YASL_LiteralString("stdout");
 	YASL_Table_set(io, stdout_str, stdout_file);
 
-	struct YASL_Object *stderr_file = YASL_UserData(stderr, YASL_FILE, mt, NULL);
+	struct YASL_Object *stderr_file = YASL_UserData(stderr, T_FILE, mt, NULL);
 	struct YASL_Object *stderr_str = YASL_LiteralString("stderr");
 	YASL_Table_set(io, stderr_str, stderr_file);
 
