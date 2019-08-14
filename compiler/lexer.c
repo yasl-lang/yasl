@@ -1,7 +1,10 @@
 #include "lexer.h"
 
-#include "debug.h"
+#include <ctype.h>
+#include <string.h>
+
 #include "compiler/token.h"
+#include "debug.h"
 #include "yasl_error.h"
 #include "yasl_include.h"
 

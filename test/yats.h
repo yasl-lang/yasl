@@ -1,8 +1,10 @@
 #pragma once
 
+#include <string.h>
+
 #include "compiler/lexer.h"
-#include "yasl_include.h"
 #include "opcode.h"
+#include "yasl_include.h"
 
 #define RUN(test) __YASL_TESTS_FAILED__ |= test()
 

@@ -1,76 +1,8 @@
 #pragma once
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
-/* OneCharTokens:
- * LPAREN (
- * RPAREN )
- * LBRACK [
- * RBRACK ]
- * LBRACE {
- * RBRACE }
- * DOT    .
- * CARET  ^
- * PLUS   +
- * MINUS  -
- * HASH   #
- * BANG   !
- * TILDE  ~
- * STAR   *
- * SLASH  /
- * MOD    %
- * LT     <
- * GT     >
- * EQ     =
- * AMP    &
- * BAR    |
- * QMARK  ?
- * COLON  :
- */
-
-/* TwoCharTokens:
- * CARETEQ    ^=
- * PLUSEQ     +=
- * MINUSEQ    -=
- * BANGEQ     !=
- * DEQ        ==
- * TILDEEQ    ~=
- * STAREQ     *=
- * SLASHEQ    /=
- * MODEQ      %=
- * LTLT       <<
- * GTGT       >>
- * LTEQ       <=
- * GTEQ       >=
- * AMPEQ      &=
- * BAREQ      |=
- * DBAR       ||
- * DQMARK     ??
- * RARROW     ->
- * LARROW     <-
- */
-
-/* ThreeCharTokens:
- * DLTEQ    <<=
- * DGTEQ    >>=
- * TEQ      ===
- * BANGDEQ  !==
- * DSLASH   //=
- * DBAREQ   ||=
- * TBAR     |||
- * DQMARKEQ ??=
- */
-
-/* FourCharTokens:
- * TBAREQ   |||=
- */
-
-
 // NOTE: make sure that augmented version of operand is directly after regular version for all operands.
 // parser.c uses this
-// NOTE: keep up to date with array names in lexer.c
+// NOTE: keep up to date with array of names (YASL_TOKEN_NAMES) in lexer.c
 enum Token {
 	T_UNKNOWN = -1,
 	T_EOF,        // END OF FILE

@@ -2,10 +2,6 @@
 
 #include "token.h"
 #include "lexinput.h"
-#include <stdio.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <string.h>
 
 #define  ispotentialend(l) ((l)->type == T_ID || (l)->type == T_STR || \
             (l)->type == T_INT || (l)->type == T_FLOAT || (l)->type == T_BREAK || \
@@ -36,10 +32,10 @@ enum LexerModes {
 };
 
 struct Lexer {
-    struct LEXINPUT *file;     // OWN
+    struct LEXINPUT *file;   // OWN
     char c;
     enum Token type;
-    char *value;    // NOT OWN
+    char *value;             // NOT OWN
     size_t val_len;
     size_t line;
     int status;
