@@ -28,7 +28,7 @@ static void lex_error(struct Lexer *lex) {
 }
 
 int lex_getchar(struct Lexer *lex) {
-	return lex->c = lxgetc(lex->file);
+	return lex->c = (char)lxgetc(lex->file);
 }
 
 
