@@ -52,4 +52,4 @@ void gettok(struct Lexer *lex);
 int lex_eatinterpstringbody(struct Lexer *lex);
 int lex_eatfloatexp(struct Lexer *lex);
 
-extern const char *YASL_TOKEN_NAMES[85];
+extern const char *YASL_TOKEN_NAMES[86];

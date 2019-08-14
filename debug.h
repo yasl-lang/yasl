@@ -26,7 +26,7 @@ enum LogLevel {
 
 //#define YASL_DEBUG
 #ifdef YASL_DEBUG
-#define YASL_ASSERT(expr, msg) do { if (!(expr)) { puts(msg); exit(EXIT_FAILURE); } } while(0)
+#define YASL_ASSERT(expr, msg) do { if (!(expr)) { puts(msg " (line " __LINE__ ".)"); exit(EXIT_FAILURE); } } while(0)
 #else
 #define YASL_ASSERT(expr, msg)
 #endif
