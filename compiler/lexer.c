@@ -31,7 +31,6 @@ int lex_getchar(struct Lexer *lex) {
 	return lex->c = (char)lxgetc(lex->file);
 }
 
-
 void lex_rewind(struct Lexer *lex, int len) {
 	lxseek(lex->file, len - 1, SEEK_CUR);
 	lex_getchar(lex);
@@ -131,41 +130,6 @@ static int lex_eatint(struct Lexer *lex, char separator, int (*isvaliddigit)(int
 	return 1;
 }
 
-/*
-static int lex_eatnotin(struct Lexer *lex) {
-	char c1, c2, c3, c4;
-	c1 = lex->c;
-	if (c1 != '!' || lxeof(lex->file)) {
-		lex_rewind(lex, -1);
-		return 0;
-	}
-
-	c2 = lex_getchar(lex);
-	if (c2 != 'i' || lxeof(lex->file)) {
-		lex_rewind(lex, -2);
-		return 0;
-	}
-
-	c3 = lex_getchar(lex);
-	if (c3 !=  'n' || lxeof(lex->file)) {
-		lex_rewind(lex, -3);
-		return 0;
-	}
-
-	c4 = lex_getchar(lex);
-	if (isyaslid(c4) || lxeof(lex->file)) {
-		lex_rewind(lex, -4);
-		return 0;
-	}
-
-	lex->type = T_BANGIN;
-	return 1;
-
-
-
-}
-*/
-
 static int lex_eatop(struct Lexer *lex) {
 	char c1, c2, c3;
 	enum Token last;
@@ -183,7 +147,7 @@ static int lex_eatop(struct Lexer *lex) {
 	last = YASLToken_ThreeChars(c1, c2, c3);
 	if (last != -1) {
 		lex->type = last;
-		free(lex->value); // = realloc(lex->value, 0);
+		free(lex->value);
 		return 1;
 	}
 	lxseek(lex->file, -1, SEEK_CUR);
@@ -192,7 +156,7 @@ static int lex_eatop(struct Lexer *lex) {
 	last = YASLToken_TwoChars(c1, c2);
 	if (last != -1) {
 		lex->type = last;
-		free(lex->value); // = realloc(lex->value, 0);
+		free(lex->value);
 		return 1;
 	}
 	lxseek(lex->file, -1, SEEK_CUR);
@@ -201,13 +165,13 @@ static int lex_eatop(struct Lexer *lex) {
 	last = YASLToken_OneChar(c1);
 	if (last != -1) {
 		lex->type = last;
-		free(lex->value); // = realloc(lex->value, 0);
+		free(lex->value);
 		return 1;
 	}
 	return 0;
 }
 
-int lex_eatnumber(struct Lexer *lex) {
+static int lex_eatnumber(struct Lexer *lex) {
 	int c1 = lex->c;
 	if (isdigit(c1)) {                          // numbers
 		lex->val_len = 8;
@@ -298,7 +262,7 @@ int lex_eatnumber(struct Lexer *lex) {
 	return 0;
 }
 
-int lex_eatid(struct Lexer *lex) {
+static int lex_eatid(struct Lexer *lex) {
 	int c = lex->c;
 	if (isyaslidstart(c)) {                           // identifiers and keywords
 		lex->val_len = 8;
@@ -329,7 +293,7 @@ int lex_eatid(struct Lexer *lex) {
 	return 0;
 }
 
-int handle_escapes(struct Lexer *lex, size_t *i, char delim) {
+static int handle_escapes(struct Lexer *lex, size_t *i, char delim) {
 	char buffer[9];
 	char tmp;
 	char *end;
@@ -437,7 +401,7 @@ int lex_eatinterpstringbody(struct Lexer *lex) {
 	return 1;
 }
 
-int lex_eatinterpstring(struct Lexer *lex) {
+static int lex_eatinterpstring(struct Lexer *lex) {
 	if (lex->c == INTERP_STR_DELIM) {
 		lex->val_len = 8;
 		lex->value = (char *)realloc(lex->value, lex->val_len);
