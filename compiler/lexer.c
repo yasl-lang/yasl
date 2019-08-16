@@ -20,7 +20,7 @@ static int isbdigit(int c) {
 #define isyaslidstart(c) (isalpha(c) || (c) == '_' || (c) == '$')
 #define isyaslid(c) (isalnum(c) || (c) == '_' || (c) == '$')
 
-static void lex_error(struct Lexer *lex) {
+void lex_error(struct Lexer *lex) {
 	free(lex->value);
 	lex->value = NULL;
 	lex->type = T_UNKNOWN;
