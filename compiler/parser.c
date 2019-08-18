@@ -687,6 +687,10 @@ static struct Node *parse_string(struct Parser *const parser) {
 		cur_node = new_BinOp(T_TILDE, cur_node, expr, parser->lex.line);
 		if (parser->lex.c == '}') {
 			parser->lex.c = lxgetc(parser->lex.file);
+		} else {
+			YASL_PRINT_ERROR("SyntaxError: expected } in line %zd.\n", parser->lex.line);
+			lex_error(&parser->lex);
+			break;
 		}
 		lex_eatinterpstringbody(&parser->lex);
 		struct Node *str = new_String(parser->lex.value, parser->lex.val_len, parser->lex.line);
