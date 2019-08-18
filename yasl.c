@@ -200,8 +200,23 @@ int YASL_pushuserpointer(struct YASL_State *S, void *userpointer) {
 	return YASL_SUCCESS;
 }
 
-int YASL_pushstring(struct YASL_State *S, char *value, const size_t size) {
-	VM_PUSH((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, size, value)));
+int YASL_pushszstring(struct YASL_State *S, const char *value) {
+	vm_pushstr((struct VM *) S, YASL_String_new_sized_heap(0, strlen(value), value));
+	return YASL_SUCCESS;
+}
+
+int YASL_pushlitszstring(struct YASL_State *S, const char *value) {
+	vm_pushstr((struct VM *) S, YASL_String_new_sized(strlen(value), value));
+	return YASL_SUCCESS;
+}
+
+int YASL_pushstring(struct YASL_State *S, const char *value, const size_t size) {
+	vm_pushstr((struct VM *) S, YASL_String_new_sized_heap(0, size, value));
+	return YASL_SUCCESS;
+}
+
+int YASL_pushlitstring(struct YASL_State *S, const char *value, const size_t size) {
+	vm_pushstr((struct VM *) S, YASL_String_new_sized(size, value));
 	return YASL_SUCCESS;
 }
 

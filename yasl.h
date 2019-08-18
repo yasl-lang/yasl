@@ -88,9 +88,16 @@ int YASL_pushboolean(struct YASL_State *S, int value);
  * @param value null-terminated string to be pushed onto the stack.
  * @return 0 on success, else error code.
  */
-int YASL_pushcstring(struct YASL_State *S, char *value);
+int YASL_pushszstring(struct YASL_State *S, const char *value);
 
-int YASL_pushliteralstring(struct YASL_State *S, char *value);
+/**
+ * Pushes a null-terminated string onto the stack. This memory will not
+ * be managed by YASL.
+ * @param S the YASL_State onto which to push the string.
+ * @param value null-terminated string to be pushed onto the stack.
+ * @return 0 on success, else error code.
+ */
+int YASL_pushlitszstring(struct YASL_State *S, const char *value);
 
 /**
  * Pushes a string of given size onto the stack.
@@ -99,7 +106,17 @@ int YASL_pushliteralstring(struct YASL_State *S, char *value);
  * @param size size of string to be pushed onto the stack.
  * @return 0 on success, else error code.
  */
-int YASL_pushstring(struct YASL_State *S, char *value, const size_t size);
+int YASL_pushstring(struct YASL_State *S, const char *value, const size_t size);
+
+/**
+ * Pushes a string of given size onto the stack. This memory will not
+ * be managed by YASL.
+ * @param S the YASL_State onto which to push the string.
+ * @param value string to be pushed onto the stack.
+ * @param size size of string to be pushed onto the stack.
+ * @return 0 on success, else error code.
+ */
+int YASL_pushlitstring(struct YASL_State *S, const char *value, const size_t size);
 
 /**
  * Pushes a function pointer onto the stack
