@@ -4,10 +4,10 @@
 #include "yasl_error.h"
 #include "inttypes.h"
 #include <stdlib.h>
-#include "data-structures/YASL_Table.h"
 
 struct YASL_State;
 struct YASL_Object;
+struct YASL_Table;
 
 /**
  * initialises a new YASL_State for usage, or NULL on failure.
