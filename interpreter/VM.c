@@ -142,9 +142,48 @@ void vm_push(struct VM *const vm, const struct YASL_Object val) {
     inc_ref(vm->stack + vm->sp);
 }
 
+void vm_pushend(struct VM *const vm) {
+	vm_push(vm, YASL_END());
+}
+
+void vm_pushundef(struct VM *const vm) {
+	vm_push(vm, YASL_UNDEF());
+}
+
+void vm_pushfloat(struct VM *const vm, yasl_float f) {
+	vm_push(vm, YASL_FLOAT(f));
+}
+
+void vm_pushint(struct VM *const vm, yasl_int i) {
+	vm_push(vm, YASL_INT(i));
+}
+
+void vm_pushbool(struct VM *const vm, bool b) {
+	vm_push(vm, YASL_BOOL(b));
+}
+
 struct YASL_Object vm_pop(struct VM *const vm) {
     return vm->stack[vm->sp--];
 }
+
+struct YASL_Object vm_pop(struct VM *const vm);
+
+yasl_float vm_popfloat(struct VM *const vm) {
+	return YASL_GETFLOAT(vm_pop(vm));
+}
+
+yasl_int vm_popint(struct VM *const vm) {
+	return YASL_GETINT(vm_pop(vm));
+}
+
+struct YASL_String *vm_popstr(struct VM *const vm) {
+	return YASL_GETSTR(vm_pop(vm));
+}
+
+struct YASL_List *vm_poplist(struct VM *const vm) {
+	return YASL_GETLIST(vm_pop(vm));
+}
+
 
 static yasl_int vm_read_int(struct VM *const vm) {
     yasl_int val;
@@ -445,7 +484,7 @@ int vm_stringify_top(struct VM *vm) {
 }
 
 static int vm_SLICE(struct VM *vm) {
-	if (!YASL_ISINT(VM_PEEK(vm, vm->sp)) || !YASL_ISINT(VM_PEEK(vm, vm->sp - 1))) {
+	if (!vm_isint(vm) || !YASL_ISINT(VM_PEEK(vm, vm->sp - 1))) {
 		YASL_PRINT_ERROR_TYPE("slicing expected range of type int:int, got type %s:%s",
 				      YASL_TYPE_NAMES[VM_PEEK(vm, vm->sp - 1).type],
 				      YASL_TYPE_NAMES[VM_PEEK(vm, vm->sp).type]
@@ -480,7 +519,7 @@ static int vm_SLICE(struct VM *vm) {
 		return YASL_SUCCESS;
 	}
 
-	if (YASL_ISSTR(vm_peek(vm))) {
+	if (vm_isstr(vm)) {
 		struct YASL_String *str = vm_popstr(vm);
 		yasl_int len = YASL_String_len(str);
 		if (end < 0)
@@ -517,7 +556,7 @@ static int vm_GET(struct VM *vm) {
 		if (!table___get((struct YASL_State *) vm)) {
 			return YASL_SUCCESS;
 		}
-	} else if (YASL_ISSTR(vm_peek(vm)) && YASL_ISINT(VM_PEEK(vm, vm->sp + 1))) {
+	} else if (vm_isstr(vm) && YASL_ISINT(VM_PEEK(vm, vm->sp + 1))) {
 		vm->sp++;
 		if (!str___get((struct YASL_State *) vm)) {
 			return YASL_SUCCESS;
@@ -861,7 +900,7 @@ int vm_run(struct VM *vm) {
 			if ((res = vm_fdiv(vm))) return res;   // handled differently because we always convert to float
 			break;
 		case IDIV:
-			if (YASL_ISINT(vm_peek(vm)) && YASL_GETINT(vm_peek(vm)) == 0) {
+			if (vm_isint(vm) && YASL_GETINT(vm_peek(vm)) == 0) {
 				YASL_PRINT_ERROR_DIVIDE_BY_ZERO();
 				return YASL_DIVIDE_BY_ZERO_ERROR;
 				break;
@@ -870,7 +909,7 @@ int vm_run(struct VM *vm) {
 			break;
 		case MOD:
 			// TODO: handle undefined C behaviour for negative numbers.
-			if (YASL_ISINT(vm_peek(vm)) && YASL_GETINT(vm_peek(vm)) == 0) {
+			if (vm_isint(vm) && YASL_GETINT(vm_peek(vm)) == 0) {
 				YASL_PRINT_ERROR_DIVIDE_BY_ZERO();
 				return YASL_DIVIDE_BY_ZERO_ERROR;
 				break;
