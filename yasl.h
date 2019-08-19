@@ -132,6 +132,14 @@ int YASL_pushcfunction(struct YASL_State *S, int (*value)(struct YASL_State *), 
  * @param userpointer the user-pointer to push onto the stack.
  * @return 0 on success, else error code.
  */
+int YASL_pushuserdata(struct YASL_State *S, void *data, int tag, struct YASL_Table *mt, void (*destructor)(void *));
+
+/**
+ * Pushes a user-pointer onto the stack
+ * @param S the YASL_State onto which to push the user-pointer.
+ * @param userpointer the user-pointer to push onto the stack.
+ * @return 0 on success, else error code.
+ */
 int YASL_pushuserpointer(struct YASL_State *S, void *userpointer);
 
 /**
@@ -170,7 +178,10 @@ struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *), int num_ar
  * @param value the value of the key-value pair
  * @return 0 on success, else error code
  */
+YASL_DEPRECATE
 int YASL_Table_set(struct YASL_Object *table, struct YASL_Object *key, struct YASL_Object *value);
+
+int YASL_settable(struct YASL_State *S);
 
 /**
  * Checks if given YASL_Object is undef.

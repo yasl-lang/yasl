@@ -231,7 +231,6 @@ static int YASL_collections_set_contains(struct YASL_State *S) {
 }
 
 int YASL_load_collections(struct YASL_State *S) {
-
 	if (!set_mt) {
 		set_mt = YASL_Table_new();
 		YASL_Table_insert_literalcstring_cfunction(set_mt, "tostr", YASL_collections_set_tostr, 1);
@@ -248,34 +247,27 @@ int YASL_load_collections(struct YASL_State *S) {
 	}
 
 	struct YASL_Object *collections = YASL_Table();
-
-	struct YASL_Object *set_new_str = YASL_LiteralString("set");
-	struct YASL_Object *set_new_fn = YASL_CFunction(YASL_collections_set_new, -1);
-
-	struct YASL_Object *list_new_str = YASL_LiteralString("list");
-	struct YASL_Object *list_new_fn = YASL_CFunction(YASL_collections_list_new, -1);
-
-	struct YASL_Object *table_new_str = YASL_LiteralString("table");
-	struct YASL_Object *table_new_fn = YASL_CFunction(YASL_collections_table_new, -1);
-
-	YASL_Table_set(collections, set_new_str, set_new_fn);
-	YASL_Table_set(collections, list_new_str, list_new_fn);
-	YASL_Table_set(collections, table_new_str, table_new_fn);
-
-	free(set_new_str);
-	free(set_new_fn);
-
-	free(list_new_str);
-	free(list_new_fn);
-
-	free(table_new_str);
-	free(table_new_fn);
-
 	YASL_declglobal(S, "collections");
 	YASL_pushobject(S, collections);
+
+	YASL_pushobject(S, collections);
+	YASL_pushlitszstring(S, "set");
+	YASL_pushcfunction(S, YASL_collections_set_new, -1);
+	YASL_settable(S);
+
+	YASL_pushobject(S, collections);
+	YASL_pushlitszstring(S, "list");
+	YASL_pushcfunction(S, YASL_collections_list_new, -1);
+	YASL_settable(S);
+
+	YASL_pushobject(S, collections);
+	YASL_pushlitszstring(S, "table");
+	YASL_pushcfunction(S, YASL_collections_table_new, -1);
+	YASL_settable(S);
+
 	YASL_setglobal(S, "collections");
 
-	// free(collections);
+	free(collections);
 	return YASL_SUCCESS;
 }
 

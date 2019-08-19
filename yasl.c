@@ -195,6 +195,13 @@ int YASL_pushcstring(struct YASL_State *S, char *value) {
 	return YASL_SUCCESS;
 }
 
+int YASL_pushuserdata(struct YASL_State *S, void *data, int tag, struct YASL_Table *mt, void (*destructor)(void *)) {
+	struct YASL_Object *userdata = YASL_UserData(data, tag, mt, destructor);
+	VM_PUSH(&S->vm, *userdata);
+	free(userdata);
+	return YASL_SUCCESS;
+}
+
 int YASL_pushuserpointer(struct YASL_State *S, void *userpointer) {
 	VM_PUSH((struct VM *) S, YASL_USERPTR(userpointer));
 	return YASL_SUCCESS;
@@ -228,7 +235,7 @@ int YASL_pushcfunction(struct YASL_State *S, int (*value)(struct YASL_State *), 
 int YASL_pushobject(struct YASL_State *S, struct YASL_Object *obj) {
 	if (!obj) return YASL_ERROR;
 	vm_push((struct VM *) S, *obj);
-	free(obj); // TODO: delete properly
+	// free(obj); // TODO: delete properly
 	return YASL_SUCCESS;
 }
 
@@ -243,6 +250,18 @@ int YASL_Table_set(struct YASL_Object *table, struct YASL_Object *key, struct YA
 	if (table->type != Y_TABLE)
 		return YASL_ERROR;
 	YASL_Table_insert(YASL_GETTABLE(*table), *key, *value);
+
+	return YASL_SUCCESS;
+}
+
+int YASL_settable(struct YASL_State *S) {
+	struct YASL_Object value = vm_pop(&S->vm);
+	struct YASL_Object key = vm_pop(&S->vm);
+	struct YASL_Object table = vm_pop(&S->vm);
+
+	if (!YASL_ISTABLE(table))
+		return YASL_ERROR;
+	YASL_Table_insert(YASL_GETTABLE(table), key, value);
 
 	return YASL_SUCCESS;
 }
