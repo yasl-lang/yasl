@@ -182,6 +182,12 @@ struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *), int num_ar
 YASL_DEPRECATE
 int YASL_Table_set(struct YASL_Object *table, struct YASL_Object *key, struct YASL_Object *value);
 
+/**
+ * inserts a key-value pair into the table. The topmost
+ * items is value, then key, then table. All 3 are popped from the stack.
+ * @param S the YASL_State which has the 3 items on top of the stack.
+ * @return 0 on success, else error code
+ */
 int YASL_settable(struct YASL_State *S);
 
 /**
