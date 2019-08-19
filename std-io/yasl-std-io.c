@@ -1,7 +1,10 @@
 #include "yasl-std-io.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
+#include "data-structures/YASL_Table.h"
 
 static struct YASL_Table *mt;
 

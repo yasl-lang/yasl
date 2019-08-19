@@ -2,7 +2,8 @@
 
 #include "yasl_conf.h"
 #include "yasl_error.h"
-#include "inttypes.h"
+
+#include <stdbool.h>
 #include <stdlib.h>
 
 struct YASL_State;
