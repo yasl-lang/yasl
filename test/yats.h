@@ -1,8 +1,10 @@
 #pragma once
 
+#include <string.h>
+
 #include "compiler/lexer.h"
-#include "yasl_include.h"
 #include "opcode.h"
+#include "yasl_include.h"
 
 #define RUN(test) __YASL_TESTS_FAILED__ |= test()
 
@@ -44,6 +46,6 @@
 	}\
 } while(0)
 
-Lexer setup_lexer(const char *file_contents);
+struct Lexer setup_lexer(const char *file_contents);
 unsigned char *setup_compiler(const char *file_contents);
 int64_t getsize(FILE *file);

@@ -2,20 +2,37 @@
 
 #include "yasl_conf.h"
 #include "yasl_error.h"
-#include "inttypes.h"
+
+#include <stdbool.h>
 #include <stdlib.h>
-#include "data-structures/YASL_HashTable.h"
 
 struct YASL_State;
 struct YASL_Object;
+struct YASL_Table;
 
 /**
  * initialises a new YASL_State for usage, or NULL on failure.
+ * @param filename the name of the file used to initialize the state.
  * @return the new YASL_State
  */
 struct YASL_State *YASL_newstate(char *filename);
+
+/**
+ * initialises a new YASL_State for usage, or NULL on failure.
+ * @param buf buffer containing the source code used to initialize
+ * the state.
+ * @param len the length of the buffer.
+ * @return the new YASL_State
+ */
 struct YASL_State *YASL_newstate_bb(char *buf, int len);
 
+/**
+ * resets S to the same state it would be in if newly created using
+ * YASL_newstate_bb.
+ * @param S the YASL_State
+ * @param buf the buffer used to initialize S
+ * @param len the length of buf.
+ */
 void YASL_resetstate_bb(struct YASL_State *S, char *buf, size_t len);
 
 /**
@@ -25,6 +42,12 @@ void YASL_resetstate_bb(struct YASL_State *S, char *buf, size_t len);
  */
 int YASL_delstate(struct YASL_State *S);
 
+/**
+ * compiles the source for the given YASL_State, but doesn't
+ * run it.
+ * @param S the YASL_State containing the YASL source code to be compiled.
+ * @return 0 on success, otherwise an error code.
+ */
 int YASL_compile(struct YASL_State *S);
 
 /**
@@ -88,9 +111,16 @@ int YASL_pushboolean(struct YASL_State *S, int value);
  * @param value null-terminated string to be pushed onto the stack.
  * @return 0 on success, else error code.
  */
-int YASL_pushcstring(struct YASL_State *S, char *value);
+int YASL_pushszstring(struct YASL_State *S, const char *value);
 
-int YASL_pushliteralstring(struct YASL_State *S, char *value);
+/**
+ * Pushes a null-terminated string onto the stack. This memory will not
+ * be managed by YASL.
+ * @param S the YASL_State onto which to push the string.
+ * @param value null-terminated string to be pushed onto the stack.
+ * @return 0 on success, else error code.
+ */
+int YASL_pushlitszstring(struct YASL_State *S, const char *value);
 
 /**
  * Pushes a string of given size onto the stack.
@@ -99,7 +129,17 @@ int YASL_pushliteralstring(struct YASL_State *S, char *value);
  * @param size size of string to be pushed onto the stack.
  * @return 0 on success, else error code.
  */
-int YASL_pushstring(struct YASL_State *S, char *value, const size_t size);
+int YASL_pushstring(struct YASL_State *S, const char *value, const size_t size);
+
+/**
+ * Pushes a string of given size onto the stack. This memory will not
+ * be managed by YASL.
+ * @param S the YASL_State onto which to push the string.
+ * @param value string to be pushed onto the stack.
+ * @param size size of string to be pushed onto the stack.
+ * @return 0 on success, else error code.
+ */
+int YASL_pushlitstring(struct YASL_State *S, const char *value, const size_t size);
 
 /**
  * Pushes a function pointer onto the stack
@@ -115,16 +155,29 @@ int YASL_pushcfunction(struct YASL_State *S, int (*value)(struct YASL_State *), 
  * @param userpointer the user-pointer to push onto the stack.
  * @return 0 on success, else error code.
  */
+int YASL_pushuserdata(struct YASL_State *S, void *data, int tag, struct YASL_Table *mt, void (*destructor)(void *));
+
+/**
+ * Pushes a user-pointer onto the stack
+ * @param S the YASL_State onto which to push the user-pointer.
+ * @param userpointer the user-pointer to push onto the stack.
+ * @return 0 on success, else error code.
+ */
 int YASL_pushuserpointer(struct YASL_State *S, void *userpointer);
 
 /**
  * Pushes an arbitrary YASL_Object onto the stack.
- * @param S the YASL_State onto which to push the user-pointer.
+ * @param S the YASL_State onto which to push the YASL_Object.
  * @param obj the YASL_Object to push onto the stack.
  * @return 0 on succes, else error code.
  */
 int YASL_pushobject(struct YASL_State *S, struct YASL_Object *obj);
 
+/**
+ * pops the top YASL_Object off of the stack.
+ * @param S the YASL_State from which to pop the YASL_Object.
+ * @return a YASL_Object* on succes, else NULL.
+ */
 struct YASL_Object *YASL_popobject(struct YASL_State *S);
 
 /**
@@ -132,15 +185,21 @@ struct YASL_Object *YASL_popobject(struct YASL_State *S);
  * @return the YASL_Table
  */
 struct YASL_Object *YASL_Table(void);
-
+YASL_DEPRECATE
 struct YASL_Object *YASL_Integer(yasl_int value);
+YASL_DEPRECATE
 struct YASL_Object *YASL_Undef(void);
+YASL_DEPRECATE
 struct YASL_Object *YASL_Float(yasl_float value);
+YASL_DEPRECATE
 struct YASL_Object *YASL_Boolean(bool value);
+YASL_DEPRECATE
 struct YASL_Object *YASL_LiteralString(const char *str);
+YASL_DEPRECATE
 struct YASL_Object *YASL_CString(char *str);
+YASL_DEPRECATE
 struct YASL_Object *YASL_UserPointer(void *userdata);
-struct YASL_Object *YASL_UserData(void *userdata, int tag, struct YASL_HashTable *mt, void (*destructor)(void *));
+struct YASL_Object *YASL_UserData(void *userdata, int tag, struct YASL_Table *mt, void (*destructor)(void *));
 int YASL_UserData_gettag(struct YASL_Object *obj);
 void *YASL_UserData_getdata(struct YASL_Object *obj);
 struct YASL_Object *YASL_Function(int64_t index);
@@ -153,7 +212,16 @@ struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *), int num_ar
  * @param value the value of the key-value pair
  * @return 0 on success, else error code
  */
+YASL_DEPRECATE
 int YASL_Table_set(struct YASL_Object *table, struct YASL_Object *key, struct YASL_Object *value);
+
+/**
+ * inserts a key-value pair into the table. The topmost
+ * items is value, then key, then table. All 3 are popped from the stack.
+ * @param S the YASL_State which has the 3 items on top of the stack.
+ * @return 0 on success, else error code
+ */
+int YASL_settable(struct YASL_State *S);
 
 /**
  * Checks if given YASL_Object is undef.
@@ -268,13 +336,6 @@ size_t YASL_getstringlen(struct YASL_Object *obj);
  * @return the string value of the given YASL_Object, or NULL if the YASL_Object doesn't have type string.
  */
 char *YASL_getstring(struct YASL_Object *obj);
-
-/**
- * Retrieves the C function value of the YASL_Object.
- * @param obj the given YASL_Object.
- * @return the C function value of the given YASL_Object, or NULL if the YASL_Object doesn't have type C function.
- */
-//int (*)(struct YASL_State) *YASL_getcfunction(struct YASL_Object *obj);
 
 /**
  * Retrieves the userdata value of the YASL_Object.

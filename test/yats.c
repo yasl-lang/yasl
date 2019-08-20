@@ -4,11 +4,10 @@
 #include "compiler/ast.h"
 #include "compiler/parser.h"
 #include "compiler/compiler.h"
-#include "yats.h"
 #include "test/unit_tests/test_compiler/compilertest.h"
 #include "compiler/lexinput.h"
 
-Lexer setup_lexer(const char *file_contents) {
+struct Lexer setup_lexer(const char *file_contents) {
 	FILE *fptr = fopen("dump.ysl", "w");
 	fwrite(file_contents, 1, strlen(file_contents), fptr);
 	fseek(fptr, 0, SEEK_SET);
@@ -17,7 +16,6 @@ Lexer setup_lexer(const char *file_contents) {
 	struct LEXINPUT *lp = lexinput_new_file(fptr);
 	return NEW_LEXER(lp);
 }
-
 
 unsigned char *setup_compiler(const char *file_contents) {
 	FILE *fptr = fopen("dump.ysl", "w");

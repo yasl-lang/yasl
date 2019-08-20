@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 #include "data-structures/YASL_List.h"
-#include "data-structures/YASL_HashTable.h"
+#include "data-structures/YASL_Table.h"
 
 struct RC *rc_new(void) {
 	struct RC *rc = (struct RC *)malloc(sizeof(struct RC));
@@ -104,7 +104,7 @@ void dec_strong_ref(struct YASL_Object *v) {
 		break;
 	/* case Y_LIST:
 		if (--(v->value.uval->rc->refs)) return;
-		ls_del_data(v->value.uval);
+		YASL_List_del_data(v->value.uval);
 		if (v->value.uval->rc->weak_refs) return;
 		ls_del_rc(v->value.uval);
 		break;

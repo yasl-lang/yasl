@@ -106,7 +106,7 @@ static  int lexinput_bb_eof(struct LEXINPUT *const lp) {
 }
 
 static  int lexinput_bb_close(struct LEXINPUT *const lp) {
-	bb_del(lp->bb);
+	YASL_ByteBuffer_del(lp->bb);
 	lp->bb = 0;
 	free(lp);
 	return 0;
@@ -114,8 +114,8 @@ static  int lexinput_bb_close(struct LEXINPUT *const lp) {
 
 struct LEXINPUT *lexinput_new_bb(const char *const buf, const size_t len) {
 	struct LEXINPUT *lp = (struct LEXINPUT *) malloc(sizeof(struct LEXINPUT));
-	lp->bb = bb_new(8);
-	bb_extend(lp->bb, (unsigned char *) buf, len);
+	lp->bb = YASL_ByteBuffer_new(8);
+	YASL_ByteBuffer_extend(lp->bb, (unsigned char *) buf, len);
 	lp->getc = lexinput_bb_getc;
 	lp->tell = lexinput_bb_tell;
 	lp->seek = lexinput_bb_seek;

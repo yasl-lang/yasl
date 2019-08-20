@@ -15,10 +15,10 @@
 	.stack = NULL,\
 	.params = NULL,\
         .num_locals = 0,	\
-	.strings = table_new(),\
-	.buffer = bb_new(16),\
-	.header = bb_new(16),\
-	.code = bb_new(16),\
+	.strings = YASL_Table_new(),\
+	.buffer = YASL_ByteBuffer_new(16),\
+	.header = YASL_ByteBuffer_new(16),\
+	.code = YASL_ByteBuffer_new(16),\
         .checkpoints = (size_t *)malloc(sizeof(size_t) * 4),\
 	.checkpoints_count = 0,\
 	.checkpoints_size = 4,\
@@ -27,12 +27,12 @@
   })
 
 struct Compiler {
-    Parser parser;
+    struct Parser parser;
     Env_t *globals;
     Env_t *stack;
     Env_t *params;
     size_t num_locals;
-    struct YASL_HashTable *strings;
+    struct YASL_Table *strings;
     struct YASL_ByteBuffer *buffer;
     struct YASL_ByteBuffer *header;
     struct YASL_ByteBuffer *code;

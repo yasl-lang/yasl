@@ -1,7 +1,7 @@
 #pragma once
 
-#include "yasl_conf.h"
 #include "data-structures/YASL_String.h"
+#include "yasl_conf.h"
 
 #define UNDEF_C ((struct YASL_Object){ .type = Y_UNDEF, .value = { .ival = 0 }  })
 #define FALSE_C ((struct YASL_Object){ .type = Y_BOOL, .value = {.ival = 0 }})
@@ -39,45 +39,46 @@
 #define YASL_GETBOOL(v) ((v).value.ival)
 #define YASL_GETSTR(v) ((v).value.sval)
 #define YASL_GETLIST(v) ((struct YASL_List *)((v).value.uval->data))
-#define YASL_GETTABLE(v) ((struct YASL_HashTable *)((v).value.uval->data))
+#define YASL_GETTABLE(v) ((struct YASL_Table *)((v).value.uval->data))
 #define YASL_GETUSERDATA(v) ((v).value.uval)
 #define YASL_GETUSERPTR(v) ((v).value.pval)
 #define YASL_GETFN(v) ((v).value.ival)
 #define YASL_GETCFN(v) ((v).value.cval)
 
 struct YASL_State;
+struct RC_UserData;
 
 enum YASL_Tags {
-        T_TABLE = -1,
-        T_LIST = -2,
-        T_FILE = -3,
+	T_TABLE = -1,
+	T_LIST = -2,
+	T_FILE = -3,
+	T_SET = -4
 };
 
 //Keep up to date with the YASL_TYPE_NAMES
-typedef enum {
-    Y_END = -1,
-    Y_UNDEF,
-    Y_FLOAT,
-    Y_INT,
-    Y_BOOL,
-    Y_STR,
-    Y_STR_W,
-    Y_LIST,
-    Y_LIST_W,
-    Y_TABLE,
-    Y_TABLE_W,
-    Y_FN,
-    Y_CFN,
-    Y_USERPTR,
-    Y_USERDATA,
-    Y_USERDATA_W,
-} YASL_Types;
+enum YASL_Types {
+	Y_END = -1,
+	Y_UNDEF,
+	Y_FLOAT,
+	Y_INT,
+	Y_BOOL,
+	Y_STR,
+	Y_STR_W,
+	Y_LIST,
+	Y_LIST_W,
+	Y_TABLE,
+	Y_TABLE_W,
+	Y_FN,
+	Y_CFN,
+	Y_USERPTR,
+	Y_USERDATA,
+	Y_USERDATA_W,
+};
 
-struct RC_UserData;
 struct CFunction_s {
-    struct RC *rc;
-    int num_args;
-    int (*value)(struct YASL_State *);
+	struct RC *rc;
+	int num_args;
+	int (*value)(struct YASL_State *);
 };
 
 struct CFunction_s *new_cfn(int (*value)(struct YASL_State *), int num_args);
@@ -85,16 +86,16 @@ void cfn_del_rc(struct CFunction_s *cfn);
 void cfn_del_data(struct CFunction_s *cfn);
 
 struct YASL_Object {
-        YASL_Types type;
-        union {
-                yasl_int ival;
-                yasl_float dval;
-                struct YASL_String *sval;
-                struct RC_UserData *uval;
-                struct CFunction_s *cval;
-                unsigned char *fval;
-                void *pval;
-        } value;
+	enum YASL_Types type;
+	union {
+		yasl_int ival;
+		yasl_float dval;
+		struct YASL_String *sval;
+		struct RC_UserData *uval;
+		struct CFunction_s *cval;
+		unsigned char *fval;
+		void *pval;
+	} value;
 };
 
 struct YASL_Object *YASL_Undef(void);

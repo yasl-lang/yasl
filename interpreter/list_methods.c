@@ -172,7 +172,7 @@ int list_push(struct YASL_State *S) {
 		YASL_PRINT_ERROR_BAD_ARG_TYPE("list.push", 0, Y_LIST, vm_peek((struct VM *) S).type);
 		return YASL_TYPE_ERROR;
 	}
-	ls_append(YASL_GETLIST(vm_peek((struct VM *) S)), val);
+	YASL_List_append(YASL_GETLIST(vm_peek((struct VM *) S)), val);
 	return YASL_SUCCESS;
 }
 
@@ -182,10 +182,10 @@ int list_copy(struct YASL_State *S) {
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_List *ls = YASL_GETLIST(vm_pop((struct VM *) S));
-	struct RC_UserData *new_ls = ls_new_sized(ls->size);
+	struct RC_UserData *new_ls = rcls_new_sized(ls->size);
 	struct YASL_List *new_list = (struct YASL_List *) new_ls->data;
 	FOR_LIST(i, elmt, ls) {
-		ls_append(new_list, elmt);
+		YASL_List_append(new_list, elmt);
 	}
 
 	vm_pushlist((struct VM *) S, new_ls);
@@ -194,12 +194,12 @@ int list_copy(struct YASL_State *S) {
 
 static struct RC_UserData *list_concat(struct YASL_List *a, struct YASL_List *b) {
 	size_t size = a->count + b->count;
-	struct RC_UserData *ptr = ls_new_sized(size);
+	struct RC_UserData *ptr = rcls_new_sized(size);
 	for (size_t i = 0; i < a->count; i++) {
-		ls_append((struct YASL_List *) ptr->data, (a)->items[i]);
+		YASL_List_append((struct YASL_List *) ptr->data, (a)->items[i]);
 	}
 	for (size_t i = 0; i < (b)->count; i++) {
-		ls_append((struct YASL_List *) ptr->data, (b)->items[i]);
+		YASL_List_append((struct YASL_List *) ptr->data, (b)->items[i]);
 	}
 
 	return ptr;
@@ -236,7 +236,7 @@ int list_extend(struct YASL_State *S) {
 	struct YASL_List *exls = extend_ls;
 
 	FOR_LIST(i, obj, exls) {
-		ls_append(ls, obj);
+		YASL_List_append(ls, obj);
 	}
 
 	vm_pushundef((struct VM *) S);
@@ -281,7 +281,7 @@ int list_reverse(struct YASL_State *S) {
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_List *ls = vm_poplist((struct VM *) S);
-	ls_reverse(ls);
+	YASL_reverse(ls);
 	vm_pushundef((struct VM *) S);
 	return YASL_SUCCESS;
 }
@@ -313,10 +313,10 @@ int list_slice(struct YASL_State *S) {
 		return -1;
 	}
 
-	struct RC_UserData *new_list = ls_new_sized((size_t) (end - start));
+	struct RC_UserData *new_list = rcls_new_sized((size_t) (end - start));
 
 	for (int64_t i = start; i < end; i++) {
-		ls_append((struct YASL_List *) new_list->data, list->items[i]); // = list->items[i];
+		YASL_List_append((struct YASL_List *) new_list->data, list->items[i]); // = list->items[i];
 		inc_ref(list->items + i);
 	}
 
@@ -365,9 +365,9 @@ int list_join(struct YASL_State *S) {
 	}
 
 	vm_push((struct VM *) S, list->items[0]);
-	YASL_Types index = VM_PEEK((struct VM *) S, S->vm.sp).type;
+	enum YASL_Types index = VM_PEEK((struct VM *) S, S->vm.sp).type;
 	struct YASL_Object key = YASL_STR(YASL_String_new_sized(strlen("tostr"), "tostr"));
-	struct YASL_Object result = table_search(S->vm.builtins_htable[index], key);
+	struct YASL_Object result = YASL_Table_search(S->vm.builtins_htable[index], key);
 	str_del(YASL_GETSTR(key));
 	YASL_GETCFN(result)->value(S);
 	struct YASL_String *str = vm_popstr((struct VM *) S);
@@ -391,9 +391,9 @@ int list_join(struct YASL_State *S) {
 		buffer_count += YASL_String_len(string);
 
 		vm_push((struct VM *) S, list->items[i]);
-		YASL_Types index = VM_PEEK((struct VM *) S, S->vm.sp).type;
+		enum YASL_Types index = VM_PEEK((struct VM *) S, S->vm.sp).type;
 		struct YASL_Object key = YASL_STR(YASL_String_new_sized(strlen("tostr"), "tostr"));
-		struct YASL_Object result = table_search(S->vm.builtins_htable[index], key);
+		struct YASL_Object result = YASL_Table_search(S->vm.builtins_htable[index], key);
 		str_del(YASL_GETSTR(key));
 		YASL_GETCFN(result)->value(S);
 		struct YASL_String *str = vm_popstr((struct VM *) S);

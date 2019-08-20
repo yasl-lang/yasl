@@ -22,6 +22,7 @@ endif()
 if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
     set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-function -Wno-unused-result -Wno-unused-variable -Wno-unused-parameter -Wno-deprecated -Werror")
 endif()
+
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 include_directories(.)
@@ -43,7 +44,7 @@ add_executable(YASL
         compiler/parser.c
         compiler/middleend.c
         data-structures/hash_function.c
-        data-structures/YASL_HashTable.c
+        data-structures/YASL_Table.c
         interpreter/bool_methods.c
         interpreter/builtins.c
         interpreter/float_methods.c
@@ -92,7 +93,7 @@ add_executable(YASLTEST
         compiler/ast.c
         compiler/middleend.c
         data-structures/hash_function.c
-        data-structures/YASL_HashTable.c
+        data-structures/YASL_Table.c
         interpreter/yasl_float.c
         interpreter/YASL_Object.c
         data-structures/YASL_ByteBuffer.c
@@ -115,7 +116,7 @@ add_library(yaslapi
         compiler/parser.c
         compiler/middleend.c
         data-structures/hash_function.c
-        data-structures/YASL_HashTable.c
+        data-structures/YASL_Table.c
         interpreter/bool_methods.c
         interpreter/builtins.c
         interpreter/float_methods.c

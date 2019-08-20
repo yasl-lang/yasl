@@ -1,11 +1,12 @@
 #include "yasl-std-io.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
-#define YASL_FILE (-3)
+#include "data-structures/YASL_Table.h"
 
-static struct YASL_HashTable *mt;
+static struct YASL_Table *mt;
 
 static int YASL_io_open(struct YASL_State *S) {
 	struct YASL_Object *mode = YASL_popobject(S);
@@ -61,8 +62,11 @@ static int YASL_io_open(struct YASL_State *S) {
 			return -1;
 		}
 	}
-	struct YASL_Object *ud = f ? YASL_UserData(f, YASL_FILE, mt, NULL) : YASL_Undef();
-	YASL_pushobject(S, ud);
+	if (f) {
+		YASL_pushuserdata(S, f, T_FILE, mt, NULL);
+	} else {
+		YASL_pushundef(S);
+	}
 	free(filename_str);
 	return 0;
 }
@@ -85,7 +89,7 @@ static int YASL_io_read(struct YASL_State *S) {
 	FILE *f;
 
 
-	if (YASL_isuserdata(file, YASL_FILE) == YASL_SUCCESS) {
+	if (YASL_isuserdata(file, T_FILE) == YASL_SUCCESS) {
 		f = (FILE *)YASL_UserData_getdata(file);
 	} else {
 		return -1;
@@ -143,7 +147,7 @@ static int YASL_io_write(struct YASL_State *S) {
 	FILE *f;
 
 
-	if (YASL_isuserdata(file, YASL_FILE) == YASL_SUCCESS) {
+	if (YASL_isuserdata(file, T_FILE) == YASL_SUCCESS) {
 		f = (FILE *)YASL_UserData_getdata(file);
 	} else {
 		return -1;
@@ -164,7 +168,7 @@ static int YASL_io_flush(struct YASL_State *S) {
 	FILE *f;
 
 
-	if (YASL_isuserdata(file, YASL_FILE) == YASL_SUCCESS) {
+	if (YASL_isuserdata(file, T_FILE) == YASL_SUCCESS) {
 		f = (FILE *)YASL_UserData_getdata(file);
 	} else {
 		return -1;
@@ -178,68 +182,58 @@ static int YASL_io_flush(struct YASL_State *S) {
 }
 
 int YASL_load_io(struct YASL_State *S) {
-  if (!mt) {
-  	mt = table_new();
-    table_insert(mt, YASL_STR(YASL_String_new_sized(strlen("read"), "read")), YASL_CFN(YASL_io_read, 2));
-	  table_insert(mt, YASL_STR(YASL_String_new_sized(strlen("write"), "write")), YASL_CFN(YASL_io_write, 2));
-	  table_insert(mt, YASL_STR(YASL_String_new_sized(strlen("flush"), "flush")), YASL_CFN(YASL_io_flush, 1));
-  }
-  
+	if (!mt) {
+		mt = YASL_Table_new();
+		YASL_Table_insert(mt, YASL_STR(YASL_String_new_sized(strlen("read"), "read")),
+				  YASL_CFN(YASL_io_read, 2));
+		YASL_Table_insert(mt, YASL_STR(YASL_String_new_sized(strlen("write"), "write")),
+				  YASL_CFN(YASL_io_write, 2));
+		YASL_Table_insert(mt, YASL_STR(YASL_String_new_sized(strlen("flush"), "flush")),
+				  YASL_CFN(YASL_io_flush, 1));
+	}
+
 	struct YASL_Object *io = YASL_Table();
-
-	struct YASL_Object *open_str = YASL_LiteralString("open");
-	struct YASL_Object *open_fn = YASL_CFunction(YASL_io_open, 2);
-
-	YASL_Table_set(io, open_str, open_fn);
-
-	struct YASL_Object *read_str = YASL_LiteralString("read");
-	struct YASL_Object *read_fn = YASL_CFunction(YASL_io_read, 2);
-
-	YASL_Table_set(io, read_str, read_fn);
-
-	struct YASL_Object *write_str = YASL_LiteralString("write");
-	struct YASL_Object *write_fn = YASL_CFunction(YASL_io_write, 2);
-
-	YASL_Table_set(io, write_str, write_fn);
-
-	struct YASL_Object *flush_str = YASL_LiteralString("flush");
-	struct YASL_Object *flush_fn = YASL_CFunction(YASL_io_flush, 1);
-
-	YASL_Table_set(io, flush_str, flush_fn);
-
-	struct YASL_Object *stdin_file = YASL_UserData(stdin, YASL_FILE, mt, NULL);
-	struct YASL_Object *stdin_str = YASL_LiteralString("stdin");
-	YASL_Table_set(io, stdin_str, stdin_file);
-
-	struct YASL_Object *stdout_file = YASL_UserData(stdout, YASL_FILE, mt, NULL);
-	struct YASL_Object *stdout_str = YASL_LiteralString("stdout");
-	YASL_Table_set(io, stdout_str, stdout_file);
-
-	struct YASL_Object *stderr_file = YASL_UserData(stderr, YASL_FILE, mt, NULL);
-	struct YASL_Object *stderr_str = YASL_LiteralString("stderr");
-	YASL_Table_set(io, stderr_str, stderr_file);
-
 	YASL_declglobal(S, "io");
 	YASL_pushobject(S, io);
+
+	YASL_pushobject(S, io);
+	YASL_pushlitszstring(S, "open");
+	YASL_pushcfunction(S, YASL_io_open, 2);
+	YASL_settable(S);
+
+	YASL_pushobject(S, io);
+	YASL_pushlitszstring(S, "read");
+	YASL_pushcfunction(S, YASL_io_read, 2);
+	YASL_settable(S);
+
+	YASL_pushobject(S, io);
+	YASL_pushlitszstring(S, "write");
+	YASL_pushcfunction(S, YASL_io_write, 2);
+	YASL_settable(S);
+
+	YASL_pushobject(S, io);
+	YASL_pushlitszstring(S, "flush");
+	YASL_pushcfunction(S, YASL_io_flush, 1);
+	YASL_settable(S);
+
+	YASL_pushobject(S, io);
+	YASL_pushlitszstring(S, "stdin");
+	YASL_pushuserdata(S, stdin, T_FILE, mt, NULL);
+	YASL_settable(S);
+
+	YASL_pushobject(S, io);
+	YASL_pushlitszstring(S, "stdout");
+	YASL_pushuserdata(S, stdout, T_FILE, mt, NULL);
+	YASL_settable(S);
+
+	YASL_pushobject(S, io);
+	YASL_pushlitszstring(S, "stderr");
+	YASL_pushuserdata(S, stderr, T_FILE, mt, NULL);
+	YASL_settable(S);
+
 	YASL_setglobal(S, "io");
 
-	free(open_str);
-	free(open_fn);
-	free(read_str);
-	free(read_fn);
-	free(write_str);
-	free(write_fn);
-	free(flush_str);
-	free(flush_fn);
-
-	free(stdin_file);
-	free(stdin_str);
-	free(stdout_file);
-	free(stdout_str);
-	free(stderr_file);
-	free(stderr_str);
-
-	// free(io);
+	free(io);
 
 	return YASL_SUCCESS;
 }

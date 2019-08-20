@@ -2,6 +2,12 @@
 
 #include <inttypes.h>
 
+#if defined __GNUC__ || defined __clang__
+#define YASL_DEPRECATE __attribute__((deprecated))
+#else
+#define YASL_DEPRECATE
+#endif
+
 // @@ yasl_float
 // Which floating point type YASL will use.
 #define yasl_float double

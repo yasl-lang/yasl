@@ -1,6 +1,6 @@
 #pragma once
 
-#include "data-structures/YASL_HashTable.h"
+#include "data-structures/YASL_Table.h"
 #include "data-structures/YASL_List.h"
 #include "yasl_conf.h"
 #include "opcode.h"
@@ -15,20 +15,6 @@
 
 #define VM_PUSH(vm, x) do {struct YASL_Object to = x; vm_push(vm, to);} while(0)
 
-#define vm_pushend(vm) VM_PUSH(vm, YASL_END())
-#define vm_pushundef(vm) VM_PUSH(vm, YASL_UNDEF())
-#define vm_pushfloat(vm, f) VM_PUSH(vm, YASL_FLOAT(f))
-#define vm_pushint(vm, i) VM_PUSH(vm, YASL_INT(i))
-#define vm_pushbool(vm, b) VM_PUSH(vm, YASL_BOOL(b))
-#define vm_pushstr(vm, s) VM_PUSH(vm, YASL_STR(s))
-#define vm_pushlist(vm, l) VM_PUSH(vm, YASL_LIST(l))
-#define vm_pushfn(vm, f) VM_PUSH(vm, YASL_FN(f))
-
-#define vm_popfloat(vm) (YASL_GETFLOAT(vm_pop(vm)))
-#define vm_popint(vm) (YASL_GETINT(vm_pop(vm)))
-#define vm_popstr(vm) (YASL_GETSTR(vm_pop(vm)))
-#define vm_poplist(vm) (YASL_GETLIST(vm_pop(vm)))
-
 #define VM_PEEK(vm, offset) ((vm)->stack[offset])
 #define vm_peek(vm) ((vm)->stack[(vm)->sp])
 
@@ -37,6 +23,13 @@
 #define vm_peeklist(vm, offset) (YASL_GETLIST(VM_PEEK(vm, offset)))
 #define vm_peektable(vm, offset) (YASL_GETTABLE(VM_PEEK(vm, offset)))
 #define vm_peekcfn(vm, offset) (YASL_GETCFN(VM_PEEK(vm, offset)))
+
+#define vm_isend(vm) (YASL_ISEND(vm_peek(vm)))
+#define vm_isundef(vm) (YASL_ISUNDEF(vm_peek(vm)))
+#define vm_isfloat(vm) (YASL_ISFLOAT(vm_peek(vm)))
+#define vm_isint(vm) (YASL_ISINT(vm_peek(vm)))
+#define vm_isbool(vm) (YASL_ISBOOL(vm_peek(vm)))
+#define vm_isstr(vm) (YASL_ISSTR(vm_peek(vm)))
 
 #define BUFFER_SIZE 256
 #define NCODE(vm)    (*((vm)->pc++))     // get next bytecode
@@ -65,7 +58,7 @@
 
 struct VM {
 	struct YASL_Object *global_vars;
-	struct YASL_HashTable **globals;         // variables, see "constant.c" for details on YASL_Object.
+	struct YASL_Table **globals;         // variables, see "constant.c" for details on YASL_Object.
 	size_t num_globals;
 	struct YASL_Object *stack;            // stack
 	unsigned char *code;           // bytecode
@@ -77,7 +70,7 @@ struct VM {
 	int next_fp;
 	int lp;                        // foreach pointer
 	struct YASL_String *special_strings[NUM_SPECIAL_STRINGS];
-	struct YASL_HashTable **builtins_htable;   // htable of builtin methods
+	struct YASL_Table **builtins_htable;   // htable of builtin methods
 };
 
 void vm_init(struct VM *const vm, unsigned char *const code, const size_t pc, const size_t datasize);
@@ -87,14 +80,28 @@ void vm_cleanup(struct VM *vm);
 int vm_stringify_top(struct VM *vm);
 
 struct YASL_Object vm_pop(struct VM *const vm);
+yasl_float vm_popfloat(struct VM *const vm);
+yasl_int vm_popint(struct VM *const vm);
+struct YASL_String *vm_popstr(struct VM *const vm);
+struct YASL_List *vm_poplist(struct VM *const vm);
+
 void vm_push(struct VM *const vm, const struct YASL_Object val);
+void vm_pushend(struct VM *const vm);
+void vm_pushundef(struct VM *const vm);
+void vm_pushfloat(struct VM *const vm, yasl_float f);
+void vm_pushint(struct VM *const vm, yasl_int i);
+void vm_pushbool(struct VM *const vm, bool b);
+#define vm_pushstr(vm, s) VM_PUSH(vm, YASL_STR(s))
+#define vm_pushlist(vm, l) VM_PUSH(vm, YASL_LIST(l))
+#define vm_pushtable(vm, l) VM_PUSH(vm, YASL_TABLE(l))
+#define vm_pushfn(vm, f) VM_PUSH(vm, YASL_FN(f))
 
 int vm_run(struct VM *vm);
 
-struct YASL_HashTable *undef_builtins(struct VM *vm);
-struct YASL_HashTable *float_builtins(struct VM *vm);
-struct YASL_HashTable *int_builtins(struct VM *vm);
-struct YASL_HashTable *bool_builtins(struct VM *vm);
-struct YASL_HashTable *str_builtins(struct VM *vm);
-struct YASL_HashTable *list_builtins(struct VM *vm);
-struct YASL_HashTable *table_builtins(struct VM *vm);
+struct YASL_Table *undef_builtins(struct VM *vm);
+struct YASL_Table *float_builtins(struct VM *vm);
+struct YASL_Table *int_builtins(struct VM *vm);
+struct YASL_Table *bool_builtins(struct VM *vm);
+struct YASL_Table *str_builtins(struct VM *vm);
+struct YASL_Table *list_builtins(struct VM *vm);
+struct YASL_Table *table_builtins(struct VM *vm);
