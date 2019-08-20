@@ -12,11 +12,27 @@ struct YASL_Table;
 
 /**
  * initialises a new YASL_State for usage, or NULL on failure.
+ * @param filename the name of the file used to initialize the state.
  * @return the new YASL_State
  */
 struct YASL_State *YASL_newstate(char *filename);
+
+/**
+ * initialises a new YASL_State for usage, or NULL on failure.
+ * @param buf buffer containing the source code used to initialize
+ * the state.
+ * @param len the length of the buffer.
+ * @return the new YASL_State
+ */
 struct YASL_State *YASL_newstate_bb(char *buf, int len);
 
+/**
+ * resets S to the same state it would be in if newly created using
+ * YASL_newstate_bb.
+ * @param S the YASL_State
+ * @param buf the buffer used to initialize S
+ * @param len the length of buf.
+ */
 void YASL_resetstate_bb(struct YASL_State *S, char *buf, size_t len);
 
 /**
@@ -26,6 +42,12 @@ void YASL_resetstate_bb(struct YASL_State *S, char *buf, size_t len);
  */
 int YASL_delstate(struct YASL_State *S);
 
+/**
+ * compiles the source for the given YASL_State, but doesn't
+ * run it.
+ * @param S the YASL_State containing the YASL source code to be compiled.
+ * @return 0 on success, otherwise an error code.
+ */
 int YASL_compile(struct YASL_State *S);
 
 /**
@@ -145,12 +167,17 @@ int YASL_pushuserpointer(struct YASL_State *S, void *userpointer);
 
 /**
  * Pushes an arbitrary YASL_Object onto the stack.
- * @param S the YASL_State onto which to push the user-pointer.
+ * @param S the YASL_State onto which to push the YASL_Object.
  * @param obj the YASL_Object to push onto the stack.
  * @return 0 on succes, else error code.
  */
 int YASL_pushobject(struct YASL_State *S, struct YASL_Object *obj);
 
+/**
+ * pops the top YASL_Object off of the stack.
+ * @param S the YASL_State from which to pop the YASL_Object.
+ * @return a YASL_Object* on succes, else NULL.
+ */
 struct YASL_Object *YASL_popobject(struct YASL_State *S);
 
 /**
@@ -309,13 +336,6 @@ size_t YASL_getstringlen(struct YASL_Object *obj);
  * @return the string value of the given YASL_Object, or NULL if the YASL_Object doesn't have type string.
  */
 char *YASL_getstring(struct YASL_Object *obj);
-
-/**
- * Retrieves the C function value of the YASL_Object.
- * @param obj the given YASL_Object.
- * @return the C function value of the given YASL_Object, or NULL if the YASL_Object doesn't have type C function.
- */
-//int (*)(struct YASL_State) *YASL_getcfunction(struct YASL_Object *obj);
 
 /**
  * Retrieves the userdata value of the YASL_Object.
