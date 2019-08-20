@@ -158,13 +158,19 @@ struct YASL_Object *YASL_popobject(struct YASL_State *S);
  * @return the YASL_Table
  */
 struct YASL_Object *YASL_Table(void);
-
+YASL_DEPRECATE
 struct YASL_Object *YASL_Integer(yasl_int value);
+YASL_DEPRECATE
 struct YASL_Object *YASL_Undef(void);
+YASL_DEPRECATE
 struct YASL_Object *YASL_Float(yasl_float value);
+YASL_DEPRECATE
 struct YASL_Object *YASL_Boolean(bool value);
+YASL_DEPRECATE
 struct YASL_Object *YASL_LiteralString(const char *str);
+YASL_DEPRECATE
 struct YASL_Object *YASL_CString(char *str);
+YASL_DEPRECATE
 struct YASL_Object *YASL_UserPointer(void *userdata);
 struct YASL_Object *YASL_UserData(void *userdata, int tag, struct YASL_Table *mt, void (*destructor)(void *));
 int YASL_UserData_gettag(struct YASL_Object *obj);

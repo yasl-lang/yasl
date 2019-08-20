@@ -62,8 +62,11 @@ static int YASL_io_open(struct YASL_State *S) {
 			return -1;
 		}
 	}
-	struct YASL_Object *ud = f ? YASL_UserData(f, T_FILE, mt, NULL) : YASL_Undef();
-	YASL_pushobject(S, ud);
+	if (f) {
+		YASL_pushuserdata(S, f, T_FILE, mt, NULL);
+	} else {
+		YASL_pushundef(S);
+	}
 	free(filename_str);
 	return 0;
 }
