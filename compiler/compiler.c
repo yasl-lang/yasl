@@ -389,7 +389,7 @@ static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *c
 
 static void visit_FunctionDecl(struct Compiler *const compiler, const struct Node *const node) {
 	if (in_function(compiler)) {
-		YASL_PRINT_ERROR_SYNTAX("Illegal function declaration outside global scope, in line %zd.\n",
+		YASL_PRINT_ERROR_SYNTAX("Illegal function declaration outside global scope, in line %" PRI_SIZET ".\n",
 					node->line);
 		handle_error(compiler);
 		return;
@@ -484,7 +484,7 @@ static void visit_Return(struct Compiler *const compiler, const struct Node *con
 
 static void visit_Export(struct Compiler *const compiler, const struct Node *const node) {
 	if (compiler->stack != NULL || compiler->params != NULL) {
-		YASL_PRINT_ERROR("export statement must be at top level of module. (line %zd)\n", node->line);
+		YASL_PRINT_ERROR("export statement must be at top level of module. (line %" PRI_SIZET ")\n", node->line);
 		handle_error(compiler);
 		return;
 	}
@@ -679,7 +679,7 @@ static void visit_While(struct Compiler *const compiler, const struct Node *cons
 
 static void visit_Break(struct Compiler *const compiler, const struct Node *const node) {
 	if (compiler->checkpoints_count == 0) {
-		YASL_PRINT_ERROR_SYNTAX("break outside of loop (line %zd).\n", node->line);
+		YASL_PRINT_ERROR_SYNTAX("break outside of loop (line %" PRI_SIZET ").\n", node->line);
 		handle_error(compiler);
 		return;
 	}
@@ -689,7 +689,7 @@ static void visit_Break(struct Compiler *const compiler, const struct Node *cons
 
 static void visit_Continue(struct Compiler *const compiler, const struct Node *const node) {
 	if (compiler->checkpoints_count == 0) {
-		YASL_PRINT_ERROR_SYNTAX("continue outside of loop (line %zd).\n", node->line);
+		YASL_PRINT_ERROR_SYNTAX("continue outside of loop (line %" PRI_SIZET ").\n", node->line);
 		handle_error(compiler);
 		return;
 	}
@@ -731,7 +731,7 @@ static void visit_Print(struct Compiler *const compiler, const struct Node *cons
 
 static void declare_with_let_or_const(struct Compiler *const compiler, const struct Node *const node) {
 	if (contains_var_in_current_scope(compiler, node->value.sval.str, node->value.sval.str_len)) {
-		YASL_PRINT_ERROR_SYNTAX("Illegal redeclaration of %s (line %zd).\n", node->value.sval.str, node->line);
+		YASL_PRINT_ERROR_SYNTAX("Illegal redeclaration of %s (line %" PRI_SIZET ").\n", node->value.sval.str, node->line);
 		handle_error(compiler);
 		return;
 	}
