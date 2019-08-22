@@ -12,7 +12,18 @@ pr:
 - v0.*
 
 jobs:
-- job: 
+- job:
+  displayName: : "C MinGW Windows"
+  pool:
+    vmImage: 'vs2017-MinGW'
+  steps:
+  - script: |
+      cmake  -G "MinGW Makefiles" -DCMAKE_SH="CMAKE_SH-NOTFOUND" .
+      make YASL
+      make YASLTEST
+      make yaslapi
+    displayName: "Generate Solution"
+- job:
   displayName: "C MSVC Windows"
   pool:
     vmImage: 'vs2017-win2016'
