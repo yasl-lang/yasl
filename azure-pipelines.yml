@@ -29,8 +29,7 @@ jobs:
     vmImage: 'vs2017-win2016'
   steps:
   - script: |
-      cmake -Dcpp=true
-      cmake  -G "MinGW Makefiles" -DCMAKE_SH="CMAKE_SH-NOTFOUND" .
+      cmake  -G "MinGW Makefiles" -DCMAKE_SH="CMAKE_SH-NOTFOUND" -Dcpp=true.
       make YASL
       make YASLTEST
       make yaslapi
