@@ -13,7 +13,7 @@ pr:
 
 jobs:
 - job:
-  displayName: : "C MinGW Windows"
+  displayName: "C MinGW Windows"
   pool:
     vmImage: 'vs2017-MinGW'
   steps:
