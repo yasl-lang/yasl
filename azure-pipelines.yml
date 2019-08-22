@@ -24,17 +24,6 @@ jobs:
       make yaslapi
     displayName: "Compile"
 - job:
-  displayName: "C++ MinGW Windows"
-  pool:
-    vmImage: 'vs2017-win2016'
-  steps:
-  - script: |
-      cmake  -G "MinGW Makefiles" -DCMAKE_SH="CMAKE_SH-NOTFOUND" -Dcpp=true.
-      make YASL
-      make YASLTEST
-      make yaslapi
-    displayName: "Compile"
-- job:
   displayName: "C MSVC Windows"
   pool:
     vmImage: 'vs2017-win2016'
