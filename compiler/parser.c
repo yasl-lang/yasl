@@ -86,7 +86,7 @@ enum Token eattok(struct Parser *const parser, const enum Token token) {
 		if (curtok(parser) == T_UNKNOWN) {
 			parser->status = parser->lex.status;
 		} else {
-			YASL_PRINT_ERROR_SYNTAX("Expected %s, got %s, in line %zd\n", YASL_TOKEN_NAMES[token],
+			YASL_PRINT_ERROR_SYNTAX("Expected %s, got %s, in line %" PRI_SIZET "\n", YASL_TOKEN_NAMES[token],
 						YASL_TOKEN_NAMES[curtok(parser)], parser->lex.line);
 			parser->status = YASL_SYNTAX_ERROR;
 		}
@@ -125,7 +125,7 @@ struct Node *parse_assign_or_exprstmt(struct Parser *const parser) {
 }
 
 static struct Node *parse_program(struct Parser *const parser) {
-	YASL_PARSE_DEBUG_LOG("parsing statement in line %zd\n", parser->lex.line);
+	YASL_PARSE_DEBUG_LOG("parsing statement in line %" PRI_SIZET "\n", parser->lex.line);
 	size_t line;
 	switch (curtok(parser)) {
 	case T_ECHO:
@@ -197,7 +197,7 @@ static struct Node *parse_function_params(struct Parser *const parser) {
 }
 
 static struct Node *parse_fn(struct Parser *const parser) {
-	YASL_PARSE_DEBUG_LOG("parsing fn in line %zd\n", parser->lex.line);
+	YASL_PARSE_DEBUG_LOG("parsing fn in line %" PRI_SIZET "\n", parser->lex.line);
 	eattok(parser, T_FN);
 	size_t line = parser->lex.line;
 	char *name = parser->lex.value;
@@ -232,7 +232,7 @@ static struct Node *parse_fn(struct Parser *const parser) {
 }
 
 static struct Node *parse_const(struct Parser *const parser) {
-	YASL_PARSE_DEBUG_LOG("parsing const in line %zd\n", parser->lex.line);
+	YASL_PARSE_DEBUG_LOG("parsing const in line %" PRI_SIZET "\n", parser->lex.line);
 	eattok(parser, T_CONST);
 	char *name = parser->lex.value;
 	size_t name_len = parser->lex.val_len;
@@ -259,7 +259,7 @@ static struct Node *parse_const(struct Parser *const parser) {
 }
 
 static struct Node *parse_decl(struct Parser *const parser) {
-	YASL_PARSE_DEBUG_LOG("parsing let in line %zd\n", parser->lex.line);
+	YASL_PARSE_DEBUG_LOG("parsing let in line %" PRI_SIZET "\n", parser->lex.line);
 	size_t i = 0;
 	struct Node *buffer = new_Body(parser->lex.line);
 
@@ -285,7 +285,7 @@ static struct Node *parse_decl(struct Parser *const parser) {
 }
 
 static struct Node *parse_let(struct Parser *const parser) {
-	YASL_PARSE_DEBUG_LOG("parsing let in line %zd\n", parser->lex.line);
+	YASL_PARSE_DEBUG_LOG("parsing let in line %" PRI_SIZET "\n", parser->lex.line);
 	eattok(parser, T_LET);
 	char *name = parser->lex.value;
 	size_t name_len = parser->lex.val_len;
@@ -341,7 +341,7 @@ static struct Node *parse_for(struct Parser *const parser) {
 }
 
 static struct Node *parse_while(struct Parser *const parser) {
-	YASL_PARSE_DEBUG_LOG("parsing while in line %zd\n", parser->lex.line);
+	YASL_PARSE_DEBUG_LOG("parsing while in line %" PRI_SIZET "\n", parser->lex.line);
 	eattok(parser, T_WHILE);
 	struct Node *cond = parse_expr(parser);
 	struct Node *body = parse_body(parser);
@@ -349,7 +349,7 @@ static struct Node *parse_while(struct Parser *const parser) {
 }
 
 static struct Node *parse_if(struct Parser *const parser) {
-	YASL_PARSE_DEBUG_LOG("parsing if in line %zd\n", parser->lex.line);
+	YASL_PARSE_DEBUG_LOG("parsing if in line %" PRI_SIZET "\n", parser->lex.line);
 	if (matcheattok(parser, T_IF)) ;
 	else if (matcheattok(parser, T_ELSEIF)) ;
 	else {
@@ -385,7 +385,7 @@ static struct Node *parse_expr(struct Parser *const parser) {
 }
 
 static struct Node *parse_assign(struct Parser *const parser, struct Node *cur_node) {
-	YASL_PARSE_DEBUG_LOG("parsing = in line %zd\n", parser->lex.line);
+	YASL_PARSE_DEBUG_LOG("parsing = in line %" PRI_SIZET "\n", parser->lex.line);
 	// struct Node *cur_node = parse_ternary(parser);
 	size_t line = parser->lex.line;
 	if (matcheattok(parser, T_EQ)) {
@@ -404,7 +404,7 @@ static struct Node *parse_assign(struct Parser *const parser, struct Node *cur_n
 			return new_Set(left, key, val, line);
 		}
 		default:
-			YASL_PRINT_ERROR_SYNTAX("Invalid l-value (line %zd).\n", line);
+			YASL_PRINT_ERROR_SYNTAX("Invalid l-value (line %" PRI_SIZET ").\n", line);
 			return handle_error(parser);
 		}
 	} else if (tok_isaugmented(curtok(parser))) {
@@ -425,7 +425,7 @@ static struct Node *parse_assign(struct Parser *const parser, struct Node *cur_n
 			return new_Set(collection, key, value, line);
 		}
 		default:
-			YASL_PRINT_ERROR_SYNTAX("Invalid l-value (line %zd).\n", line);
+			YASL_PRINT_ERROR_SYNTAX("Invalid l-value (line %" PRI_SIZET ").\n", line);
 			return handle_error(parser);
 		}
 	}
@@ -433,7 +433,7 @@ static struct Node *parse_assign(struct Parser *const parser, struct Node *cur_n
 }
 
 static struct Node *parse_ternary(struct Parser *const parser) {
-	YASL_PARSE_DEBUG_LOG("parsing ?: in line %zd\n", parser->lex.line);
+	YASL_PARSE_DEBUG_LOG("parsing ?: in line %" PRI_SIZET "\n", parser->lex.line);
 	struct Node *cur_node = parse_undef_or(parser);
 	if (matcheattok(parser, T_QMARK)) {
 		struct Node *left = parse_ternary(parser);
@@ -447,7 +447,7 @@ static struct Node *parse_ternary(struct Parser *const parser) {
 
 #define BINOP_R(name, next, msg, ...)\
 static struct Node *parse_##name(struct Parser *const parser) {\
-        YASL_PARSE_DEBUG_LOG("parsing " msg " in line %zd\n", parser->lex.line);\
+        YASL_PARSE_DEBUG_LOG("parsing " msg " in line %" PRI_SIZET "\n", parser->lex.line);\
         struct Node *cur_node = parse_##next(parser);\
         if (TOKEN_MATCHES(parser, __VA_ARGS__)) {\
                 enum Token op = eattok(parser, curtok(parser));\
@@ -458,7 +458,7 @@ static struct Node *parse_##name(struct Parser *const parser) {\
 
 #define BINOP_L(name, next, msg, ...) \
 static struct Node *parse_##name(struct Parser *const parser) {\
-        YASL_PARSE_DEBUG_LOG("parsing " msg " in line %zd\n", parser->lex.line);\
+        YASL_PARSE_DEBUG_LOG("parsing " msg " in line %" PRI_SIZET "\n", parser->lex.line);\
         struct Node *cur_node = parse_##next(parser);\
         while (TOKEN_MATCHES(parser, __VA_ARGS__)) {\
                 enum Token op = eattok(parser, curtok(parser));\
@@ -481,7 +481,7 @@ BINOP_L(add, multiply, "+ and -", T_PLUS, T_MINUS)
 BINOP_L(multiply, unary, "*, %%, / and //", T_STAR, T_DSLASH, T_SLASH, T_MOD)
 
 static struct Node *parse_unary(struct Parser *const parser) {
-	YASL_PARSE_DEBUG_LOG("parsing !, -, +, ^, len in line %zd\n", parser->lex.line);
+	YASL_PARSE_DEBUG_LOG("parsing !, -, +, ^, len in line %" PRI_SIZET "\n", parser->lex.line);
 	if (curtok(parser) == T_PLUS || curtok(parser) == T_MINUS || curtok(parser) == T_BANG ||
 	    curtok(parser) == T_CARET || curtok(parser) == T_LEN) {
 		enum Token op = eattok(parser, curtok(parser));
@@ -492,7 +492,7 @@ static struct Node *parse_unary(struct Parser *const parser) {
 }
 
 static struct Node *parse_power(struct Parser *const parser) {
-	YASL_PARSE_DEBUG_LOG("parsing ** in line %zd\n", parser->lex.line);
+	YASL_PARSE_DEBUG_LOG("parsing ** in line %" PRI_SIZET "\n", parser->lex.line);
 	struct Node *cur_node = parse_call(parser);
 	if (matcheattok(parser, T_DSTAR)) {
 		return new_BinOp(T_DSTAR, cur_node, parse_unary(parser), parser->lex.line);
@@ -506,7 +506,7 @@ static struct Node *parse_call(struct Parser *const parser) {
 		if (matcheattok(parser, T_RIGHT_ARR)) {
 			struct Node *right = parse_constant(parser);
 			if (right->nodetype != N_VAR) {
-				YASL_PRINT_ERROR_SYNTAX("Invalid method call (line %zd).\n", parser->lex.line);
+				YASL_PRINT_ERROR_SYNTAX("Invalid method call (line %" PRI_SIZET ").\n", parser->lex.line);
 				return handle_error(parser);
 			}
 
@@ -534,7 +534,7 @@ static struct Node *parse_call(struct Parser *const parser) {
 				right->nodetype = N_STR;
 				cur_node = new_Get(cur_node, right, parser->lex.line);
 			} else {
-				YASL_PRINT_ERROR_SYNTAX("Invalid member access (line %zd).\n", parser->lex.line);
+				YASL_PRINT_ERROR_SYNTAX("Invalid member access (line %" PRI_SIZET ").\n", parser->lex.line);
 				return handle_error(parser);
 			}
 		} else if (matcheattok(parser, T_LSQB)) {
@@ -592,7 +592,7 @@ static struct Node *parse_constant(struct Parser *const parser) {
 	case T_IF:
 	case T_ELSEIF:
 	case T_ELSE:
-		YASL_PRINT_ERROR_SYNTAX("ParsingError in line %zd: expected expression, got `%s`\n",
+		YASL_PRINT_ERROR_SYNTAX("ParsingError in line %" PRI_SIZET ": expected expression, got `%s`\n",
 					    parser->lex.line,
 					    YASL_TOKEN_NAMES[curtok(parser)]);
 		return handle_error(parser);
@@ -600,7 +600,7 @@ static struct Node *parse_constant(struct Parser *const parser) {
 		parser->status = parser->lex.status;
 		return NULL;
 	default:
-		YASL_PRINT_ERROR_SYNTAX("Invalid expression in line %zd (%s).\n", parser->lex.line, YASL_TOKEN_NAMES[curtok(parser)]);
+		YASL_PRINT_ERROR_SYNTAX("Invalid expression in line %" PRI_SIZET " (%s).\n", parser->lex.line, YASL_TOKEN_NAMES[curtok(parser)]);
 		return handle_error(parser);
 	}
 }
@@ -676,7 +676,7 @@ static struct Node *parse_string(struct Parser *const parser) {
 		if (parser->lex.c == '}') {
 			parser->lex.c = lxgetc(parser->lex.file);
 		} else {
-			YASL_PRINT_ERROR("SyntaxError: expected } in line %zd.\n", parser->lex.line);
+			YASL_PRINT_ERROR("SyntaxError: expected } in line %" PRI_SIZET ".\n", parser->lex.line);
 			lex_error(&parser->lex);
 			break;
 		}
