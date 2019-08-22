@@ -15,7 +15,7 @@ jobs:
 - job:
   displayName: "C MinGW Windows"
   pool:
-    vmImage: 'vs2017-MinGW'
+    vmImage: 'vs2017-win2016'
   steps:
   - script: |
       cmake  -G "MinGW Makefiles" -DCMAKE_SH="CMAKE_SH-NOTFOUND" .
