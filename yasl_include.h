@@ -1,6 +1,8 @@
 #pragma once
 
 #include <stdbool.h>
+
+// Ugly hack for MinGW, since it doesn't support %z
 #ifdef _WIN32
 #  ifdef _WIN64
 #    define PRI_SIZET PRIu64
