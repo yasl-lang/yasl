@@ -22,7 +22,10 @@ jobs:
       make YASL
       make YASLTEST
       make yaslapi
-    displayName: "Generate Solution"
+    displayName: "Compile"
+  - script:
+      ./tests -m
+    displayName: "Run Tests"
 - job:
   displayName: "C MSVC Windows"
   pool:
