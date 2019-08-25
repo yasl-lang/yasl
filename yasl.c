@@ -32,7 +32,7 @@ struct YASL_State *YASL_newstate_num(char *filename, size_t num) {
 	return S;
 }
 
-struct YASL_State *YASL_newstate(char *filename) {
+struct YASL_State *YASL_newstate(const char *filename) {
 	struct YASL_State *S = (struct YASL_State *) malloc(sizeof(struct YASL_State));
 
 	FILE *fp = fopen(filename, "r");
@@ -53,7 +53,7 @@ struct YASL_State *YASL_newstate(char *filename) {
 }
 
 
-struct YASL_State *YASL_newstate_bb(char *buf, int len) {
+struct YASL_State *YASL_newstate_bb(const char *buf, size_t len) {
 	struct YASL_State *S = (struct YASL_State *) malloc(sizeof(struct YASL_State));
 
 	struct LEXINPUT *lp = lexinput_new_bb(buf, len);
@@ -66,7 +66,7 @@ struct YASL_State *YASL_newstate_bb(char *buf, int len) {
 	return S;
 }
 
-void YASL_resetstate_bb(struct YASL_State *S, char *buf, size_t len) {
+void YASL_resetstate_bb(struct YASL_State *S, const char *buf, size_t len) {
 	S->compiler.status = YASL_SUCCESS;
 	S->compiler.parser.status = YASL_SUCCESS;
 	lex_cleanup(&S->compiler.parser.lex);
