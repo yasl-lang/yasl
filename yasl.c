@@ -251,7 +251,7 @@ int YASL_unsaveobject(struct YASL_State *S, struct YASL_Object *obj) {
 }
 
 struct YASL_Object *YASL_saveobject(struct YASL_State *S) {
-	struct YASL_Object *obj = (struct YASl_Object *)malloc(sizeof(struct YASL_Object *));
+	struct YASL_Object *obj = (struct YASL_Object *)malloc(sizeof(struct YASL_Object *));
 	*obj = S->vm.stack[S->vm.sp--];
 	inc_ref(obj);
 	return obj;
