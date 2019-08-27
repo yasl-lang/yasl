@@ -163,10 +163,8 @@ void vm_pushbool(struct VM *const vm, bool b) {
 }
 
 struct YASL_Object vm_pop(struct VM *const vm) {
-    return vm->stack[vm->sp--];
+	return vm->stack[vm->sp--];
 }
-
-struct YASL_Object vm_pop(struct VM *const vm);
 
 yasl_float vm_popfloat(struct VM *const vm) {
 	return YASL_GETFLOAT(vm_pop(vm));

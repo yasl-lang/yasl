@@ -180,6 +180,9 @@ int YASL_pushobject(struct YASL_State *S, struct YASL_Object *obj);
  */
 struct YASL_Object *YASL_popobject(struct YASL_State *S);
 
+int YASL_unsaveobject(struct YASL_State *S, struct YASL_Object *obj);
+struct YASL_Object *YASL_saveobject(struct YASL_State *S);
+
 /**
  * Makes a new YASL_Table
  * @return the YASL_Table

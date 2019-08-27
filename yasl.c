@@ -243,6 +243,20 @@ struct YASL_Object *YASL_popobject(struct YASL_State *S) {
 	return &S->vm.stack[S->vm.sp--];
 }
 
+int YASL_unsaveobject(struct YASL_State *S, struct YASL_Object *obj) {
+	vm_push(&S->vm, *obj);
+	dec_ref(obj);
+	free(obj);
+	return YASL_SUCCESS;
+}
+
+struct YASL_Object *YASL_saveobject(struct YASL_State *S) {
+	struct YASL_Object *obj = (struct YASl_Object *)malloc(sizeof(struct YASL_Object *));
+	*obj = S->vm.stack[S->vm.sp--];
+	inc_ref(obj);
+	return obj;
+}
+
 int YASL_Table_set(struct YASL_Object *table, struct YASL_Object *key, struct YASL_Object *value) {
 	if (!table || !key || !value) return YASL_ERROR;
 
