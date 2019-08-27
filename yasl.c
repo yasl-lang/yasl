@@ -52,6 +52,29 @@ struct YASL_State *YASL_newstate(const char *filename) {
 	return S;
 }
 
+int YASL_resetstate(struct YASL_State *S, const char *filename) {
+	FILE *fp = fopen(filename, "r");
+	if (!fp) {
+		return YASL_ERROR;  // Can't open file.
+	}
+
+	fseek(fp, 0, SEEK_SET);
+
+	S->compiler.status = YASL_SUCCESS;
+	S->compiler.parser.status = YASL_SUCCESS;
+	lex_cleanup(&S->compiler.parser.lex);
+
+	S->compiler.parser.lex = NEW_LEXER(lexinput_new_file(fp));
+	S->compiler.code->count = 0;
+	S->compiler.buffer->count = 0;
+	// S->compiler.header->count = 16;
+	// YASL_Table_del_string_int(S->compiler.strings);
+	// S->compiler.strings = YASL_Table_new();
+	if (S->vm.code)	free(S->vm.code);
+	S->vm.code = NULL;
+
+	return YASL_SUCCESS;
+}
 
 struct YASL_State *YASL_newstate_bb(const char *buf, size_t len) {
 	struct YASL_State *S = (struct YASL_State *) malloc(sizeof(struct YASL_State));
@@ -66,7 +89,7 @@ struct YASL_State *YASL_newstate_bb(const char *buf, size_t len) {
 	return S;
 }
 
-void YASL_resetstate_bb(struct YASL_State *S, const char *buf, size_t len) {
+int YASL_resetstate_bb(struct YASL_State *S, const char *buf, size_t len) {
 	S->compiler.status = YASL_SUCCESS;
 	S->compiler.parser.status = YASL_SUCCESS;
 	lex_cleanup(&S->compiler.parser.lex);
@@ -78,6 +101,8 @@ void YASL_resetstate_bb(struct YASL_State *S, const char *buf, size_t len) {
 	// S->compiler.strings = YASL_Table_new();
 	if (S->vm.code)	free(S->vm.code);
 	S->vm.code = NULL;
+
+	return YASL_SUCCESS;
 }
 
 

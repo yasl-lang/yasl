@@ -17,6 +17,8 @@ struct YASL_Table;
  */
 struct YASL_State *YASL_newstate(const char *filename);
 
+int YASL_resetstate(struct YASL_State *S, const char *filename);
+
 /**
  * initialises a new YASL_State for usage, or NULL on failure.
  * @param buf buffer containing the source code used to initialize
@@ -33,7 +35,7 @@ struct YASL_State *YASL_newstate_bb(const char *buf, size_t len);
  * @param buf the buffer used to initialize S
  * @param len the length of buf.
  */
-void YASL_resetstate_bb(struct YASL_State *S, const char *buf, size_t len);
+int YASL_resetstate_bb(struct YASL_State *S, const char *buf, size_t len);
 
 /**
  * deletes the given YASL_State.
