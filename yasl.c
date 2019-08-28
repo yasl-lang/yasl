@@ -368,7 +368,9 @@ int YASL_isuserdata(struct YASL_Object *obj, int tag) {
 }
 
 
-int YASL_isuserpointer(struct YASL_Object *obj);
+int YASL_isuserpointer(struct YASL_Object *obj) {
+	return obj->type == Y_USERPTR ? YASL_SUCCESS : YASL_ERROR;
+}
 
 
 int YASL_getboolean(struct YASL_Object *obj);
@@ -397,7 +399,11 @@ size_t YASL_getstringlen(struct YASL_Object *obj) {
 	return YASL_String_len(obj->value.sval);
 }
 
-char *YASL_getstring(struct YASL_Object *obj);
+char *YASL_getstring(struct YASL_Object *obj) {
+	if (YASL_isstring(obj) != YASL_SUCCESS) return NULL;
+
+	return obj->value.sval->str + obj->value.sval->start;
+}
 
 
 // int (*)(struct YASL_State) *YASL_getcfunction(struct YASL_Object *obj);
@@ -411,5 +417,10 @@ void *YASL_getuserdata(struct YASL_Object *obj) {
 }
 
 
-void *YASL_getuserpointer(struct YASL_Object *obj);
+void *YASL_getuserpointer(struct YASL_Object *obj) {
+	if (obj->type != Y_USERPTR) {
+		return NULL;
+	}
+	return obj->value.pval;
+}
 
