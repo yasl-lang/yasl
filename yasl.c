@@ -374,7 +374,7 @@ int YASL_isuserpointer(struct YASL_Object *obj) {
 
 
 bool YASL_getboolean(struct YASL_Object *obj) {
-	if (YASL_isboolean(obj)) return (bool)obj->value.ival;
+        if (YASL_isboolean(obj) == 0) return (bool)obj->value.ival;
 	return false;
 }
 
