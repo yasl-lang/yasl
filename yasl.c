@@ -373,13 +373,22 @@ int YASL_isuserpointer(struct YASL_Object *obj) {
 }
 
 
-int YASL_getboolean(struct YASL_Object *obj);
+bool YASL_getboolean(struct YASL_Object *obj) {
+	if (YASL_isboolean(obj)) return (bool)obj->value.ival;
+	return false;
+}
 
 
-double YASL_getdouble(struct YASL_Object *obj);
+yasl_float YASL_getdouble(struct YASL_Object *obj) {
+	if (YASL_isdouble(obj)) return obj->value.dval;
+	return 0.0;
+}
 
 
-int64_t YASL_getinteger(struct YASL_Object *obj);
+yasl_int YASL_getinteger(struct YASL_Object *obj) {
+	if (YASL_isinteger(obj)) return obj->value.ival;
+	return 0;
+}
 
 
 char *YASL_getcstring(struct YASL_Object *obj) {

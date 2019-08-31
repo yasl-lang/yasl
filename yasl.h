@@ -310,7 +310,7 @@ int YASL_isuserpointer(struct YASL_Object *obj);
  * @param obj the given YASL_Object.
  * @return the boolean value of the given YASL_Object, or false if the YASL_Object doesn't have type bool.
  */
-int YASL_getboolean(struct YASL_Object *obj);
+bool YASL_getboolean(struct YASL_Object *obj);
 
 /**
  * Retrieves the double value of the YASL_Object.
