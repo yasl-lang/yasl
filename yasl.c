@@ -380,13 +380,13 @@ bool YASL_getboolean(struct YASL_Object *obj) {
 
 
 yasl_float YASL_getdouble(struct YASL_Object *obj) {
-	if (YASL_isdouble(obj)) return obj->value.dval;
+        if (YASL_isdouble(obj) == 0) return obj->value.dval;
 	return 0.0;
 }
 
 
 yasl_int YASL_getinteger(struct YASL_Object *obj) {
-	if (YASL_isinteger(obj)) return obj->value.ival;
+        if (YASL_isinteger(obj) == 0) return obj->value.ival;
 	return 0;
 }
 
