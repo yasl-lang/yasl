@@ -367,29 +367,24 @@ int YASL_isuserdata(struct YASL_Object *obj, int tag) {
 	return YASL_ERROR;
 }
 
-
 int YASL_isuserpointer(struct YASL_Object *obj) {
 	return obj->type == Y_USERPTR ? YASL_SUCCESS : YASL_ERROR;
 }
-
 
 bool YASL_getboolean(struct YASL_Object *obj) {
         if (YASL_isboolean(obj) == YASL_SUCCESS) return (bool)obj->value.ival;
 	return false;
 }
 
-
 yasl_float YASL_getdouble(struct YASL_Object *obj) {
         if (YASL_isdouble(obj) == YASL_SUCCESS) return obj->value.dval;
 	return 0.0;
 }
 
-
 yasl_int YASL_getinteger(struct YASL_Object *obj) {
         if (YASL_isinteger(obj) == YASL_SUCCESS) return obj->value.ival;
 	return 0;
 }
-
 
 char *YASL_getcstring(struct YASL_Object *obj) {
 	if (YASL_isstring(obj) != YASL_SUCCESS) return NULL;
