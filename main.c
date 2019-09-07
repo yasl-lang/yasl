@@ -158,7 +158,7 @@ int main(int argc, char **argv) {
 int main(int argc, char **argv) {
 	// Initialize prng seed
 	srand((unsigned)time(NULL));
-
+/*
 	if (argc == 2) {
 		return main_file(argc, argv);
 	} else if (argc == 3 && !strcmp(argv[1], "-e")) {
@@ -172,6 +172,16 @@ int main(int argc, char **argv) {
 	} else {
 		return main_REPL(argc, argv);
 	}
+ */
+	struct YASL_State* S = YASL_newstate("sample.yasl");
+	YASL_execute(S);
+
+	YASL_resetstate(S, "sample.ysl");
+	YASL_execute(S);
+
+	YASL_delstate(S);
+
+	return 0;
 }
 #endif
 

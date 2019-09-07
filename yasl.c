@@ -70,8 +70,8 @@ int YASL_resetstate(struct YASL_State *S, const char *filename) {
 	// S->compiler.header->count = 16;
 	// YASL_Table_del_string_int(S->compiler.strings);
 	// S->compiler.strings = YASL_Table_new();
-	if (S->vm.code)	free(S->vm.code);
-	S->vm.code = NULL;
+	//if (S->vm.code)	free(S->vm.code);
+	//S->vm.code = NULL;
 
 	return YASL_SUCCESS;
 }
