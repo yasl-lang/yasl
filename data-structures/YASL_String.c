@@ -60,7 +60,7 @@ struct YASL_String *YASL_String_new_sized(const size_t base_size, const char *co
 	str->start = 0;
 	str->end = base_size;
 	str->str = (char *) ptr;
-	str->on_heap = 0;
+	str->on_heap = false;
 	str->rc = rc_new();
 	return str;
 }
@@ -70,7 +70,7 @@ struct YASL_String* YASL_String_new_sized_heap(const size_t start, const size_t 
 	str->start = start;
 	str->end = end;
 	str->str = (char *) mem;
-	str->on_heap = 1;
+	str->on_heap = true;
 	str->rc = rc_new();
 	return str;
 }

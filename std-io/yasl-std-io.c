@@ -16,12 +16,12 @@ static int YASL_io_open(struct YASL_State *S) {
 	} else if (YASL_isstring(mode) == YASL_SUCCESS) {
 		mode_str = YASL_getcstring(mode);
 	} else {
-		return -1;
+		return YASL_TYPE_ERROR;
 	}
 
 	struct YASL_Object *filename = YASL_popobject(S);
 	if (YASL_isstring(filename) != YASL_SUCCESS) {
-		return -1;
+		return YASL_TYPE_ERROR;
 	}
 	char *filename_str = YASL_getcstring(filename);
 
@@ -82,7 +82,7 @@ static int YASL_io_read(struct YASL_State *S) {
 	} else if (YASL_isstring(mode) == YASL_SUCCESS) {
 		mode_str = YASL_getcstring(mode);
 	} else {
-		return -1;
+		return YASL_TYPE_ERROR;
 	}
 
 	struct YASL_Object *file = YASL_popobject(S);
@@ -92,7 +92,7 @@ static int YASL_io_read(struct YASL_State *S) {
 	if (YASL_isuserdata(file, T_FILE) == YASL_SUCCESS) {
 		f = (FILE *)YASL_UserData_getdata(file);
 	} else {
-		return -1;
+		return YASL_TYPE_ERROR;
 	}
 
 	size_t mode_len = strlen(mode_str);
@@ -140,7 +140,7 @@ static int YASL_io_write(struct YASL_State *S) {
 	struct YASL_Object *obj = YASL_popobject(S);
 
 	if (YASL_isstring(obj) != YASL_SUCCESS) {
-		return -1;
+		return YASL_TYPE_ERROR;
 	}
 
 	struct YASL_Object *file = YASL_popobject(S);
@@ -150,7 +150,7 @@ static int YASL_io_write(struct YASL_State *S) {
 	if (YASL_isuserdata(file, T_FILE) == YASL_SUCCESS) {
 		f = (FILE *)YASL_UserData_getdata(file);
 	} else {
-		return -1;
+		return YASL_TYPE_ERROR;
 	}
 
 	char *str = YASL_getcstring(obj);
@@ -171,7 +171,7 @@ static int YASL_io_flush(struct YASL_State *S) {
 	if (YASL_isuserdata(file, T_FILE) == YASL_SUCCESS) {
 		f = (FILE *)YASL_UserData_getdata(file);
 	} else {
-		return -1;
+		return YASL_TYPE_ERROR;
 	}
 
 	int success = fflush(f);

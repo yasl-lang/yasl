@@ -109,7 +109,7 @@ void YASL_Table_insert(struct YASL_Table *const table, const struct YASL_Object 
 	size_t index = get_hash(item.key, table->size, 0);
 	struct YASL_Table_Item curr_item = table->items[index];
 	size_t i = 1;
-	while (!YASL_ISUNDEF(curr_item.key)) {
+	while (curr_item.value.type != Y_UNDEF) {
 		if (curr_item.key.type != Y_END) {
 			if (!isfalsey(isequal(curr_item.key, item.key))) {
 				del_item(&curr_item);

@@ -15,7 +15,9 @@ struct YASL_Table;
  * @param filename the name of the file used to initialize the state.
  * @return the new YASL_State
  */
-struct YASL_State *YASL_newstate(char *filename);
+struct YASL_State *YASL_newstate(const char *filename);
+
+int YASL_resetstate(struct YASL_State *S, const char *filename);
 
 /**
  * initialises a new YASL_State for usage, or NULL on failure.
@@ -24,7 +26,7 @@ struct YASL_State *YASL_newstate(char *filename);
  * @param len the length of the buffer.
  * @return the new YASL_State
  */
-struct YASL_State *YASL_newstate_bb(char *buf, int len);
+struct YASL_State *YASL_newstate_bb(const char *buf, size_t len);
 
 /**
  * resets S to the same state it would be in if newly created using
@@ -33,7 +35,7 @@ struct YASL_State *YASL_newstate_bb(char *buf, int len);
  * @param buf the buffer used to initialize S
  * @param len the length of buf.
  */
-void YASL_resetstate_bb(struct YASL_State *S, char *buf, size_t len);
+int YASL_resetstate_bb(struct YASL_State *S, const char *buf, size_t len);
 
 /**
  * deletes the given YASL_State.
@@ -180,6 +182,9 @@ int YASL_pushobject(struct YASL_State *S, struct YASL_Object *obj);
  */
 struct YASL_Object *YASL_popobject(struct YASL_State *S);
 
+int YASL_unsaveobject(struct YASL_State *S, struct YASL_Object *obj);
+struct YASL_Object *YASL_saveobject(struct YASL_State *S);
+
 /**
  * Makes a new YASL_Table
  * @return the YASL_Table
@@ -305,21 +310,21 @@ int YASL_isuserpointer(struct YASL_Object *obj);
  * @param obj the given YASL_Object.
  * @return the boolean value of the given YASL_Object, or false if the YASL_Object doesn't have type bool.
  */
-int YASL_getboolean(struct YASL_Object *obj);
+bool YASL_getboolean(struct YASL_Object *obj);
 
 /**
  * Retrieves the double value of the YASL_Object.
  * @param obj the given YASL_Object.
  * @return the double value of the given YASL_Object, or 0.0 if the YASL_Object doesn't have type double.
  */
-double YASL_getdouble(struct YASL_Object *obj);
+yasl_float YASL_getdouble(struct YASL_Object *obj);
 
 /**
  * Retrieves the integer value of the YASL_Object.
  * @param obj the given YASL_Object.
  * @return the integer value of the given YASL_Object, or 0 if the YASL_Object doesn't have type integer.
  */
-int64_t YASL_getinteger(struct YASL_Object *obj);
+yasl_int YASL_getinteger(struct YASL_Object *obj);
 
 /**
  * Retrieves the null-terminated string value of the YASL_Object.

@@ -32,7 +32,7 @@ struct YASL_State *YASL_newstate_num(char *filename, size_t num) {
 	return S;
 }
 
-struct YASL_State *YASL_newstate(char *filename) {
+struct YASL_State *YASL_newstate(const char *filename) {
 	struct YASL_State *S = (struct YASL_State *) malloc(sizeof(struct YASL_State));
 
 	FILE *fp = fopen(filename, "r");
@@ -52,8 +52,31 @@ struct YASL_State *YASL_newstate(char *filename) {
 	return S;
 }
 
+int YASL_resetstate(struct YASL_State *S, const char *filename) {
+	FILE *fp = fopen(filename, "r");
+	if (!fp) {
+		return YASL_ERROR;  // Can't open file.
+	}
 
-struct YASL_State *YASL_newstate_bb(char *buf, int len) {
+	fseek(fp, 0, SEEK_SET);
+
+	S->compiler.status = YASL_SUCCESS;
+	S->compiler.parser.status = YASL_SUCCESS;
+	lex_cleanup(&S->compiler.parser.lex);
+
+	S->compiler.parser.lex = NEW_LEXER(lexinput_new_file(fp));
+	S->compiler.code->count = 0;
+	S->compiler.buffer->count = 0;
+	// S->compiler.header->count = 16;
+	// YASL_Table_del_string_int(S->compiler.strings);
+	// S->compiler.strings = YASL_Table_new();
+	//if (S->vm.code)	free(S->vm.code);
+	//S->vm.code = NULL;
+
+	return YASL_SUCCESS;
+}
+
+struct YASL_State *YASL_newstate_bb(const char *buf, size_t len) {
 	struct YASL_State *S = (struct YASL_State *) malloc(sizeof(struct YASL_State));
 
 	struct LEXINPUT *lp = lexinput_new_bb(buf, len);
@@ -66,7 +89,7 @@ struct YASL_State *YASL_newstate_bb(char *buf, int len) {
 	return S;
 }
 
-void YASL_resetstate_bb(struct YASL_State *S, char *buf, size_t len) {
+int YASL_resetstate_bb(struct YASL_State *S, const char *buf, size_t len) {
 	S->compiler.status = YASL_SUCCESS;
 	S->compiler.parser.status = YASL_SUCCESS;
 	lex_cleanup(&S->compiler.parser.lex);
@@ -78,6 +101,8 @@ void YASL_resetstate_bb(struct YASL_State *S, char *buf, size_t len) {
 	// S->compiler.strings = YASL_Table_new();
 	if (S->vm.code)	free(S->vm.code);
 	S->vm.code = NULL;
+
+	return YASL_SUCCESS;
 }
 
 
@@ -243,6 +268,20 @@ struct YASL_Object *YASL_popobject(struct YASL_State *S) {
 	return &S->vm.stack[S->vm.sp--];
 }
 
+int YASL_unsaveobject(struct YASL_State *S, struct YASL_Object *obj) {
+	vm_push(&S->vm, *obj);
+	dec_ref(obj);
+	free(obj);
+	return YASL_SUCCESS;
+}
+
+struct YASL_Object *YASL_saveobject(struct YASL_State *S) {
+	struct YASL_Object *obj = (struct YASL_Object *)malloc(sizeof(struct YASL_Object *));
+	*obj = S->vm.stack[S->vm.sp--];
+	inc_ref(obj);
+	return obj;
+}
+
 int YASL_Table_set(struct YASL_Object *table, struct YASL_Object *key, struct YASL_Object *value) {
 	if (!table || !key || !value) return YASL_ERROR;
 
@@ -328,18 +367,24 @@ int YASL_isuserdata(struct YASL_Object *obj, int tag) {
 	return YASL_ERROR;
 }
 
+int YASL_isuserpointer(struct YASL_Object *obj) {
+	return obj->type == Y_USERPTR ? YASL_SUCCESS : YASL_ERROR;
+}
 
-int YASL_isuserpointer(struct YASL_Object *obj);
+bool YASL_getboolean(struct YASL_Object *obj) {
+        if (YASL_isboolean(obj) == YASL_SUCCESS) return (bool)obj->value.ival;
+	return false;
+}
 
+yasl_float YASL_getdouble(struct YASL_Object *obj) {
+        if (YASL_isdouble(obj) == YASL_SUCCESS) return obj->value.dval;
+	return 0.0;
+}
 
-int YASL_getboolean(struct YASL_Object *obj);
-
-
-double YASL_getdouble(struct YASL_Object *obj);
-
-
-int64_t YASL_getinteger(struct YASL_Object *obj);
-
+yasl_int YASL_getinteger(struct YASL_Object *obj) {
+        if (YASL_isinteger(obj) == YASL_SUCCESS) return obj->value.ival;
+	return 0;
+}
 
 char *YASL_getcstring(struct YASL_Object *obj) {
 	if (YASL_isstring(obj) != YASL_SUCCESS) return NULL;
@@ -358,7 +403,11 @@ size_t YASL_getstringlen(struct YASL_Object *obj) {
 	return YASL_String_len(obj->value.sval);
 }
 
-char *YASL_getstring(struct YASL_Object *obj);
+char *YASL_getstring(struct YASL_Object *obj) {
+	if (YASL_isstring(obj) != YASL_SUCCESS) return NULL;
+
+	return obj->value.sval->str + obj->value.sval->start;
+}
 
 
 // int (*)(struct YASL_State) *YASL_getcfunction(struct YASL_Object *obj);
@@ -372,5 +421,10 @@ void *YASL_getuserdata(struct YASL_Object *obj) {
 }
 
 
-void *YASL_getuserpointer(struct YASL_Object *obj);
+void *YASL_getuserpointer(struct YASL_Object *obj) {
+	if (obj->type != Y_USERPTR) {
+		return NULL;
+	}
+	return obj->value.pval;
+}
 
