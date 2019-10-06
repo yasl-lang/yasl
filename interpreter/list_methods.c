@@ -121,7 +121,7 @@ int list_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, s
 				void **tmp_buffer = (void **) malloc(tmp_buffer_size * sizeof(void *));
 				memcpy(tmp_buffer, buffer, sizeof(void *) * buffer_count);
 				tmp_buffer[buffer_count] = vm_peeklist((struct VM *) S, S->vm.sp);
-				table_tostr_helper(S, tmp_buffer, tmp_buffer_size, buffer_size + 1);
+				table_tostr_helper(S, tmp_buffer, tmp_buffer_size, buffer_count + 1);
 				free(tmp_buffer);
 			}
 		} else {
