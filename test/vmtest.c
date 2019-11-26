@@ -9,7 +9,7 @@
 #define BINOP(op, l, r) TYPEERR(op " not supported for operands of types " STR(l) " and " STR(r))
 #define UNOP(op, arg) TYPEERR(op " not supported for operand of type " STR(arg))
 #define METHOD(me, arg, xpc, act) TYPEERR(STR(me) " expected arg in position " STR(arg) " to be of type " STR(xpc) ", got arg of type " STR(act))
-#define SYNTAX(s) RED "SyntaxError: " s END, 4, TST
+#define SYNTAX(s) RED "SyntaxError: " s EEND, 4, TST
 #define VALUE(s) RED "ValueError: " s EEND, 7, TST
 #define DIVZRO RED "DivisionByZeroError" END, 6, TST
 
@@ -38,23 +38,23 @@ static const struct {
 } tests[] =
   // Syntax errors
   {{"for let x = 0; x < 5; x += 1 { };\necho x;",
-    SYNTAX("Undeclared variable x (line 2).")},
+    SYNTAX("Undeclared variable x (line 2)")},
    {"const x = 10; x = 11;",
-    SYNTAX("Cannot assign to constant x (line 1).")},
+    SYNTAX("Cannot assign to constant x (line 1)")},
    {"const x = 10; let x = 11;",
-    SYNTAX("Illegal redeclaration of x (line 1).")},
+    SYNTAX("Illegal redeclaration of x (line 1)")},
    {"let x = 10; let x = 11;",
-    SYNTAX("Illegal redeclaration of x (line 1).")},
+    SYNTAX("Illegal redeclaration of x (line 1)")},
    {"let x = [b for b <- [1, 2, 3, 4] if b % 2 == 0]; echo b;",
-    SYNTAX("Undeclared variable b (line 1).")},
+    SYNTAX("Undeclared variable b (line 1)")},
    {"echo if;",
     SYNTAX("ParsingError in line 1: expected expression, got `if`")},
    {"x;",
-    SYNTAX("Undeclared variable x (line 1).")},
+    SYNTAX("Undeclared variable x (line 1)")},
    {"echo 'hello \\o world'\n",
-    SYNTAX("Invalid string escape sequence in line 1.")},
+    SYNTAX("Invalid string escape sequence in line 1")},
    {"echo 'hello \\xworld'\n",
-    SYNTAX("Invalid hex string escape in line 1.")},
+    SYNTAX("Invalid hex string escape in line 1")},
 
    // Type errors (operators)
    BINOP_TEST("|"),
@@ -198,13 +198,13 @@ static const struct {
 
    // Value errors
    {"echo []->pop();",
-    VALUE("list.pop expected list of length greater then 0 as arg 0")},
+    VALUE("list.pop expected nonempty list as arg 0")},
    {"echo [1, .a]->sort();",
     VALUE("list.sort expected a list of all numbers or all strings")},
    {"echo ''.replace(.tr, '', .sad);",
-    VALUE("str.replace expected a str of length greater than 0 as arg 1")},
+    VALUE("str.replace expected a nonempty str as arg 1")},
    {"echo 'wasd'->split('');",
-    VALUE("str.split expected a str of length greater than 0 as arg 1")},
+    VALUE("str.split expected a nonempty str as arg 1")},
    {"echo 'as'->rep(-1);",
     VALUE("str.rep expected non-negative int as arg 1")},
 

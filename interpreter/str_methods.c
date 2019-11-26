@@ -228,7 +228,7 @@ int str_replace(struct YASL_State *S) {
 
 	if (YASL_String_len(search_str) < 1) {
 		YASL_PRINT_ERROR(
-			"ValueError: %s expected a str of length greater than 0 as arg 1.\n",
+			"ValueError: %s expected a nonempty str as arg 1.\n",
 			"str.replace");
 		return YASL_VALUE_ERROR;
 	}
@@ -300,7 +300,7 @@ int str_split(struct YASL_State *S) {
 	struct YASL_String *haystack = YASL_GETSTR(vm_pop((struct VM *) S));
 
 	if (YASL_String_len(needle) == 0) {
-		YASL_PRINT_ERROR("ValueError: %s expected a str of length greater than 0 as arg 1.\n", "str.split");
+		YASL_PRINT_ERROR("ValueError: %s expected a nonempty str as arg 1.\n", "str.split");
 		return YASL_VALUE_ERROR;
 	}
 

@@ -592,7 +592,7 @@ static struct Node *parse_constant(struct Parser *const parser) {
 	case T_IF:
 	case T_ELSEIF:
 	case T_ELSE:
-		YASL_PRINT_ERROR_SYNTAX("ParsingError in line %" PRI_SIZET ": expected expression, got `%s`\n",
+		YASL_PRINT_ERROR_SYNTAX("ParsingError in line %" PRI_SIZET ": expected expression, got `%s`.\n",
 					    parser->lex.line,
 					    YASL_TOKEN_NAMES[curtok(parser)]);
 		return handle_error(parser);
