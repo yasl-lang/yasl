@@ -6,9 +6,7 @@ compiler:
 
 before_script:
   - cmake .
-  - make YASL
-  - make YASLTEST
-  - make yaslapi
+  - make tests
 
 script:
   - ./tests 

@@ -15,7 +15,7 @@ printf "Build successful\n\n"
 
 printf "========================================\n"
 printf "Running compiler tests...\n"
-./YASLTEST
+./yasltest
 C_TESTS_OUTPUT=$?
 printf "C Unit tests exited with code $C_TESTS_OUTPUT\n\n"
 

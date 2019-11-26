@@ -11,7 +11,7 @@ sub assert_output {
     my $RED = "\x1B[31m";
     my $END = "\x1B[0m";
 
-    my $output = qx+../YASL $string+;
+    my $output = qx+../yasl $string+;
     my $status = $?;
     my $exitcode = !($output eq $exp_out && $status == $exp_stat) || 0;
 

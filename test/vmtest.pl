@@ -10,7 +10,7 @@ sub assert_output {
     my (undef, $filename, $line) = caller;
 
     my $debug_dump = '/dump.ysl';
-    my $debug_yasl = '/YASL';
+    my $debug_yasl = '/yasl';
 
     open(my $fh, '>', '..' . $debug_dump) or die "Could not open file $debug_dump";
     print $fh "$string";

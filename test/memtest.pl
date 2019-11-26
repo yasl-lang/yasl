@@ -11,7 +11,7 @@ sub assert_output {
     my $RED = "\x1B[31m";
     my $END = "\x1B[0m";
 
-    my $output = qx+valgrind --error-exitcode=1 --leak-check=full ../YASL $string 2>/dev/null+;
+    my $output = qx+valgrind --error-exitcode=1 --leak-check=full ../yasl $string 2>/dev/null+;
     my $status = $?;
     my $exitcode = ($status != $exp_stat) || 0;
 

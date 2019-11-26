@@ -40,7 +40,7 @@ include_directories(std-require)
 include_directories(std-collections)
 include_directories(test)
 
-add_executable(YASL
+add_executable(yasl
         yasl.c
         main.c
         compiler/ast.c
@@ -75,7 +75,7 @@ add_executable(YASL
         data-structures/YASL_Set.c
         std-collections/yasl-std-collections.c)
 
-add_executable(YASLTEST
+add_executable(yasltest
         test/yats.c
         test/yasl_test.c
         test/unit_tests/test_lexer/lexertest.c
@@ -143,7 +143,7 @@ add_library(yaslapi
         prime/prime.c)
 
 if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
-    target_link_libraries(YASL m)
-    target_link_libraries(YASLTEST m)
+    target_link_libraries(yasl m)
+    target_link_libraries(yasltest m)
     target_link_libraries(yaslapi m)
 endif()
