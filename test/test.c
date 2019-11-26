@@ -7,6 +7,7 @@
 #include <stdbool.h>
 
 extern int cli_main(void);
+extern int vm_main(void);
 
 const char *bar = "========================================";
 
@@ -47,7 +48,6 @@ int comp_main(void) {
 }
 DEFMAIN(file);
 DEFMAIN(mem);
-DEFMAIN(vm);
 
 static const struct {
 	const char *desc;
