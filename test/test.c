@@ -6,6 +6,8 @@
 #include <unistd.h>
 #include <stdbool.h>
 
+extern int cli_main(void);
+
 const char *bar = "========================================";
 
 const char *cmake[] = {"cmake", "--build", ".", NULL};
@@ -45,7 +47,6 @@ int comp_main(void) {
 }
 DEFMAIN(file);
 DEFMAIN(mem);
-DEFMAIN(cli);
 DEFMAIN(vm);
 
 static const struct {

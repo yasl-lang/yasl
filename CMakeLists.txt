@@ -114,7 +114,9 @@ add_executable(yasltest
         compiler/env.c)
 
 add_executable(tests
-       test/test.c)
+        test/test.c
+        test/clitest.c
+        test/test_util.c)
 
 add_library(yaslapi
         yasl.c
