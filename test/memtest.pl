@@ -11,7 +11,7 @@ sub assert_output {
     my $RED = "\x1B[31m";
     my $END = "\x1B[0m";
 
-    my $output = qx+valgrind --error-exitcode=1 --leak-check=full ../yasl $string 2>/dev/null+;
+    my $output = qx+valgrind --error-exitcode=1 --leak-check=full ./yasl $string 2>/dev/null+;
     my $status = $?;
     my $exitcode = ($status != $exp_stat) || 0;
 
@@ -44,7 +44,7 @@ sub process_dir {
     }
 }
 
-process_dir('inputs/*');
+process_dir('test/inputs/*');
 print "Ran $__NUM_TESTS__ tests. ($__NUM_FAILED__ failed.)\n";
 
 exit $__MEM_TESTS_FAILED__;

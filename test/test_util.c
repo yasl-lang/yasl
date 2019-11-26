@@ -10,6 +10,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <sched.h>
+#include <dirent.h>
+#include <sys/stat.h>
 
 #define BUFSIZE 256
 
@@ -203,4 +205,99 @@ bool assert_output(const char *prog, const char *const *args,
 		differences = true;
 	}
 	return differences;
+}
+
+static size_t extend_cpy(size_t size, size_t blen, char **beg,
+		      size_t clen, const char *cont) {
+	if (size < blen + clen + 1) {
+		do {
+			size *= 2;
+		} while (size < blen + clen + 1);
+		*beg = (char *)realloc(*beg, size + 1);
+	}
+	(*beg)[blen] = '/';
+	memcpy(*beg + blen + 1, cont, clen);
+	(*beg)[blen + clen + 1] = 0;
+	return size;
+}
+
+// 0 if weird file, 1 if regular file, 2 if directory
+static char gettype(size_t *size, size_t blen, char **curpath,
+		   struct dirent *ent) {
+#if defined(_DIRENT_HAVE_D_TYPE) && defined(DT_LNK) && defined(DT_REG) && defined(DT_DIR) && defined(DT_UNKNOWN)
+	switch(ent->d_type) {
+	case DT_REG: return 1;
+	case DT_DIR: return 2;
+	case DT_LNK: case DT_UNKNOWN: break;
+	default: return 0;
+	}
+#endif
+	*size = extend_cpy(*size, blen, curpath,
+			   strlen(ent->d_name), ent->d_name);
+	struct stat st;
+	if (!stat(*curpath, &st)) {
+		switch (st.st_mode & S_IFMT) {
+		case S_IFDIR: return 2;
+		case S_IFREG: return 1;
+		}
+	}
+	return 0;
+}
+
+typedef struct _towalk {
+	struct _towalk *next;
+	size_t pos, len;
+	char *name;
+} towalk;
+
+void walk_dir(void *args,
+	      void (*proc_file)(void *args,
+				const char *path,
+				size_t plen),
+	      const char *dirpath) {
+	towalk *pile = NULL;
+	size_t pend = strlen(dirpath);
+	size_t psize = pend * 2;
+	char *path = (char *)malloc(psize + 1);
+	memcpy(path, dirpath, pend + 1);
+	goto firststart;
+	while (pile != NULL) {
+		pend = pile->pos + pile->len + 1;
+		psize = extend_cpy(psize, pile->pos, &path,
+				   pile->len, pile->name);
+		free(pile->name);
+		{
+			towalk *t = pile;
+			pile = pile->next;
+			free(t);
+		}
+	firststart:;
+		DIR *d = opendir(path);
+		struct dirent *ent;
+		while ((ent = readdir(d)) != NULL) {
+			if (*ent->d_name == '.') {
+				continue;
+			}
+			char t = gettype(&psize, pend, &path, ent);
+			if (!t) {
+				continue;
+			}
+			size_t len = strlen(ent->d_name);
+			if (t == 1) {
+				psize = extend_cpy(psize, pend, &path,
+						   len, ent->d_name);
+				proc_file(args, path, pend + len + 1);
+			} else {
+				towalk *t = (towalk *)malloc(sizeof(towalk));
+				t->next = pile;
+				pile = t;
+				pile->pos = pend;
+				pile->len = len;
+				pile->name = (char *)malloc(len);
+				memcpy(pile->name, ent->d_name, len);
+			}
+		}
+		closedir(d);
+	}
+	free(path);
 }

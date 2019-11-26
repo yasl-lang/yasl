@@ -8,19 +8,17 @@
 
 extern int cli_main(void);
 extern int vm_main(void);
+extern int file_main(void);
 
 const char *bar = "========================================";
 
 const char *cmake[] = {"cmake", "--build", ".", NULL};
 
-const char *perlcomm[] = {"perl", NULL, NULL};
+const char *perlcomm[] = {"perl", "test/memtest.pl", NULL};
 
-int neatsystem(const char *const *command, const char *dir) {
+int neatsystem(const char *const *command) {
 	pid_t child = fork();
 	if (!child) {
-		if (dir != NULL) {
-			chdir(dir);
-		}
 		execvp(*command, (char *const *)command);
 		exit(1);
 	}
@@ -29,25 +27,14 @@ int neatsystem(const char *const *command, const char *dir) {
 	return WEXITSTATUS(status);
 }
 
-
-int perl(const char *file) {
-	perlcomm[1] = file;
-	return neatsystem(perlcomm, "test");
-}
-
-#define PREPX(x) XPREPX(x)
-#define XPREPX(a) x ## a
-
-#define DEFMAIN(x) int x ## _main(void) { return perl(#x "test.pl"); } \
-  int PREPX(__LINE__)
-
 const char *yasltest[] = {"./yasltest", NULL};
 
 int comp_main(void) {
-	return neatsystem(yasltest, NULL);
+	return neatsystem(yasltest);
 }
-DEFMAIN(file);
-DEFMAIN(mem);
+int mem_main(void) {
+	return neatsystem(perlcomm);
+}
 
 static const struct {
 	const char *desc;
@@ -60,7 +47,7 @@ static const struct {
 
 int main(int argc, char **argv) {
 	printf("%.20s\nBuilding...\n", bar);
-	if (neatsystem(cmake, NULL)) {
+	if (neatsystem(cmake)) {
 		printf("Build failed\n");
 		return(1);
 	}
