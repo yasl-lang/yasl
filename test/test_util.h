@@ -2,6 +2,10 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+extern int qx(const char *prog, const char *const *args,
+	      size_t *olen, char **output,
+	      size_t *elen, char **error);
+
 extern bool assert_output(const char *prog, const char *const *args,
 			  size_t eolen, const char *expected_output,
 			  size_t eelen, const char *expected_error,

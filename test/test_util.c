@@ -96,8 +96,8 @@ static void pipey(int pipefd[2]) {
 	}
 }
 
-static int qx(const char *prog, const char *const *args,
-	      size_t *olen, char **output, size_t *elen, char **error) {
+int qx(const char *prog, const char *const *args,
+       size_t *olen, char **output, size_t *elen, char **error) {
 	int opipe_fd[2], epipe_fd[2];
 	bufr ob, eb;
 	pid_t child;

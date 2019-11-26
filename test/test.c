@@ -9,12 +9,11 @@
 extern int cli_main(void);
 extern int vm_main(void);
 extern int file_main(void);
+extern int mem_main(void);
 
 const char *bar = "========================================";
 
 const char *cmake[] = {"cmake", "--build", ".", NULL};
-
-const char *perlcomm[] = {"perl", "test/memtest.pl", NULL};
 
 int neatsystem(const char *const *command) {
 	pid_t child = fork();
@@ -31,9 +30,6 @@ const char *yasltest[] = {"./yasltest", NULL};
 
 int comp_main(void) {
 	return neatsystem(yasltest);
-}
-int mem_main(void) {
-	return neatsystem(perlcomm);
 }
 
 static const struct {

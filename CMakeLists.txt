@@ -118,6 +118,7 @@ add_executable(tests
         test/clitest.c
 	test/vmtest.c
 	test/filetest.c
+	test/memtest.c
         test/test_util.c)
 
 add_library(yaslapi
