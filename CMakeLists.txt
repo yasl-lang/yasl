@@ -113,13 +113,15 @@ add_executable(yasltest
         data-structures/YASL_Set.c
         compiler/env.c)
 
-add_executable(tests
-        test/test.c
-        test/clitest.c
-	test/vmtest.c
-	test/filetest.c
-	test/memtest.c
-        test/test_util.c)
+if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
+	add_executable(tests
+		test/test.c
+        	test/clitest.c
+		test/vmtest.c
+		test/filetest.c
+		test/memtest.c
+        	test/test_util.c)
+endif()
 
 add_library(yaslapi
         yasl.c
