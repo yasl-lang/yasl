@@ -18,6 +18,7 @@ jobs:
     vmImage: 'vs2017-win2016'
   steps:
   - script: |
+      set -e
       cmake  -G "MinGW Makefiles" -DCMAKE_SH="CMAKE_SH-NOTFOUND" .
       make yasl
       make yasltest
@@ -45,6 +46,7 @@ jobs:
       sudo apt install valgrind
     displayName: "Install Valgrind"  
   - script: |
+      set -e
       cmake .
       make yasl
       make yasltest
@@ -63,6 +65,7 @@ jobs:
       sudo apt install valgrind
     displayName: "Install Valgrind"  
   - script: |
+      set -e
       export CC=clang
       export CXX=clang++
       cmake .
@@ -83,6 +86,7 @@ jobs:
       sudo apt install valgrind
     displayName: "Install Valgrind"  
   - script: |
+      set -e
       cmake -Dcpp=true
       cmake .
       make yasl
@@ -102,6 +106,7 @@ jobs:
       sudo apt install valgrind
     displayName: "Install Valgrind"  
   - script: |
+      set -e
       export CC=clang
       export CXX=clang++
       cmake -Dcpp=true
@@ -120,6 +125,7 @@ jobs:
     vmImage: 'macOS-10.14'
   steps:
   - script: |
+      set -e
       export CC=clang
       export CXX=clang++
       cmake .
@@ -137,6 +143,7 @@ jobs:
     vmImage: 'macOS-10.14'
   steps:
   - script: |
+      set -e
       export CC=clang
       export CXX=clang++
       cmake -Dcpp=true
