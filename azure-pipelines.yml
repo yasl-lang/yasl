@@ -21,6 +21,7 @@ jobs:
       cmake  -G "MinGW Makefiles" -DCMAKE_SH="CMAKE_SH-NOTFOUND" .
       make yasl
       make yasltest
+      make tests
       make yaslapi
     displayName: "Compile"
 - job:
@@ -47,6 +48,7 @@ jobs:
       cmake .
       make yasl
       make yasltest
+      make tests
       make yaslapi
     displayName: "Compile"
   - script:
@@ -66,6 +68,7 @@ jobs:
       cmake .
       make yasl
       make yasltest
+      make tests
       make yaslapi
     displayName: "Compile"
   - script:
@@ -84,6 +87,7 @@ jobs:
       cmake .
       make yasl
       make yasltest
+      make tests
       make yaslapi
     displayName: "Compile"
   - script:
@@ -104,6 +108,7 @@ jobs:
       cmake .
       make yasl
       make yasltest
+      make tests
       make yaslapi
     displayName: "Compile"
   - script:
@@ -120,6 +125,7 @@ jobs:
       cmake .
       make yasl
       make yasltest
+      make tests
       make yaslapi
     displayName: "Compile"
   - script:
@@ -137,6 +143,7 @@ jobs:
       cmake .
       make yasl
       make yasltest
+      make tests
       make yaslapi
     displayName: "Compile"
   - script:
