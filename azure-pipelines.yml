@@ -26,7 +26,7 @@ jobs:
       make yaslapi
     displayName: "Compile"
   - script:
-    ./tests -m
+      ./tests -m
     displayName: "Run Tests"
 - job:
   displayName: "C MSVC Windows"
