@@ -5,14 +5,14 @@
 
 const char *const cmd = "./yasl";
 
-const char *const USAGESTR = "usage: yasl [option] [input]\n"
-  "options:\n"
-  "\t-C: checks `input` for syntax errors but doesn't run it.\n"
-  "\t-e input: executes `input` as code and prints result of last statement.\n"
-  "\t-E input: executes `input` as code.\n"
-  "\t-h: show this text.\n"
-  "\t-V: print current version.\n"
-  "\tinput: name of file containing script (or literal to execute with -e or -E).\n";
+#define USAGESTR "usage: yasl [option] [input]\n"\
+  "options:\n"\
+  "\t-C: checks `input` for syntax errors but doesn't run it.\n"\
+  "\t-e input: executes `input` as code and prints result of last statement.\n"\
+  "\t-E input: executes `input` as code.\n"\
+  "\t-h: show this text.\n"\
+  "\t-V: print current version.\n"\
+  "\tinput: name of file containing script (or literal to execute with -e or -E).\n"
 
 #define TST __FILE__, __LINE__
 
