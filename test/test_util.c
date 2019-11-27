@@ -12,6 +12,7 @@
 #include <sched.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <libgen.h>
 
 #define BUFSIZE 256
 
