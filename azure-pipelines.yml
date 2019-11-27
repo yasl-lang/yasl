@@ -19,8 +19,8 @@ jobs:
   steps:
   - script: |
       cmake  -G "MinGW Makefiles" -DCMAKE_SH="CMAKE_SH-NOTFOUND" .
-      make YASL
-      make YASLTEST
+      make yasl
+      make yasltest
       make yaslapi
     displayName: "Compile"
 - job:
@@ -33,7 +33,7 @@ jobs:
     displayName: "Generate Solution"  
   - task: MSBuild@1
     inputs:
-      solution: YASL.sln
+      solution: yasl.sln
     displayName: "Compile"
 - job: 
   displayName: "C GCC Ubuntu"
@@ -45,8 +45,8 @@ jobs:
     displayName: "Install Valgrind"  
   - script: |
       cmake .
-      make YASL
-      make YASLTEST
+      make yasl
+      make yasltest
       make yaslapi
     displayName: "Compile"
   - script:
@@ -64,8 +64,8 @@ jobs:
       export CC=clang
       export CXX=clang++
       cmake .
-      make YASL
-      make YASLTEST
+      make yasl
+      make yasltest
       make yaslapi
     displayName: "Compile"
   - script:
@@ -82,8 +82,8 @@ jobs:
   - script: |
       cmake -Dcpp=true
       cmake .
-      make YASL
-      make YASLTEST
+      make yasl
+      make yasltest
       make yaslapi
     displayName: "Compile"
   - script:
@@ -102,8 +102,8 @@ jobs:
       export CXX=clang++
       cmake -Dcpp=true
       cmake .
-      make YASL
-      make YASLTEST
+      make yasl
+      make yasltest
       make yaslapi
     displayName: "Compile"
   - script:
@@ -118,8 +118,8 @@ jobs:
       export CC=clang
       export CXX=clang++
       cmake .
-      make YASL
-      make YASLTEST
+      make yasl
+      make yasltest
       make yaslapi
     displayName: "Compile"
   - script:
@@ -135,8 +135,8 @@ jobs:
       export CXX=clang++
       cmake -Dcpp=true
       cmake .
-      make YASL
-      make YASLTEST
+      make yasl
+      make yasltest
       make yaslapi
     displayName: "Compile"
   - script:
