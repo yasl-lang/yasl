@@ -135,7 +135,7 @@ jobs:
       make yaslapi
     displayName: "Compile"
   - script:
-      ./tests -m
+      ./tests
     displayName: "Run Tests"  
 - job: 
   displayName: "C++ Clang MacOS"
@@ -154,5 +154,5 @@ jobs:
       make yaslapi
     displayName: "Compile"
   - script:
-      ./tests -m
+      ./tests
     displayName: "Run Tests"  
