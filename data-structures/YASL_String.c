@@ -543,7 +543,7 @@ struct YASL_String *YASL_String_trim(struct YASL_String *haystack, struct YASL_S
 
 // Caller ensures num is greater than or equal to zero
 struct YASL_String *YASL_String_rep_fast(struct YASL_String *string, yasl_int num) {
-	YASL_ASSERT(num >= 0, "num must be greater than or equal to 0");
+	YASL_ASSERT(num >= 0, "num must be nonnegative");
 	size_t size = num * YASL_String_len(string);
 	char *str = (char *)malloc(size);
 	for (size_t i = 0; i < size; i += YASL_String_len(string)) {

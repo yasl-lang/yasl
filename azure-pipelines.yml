@@ -18,9 +18,11 @@ jobs:
     vmImage: 'vs2017-win2016'
   steps:
   - script: |
+      set -e
       cmake  -G "MinGW Makefiles" -DCMAKE_SH="CMAKE_SH-NOTFOUND" .
-      make YASL
-      make YASLTEST
+      make yasl
+      make yasltest
+      make tests
       make yaslapi
     displayName: "Compile"
 - job:
@@ -33,7 +35,7 @@ jobs:
     displayName: "Generate Solution"  
   - task: MSBuild@1
     inputs:
-      solution: YASL.sln
+      solution: yasl.sln
     displayName: "Compile"
 - job: 
   displayName: "C GCC Ubuntu"
@@ -44,9 +46,11 @@ jobs:
       sudo apt install valgrind
     displayName: "Install Valgrind"  
   - script: |
+      set -e
       cmake .
-      make YASL
-      make YASLTEST
+      make yasl
+      make yasltest
+      make tests
       make yaslapi
     displayName: "Compile"
   - script:
@@ -61,11 +65,13 @@ jobs:
       sudo apt install valgrind
     displayName: "Install Valgrind"  
   - script: |
+      set -e
       export CC=clang
       export CXX=clang++
       cmake .
-      make YASL
-      make YASLTEST
+      make yasl
+      make yasltest
+      make tests
       make yaslapi
     displayName: "Compile"
   - script:
@@ -80,10 +86,12 @@ jobs:
       sudo apt install valgrind
     displayName: "Install Valgrind"  
   - script: |
+      set -e
       cmake -Dcpp=true
       cmake .
-      make YASL
-      make YASLTEST
+      make yasl
+      make yasltest
+      make tests
       make yaslapi
     displayName: "Compile"
   - script:
@@ -98,12 +106,14 @@ jobs:
       sudo apt install valgrind
     displayName: "Install Valgrind"  
   - script: |
+      set -e
       export CC=clang
       export CXX=clang++
       cmake -Dcpp=true
       cmake .
-      make YASL
-      make YASLTEST
+      make yasl
+      make yasltest
+      make tests
       make yaslapi
     displayName: "Compile"
   - script:
@@ -115,11 +125,13 @@ jobs:
     vmImage: 'macOS-10.14'
   steps:
   - script: |
+      set -e
       export CC=clang
       export CXX=clang++
       cmake .
-      make YASL
-      make YASLTEST
+      make yasl
+      make yasltest
+      make tests
       make yaslapi
     displayName: "Compile"
   - script:
@@ -131,12 +143,14 @@ jobs:
     vmImage: 'macOS-10.14'
   steps:
   - script: |
+      set -e
       export CC=clang
       export CXX=clang++
       cmake -Dcpp=true
       cmake .
-      make YASL
-      make YASLTEST
+      make yasl
+      make yasltest
+      make tests
       make yaslapi
     displayName: "Compile"
   - script:
