@@ -17,10 +17,10 @@ if(MSVC)
 endif()
 
 if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
-    set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-unused-function -Wno-unused-result -Wno-unused-parameter -Wpedantic -Werror")
+    set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-unused-function -Wno-unused-result -Wno-unused-parameter -Wno-invalid-pp-token -Wpedantic -Werror")
 endif()
 if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
-    set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-function -Wno-unused-result -Wno-unused-variable -Wno-unused-parameter -Wno-deprecated -Werror")
+    set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-function -Wno-unused-result -Wno-unused-variable -Wno-unused-parameter -Wno-invalid-pp-token -Wno-deprecated -Werror")
 endif()
 
 if (CMAKE_COMPILER_IS_GNUCC)
@@ -40,7 +40,7 @@ include_directories(std-require)
 include_directories(std-collections)
 include_directories(test)
 
-add_executable(YASL
+add_executable(yasl
         yasl.c
         main.c
         compiler/ast.c
@@ -75,7 +75,7 @@ add_executable(YASL
         data-structures/YASL_Set.c
         std-collections/yasl-std-collections.c)
 
-add_executable(YASLTEST
+add_executable(yasltest
         test/yats.c
         test/yasl_test.c
         test/unit_tests/test_lexer/lexertest.c
@@ -113,6 +113,16 @@ add_executable(YASLTEST
         data-structures/YASL_Set.c
         compiler/env.c)
 
+if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
+	add_executable(tests
+		test/test.c
+        	test/clitest.c
+		test/vmtest.c
+		test/filetest.c
+		test/memtest.c
+        	test/test_util.c)
+endif()
+
 add_library(yaslapi
         yasl.c
         compiler/ast.c
@@ -143,7 +153,8 @@ add_library(yaslapi
         prime/prime.c)
 
 if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
-    target_link_libraries(YASL m)
-    target_link_libraries(YASLTEST m)
+    target_link_libraries(yasl m)
+    target_link_libraries(yasltest m)
     target_link_libraries(yaslapi m)
+    target_link_libraries(tests m)
 endif()

@@ -10,10 +10,10 @@ cmake --configure .
 cmake --build .
 ```
 
-You should then be able to type `./YASL -V` from within the `yasl` directory, which should print out the current version of YASL. YASL is not installed on your path, although doing so is easy.
+You should then be able to type `./yasl -V` from within the `yasl` directory, which should print out the current version of YASL. YASL is not installed on your path, although doing so is easy.
 
 ## Running YASL Code
-A YASL script can be run using `./YASL filename`. This will search in the current directory (same directory as `YASL`) for a file named `filename`, and run it.
+A YASL script can be run using `./yasl filename`. This will search in the current directory (same directory as `YASL`) for a file named `filename`, and run it.
 
 ## Running Tests
 

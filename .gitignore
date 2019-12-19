@@ -5,8 +5,9 @@ CMakeFiles
 Makefile
 
 # Binaries
-YASLTEST
-YASL
+yasltest
+yasl
+tests
 
 # Generated
 dump.ysl
