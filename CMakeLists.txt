@@ -78,6 +78,9 @@ add_executable(yasl
 add_executable(yasltest
         test/yats.c
         test/yasl_test.c
+        test/unit_tests/test_api/apitest.c
+        test/unit_tests/test_api/pushtest.c
+        test/unit_tests/test_api/poptest.c
         test/unit_tests/test_lexer/lexertest.c
         test/unit_tests/test_compiler/compilertest.c
         test/unit_tests/test_compiler/binoptest.c
@@ -111,12 +114,22 @@ add_executable(yasltest
         interpreter/userdata.c
         prime/prime.c
         data-structures/YASL_Set.c
-        compiler/env.c)
+        compiler/env.c
+        yasl.c
+        interpreter/VM.c
+        interpreter/builtins.c
+        interpreter/list_methods.c
+        interpreter/table_methods.c
+        interpreter/str_methods.c
+        interpreter/undef_methods.c
+        interpreter/float_methods.c
+        interpreter/int_methods.c
+        interpreter/bool_methods.c)
 
 if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
 	add_executable(tests
 		test/test.c
-        	test/clitest.c
+            test/clitest.c
 		test/vmtest.c
 		test/filetest.c
 		test/memtest.c
