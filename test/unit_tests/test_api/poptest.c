@@ -4,7 +4,7 @@
 SETUP_YATS();
 
 static void testpopfloat(void) {
-	char *code = "x = 12.5;";
+	const char *code = "x = 12.5;";
 	struct YASL_State *S = YASL_newstate_bb(code, strlen(code));
 	ASSERT_SUCCESS(YASL_declglobal(S, "x"));
 	ASSERT_SUCCESS(YASL_compile(S));
@@ -16,7 +16,7 @@ static void testpopfloat(void) {
 }
 
 static void testpopint(void) {
-	char *code = "x = 12;";
+	const char *code = "x = 12;";
 	struct YASL_State *S = YASL_newstate_bb(code, strlen(code));
 	ASSERT_SUCCESS(YASL_declglobal(S, "x"));
 	ASSERT_SUCCESS(YASL_compile(S));
@@ -28,7 +28,7 @@ static void testpopint(void) {
 }
 
 static void testpopbool(void) {
-	char *code = "x = true;";
+	const char *code = "x = true;";
 	struct YASL_State *S = YASL_newstate_bb(code, strlen(code));
 	ASSERT_SUCCESS(YASL_declglobal(S, "x"));
 	ASSERT_SUCCESS(YASL_compile(S));
