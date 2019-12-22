@@ -243,6 +243,8 @@ int YASL_Table_set(struct YASL_Object *table, struct YASL_Object *key, struct YA
  */
 int YASL_settable(struct YASL_State *S);
 
+int YASL_top_peektype(struct YASL_State *S);
+
 /**
  * Checks if given YASL_Object is undef.
  * @param obj the given YASL_Object.
@@ -361,6 +363,7 @@ YASL_DEPRECATE
 yasl_float YASL_getdouble(struct YASL_Object *obj);
 
 yasl_float YASL_top_peekdouble(struct YASL_State *S);
+yasl_float YASL_top_popdouble(struct YASL_State *S);
 
 /**
  * Retrieves the integer value of the YASL_Object.
@@ -371,6 +374,7 @@ YASL_DEPRECATE
 yasl_int YASL_getinteger(struct YASL_Object *obj);
 
 yasl_int YASL_top_peekinteger(struct YASL_State *S);
+yasl_int YASL_top_popinteger(struct YASL_State *S);
 
 /**
  * Retrieves the null-terminated string value of the YASL_Object.

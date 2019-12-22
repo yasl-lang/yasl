@@ -210,6 +210,10 @@ int YASL_loadglobal(struct YASL_State *S, const char *name) {
 	return YASL_SUCCESS;
 }
 
+int YASL_top_peektype(struct YASL_State *S) {
+	return vm_peek(&S->vm).type;
+}
+
 int YASL_pushundef(struct YASL_State *S) {
 	vm_push((struct VM *) S, YASL_UNDEF());
 	return YASL_SUCCESS;
@@ -432,6 +436,13 @@ yasl_float YASL_top_peekdouble(struct YASL_State *S) {
 	return 0.0;
 }
 
+yasl_float YASL_top_popdouble(struct YASL_State *S) {
+	if (YASL_top_isdouble(S)) {
+		return YASL_GETFLOAT(vm_pop(&S->vm));
+	}
+	return 0.0;
+}
+
 yasl_int YASL_getinteger(struct YASL_Object *obj) {
         if (YASL_ISINT(*obj)) return obj->value.ival;
 	return 0;
@@ -440,6 +451,13 @@ yasl_int YASL_getinteger(struct YASL_Object *obj) {
 yasl_int YASL_top_peekinteger(struct YASL_State *S) {
 	if (YASL_top_isinteger(S)) {
 		return YASL_GETINT(vm_peek(&S->vm));
+	}
+	return 0;
+}
+
+yasl_int YASL_top_popinteger(struct YASL_State *S) {
+	if (YASL_top_isinteger(S)) {
+		return YASL_GETINT(vm_pop(&S->vm));
 	}
 	return 0;
 }

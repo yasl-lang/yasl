@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <stdio.h>
 
 // Ugly hack for MinGW, since it doesn't support %z
 #ifdef _WIN32
