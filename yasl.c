@@ -391,8 +391,16 @@ int YASL_islist(struct YASL_Object *obj) {
 	return obj->type != Y_LIST && obj->type != Y_LIST_W;
 }
 
+bool YASL_top_islist(struct YASL_State *S) {
+	return YASL_ISLIST(vm_peek(&S->vm));
+}
+
 int YASL_istable(struct YASL_Object *obj) {
 	return obj->type != Y_TABLE && obj->type != Y_TABLE_W;
+}
+
+bool YASL_top_istable(struct YASL_State *S) {
+	return YASL_ISTABLE(vm_peek(&S->vm));
 }
 
 int YASL_isfunction(struct YASL_Object *obj);
@@ -420,6 +428,13 @@ bool YASL_getboolean(struct YASL_Object *obj) {
 bool YASL_top_peekboolean(struct YASL_State *S) {
 	if (YASL_top_isboolean(S)) {
 		return (bool)YASL_GETBOOL(vm_peek(&S->vm));
+	}
+	return false;
+}
+
+bool YASL_top_popboolean(struct YASL_State *S) {
+	if (YASL_top_isboolean(S)) {
+		return (bool)YASL_GETBOOL(vm_pop(&S->vm));
 	}
 	return false;
 }

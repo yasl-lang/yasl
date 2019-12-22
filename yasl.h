@@ -303,6 +303,8 @@ bool YASL_top_isstring(struct YASL_State *S);
 YASL_DEPRECATE
 int YASL_islist(struct YASL_Object *obj);
 
+bool YASL_top_islist(struct YASL_State *S);
+
 /**
  * Checks if given YASL_Object is table.
  * @param obj the given YASL_Object.
@@ -310,6 +312,8 @@ int YASL_islist(struct YASL_Object *obj);
  */
 YASL_DEPRECATE
 int YASL_istable(struct YASL_Object *obj);
+
+bool YASL_top_istable(struct YASL_State *S);
 
 /**
  * Checks if given YASL_Object is function.
@@ -353,6 +357,7 @@ YASL_DEPRECATE
 bool YASL_getboolean(struct YASL_Object *obj);
 
 bool YASL_top_peekboolean(struct YASL_State *S);
+bool YASL_top_popboolean(struct YASL_State *S);
 
 /**
  * Retrieves the double value of the YASL_Object.
