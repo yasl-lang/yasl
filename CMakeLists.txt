@@ -73,7 +73,8 @@ add_executable(yasl
         std-math/yasl-std-math.c
         std-require/yasl-std-require.c
         data-structures/YASL_Set.c
-        std-collections/yasl-std-collections.c)
+        std-collections/yasl-std-collections.c
+        IO.c)
 
 add_executable(yasltest
         test/yats.c

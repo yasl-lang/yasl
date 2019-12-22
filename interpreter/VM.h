@@ -1,5 +1,6 @@
 #pragma once
 
+#include "IO.h"
 #include "data-structures/YASL_Table.h"
 #include "data-structures/YASL_List.h"
 #include "yasl_conf.h"
@@ -56,7 +57,30 @@
                             }\
                             vm_pushbool(vm, c);} while(0);
 
+#define vm_print_out(vm, format, ...) {\
+	char *tmp = malloc(snprintf(NULL, 0, format, __VA_ARGS__) + 1);\
+	sprintf(tmp, format, __VA_ARGS__);\
+	vm->out.print(&vm->out, tmp, strlen(tmp));\
+	free(tmp);\
+}
+
+#define vm_print_err(vm, format, ...) {\
+	char *tmp = malloc(snprintf(NULL, 0, format, __VA_ARGS__) + 1);\
+	sprintf(tmp, format, __VA_ARGS__);\
+	vm->err.print(&vm->err, tmp, strlen(tmp));\
+	free(tmp);\
+}
+
+#define vm_print_err_type(vm, format, ...) vm_print_err(vm, MSG_TYPE_ERROR format, __VA_ARGS__)
+#define vm_print_err_divide_by_zero(vm) {\
+	const char *tmp = "DivisionByZeroError\n";\
+	vm->err.print(&vm->err, tmp, strlen(tmp));\
+}
+// #define YASL_PRINT_ERROR_TYPE(fmt, ...) YASL_PRINT_ERROR(MSG_TYPE_ERROR fmt, __VA_ARGS__)
+
 struct VM {
+	struct IO out;
+	struct IO err;
 	struct YASL_Object *global_vars;
 	struct YASL_Table **globals;         // variables, see "constant.c" for details on YASL_Object.
 	size_t num_globals;

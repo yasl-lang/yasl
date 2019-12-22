@@ -43,8 +43,8 @@ void vm_init(struct VM *const vm,
 	vm->headers_size = datasize;
 	vm->num_globals = datasize;
 	vm->globals = (struct YASL_Table **)calloc(sizeof(struct YASL_Table *), datasize);
-	//vm->globals[0] = YASL_Table_new();
-	//vm->globals[1] = YASL_Table_new();
+	vm->out = (struct IO) { io_print_file, stdout, NULL, 0 };
+	vm->err = (struct IO) { io_print_file, stderr, NULL, 0 };
 	for (size_t i = 0; i < datasize; i++) {
 		vm->headers[i] = NULL;
 		vm->globals[i] = NULL;
@@ -226,7 +226,7 @@ static int vm_int_binop(struct VM *vm, yasl_int (*op)(yasl_int, yasl_int), const
 		vm_push(vm, op_name);
 		vm_GET(vm);
 		if (YASL_ISUNDEF(vm_peek(vm))) {
-			YASL_PRINT_ERROR_TYPE("%s not supported for operands of types %s and %s.\n",
+			vm_print_err_type(vm, "%s not supported for operands of types %s and %s.\n",
 					      opstr,
 					      YASL_TYPE_NAMES[left.type],
 					      YASL_TYPE_NAMES[right.type]);
@@ -281,7 +281,7 @@ static int vm_num_binop(
 		vm_push(vm, op_name);
 		vm_GET(vm);
 		if (YASL_ISUNDEF(vm_peek(vm))) {
-			YASL_PRINT_ERROR_TYPE("%s not supported for operands of types %s and %s.\n",
+			vm_print_err_type(vm, "%s not supported for operands of types %s and %s.\n",
 					      opstr,
 					      YASL_TYPE_NAMES[left.type],
 					      YASL_TYPE_NAMES[right.type]);
@@ -322,7 +322,7 @@ static int vm_fdiv(struct VM *vm) {
 		vm_push(vm, op_name);
 		vm_GET(vm);
 		if (YASL_ISUNDEF(vm_peek(vm))) {
-			YASL_PRINT_ERROR_TYPE("/ not supported for operands of types %s and %s.\n",
+			vm_print_err_type(vm, "/ not supported for operands of types %s and %s.\n",
 					      YASL_TYPE_NAMES[left.type],
 					      YASL_TYPE_NAMES[right.type]);
 			dec_ref(&left);
@@ -375,7 +375,7 @@ static int vm_int_unop(struct VM *vm, yasl_int (*op)(yasl_int), const char *opst
 		vm_push(vm, op_name);
 		vm_GET(vm);
 		if (YASL_ISUNDEF(vm_peek(vm))) {
-			YASL_PRINT_ERROR_TYPE("%s not supported for operand of type %s.\n",
+			vm_print_err_type(vm, "%s not supported for operand of type %s.\n",
 					      opstr,
 					      YASL_TYPE_NAMES[a.type]);
 			return YASL_TYPE_ERROR;
@@ -400,7 +400,7 @@ static int vm_num_unop(struct VM *vm, yasl_int (*int_op)(yasl_int), yasl_float (
 		vm_push(vm, op_name);
 		vm_GET(vm);
 		if (YASL_ISUNDEF(vm_peek(vm))) {
-			YASL_PRINT_ERROR_TYPE("%s not supported for operand of type %s.\n",
+			vm_print_err_type(vm,  "%s not supported for operand of type %s.\n",
 					      opstr,
 					      YASL_TYPE_NAMES[expr.type]);
 			return YASL_TYPE_ERROR;
@@ -427,7 +427,7 @@ static int vm_len_unop(struct VM *vm) {
 		vm_push(vm, op_name);
 		vm_GET(vm);
 		if (YASL_ISUNDEF(vm_peek(vm))) {
-			YASL_PRINT_ERROR_TYPE("len not supported for operand of type %s.\n",
+			vm_print_err_type(vm,  "len not supported for operand of type %s.\n",
 					      YASL_TYPE_NAMES[v.type]);
 			return YASL_TYPE_ERROR;
 		} else {
@@ -483,7 +483,7 @@ int vm_stringify_top(struct VM *vm) {
 
 static int vm_SLICE(struct VM *vm) {
 	if (!vm_isint(vm) || !YASL_ISINT(VM_PEEK(vm, vm->sp - 1))) {
-		YASL_PRINT_ERROR_TYPE("slicing expected range of type int:int, got type %s:%s",
+		vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
 				      YASL_TYPE_NAMES[VM_PEEK(vm, vm->sp - 1).type],
 				      YASL_TYPE_NAMES[VM_PEEK(vm, vm->sp).type]
 		);
@@ -536,7 +536,7 @@ static int vm_SLICE(struct VM *vm) {
 		return YASL_SUCCESS;
 	}
 
-	YASL_PRINT_ERROR_TYPE("slice is not defined for objects of type %s.", YASL_TYPE_NAMES[vm_pop(vm).type]);
+	vm_print_err_type(vm,  "slice is not defined for objects of type %s.", YASL_TYPE_NAMES[vm_pop(vm).type]);
 	return YASL_TYPE_ERROR;
 
 }
@@ -595,7 +595,7 @@ static int vm_SET(struct VM *vm) {
 		table___set((struct YASL_State *) vm);
 	} else {
 		vm->sp += 2;
-		YASL_PRINT_ERROR_TYPE("object of type %s is immutable.", YASL_TYPE_NAMES[vm_peek(vm).type]);
+		vm_print_err_type(vm,  "object of type %s is immutable.", YASL_TYPE_NAMES[vm_peek(vm).type]);
 		return YASL_TYPE_ERROR;
 	}
 	return YASL_SUCCESS;
@@ -664,7 +664,7 @@ static int vm_ITER_1(struct VM *vm) {
 		}
 		return YASL_SUCCESS;
 	default:
-		YASL_PRINT_ERROR_TYPE("object of type %s is not iterable.\n", YASL_TYPE_NAMES[vm->stack[vm->lp].type]);
+		vm_print_err_type(vm,  "object of type %s is not iterable.\n", YASL_TYPE_NAMES[vm->stack[vm->lp].type]);
 		return YASL_TYPE_ERROR;
 	}
 }
@@ -695,14 +695,15 @@ static int vm_GLOAD_8(struct VM *vm) {
 
 	vm_push(vm, YASL_Table_search(vm->globals[table], YASL_STR(string)));
 
-	if (vm_peek(vm).type == Y_END) puts("asddas");
+	YASL_ASSERT(vm_peek(vm).type != Y_END, "global not found");
+
 	str_del(string);
 	return YASL_SUCCESS;
 }
 
 static int vm_INIT_CALL(struct VM *vm) {
 	if (!YASL_ISFN(vm_peek(vm)) && !YASL_ISCFN(vm_peek(vm))) {
-		YASL_PRINT_ERROR_TYPE("%s is not callable.", YASL_TYPE_NAMES[vm_peek(vm).type]);
+		vm_print_err_type(vm,  "%s is not callable.", YASL_TYPE_NAMES[vm_peek(vm).type]);
 		return YASL_TYPE_ERROR;
 	}
 
@@ -899,7 +900,7 @@ int vm_run(struct VM *vm) {
 			break;
 		case IDIV:
 			if (vm_isint(vm) && YASL_GETINT(vm_peek(vm)) == 0) {
-				YASL_PRINT_ERROR_DIVIDE_BY_ZERO();
+				vm_print_err_divide_by_zero(vm);
 				return YASL_DIVIDE_BY_ZERO_ERROR;
 				break;
 			}
@@ -908,7 +909,7 @@ int vm_run(struct VM *vm) {
 		case MOD:
 			// TODO: handle undefined C behaviour for negative numbers.
 			if (vm_isint(vm) && YASL_GETINT(vm_peek(vm)) == 0) {
-				YASL_PRINT_ERROR_DIVIDE_BY_ZERO();
+				vm_print_err_divide_by_zero(vm);
 				return YASL_DIVIDE_BY_ZERO_ERROR;
 				break;
 			}
@@ -941,7 +942,7 @@ int vm_run(struct VM *vm) {
 				break;
 			}
 			if (!YASL_ISNUM(a) || !YASL_ISNUM(b)) {
-				YASL_PRINT_ERROR_TYPE("< and > not supported for operand of types %s and %s.\n",
+				vm_print_err_type(vm,  "< and > not supported for operand of types %s and %s.\n",
 				       YASL_TYPE_NAMES[a.type],
 				       YASL_TYPE_NAMES[b.type]);
 				return YASL_TYPE_ERROR;
@@ -956,7 +957,7 @@ int vm_run(struct VM *vm) {
 				break;
 			}
 			if (!YASL_ISNUM(a) || !YASL_ISNUM(b)) {
-				YASL_PRINT_ERROR_TYPE("<= and >= not supported for operand of types %s and %s.\n",
+				vm_print_err_type(vm,  "<= and >= not supported for operand of types %s and %s.\n",
 				       YASL_TYPE_NAMES[a.type],
 				       YASL_TYPE_NAMES[b.type]);
 				return YASL_TYPE_ERROR;
@@ -1113,7 +1114,7 @@ int vm_run(struct VM *vm) {
 			yasl_print(vm);
 			break;
 		default:
-			YASL_PRINT_ERROR("ERROR UNKNOWN OPCODE: %x\n", opcode);
+			vm_print_err(vm, "ERROR UNKNOWN OPCODE: %x\n", opcode);
 			return YASL_ERROR;
 		}
 	}
