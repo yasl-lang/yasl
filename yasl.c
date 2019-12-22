@@ -189,6 +189,16 @@ int YASL_setglobal(struct YASL_State *S, const char *name) {
 	return YASL_SUCCESS;
 }
 
+struct YASL_Object *YASL_getglobal(struct YASL_State *S, const char *name) {
+	struct YASL_String *string = YASL_String_new_sized(strlen(name), name);
+	struct YASL_Object global = YASL_Table_search(S->vm.globals[0], YASL_STR(string));
+	if (global.type == Y_END) {
+		return NULL;
+	}
+	struct YASL_Object *tmp = (struct YASL_Object *) malloc(sizeof(struct YASL_Object));
+	*tmp = global;
+	return tmp;
+}
 
 int YASL_pushundef(struct YASL_State *S) {
 	vm_push((struct VM *) S, YASL_UNDEF());

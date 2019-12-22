@@ -3,8 +3,6 @@
 
 SETUP_YATS();
 
-#define ASSERT_SUCCESS(S) ASSERT_EQ((S), YASL_SUCCESS)
-
 static void testrun(void) {
 	struct YASL_State *S = YASL_newstate_bb("", 0);
 	ASSERT_SUCCESS(YASL_compile(S));

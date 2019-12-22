@@ -76,6 +76,8 @@ int YASL_declglobal(struct YASL_State *S, const char *name);
  */
 int YASL_setglobal(struct YASL_State *S, const char *name);
 
+struct YASL_Object *YASL_getglobal(struct YASL_State *S, const char *name);
+
 /**
  * Pushes an undef value onto the stack.
  * @param S the YASL_State onto which to push the undef.
