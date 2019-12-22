@@ -10,7 +10,7 @@ int bool_tostr(struct YASL_State *S) {
 		YASL_PRINT_ERROR_BAD_ARG_TYPE("bool.tostr", 0, Y_BOOL, YASL_top_peektype(S));
 		return YASL_TYPE_ERROR;
 	}
-	char *str = YASL_top_popboolean(S) ? "true" : "false";
+	const char *str = YASL_top_popboolean(S) ? "true" : "false";
 	YASL_pushlitszstring(S, str);
 	return YASL_SUCCESS;
 }
