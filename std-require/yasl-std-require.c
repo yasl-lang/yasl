@@ -8,14 +8,12 @@
 struct YASL_State *YASL_newstate_num(char *filename, size_t num);
 
 int YASL_require(struct YASL_State *S) {
-	struct YASL_Object *mode = YASL_popobject(S);
-	char *mode_str;
-
-	if (YASL_isstring(mode) == YASL_SUCCESS) {
-		mode_str = YASL_getcstring(mode);
-	} else {
-		return -1;
+	if (!YASL_top_isstring(S)) {
+		return YASL_ERROR;
 	}
+
+	char *mode_str = YASL_top_peekcstring(S);
+	YASL_popobject(S);
 
 	struct YASL_State *Ss = YASL_newstate_num(mode_str, S->vm.headers_size);
 

@@ -9,10 +9,9 @@ static void testpopfloat(void) {
 	ASSERT_SUCCESS(YASL_declglobal(S, "x"));
 	ASSERT_SUCCESS(YASL_compile(S));
 	ASSERT_SUCCESS(YASL_execute(S));
-	struct YASL_Object *X = YASL_getglobal(S, "x");
-	ASSERT_EQ(X != NULL, true);
-	yasl_float x = YASL_getdouble(X);
-	ASSERT_EQ(x, 12.5);
+	ASSERT_SUCCESS(YASL_loadglobal(S, "x"));
+	ASSERT(YASL_top_isdouble(S));
+	ASSERT_EQ(YASL_top_peekdouble(S), 12.5);
 	YASL_delstate(S);
 }
 
@@ -22,10 +21,9 @@ static void testpopint(void) {
 	ASSERT_SUCCESS(YASL_declglobal(S, "x"));
 	ASSERT_SUCCESS(YASL_compile(S));
 	ASSERT_SUCCESS(YASL_execute(S));
-	struct YASL_Object *X = YASL_getglobal(S, "x");
-	ASSERT_EQ(X != NULL, true);
-	yasl_int x = YASL_getinteger(X);
-	ASSERT_EQ(x, 12);
+	ASSERT_SUCCESS(YASL_loadglobal(S, "x"));
+	ASSERT(YASL_top_isinteger(S));
+	ASSERT_EQ(YASL_top_peekinteger(S), 12);
 	YASL_delstate(S);
 }
 
@@ -35,10 +33,9 @@ static void testpopbool(void) {
 	ASSERT_SUCCESS(YASL_declglobal(S, "x"));
 	ASSERT_SUCCESS(YASL_compile(S));
 	ASSERT_SUCCESS(YASL_execute(S));
-	struct YASL_Object *X = YASL_getglobal(S, "x");
-	ASSERT_EQ(X != NULL, true);
-	bool x = YASL_getboolean(X);
-	ASSERT_EQ(x, true);
+	ASSERT_SUCCESS(YASL_loadglobal(S, "x"));
+	ASSERT(YASL_top_isboolean(S));
+	ASSERT_EQ(YASL_top_peekboolean(S), true);
 	YASL_delstate(S);
 }
 

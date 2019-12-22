@@ -8,22 +8,26 @@
 
 static struct YASL_Table *mt;
 
+// TODO: fix mem leak in here.
 static int YASL_io_open(struct YASL_State *S) {
-	struct YASL_Object *mode = YASL_popobject(S);
 	const char *mode_str;
-	if (YASL_isundef(mode) == YASL_SUCCESS) {
+	if (YASL_top_isundef(S)) {
 		mode_str = "r";
-	} else if (YASL_isstring(mode) == YASL_SUCCESS) {
-		mode_str = YASL_getcstring(mode);
+	} else if (YASL_top_isstring(S)) {
+		mode_str = YASL_top_peekcstring(S);
 	} else {
+		YASL_popobject(S);
+		return YASL_TYPE_ERROR;
+	}
+	YASL_popobject(S);
+
+	if (!YASL_top_isstring(S)) {
+		YASL_popobject(S);
 		return YASL_TYPE_ERROR;
 	}
 
-	struct YASL_Object *filename = YASL_popobject(S);
-	if (YASL_isstring(filename) != YASL_SUCCESS) {
-		return YASL_TYPE_ERROR;
-	}
-	char *filename_str = YASL_getcstring(filename);
+	char *filename_str = YASL_top_peekcstring(S);
+	YASL_popobject(S);
 
 	size_t mode_len = strlen(mode_str);
 
@@ -72,22 +76,22 @@ static int YASL_io_open(struct YASL_State *S) {
 }
 
 static int YASL_io_read(struct YASL_State *S) {
-	struct YASL_Object *mode = YASL_popobject(S);
 	char *mode_str;
 
-	if (YASL_isundef(mode) == YASL_SUCCESS) {
+	if (YASL_top_isundef(S)) {
 		mode_str = (char *)malloc(2);
 		mode_str[0] = 'l';
 		mode_str[1] = '\0';
-	} else if (YASL_isstring(mode) == YASL_SUCCESS) {
-		mode_str = YASL_getcstring(mode);
+	} else if (YASL_top_isstring(S)) {
+		mode_str = YASL_top_peekcstring(S);
 	} else {
+		YASL_popobject(S);
 		return YASL_TYPE_ERROR;
 	}
+	YASL_popobject(S);
 
 	struct YASL_Object *file = YASL_popobject(S);
 	FILE *f;
-
 
 	if (YASL_isuserdata(file, T_FILE) == YASL_SUCCESS) {
 		f = (FILE *)YASL_UserData_getdata(file);
@@ -137,15 +141,14 @@ static int YASL_io_read(struct YASL_State *S) {
 }
 
 static int YASL_io_write(struct YASL_State *S) {
-	struct YASL_Object *obj = YASL_popobject(S);
-
-	if (YASL_isstring(obj) != YASL_SUCCESS) {
+	if (!YASL_top_isstring(S)) {
 		return YASL_TYPE_ERROR;
 	}
+	char *str = YASL_top_peekcstring(S);
+	YASL_popobject(S);
 
 	struct YASL_Object *file = YASL_popobject(S);
 	FILE *f;
-
 
 	if (YASL_isuserdata(file, T_FILE) == YASL_SUCCESS) {
 		f = (FILE *)YASL_UserData_getdata(file);
@@ -153,8 +156,7 @@ static int YASL_io_write(struct YASL_State *S) {
 		return YASL_TYPE_ERROR;
 	}
 
-	char *str = YASL_getcstring(obj);
-	size_t len = YASL_getstringlen(obj);
+	size_t len = strlen(str);
 
 	size_t write_len = fwrite(str, 1, len, f);
 
@@ -166,7 +168,6 @@ static int YASL_io_write(struct YASL_State *S) {
 static int YASL_io_flush(struct YASL_State *S) {
 	struct YASL_Object *file = YASL_popobject(S);
 	FILE *f;
-
 
 	if (YASL_isuserdata(file, T_FILE) == YASL_SUCCESS) {
 		f = (FILE *)YASL_UserData_getdata(file);
