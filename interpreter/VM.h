@@ -67,7 +67,7 @@
 #define vm_print_err(vm, format, ...) {\
 	char *tmp = malloc(snprintf(NULL, 0, format, __VA_ARGS__) + 1);\
 	sprintf(tmp, format, __VA_ARGS__);\
-	vm->err.print(&vm->err, tmp, strlen(tmp));\
+	(vm)->err.print(&(vm)->err, tmp, strlen(tmp));\
 	free(tmp);\
 }
 
@@ -76,7 +76,13 @@
 	const char *tmp = "DivisionByZeroError\n";\
 	vm->err.print(&vm->err, tmp, strlen(tmp));\
 }
-// #define YASL_PRINT_ERROR_TYPE(fmt, ...) YASL_PRINT_ERROR(MSG_TYPE_ERROR fmt, __VA_ARGS__)
+#define vm_print_err_bad_arg_type(vm, name, position, expected, actual) \
+vm_print_err_type((vm),\
+ "%s expected arg in position %d to be of type %s, got arg of type %s.\n",\
+ name,\
+ position,\
+ YASL_TYPE_NAMES[expected],\
+ YASL_TYPE_NAMES[actual])
 
 struct VM {
 	struct IO out;

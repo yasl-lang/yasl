@@ -98,6 +98,7 @@ add_executable(yasltest
         test/unit_tests/test_methods/methodtest.c
         test/unit_tests/test_methods/listtest.c
         test/unit_tests/test_methods/strtest.c
+        test/unit_tests/test_vm/vmtest.c
         compiler/lexer.c
         compiler/lexinput.c
         compiler/compiler.c
@@ -125,7 +126,8 @@ add_executable(yasltest
         interpreter/undef_methods.c
         interpreter/float_methods.c
         interpreter/int_methods.c
-        interpreter/bool_methods.c)
+        interpreter/bool_methods.c
+        IO.c)
 
 if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
 	add_executable(tests
@@ -164,7 +166,8 @@ add_library(yaslapi
         data-structures/YASL_String.c
         interpreter/userdata.c
         interpreter/undef_methods.c
-        prime/prime.c)
+        prime/prime.c
+        IO.c)
 
 if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
     target_link_libraries(yasl m)

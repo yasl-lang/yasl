@@ -6,11 +6,11 @@
 #include "yasl_float.h"
 #include "yasl_include.h"
 #include "yasl_types.h"
-
+#include "VM.h"
 
 int float_toint(struct YASL_State *S) {
 	if (!YASL_top_isdouble(S)) {
-		YASL_PRINT_ERROR_BAD_ARG_TYPE("float.toint", 0, Y_FLOAT, YASL_top_peektype(S));
+		vm_print_err_bad_arg_type((struct VM *)S, "float.toint", 0, Y_FLOAT, YASL_top_peektype(S));
 		return YASL_TYPE_ERROR;
 	}
 	yasl_float val = YASL_top_popdouble(S);
@@ -20,7 +20,7 @@ int float_toint(struct YASL_State *S) {
 
 int float_tobool(struct YASL_State *S) {
 	if (!YASL_top_isdouble(S)) {
-		YASL_PRINT_ERROR_BAD_ARG_TYPE("float.tobool", 0, Y_FLOAT, YASL_top_peektype(S));
+		vm_print_err_bad_arg_type((struct VM *)S, "float.tobool", 0, Y_FLOAT, YASL_top_peektype(S));
 		return YASL_TYPE_ERROR;
 	}
 	yasl_float a = YASL_top_popdouble(S);
@@ -31,7 +31,7 @@ int float_tobool(struct YASL_State *S) {
 
 int float_tofloat(struct YASL_State *S) {
 	if (!YASL_top_isdouble(S)) {
-		YASL_PRINT_ERROR_BAD_ARG_TYPE("float.tofloat", 0, Y_FLOAT, YASL_top_peektype(S));
+		vm_print_err_bad_arg_type((struct VM *)S, "float.tofloat", 0, Y_FLOAT, YASL_top_peektype(S));
 		return YASL_TYPE_ERROR;
 	}
 	return YASL_SUCCESS;
@@ -39,7 +39,7 @@ int float_tofloat(struct YASL_State *S) {
 
 int float_tostr(struct YASL_State *S) {
 	if (!YASL_top_isdouble(S)) {
-		YASL_PRINT_ERROR_BAD_ARG_TYPE("float.tostr", 0, Y_FLOAT, YASL_top_peektype(S));
+		vm_print_err_bad_arg_type((struct VM *)S, "float.tostr", 0, Y_FLOAT, YASL_top_peektype(S));
 		return YASL_TYPE_ERROR;
 	}
 	yasl_float val = YASL_top_popdouble(S);
