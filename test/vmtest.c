@@ -8,11 +8,8 @@
 
 #define TYPEERR(s) RED "TypeError: " s EEND, 5, TST
 
-#define UNOP(op, arg) TYPEERR(op " not supported for operand of type " STR(arg))
 #define METHOD(me, arg, xpc, act) TYPEERR(STR(me) " expected arg in position " STR(arg) " to be of type " STR(xpc) ", got arg of type " STR(act))
 #define SYNTAX(s) RED "SyntaxError: " s EEND, 4, TST
-
-#define UNOP_TEST(op) {"echo " op "true;", UNOP(op, bool)}
 
 #define METHOD_3_TEST(v, t, me, v0, v1, v2, pos, te, ta) \
   {STR(echo v.me(v0, v1, v2);), METHOD(t.me, pos, te, ta)}
@@ -43,13 +40,6 @@ static const struct {
 	  SYNTAX("Invalid string escape sequence in line 1")},
 	 {"echo 'hello \\xworld'\n",
 	  SYNTAX("Invalid hex string escape in line 1")},
-
-		// Type errors (operators)
-
-	 UNOP_TEST("-"),
-	 UNOP_TEST("+"),
-	 {"echo len true;", UNOP("len", bool)},
-	 UNOP_TEST("^"),
 
 		// Type errors (math)
 	 METHOD_3_TEST(math, math, max, 1, .a, 2, 1, float, str),

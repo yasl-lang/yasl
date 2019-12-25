@@ -35,6 +35,21 @@ SETUP_YATS();
 	YASL_delstate(S);\
 }
 
+#define ASSERT_UNOP_TYPE_ERR(code, op, expr) {\
+	struct YASL_State *S = YASL_newstate_bb(code "\n", strlen(code));\
+	S->vm.err.print = io_print_string;\
+	S->vm.out.print = io_print_string;\
+	ASSERT_SUCCESS(YASL_compile(S));\
+	int result = YASL_execute(S);\
+	ASSERT_EQ(result, 5);\
+	const char *exp_err = \
+		"TypeError: " op " not supported for operand of type " expr ".\n";\
+	ASSERT_EQ(S->vm.out.len, 0);\
+	ASSERT_EQ(strlen(exp_err), S->vm.err.len);\
+	ASSERT_STR_EQ(exp_err, S->vm.err.string, S->vm.err.len);\
+	YASL_delstate(S);\
+}
+
 #define ASSERT_BINOP_TYPE_ERR(code, op, left, right) {\
 	struct YASL_State *S = YASL_newstate_bb(code "\n", strlen(code));\
 	S->vm.err.print = io_print_string;\
@@ -83,6 +98,12 @@ int vmtest(void) {
 	ASSERT_BINOP_TYPE_ERR(".true // false;", "//", "str", "bool");
 	ASSERT_BINOP_TYPE_ERR(".true % false;", "%", "str", "bool");
 	ASSERT_BINOP_TYPE_ERR(".true ** false;", "**", "str", "bool");
+
+	// unary operator type errors
+	ASSERT_UNOP_TYPE_ERR("+true;", "+", "bool");
+	ASSERT_UNOP_TYPE_ERR("-true;", "-", "bool");
+	ASSERT_UNOP_TYPE_ERR("^true;", "^", "bool");
+	ASSERT_UNOP_TYPE_ERR("len true;", "len", "bool");
 
 	// bool method type errors
 	ASSERT_ARG_TYPE_ERR("true.tostr(1);", "bool.tostr", "bool", "int", 0);
