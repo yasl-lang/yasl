@@ -35,6 +35,21 @@ SETUP_YATS();
 	YASL_delstate(S);\
 }
 
+#define ASSERT_BINOP_TYPE_ERR(code, op, left, right) {\
+	struct YASL_State *S = YASL_newstate_bb(code "\n", strlen(code));\
+	S->vm.err.print = io_print_string;\
+	S->vm.out.print = io_print_string;\
+	ASSERT_SUCCESS(YASL_compile(S));\
+	int result = YASL_execute(S);\
+	ASSERT_EQ(result, 5);\
+	const char *exp_err = \
+		"TypeError: " op " not supported for operands of types " left " and " right ".\n";\
+	ASSERT_EQ(S->vm.out.len, 0);\
+	ASSERT_EQ(strlen(exp_err), S->vm.err.len);\
+	ASSERT_STR_EQ(exp_err, S->vm.err.string, S->vm.err.len);\
+	YASL_delstate(S);\
+}
+
 #define ASSERT_ARG_TYPE_ERR(code, method, exp, actual, arg) {\
 	struct YASL_State *S = YASL_newstate_bb(code "\n", strlen(code));\
 	S->vm.err.print = io_print_string;\
@@ -47,16 +62,28 @@ SETUP_YATS();
 		" to be of type " exp ", got arg of type " actual ".\n";\
 	ASSERT_EQ(S->vm.out.len, 0);\
 	ASSERT_EQ(strlen(exp_err), S->vm.err.len);\
-	if (memcmp(exp_err, S->vm.err.string, S->vm.err.len) != 0) {\
-		printf(K_RED "%s =/= %s\n" K_END, S->vm.err.string, exp_err);\
-	}\
-	ASSERT_EQ(memcmp(exp_err, S->vm.err.string, S->vm.err.len), 0);\
+	ASSERT_STR_EQ(exp_err, S->vm.err.string, S->vm.err.len);\
 	YASL_delstate(S);\
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 int vmtest(void) {
+	// binary operator type errors
+	ASSERT_BINOP_TYPE_ERR(".true | false;", "|", "str", "bool");
+	ASSERT_BINOP_TYPE_ERR(".true ^ false;", "^", "str", "bool");
+	ASSERT_BINOP_TYPE_ERR(".true & false;", "&", "str", "bool");
+	ASSERT_BINOP_TYPE_ERR(".true &^ false;", "&^", "str", "bool");
+	ASSERT_BINOP_TYPE_ERR(".true << false;", "<<", "str", "bool");
+	ASSERT_BINOP_TYPE_ERR(".true >> false;", ">>", "str", "bool");
+	ASSERT_BINOP_TYPE_ERR(".true + false;", "+", "str", "bool");
+	ASSERT_BINOP_TYPE_ERR(".true - false;", "-", "str", "bool");
+	ASSERT_BINOP_TYPE_ERR(".true * false;", "*", "str", "bool");
+	ASSERT_BINOP_TYPE_ERR(".true / false;", "/", "str", "bool");
+	ASSERT_BINOP_TYPE_ERR(".true // false;", "//", "str", "bool");
+	ASSERT_BINOP_TYPE_ERR(".true % false;", "%", "str", "bool");
+	ASSERT_BINOP_TYPE_ERR(".true ** false;", "**", "str", "bool");
+
 	// bool method type errors
 	ASSERT_ARG_TYPE_ERR("true.tostr(1);", "bool.tostr", "bool", "int", 0);
 	ASSERT_ARG_TYPE_ERR("true.tobool(1);", "bool.tobool", "bool", "int", 0);
@@ -93,6 +120,73 @@ int vmtest(void) {
 	ASSERT_ARG_TYPE_ERR("[].join(1, true);", "list.join", "str", "bool", 1);
 	ASSERT_ARG_TYPE_ERR("[].join([], true);", "list.join", "str", "bool", 1);
 	ASSERT_ARG_TYPE_ERR("[].sort(1);", "list.sort", "list", "int", 0);
+
+	// str method type errors
+	ASSERT_ARG_TYPE_ERR("''.tofloat(1);", "str.tofloat", "str", "int", 0);
+	ASSERT_ARG_TYPE_ERR("''.toint(1);", "str.toint", "str", "int", 0);
+	ASSERT_ARG_TYPE_ERR("''.isalnum(1);", "str.isalnum", "str", "int", 0);
+	ASSERT_ARG_TYPE_ERR("''.isal(1);", "str.isal", "str", "int", 0);
+	ASSERT_ARG_TYPE_ERR("''.isnum(1);", "str.isnum", "str", "int", 0);
+	ASSERT_ARG_TYPE_ERR("''.isspace(1);", "str.isspace", "str", "int", 0);
+	ASSERT_ARG_TYPE_ERR("''.tobool(1);", "str.tobool", "str", "int", 0);
+	ASSERT_ARG_TYPE_ERR("''.tostr(1);", "str.tostr", "str", "int", 0);
+	ASSERT_ARG_TYPE_ERR("''.toupper(1);", "str.toupper", "str", "int", 0);
+	ASSERT_ARG_TYPE_ERR("''.tolower(1);", "str.tolower", "str", "int", 0);
+	ASSERT_ARG_TYPE_ERR("''.startswith(1, true);", "str.startswith", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("''.startswith(1, .true);", "str.startswith", "str", "int", 0);
+	ASSERT_ARG_TYPE_ERR("''.startswith(.str, true);", "str.startswith", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("''->startswith(1);", "str.startswith", "str", "int", 1);
+	ASSERT_ARG_TYPE_ERR("''.endswith(1, true);", "str.endswith", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("''.endswith(1, .true);", "str.endswith", "str", "int", 0);
+	ASSERT_ARG_TYPE_ERR("''.endswith(.str, true);", "str.endswith", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("''->endswith(1);", "str.endswith", "str", "int", 1);
+	ASSERT_ARG_TYPE_ERR("''.replace(1, true, 1.0);", "str.replace", "str", "float", 2);
+	ASSERT_ARG_TYPE_ERR("''.replace(1, true, .str);", "str.replace", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("''.replace(1, .true, .str);", "str.replace", "str", "int", 0);
+	ASSERT_ARG_TYPE_ERR("''.replace(1, .true, 1.0);", "str.replace", "str", "float", 2);
+	ASSERT_ARG_TYPE_ERR("''.replace(.tr, true, .str);", "str.replace", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("''.replace(.tr, .true, 1);", "str.replace", "str", "int", 2);
+	ASSERT_ARG_TYPE_ERR("''.replace(.tr, true, 1);", "str.replace", "str", "int", 2);
+	ASSERT_ARG_TYPE_ERR("''.search(1, true);", "str.search", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("''.search(1, .true);", "str.search", "str", "int", 0);
+	ASSERT_ARG_TYPE_ERR("''.search(.str, true);", "str.search", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("''->search(1);", "str.search", "str", "int", 1);
+	ASSERT_ARG_TYPE_ERR("''.count(1, true);", "str.count", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("''.count(1, .true);", "str.count", "str", "int", 0);
+	ASSERT_ARG_TYPE_ERR("''.count(.str, true);", "str.count", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("''->count(1);", "str.count", "str", "int", 1);
+	ASSERT_ARG_TYPE_ERR("''.split(1, true);", "str.split", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("''.split(1, .true);", "str.split", "str", "int", 0);
+	ASSERT_ARG_TYPE_ERR("''.split(.str, true);", "str.split", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("''->split(1);", "str.split", "str", "int", 1);
+	ASSERT_ARG_TYPE_ERR("''.ltrim(1, true);", "str.ltrim", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("''.ltrim(1, .true);", "str.ltrim", "str", "int", 0);
+	ASSERT_ARG_TYPE_ERR("''.ltrim(.str, true);", "str.ltrim", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("''->ltrim(1);", "str.ltrim", "str", "int", 1);
+	ASSERT_ARG_TYPE_ERR("''.rtrim(1, true);", "str.rtrim", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("''.rtrim(1, .true);", "str.rtrim", "str", "int", 0);
+	ASSERT_ARG_TYPE_ERR("''.rtrim(.str, true);", "str.rtrim", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("''->rtrim(1);", "str.rtrim", "str", "int", 1);
+	ASSERT_ARG_TYPE_ERR("''.trim(1, true);", "str.trim", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("''.trim(1, .true);", "str.trim", "str", "int", 0);
+	ASSERT_ARG_TYPE_ERR("''.trim(.str, true);", "str.trim", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("''->trim(1);", "str.trim", "str", "int", 1);
+	ASSERT_ARG_TYPE_ERR("''.rep(1, true);", "str.rep", "int", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("''.rep(1, 1);", "str.rep", "str", "int", 0);
+	ASSERT_ARG_TYPE_ERR("''.rep(.str, true);", "str.rep", "int", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("''->rep(true);", "str.rep", "int", "bool", 1);
+
+	// table method type errors
+	ASSERT_ARG_TYPE_ERR("{}.remove(1, 2.0);", "table.remove", "table", "int", 0);
+	ASSERT_ARG_TYPE_ERR("{}.keys(1);", "table.keys", "table", "int", 0);
+	ASSERT_ARG_TYPE_ERR("{}.values(1);", "table.values", "table", "int", 0);
+	ASSERT_ARG_TYPE_ERR("{}.copy(1);", "table.copy", "table", "int", 0);
+	ASSERT_ARG_TYPE_ERR("{}.tostr(1);", "table.tostr", "table", "int", 0);
+	// TODO: __get, __set
+	ASSERT_ARG_TYPE_ERR("{}.clear(1);", "table.clear", "table", "int", 0);
+
+	// undef method type errors
+	ASSERT_ARG_TYPE_ERR("undef.tostr(1);", "undef.tostr", "undef", "int", 0);
 
 	// value errors
 	ASSERT_VALUE_ERR("echo []->pop();", "list.pop expected nonempty list as arg 0");

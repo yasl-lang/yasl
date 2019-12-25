@@ -8,26 +8,14 @@
 
 #define TYPEERR(s) RED "TypeError: " s EEND, 5, TST
 
-#define BINOP(op, l, r) TYPEERR(op " not supported for operands of types " STR(l) " and " STR(r))
 #define UNOP(op, arg) TYPEERR(op " not supported for operand of type " STR(arg))
 #define METHOD(me, arg, xpc, act) TYPEERR(STR(me) " expected arg in position " STR(arg) " to be of type " STR(xpc) ", got arg of type " STR(act))
 #define SYNTAX(s) RED "SyntaxError: " s EEND, 4, TST
 
-#define BINOP_TEST(op) {"echo .true " op " false;", BINOP(op, str, bool)}
 #define UNOP_TEST(op) {"echo " op "true;", UNOP(op, bool)}
-#define METHOD_1_TEST(v0, t0, me, v1, t1) \
-  {STR(echo v0.me(v1);), METHOD(t0.me, 0, t0, t1)}
-#define METHOD_2_TEST(v, t, me, v0, v1, pos, te, ta) \
-  {STR(echo v.me(v0, v1);), METHOD(t.me, pos, te, ta)}
-#define METHOD_2_TST(v, t, me, v0, v1, pos, ta)	\
-  METHOD_2_TEST(v, t, me, v0, v1, pos, t, ta)
-#define METHOD_TEST(v0, t0, me, v1, te, ta) \
-  {STR(echo v0->me(v1);), METHOD(t0.me, 1, te, ta)}
-#define METHOD_TST(v0, t0, me, v1, t1) METHOD_TEST(v0, t0, me, v1, t0, t1)
+
 #define METHOD_3_TEST(v, t, me, v0, v1, v2, pos, te, ta) \
   {STR(echo v.me(v0, v1, v2);), METHOD(t.me, pos, te, ta)}
-#define METHOD_3_TST(v, t, me, v0, v1, v2, pos, ta) \
-  METHOD_3_TEST(v, t, me, v0, v1, v2, pos, t, ta)
 
 static const struct {
 	const char *toeval;
@@ -57,100 +45,11 @@ static const struct {
 	  SYNTAX("Invalid hex string escape in line 1")},
 
 		// Type errors (operators)
-	 BINOP_TEST("|"),
-	 BINOP_TEST("^"),
-	 BINOP_TEST("&^"),
-	 BINOP_TEST("&"),
-	 BINOP_TEST(">>"),
-	 BINOP_TEST("<<"),
-	 BINOP_TEST("+"),
-	 BINOP_TEST("-"),
-	 BINOP_TEST("*"),
-	 BINOP_TEST("/"),
-	 BINOP_TEST("//"),
-	 BINOP_TEST("%"),
-	 BINOP_TEST("**"),
+
 	 UNOP_TEST("-"),
 	 UNOP_TEST("+"),
 	 {"echo len true;", UNOP("len", bool)},
 	 UNOP_TEST("^"),
-
-		// Type errors (string methods)
-	 METHOD_1_TEST('', str, tofloat, 1, int),
-	 METHOD_1_TEST('', str, toint, 1, int),
-	 METHOD_1_TEST('', str, isalnum, 1, int),
-	 METHOD_1_TEST('', str, isal, 1, int),
-	 METHOD_1_TEST('', str, isnum, 1, int),
-	 METHOD_1_TEST('', str, isspace, 1, int),
-	 METHOD_1_TEST('', str, tobool, 1, int),
-	 METHOD_1_TEST('', str, tostr, 1, int),
-	 METHOD_1_TEST('', str, toupper, 1, int),
-	 METHOD_1_TEST('', str, tolower, 1, int),
-
-	 METHOD_2_TST('', str, startswith, 1, true, 1, bool),
-	 METHOD_2_TST('', str, startswith, 1, .true, 0, int),
-	 METHOD_2_TST('', str, startswith, .str, true, 1, bool),
-	 METHOD_TST('', str, startswith, 1, int),
-
-	 METHOD_2_TST('', str, endswith, 1, true, 1, bool),
-	 METHOD_2_TST('', str, endswith, 1, .true, 0, int),
-	 METHOD_2_TST('', str, endswith, .str, true, 1, bool),
-	 METHOD_TST('', str, endswith, 1, int),
-
-	 METHOD_3_TST('', str, replace, 1, true, 1.0, 2, float),
-	 METHOD_3_TST('', str, replace, 1, true, .str, 1, bool),
-	 METHOD_3_TST('', str, replace, 1, .true, .str, 0, int),
-	 METHOD_3_TST('', str, replace, 1, .true, true, 2, bool),
-	 METHOD_3_TST('', str, replace, .tr, true, .str, 1, bool),
-	 METHOD_3_TST('', str, replace, .tr, .true, 1, 2, int),
-	 METHOD_3_TST('', str, replace, .tr, true, 1, 2, int),
-
-	 METHOD_2_TST('', str, search, 1, true, 1, bool),
-	 METHOD_2_TST('', str, search, 1, .true, 0, int),
-	 METHOD_2_TST('', str, search, .str, true, 1, bool),
-	 METHOD_TST('', str, search, 1, int),
-
-	 METHOD_2_TST('', str, count, 1, true, 1, bool),
-	 METHOD_2_TST('', str, count, 1, .true, 0, int),
-	 METHOD_2_TST('', str, count, .str, true, 1, bool),
-	 METHOD_TST('', str, count, 1, int),
-
-	 METHOD_2_TST('', str, split, 1, true, 1, bool),
-	 METHOD_2_TST('', str, split, 1, .true, 0, int),
-	 METHOD_2_TST('', str, split, .str, true, 1, bool),
-	 METHOD_TST('', str, split, 1, int),
-
-	 METHOD_2_TST('', str, ltrim, 1, true, 1, bool),
-	 METHOD_2_TST('', str, ltrim, 1, .true, 0, int),
-	 METHOD_2_TST('', str, ltrim, .str, true, 1, bool),
-	 METHOD_TST('', str, ltrim, 1, int),
-
-	 METHOD_2_TST('', str, rtrim, 1, true, 1, bool),
-	 METHOD_2_TST('', str, rtrim, 1, .true, 0, int),
-	 METHOD_2_TST('', str, rtrim, .str, true, 1, bool),
-	 METHOD_TST('', str, rtrim, 1, int),
-
-	 METHOD_2_TST('', str, trim, 1, true, 1, bool),
-	 METHOD_2_TST('', str, trim, 1, .true, 0, int),
-	 METHOD_2_TST('', str, trim, .str, true, 1, bool),
-	 METHOD_TST('', str, trim, 1, int),
-
-	 METHOD_2_TEST('', str, rep, 1, true, 1, int, bool),
-	 METHOD_2_TST('', str, rep, 1.0, 1, 0, float),
-	 METHOD_2_TEST('', str, rep, .str, true, 1, int, bool),
-	 METHOD_TEST('', str, rep, true, int, bool),
-
-		// Type errors (table methods)
-	 METHOD_2_TST({}, table, remove, 1, 2.0, 0, int),
-	 METHOD_1_TEST({}, table, keys, 1, int),
-	 METHOD_1_TEST({}, table, values, 1, int),
-	 METHOD_1_TEST({}, table, copy, 1, int),
-	 METHOD_1_TEST({}, table, tostr, 1, int),
-		// TODO: __get, __set
-	 METHOD_1_TEST({}, table, clear, 1, int),
-
-		// Type errors (undef methods)
-	 METHOD_1_TEST(undef, undef, tostr, 1, int),
 
 		// Type errors (math)
 	 METHOD_3_TEST(math, math, max, 1, .a, 2, 1, float, str),

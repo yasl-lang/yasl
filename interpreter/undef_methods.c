@@ -3,10 +3,11 @@
 #include "yasl.h"
 #include "yasl_include.h"
 #include "yasl_types.h"
+#include "VM.h"
 
 int undef_tostr(struct YASL_State *S) {
 	if (!YASL_top_isundef(S)) {
-		YASL_PRINT_ERROR_BAD_ARG_TYPE("undef.tostr", 0, Y_UNDEF, YASL_top_peektype(S));
+		vm_print_err_bad_arg_type((struct VM *)S, "undef.tostr", 0, Y_UNDEF, YASL_top_peektype(S));
 		return YASL_TYPE_ERROR;
 	}
 	YASL_popobject(S);
