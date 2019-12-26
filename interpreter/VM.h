@@ -58,14 +58,14 @@
                             vm_pushbool(vm, c);} while(0);
 
 #define vm_print_out(vm, format, ...) {\
-	char *tmp = malloc(snprintf(NULL, 0, format, __VA_ARGS__) + 1);\
+	char *tmp = (char *)malloc(snprintf(NULL, 0, format, __VA_ARGS__) + 1);\
 	sprintf(tmp, format, __VA_ARGS__);\
 	vm->out.print(&vm->out, tmp, strlen(tmp));\
 	free(tmp);\
 }
 
 #define vm_print_err(vm, format, ...) {\
-	char *tmp = malloc(snprintf(NULL, 0, format, __VA_ARGS__) + 1);\
+	char *tmp = (char *)malloc(snprintf(NULL, 0, format, __VA_ARGS__) + 1);\
 	sprintf(tmp, format, __VA_ARGS__);\
 	(vm)->err.print(&(vm)->err, tmp, strlen(tmp));\
 	free(tmp);\

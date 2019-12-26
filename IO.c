@@ -1,6 +1,6 @@
 #include "IO.h"
 
-#include <malloc.h>
+#include <stdlib.h>
 #include <string.h>
 
 void io_print_file(struct IO *io, const char *const format, const size_t len) {

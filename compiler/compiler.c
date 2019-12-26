@@ -13,7 +13,7 @@
 #include <math.h>
 
 #define compiler_print_err(compiler, format, ...) {\
-	char *tmp = malloc(snprintf(NULL, 0, format, __VA_ARGS__) + 1);\
+	char *tmp = (char *)malloc(snprintf(NULL, 0, format, __VA_ARGS__) + 1);\
 	sprintf(tmp, format, __VA_ARGS__);\
 	(compiler)->parser.lex.err.print(&(compiler)->parser.lex.err, tmp, strlen(tmp));\
 	free(tmp);\

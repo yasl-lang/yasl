@@ -18,7 +18,7 @@ static int isbdigit(int c) {
 }
 
 #define lex_print_err(lex, format, ...) {\
-	char *tmp = malloc(snprintf(NULL, 0, format, __VA_ARGS__) + 1);\
+	char *tmp = (char *)malloc(snprintf(NULL, 0, format, __VA_ARGS__) + 1);\
 	sprintf(tmp, format, __VA_ARGS__);\
 	(lex)->err.print(&(lex)->err, tmp, strlen(tmp));\
 	free(tmp);\

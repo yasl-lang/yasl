@@ -47,7 +47,7 @@ static struct Node *parse_table(struct Parser *const parser);
 static struct Node *parse_collection(struct Parser *const parser);
 
 #define parser_print_err(parser, format, ...) {\
-	char *tmp = malloc(snprintf(NULL, 0, format, __VA_ARGS__) + 1);\
+	char *tmp = (char *)malloc(snprintf(NULL, 0, format, __VA_ARGS__) + 1);\
 	sprintf(tmp, format, __VA_ARGS__);\
 	(parser)->lex.err.print(&(parser)->lex.err, tmp, strlen(tmp));\
 	free(tmp);\
