@@ -10,6 +10,7 @@
 #include "foreachtest.h"
 #include "comprehensiontest.h"
 #include "foldingtest.h"
+#include "syntaxerrortest.h"
 
 #define RUN(test) __YASL_TESTS_FAILED__ |= test()
 
@@ -20,15 +21,16 @@ SETUP_YATS();
 ////////////////////////////////////////////////////////////////////////////////
 
 int compilertest() {
-    RUN(literaltest);
-    RUN(unoptest);
-    RUN(binoptest);
-    RUN(iftest);
-    RUN(whiletest);
-    RUN(fortest);
-    RUN(foreachtest);
-    RUN(comprehensiontest);
-    RUN(foldingtest);
+	RUN(literaltest);
+	RUN(unoptest);
+	RUN(binoptest);
+	RUN(iftest);
+	RUN(whiletest);
+	RUN(fortest);
+	RUN(foreachtest);
+	RUN(comprehensiontest);
+	RUN(foldingtest);
+	RUN(syntaxerrortest);
 
-    return __YASL_TESTS_FAILED__;
+	return __YASL_TESTS_FAILED__;
 }

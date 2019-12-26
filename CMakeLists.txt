@@ -93,6 +93,7 @@ add_executable(yasltest
         test/unit_tests/test_compiler/foreachtest.c
         test/unit_tests/test_compiler/foldingtest.c
         test/unit_tests/test_compiler/comprehensiontest.c
+        test/unit_tests/test_compiler/syntaxerrortest.c
         test/unit_tests/test_collections/collectiontest.c
         test/unit_tests/test_collections/settest.c
         test/unit_tests/test_methods/methodtest.c

@@ -46,6 +46,15 @@ static struct Node *parse_string(struct Parser *const parser);
 static struct Node *parse_table(struct Parser *const parser);
 static struct Node *parse_collection(struct Parser *const parser);
 
+#define parser_print_err(parser, format, ...) {\
+	char *tmp = malloc(snprintf(NULL, 0, format, __VA_ARGS__) + 1);\
+	sprintf(tmp, format, __VA_ARGS__);\
+	(parser)->lex.err.print(&(parser)->lex.err, tmp, strlen(tmp));\
+	free(tmp);\
+}
+
+#define parser_print_err_syntax(parser, format, ...) parser_print_err(parser, "SyntaxError: " format, __VA_ARGS__)
+
 int peof(const struct Parser *const parser) {
 	return parser->lex.type == T_EOF;
 }
@@ -592,9 +601,8 @@ static struct Node *parse_constant(struct Parser *const parser) {
 	case T_IF:
 	case T_ELSEIF:
 	case T_ELSE:
-		YASL_PRINT_ERROR_SYNTAX("ParsingError in line %" PRI_SIZET ": expected expression, got `%s`.\n",
-					    parser->lex.line,
-					    YASL_TOKEN_NAMES[curtok(parser)]);
+		parser_print_err_syntax(parser, "Expected expression, got `%s` (line %" PRI_SIZET ").\n",
+					    YASL_TOKEN_NAMES[curtok(parser)], parser->lex.line);
 		return handle_error(parser);
 	case T_UNKNOWN:
 		parser->status = parser->lex.status;

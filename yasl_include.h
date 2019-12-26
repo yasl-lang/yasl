@@ -56,7 +56,4 @@ YASL_PRINT_ERROR_TYPE("%s expected arg in position %d to be of type %s, got arg 
                       YASL_TYPE_NAMES[expected],\
                       YASL_TYPE_NAMES[actual]);
 
-
-#define YASL_PRINT_ERROR_UNDECLARED_VAR(name, line) YASL_PRINT_ERROR_SYNTAX("Undeclared variable %s (line %" PRI_SIZET ").\n", name, line)
-#define YASL_PRINT_ERROR_CONSTANT(name, line) YASL_PRINT_ERROR_SYNTAX("Cannot assign to constant %s (line %" PRI_SIZET ").\n", name, line)
 #define YASL_PRINT_ERROR_TOO_MANY_VAR(line) YASL_PRINT_ERROR("Too many variables in current scope (line %" PRI_SIZET ").\n", line)

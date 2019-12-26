@@ -2,6 +2,7 @@
 
 #include "token.h"
 #include "lexinput.h"
+#include "IO.h"
 
 #define  ispotentialend(l) ((l)->type == T_ID || (l)->type == T_STR || \
             (l)->type == T_INT || (l)->type == T_FLOAT || (l)->type == T_BREAK || \
@@ -17,6 +18,7 @@
 	     .line = 1,\
 	     .status = YASL_SUCCESS,\
 	     .mode = L_NORMAL,\
+	     .err = ((struct IO) { io_print_file, stderr, NULL, 0 })\
 })
 
 #define ESCAPE_CHAR '\\'
@@ -40,6 +42,7 @@ struct Lexer {
     size_t line;
     int status;
     int mode;
+    struct IO err;
 };
 
 // struct Lexer *lex_new(FILE *file);

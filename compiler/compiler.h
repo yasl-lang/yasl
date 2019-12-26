@@ -7,6 +7,7 @@
 #include "opcode.h"
 #include "env.h"
 #include "debug.h"
+#include "IO.h"
 
 #define NEW_COMPILER(fp)\
   ((struct Compiler) {\
@@ -23,7 +24,7 @@
 	.checkpoints_count = 0,\
 	.checkpoints_size = 4,\
 	.status = YASL_SUCCESS,\
-	.num = 0\
+	.num = 0,\
   })
 
 struct Compiler {

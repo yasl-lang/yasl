@@ -219,5 +219,6 @@ int vmtest(void) {
 	// division by zero errors
 	ASSERT_DIV_BY_ZERO_ERR("echo 1 // 0;");
 	ASSERT_DIV_BY_ZERO_ERR("echo 1 % 0;");
+
 	return __YASL_TESTS_FAILED__;
 }

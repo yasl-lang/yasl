@@ -17,6 +17,15 @@ static int isbdigit(int c) {
 	return c == '0' || c == '1';
 }
 
+#define lex_print_err(lex, format, ...) {\
+	char *tmp = malloc(snprintf(NULL, 0, format, __VA_ARGS__) + 1);\
+	sprintf(tmp, format, __VA_ARGS__);\
+	(lex)->err.print(&(lex)->err, tmp, strlen(tmp));\
+	free(tmp);\
+}
+
+#define lex_print_err_syntax(lex, format, ...) lex_print_err(lex, "SyntaxError: " format, __VA_ARGS__)
+
 #define isyaslidstart(c) (isalpha(c) || (c) == '_' || (c) == '$')
 #define isyaslid(c) (isalnum(c) || (c) == '_' || (c) == '$')
 
@@ -340,7 +349,7 @@ static int handle_escapes(struct Lexer *lex, size_t *i, char delim) {
 		buffer[2] = '\0';
 		tmp = (char) strtol(buffer, &end, 16);
 		if (end != buffer + 2) {
-			YASL_PRINT_ERROR_SYNTAX("Invalid hex string escape in line %" PRI_SIZET ".\n", lex->line);
+			lex_print_err_syntax(lex, "Invalid hex string escape in line %" PRI_SIZET ".\n", lex->line);
 			while (lex->c != '\n' && lex->c != delim) lex_getchar(lex);
 			lex_error(lex);
 			return 1;
@@ -348,7 +357,7 @@ static int handle_escapes(struct Lexer *lex, size_t *i, char delim) {
 		lex->value[(*i)++] = tmp;
 		return 0;
 	default:
-		YASL_PRINT_ERROR_SYNTAX("Invalid string escape sequence in line %" PRI_SIZET ".\n", (lex)->line);
+		lex_print_err_syntax(lex, "Invalid string escape sequence in line %" PRI_SIZET ".\n", (lex)->line);
 		while (lex->c != '\n' && lex->c != delim) lex_getchar(lex);
 		lex_error(lex);
 		return 1;
