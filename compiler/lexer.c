@@ -407,7 +407,7 @@ int lex_eatinterpstringbody(struct Lexer *lex) {
 		return 1;
 	}
 
-	return 1;
+	return 0;
 }
 
 static int lex_eatinterpstring(struct Lexer *lex) {
