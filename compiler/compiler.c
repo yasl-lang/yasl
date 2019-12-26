@@ -338,13 +338,14 @@ unsigned char *compile(struct Compiler *const compiler) {
 	while (!peof(&compiler->parser)) {
 		if (peof(&compiler->parser)) break;
 		node = parse(&compiler->parser);
-		eattok(&compiler->parser, T_SEMI);
-		compiler->status |= compiler->parser.status;
-		if (!compiler->parser.status) {
-			visit(compiler, node);
-			YASL_ByteBuffer_extend(compiler->code, compiler->buffer->bytes, compiler->buffer->count);
-			compiler->buffer->count = 0;
+		if (compiler->parser.status) {
+			compiler->status |= compiler->parser.status;
+			return NULL;
 		}
+		eattok(&compiler->parser, T_SEMI);
+		visit(compiler, node);
+		YASL_ByteBuffer_extend(compiler->code, compiler->buffer->bytes, compiler->buffer->count);
+		compiler->buffer->count = 0;
 
 		node_del(node);
 	}
