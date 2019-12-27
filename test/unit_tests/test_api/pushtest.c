@@ -1,5 +1,6 @@
 #include "yats.h"
 #include "yasl.h"
+#include "yasl_state.h"
 
 SETUP_YATS();
 
@@ -12,6 +13,7 @@ static void testrun(void) {
 
 static void testsetglobal_undef(void) {
 	struct YASL_State *S = YASL_newstate_bb("echo x;", strlen("echo x;"));
+	S->vm.out.print = io_print_string;
 	ASSERT_SUCCESS(YASL_declglobal(S, "x"));
 	ASSERT_SUCCESS(YASL_pushundef(S));
 	ASSERT_SUCCESS(YASL_setglobal(S, "x"));
@@ -22,6 +24,7 @@ static void testsetglobal_undef(void) {
 
 static void testsetglobal_float(void) {
 	struct YASL_State *S = YASL_newstate_bb("echo x;", strlen("echo x;"));
+	S->vm.out.print = io_print_string;
 	ASSERT_SUCCESS(YASL_declglobal(S, "x"));
 	ASSERT_SUCCESS(YASL_pushfloat(S, 12.5));
 	ASSERT_SUCCESS(YASL_setglobal(S, "x"));
@@ -32,6 +35,7 @@ static void testsetglobal_float(void) {
 
 static void testsetglobal_bool(void) {
 	struct YASL_State *S = YASL_newstate_bb("echo x;", strlen("echo x;"));
+	S->vm.out.print = io_print_string;
 	ASSERT_SUCCESS(YASL_declglobal(S, "x"));
 	ASSERT_SUCCESS(YASL_pushboolean(S, true));
 	ASSERT_SUCCESS(YASL_setglobal(S, "x"));
@@ -42,6 +46,7 @@ static void testsetglobal_bool(void) {
 
 static void testsetglobal_int(void) {
 	struct YASL_State *S = YASL_newstate_bb("echo x;", strlen("echo x;"));
+	S->vm.out.print = io_print_string;
 	ASSERT_SUCCESS(YASL_declglobal(S, "x"));
 	ASSERT_SUCCESS(YASL_pushinteger(S, 12));
 	ASSERT_SUCCESS(YASL_setglobal(S, "x"));

@@ -1,5 +1,6 @@
 #include "yats.h"
 #include "yasl.h"
+#include "yasl_state.h"
 
 SETUP_YATS();
 
