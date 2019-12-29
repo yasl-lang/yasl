@@ -14,14 +14,14 @@
 #define NEW_LEXER(f) \
   ((struct Lexer) { .file = (f),\
              .c = 0,\
-	     .type = T_UNKNOWN,\
-	     .value = NULL,\
-	     .val_len = 0,\
-	     .val_cap = 0,\
-	     .line = 1,\
-	     .status = YASL_SUCCESS,\
-	     .mode = L_NORMAL,\
-	     .err = ((struct IO) { io_print_file, stderr, NULL, 0 })\
+             .type = T_UNKNOWN,\
+             .value = NULL,\
+             .val_cap = 0,\
+             .val_len = 0,\
+             .line = 1,\
+             .status = YASL_SUCCESS,\
+             .mode = L_NORMAL,\
+             .err = ((struct IO) { io_print_file, stderr, NULL, 0 })\
 })
 
 #define ESCAPE_CHAR '\\'
