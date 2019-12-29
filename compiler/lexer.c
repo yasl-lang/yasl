@@ -404,8 +404,6 @@ void lex_eatinterpstringbody(struct Lexer *lex) {
 
 	if (lex_eatinterpstring_fill(lex)) return;
 
-	lex->val_cap = lex->val_len;
-
 	if (lxeof(lex->file)) {
 		lex_print_err_syntax(lex,  "Unclosed string literal in line %" PRI_SIZET ".\n", lex->line);
 		lex_error(lex);
@@ -441,8 +439,6 @@ static bool lex_eatstring(struct Lexer *lex) {
 			lex_checkbuffer(lex);
 		}
 
-		lex->val_cap = lex->val_len;
-
 		if (lxeof(lex->file)) {
 			lex_print_err_syntax(lex, "Unclosed string literal in line %" PRI_SIZET ".\n", lex->line);
 			lex_error(lex);
@@ -467,8 +463,6 @@ static bool lex_eatrawstring(struct Lexer *lex) {
 			lex_getchar(lex);
 			lex_checkbuffer(lex);
 		}
-
-		lex->val_cap = lex->val_len;
 
 		if (lxeof(lex->file)) {
 			lex_print_err_syntax(lex, "Unclosed string literal in line %" PRI_SIZET ".\n", lex->line);

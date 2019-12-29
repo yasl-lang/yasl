@@ -675,7 +675,7 @@ static struct Node *parse_boolean(struct Parser *const parser) {
 
 static struct Node *parse_string(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("%s\n", "Parsing str");
-	struct Node *cur_node = new_String(parser->lex.value, parser->lex.val_cap, parser->lex.line);
+	struct Node *cur_node = new_String(parser->lex.value, parser->lex.val_len, parser->lex.line);
 
 	while (parser->lex.mode == L_INTERP) {
 		eattok(parser, T_STR);
@@ -697,7 +697,7 @@ static struct Node *parse_string(struct Parser *const parser) {
 			node_del(cur_node);
 			return handle_error(parser);
 		};
-		struct Node *str = new_String(parser->lex.value, parser->lex.val_cap, parser->lex.line);
+		struct Node *str = new_String(parser->lex.value, parser->lex.val_len, parser->lex.line);
 		cur_node = new_BinOp(T_TILDE, cur_node, str, parser->lex.line);
 	}
 
