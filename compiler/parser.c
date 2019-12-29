@@ -84,9 +84,9 @@ static struct Node *handle_error(struct Parser *const parser) {
 	parser->status = YASL_SYNTAX_ERROR;
 	free(parser->lex.value);
 	parser->lex.value = NULL;
-	while (curtok(parser) != T_SEMI && curtok(parser) != T_EOF) {
-		free(parser->lex.value);
-		eattok(parser, curtok(parser));
+
+	while (parser->lex.c != '\n' && !lxeof(parser->lex.file)) {
+		lex_getchar(&parser->lex);
 	}
 	return NULL;
 }
@@ -677,6 +677,7 @@ static struct Node *parse_string(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("%s\n", "Parsing str");
 	struct Node *cur_node = new_String(parser->lex.value, parser->lex.val_len, parser->lex.line);
 
+	// interpolated strings
 	while (parser->lex.mode == L_INTERP) {
 		eattok(parser, T_STR);
 		eattok(parser, T_LBRC);
@@ -687,8 +688,7 @@ static struct Node *parse_string(struct Parser *const parser) {
 		if (parser->lex.c == '}') {
 			parser->lex.c = lxgetc(parser->lex.file);
 		} else {
-			YASL_PRINT_ERROR("SyntaxError: expected } in line %" PRI_SIZET ".\n", parser->lex.line);
-			lex_error(&parser->lex);
+			parser_print_err_syntax(parser, "Expected } in line %" PRI_SIZET ".\n", parser->lex.line);
 			node_del(cur_node);
 			return handle_error(parser);
 		}
