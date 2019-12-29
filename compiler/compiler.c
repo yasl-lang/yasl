@@ -56,7 +56,7 @@ static enum SpecialStrings get_special_string(const struct Node *const node) {
 	else if (STR_EQ(node, "reverse")) return S_REVERSE;
 	else if (STR_EQ(node, "rtrim")) return S_RTRIM;
 	else if (STR_EQ(node, "search")) return S_SEARCH;
-	else if (STR_EQ(node, "slice")) return S_SLICE;
+	// else if (STR_EQ(node, "slice")) return S_SLICE;
 	else if (STR_EQ(node, "split")) return S_SPLIT;
 	else if (STR_EQ(node, "startswith")) return S_STARTSWITH;
 	else if (STR_EQ(node, "tobool")) return S_TOBOOL;

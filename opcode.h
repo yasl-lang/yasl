@@ -125,7 +125,7 @@ enum SpecialStrings {
 	S_RTRIM,      // rtrim
 
 	S_SEARCH,     // search
-	S_SLICE,      // slice
+	// S_SLICE,      // slice
 	S_SORT,       // sort
 	S_SPLIT,      // split
 	S_STARTSWITH, // startswith
