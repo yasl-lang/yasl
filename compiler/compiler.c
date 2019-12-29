@@ -12,6 +12,21 @@
 
 #include <math.h>
 
+#define compiler_print_err(compiler, format, ...) {\
+	char *tmp = (char *)malloc(snprintf(NULL, 0, format, __VA_ARGS__) + 1);\
+	sprintf(tmp, format, __VA_ARGS__);\
+	(compiler)->parser.lex.err.print(&(compiler)->parser.lex.err, tmp, strlen(tmp));\
+	free(tmp);\
+}
+
+#define compiler_print_err_syntax(compiler, format, ...) compiler_print_err(compiler, "SyntaxError: " format, __VA_ARGS__)
+
+#define compiler_print_err_undeclared_var(compiler, name, line) \
+	compiler_print_err_syntax((compiler), "Undeclared variable %s (line %" PRI_SIZET ").\n", name, line)
+
+#define compiler_print_err_const(compiler, name, line) \
+	compiler_print_err_syntax((compiler), "Cannot assign to constant %s (line %" PRI_SIZET ").\n", name, line)
+
 #define break_checkpoint(compiler)    ((compiler)->checkpoints[(compiler)->checkpoints_count-1])
 #define continue_checkpoint(compiler) ((compiler)->checkpoints[(compiler)->checkpoints_count-2])
 
@@ -41,7 +56,7 @@ static enum SpecialStrings get_special_string(const struct Node *const node) {
 	else if (STR_EQ(node, "reverse")) return S_REVERSE;
 	else if (STR_EQ(node, "rtrim")) return S_RTRIM;
 	else if (STR_EQ(node, "search")) return S_SEARCH;
-	else if (STR_EQ(node, "slice")) return S_SLICE;
+	// else if (STR_EQ(node, "slice")) return S_SLICE;
 	else if (STR_EQ(node, "split")) return S_SPLIT;
 	else if (STR_EQ(node, "startswith")) return S_STARTSWITH;
 	else if (STR_EQ(node, "tobool")) return S_TOBOOL;
@@ -86,7 +101,6 @@ struct Compiler *compiler_new(FILE *const fp) {
 	return compiler;
 }
 
-
 struct Compiler *compiler_new_bb(const char *const buf, const size_t len) {
 	struct Compiler *compiler = (struct Compiler *)malloc(sizeof(struct Compiler));
 	init_compiler(compiler);
@@ -95,8 +109,6 @@ struct Compiler *compiler_new_bb(const char *const buf, const size_t len) {
 	compiler->parser = NEW_PARSER(lp);
 	return compiler;
 }
-
-
 
 void compiler_tables_del(struct Compiler *compiler) {
 	YASL_Table_del(compiler->strings);
@@ -198,7 +210,7 @@ static void load_var(struct Compiler *const compiler, char *const name, const si
 		YASL_ByteBuffer_add_int(compiler->buffer,
 					YASL_Table_search_string_int(compiler->strings, name, name_len).value.ival);
 	} else {
-		YASL_PRINT_ERROR_UNDECLARED_VAR(name, line);
+		compiler_print_err_undeclared_var(compiler, name, line);
 		handle_error(compiler);
 		return;
 	}
@@ -208,7 +220,7 @@ static void store_var(struct Compiler *const compiler, char *const name, const s
 	if (env_contains(compiler->params, name, name_len)) {
 		int64_t index = env_get(compiler->params, name, name_len);
 		if (is_const(index)) {
-			YASL_PRINT_ERROR_CONSTANT(name, line);
+			compiler_print_err_const(compiler, name, line);
 			handle_error(compiler);
 			return;
 		}
@@ -217,7 +229,7 @@ static void store_var(struct Compiler *const compiler, char *const name, const s
 	} else if (env_contains(compiler->stack, name, name_len)) {
 		int64_t index = env_get(compiler->stack, name, name_len);
 		if (is_const(index)) {
-			YASL_PRINT_ERROR_CONSTANT(name, line);
+			compiler_print_err_const(compiler, name, line);
 			handle_error(compiler);
 			return;
 		}
@@ -226,7 +238,7 @@ static void store_var(struct Compiler *const compiler, char *const name, const s
 	} else if (env_contains(compiler->globals, name, name_len)) {
 		int64_t index = env_get(compiler->globals, name, name_len);
 		if (is_const(index)) {
-			YASL_PRINT_ERROR_CONSTANT(name, line);
+			compiler_print_err_const(compiler, name, line);
 			handle_error(compiler);
 			return;
 		}
@@ -235,7 +247,7 @@ static void store_var(struct Compiler *const compiler, char *const name, const s
 		YASL_ByteBuffer_add_int(compiler->buffer,
 					YASL_Table_search_string_int(compiler->strings, name, name_len).value.ival);
 	} else {
-		YASL_PRINT_ERROR_UNDECLARED_VAR(name, line);
+		compiler_print_err_undeclared_var(compiler, name, line);
 		handle_error(compiler);
 		return;
 	}
@@ -326,13 +338,14 @@ unsigned char *compile(struct Compiler *const compiler) {
 	while (!peof(&compiler->parser)) {
 		if (peof(&compiler->parser)) break;
 		node = parse(&compiler->parser);
-		eattok(&compiler->parser, T_SEMI);
-		compiler->status |= compiler->parser.status;
-		if (!compiler->parser.status) {
-			visit(compiler, node);
-			YASL_ByteBuffer_extend(compiler->code, compiler->buffer->bytes, compiler->buffer->count);
-			compiler->buffer->count = 0;
+		if (compiler->parser.status) {
+			compiler->status |= compiler->parser.status;
+			return NULL;
 		}
+		eattok(&compiler->parser, T_SEMI);
+		visit(compiler, node);
+		YASL_ByteBuffer_extend(compiler->code, compiler->buffer->bytes, compiler->buffer->count);
+		compiler->buffer->count = 0;
 
 		node_del(node);
 	}
@@ -731,7 +744,7 @@ static void visit_Print(struct Compiler *const compiler, const struct Node *cons
 
 static void declare_with_let_or_const(struct Compiler *const compiler, const struct Node *const node) {
 	if (contains_var_in_current_scope(compiler, node->value.sval.str, node->value.sval.str_len)) {
-		YASL_PRINT_ERROR_SYNTAX("Illegal redeclaration of %s (line %" PRI_SIZET ").\n", node->value.sval.str, node->line);
+		compiler_print_err_syntax(compiler, "Illegal redeclaration of %s (line %" PRI_SIZET ").\n", node->value.sval.str, node->line);
 		handle_error(compiler);
 		return;
 	}
@@ -890,7 +903,7 @@ static void visit_UnOp(struct Compiler *const compiler, const struct Node *const
 
 static void visit_Assign(struct Compiler *const compiler, const struct Node *const node) {
 	if (!contains_var(compiler, node->value.sval.str, node->value.sval.str_len)) {
-		YASL_PRINT_ERROR_UNDECLARED_VAR(node->value.sval.str, node->line);
+		compiler_print_err_undeclared_var(compiler, node->value.sval.str, node->line);
 		handle_error(compiler);
 		return;
 	}

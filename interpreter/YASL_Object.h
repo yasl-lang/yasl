@@ -2,6 +2,7 @@
 
 #include "data-structures/YASL_String.h"
 #include "yasl_conf.h"
+#include "yasl_types.h"
 
 #define UNDEF_C ((struct YASL_Object){ .type = Y_UNDEF, .value = { .ival = 0 }  })
 #define FALSE_C ((struct YASL_Object){ .type = Y_BOOL, .value = {.ival = 0 }})
@@ -48,33 +49,6 @@
 struct YASL_State;
 struct RC_UserData;
 
-enum YASL_Tags {
-	T_TABLE = -1,
-	T_LIST = -2,
-	T_FILE = -3,
-	T_SET = -4
-};
-
-//Keep up to date with the YASL_TYPE_NAMES
-enum YASL_Types {
-	Y_END = -1,
-	Y_UNDEF,
-	Y_FLOAT,
-	Y_INT,
-	Y_BOOL,
-	Y_STR,
-	Y_STR_W,
-	Y_LIST,
-	Y_LIST_W,
-	Y_TABLE,
-	Y_TABLE_W,
-	Y_FN,
-	Y_CFN,
-	Y_USERPTR,
-	Y_USERDATA,
-	Y_USERDATA_W,
-};
-
 struct CFunction_s {
 	struct RC *rc;
 	int num_args;
@@ -120,4 +94,3 @@ int print(struct YASL_Object a);
 void inc_ref(struct YASL_Object *v);
 void dec_ref(struct YASL_Object *v);
 
-extern const char *YASL_TYPE_NAMES[15];

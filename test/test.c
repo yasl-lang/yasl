@@ -7,7 +7,6 @@
 #include <stdbool.h>
 
 extern int cli_main(void);
-extern int vm_main(void);
 extern int file_main(void);
 extern int mem_main(void);
 
@@ -35,9 +34,8 @@ int comp_main(void) {
 static const struct {
 	const char *desc;
 	int (*func)(void);
-} tests[] = {{"compiler", comp_main},
+} tests[] = {{"C Unit Tests", comp_main},
 	     {"CLI", cli_main},
-	     {"VM", vm_main},
 	     {"script", file_main},
 	     {"memory", mem_main}};
 

@@ -1,14 +1,16 @@
 #include "undef_methods.h"
 
-#include "yasl_error.h"
-#include "yasl_state.h"
+#include "yasl.h"
+#include "yasl_include.h"
+#include "yasl_types.h"
+#include "VM.h"
 
 int undef_tostr(struct YASL_State *S) {
-	if (!YASL_ISUNDEF(vm_peek((struct VM *) S))) {
-		YASL_PRINT_ERROR_BAD_ARG_TYPE("undef.tostr", 0, Y_UNDEF, vm_peek((struct VM *) S).type);
+	if (!YASL_top_isundef(S)) {
+		vm_print_err_bad_arg_type((struct VM *)S, "undef.tostr", 0, Y_UNDEF, YASL_top_peektype(S));
 		return YASL_TYPE_ERROR;
 	}
-	vm_pop((struct VM *) S);
-	VM_PUSH((struct VM *) S, YASL_STR(YASL_String_new_sized(strlen("undef"), "undef")));
+	YASL_popobject(S);
+	YASL_pushlitszstring(S, "undef");
 	return YASL_SUCCESS;
 }

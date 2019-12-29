@@ -13,7 +13,9 @@
 void yasl_print(struct VM* vm) {
 	vm_stringify_top(vm);
 	struct YASL_String *v = vm_popstr(vm);
-	printf("%.*s\n", (int) YASL_String_len(v), v->start + v->str);
+	vm->out.print(&vm->out, v->start + v->str, YASL_String_len(v));
+	vm->out.print(&vm->out, "\n", 1);
+	// printf("%.*s\n", (int) YASL_String_len(v), v->start + v->str);
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

@@ -73,11 +73,15 @@ add_executable(yasl
         std-math/yasl-std-math.c
         std-require/yasl-std-require.c
         data-structures/YASL_Set.c
-        std-collections/yasl-std-collections.c)
+        std-collections/yasl-std-collections.c
+        IO.c)
 
 add_executable(yasltest
         test/yats.c
         test/yasl_test.c
+        test/unit_tests/test_api/apitest.c
+        test/unit_tests/test_api/pushtest.c
+        test/unit_tests/test_api/poptest.c
         test/unit_tests/test_lexer/lexertest.c
         test/unit_tests/test_compiler/compilertest.c
         test/unit_tests/test_compiler/binoptest.c
@@ -89,11 +93,13 @@ add_executable(yasltest
         test/unit_tests/test_compiler/foreachtest.c
         test/unit_tests/test_compiler/foldingtest.c
         test/unit_tests/test_compiler/comprehensiontest.c
+        test/unit_tests/test_compiler/syntaxerrortest.c
         test/unit_tests/test_collections/collectiontest.c
         test/unit_tests/test_collections/settest.c
         test/unit_tests/test_methods/methodtest.c
         test/unit_tests/test_methods/listtest.c
         test/unit_tests/test_methods/strtest.c
+        test/unit_tests/test_vm/vmtest.c
         compiler/lexer.c
         compiler/lexinput.c
         compiler/compiler.c
@@ -111,14 +117,24 @@ add_executable(yasltest
         interpreter/userdata.c
         prime/prime.c
         data-structures/YASL_Set.c
-        compiler/env.c)
+        compiler/env.c
+        yasl.c
+        interpreter/VM.c
+        interpreter/builtins.c
+        interpreter/list_methods.c
+        interpreter/table_methods.c
+        interpreter/str_methods.c
+        interpreter/undef_methods.c
+        interpreter/float_methods.c
+        interpreter/int_methods.c
+        interpreter/bool_methods.c
+        IO.c)
 
 if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
 	add_executable(tests
 		test/test.c
-        	test/clitest.c
-		test/vmtest.c
-		test/filetest.c
+            test/clitest.c
+            test/filetest.c
 		test/memtest.c
         	test/test_util.c)
 endif()
@@ -150,7 +166,8 @@ add_library(yaslapi
         data-structures/YASL_String.c
         interpreter/userdata.c
         interpreter/undef_methods.c
-        prime/prime.c)
+        prime/prime.c
+        IO.c)
 
 if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
     target_link_libraries(yasl m)

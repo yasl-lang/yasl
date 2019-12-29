@@ -46,6 +46,15 @@ static struct Node *parse_string(struct Parser *const parser);
 static struct Node *parse_table(struct Parser *const parser);
 static struct Node *parse_collection(struct Parser *const parser);
 
+#define parser_print_err(parser, format, ...) {\
+	char *tmp = (char *)malloc(snprintf(NULL, 0, format, __VA_ARGS__) + 1);\
+	sprintf(tmp, format, __VA_ARGS__);\
+	(parser)->lex.err.print(&(parser)->lex.err, tmp, strlen(tmp));\
+	free(tmp);\
+}
+
+#define parser_print_err_syntax(parser, format, ...) parser_print_err(parser, "SyntaxError: " format, __VA_ARGS__)
+
 int peof(const struct Parser *const parser) {
 	return parser->lex.type == T_EOF;
 }
@@ -74,7 +83,8 @@ void parser_cleanup(struct Parser *const parser) {
 static struct Node *handle_error(struct Parser *const parser) {
 	parser->status = YASL_SYNTAX_ERROR;
 	free(parser->lex.value);
-	while (curtok(parser) != T_SEMI) {
+	parser->lex.value = NULL;
+	while (curtok(parser) != T_SEMI && curtok(parser) != T_EOF) {
 		free(parser->lex.value);
 		eattok(parser, curtok(parser));
 	}
@@ -159,7 +169,10 @@ static struct Node *parse_program(struct Parser *const parser) {
 		return parse_if(parser);
 	case T_ELSEIF:
 	case T_ELSE:
-		YASL_PRINT_ERROR_SYNTAX("`%s` without previous `if`\n", YASL_TOKEN_NAMES[curtok(parser)]);
+		parser_print_err_syntax(parser,
+			"`%s` without previous `if` (line %" PRI_SIZET ").\n",
+			YASL_TOKEN_NAMES[curtok(parser)],
+			parser->lex.line);
 		return handle_error(parser);
 	case T_UNKNOWN:
 		parser->status = parser->lex.status;
@@ -373,7 +386,6 @@ static struct Node *parse_if(struct Parser *const parser) {
 	}
 	YASL_PRINT_ERROR_SYNTAX("Expected newline, got `%s`.\n", YASL_TOKEN_NAMES[curtok(parser)]);
 	return handle_error(parser);
-
 }
 
 static struct Node *parse_expr(struct Parser *const parser) {
@@ -404,7 +416,7 @@ static struct Node *parse_assign(struct Parser *const parser, struct Node *cur_n
 			return new_Set(left, key, val, line);
 		}
 		default:
-			YASL_PRINT_ERROR_SYNTAX("Invalid l-value (line %" PRI_SIZET ").\n", line);
+			parser_print_err_syntax(parser, "Invalid l-value (line %" PRI_SIZET ").\n", line);
 			return handle_error(parser);
 		}
 	} else if (tok_isaugmented(curtok(parser))) {
@@ -425,7 +437,7 @@ static struct Node *parse_assign(struct Parser *const parser, struct Node *cur_n
 			return new_Set(collection, key, value, line);
 		}
 		default:
-			YASL_PRINT_ERROR_SYNTAX("Invalid l-value (line %" PRI_SIZET ").\n", line);
+			parser_print_err_syntax(parser, "Invalid l-value (line %" PRI_SIZET ").\n", line);
 			return handle_error(parser);
 		}
 	}
@@ -506,7 +518,7 @@ static struct Node *parse_call(struct Parser *const parser) {
 		if (matcheattok(parser, T_RIGHT_ARR)) {
 			struct Node *right = parse_constant(parser);
 			if (right->nodetype != N_VAR) {
-				YASL_PRINT_ERROR_SYNTAX("Invalid method call (line %" PRI_SIZET ").\n", parser->lex.line);
+				parser_print_err_syntax(parser, "Invalid method call (line %" PRI_SIZET ").\n", parser->lex.line);
 				return handle_error(parser);
 			}
 
@@ -534,7 +546,7 @@ static struct Node *parse_call(struct Parser *const parser) {
 				right->nodetype = N_STR;
 				cur_node = new_Get(cur_node, right, parser->lex.line);
 			} else {
-				YASL_PRINT_ERROR_SYNTAX("Invalid member access (line %" PRI_SIZET ").\n", parser->lex.line);
+				parser_print_err_syntax(parser, "Invalid member access (line %" PRI_SIZET ").\n", parser->lex.line);
 				return handle_error(parser);
 			}
 		} else if (matcheattok(parser, T_LSQB)) {
@@ -592,9 +604,8 @@ static struct Node *parse_constant(struct Parser *const parser) {
 	case T_IF:
 	case T_ELSEIF:
 	case T_ELSE:
-		YASL_PRINT_ERROR_SYNTAX("ParsingError in line %" PRI_SIZET ": expected expression, got `%s`.\n",
-					    parser->lex.line,
-					    YASL_TOKEN_NAMES[curtok(parser)]);
+		parser_print_err_syntax(parser, "Expected expression, got `%s` (line %" PRI_SIZET ").\n",
+					    YASL_TOKEN_NAMES[curtok(parser)], parser->lex.line);
 		return handle_error(parser);
 	case T_UNKNOWN:
 		parser->status = parser->lex.status;
@@ -678,9 +689,14 @@ static struct Node *parse_string(struct Parser *const parser) {
 		} else {
 			YASL_PRINT_ERROR("SyntaxError: expected } in line %" PRI_SIZET ".\n", parser->lex.line);
 			lex_error(&parser->lex);
-			break;
+			node_del(cur_node);
+			return handle_error(parser);
 		}
-		lex_eatinterpstringbody(&parser->lex);
+		int result = lex_eatinterpstringbody(&parser->lex);
+		if (result) {
+			node_del(cur_node);
+			return handle_error(parser);
+		};
 		struct Node *str = new_String(parser->lex.value, parser->lex.val_len, parser->lex.line);
 		cur_node = new_BinOp(T_TILDE, cur_node, str, parser->lex.line);
 	}

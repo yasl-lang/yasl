@@ -17,6 +17,15 @@ static int isbdigit(int c) {
 	return c == '0' || c == '1';
 }
 
+#define lex_print_err(lex, format, ...) {\
+	char *tmp = (char *)malloc(snprintf(NULL, 0, format, __VA_ARGS__) + 1);\
+	sprintf(tmp, format, __VA_ARGS__);\
+	(lex)->err.print(&(lex)->err, tmp, strlen(tmp));\
+	free(tmp);\
+}
+
+#define lex_print_err_syntax(lex, format, ...) lex_print_err(lex, "SyntaxError: " format, __VA_ARGS__)
+
 #define isyaslidstart(c) (isalpha(c) || (c) == '_' || (c) == '$')
 #define isyaslid(c) (isalnum(c) || (c) == '_' || (c) == '$')
 
@@ -79,7 +88,7 @@ static int lex_eatcommentsandwhitespace(struct Lexer * lex) {
 					c2 = lxgetc(lex->file);
 				}
 				if (lxeof(lex->file)) {
-					YASL_PRINT_ERROR_SYNTAX("Unclosed block comment in line %" PRI_SIZET ".\n", lex->line);
+					lex_print_err_syntax(lex,  "Unclosed block comment in line %" PRI_SIZET ".\n", lex->line);
 					lex_error(lex);
 					return 1;
 				}
@@ -109,7 +118,7 @@ static int lex_eatint(struct Lexer *lex, char separator, int (*isvaliddigit)(int
 	while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
 
 	if (!(*isvaliddigit)(lex->c)) {
-		YASL_PRINT_ERROR_SYNTAX("Invalid int literal in line %" PRI_SIZET ".\n", lex->line);
+		lex_print_err_syntax(lex, "Invalid int literal in line %" PRI_SIZET ".\n", lex->line);
 		lex_error(lex);
 		return 1;
 	}
@@ -340,7 +349,7 @@ static int handle_escapes(struct Lexer *lex, size_t *i, char delim) {
 		buffer[2] = '\0';
 		tmp = (char) strtol(buffer, &end, 16);
 		if (end != buffer + 2) {
-			YASL_PRINT_ERROR_SYNTAX("Invalid hex string escape in line %" PRI_SIZET ".\n", lex->line);
+			lex_print_err_syntax(lex, "Invalid hex string escape in line %" PRI_SIZET ".\n", lex->line);
 			while (lex->c != '\n' && lex->c != delim) lex_getchar(lex);
 			lex_error(lex);
 			return 1;
@@ -348,7 +357,7 @@ static int handle_escapes(struct Lexer *lex, size_t *i, char delim) {
 		lex->value[(*i)++] = tmp;
 		return 0;
 	default:
-		YASL_PRINT_ERROR_SYNTAX("Invalid string escape sequence in line %" PRI_SIZET ".\n", (lex)->line);
+		lex_print_err_syntax(lex, "Invalid string escape sequence in line %" PRI_SIZET ".\n", (lex)->line);
 		while (lex->c != '\n' && lex->c != delim) lex_getchar(lex);
 		lex_error(lex);
 		return 1;
@@ -364,7 +373,7 @@ int lex_eatinterpstringbody(struct Lexer *lex) {
 
 	while (lex->c != INTERP_STR_DELIM && lex->c != INTERP_STR_PLACEHOLDER && !lxeof(lex->file)) {
 		if (lex->c == '\n') {
-			YASL_PRINT_ERROR_SYNTAX("Unclosed string literal in line %" PRI_SIZET ".\n", lex->line);
+			lex_print_err_syntax(lex,  "Unclosed string literal in line %" PRI_SIZET ".\n", lex->line);
 			lex_error(lex);
 			return 1;
 		}
@@ -393,12 +402,12 @@ int lex_eatinterpstringbody(struct Lexer *lex) {
 	lex->val_len = i;
 
 	if (lxeof(lex->file)) {
-		YASL_PRINT_ERROR_SYNTAX("Unclosed string literal in line %" PRI_SIZET ".\n", lex->line);
+		lex_print_err_syntax(lex,  "Unclosed string literal in line %" PRI_SIZET ".\n", lex->line);
 		lex_error(lex);
 		return 1;
 	}
 
-	return 1;
+	return 0;
 }
 
 static int lex_eatinterpstring(struct Lexer *lex) {
@@ -411,7 +420,7 @@ static int lex_eatinterpstring(struct Lexer *lex) {
 		lex_getchar(lex);
 		while (lex->c != INTERP_STR_DELIM && lex->c != INTERP_STR_PLACEHOLDER && !lxeof(lex->file)) {
 			if (lex->c == '\n') {
-				YASL_PRINT_ERROR_SYNTAX("Unclosed string literal in line %" PRI_SIZET ".\n", lex->line);
+				lex_print_err_syntax(lex, "Unclosed string literal in line %" PRI_SIZET ".\n", lex->line);
 				lex_error(lex);
 				return 1;
 			}
@@ -440,7 +449,7 @@ static int lex_eatinterpstring(struct Lexer *lex) {
 		lex->val_len = i;
 
 		if (lxeof(lex->file)) {
-			YASL_PRINT_ERROR_SYNTAX("Unclosed string literal in line %" PRI_SIZET ".\n", lex->line);
+			lex_print_err_syntax(lex, "Unclosed string literal in line %" PRI_SIZET ".\n", lex->line);
 			lex_error(lex);
 			return 1;
 		}
@@ -461,7 +470,7 @@ static int lex_eatstring(struct Lexer *lex) {
 		lex_getchar(lex);
 		while (lex->c != STR_DELIM && !lxeof(lex->file)) {
 			if (lex->c == '\n') {
-				YASL_PRINT_ERROR_SYNTAX("Unclosed string literal in line %" PRI_SIZET ".\n", lex->line);
+				lex_print_err_syntax(lex, "Unclosed string literal in line %" PRI_SIZET ".\n", lex->line);
 				lex_error(lex);
 				return 1;
 			}
@@ -484,7 +493,7 @@ static int lex_eatstring(struct Lexer *lex) {
 		lex->val_len = i;
 
 		if (lxeof(lex->file)) {
-			YASL_PRINT_ERROR_SYNTAX("Unclosed string literal in line %" PRI_SIZET ".\n", lex->line);
+			lex_print_err_syntax(lex, "Unclosed string literal in line %" PRI_SIZET ".\n", lex->line);
 			lex_error(lex);
 			return 1;
 		}
@@ -517,7 +526,7 @@ static int lex_eatrawstring(struct Lexer *lex) {
 		lex->val_len = i;
 
 		if (lxeof(lex->file)) {
-			YASL_PRINT_ERROR_SYNTAX("Unclosed string literal in line %" PRI_SIZET ".\n", lex->line);
+			lex_print_err_syntax(lex, "Unclosed string literal in line %" PRI_SIZET ".\n", lex->line);
 			lex_error(lex);
 			return 1;
 		}
@@ -564,7 +573,7 @@ void gettok(struct Lexer *lex) {
 	// operators
 	if (lex_eatop(lex)) return;
 
-	YASL_PRINT_ERROR_SYNTAX("Unknown character in line %" PRI_SIZET ": `%c` (0x%x).\n", lex->line, lex->c, lex->c);
+	lex_print_err_syntax(lex, "Unknown character in line %" PRI_SIZET ": `%c` (0x%x).\n", lex->line, lex->c, lex->c);
 	lex_error(lex);
 }
 
@@ -705,46 +714,46 @@ static void YASLKeywords(struct Lexer *lex) {
 	 */
 
 	if (matches_keyword(lex, "enum")) {
-		YASL_PRINT_ERROR_SYNTAX("enum is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
+		lex_print_err_syntax(lex,  "enum is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
 		lex_error(lex);
 		return;
 	} else if (matches_keyword(lex, "yield")) {
-		YASL_PRINT_ERROR_SYNTAX("yield is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
+		lex_print_err_syntax(lex,  "yield is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
 		lex_error(lex);
 		return;
 	} else if (matches_keyword(lex, "do")) {
-		YASL_PRINT_ERROR_SYNTAX("do is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
+		lex_print_err_syntax(lex,  "do is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
 		lex_error(lex);
 		return;
 	} else if (matches_keyword(lex, "use")) {
-		YASL_PRINT_ERROR_SYNTAX("use is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
+		lex_print_err_syntax(lex,  "use is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
 		lex_error(lex);
 		return;
 	} else if (matches_keyword(lex, "no")) {
-		YASL_PRINT_ERROR_SYNTAX("no is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
+		lex_print_err_syntax(lex,  "no is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
 		lex_error(lex);
 		return;
 	} else if (matches_keyword(lex, "pure")) {
-		YASL_PRINT_ERROR_SYNTAX("pure is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
+		lex_print_err_syntax(lex,  "pure is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
 		lex_error(lex);
 		return;
 	} else if (matches_keyword(lex, "consteval")) {
-		YASL_PRINT_ERROR_SYNTAX("consteval is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n",
+		lex_print_err_syntax(lex,  "consteval is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n",
 					lex->line);
 		lex_error(lex);
 		return;
 	} else if (matches_keyword(lex, "constexpr")) {
-		YASL_PRINT_ERROR_SYNTAX("constexpr is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n",
+		lex_print_err_syntax(lex,  "constexpr is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n",
 					lex->line);
 		lex_error(lex);
 		return;
 	} else if (matches_keyword(lex, "constfold")) {
-		YASL_PRINT_ERROR_SYNTAX("constfold is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n",
+		lex_print_err_syntax(lex,  "constfold is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n",
 					lex->line);
 		lex_error(lex);
 		return;
 	} else if (matches_keyword(lex, "extern")) {
-		YASL_PRINT_ERROR_SYNTAX("extern is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n",
+		lex_print_err_syntax(lex,  "extern is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n",
 					lex->line);
 		lex_error(lex);
 		return;

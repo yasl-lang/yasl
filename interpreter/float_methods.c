@@ -1,47 +1,49 @@
 #include "float_methods.h"
 
-#include "yasl_error.h"
+#include <string.h>
+
+#include "yasl.h"
 #include "yasl_float.h"
-#include "yasl_state.h"
+#include "yasl_include.h"
+#include "yasl_types.h"
+#include "VM.h"
 
 int float_toint(struct YASL_State *S) {
-	if (!YASL_ISFLOAT(vm_peek((struct VM *)S))) {
-		YASL_PRINT_ERROR_BAD_ARG_TYPE("float.toint", 0, Y_FLOAT, vm_peek((struct VM *)S).type);
+	if (!YASL_top_isdouble(S)) {
+		vm_print_err_bad_arg_type((struct VM *)S, "float.toint", 0, Y_FLOAT, YASL_top_peektype(S));
 		return YASL_TYPE_ERROR;
 	}
-	struct YASL_Object a = vm_pop((struct VM *) S);
-	vm_push((struct VM *) S, YASL_INT((yasl_int) YASL_GETFLOAT(a)));
+	yasl_float val = YASL_top_popdouble(S);
+	YASL_pushinteger(S, (yasl_int)val);
 	return YASL_SUCCESS;
 }
 
 int float_tobool(struct YASL_State *S) {
-	if (!YASL_ISFLOAT(vm_peek((struct VM *)S))) {
-		YASL_PRINT_ERROR_BAD_ARG_TYPE("float.tobool", 0, Y_FLOAT, vm_peek((struct VM *)S).type);
+	if (!YASL_top_isdouble(S)) {
+		vm_print_err_bad_arg_type((struct VM *)S, "float.tobool", 0, Y_FLOAT, YASL_top_peektype(S));
 		return YASL_TYPE_ERROR;
 	}
-	yasl_float a = vm_popfloat((struct VM *) S);
-	vm_pushbool((struct VM *) S, a == a);
+	yasl_float a = YASL_top_popdouble(S);
+	YASL_pushboolean(S, a == a);
 	return YASL_SUCCESS;
 }
 
 
 int float_tofloat(struct YASL_State *S) {
-	if (!YASL_ISFLOAT(vm_peek((struct VM *)S))) {
-		YASL_PRINT_ERROR_BAD_ARG_TYPE("float.tofloat", 0, Y_FLOAT, vm_peek((struct VM *)S).type);
+	if (!YASL_top_isdouble(S)) {
+		vm_print_err_bad_arg_type((struct VM *)S, "float.tofloat", 0, Y_FLOAT, YASL_top_peektype(S));
 		return YASL_TYPE_ERROR;
 	}
 	return YASL_SUCCESS;
 }
 
 int float_tostr(struct YASL_State *S) {
-	if (!YASL_ISFLOAT(vm_peek((struct VM *)S))) {
-		YASL_PRINT_ERROR_BAD_ARG_TYPE("float.tostr", 0, Y_FLOAT, vm_peek((struct VM *)S).type);
+	if (!YASL_top_isdouble(S)) {
+		vm_print_err_bad_arg_type((struct VM *)S, "float.tostr", 0, Y_FLOAT, YASL_top_peektype(S));
 		return YASL_TYPE_ERROR;
 	}
-	yasl_float val = YASL_GETFLOAT(vm_pop((struct VM *) S));
+	yasl_float val = YASL_top_popdouble(S);
 	char *ptr = float64_to_str(val);
-	struct YASL_String *string = YASL_String_new_sized_heap(0, strlen(ptr), ptr);
-	struct YASL_Object to = YASL_STR(string);
-	vm_push((struct VM *) S, to);
+	YASL_pushstring(S, ptr, strlen(ptr));
 	return YASL_SUCCESS;
 }

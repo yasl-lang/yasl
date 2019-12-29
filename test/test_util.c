@@ -47,6 +47,7 @@ static void setup(void) {
 }
 
 static char *convert(const char *inp, size_t sz) {
+	printf("sz: %ld\n", sz);
 	size_t i = 1;
 	setup();
 	const unsigned char *c = (const unsigned char *)inp;
@@ -60,8 +61,8 @@ static char *convert(const char *inp, size_t sz) {
 		case 1:
 			break;
 		case 3:
-			*(p++) = 0xE2;
-			*(p++) = 0x90;
+			//*(p++) = 0xE2;
+			//*(p++) = 0x90;
 			break;
 		default:
 			fprintf(stderr, "Memory corruption detected.\n");
@@ -191,8 +192,10 @@ bool assert_output(const char *prog, const char *const *args,
 	if (expected_error != NULL) {
 		if (aelen != eelen
 		    || memcmp(expected_error, actual_error, eelen)) {
+			printf("%ld, %ld\n", aelen, eelen );
 			char *ec = convert(expected_error, eelen);
 			char *ac = convert(actual_error, aelen);
+			printf("%x\n", ac[aelen-1]);
 			printf(PLAINT_STR, "error", file, line, ec, ac);
 			free(ec);
 			free(ac);

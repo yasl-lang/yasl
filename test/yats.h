@@ -46,6 +46,16 @@
 	}\
 } while(0)
 
+#define ASSERT_STR_EQ(left, right, len) do {\
+	if (memcmp(left, right, len) != 0) {\
+	printf(K_RED "assert failed in %s (in %s): line %d: `%s` =/= `%s`" K_END "\n", __FILE__, __func__, __LINE__, left, right);\
+		__YASL_TESTS_FAILED__ = 1;\
+	}\
+} while(0)
+
+#define ASSERT_SUCCESS(expr) ASSERT_EQ((expr), YASL_SUCCESS)
+#define ASSERT(expr) ASSERT_EQ((expr), true)
+
 struct Lexer setup_lexer(const char *file_contents);
 unsigned char *setup_compiler(const char *file_contents);
 int64_t getsize(FILE *file);
