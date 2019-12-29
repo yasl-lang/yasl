@@ -247,9 +247,6 @@ static struct Node *parse_fn(struct Parser *const parser) {
 static struct Node *parse_const(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("parsing const in line %" PRI_SIZET "\n", parser->lex.line);
 	eattok(parser, T_CONST);
-	char *name = parser->lex.value;
-	size_t name_len = parser->lex.val_len;
-	size_t line = parser->lex.line;
 	if (matcheattok(parser, T_FN)) {
 		size_t line = parser->lex.line;
 		char *name = parser->lex.value;
@@ -265,6 +262,9 @@ static struct Node *parse_const(struct Parser *const parser) {
 		memcpy(name2, name, name_len);
 		return new_Const(name, name_len, new_FnDecl(block, body, name2, name_len, parser->lex.line), line);
 	}
+	char *name = parser->lex.value;
+	size_t name_len = strlen(name);
+	size_t line = parser->lex.line;
 	eattok(parser, T_ID);
 	eattok(parser, T_EQ);
 	struct Node *expr = parse_expr(parser);
@@ -577,7 +577,7 @@ static struct Node *parse_call(struct Parser *const parser) {
 static struct Node *parse_constant(struct Parser *const parser) {
 	switch (curtok(parser)) {
 	case T_DOT:eattok(parser, T_DOT); {
-		struct Node *cur_node = new_String(parser->lex.value, parser->lex.val_len, parser->lex.line);
+		struct Node *cur_node = new_String(parser->lex.value, strlen(parser->lex.value), parser->lex.line);
 		eattok(parser, T_ID);
 		return cur_node;
 	  }
