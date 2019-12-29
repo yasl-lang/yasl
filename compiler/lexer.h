@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdbool.h>
+
 #include "token.h"
 #include "lexinput.h"
 #include "IO.h"
@@ -15,6 +17,7 @@
 	     .type = T_UNKNOWN,\
 	     .value = NULL,\
 	     .val_len = 0,\
+	     .val_cap = 0,\
 	     .line = 1,\
 	     .status = YASL_SUCCESS,\
 	     .mode = L_NORMAL,\
@@ -38,6 +41,7 @@ struct Lexer {
     char c;
     enum Token type;
     char *value;             // NOT OWN
+    size_t val_cap;
     size_t val_len;
     size_t line;
     int status;
@@ -48,8 +52,7 @@ struct Lexer {
 // struct Lexer *lex_new(FILE *file);
 void lex_cleanup(struct Lexer *lex);
 void gettok(struct Lexer *lex);
-int lex_eatinterpstringbody(struct Lexer *lex);
-int lex_eatfloatexp(struct Lexer *lex);
+void lex_eatinterpstringbody(struct Lexer *lex);
 void lex_error(struct Lexer *lex);
 int lex_getchar(struct Lexer *lex);
 
