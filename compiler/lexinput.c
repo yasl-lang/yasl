@@ -1,5 +1,7 @@
 #include "lexinput.h"
 
+#include "data-structures/YASL_ByteBuffer.h"
+
 struct LEXINPUT {
   FILE *fp;
   struct YASL_ByteBuffer *bb;

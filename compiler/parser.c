@@ -3,8 +3,8 @@
 #include <inttypes.h>
 
 #include "compiler/ast.h"
-#include "compiler/lexer.h"
 #include "compiler/middleend.h"
+#include "debug.h"
 #include "yasl_conf.h"
 #include "yasl_error.h"
 #include "yasl_include.h"

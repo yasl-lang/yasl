@@ -1,8 +1,7 @@
 #pragma once
 
 #include "compiler/lexer.h"
-#include "compiler/ast.h"
-#include "debug.h"
+// #include "debug.h"
 
 #define T1(p, a) (curtok(p) == a)
 #define T2(p, a, b) T1(p, a) || T1(p, b)
