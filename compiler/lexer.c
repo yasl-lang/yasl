@@ -202,9 +202,15 @@ static bool lex_eatint(struct Lexer *lex, char separator, int (*isvaliddigit)(in
 	return false;
 }
 
+static void lex_eatnumber_fill(struct Lexer *lex) {
+	do {
+		lex_val_append(lex, lex->c);
+		lex_getchar(lex);
+		while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
+	} while (!lxeof(lex->file) && isdigit(lex->c));
+}
+
 static bool lex_eatfloat(struct Lexer *lex) {
-	//int curr_pos = lxtell(lex->file);
-	//int curr_char = lex->c;
 	if (lex->c == '.') {
 		lex_getchar(lex);
 		if (lxeof(lex->file)) {
@@ -216,21 +222,13 @@ static bool lex_eatfloat(struct Lexer *lex) {
 			return true;
 		}
 		lex_val_append(lex, '.');
-		do {
-			lex_val_append(lex, lex->c);
-			lex_getchar(lex);
-			while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
-		} while (!lxeof(lex->file) && isdigit(lex->c));
+		lex_eatnumber_fill(lex);
 
 		if (tolower(lex->c) == 'e') {
 			lex_getchar(lex);
 			lex_val_append(lex, 'e');
 			while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
-			do {
-				lex_val_append(lex, lex->c);
-				lex_getchar(lex);
-				while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
-			} while (!lxeof(lex->file) && isdigit(lex->c));
+			lex_eatnumber_fill(lex);
 		}
 
 		lex_val_append(lex, '\0');
@@ -252,11 +250,7 @@ static bool lex_eatnumber(struct Lexer *lex) {
 		if (lex_eatint(lex, 'b', &isbdigit)) return true;
 
 		// decimal (or first half of float)
-		do {
-			lex_val_append(lex, lex->c);
-			lex_getchar(lex);
-			while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
-		} while (!lxeof(lex->file) && ((isdigit(lex->c))));
+		lex_eatnumber_fill(lex);
 
 		while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
 		lex->type = T_INT;
