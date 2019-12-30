@@ -1,13 +1,14 @@
 #pragma once
 
 #include <inttypes.h>
+
 #include "compiler/ast.h"
-#include "parser.h"
 #include "data-structures/YASL_ByteBuffer.h"
-#include "opcode.h"
-#include "env.h"
 #include "debug.h"
+#include "env.h"
 #include "IO.h"
+#include "opcode.h"
+#include "parser.h"
 
 #define NEW_COMPILER(fp)\
   ((struct Compiler) {\
@@ -29,9 +30,9 @@
 
 struct Compiler {
     struct Parser parser;
-    Env_t *globals;
-    Env_t *stack;
-    Env_t *params;
+    struct Env *globals;
+    struct Env *stack;
+    struct Env *params;
     size_t num_locals;
     struct YASL_Table *strings;
     struct YASL_ByteBuffer *buffer;

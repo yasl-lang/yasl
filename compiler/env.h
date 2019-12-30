@@ -1,24 +1,19 @@
-//
-// Created by thiabaud on 01/05/18.
-//
-#include "data-structures/YASL_Table.h"
-#include "data-structures/YASL_String.h"
-#include <string.h>
+#pragma once
 
-struct Env_s {
-    struct Env_s *parent;
+#include "data-structures/YASL_Table.h"
+
+struct Env {
+    struct Env *parent;
     struct YASL_Table *vars;
 };
 
-typedef struct Env_s Env_t;
+struct Env *env_new(struct Env *env);
+void env_del(struct Env *env);
+void env_del_current_only(struct Env *env);
 
-Env_t *env_new(Env_t *env);
-void env_del(Env_t *env);
-void env_del_current_only(Env_t *env);
-
-size_t env_len(const Env_t *const env);
-int env_contains_cur_scope(const Env_t *const env, const char *const name, const size_t name_len);
-int env_contains(const Env_t *const env, const char *const name, const size_t name_len);
-int64_t env_get(const Env_t *const env, const char *const name, const size_t name_len);
-int64_t env_decl_var(Env_t *const env, const char *const name, const size_t name_len);
-void env_make_const(Env_t *const env,  const char *const name, const size_t name_len);
+size_t env_len(const struct Env *const env);
+int env_contains_cur_scope(const struct Env *const env, const char *const name, const size_t name_len);
+int env_contains(const struct Env *const env, const char *const name, const size_t name_len);
+int64_t env_get(const struct Env *const env, const char *const name, const size_t name_len);
+int64_t env_decl_var(struct Env *const env, const char *const name, const size_t name_len);
+void env_make_const(struct Env *const env,  const char *const name, const size_t name_len);

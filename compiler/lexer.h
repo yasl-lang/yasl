@@ -2,9 +2,9 @@
 
 #include <stdbool.h>
 
-#include "token.h"
-#include "lexinput.h"
 #include "IO.h"
+#include "lexinput.h"
+#include "token.h"
 
 #define  ispotentialend(l) ((l)->type == T_ID || (l)->type == T_STR || \
             (l)->type == T_INT || (l)->type == T_FLOAT || (l)->type == T_BREAK || \
