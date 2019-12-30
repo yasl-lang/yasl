@@ -478,7 +478,7 @@ yasl_int YASL_top_popinteger(struct YASL_State *S) {
 }
 
 char *YASL_getcstring(struct YASL_Object *obj) {
-	if (YASL_ISSTR(*obj)) return NULL;
+	if (!YASL_ISSTR(*obj)) return NULL;
 
 	char *tmp = (char *) malloc(YASL_String_len(obj->value.sval) + 1);
 
@@ -501,13 +501,13 @@ char *YASL_top_peekcstring(struct YASL_State *S) {
 }
 
 size_t YASL_getstringlen(struct YASL_Object *obj) {
-	if (YASL_ISSTR(*obj)) return 0;
+	if (!YASL_ISSTR(*obj)) return 0;
 
 	return YASL_String_len(obj->value.sval);
 }
 
 char *YASL_getstring(struct YASL_Object *obj) {
-	if (YASL_ISSTR(*obj)) return NULL;
+	if (!YASL_ISSTR(*obj)) return NULL;
 
 	return obj->value.sval->str + obj->value.sval->start;
 }
