@@ -1,11 +1,11 @@
 #include "yats.h"
 
-#include "yasl.h"
 #include "compiler/ast.h"
-#include "compiler/parser.h"
 #include "compiler/compiler.h"
-#include "test/unit_tests/test_compiler/compilertest.h"
 #include "compiler/lexinput.h"
+#include "compiler/parser.h"
+#include "test/unit_tests/test_compiler/compilertest.h"
+#include "yasl.h"
 
 struct Lexer setup_lexer(const char *file_contents) {
 	FILE *fptr = fopen("dump.ysl", "w");
