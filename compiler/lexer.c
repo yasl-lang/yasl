@@ -126,41 +126,6 @@ static bool lex_eatcommentsandwhitespace(struct Lexer * lex) {
 	return false;
 }
 
-static bool lex_eatint(struct Lexer *lex, char separator, int (*isvaliddigit)(int)) {
-	int curr_pos = lxtell(lex->file);
-	int curr_char = lex->c;
-	if (lex->c == '0') {
-		lex_getchar(lex);
-		lex_val_append(lex, '0');
-		if (tolower(lex->c) == separator) {
-			lex_getchar(lex);
-			lex_val_append(lex, separator);
-			// eat leading newlines for literals
-			while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
-
-			if (!(*isvaliddigit)(lex->c)) {
-				lex_print_err_syntax(lex, "Invalid int literal in line %" PRI_SIZET ".\n", lex->line);
-				lex_error(lex);
-				return true;
-			}
-
-			do {
-				lex_val_append(lex, lex->c);
-				lex_getchar(lex);
-				while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
-			} while (!lxeof(lex->file) && (*isvaliddigit)(lex->c));
-			lex_val_append(lex, '\0');
-			lex->type = T_INT;
-			if (!lxeof(lex->file)) lex_rewind(lex, -1);
-			return true;
-		}
-	}
-	lex->val_len = 0;
-	lex->c = curr_char;
-	lxseek(lex->file, curr_pos, SEEK_SET);
-	return false;
-}
-
 static bool lex_eatop(struct Lexer *lex) {
 	char c1, c2, c3;
 	enum Token last;
@@ -202,6 +167,80 @@ static bool lex_eatop(struct Lexer *lex) {
 	return false;
 }
 
+static bool lex_eatint(struct Lexer *lex, char separator, int (*isvaliddigit)(int)) {
+	int curr_pos = lxtell(lex->file);
+	int curr_char = lex->c;
+	if (lex->c == '0') {
+		lex_getchar(lex);
+		lex_val_append(lex, '0');
+		if (tolower(lex->c) == separator) {
+			lex_getchar(lex);
+			lex_val_append(lex, separator);
+			// eat leading newlines for literals
+			while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
+
+			if (!(*isvaliddigit)(lex->c)) {
+				lex_print_err_syntax(lex, "Invalid int literal in line %" PRI_SIZET ".\n", lex->line);
+				lex_error(lex);
+				return true;
+			}
+
+			do {
+				lex_val_append(lex, lex->c);
+				lex_getchar(lex);
+				while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
+			} while (!lxeof(lex->file) && (*isvaliddigit)(lex->c));
+			lex_val_append(lex, '\0');
+			lex->type = T_INT;
+			if (!lxeof(lex->file)) lex_rewind(lex, -1);
+			return true;
+		}
+	}
+	lex->val_len = 0;
+	lex->c = curr_char;
+	lxseek(lex->file, curr_pos, SEEK_SET);
+	return false;
+}
+
+static bool lex_eatfloat(struct Lexer *lex) {
+	//int curr_pos = lxtell(lex->file);
+	//int curr_char = lex->c;
+	if (lex->c == '.') {
+		lex_getchar(lex);
+		if (lxeof(lex->file)) {
+			lxseek(lex->file, -1, SEEK_CUR);
+			return true;
+		}
+		if (!isdigit(lex->c)) {
+			lxseek(lex->file, -2, SEEK_CUR);
+			return true;
+		}
+		lex_val_append(lex, '.');
+		do {
+			lex_val_append(lex, lex->c);
+			lex_getchar(lex);
+			while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
+		} while (!lxeof(lex->file) && isdigit(lex->c));
+
+		if (tolower(lex->c) == 'e') {
+			lex_getchar(lex);
+			lex_val_append(lex, 'e');
+			while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
+			do {
+				lex_val_append(lex, lex->c);
+				lex_getchar(lex);
+				while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
+			} while (!lxeof(lex->file) && isdigit(lex->c));
+		}
+
+		lex_val_append(lex, '\0');
+		if (!lxeof(lex->file)) lxseek(lex->file, -1, SEEK_CUR);
+		lex->type = T_FLOAT;
+		return true;
+	}
+	return false;
+}
+
 static bool lex_eatnumber(struct Lexer *lex) {
 	if (isdigit(lex->c)) {                          // numbers
 		lex_initval(lex);
@@ -224,42 +263,8 @@ static bool lex_eatnumber(struct Lexer *lex) {
 		lex_checkbuffer(lex);
 		lex->value[lex->val_len] = '\0';
 
-		int c1 = lex->c;
 		// floats
-		if (lex->c == '.') {
-			int c2 = lxgetc(lex->file);
-			if (lxeof(lex->file)) {
-				lxseek(lex->file, -1, SEEK_CUR);
-				return true;
-			}
-			if (!isdigit(c2)) {
-				lxseek(lex->file, -2, SEEK_CUR);
-				return true;
-			}
-			lxseek(lex->file, -1, SEEK_CUR);
-			do {
-				lex_val_append(lex, c1);
-				lex_getchar(lex);
-				while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
-				c1 = lex->c;
-			} while (!lxeof(lex->file) && isdigit(lex->c));
-
-			if (lex->c == 'e' || lex->c == 'E') {
-				lex_getchar(lex);
-				lex_val_append(lex, 'e');
-				while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
-				do {
-					lex_val_append(lex, lex->c);
-					lex_getchar(lex);
-					while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
-				} while (!lxeof(lex->file) && isdigit(lex->c));
-			}
-
-			lex_val_append(lex, '\0');
-			if (!lxeof(lex->file)) lxseek(lex->file, -1, SEEK_CUR);
-			lex->type = T_FLOAT;
-			return true;
-		}
+		if (lex_eatfloat(lex)) return true;
 
 		if (!lxeof(lex->file)) lxseek(lex->file, -1, SEEK_CUR);
 		return true;
