@@ -2,9 +2,9 @@
 
 #include <inttypes.h>
 
-#include "compiler/ast.h"
-#include "compiler/middleend.h"
+#include "ast.h"
 #include "debug.h"
+#include "middleend.h"
 #include "yasl_conf.h"
 #include "yasl_error.h"
 #include "yasl_include.h"

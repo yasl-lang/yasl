@@ -3,7 +3,6 @@
 #include <stdio.h>
 
 #include "data-structures/YASL_String.h"
-#include "interpreter/YASL_Object.h"
 
 struct Env *env_new(struct Env *parent) {
 	struct Env *env = (struct Env *)malloc(sizeof(struct Env));

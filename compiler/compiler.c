@@ -4,11 +4,9 @@
 
 #include "ast.h"
 #include "data-structures/YASL_String.h"
-#include "data-structures/YASL_ByteBuffer.h"
-#include "interpreter/YASL_Object.h"
 #include "lexinput.h"
 #include "middleend.h"
-#include "parser.h"
+#include "opcode.h"
 #include "yasl_error.h"
 #include "yasl_include.h"
 

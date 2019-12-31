@@ -2,12 +2,9 @@
 
 #include <inttypes.h>
 
-#include "compiler/ast.h"
 #include "data-structures/YASL_ByteBuffer.h"
 #include "debug.h"
 #include "env.h"
-#include "IO.h"
-#include "opcode.h"
 #include "parser.h"
 
 #define NEW_COMPILER(fp)\

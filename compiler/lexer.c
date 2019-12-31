@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "compiler/token.h"
 #include "debug.h"
+#include "token.h"
 #include "yasl_error.h"
 #include "yasl_include.h"
 
