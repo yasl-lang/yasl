@@ -43,34 +43,6 @@ void cfn_del_rc(struct CFunction_s *cfn) {
 	free(cfn);
 }
 
-struct YASL_Object *YASL_Undef(void) {
-	struct YASL_Object *undef = (struct YASL_Object *) malloc(sizeof(struct YASL_Object));
-	undef->type = Y_UNDEF;
-	undef->value.ival = 0;
-	return undef;
-}
-
-struct YASL_Object *YASL_Float(yasl_float value) {
-	struct YASL_Object *num = (struct YASL_Object *) malloc(sizeof(struct YASL_Object));
-	num->type = Y_FLOAT;
-	num->value.dval = value;
-	return num;
-}
-
-struct YASL_Object *YASL_Integer(yasl_int value) {
-	struct YASL_Object *integer = (struct YASL_Object *) malloc(sizeof(struct YASL_Object));
-	integer->type = Y_INT;
-	integer->value.ival = value;
-	return integer;
-}
-
-struct YASL_Object *YASL_Boolean(bool value) {
-	struct YASL_Object *boolean = (struct YASL_Object *) malloc(sizeof(struct YASL_Object));
-	boolean->type = Y_BOOL;
-	boolean->value.ival = value;
-	return boolean;
-}
-
 struct YASL_Object *YASL_String(struct YASL_String *str) {
 	struct YASL_Object *string = (struct YASL_Object *) malloc(sizeof(struct YASL_Object));
 	string->type = Y_STR;
@@ -83,13 +55,6 @@ struct YASL_Object *YASL_Table() {
 	table->type = Y_TABLE;
 	table->value.uval = rcht_new();
 	return table;
-}
-
-struct YASL_Object *YASL_UserPointer(void *userpointer) {
-	struct YASL_Object *userptr = (struct YASL_Object *) malloc(sizeof(struct YASL_Object));
-	userptr->type = Y_USERPTR;
-	userptr->value.pval = userpointer;
-	return userptr;
 }
 
 struct YASL_Object *YASL_UserData(void *userdata, int tag, struct YASL_Table *mt, void (*destructor)(void *)) {
