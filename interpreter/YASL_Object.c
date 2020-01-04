@@ -43,13 +43,6 @@ void cfn_del_rc(struct CFunction_s *cfn) {
 	free(cfn);
 }
 
-struct YASL_Object *YASL_String(struct YASL_String *str) {
-	struct YASL_Object *string = (struct YASL_Object *) malloc(sizeof(struct YASL_Object));
-	string->type = Y_STR;
-	string->value.sval = str;
-	return string;
-}
-
 struct YASL_Object *YASL_Table() {
 	struct YASL_Object *table = (struct YASL_Object *) malloc(sizeof(struct YASL_Object));
 	table->type = Y_TABLE;

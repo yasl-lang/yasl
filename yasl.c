@@ -342,16 +342,6 @@ void *YASL_UserData_getdata(struct YASL_Object *obj) {
 	return obj->value.uval->data;
 }
 
-struct YASL_Object *YASL_LiteralString(const char *str) {
-	return YASL_String(YASL_String_new_sized(strlen(str), str));
-}
-
-struct YASL_Object *YASL_CString(char *str) {
-	return YASL_String(YASL_String_new_sized(strlen(str), str));
-}
-
-
-
 int YASL_isundef(struct YASL_Object *obj) {
 	return obj->type != Y_UNDEF;
 }
