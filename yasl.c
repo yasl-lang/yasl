@@ -203,6 +203,7 @@ struct YASL_Object *YASL_getglobal(struct YASL_State *S, const char *name) {
 int YASL_loadglobal(struct YASL_State *S, const char *name) {
 	struct YASL_String *string = YASL_String_new_sized(strlen(name), name);
 	struct YASL_Object global = YASL_Table_search(S->vm.globals[0], YASL_STR(string));
+	str_del(string);
 	if (global.type == Y_END) {
 		return YASL_ERROR;
 	}
