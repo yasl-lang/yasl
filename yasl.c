@@ -416,8 +416,16 @@ int YASL_isuserdata(struct YASL_Object *obj, int tag) {
 	return YASL_ERROR;
 }
 
+bool YASL_top_isuserdata(struct YASL_State *S, int tag) {
+	return YASL_ISUSERDATA(vm_peek(&S->vm)) && vm_peek(&S->vm).value.uval->tag == tag;
+}
+
 int YASL_isuserpointer(struct YASL_Object *obj) {
 	return obj->type == Y_USERPTR ? YASL_SUCCESS : YASL_ERROR;
+}
+
+bool YASL_top_isuserpointer(struct YASL_State *S) {
+	return YASL_ISUSERPTR(vm_peek(&S->vm));
 }
 
 bool YASL_getboolean(struct YASL_Object *obj) {
@@ -512,10 +520,6 @@ char *YASL_getstring(struct YASL_Object *obj) {
 	return obj->value.sval->str + obj->value.sval->start;
 }
 
-
-// int (*)(struct YASL_State) *YASL_getcfunction(struct YASL_Object *obj);
-
-
 void *YASL_getuserdata(struct YASL_Object *obj) {
 	if (obj->type == Y_USERDATA || obj->type == Y_USERDATA_W) {
 		return obj->value.uval->data;
@@ -523,6 +527,13 @@ void *YASL_getuserdata(struct YASL_Object *obj) {
 	return NULL;
 }
 
+void *YASL_top_peekuserdata(struct YASL_State *S) {
+	return YASL_GETUSERDATA(vm_peek(&S->vm))->data;
+}
+
+void *YASL_top_popuserdata(struct YASL_State *S) {
+	return YASL_GETUSERDATA(vm_pop(&S->vm))->data;
+}
 
 void *YASL_getuserpointer(struct YASL_Object *obj) {
 	if (obj->type != Y_USERPTR) {
@@ -531,3 +542,10 @@ void *YASL_getuserpointer(struct YASL_Object *obj) {
 	return obj->value.pval;
 }
 
+void *YASL_top_peekuserpointer(struct YASL_State *S) {
+	return YASL_GETUSERPTR(vm_peek(&S->vm));
+}
+
+void *YASL_top_popuserpointer(struct YASL_State *S) {
+	return YASL_GETUSERPTR(vm_pop(&S->vm));
+}

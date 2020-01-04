@@ -336,7 +336,7 @@ int YASL_iscfunction(struct YASL_Object *obj);
  * @param obj the given YASL_Object.
  * @return true if the given YASL_Object is userdata, else false.
  */
-// YASL_DEPRECATE
+YASL_DEPRECATE
 int YASL_isuserdata(struct YASL_Object *obj, int tag);
 
 bool YASL_top_isuserdata(struct YASL_State *S, int tag);
@@ -346,7 +346,10 @@ bool YASL_top_isuserdata(struct YASL_State *S, int tag);
  * @param obj the given YASL_Object.
  * @return true if the given YASL_Object is userpointer, else false.
  */
+YASL_DEPRECATE
 int YASL_isuserpointer(struct YASL_Object *obj);
+
+bool YASL_top_isuserpointer(struct YASL_State *S);
 
 /**
  * Retrieves the boolean value of the YASL_Object.
@@ -409,6 +412,9 @@ char *YASL_getstring(struct YASL_Object *obj);
 YASL_DEPRECATE
 void *YASL_getuserdata(struct YASL_Object *obj);
 
+void *YASL_top_peekuserdata(struct YASL_State *S);
+void *YASL_top_popuserdata(struct YASL_State *S);
+
 /**
  * Retrieves the userpointer value of the YASL_Object.
  * @param obj the given YASL_Object.
@@ -416,3 +422,6 @@ void *YASL_getuserdata(struct YASL_Object *obj);
  */
 YASL_DEPRECATE
 void *YASL_getuserpointer(struct YASL_Object *obj);
+
+void *YASL_top_peekuserpointer(struct YASL_State *S);
+void *YASL_top_popuserpointer(struct YASL_State *S);

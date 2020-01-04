@@ -551,9 +551,9 @@ static void (*jumptable[])(struct Node *const ) = {
 	&fold_ExprStmt,
 	&fold_Block,
 	&fold_Body,
-	NULL,
-	NULL,
-	NULL,
+	NULL, // Function Decl
+	NULL, // Return
+	NULL, // Export
 	&fold_Call,
 	&fold_MethodCall,
 	&fold_Set,
@@ -586,6 +586,5 @@ static void (*jumptable[])(struct Node *const ) = {
 };
 
 void fold(struct Node *const node) {
-
 	jumptable[node->nodetype](node);
 }
