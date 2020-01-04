@@ -29,6 +29,9 @@
 #define vm_isint(vm) (YASL_ISINT(vm_peek(vm)))
 #define vm_isbool(vm) (YASL_ISBOOL(vm_peek(vm)))
 #define vm_isstr(vm) (YASL_ISSTR(vm_peek(vm)))
+#define vm_istable(vm) (YASL_ISTABLE(vm_peek(vm)))
+#define vm_islist(vm) (YASL_ISLIST(vm_peek(vm)))
+#define vm_isuserdata(vm) (YASL_ISUSERDATA(vm_peek(vm)))
 
 #define BUFFER_SIZE 256
 #define NCODE(vm)    (*((vm)->pc++))     // get next bytecode
