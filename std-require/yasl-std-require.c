@@ -65,13 +65,9 @@ int YASL_require(struct YASL_State *S) {
 }
 
 int YASL_load_require(struct YASL_State *S) {
-	struct YASL_Object *require = YASL_CFunction(YASL_require, 1);
-
 	YASL_declglobal(S, "require");
-	YASL_pushobject(S, require);
+	YASL_pushcfunction(S, YASL_require, 1);
 	YASL_setglobal(S, "require");
-
-	free(require);
 
 	return YASL_SUCCESS;
 }

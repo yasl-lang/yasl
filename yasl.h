@@ -206,7 +206,9 @@ YASL_DEPRECATE
 int YASL_UserData_gettag(struct YASL_Object *obj);
 YASL_DEPRECATE
 void *YASL_UserData_getdata(struct YASL_Object *obj);
+YASL_DEPRECATE
 struct YASL_Object *YASL_Function(int64_t index);
+YASL_DEPRECATE
 struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *), int num_args);
 
 /**
