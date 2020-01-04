@@ -103,19 +103,6 @@ static void test_for(void) {
     ASSERT_EATTOK(T_EOF, lex);
 }
 
-static void test_in(void) {
-    struct Lexer lex = setup_lexer("in");
-    ASSERT_EATTOK(T_IN, lex);
-    ASSERT_EATTOK(T_EOF, lex);
-}
-
-static void test_not_in(void) {
-	struct Lexer lex = setup_lexer("!in");
-	ASSERT_EATTOK(T_BANG, lex);
-	ASSERT_EATTOK(T_IN, lex);
-	ASSERT_EATTOK(T_EOF, lex);
-}
-
 static void test_const(void) {
     struct Lexer lex = setup_lexer("const");
     ASSERT_EATTOK(T_CONST, lex);
@@ -600,8 +587,6 @@ int lexertest(void) {
     test_break();
     test_continue();
     test_for();
-    test_in();
-    test_not_in();
     test_const();
     test_fn();
     test_return();

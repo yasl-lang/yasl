@@ -54,8 +54,6 @@ enum Token {
 	T_BREAK,      // break
 	T_CONT,       // continue
 	T_FOR,        // for
-	T_IN,         // in
-	T_BANGIN,     // !in
 	T_ID,         // ID
 	T_CONST,      // const
 	T_FN,         // fn
@@ -79,8 +77,6 @@ enum Token {
 	T_PLUSEQ,     // +=
 	T_MINUS,      // -
 	T_MINUSEQ,    // -=
-	T_HASH,       // #
-	T_AT,         // @
 	T_BANG,       // !
 	T_BANGEQ,     // !=
 	T_BANGDEQ,    // !==
@@ -141,12 +137,11 @@ struct Lexer {
     struct IO err;
 };
 
-// struct Lexer *lex_new(FILE *file);
 void lex_cleanup(struct Lexer *lex);
 void gettok(struct Lexer *lex);
 void lex_eatinterpstringbody(struct Lexer *lex);
 void lex_error(struct Lexer *lex);
 int lex_getchar(struct Lexer *lex);
 
-extern const char *YASL_TOKEN_NAMES[86];
+extern const char *YASL_TOKEN_NAMES[82];
 
