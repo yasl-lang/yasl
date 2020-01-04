@@ -638,6 +638,10 @@ static void YASLKeywords(struct Lexer *lex) {
 		lex_print_err_syntax(lex,  "match is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
 		lex_error(lex);
 		return;
+	} else if (matches_keyword(lex, "global")) {
+		lex_print_err_syntax(lex,  "global is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
+		lex_error(lex);
+		return;
 	} else if (matches_keyword(lex, "enum")) {
 		lex_print_err_syntax(lex,  "enum is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
 		lex_error(lex);
