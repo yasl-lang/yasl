@@ -5,7 +5,6 @@
 #include <string.h>
 
 #include "debug.h"
-#include "token.h"
 #include "yasl_error.h"
 #include "yasl_include.h"
 

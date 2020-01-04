@@ -7,6 +7,8 @@
 
 struct YASL_State *YASL_newstate_num(char *filename, size_t num);
 
+// TODO: rewrite this whole fucking mess. I'm not even sure if it works properly honestly.
+
 int YASL_require(struct YASL_State *S) {
 	if (!YASL_top_isstring(S)) {
 		return YASL_ERROR;

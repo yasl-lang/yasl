@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "token.h"
+#include "lexer.h"
 #include "yasl_conf.h"
 
 // NOTE: _MUST_ keep this up to date with the jumptable in compiler.c and the jumptable in middleend.c
