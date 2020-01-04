@@ -11,9 +11,7 @@ static int YASL_collections_set_new(struct YASL_State *S) {
 	while (i-- > 0) {
 		YASL_Set_insert(set, vm_pop((struct VM *) S));
 	}
-	struct YASL_Object *obj = YASL_UserData(set, T_SET, set_mt, YASL_Set_del);
-	vm_push((struct VM *)S, *obj);
-	free(obj);
+	YASL_pushuserdata(S, set, T_SET, set_mt, YASL_Set_del);
 	return YASL_SUCCESS;
 }
 

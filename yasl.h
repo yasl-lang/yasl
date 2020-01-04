@@ -200,7 +200,7 @@ struct YASL_Object *YASL_popobject(struct YASL_State *S);
 YASL_DEPRECATE
 struct YASL_Object *YASL_Table(void);
 
-// YASL_DEPRECATE
+YASL_DEPRECATE
 struct YASL_Object *YASL_UserData(void *userdata, int tag, struct YASL_Table *mt, void (*destructor)(void *));
 YASL_DEPRECATE
 int YASL_UserData_gettag(struct YASL_Object *obj);
