@@ -22,12 +22,12 @@ int str___get(struct YASL_State *S) {
 		return -1;
 	} else {
 		if (index >= 0)
-			VM_PUSH((struct VM *) S, YASL_STR(
+			vm_push((struct VM *) S, YASL_STR(
 				YASL_String_new_substring(str->start + index,
 							  str->start + index + 1,
 							  str)));
 		else
-			VM_PUSH((struct VM *) S,
+			vm_push((struct VM *) S,
 				YASL_STR(YASL_String_new_substring(
 					str->start + index + YASL_String_len(str),
 					str->start + index + YASL_String_len(str) + 1,
@@ -67,7 +67,7 @@ int str_slice(struct YASL_State *S) {
 		return -1;
 	}
 
-	VM_PUSH((struct VM *) S, YASL_STR(YASL_String_new_substring(str->start + start, str->start + end, str)));
+	vm_push((struct VM *) S, YASL_STR(YASL_String_new_substring(str->start + start, str->start + end, str)));
 
 	return YASL_SUCCESS;
 }
@@ -79,7 +79,7 @@ int str_tofloat(struct YASL_State *S) {
 	}
 	struct YASL_String *str = YASL_GETSTR(vm_pop((struct VM *) S));
 
-	VM_PUSH((struct VM *) S, YASL_FLOAT(YASL_String_tofloat(str)));
+	vm_push((struct VM *) S, YASL_FLOAT(YASL_String_tofloat(str)));
 	return YASL_SUCCESS;
 }
 
@@ -119,7 +119,7 @@ int str_toupper(struct YASL_State *S) {
 	}
 	struct YASL_String *a = YASL_GETSTR(vm_pop((struct VM *) S));
 
-	VM_PUSH((struct VM *) S, YASL_STR(YASL_String_toupper(a)));
+	vm_push((struct VM *) S, YASL_STR(YASL_String_toupper(a)));
 	return YASL_SUCCESS;
 }
 
@@ -130,7 +130,7 @@ int str_tolower(struct YASL_State *S) {
 	}
 	struct YASL_String *a = YASL_GETSTR(vm_pop((struct VM *) S));
 
-	VM_PUSH((struct VM *) S, YASL_STR(YASL_String_tolower(a)));
+	vm_push((struct VM *) S, YASL_STR(YASL_String_tolower(a)));
 	return YASL_SUCCESS;
 }
 
@@ -234,7 +234,7 @@ int str_replace(struct YASL_State *S) {
 		return YASL_VALUE_ERROR;
 	}
 
-	VM_PUSH((struct VM *) S, YASL_STR(YASL_String_replace_fast(str, search_str, replace_str)));
+	vm_push((struct VM *) S, YASL_STR(YASL_String_replace_fast(str, search_str, replace_str)));
 	return YASL_SUCCESS;
 }
 
@@ -280,7 +280,7 @@ static int str_split_default(struct YASL_State *S) {
 	}
 	struct YASL_String *haystack = YASL_GETSTR(vm_pop((struct VM *) S));
 
-	VM_PUSH((struct VM *) S, YASL_LIST(string_split_default(haystack)));
+	vm_push((struct VM *) S, YASL_LIST(string_split_default(haystack)));
 	return YASL_SUCCESS;
 }
 
@@ -305,7 +305,7 @@ int str_split(struct YASL_State *S) {
 		return YASL_VALUE_ERROR;
 	}
 
-	VM_PUSH((struct VM *) S, YASL_LIST(YASL_String_split_fast(haystack, needle)));
+	vm_push((struct VM *) S, YASL_LIST(YASL_String_split_fast(haystack, needle)));
 	return YASL_SUCCESS;
 }
 
@@ -318,7 +318,7 @@ static int str_ltrim_default(struct YASL_State *S) {
 	inc_ref(&top);
 	struct YASL_String *haystack = YASL_GETSTR(vm_pop((struct VM *) S));
 
-	VM_PUSH((struct VM *) S, YASL_STR(YASL_String_ltrim_default(haystack)));
+	vm_push((struct VM *) S, YASL_STR(YASL_String_ltrim_default(haystack)));
 	dec_ref(&top);
 	return YASL_SUCCESS;
 }
@@ -339,7 +339,7 @@ int str_ltrim(struct YASL_State *S) {
 	}
 	struct YASL_String *haystack = YASL_GETSTR(vm_pop((struct VM *) S));
 
-	VM_PUSH((struct VM *) S,
+	vm_push((struct VM *) S,
 		YASL_STR(YASL_String_ltrim(haystack, needle)));
 
 	return YASL_SUCCESS;
@@ -354,7 +354,7 @@ static int str_rtrim_default(struct YASL_State *S) {
 	inc_ref(&top);
 	struct YASL_String *haystack = YASL_GETSTR(vm_pop((struct VM *) S));
 
-	VM_PUSH((struct VM *) S, YASL_STR(YASL_String_rtrim_default(haystack)));
+	vm_push((struct VM *) S, YASL_STR(YASL_String_rtrim_default(haystack)));
 	dec_ref(&top);
 	return YASL_SUCCESS;
 }
@@ -375,7 +375,7 @@ int str_rtrim(struct YASL_State *S) {
 	}
 	struct YASL_String *haystack = YASL_GETSTR(vm_pop((struct VM *) S));
 
-	VM_PUSH((struct VM *) S, YASL_STR(YASL_String_rtrim(haystack, needle)));
+	vm_push((struct VM *) S, YASL_STR(YASL_String_rtrim(haystack, needle)));
 	return YASL_SUCCESS;
 }
 
@@ -388,7 +388,7 @@ static int str_trim_default(struct YASL_State *S) {
 	inc_ref(&top);
 	struct YASL_String *haystack = YASL_GETSTR(vm_pop((struct VM *) S));
 
-	VM_PUSH((struct VM *) S, YASL_STR(YASL_String_trim_default(haystack)));
+	vm_push((struct VM *) S, YASL_STR(YASL_String_trim_default(haystack)));
 	dec_ref(&top);
 	return YASL_SUCCESS;
 }
@@ -411,7 +411,7 @@ int str_trim(struct YASL_State *S) {
 	inc_ref(&top);
 	struct YASL_String *haystack = YASL_GETSTR(vm_pop((struct VM *) S));
 
-	VM_PUSH((struct VM *) S, YASL_STR(YASL_String_trim(haystack, needle)));
+	vm_push((struct VM *) S, YASL_STR(YASL_String_trim(haystack, needle)));
 	dec_ref(&top);
 	return YASL_SUCCESS;
 }
@@ -433,6 +433,6 @@ int str_repeat(struct YASL_State *S) {
 		return YASL_VALUE_ERROR;
 	}
 
-	VM_PUSH((struct VM *) S, YASL_STR(YASL_String_rep_fast(string, num)));
+	vm_push((struct VM *) S, YASL_STR(YASL_String_rep_fast(string, num)));
 	return YASL_SUCCESS;
 }

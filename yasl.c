@@ -205,12 +205,12 @@ int YASL_pushboolean(struct YASL_State *S, int value) {
 }
 
 int YASL_pushliteralstring(struct YASL_State *S, char *value) {
-	VM_PUSH((struct VM *) S, YASL_STR(YASL_String_new_sized(strlen(value), value)));
+	vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized(strlen(value), value)));
 	return YASL_SUCCESS;
 }
 
 int YASL_pushcstring(struct YASL_State *S, char *value) {
-	VM_PUSH((struct VM *) S, YASL_STR(YASL_String_new_sized(strlen(value), value)));
+	vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized(strlen(value), value)));
 	return YASL_SUCCESS;
 }
 
@@ -220,7 +220,7 @@ int YASL_pushuserdata(struct YASL_State *S, void *data, int tag, struct YASL_Tab
 }
 
 int YASL_pushuserpointer(struct YASL_State *S, void *userpointer) {
-	VM_PUSH((struct VM *) S, YASL_USERPTR(userpointer));
+	vm_push((struct VM *) S, YASL_USERPTR(userpointer));
 	return YASL_SUCCESS;
 }
 
@@ -245,7 +245,7 @@ int YASL_pushlitstring(struct YASL_State *S, const char *value, const size_t siz
 }
 
 int YASL_pushcfunction(struct YASL_State *S, int (*value)(struct YASL_State *), int num_args) {
-	VM_PUSH((struct VM *) S, YASL_CFN(value, num_args));
+	vm_push((struct VM *) S, YASL_CFN(value, num_args));
 	return YASL_SUCCESS;
 }
 

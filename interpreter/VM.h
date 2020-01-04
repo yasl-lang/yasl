@@ -14,8 +14,6 @@
 #define NUM_GLOBALS 256
 #define NUM_TYPES 13                                     // number of builtin types, each needs a vtable
 
-#define VM_PUSH(vm, x) do {struct YASL_Object to = x; vm_push(vm, to);} while(0)
-
 #define VM_PEEK(vm, offset) ((vm)->stack[offset])
 #define vm_peek(vm) ((vm)->stack[(vm)->sp])
 
@@ -121,10 +119,10 @@ void vm_pushundef(struct VM *const vm);
 void vm_pushfloat(struct VM *const vm, yasl_float f);
 void vm_pushint(struct VM *const vm, yasl_int i);
 void vm_pushbool(struct VM *const vm, bool b);
-#define vm_pushstr(vm, s) VM_PUSH(vm, YASL_STR(s))
-#define vm_pushlist(vm, l) VM_PUSH(vm, YASL_LIST(l))
-#define vm_pushtable(vm, l) VM_PUSH(vm, YASL_TABLE(l))
-#define vm_pushfn(vm, f) VM_PUSH(vm, YASL_FN(f))
+#define vm_pushstr(vm, s) vm_push(vm, YASL_STR(s))
+#define vm_pushlist(vm, l) vm_push(vm, YASL_LIST(l))
+#define vm_pushtable(vm, l) vm_push(vm, YASL_TABLE(l))
+#define vm_pushfn(vm, f) vm_push(vm, YASL_FN(f))
 
 int vm_run(struct VM *vm);
 

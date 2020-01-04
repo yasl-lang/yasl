@@ -512,7 +512,7 @@ static int vm_SLICE(struct VM *vm) {
 		for (yasl_int i = start; i <end; ++i) {
 			YASL_List_append((struct YASL_List *) new_ls->data, list->items[i]);
 		}
-		VM_PUSH(vm, YASL_LIST(new_ls));
+		vm_push(vm, YASL_LIST(new_ls));
 		return YASL_SUCCESS;
 	}
 
@@ -531,7 +531,7 @@ static int vm_SLICE(struct VM *vm) {
 		if (start < 0)
 			start = 0;
 
-		VM_PUSH(vm, YASL_STR(YASL_String_new_substring(start, end, str)));
+		vm_push(vm, YASL_STR(YASL_String_new_substring(start, end, str)));
 		return YASL_SUCCESS;
 	}
 
@@ -657,7 +657,7 @@ static int vm_ITER_1(struct VM *vm) {
 			vm_push(vm, YASL_BOOL(0));
 		} else {
 			size_t i = (size_t)vm_peekint(vm, vm->lp + 1);
-			VM_PUSH(vm, YASL_STR(YASL_String_new_substring(i, i + 1, vm_peekstr(vm, vm->lp))));
+			vm_push(vm, YASL_STR(YASL_String_new_substring(i, i + 1, vm_peekstr(vm, vm->lp))));
 			vm_peekint(vm, vm->lp + 1)++;
 			vm_pushbool(vm, 1);
 		}
@@ -999,7 +999,7 @@ int vm_run(struct VM *vm) {
 			}
 			YASL_reverse((struct YASL_List *) ls->data);
 			vm_pop(vm);
-			VM_PUSH(vm, YASL_LIST(ls));
+			vm_push(vm, YASL_LIST(ls));
 			break;
 		}
 		case INITFOR:

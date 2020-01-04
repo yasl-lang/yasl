@@ -46,7 +46,7 @@ int list___set(struct YASL_State *S) {
 		printf("%d || %d\n", YASL_GETINT(index) < -(int64_t) ls->count,
 		       YASL_GETINT(index) >= (int64_t) ls->count);
 		printf("IndexError\n");
-		//VM_PUSH((struct VM *)S, YASL_UNDEF());
+		//vm_push((struct VM *)S, YASL_UNDEF());
 		return -1;
 	} else {
 		if (YASL_GETINT(index) >= 0) ls->items[YASL_GETINT(index)] = value;
@@ -68,7 +68,7 @@ int list_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, s
 	if (list->count == 0) {
 		vm_pop((struct VM *) S);
 		string[string_count++] = ']';
-		VM_PUSH((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, string_count, string)));
+		vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, string_count, string)));
 		return YASL_SUCCESS;
 	}
 
@@ -150,7 +150,7 @@ int list_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, s
 
 	string_count -= 2;
 	string[string_count++] = ']';
-	VM_PUSH((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, string_count, string)));
+	vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, string_count, string)));
 
 	return YASL_SUCCESS;
 }
