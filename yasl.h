@@ -152,7 +152,6 @@ int YASL_pushlitstring(struct YASL_State *S, const char *value, const size_t siz
  */
 int YASL_pushtable(struct YASL_State *S);
 
-
 /**
  * Pushes a function pointer onto the stack
  * @param S the YASL_State onto which to push the string.
@@ -201,8 +200,11 @@ struct YASL_Object *YASL_popobject(struct YASL_State *S);
 // YASL_DEPRECATE
 struct YASL_Object *YASL_Table(void);
 
+// YASL_DEPRECATE
 struct YASL_Object *YASL_UserData(void *userdata, int tag, struct YASL_Table *mt, void (*destructor)(void *));
+YASL_DEPRECATE
 int YASL_UserData_gettag(struct YASL_Object *obj);
+YASL_DEPRECATE
 void *YASL_UserData_getdata(struct YASL_Object *obj);
 struct YASL_Object *YASL_Function(int64_t index);
 struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *), int num_args);
