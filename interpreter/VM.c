@@ -982,7 +982,7 @@ int vm_run(struct VM *vm) {
 			break;
 		case NEWTABLE: {
 			struct RC_UserData *table = rcht_new();
-			struct YASL_Table *ht = table->data;
+			struct YASL_Table *ht = (struct YASL_Table *)table->data;
 			while (vm_peek(vm).type != Y_END) {
 				struct YASL_Object value = vm_pop(vm);
 				struct YASL_Object key = vm_pop(vm);
