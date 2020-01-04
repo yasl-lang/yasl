@@ -59,7 +59,7 @@ int peof(const struct Parser *const parser) {
 	return parser->lex.type == T_EOF;
 }
 
-//NOTE: keep this updated alongside token.h
+//NOTE: keep this updated alongside lexer.h
 static inline int tok_isaugmented(const enum Token t) {
 	// ^=, *=, /=, //=,
 	// %=, +=, -=, >>=, <<=,
@@ -111,7 +111,6 @@ enum Token eattok(struct Parser *const parser, const enum Token token) {
 }
 
 bool matcheattok(struct Parser *const parser, const enum Token token) {
-
 	if (TOKEN_MATCHES(parser, token)) {
 		eattok(parser, token);
 		return true;
@@ -258,6 +257,7 @@ static struct Node *parse_const(struct Parser *const parser) {
 
 		struct Node *body = parse_body(parser);
 
+		// TODO: clean this up
 		char *name2 = (char *)malloc(name_len);
 		memcpy(name2, name, name_len);
 		return new_Const(name, name_len, new_FnDecl(block, body, name2, name_len, parser->lex.line), line);
@@ -398,7 +398,6 @@ static struct Node *parse_expr(struct Parser *const parser) {
 
 static struct Node *parse_assign(struct Parser *const parser, struct Node *cur_node) {
 	YASL_PARSE_DEBUG_LOG("parsing = in line %" PRI_SIZET "\n", parser->lex.line);
-	// struct Node *cur_node = parse_ternary(parser);
 	size_t line = parser->lex.line;
 	if (matcheattok(parser, T_EQ)) {
 		switch (cur_node->nodetype) {
@@ -420,7 +419,7 @@ static struct Node *parse_assign(struct Parser *const parser, struct Node *cur_n
 			return handle_error(parser);
 		}
 	} else if (tok_isaugmented(curtok(parser))) {
-	  enum Token op = (enum Token)(eattok(parser, curtok(parser)) - 1); // relies on enum
+	  enum Token op = (enum Token)(eattok(parser, curtok(parser)) - 1); // relies on enum in lexer.h
 		switch (cur_node->nodetype) {
 		case N_VAR: {
 			char *name = cur_node->value.sval.str;
@@ -633,7 +632,6 @@ static struct Node *parse_undef(struct Parser *const parser) {
 	return cur_node;
 }
 
-static yasl_int get_int(char *buffer);
 static yasl_float get_float(char *buffer) {
 	return strtod(buffer, (char **) NULL);
 }
