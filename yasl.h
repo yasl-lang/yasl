@@ -197,7 +197,7 @@ struct YASL_Object *YASL_popobject(struct YASL_State *S);
  * Makes a new YASL_Table
  * @return the YASL_Table
  */
-// YASL_DEPRECATE
+YASL_DEPRECATE
 struct YASL_Object *YASL_Table(void);
 
 // YASL_DEPRECATE

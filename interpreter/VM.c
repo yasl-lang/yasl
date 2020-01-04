@@ -114,7 +114,6 @@ void vm_cleanup(struct VM *vm) {
 	free(vm->global_vars);
 	free(vm->stack);
 
-	// free(vm->code);
 	for (size_t i = 0; i < vm->headers_size; i++) {
 		free(vm->headers[i]);
 	}
@@ -982,16 +981,15 @@ int vm_run(struct VM *vm) {
 			if ((res = vm_NEWSTR(vm))) return res;
 			break;
 		case NEWTABLE: {
-			struct YASL_Object *table = YASL_Table();
-			struct YASL_Table *ht = YASL_GETTABLE(*table);
+			struct RC_UserData *table = rcht_new();
+			struct YASL_Table *ht = table->data;
 			while (vm_peek(vm).type != Y_END) {
 				struct YASL_Object value = vm_pop(vm);
 				struct YASL_Object key = vm_pop(vm);
 				YASL_Table_insert(ht, key, value);
 			}
 			vm_pop(vm);
-			vm_push(vm, *table);
-			free(table);
+			vm_push(vm, YASL_TABLE(table));
 			break;
 		}
 		case NEWLIST: {

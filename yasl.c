@@ -283,9 +283,8 @@ int YASL_pushcfunction(struct YASL_State *S, int (*value)(struct YASL_State *), 
 }
 
 int YASL_pushtable(struct YASL_State *S) {
-	struct YASL_Object *table = YASL_Table();
-	vm_push(&S->vm, *table);
-	free(table);
+	struct RC_UserData *table = rcht_new();
+	vm_push(&S->vm, YASL_TABLE(table));
 	return YASL_SUCCESS;
 }
 
