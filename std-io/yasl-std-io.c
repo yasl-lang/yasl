@@ -181,48 +181,44 @@ int YASL_load_io(struct YASL_State *S) {
 				  YASL_CFN(YASL_io_flush, 1));
 	}
 
-	struct YASL_Object *io = YASL_Table();
 	YASL_declglobal(S, "io");
-	YASL_pushobject(S, io);
+	YASL_pushtable(S);
+	YASL_setglobal(S, "io");
 
-	YASL_pushobject(S, io);
+	YASL_loadglobal(S, "io");
 	YASL_pushlitszstring(S, "open");
 	YASL_pushcfunction(S, YASL_io_open, 2);
 	YASL_settable(S);
 
-	YASL_pushobject(S, io);
+	YASL_loadglobal(S, "io");
 	YASL_pushlitszstring(S, "read");
 	YASL_pushcfunction(S, YASL_io_read, 2);
 	YASL_settable(S);
 
-	YASL_pushobject(S, io);
+	YASL_loadglobal(S, "io");
 	YASL_pushlitszstring(S, "write");
 	YASL_pushcfunction(S, YASL_io_write, 2);
 	YASL_settable(S);
 
-	YASL_pushobject(S, io);
+	YASL_loadglobal(S, "io");
 	YASL_pushlitszstring(S, "flush");
 	YASL_pushcfunction(S, YASL_io_flush, 1);
 	YASL_settable(S);
 
-	YASL_pushobject(S, io);
+	YASL_loadglobal(S, "io");
 	YASL_pushlitszstring(S, "stdin");
 	YASL_pushuserdata(S, stdin, T_FILE, mt, NULL);
 	YASL_settable(S);
 
-	YASL_pushobject(S, io);
+	YASL_loadglobal(S, "io");
 	YASL_pushlitszstring(S, "stdout");
 	YASL_pushuserdata(S, stdout, T_FILE, mt, NULL);
 	YASL_settable(S);
 
-	YASL_pushobject(S, io);
+	YASL_loadglobal(S, "io");
 	YASL_pushlitszstring(S, "stderr");
 	YASL_pushuserdata(S, stderr, T_FILE, mt, NULL);
 	YASL_settable(S);
-
-	YASL_setglobal(S, "io");
-
-	free(io);
 
 	return YASL_SUCCESS;
 }

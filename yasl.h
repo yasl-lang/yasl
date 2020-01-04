@@ -148,6 +148,14 @@ int YASL_pushstring(struct YASL_State *S, const char *value, const size_t size);
 int YASL_pushlitstring(struct YASL_State *S, const char *value, const size_t size);
 
 /**
+ * Pushes an empty table onto the stack.
+ * @param S the YASL_State onto which to push the table.
+ * @return 0 on success, else error code.
+ */
+int YASL_pushtable(struct YASL_State *S);
+
+
+/**
  * Pushes a function pointer onto the stack
  * @param S the YASL_State onto which to push the string.
  * @param value the function pointer to be pushed onto the stack.
@@ -177,6 +185,7 @@ int YASL_pushuserpointer(struct YASL_State *S, void *userpointer);
  * @param obj the YASL_Object to push onto the stack.
  * @return 0 on succes, else error code.
  */
+// YASL_DEPRECATE
 int YASL_pushobject(struct YASL_State *S, struct YASL_Object *obj);
 
 /**
@@ -184,6 +193,7 @@ int YASL_pushobject(struct YASL_State *S, struct YASL_Object *obj);
  * @param S the YASL_State from which to pop the YASL_Object.
  * @return a YASL_Object* on succes, else NULL.
  */
+// YASL_DEPRECATE
 struct YASL_Object *YASL_popobject(struct YASL_State *S);
 
 YASL_DEPRECATE

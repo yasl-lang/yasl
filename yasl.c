@@ -281,6 +281,13 @@ int YASL_pushcfunction(struct YASL_State *S, int (*value)(struct YASL_State *), 
 	return YASL_SUCCESS;
 }
 
+int YASL_pushtable(struct YASL_State *S) {
+	struct YASL_Object *table = YASL_Table();
+	vm_push(&S->vm, *table);
+	free(table);
+	return YASL_SUCCESS;
+}
+
 int YASL_pushobject(struct YASL_State *S, struct YASL_Object *obj) {
 	if (!obj) return YASL_ERROR;
 	vm_push((struct VM *) S, *obj);

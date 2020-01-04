@@ -213,28 +213,25 @@ int YASL_load_collections(struct YASL_State *S) {
 		YASL_Table_insert_literalcstring_cfunction(set_mt, "contains", YASL_collections_set_contains, 2);
 	}
 
-	struct YASL_Object *collections = YASL_Table();
 	YASL_declglobal(S, "collections");
-	YASL_pushobject(S, collections);
+	YASL_pushtable(S);
+	YASL_setglobal(S, "collections");
 
-	YASL_pushobject(S, collections);
+	YASL_loadglobal(S, "collections");
 	YASL_pushlitszstring(S, "set");
 	YASL_pushcfunction(S, YASL_collections_set_new, -1);
 	YASL_settable(S);
 
-	YASL_pushobject(S, collections);
+	YASL_loadglobal(S, "collections");
 	YASL_pushlitszstring(S, "list");
 	YASL_pushcfunction(S, YASL_collections_list_new, -1);
 	YASL_settable(S);
 
-	YASL_pushobject(S, collections);
+	YASL_loadglobal(S, "collections");
 	YASL_pushlitszstring(S, "table");
 	YASL_pushcfunction(S, YASL_collections_table_new, -1);
 	YASL_settable(S);
 
-	YASL_setglobal(S, "collections");
-
-	free(collections);
 	return YASL_SUCCESS;
 }
 
