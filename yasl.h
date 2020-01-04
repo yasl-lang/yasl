@@ -226,27 +226,77 @@ struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *), int num_ar
  */
 int YASL_settable(struct YASL_State *S);
 
+/**
+ * returns the type of the top of the stack.
+ * @param S the YASL_State to which the stack belongs.
+ * @return the type on top of the stack.
+ */
 int YASL_top_peektype(struct YASL_State *S);
 
+/**
+ * checks if the top of the stack is undef.
+ * @param S the YASL_State to which the stack belongs.
+ * @return true if the top of the stack is undef, else false.
+ */
 bool YASL_top_isundef(struct YASL_State *S);
 
+/**
+ * checks if the top of the stack is bool.
+ * @param S the YASL_State to which the stack belongs.
+ * @return true if the top of the stack is bool, else false.
+ */
 bool YASL_top_isboolean(struct YASL_State *S);
 
 YASL_DEPRECATE
 bool YASL_top_isdouble(struct YASL_State *S);
 
+/**
+ * checks if the top of the stack is float.
+ * @param S the YASL_State to which the stack belongs.
+ * @return true if the top of the stack is float, else false.
+ */
 bool YASL_top_isfloat(struct YASL_State *S);
 
+/**
+ * checks if the top of the stack is int.
+ * @param S the YASL_State to which the stack belongs.
+ * @return true if the top of the stack is int, else false.
+ */
 bool YASL_top_isinteger(struct YASL_State *S);
 
+/**
+ * checks if the top of the stack is str.
+ * @param S the YASL_State to which the stack belongs.
+ * @return true if the top of the stack is str, else false.
+ */
 bool YASL_top_isstring(struct YASL_State *S);
 
+/**
+ * checks if the top of the stack is list.
+ * @param S the YASL_State to which the stack belongs.
+ * @return true if the top of the stack is list, else false.
+ */
 bool YASL_top_islist(struct YASL_State *S);
 
+/**
+ * checks if the top of the stack is table.
+ * @param S the YASL_State to which the stack belongs.
+ * @return true if the top of the stack is table, else false.
+ */
 bool YASL_top_istable(struct YASL_State *S);
 
+/**
+ * checks if the top of the stack is userdata.
+ * @param S the YASL_State to which the stack belongs.
+ * @return true if the top of the stack is userdata, else false.
+ */
 bool YASL_top_isuserdata(struct YASL_State *S, int tag);
 
+/**
+ * checks if the top of the stack is userpointer.
+ * @param S the YASL_State to which the stack belongs.
+ * @return true if the top of the stack is userpointer, else false.
+ */
 bool YASL_top_isuserpointer(struct YASL_State *S);
 
 bool YASL_top_peekboolean(struct YASL_State *S);
