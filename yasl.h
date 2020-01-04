@@ -182,7 +182,7 @@ int YASL_pushuserpointer(struct YASL_State *S, void *userpointer);
  * @param obj the YASL_Object to push onto the stack.
  * @return 0 on succes, else error code.
  */
-// YASL_DEPRECATE
+YASL_DEPRECATE
 int YASL_pushobject(struct YASL_State *S, struct YASL_Object *obj);
 
 /**
