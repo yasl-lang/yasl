@@ -16,18 +16,18 @@ static int YASL_io_open(struct YASL_State *S) {
 	} else if (YASL_top_isstring(S)) {
 		mode_str = YASL_top_peekcstring(S);
 	} else {
-		YASL_popobject(S);
+		YASL_pop(S);
 		return YASL_TYPE_ERROR;
 	}
-	YASL_popobject(S);
+	YASL_pop(S);
 
 	if (!YASL_top_isstring(S)) {
-		YASL_popobject(S);
+		YASL_pop(S);
 		return YASL_TYPE_ERROR;
 	}
 
 	char *filename_str = YASL_top_peekcstring(S);
-	YASL_popobject(S);
+	YASL_pop(S);
 
 	size_t mode_len = strlen(mode_str);
 
@@ -85,10 +85,10 @@ static int YASL_io_read(struct YASL_State *S) {
 	} else if (YASL_top_isstring(S)) {
 		mode_str = YASL_top_peekcstring(S);
 	} else {
-		YASL_popobject(S);
+		YASL_pop(S);
 		return YASL_TYPE_ERROR;
 	}
-	YASL_popobject(S);
+	YASL_pop(S);
 
 	if (!YASL_top_isuserdata(S, T_FILE)) {
 		return YASL_TYPE_ERROR;
@@ -141,7 +141,7 @@ static int YASL_io_write(struct YASL_State *S) {
 		return YASL_TYPE_ERROR;
 	}
 	char *str = YASL_top_peekcstring(S);
-	YASL_popobject(S);
+	YASL_pop(S);
 
 	if (!YASL_top_isuserdata(S, T_FILE)) {
 		return YASL_TYPE_ERROR;

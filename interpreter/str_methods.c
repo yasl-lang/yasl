@@ -286,7 +286,7 @@ static int str_split_default(struct YASL_State *S) {
 
 int str_split(struct YASL_State *S) {
 	if (YASL_top_isundef(S)) {
-		YASL_popobject(S);
+		YASL_pop(S);
 		return str_split_default(S);
 	}
 	if (!YASL_top_isstring(S)) {
@@ -325,7 +325,7 @@ static int str_ltrim_default(struct YASL_State *S) {
 
 int str_ltrim(struct YASL_State *S) {
 	if (YASL_top_isundef(S)) {
-		YASL_popobject(S);
+		YASL_pop(S);
 		return str_ltrim_default(S);
 	}
 	if (!YASL_top_isstring(S)) {
@@ -395,7 +395,7 @@ static int str_trim_default(struct YASL_State *S) {
 
 int str_trim(struct YASL_State *S) {
 	if (YASL_top_isundef(S)) {
-		YASL_popobject(S);
+		YASL_pop(S);
 		return str_trim_default(S);
 	}
 	if (!YASL_top_isstring(S)) {

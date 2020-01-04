@@ -194,6 +194,13 @@ int YASL_pushobject(struct YASL_State *S, struct YASL_Object *obj);
 struct YASL_Object *YASL_popobject(struct YASL_State *S);
 
 /**
+ * pops the top of the stack.
+ * @param S the YASL_State the stack belongs to.
+ * @return 0 on success, else error code.
+ */
+int YASL_pop(struct YASL_State *S);
+
+/**
  * Makes a new YASL_Table
  * @return the YASL_Table
  */

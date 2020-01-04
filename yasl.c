@@ -266,6 +266,12 @@ struct YASL_Object *YASL_popobject(struct YASL_State *S) {
 	return &S->vm.stack[S->vm.sp--];
 }
 
+int YASL_pop(struct YASL_State *S) {
+	// TODO: check the stack pointer?
+	vm_pop(&S->vm);
+	return YASL_SUCCESS;
+}
+
 int YASL_settable(struct YASL_State *S) {
 	struct YASL_Object value = vm_pop(&S->vm);
 	struct YASL_Object key = vm_pop(&S->vm);
