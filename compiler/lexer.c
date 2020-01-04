@@ -1,10 +1,11 @@
 #include "lexer.h"
 
 #include <ctype.h>
+#include <stdlib.h>
 #include <string.h>
 
-#include "compiler/token.h"
 #include "debug.h"
+#include "token.h"
 #include "yasl_error.h"
 #include "yasl_include.h"
 
@@ -15,6 +16,14 @@ static void YASLKeywords(struct Lexer *lex);
 
 static int isbdigit(int c) {
 	return c == '0' || c == '1';
+}
+
+static int isddigit(int c) {
+	return isdigit(c);
+}
+
+static bool iswhitespace(int c) {
+	return c == ' ' || c == '\n' || c == '\t';
 }
 
 #define lex_print_err(lex, format, ...) {\
@@ -40,38 +49,51 @@ int lex_getchar(struct Lexer *lex) {
 	return lex->c = (char)lxgetc(lex->file);
 }
 
+void lex_val_init(struct Lexer *lex) {
+	lex->val_cap = 8;
+	lex->val_len = 0;
+	lex->value = (char *)realloc(lex->value, lex->val_cap);
+}
+
+void lex_val_append(struct Lexer *lex, char c) {
+	if (lex->val_len == lex->val_cap) {
+		lex->val_cap *= 2;
+		lex->value = (char *)realloc(lex->value, lex->val_cap);
+	}
+	lex->value[lex->val_len++] = c;
+}
+
 void lex_rewind(struct Lexer *lex, int len) {
 	lxseek(lex->file, len - 1, SEEK_CUR);
 	lex_getchar(lex);
 }
 
-static int lex_eatwhitespace(struct Lexer *lex) {
-	while (!lxeof(lex->file) && (lex->c == ' ' || lex->c == '\n' || lex->c == '\t')) {
+static bool lex_eatwhitespace(struct Lexer *lex) {
+	while (!lxeof(lex->file) && iswhitespace(lex->c)) {
 		if (lex->c == '\n') {
 			lex->line++;
 			if (ispotentialend(lex)) {
 				lex->type = T_SEMI;
-				return 1;
+				return true;
 			}
 		}
 		lex_getchar(lex);
 	}
-	return 0;
+	return false;
 }
 
-static int lex_eatinlinecomments(struct Lexer *lex) {
-	if ('#' == lex->c) while (!lxeof(lex->file) && lex_getchar(lex) != '\n') {}
-	return 0;
+static bool lex_eatinlinecomments(struct Lexer *lex) {
+	if ('#' == lex->c) while (!lxeof(lex->file) && lex_getchar(lex) != '\n') ;
+	return false;
 }
 
-static int lex_eatcommentsandwhitespace(struct Lexer * lex) {
-	while ((!lxeof(lex->file) && (lex->c == ' ' || lex->c == '\n' || lex->c == '\t')) || lex->c == '#' ||
-	       lex->c == '/') {
+static bool lex_eatcommentsandwhitespace(struct Lexer * lex) {
+	while (!lxeof(lex->file) && (iswhitespace(lex->c) || lex->c == '#' || lex->c == '/')) {
 		// white space
-		if (lex_eatwhitespace(lex)) return 1;
+		if (lex_eatwhitespace(lex)) return true;
 
 		// inline comments
-		if (lex_eatinlinecomments(lex)) return 1;
+		if (lex_eatinlinecomments(lex)) return true;
 
 		// block comments
 		if (lex->c == '/') {
@@ -90,56 +112,25 @@ static int lex_eatcommentsandwhitespace(struct Lexer * lex) {
 				if (lxeof(lex->file)) {
 					lex_print_err_syntax(lex,  "Unclosed block comment in line %" PRI_SIZET ".\n", lex->line);
 					lex_error(lex);
-					return 1;
+					return true;
 				}
 				if (addsemi && ispotentialend(lex)) {
 					lex->type = T_SEMI;
-					return 1;
+					return true;
 				}
 			} else if (lxeof(lex->file)) {
 				lex->type = T_SLASH;
-				return 1;
+				return true;
 			} else {
 				lex_rewind(lex, -1);
 				break;
 			}
 		}
 	}
-	return 0;
+	return false;
 }
 
-static int lex_eatint(struct Lexer *lex, char separator, int (*isvaliddigit)(int)) {
-	size_t i = 0;
-	lex->value[i++] = '0';
-	lex->value[i++] = separator;
-	lex_getchar(lex);
-
-	// eat leading newlines for literals
-	while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
-
-	if (!(*isvaliddigit)(lex->c)) {
-		lex_print_err_syntax(lex, "Invalid int literal in line %" PRI_SIZET ".\n", lex->line);
-		lex_error(lex);
-		return 1;
-	}
-
-	do {
-		lex->value[i++] = lex->c;
-		lex_getchar(lex);
-		if (i == lex->val_len) {
-			lex->val_len *= 2;
-			lex->value = (char *)realloc(lex->value, lex->val_len);
-		}
-		while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
-	} while (!lxeof(lex->file) && (*isvaliddigit)(lex->c));
-	if (i == lex->val_len) lex->value = (char *)realloc(lex->value, i + 1);
-	lex->value[i] = '\0';
-	lex->type = T_INT;
-	if (!lxeof(lex->file)) lxseek(lex->file, -1, SEEK_CUR);
-	return 1;
-}
-
-static int lex_eatop(struct Lexer *lex) {
+static bool lex_eatop(struct Lexer *lex) {
 	char c1, c2, c3;
 	enum Token last;
 	c1 = lex->c;
@@ -154,194 +145,190 @@ static int lex_eatop(struct Lexer *lex) {
 	}
 
 	last = YASLToken_ThreeChars(c1, c2, c3);
-	if (last != -1) {
+	if (last != T_UNKNOWN) {
 		lex->type = last;
 		free(lex->value);
-		return 1;
+		return true;
 	}
 	lxseek(lex->file, -1, SEEK_CUR);
 
 	two:
 	last = YASLToken_TwoChars(c1, c2);
-	if (last != -1) {
+	if (last != T_UNKNOWN) {
 		lex->type = last;
 		free(lex->value);
-		return 1;
+		return true;
 	}
 	lxseek(lex->file, -1, SEEK_CUR);
 
 	one:
 	last = YASLToken_OneChar(c1);
-	if (last != -1) {
+	if (last != T_UNKNOWN) {
 		lex->type = last;
 		free(lex->value);
-		return 1;
+		return true;
 	}
-	return 0;
+	return false;
 }
 
-static int lex_eatnumber(struct Lexer *lex) {
-	int c1 = lex->c;
-	if (isdigit(c1)) {                          // numbers
-		lex->val_len = 8;
-		lex->value = (char *)realloc(lex->value, lex->val_len);
-		size_t i = 0;
-		int c2 = lxgetc(lex->file);
+static void lex_eatnumber_fill(struct Lexer *lex, int (*isvaliddigit)(int)) {
+	do {
+		lex_val_append(lex, lex->c);
+		lex_getchar(lex);
+		while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
+	} while (!lxeof(lex->file) && (*isvaliddigit)(lex->c));
+}
+
+static bool lex_eatint(struct Lexer *lex, char separator, int (*isvaliddigit)(int)) {
+	int curr_pos = lxtell(lex->file);
+	int curr_char = lex->c;
+	if (lex->c == '0') {
+		lex_getchar(lex);
+		lex_val_append(lex, '0');
+		if (tolower(lex->c) == separator) {
+			lex_getchar(lex);
+			lex_val_append(lex, separator);
+			while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
+
+			if (!(*isvaliddigit)(lex->c)) {
+				lex_print_err_syntax(lex, "Invalid int literal in line %" PRI_SIZET ".\n", lex->line);
+				lex_error(lex);
+				return true;
+			}
+
+			lex_eatnumber_fill(lex, isvaliddigit);
+			lex_val_append(lex, '\0');
+			lex->type = T_INT;
+			if (!lxeof(lex->file)) lex_rewind(lex, -1);
+			return true;
+		}
+	}
+	lex->val_len = 0;
+	lex->c = curr_char;
+	lxseek(lex->file, curr_pos, SEEK_SET);
+	return false;
+}
+
+static bool lex_eatfloat(struct Lexer *lex) {
+	if (lex->c == '.') {
+		lex_getchar(lex);
+		if (lxeof(lex->file)) {
+			lxseek(lex->file, -1, SEEK_CUR);
+			return true;
+		}
+		if (!isdigit(lex->c)) {
+			lxseek(lex->file, -2, SEEK_CUR);
+			return true;
+		}
+		lex->val_len--;
+		lex_val_append(lex, '.');
+		lex_eatnumber_fill(lex, &isddigit);
+
+		if (tolower(lex->c) == 'e') {
+			lex_getchar(lex);
+			lex_val_append(lex, 'e');
+			while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
+			lex_eatnumber_fill(lex, &isddigit);
+		}
+
+		lex_val_append(lex, '\0');
+		if (!lxeof(lex->file)) lxseek(lex->file, -1, SEEK_CUR);
+		lex->type = T_FLOAT;
+		return true;
+	}
+	return false;
+}
+
+static bool lex_eatnumber(struct Lexer *lex) {
+	if (isdigit(lex->c)) {                          // numbers
+		lex_val_init(lex);
 
 		// hexadecimal literal
-		if (c1 == '0' && (c2 == 'x' || c2 == 'X')) {
-			if (lex_eatint(lex, 'x', &isxdigit)) return 1;
-		}
+		if (lex_eatint(lex, 'x', &isxdigit)) return true;
 
 		// binary literal
-		if (c1 == '0' && (c2 == 'b' || c2 == 'B')) {
-			if (lex_eatint(lex, 'b', &isbdigit)) return 1;
-		}
-
-		// rewind, because we don't have a hexadecimal or binary number.
-		if (!lxeof(lex->file)) lxseek(lex->file, -1, SEEK_CUR);
+		if (lex_eatint(lex, 'b', &isbdigit)) return true;
 
 		// decimal (or first half of float)
-		do {
-			lex->value[i++] = c1;
-			lex_getchar(lex);
-			if (i == lex->val_len) {
-				lex->val_len *= 2;
-				lex->value = (char *)realloc(lex->value, lex->val_len);
-			}
-			while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
-			c1 = lex->c;
-		} while (!lxeof(lex->file) && ((isdigit(c1))));
+		lex_eatnumber_fill(lex, &isddigit);
 
 		while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
 		lex->type = T_INT;
-		if (i == lex->val_len) lex->value = (char *)realloc(lex->value, i + 1);
-		lex->value[i] = '\0';
+		lex_val_append(lex, '\0');
 
 		// floats
-		if (c1 == '.') {
-			c2 = lxgetc(lex->file);
-			if (lxeof(lex->file)) {
-				lxseek(lex->file, -1, SEEK_CUR);
-				return 1;
-			}
-			if (!isdigit(c2)) {
-				lxseek(lex->file, -2, SEEK_CUR);
-				return 1;
-			}
-			lxseek(lex->file, -1, SEEK_CUR);
-			do {
-				lex->value[i++] = c1;
-				lex_getchar(lex);
-				if (i == lex->val_len) {
-					lex->val_len *= 2;
-					lex->value = (char *)realloc(lex->value, lex->val_len);
-				}
-				while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
-				c1 = lex->c;
-			} while (!lxeof(lex->file) && isdigit(c1));
-
-			if (lex->c == 'e' || lex->c == 'E') {
-				lex_getchar(lex);
-				lex->value[i++] = 'e';
-				while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
-				c1 = lex->c;
-				do {
-					lex->value[i++] = c1;
-					lex_getchar(lex);
-					if (i == lex->val_len) {
-						lex->val_len *= 2;
-						lex->value = (char *)realloc(lex->value, lex->val_len);
-					}
-					while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
-					c1 = lex->c;
-				} while (!lxeof(lex->file) && isdigit(c1));
-			}
-
-			if (i == lex->val_len) lex->value = (char *)realloc(lex->value, i + 1);
-			lex->value[i] = '\0';
-			if (!lxeof(lex->file)) lxseek(lex->file, -1, SEEK_CUR);
-			lex->type = T_FLOAT;
-			return 1;
-		}
+		if (lex_eatfloat(lex)) return true;
 
 		if (!lxeof(lex->file)) lxseek(lex->file, -1, SEEK_CUR);
-		return 1;
+		return true;
 	}
-	return 0;
+	return false;
 }
 
-static int lex_eatid(struct Lexer *lex) {
-	int c = lex->c;
-	if (isyaslidstart(c)) {                           // identifiers and keywords
-		lex->val_len = 8;
-		lex->value = (char *)realloc(lex->value, lex->val_len);
-		size_t i = 0;
-		do {
-			lex->value[i++] = c;
-			lex_getchar(lex);
-			c = lex->c;
-			if (i == lex->val_len) {
-				lex->val_len *= 2;
-				lex->value = (char *)realloc(lex->value, lex->val_len);
-			}
-		} while (!lxeof(lex->file) && isyaslid(c));
-		if (!lxeof(lex->file)) lxseek(lex->file, -1, SEEK_CUR);
-		lex->value = (char *)realloc(lex->value, 1 + (lex->val_len = i));
-		lex->value[lex->val_len] = '\0';
+static void lex_eatid_fill(struct Lexer *lex) {
+	do {
+		lex_val_append(lex, lex->c);
+		lex_getchar(lex);
+	} while (!lxeof(lex->file) && isyaslid(lex->c));
+}
+static bool lex_eatid(struct Lexer *lex) {
+	if (isyaslidstart(lex->c)) {                           // identifiers and keywords
+		lex_val_init(lex);
+		lex_eatid_fill(lex);
 
-		if (lex->type == T_DOT || lex->type == T_RIGHT_ARR) {
+		if (!lxeof(lex->file)) lxseek(lex->file, -1, SEEK_CUR);
+		lex_val_append(lex, '\0');
+
+		switch (lex->type) {
+		case T_DOT:
+		case T_RIGHT_ARR:
 			lex->type = T_ID;
-			return 1;
+			break;
+		default:
+			lex->type = T_ID;
+			YASLKeywords(lex);                     // keywords
+			break;
 		}
 
-		lex->type = T_ID;
-		YASLKeywords(lex);                  // keywords
-		return 1;
+		return true;
 	}
-	return 0;
+	return false;
 }
 
-static int handle_escapes(struct Lexer *lex, size_t *i, char delim) {
+static bool handle_escapes(struct Lexer *lex, char delim) {
 	char buffer[9];
 	char tmp;
 	char *end;
-	switch ((lex)->c) {
+	switch (lex->c) {
 	case 'a':
-		(lex)->value[(*i)++] = '\a';
+		lex_val_append(lex, '\a');
 		break;
 	case 'b':
-		(lex)->value[(*i)++] = '\b';
+		lex_val_append(lex, '\b');
 		break;
 	case 'f':
-		(lex)->value[(*i)++] = '\f';
+		lex_val_append(lex, '\f');
 		break;
 	case 'n':
-		(lex)->value[(*i)++] = '\n';
+		lex_val_append(lex, '\n');
 		break;
 	case 'r':
-		(lex)->value[(*i)++] = '\r';
+		lex_val_append(lex, '\r');
 		break;
 	case 't':
-		(lex)->value[(*i)++] = '\t';
+		lex_val_append(lex, '\t');
 		break;
 	case 'v':
-		(lex)->value[(*i)++] = '\v';
+		lex_val_append(lex, '\v');
 		break;
 	case '0':
-		(lex)->value[(*i)++] = '\0';
+		lex_val_append(lex, '\0');
 		break;
 	case STR_DELIM:
-		(lex)->value[(*i)++] = STR_DELIM;
-		break;
 	case INTERP_STR_DELIM:
-		(lex)->value[(*i)++] = INTERP_STR_DELIM;
-		break;
 	case INTERP_STR_PLACEHOLDER:
-		(lex)->value[(*i)++] = INTERP_STR_PLACEHOLDER;
-		break;
 	case ESCAPE_CHAR:
-		(lex)->value[(*i)++] = ESCAPE_CHAR;
+		lex_val_append(lex, lex->c);
 		break;
 	case 'x':
 		buffer[0] = lex_getchar(lex);
@@ -350,47 +337,45 @@ static int handle_escapes(struct Lexer *lex, size_t *i, char delim) {
 		tmp = (char) strtol(buffer, &end, 16);
 		if (end != buffer + 2) {
 			lex_print_err_syntax(lex, "Invalid hex string escape in line %" PRI_SIZET ".\n", lex->line);
-			while (lex->c != '\n' && lex->c != delim) lex_getchar(lex);
-			lex_error(lex);
-			return 1;
+			goto error;
 		}
-		lex->value[(*i)++] = tmp;
-		return 0;
+		lex_val_append(lex, tmp);
+		return false;
 	default:
-		lex_print_err_syntax(lex, "Invalid string escape sequence in line %" PRI_SIZET ".\n", (lex)->line);
-		while (lex->c != '\n' && lex->c != delim) lex_getchar(lex);
-		lex_error(lex);
-		return 1;
+		lex_print_err_syntax(lex, "Invalid string escape sequence in line %" PRI_SIZET ".\n", lex->line);
+		goto error;
 	}
-	return 0;
+	return false;
+
+error:
+	while (lex->c != '\n' && lex->c != delim && !lxeof(lex->file)) lex_getchar(lex);
+	lex_error(lex);
+	return true;
 }
 
-int lex_eatinterpstringbody(struct Lexer *lex) {
-	lex->val_len = 6;
-	lex->value = (char *)realloc(lex->value, lex->val_len);
-	size_t i = 0;
-	lex->type = T_STR;
+static bool lex_eatstring_nextchar(struct Lexer *lex, char delim) {
+	if (lex->c == ESCAPE_CHAR) {
+		lex_getchar(lex);
+		if (handle_escapes(lex, delim)) {
+			return true;
+		}
+	} else {
+		lex_val_append(lex, lex->c);
+	}
+	return false;
+}
 
+static bool lex_eatinterpstring_fill(struct Lexer *lex) {
 	while (lex->c != INTERP_STR_DELIM && lex->c != INTERP_STR_PLACEHOLDER && !lxeof(lex->file)) {
 		if (lex->c == '\n') {
 			lex_print_err_syntax(lex,  "Unclosed string literal in line %" PRI_SIZET ".\n", lex->line);
 			lex_error(lex);
-			return 1;
+			return true;
 		}
 
-		if (lex->c == ESCAPE_CHAR) {
-			lex_getchar(lex);
-			if (handle_escapes(lex, &i, INTERP_STR_DELIM)) return 1;
-		} else {
-			lex->value[i++] = lex->c;
-		}
+		if (lex_eatstring_nextchar(lex, INTERP_STR_DELIM)) return true;
 
 		lex_getchar(lex);
-
-		if (i == lex->val_len) {
-			lex->val_len *= 2;
-			lex->value = (char *)realloc(lex->value, lex->val_len);
-		}
 	}
 
 	if (lex->c == INTERP_STR_PLACEHOLDER) {
@@ -399,72 +384,34 @@ int lex_eatinterpstringbody(struct Lexer *lex) {
 		lex->mode = L_NORMAL;
 	}
 
-	lex->val_len = i;
+	return false;
+}
+
+void lex_eatinterpstringbody(struct Lexer *lex) {
+	lex_val_init(lex);
+	lex->type = T_STR;
+
+	if (lex_eatinterpstring_fill(lex)) return;
 
 	if (lxeof(lex->file)) {
 		lex_print_err_syntax(lex,  "Unclosed string literal in line %" PRI_SIZET ".\n", lex->line);
 		lex_error(lex);
-		return 1;
+		return;
 	}
-
-	return 0;
 }
 
-static int lex_eatinterpstring(struct Lexer *lex) {
+static bool lex_eatinterpstring(struct Lexer *lex) {
 	if (lex->c == INTERP_STR_DELIM) {
-		lex->val_len = 8;
-		lex->value = (char *)realloc(lex->value, lex->val_len);
-		size_t i = 0;
-		lex->type = T_STR;
-
 		lex_getchar(lex);
-		while (lex->c != INTERP_STR_DELIM && lex->c != INTERP_STR_PLACEHOLDER && !lxeof(lex->file)) {
-			if (lex->c == '\n') {
-				lex_print_err_syntax(lex, "Unclosed string literal in line %" PRI_SIZET ".\n", lex->line);
-				lex_error(lex);
-				return 1;
-			}
-
-			if (lex->c == ESCAPE_CHAR) {
-				lex_getchar(lex);
-				if (handle_escapes(lex, &i, INTERP_STR_DELIM)) return 1;
-			} else {
-				lex->value[i++] = lex->c;
-			}
-
-			lex_getchar(lex);
-
-			if (i == lex->val_len) {
-				lex->val_len *= 2;
-				lex->value = (char *)realloc(lex->value, lex->val_len);
-			}
-		}
-
-		if (lex->c == INTERP_STR_PLACEHOLDER) {
-			lex->mode = L_INTERP;
-		} else {
-			lex->mode = L_NORMAL;
-		}
-
-		lex->val_len = i;
-
-		if (lxeof(lex->file)) {
-			lex_print_err_syntax(lex, "Unclosed string literal in line %" PRI_SIZET ".\n", lex->line);
-			lex_error(lex);
-			return 1;
-		}
-
-		return 1;
-
+		lex_eatinterpstringbody(lex);
+		return true;
 	}
-	return 0;
+	return false;
 }
 
-static int lex_eatstring(struct Lexer *lex) {
+static bool lex_eatstring(struct Lexer *lex) {
 	if (lex->c == STR_DELIM) {
-		lex->val_len = 6;
-		lex->value = (char *)realloc(lex->value, lex->val_len);
-		size_t i = 0;
+		lex_val_init(lex);
 		lex->type = T_STR;
 
 		lex_getchar(lex);
@@ -472,69 +419,48 @@ static int lex_eatstring(struct Lexer *lex) {
 			if (lex->c == '\n') {
 				lex_print_err_syntax(lex, "Unclosed string literal in line %" PRI_SIZET ".\n", lex->line);
 				lex_error(lex);
-				return 1;
+				return true;
 			}
 
-			if (lex->c == ESCAPE_CHAR) {
-				lex_getchar(lex);
-				if (handle_escapes(lex, &i, STR_DELIM)) {
-					return 1;
-				}
-			} else {
-				lex->value[i++] = lex->c;
-			}
+			if (lex_eatstring_nextchar(lex, STR_DELIM)) return true;
+
 			lex_getchar(lex);
-			if (i == lex->val_len) {
-				lex->val_len *= 2;
-				lex->value = (char *)realloc(lex->value, lex->val_len);
-			}
 		}
-
-		lex->val_len = i;
 
 		if (lxeof(lex->file)) {
 			lex_print_err_syntax(lex, "Unclosed string literal in line %" PRI_SIZET ".\n", lex->line);
 			lex_error(lex);
-			return 1;
+			return true;
 		}
 
-		return 1;
+		return true;
 
 	}
-	return 0;
+	return false;
 }
 
-
-static int lex_eatrawstring(struct Lexer *lex) {
+static bool lex_eatrawstring(struct Lexer *lex) {
 	if (lex->c == RAW_STR_DELIM) {
-		lex->val_len = 8;
-		lex->value = (char *)realloc(lex->value, lex->val_len);
-		size_t i = 0;
+		lex_val_init(lex);
 		lex->type = T_STR;
 
 		lex_getchar(lex);
 		while (lex->c != RAW_STR_DELIM && !lxeof(lex->file)) {
 			if (lex->c == '\n') lex->line++;
-			lex->value[i++] = lex->c;
+			lex_val_append(lex, lex->c);
 			lex_getchar(lex);
-			if (i == lex->val_len) {
-				lex->val_len *= 2;
-				lex->value = (char *)realloc(lex->value, lex->val_len);
-			}
 		}
-
-		lex->val_len = i;
 
 		if (lxeof(lex->file)) {
 			lex_print_err_syntax(lex, "Unclosed string literal in line %" PRI_SIZET ".\n", lex->line);
 			lex_error(lex);
-			return 1;
+			return true;
 		}
 
-		return 1;
+		return true;
 
 	}
-	return 0;
+	return false;
 }
 
 void gettok(struct Lexer *lex) {
@@ -554,9 +480,6 @@ void gettok(struct Lexer *lex) {
 
 	// numbers
 	if (lex_eatnumber(lex)) return;
-
-	// !in operator
-	//if (lex_eatnotin(lex)) return;
 
 	// identifiers and keywords
 	if (lex_eatid(lex)) return;
@@ -585,7 +508,6 @@ static enum Token YASLToken_ThreeChars(char c1, char c2, char c3) {
 		case '!': switch(c2) {
 			case '=': switch(c3) { case '=': return T_BANGDEQ;}
 			  return T_UNKNOWN;
-			// case 'i': switch(c3) { case 'n': return T_BANGIN; default: return T_UNKNOWN; }
 	  } return T_UNKNOWN;
 	case '*': switch(c2) { case '*': switch(c3) { case '=': return T_DSTAREQ; }} return T_UNKNOWN;
 	case '/': switch(c2) { case '/': switch(c3) { case '=': return T_DSLASHEQ; }} return T_UNKNOWN;
@@ -604,9 +526,9 @@ static enum Token YASLToken_ThreeChars(char c1, char c2, char c3) {
 
 static enum Token YASLToken_TwoChars(char c1, char c2) {
 	switch(c1) {
-	case ':': switch(c2) { case '=': return T_COLONEQ;} return T_UNKNOWN;
-	case '^': switch(c2) { case '=': return T_CARETEQ;} return T_UNKNOWN;
-	case '+': switch(c2) { case '=': return T_PLUSEQ;} return T_UNKNOWN;
+	case ':': switch(c2) { case '=': return T_COLONEQ; } return T_UNKNOWN;
+	case '^': switch(c2) { case '=': return T_CARETEQ; } return T_UNKNOWN;
+	case '+': switch(c2) { case '=': return T_PLUSEQ; } return T_UNKNOWN;
 		case '-': switch(c2) {
 				case '=': return T_MINUSEQ;
 				case '>': return T_RIGHT_ARR;
@@ -619,7 +541,7 @@ static enum Token YASLToken_TwoChars(char c1, char c2) {
 			case '=': return T_BANGEQ;
 			case '~': return T_BANGTILDE;
 	  } return T_UNKNOWN;
-	case '~': switch(c2) { case '=': return T_TILDEEQ;} return T_UNKNOWN;
+	case '~': switch(c2) { case '=': return T_TILDEEQ; } return T_UNKNOWN;
 		case '*': switch(c2) {
 			case '=': return T_STAREQ;
 			case '*': return T_DSTAR;
@@ -627,7 +549,7 @@ static enum Token YASLToken_TwoChars(char c1, char c2) {
 		case '/': switch(c2) {
 				case '=': return T_SLASHEQ;
 	  case '/': return T_DSLASH;} return T_UNKNOWN;
-	case '%': switch(c2) { case '=': return T_MODEQ;} return T_UNKNOWN;
+	case '%': switch(c2) { case '=': return T_MODEQ; } return T_UNKNOWN;
 		case '<': switch(c2) {
 				case '=': return T_LTEQ;
 				case '<': return T_DLT;
@@ -646,7 +568,7 @@ static enum Token YASLToken_TwoChars(char c1, char c2) {
 				case '=': return T_BAREQ;
 				case '|': return T_DBAR;
 	  } return T_UNKNOWN;
-	case '?': switch(c2) { case '?': return T_DQMARK;} return T_UNKNOWN;
+	case '?': switch(c2) { case '?': return T_DQMARK; } return T_UNKNOWN;
 		default:
 			return T_UNKNOWN;
 	}
@@ -682,8 +604,8 @@ static enum Token YASLToken_OneChar(char c1) {
 	}
 }
 
-static int matches_keyword(struct Lexer *lex, const char *string) {
-	return strlen(string) == lex->val_len && !memcmp(lex->value, string, lex->val_len);
+static bool matches_keyword(struct Lexer *lex, const char *string) {
+	return !strcmp(lex->value, string);
 }
 
 static void set_keyword(struct Lexer *lex, enum Token type) {
@@ -775,8 +697,7 @@ static void YASLKeywords(struct Lexer *lex) {
 	else if (matches_keyword(lex, "undef")) set_keyword(lex, T_UNDEF);
 	else if (matches_keyword(lex, "while")) set_keyword(lex, T_WHILE);
 	else if (matches_keyword(lex, "len")) set_keyword(lex, T_LEN);
-		// NOTE: special case for bools and floats
-		// else if (matches_keyword(lex, "nan") || matches_keyword(lex, "inf")) lex->type = T_FLOAT;
+	// NOTE: special case for bools
 	else if (matches_keyword(lex, "true") || matches_keyword(lex, "false")) lex->type = T_BOOL;
 }
 
@@ -874,6 +795,7 @@ struct Lexer *lex_new(FILE *file /* OWN */) {
 	struct Lexer *lex = (struct Lexer *) malloc(sizeof(struct Lexer));
 	lex->line = 1;
 	lex->value = NULL;
+	lex->val_cap = 0;
 	lex->val_len = 0;
 	lex->file = lexinput_new_file(file);
 	lex->type = T_UNKNOWN;

@@ -1,8 +1,10 @@
 #pragma once
 
-#include "token.h"
-#include "lexinput.h"
+#include <stdbool.h>
+
 #include "IO.h"
+#include "lexinput.h"
+#include "token.h"
 
 #define  ispotentialend(l) ((l)->type == T_ID || (l)->type == T_STR || \
             (l)->type == T_INT || (l)->type == T_FLOAT || (l)->type == T_BREAK || \
@@ -12,13 +14,14 @@
 #define NEW_LEXER(f) \
   ((struct Lexer) { .file = (f),\
              .c = 0,\
-	     .type = T_UNKNOWN,\
-	     .value = NULL,\
-	     .val_len = 0,\
-	     .line = 1,\
-	     .status = YASL_SUCCESS,\
-	     .mode = L_NORMAL,\
-	     .err = ((struct IO) { io_print_file, stderr, NULL, 0 })\
+             .type = T_UNKNOWN,\
+             .value = NULL,\
+             .val_cap = 0,\
+             .val_len = 0,\
+             .line = 1,\
+             .status = YASL_SUCCESS,\
+             .mode = L_NORMAL,\
+             .err = ((struct IO) { io_print_file, stderr, NULL, 0 })\
 })
 
 #define ESCAPE_CHAR '\\'
@@ -38,6 +41,7 @@ struct Lexer {
     char c;
     enum Token type;
     char *value;             // NOT OWN
+    size_t val_cap;
     size_t val_len;
     size_t line;
     int status;
@@ -48,8 +52,7 @@ struct Lexer {
 // struct Lexer *lex_new(FILE *file);
 void lex_cleanup(struct Lexer *lex);
 void gettok(struct Lexer *lex);
-int lex_eatinterpstringbody(struct Lexer *lex);
-int lex_eatfloatexp(struct Lexer *lex);
+void lex_eatinterpstringbody(struct Lexer *lex);
 void lex_error(struct Lexer *lex);
 int lex_getchar(struct Lexer *lex);
 

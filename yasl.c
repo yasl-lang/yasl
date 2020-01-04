@@ -203,6 +203,7 @@ struct YASL_Object *YASL_getglobal(struct YASL_State *S, const char *name) {
 int YASL_loadglobal(struct YASL_State *S, const char *name) {
 	struct YASL_String *string = YASL_String_new_sized(strlen(name), name);
 	struct YASL_Object global = YASL_Table_search(S->vm.globals[0], YASL_STR(string));
+	str_del(string);
 	if (global.type == Y_END) {
 		return YASL_ERROR;
 	}
@@ -278,6 +279,13 @@ int YASL_pushlitstring(struct YASL_State *S, const char *value, const size_t siz
 
 int YASL_pushcfunction(struct YASL_State *S, int (*value)(struct YASL_State *), int num_args) {
 	VM_PUSH((struct VM *) S, YASL_CFN(value, num_args));
+	return YASL_SUCCESS;
+}
+
+int YASL_pushtable(struct YASL_State *S) {
+	struct YASL_Object *table = YASL_Table();
+	vm_push(&S->vm, *table);
+	free(table);
 	return YASL_SUCCESS;
 }
 
@@ -416,8 +424,16 @@ int YASL_isuserdata(struct YASL_Object *obj, int tag) {
 	return YASL_ERROR;
 }
 
+bool YASL_top_isuserdata(struct YASL_State *S, int tag) {
+	return YASL_ISUSERDATA(vm_peek(&S->vm)) && vm_peek(&S->vm).value.uval->tag == tag;
+}
+
 int YASL_isuserpointer(struct YASL_Object *obj) {
 	return obj->type == Y_USERPTR ? YASL_SUCCESS : YASL_ERROR;
+}
+
+bool YASL_top_isuserpointer(struct YASL_State *S) {
+	return YASL_ISUSERPTR(vm_peek(&S->vm));
 }
 
 bool YASL_getboolean(struct YASL_Object *obj) {
@@ -478,7 +494,7 @@ yasl_int YASL_top_popinteger(struct YASL_State *S) {
 }
 
 char *YASL_getcstring(struct YASL_Object *obj) {
-	if (YASL_ISSTR(*obj)) return NULL;
+	if (!YASL_ISSTR(*obj)) return NULL;
 
 	char *tmp = (char *) malloc(YASL_String_len(obj->value.sval) + 1);
 
@@ -501,20 +517,16 @@ char *YASL_top_peekcstring(struct YASL_State *S) {
 }
 
 size_t YASL_getstringlen(struct YASL_Object *obj) {
-	if (YASL_ISSTR(*obj)) return 0;
+	if (!YASL_ISSTR(*obj)) return 0;
 
 	return YASL_String_len(obj->value.sval);
 }
 
 char *YASL_getstring(struct YASL_Object *obj) {
-	if (YASL_ISSTR(*obj)) return NULL;
+	if (!YASL_ISSTR(*obj)) return NULL;
 
 	return obj->value.sval->str + obj->value.sval->start;
 }
-
-
-// int (*)(struct YASL_State) *YASL_getcfunction(struct YASL_Object *obj);
-
 
 void *YASL_getuserdata(struct YASL_Object *obj) {
 	if (obj->type == Y_USERDATA || obj->type == Y_USERDATA_W) {
@@ -523,6 +535,13 @@ void *YASL_getuserdata(struct YASL_Object *obj) {
 	return NULL;
 }
 
+void *YASL_top_peekuserdata(struct YASL_State *S) {
+	return YASL_GETUSERDATA(vm_peek(&S->vm))->data;
+}
+
+void *YASL_top_popuserdata(struct YASL_State *S) {
+	return YASL_GETUSERDATA(vm_pop(&S->vm))->data;
+}
 
 void *YASL_getuserpointer(struct YASL_Object *obj) {
 	if (obj->type != Y_USERPTR) {
@@ -531,3 +550,10 @@ void *YASL_getuserpointer(struct YASL_Object *obj) {
 	return obj->value.pval;
 }
 
+void *YASL_top_peekuserpointer(struct YASL_State *S) {
+	return YASL_GETUSERPTR(vm_peek(&S->vm));
+}
+
+void *YASL_top_popuserpointer(struct YASL_State *S) {
+	return YASL_GETUSERPTR(vm_pop(&S->vm));
+}

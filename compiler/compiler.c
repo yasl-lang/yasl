@@ -1,16 +1,14 @@
 #include "compiler.h"
 
+#include <math.h>
+
 #include "ast.h"
-#include "interpreter/YASL_Object.h"
-#include "middleend.h"
 #include "data-structures/YASL_String.h"
-#include "data-structures/YASL_ByteBuffer.h"
-#include "parser.h"
+#include "lexinput.h"
+#include "middleend.h"
+#include "opcode.h"
 #include "yasl_error.h"
 #include "yasl_include.h"
-#include "lexinput.h"
-
-#include <math.h>
 
 #define compiler_print_err(compiler, format, ...) {\
 	char *tmp = (char *)malloc(snprintf(NULL, 0, format, __VA_ARGS__) + 1);\
@@ -146,11 +144,11 @@ static void enter_scope(struct Compiler *const compiler) {
 static void exit_scope(struct Compiler *const compiler) {
 	if (in_function(compiler)) {
 		compiler->num_locals += compiler->params->vars->count;
-		Env_t *tmp = compiler->params;
+		struct Env *tmp = compiler->params;
 		compiler->params = compiler->params->parent;
 		env_del_current_only(tmp);
 	} else {
-		Env_t *tmp = compiler->stack;
+		struct Env *tmp = compiler->stack;
 		compiler->stack = compiler->stack->parent;
 		env_del_current_only(tmp);
 	}
@@ -443,7 +441,7 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	compiler->buffer->count = old_size;
 	// compiler->buffer->count = 0;
 
-	Env_t *tmp = compiler->params->parent;
+	struct Env *tmp = compiler->params->parent;
 	env_del_current_only(compiler->params);
 	compiler->params = tmp;
 

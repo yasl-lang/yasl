@@ -1,5 +1,7 @@
 #include "lexinput.h"
 
+#include "data-structures/YASL_ByteBuffer.h"
+
 struct LEXINPUT {
   FILE *fp;
   struct YASL_ByteBuffer *bb;
@@ -61,7 +63,7 @@ static  int lexinput_file_close(struct LEXINPUT *const lp) {
 }
 
 struct LEXINPUT *lexinput_new_file(FILE *const fp) {
-	struct LEXINPUT *lp = (struct LEXINPUT *) malloc(sizeof(struct LEXINPUT));
+	struct LEXINPUT *lp = (struct LEXINPUT *)malloc(sizeof(struct LEXINPUT));
 	lp->fp = fp;
 	lp->getc = lexinput_file_getc;
 	lp->tell = lexinput_file_tell;

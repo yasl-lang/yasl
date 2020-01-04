@@ -1,10 +1,9 @@
 #pragma once
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "compiler/token.h"
+#include "token.h"
 #include "yasl_conf.h"
 
 // NOTE: _MUST_ keep this up to date with the jumptable in compiler.c and the jumptable in middleend.c

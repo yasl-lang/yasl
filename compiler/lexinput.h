@@ -2,8 +2,6 @@
 
 #include <stdio.h>
 
-#include "data-structures/YASL_ByteBuffer.h"
-
 struct LEXINPUT;
 struct LEXINPUT *lexinput_new_file(FILE *const lp);
 struct LEXINPUT *lexinput_new_bb(const char *const buf, const size_t len);
