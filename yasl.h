@@ -190,7 +190,7 @@ int YASL_pushobject(struct YASL_State *S, struct YASL_Object *obj);
  * @param S the YASL_State from which to pop the YASL_Object.
  * @return a YASL_Object* on succes, else NULL.
  */
-// YASL_DEPRECATE
+YASL_DEPRECATE
 struct YASL_Object *YASL_popobject(struct YASL_State *S);
 
 /**
@@ -232,7 +232,10 @@ bool YASL_top_isundef(struct YASL_State *S);
 
 bool YASL_top_isboolean(struct YASL_State *S);
 
+YASL_DEPRECATE
 bool YASL_top_isdouble(struct YASL_State *S);
+
+bool YASL_top_isfloat(struct YASL_State *S);
 
 bool YASL_top_isinteger(struct YASL_State *S);
 
@@ -249,8 +252,13 @@ bool YASL_top_isuserpointer(struct YASL_State *S);
 bool YASL_top_peekboolean(struct YASL_State *S);
 bool YASL_top_popboolean(struct YASL_State *S);
 
+YASL_DEPRECATE
 yasl_float YASL_top_peekdouble(struct YASL_State *S);
+YASL_DEPRECATE
 yasl_float YASL_top_popdouble(struct YASL_State *S);
+
+yasl_float YASL_top_peekfloat(struct YASL_State *S);
+yasl_float YASL_top_popfloat(struct YASL_State *S);
 
 yasl_int YASL_top_peekinteger(struct YASL_State *S);
 yasl_int YASL_top_popinteger(struct YASL_State *S);

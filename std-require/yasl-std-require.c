@@ -15,7 +15,7 @@ int YASL_require(struct YASL_State *S) {
 	}
 
 	char *mode_str = YASL_top_peekcstring(S);
-	YASL_popobject(S);
+	YASL_pop(S);
 
 	struct YASL_State *Ss = YASL_newstate_num(mode_str, S->vm.headers_size);
 

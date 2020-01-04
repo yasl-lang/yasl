@@ -11,14 +11,6 @@
 #include "yasl_conf.h"
 #include "yasl.h"
 
-#define POP_NUMBER(state, obj_name, fn_name) \
-					struct YASL_Object *obj_name = YASL_popobject(state); \
-                    if (!YASL_ISNUM(*obj_name)) { \
-                        printf("%s(...) expected first argument of numerical type, got %s.\n", \
-                                fn_name, YASL_TYPE_NAMES[obj_name->type] ); \
-						return -1; \
-                    }
-
 const yasl_float YASL_PI = 3.14159265358979323851280895940618620443274267017841339111328125;
 #if _MSC_VER
 const yasl_float YASL_NAN = NAN;
@@ -28,142 +20,171 @@ const yasl_float YASL_NAN = 0.0 / 0.0;
 const yasl_float YASL_INF = 1.0 / 0.0;
 #endif
 
-static int YASL_math_abs(struct YASL_State *S) {
-	POP_NUMBER(S, num, "math.abs");
+static bool YASL_top_isnumber(struct YASL_State *S) {
+	return YASL_top_isinteger(S) || YASL_top_isfloat(S);
+}
 
-	if (YASL_ISINT(*num)) {
-		yasl_int i = YASL_GETINT(*num);
+static int YASL_math_abs(struct YASL_State *S) {
+	if (YASL_top_isinteger(S)) {
+		yasl_int i = YASL_top_popinteger(S);
 		if (i < 0) i = -i;
 		return YASL_pushinteger(S, i);
-	} else {
-		yasl_float n = YASL_GETFLOAT(*num);
-		if (n < 0) n = -n;
-		return YASL_pushfloat(S, n);
 	}
+
+	if (YASL_top_isfloat(S)) {
+		yasl_float f = YASL_top_popfloat(S);
+		if (f < 0) f = -f;
+		return YASL_pushfloat(S, f);
+	}
+
+	// TODO: error message
+	return YASL_TYPE_ERROR;
 }
 
 static int YASL_math_exp(struct YASL_State *S) {
-	POP_NUMBER(S, num, "math.exp");
+	if (!YASL_top_isnumber(S)) {
+		return YASL_TYPE_ERROR;
+	}
 
 	yasl_float n;
-	if (YASL_ISINT(*num)) {
-		n = (yasl_float)YASL_GETINT(*num);
+	if (YASL_top_isinteger(S)) {
+		n = (yasl_float)YASL_top_popinteger(S);
 	} else {
-		n = YASL_GETFLOAT(*num);
+		n = YASL_top_popfloat(S);
 	}
 	return YASL_pushfloat(S, exp(n));
 }
 
 static int YASL_math_log(struct YASL_State *S) {
-	POP_NUMBER(S, num, "math.log");
+	if (!YASL_top_isnumber(S)) {
+		return YASL_TYPE_ERROR;
+	}
 
 	yasl_float n;
-	if (YASL_ISINT(*num)) {
-		n = (yasl_float)YASL_GETINT(*num);;
+	if (YASL_top_isinteger(S)) {
+		n = (yasl_float)YASL_top_popinteger(S);
 	} else {
-		n = YASL_GETFLOAT(*num);
+		n = YASL_top_popfloat(S);
 	}
 	return YASL_pushfloat(S, log(n));
 }
 
 static int YASL_math_sqrt(struct YASL_State *S) {
-	POP_NUMBER(S, num, "math.sqrt");
+	if (!YASL_top_isnumber(S)) {
+		return YASL_TYPE_ERROR;
+	}
 
 	yasl_float n;
-	if (YASL_ISINT(*num)) {
-		n = (yasl_float)YASL_GETINT(*num);;
+	if (YASL_top_isinteger(S)) {
+		n = (yasl_float)YASL_top_popinteger(S);
 	} else {
-		n = YASL_GETFLOAT(*num);
+		n = YASL_top_popfloat(S);
 	}
 	return YASL_pushfloat(S, sqrt(n));
 }
 
 static int YASL_math_cos(struct YASL_State *S) {
-	POP_NUMBER(S, num, "math.cos");
+	if (!YASL_top_isnumber(S)) {
+		return YASL_TYPE_ERROR;
+	}
 
 	yasl_float n;
-	if (YASL_ISINT(*num)) {
-		n = (yasl_float)YASL_GETINT(*num);;
+	if (YASL_top_isinteger(S)) {
+		n = (yasl_float)YASL_top_popinteger(S);
 	} else {
-		n = YASL_GETFLOAT(*num);
+		n = YASL_top_popfloat(S);
 	}
 	return YASL_pushfloat(S, cos(n));
 }
 static int YASL_math_sin(struct YASL_State *S) {
-	POP_NUMBER(S, num, "math.sin");
+	if (!YASL_top_isnumber(S)) {
+		return YASL_TYPE_ERROR;
+	}
 
 	yasl_float n;
-	if (YASL_ISINT(*num)) {
-		n = (yasl_float)YASL_GETINT(*num);;
+	if (YASL_top_isinteger(S)) {
+		n = (yasl_float)YASL_top_popinteger(S);
 	} else {
-		n = YASL_GETFLOAT(*num);
+		n = YASL_top_popfloat(S);
 	}
 	return YASL_pushfloat(S, sin(n));
 }
 static int YASL_math_tan(struct YASL_State *S) {
-	POP_NUMBER(S, num, "math.tan");
+	if (!YASL_top_isnumber(S)) {
+		return YASL_TYPE_ERROR;
+	}
 
 	yasl_float n;
-	if (YASL_ISINT(*num)) {
-		n = (yasl_float)YASL_GETINT(*num);;
+	if (YASL_top_isinteger(S)) {
+		n = (yasl_float)YASL_top_popinteger(S);
 	} else {
-		n = YASL_GETFLOAT(*num);
+		n = YASL_top_popfloat(S);
 	}
 	return YASL_pushfloat(S, tan(n));
 }
 static int YASL_math_acos(struct YASL_State *S) {
-	POP_NUMBER(S, num, "math.acos");
+	if (!YASL_top_isnumber(S)) {
+		return YASL_TYPE_ERROR;
+	}
 
 	yasl_float n;
-	if (YASL_ISINT(*num)) {
-		n = (yasl_float)YASL_GETINT(*num);;
+	if (YASL_top_isinteger(S)) {
+		n = (yasl_float)YASL_top_popinteger(S);
 	} else {
-		n = YASL_GETFLOAT(*num);
+		n = YASL_top_popfloat(S);
 	}
 	return YASL_pushfloat(S, acos(n));
 }
 static int YASL_math_asin(struct YASL_State *S) {
-	POP_NUMBER(S, num, "math.asin");
+	if (!YASL_top_isnumber(S)) {
+		return YASL_TYPE_ERROR;
+	}
 
 	yasl_float n;
-	if (YASL_ISINT(*num)) {
-		n = (yasl_float)YASL_GETINT(*num);;
+	if (YASL_top_isinteger(S)) {
+		n = (yasl_float)YASL_top_popinteger(S);
 	} else {
-		n = YASL_GETFLOAT(*num);
+		n = YASL_top_popfloat(S);
 	}
 	return YASL_pushfloat(S, asin(n));
 }
 static int YASL_math_atan(struct YASL_State *S) {
-	POP_NUMBER(S, num, "math.atan");
+	if (!YASL_top_isnumber(S)) {
+		return YASL_TYPE_ERROR;
+	}
 
 	yasl_float n;
-	if (YASL_ISINT(*num)) {
-		n = (yasl_float)YASL_GETINT(*num);;
+	if (YASL_top_isinteger(S)) {
+		n = (yasl_float)YASL_top_popinteger(S);
 	} else {
-		n = YASL_GETFLOAT(*num);
+		n = YASL_top_popfloat(S);
 	}
 	return YASL_pushfloat(S, atan(n));
 }
 
 static int YASL_math_ceil(struct YASL_State *S) {
-	POP_NUMBER(S, num, "math.ceil");
+	if (!YASL_top_isnumber(S)) {
+		return YASL_TYPE_ERROR;
+	}
 
 	yasl_float n;
-	if (YASL_ISINT(*num)) {
-		n = (yasl_float)YASL_GETINT(*num);;
+	if (YASL_top_isinteger(S)) {
+		n = (yasl_float)YASL_top_popinteger(S);
 	} else {
-		n = YASL_GETFLOAT(*num);
+		n = YASL_top_popfloat(S);
 	}
 	return YASL_pushfloat(S, ceil(n));
 }
 static int YASL_math_floor(struct YASL_State *S) {
-	POP_NUMBER(S, num, "math.floor");
+	if (!YASL_top_isnumber(S)) {
+		return YASL_TYPE_ERROR;
+	}
 
 	yasl_float n;
-	if (YASL_ISINT(*num)) {
-		n = (yasl_float)YASL_GETINT(*num);;
+	if (YASL_top_isinteger(S)) {
+		n = (yasl_float)YASL_top_popinteger(S);
 	} else {
-		n = YASL_GETFLOAT(*num);
+		n = YASL_top_popfloat(S);
 	}
 	return YASL_pushfloat(S, floor(n));
 }
@@ -236,26 +257,30 @@ static int YASL_math_min(struct YASL_State *S) {
 }
 
 static int YASL_math_deg(struct YASL_State *S) {
-	POP_NUMBER(S, num, "math.deg");
+	if (!YASL_top_isnumber(S)) {
+		return YASL_TYPE_ERROR;
+	}
 
 	yasl_float n;
-	if (YASL_ISINT(*num)) {
-		n = (yasl_float)YASL_GETINT(*num);;
+	if (YASL_top_isinteger(S)) {
+		n = (yasl_float)YASL_top_popinteger(S);
 	} else {
-		n = YASL_GETFLOAT(*num);
+		n = YASL_top_popfloat(S);
 	}
 
 	n *= (yasl_float)180.0/YASL_PI;
 	return YASL_pushfloat(S, n);
 }
 static int YASL_math_rad(struct YASL_State *S) {
-	POP_NUMBER(S, num, "math.rad");
+	if (!YASL_top_isnumber(S)) {
+		return YASL_TYPE_ERROR;
+	}
 
 	yasl_float n;
-	if (YASL_ISINT(*num)) {
-		n = (yasl_float)YASL_GETINT(*num);;
+	if (YASL_top_isinteger(S)) {
+		n = (yasl_float)YASL_top_popinteger(S);
 	} else {
-		n = YASL_GETFLOAT(*num);
+		n = YASL_top_popfloat(S);
 	}
 
 	n *= YASL_PI/(yasl_float)180.0;
@@ -263,13 +288,15 @@ static int YASL_math_rad(struct YASL_State *S) {
 }
 
 static int YASL_math_isprime(struct YASL_State *S) {
-	POP_NUMBER(S, num, "math.isprime");
+	if (!YASL_top_isnumber(S)) {
+		return YASL_TYPE_ERROR;
+	}
 
 	yasl_int n;
-	if (YASL_ISFLOAT(*num)) {
-		n = num->value.dval;
+	if (YASL_top_isinteger(S)) {
+		n = YASL_top_popinteger(S);
 	} else {
-		n = num->value.ival;
+		n = (yasl_int)YASL_top_popfloat(S);
 	}
 
 	int p = is_prime(n);
@@ -292,41 +319,58 @@ yasl_int gcd_helper(yasl_int a, yasl_int b) {
 	return a;
 }
 static int YASL_math_gcd(struct YASL_State *S) {
-	POP_NUMBER(S, numA, "math.gcd");
-	POP_NUMBER(S, numB, "math.gcd");
+	if (!YASL_top_isnumber(S)) {
+		return YASL_TYPE_ERROR;
+	}
 
-	yasl_int a = 0, b = 0;
-	if (YASL_ISFLOAT(*numA)) {
-		a = numA->value.dval;
+	yasl_int a;
+	if (YASL_top_isinteger(S)) {
+		a = YASL_top_popinteger(S);
 	} else {
-		a = numA->value.ival;
+		a = (yasl_int)YASL_top_popfloat(S);
 	}
-	if (YASL_ISFLOAT(*numB)) {
-		b = numB->value.dval;
+
+	if (!YASL_top_isnumber(S)) {
+		return YASL_TYPE_ERROR;
+	}
+
+	yasl_int b;
+	if (YASL_top_isinteger(S)) {
+		b = YASL_top_popinteger(S);
 	} else {
-		b = numB->value.ival;
+		b = (yasl_int)YASL_top_popfloat(S);
 	}
+
 	if (!(a > 0 && b > 0)) {
+		// TODO: make this an error instead?
 		return YASL_pushundef(S);
 	}
 
 	return YASL_pushinteger(S, gcd_helper(a, b));
 }
 static int YASL_math_lcm(struct YASL_State *S) {
-	POP_NUMBER(S, numA, "math.lcm");
-	POP_NUMBER(S, numB, "math.lcm");
+	if (!YASL_top_isnumber(S)) {
+		return YASL_TYPE_ERROR;
+	}
 
-	yasl_int a = 0, b = 0;
-	if (YASL_ISFLOAT(*numA)) {
-		a = numA->value.dval;
+	yasl_int a;
+	if (YASL_top_isinteger(S)) {
+		a = YASL_top_popinteger(S);
 	} else {
-		a = numA->value.ival;
+		a = (yasl_int)YASL_top_popfloat(S);
 	}
-	if (YASL_ISFLOAT(*numB)) {
-		b = numB->value.dval;
+
+	if (!YASL_top_isnumber(S)) {
+		return YASL_TYPE_ERROR;
+	}
+
+	yasl_int b;
+	if (YASL_top_isinteger(S)) {
+		b = YASL_top_popinteger(S);
 	} else {
-		b = numB->value.ival;
+		b = (yasl_int)YASL_top_popfloat(S);
 	}
+
 	if (!(a > 0 && b > 0)) {
 		return YASL_pushundef(S);
 	}

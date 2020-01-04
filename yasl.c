@@ -304,6 +304,10 @@ bool YASL_top_isdouble(struct YASL_State *S) {
 	return YASL_ISFLOAT(vm_peek(&S->vm));
 }
 
+bool YASL_top_isfloat(struct YASL_State *S) {
+	return YASL_ISFLOAT(vm_peek(&S->vm));
+}
+
 bool YASL_top_isinteger(struct YASL_State *S) {
 	return YASL_ISINT(vm_peek(&S->vm));
 }
@@ -343,14 +347,28 @@ bool YASL_top_popboolean(struct YASL_State *S) {
 }
 
 yasl_float YASL_top_peekdouble(struct YASL_State *S) {
-	if (YASL_top_isdouble(S)) {
+	if (YASL_top_isfloat(S)) {
+		return YASL_GETFLOAT(vm_peek(&S->vm));
+	}
+	return 0.0;
+}
+
+yasl_float YASL_top_peekfloat(struct YASL_State *S) {
+	if (YASL_top_isfloat(S)) {
 		return YASL_GETFLOAT(vm_peek(&S->vm));
 	}
 	return 0.0;
 }
 
 yasl_float YASL_top_popdouble(struct YASL_State *S) {
-	if (YASL_top_isdouble(S)) {
+	if (YASL_top_isfloat(S)) {
+		return YASL_GETFLOAT(vm_pop(&S->vm));
+	}
+	return 0.0;
+}
+
+yasl_float YASL_top_popfloat(struct YASL_State *S) {
+	if (YASL_top_isfloat(S)) {
 		return YASL_GETFLOAT(vm_pop(&S->vm));
 	}
 	return 0.0;
