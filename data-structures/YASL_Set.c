@@ -4,7 +4,7 @@
 
 #define SET_BASESIZE 30
 
-struct YASL_Set *set_new_sized(const size_t base_size) {
+static struct YASL_Set *set_new_sized(const size_t base_size) {
 	struct YASL_Set *set = (struct YASL_Set *)malloc(sizeof(struct YASL_Set));
 	set->base_size = base_size;
 	set->size = next_prime(set->base_size);
