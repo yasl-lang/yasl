@@ -32,6 +32,7 @@ static int YASL_io_open(struct YASL_State *S) {
 	size_t mode_len = strlen(mode_str);
 
 	if (mode_len > 2 || mode_len < 1 || (mode_len == 2 && mode_str[1] != '+')) {
+		// TODO error message
 		return -1;
 	}
 
@@ -54,15 +55,19 @@ static int YASL_io_open(struct YASL_State *S) {
 	}
 	if (mode_len == 2) {
 		switch (mode_char) {
-		case 'r':f = fopen(filename_str, "r+");
+		case 'r':
+			f = fopen(filename_str, "r+");
 			break;
-		case 'w':f = fopen(filename_str, "w+");
+		case 'w':
+			f = fopen(filename_str, "w+");
 			break;
-		case 'a':f = fopen(filename_str, "a+");
+		case 'a':
+			f = fopen(filename_str, "a+");
 			break;
 		default:
 			// invalid mode;
 			free(filename_str);
+			// TODO error message
 			return -1;
 		}
 	}
@@ -72,7 +77,7 @@ static int YASL_io_open(struct YASL_State *S) {
 		YASL_pushundef(S);
 	}
 	free(filename_str);
-	return 0;
+	return YASL_SUCCESS;
 }
 
 static int YASL_io_read(struct YASL_State *S) {
@@ -113,7 +118,7 @@ static int YASL_io_read(struct YASL_State *S) {
 		fread(string, fsize, 1, f);
 		YASL_pushstring(S, string, fsize); }
 		free(mode_str);
-		return 0;
+		return YASL_SUCCESS;
 	case 'l': {
 		size_t size = 16;
 		char *string = (char *)malloc(size);

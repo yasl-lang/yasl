@@ -11,7 +11,8 @@ struct YASL_State *YASL_newstate_num(char *filename, size_t num);
 
 int YASL_require(struct YASL_State *S) {
 	if (!YASL_top_isstring(S)) {
-		return YASL_ERROR;
+		// TODO error message
+		return YASL_TYPE_ERROR;
 	}
 
 	char *mode_str = YASL_top_peekcstring(S);
@@ -20,6 +21,7 @@ int YASL_require(struct YASL_State *S) {
 	struct YASL_State *Ss = YASL_newstate_num(mode_str, S->vm.headers_size);
 
 	if (!Ss) {
+		// TODO error message
 		return -1;
 	}
 
