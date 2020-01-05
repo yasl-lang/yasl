@@ -16,13 +16,13 @@ static int YASL_io_open(struct YASL_State *S) {
 	} else if (YASL_top_isstring(S)) {
 		mode_str = YASL_top_peekcstring(S);
 	} else {
-		YASL_pop(S);
+		// TODO error message
 		return YASL_TYPE_ERROR;
 	}
 	YASL_pop(S);
 
 	if (!YASL_top_isstring(S)) {
-		YASL_pop(S);
+		// TODO error message
 		return YASL_TYPE_ERROR;
 	}
 
@@ -85,12 +85,13 @@ static int YASL_io_read(struct YASL_State *S) {
 	} else if (YASL_top_isstring(S)) {
 		mode_str = YASL_top_peekcstring(S);
 	} else {
-		YASL_pop(S);
+		// TODO error message
 		return YASL_TYPE_ERROR;
 	}
 	YASL_pop(S);
 
 	if (!YASL_top_isuserdata(S, T_FILE)) {
+		// TODO error message
 		return YASL_TYPE_ERROR;
 	}
 	FILE *f = (FILE *)YASL_top_popuserdata(S);
@@ -138,12 +139,14 @@ static int YASL_io_read(struct YASL_State *S) {
 
 static int YASL_io_write(struct YASL_State *S) {
 	if (!YASL_top_isstring(S)) {
+		// TODO error message
 		return YASL_TYPE_ERROR;
 	}
 	char *str = YASL_top_peekcstring(S);
 	YASL_pop(S);
 
 	if (!YASL_top_isuserdata(S, T_FILE)) {
+		// TODO error message
 		return YASL_TYPE_ERROR;
 	}
 	FILE *f = (FILE *)YASL_top_popuserdata(S);
@@ -159,6 +162,7 @@ static int YASL_io_write(struct YASL_State *S) {
 
 static int YASL_io_flush(struct YASL_State *S) {
 	if (!YASL_top_isuserdata(S, T_FILE)) {
+		// TODO error message
 		return YASL_TYPE_ERROR;
 	}
 	FILE *f = (FILE *)YASL_top_popuserdata(S);
@@ -166,7 +170,6 @@ static int YASL_io_flush(struct YASL_State *S) {
 	int success = fflush(f);
 
 	YASL_pushboolean(S, success == 0);
-
 	return YASL_SUCCESS;
 }
 
