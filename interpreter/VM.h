@@ -20,7 +20,7 @@
 #define vm_peek_default(vm) ((vm)->stack[(vm)->sp])
 #define vm_peek(...) GET_MACRO(__VA_ARGS__, vm_peek_offset, vm_peek_default,)(__VA_ARGS__)
 
-#define VM_PEEK(vm, offset) ((vm)->stack[offset])
+#define VM_PEEK(vm, offset) vm_peek(vm, offset)
 // #define vm_peek(vm) ((vm)->stack[(vm)->sp])
 
 #define vm_peekint(vm, offset) (YASL_GETINT(VM_PEEK(vm, offset)))
