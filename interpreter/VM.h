@@ -14,8 +14,14 @@
 #define NUM_GLOBALS 256
 #define NUM_TYPES 13                                     // number of builtin types, each needs a vtable
 
+#define GET_MACRO(_1, _2, NAME, ...) NAME
+
+#define vm_peek_offset(vm, offset) ((vm)->stack[offset])
+#define vm_peek_default(vm) ((vm)->stack[(vm)->sp])
+#define vm_peek(...) GET_MACRO(__VA_ARGS__, vm_peek_offset, vm_peek_default,)(__VA_ARGS__)
+
 #define VM_PEEK(vm, offset) ((vm)->stack[offset])
-#define vm_peek(vm) ((vm)->stack[(vm)->sp])
+// #define vm_peek(vm) ((vm)->stack[(vm)->sp])
 
 #define vm_peekint(vm, offset) (YASL_GETINT(VM_PEEK(vm, offset)))
 #define vm_peekstr(vm, offset) (YASL_GETSTR(VM_PEEK(vm, offset)))
@@ -129,10 +135,3 @@ void vm_pushbool(struct VM *const vm, bool b);
 
 int vm_run(struct VM *vm);
 
-struct YASL_Table *undef_builtins(struct VM *vm);
-struct YASL_Table *float_builtins(struct VM *vm);
-struct YASL_Table *int_builtins(struct VM *vm);
-struct YASL_Table *bool_builtins(struct VM *vm);
-struct YASL_Table *str_builtins(struct VM *vm);
-struct YASL_Table *list_builtins(struct VM *vm);
-struct YASL_Table *table_builtins(struct VM *vm);
