@@ -11,7 +11,7 @@
 #include "yasl_state.h"
 
 
-#define VERSION "v0.6.6"
+#define VERSION "v0.7.0"
 #define VERSION_PRINTOUT "YASL " VERSION
 
 static int load_libs(struct YASL_State *S) {
@@ -172,17 +172,6 @@ int main(int argc, char **argv) {
 	} else {
 		return main_REPL(argc, argv);
 	}
-/*
-	struct YASL_State* S = YASL_newstate("sample.yasl");
-	YASL_execute(S);
-
-	YASL_resetstate(S, "sample.ysl");
-	YASL_execute(S);
-
-	YASL_delstate(S);
-
-	return 0;
-*/
 }
 #endif
 

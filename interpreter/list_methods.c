@@ -46,7 +46,7 @@ int list___set(struct YASL_State *S) {
 		printf("%d || %d\n", YASL_GETINT(index) < -(int64_t) ls->count,
 		       YASL_GETINT(index) >= (int64_t) ls->count);
 		printf("IndexError\n");
-		//VM_PUSH((struct VM *)S, YASL_UNDEF());
+		//vm_push((struct VM *)S, YASL_UNDEF());
 		return -1;
 	} else {
 		if (YASL_GETINT(index) >= 0) ls->items[YASL_GETINT(index)] = value;
@@ -68,14 +68,14 @@ int list_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, s
 	if (list->count == 0) {
 		vm_pop((struct VM *) S);
 		string[string_count++] = ']';
-		VM_PUSH((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, string_count, string)));
+		vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, string_count, string)));
 		return YASL_SUCCESS;
 	}
 
 	FOR_LIST(i, obj, list) {
 		vm_push((struct VM *) S, obj);
 
-		if (YASL_ISLIST(VM_PEEK((struct VM *) S, S->vm.sp))) {
+		if (YASL_ISLIST(vm_peek((struct VM *) S, S->vm.sp))) {
 			int found = 0;
 			for (size_t j = 0; j < buffer_count; j++) {
 				if (buffer[j] == vm_peeklist((struct VM *) S, S->vm.sp)) {
@@ -100,7 +100,7 @@ int list_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, s
 				list_tostr_helper(S, tmp_buffer, tmp_buffer_size, buffer_count + 1);
 				free(tmp_buffer);
 			}
-		} else if (YASL_ISTABLE(VM_PEEK((struct VM *) S, S->vm.sp))) {
+		} else if (YASL_ISTABLE(vm_peek((struct VM *) S, S->vm.sp))) {
 			int found = 0;
 			for (size_t j = 0; j < buffer_count; j++) {
 				if (buffer[j] == vm_peeklist((struct VM *) S, S->vm.sp)) {
@@ -150,7 +150,7 @@ int list_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, s
 
 	string_count -= 2;
 	string[string_count++] = ']';
-	VM_PUSH((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, string_count, string)));
+	vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, string_count, string)));
 
 	return YASL_SUCCESS;
 }
@@ -366,7 +366,7 @@ int list_join(struct YASL_State *S) {
 	}
 
 	vm_push((struct VM *) S, list->items[0]);
-	enum YASL_Types index = VM_PEEK((struct VM *) S, S->vm.sp).type;
+	enum YASL_Types index = vm_peek((struct VM *) S, S->vm.sp).type;
 	struct YASL_Object key = YASL_STR(YASL_String_new_sized(strlen("tostr"), "tostr"));
 	struct YASL_Object result = YASL_Table_search(S->vm.builtins_htable[index], key);
 	str_del(YASL_GETSTR(key));
@@ -392,7 +392,7 @@ int list_join(struct YASL_State *S) {
 		buffer_count += YASL_String_len(string);
 
 		vm_push((struct VM *) S, list->items[i]);
-		enum YASL_Types index = VM_PEEK((struct VM *) S, S->vm.sp).type;
+		enum YASL_Types index = vm_peek((struct VM *) S, S->vm.sp).type;
 		struct YASL_Object key = YASL_STR(YASL_String_new_sized(strlen("tostr"), "tostr"));
 		struct YASL_Object result = YASL_Table_search(S->vm.builtins_htable[index], key);
 		str_del(YASL_GETSTR(key));

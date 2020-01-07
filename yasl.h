@@ -76,8 +76,6 @@ int YASL_declglobal(struct YASL_State *S, const char *name);
  */
 int YASL_setglobal(struct YASL_State *S, const char *name);
 
-YASL_DEPRECATE
-struct YASL_Object *YASL_getglobal(struct YASL_State *S, const char *name);
 int YASL_loadglobal(struct YASL_State *S, const char *name);
 
 /**
@@ -154,7 +152,6 @@ int YASL_pushlitstring(struct YASL_State *S, const char *value, const size_t siz
  */
 int YASL_pushtable(struct YASL_State *S);
 
-
 /**
  * Pushes a function pointer onto the stack
  * @param S the YASL_State onto which to push the string.
@@ -185,7 +182,7 @@ int YASL_pushuserpointer(struct YASL_State *S, void *userpointer);
  * @param obj the YASL_Object to push onto the stack.
  * @return 0 on succes, else error code.
  */
-// YASL_DEPRECATE
+YASL_DEPRECATE
 int YASL_pushobject(struct YASL_State *S, struct YASL_Object *obj);
 
 /**
@@ -193,57 +190,33 @@ int YASL_pushobject(struct YASL_State *S, struct YASL_Object *obj);
  * @param S the YASL_State from which to pop the YASL_Object.
  * @return a YASL_Object* on succes, else NULL.
  */
-// YASL_DEPRECATE
+YASL_DEPRECATE
 struct YASL_Object *YASL_popobject(struct YASL_State *S);
 
-YASL_DEPRECATE
-int YASL_unsaveobject(struct YASL_State *S, struct YASL_Object *obj);
-YASL_DEPRECATE
-struct YASL_Object *YASL_saveobject(struct YASL_State *S);
+/**
+ * pops the top of the stack.
+ * @param S the YASL_State the stack belongs to.
+ * @return 0 on success, else error code.
+ */
+int YASL_pop(struct YASL_State *S);
 
 /**
  * Makes a new YASL_Table
  * @return the YASL_Table
  */
-// YASL_DEPRECATE
+YASL_DEPRECATE
 struct YASL_Object *YASL_Table(void);
 
 YASL_DEPRECATE
-struct YASL_Object *YASL_Integer(yasl_int value);
-
-YASL_DEPRECATE
-struct YASL_Object *YASL_Undef(void);
-
-YASL_DEPRECATE
-struct YASL_Object *YASL_Float(yasl_float value);
-
-YASL_DEPRECATE
-struct YASL_Object *YASL_Boolean(bool value);
-
-YASL_DEPRECATE
-struct YASL_Object *YASL_LiteralString(const char *str);
-
-YASL_DEPRECATE
-struct YASL_Object *YASL_CString(char *str);
-
-YASL_DEPRECATE
-struct YASL_Object *YASL_UserPointer(void *userdata);
-
 struct YASL_Object *YASL_UserData(void *userdata, int tag, struct YASL_Table *mt, void (*destructor)(void *));
-int YASL_UserData_gettag(struct YASL_Object *obj);
-void *YASL_UserData_getdata(struct YASL_Object *obj);
-struct YASL_Object *YASL_Function(int64_t index);
-struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *), int num_args);
-
-/**
- * inserts a key-value pair into the given table
- * @param table the YASL_Table into which to insert the key-value pair
- * @param key the key of the key-value pair
- * @param value the value of the key-value pair
- * @return 0 on success, else error code
- */
 YASL_DEPRECATE
-int YASL_Table_set(struct YASL_Object *table, struct YASL_Object *key, struct YASL_Object *value);
+int YASL_UserData_gettag(struct YASL_Object *obj);
+YASL_DEPRECATE
+void *YASL_UserData_getdata(struct YASL_Object *obj);
+YASL_DEPRECATE
+struct YASL_Object *YASL_Function(int64_t index);
+YASL_DEPRECATE
+struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *), int num_args);
 
 /**
  * inserts a key-value pair into the table. The topmost
@@ -253,185 +226,99 @@ int YASL_Table_set(struct YASL_Object *table, struct YASL_Object *key, struct YA
  */
 int YASL_settable(struct YASL_State *S);
 
+/**
+ * returns the type of the top of the stack.
+ * @param S the YASL_State to which the stack belongs.
+ * @return the type on top of the stack.
+ */
 int YASL_top_peektype(struct YASL_State *S);
 
 /**
- * Checks if given YASL_Object is undef.
- * @param obj the given YASL_Object.
- * @return true if the given YASL_Object is undef, else false.
+ * checks if the top of the stack is undef.
+ * @param S the YASL_State to which the stack belongs.
+ * @return true if the top of the stack is undef, else false.
  */
-YASL_DEPRECATE
-int YASL_isundef(struct YASL_Object *obj);
-
 bool YASL_top_isundef(struct YASL_State *S);
 
 /**
- * Checks if given YASL_Object is boolean.
- * @param obj the given YASL_Object.
- * @return true if the given YASL_Object is boolean, else false.
+ * checks if the top of the stack is bool.
+ * @param S the YASL_State to which the stack belongs.
+ * @return true if the top of the stack is bool, else false.
  */
-YASL_DEPRECATE
-int YASL_isboolean(struct YASL_Object *obj);
-
 bool YASL_top_isboolean(struct YASL_State *S);
 
-/**
- * Checks if given YASL_Object is double.
- * @param obj the given YASL_Object.
- * @return true if the given YASL_Object is double, else false.
- */
 YASL_DEPRECATE
-int YASL_isdouble(struct YASL_Object *obj);
-
 bool YASL_top_isdouble(struct YASL_State *S);
 
 /**
- * Checks if given YASL_Object is integer.
- * @param obj the given YASL_Object.
- * @return true if the given YASL_Object is integer, else false.
+ * checks if the top of the stack is float.
+ * @param S the YASL_State to which the stack belongs.
+ * @return true if the top of the stack is float, else false.
  */
-YASL_DEPRECATE
-int YASL_isinteger(struct YASL_Object *obj);
+bool YASL_top_isfloat(struct YASL_State *S);
 
+/**
+ * checks if the top of the stack is int.
+ * @param S the YASL_State to which the stack belongs.
+ * @return true if the top of the stack is int, else false.
+ */
 bool YASL_top_isinteger(struct YASL_State *S);
 
 /**
- * Checks if given YASL_Object is string.
- * @param obj the given YASL_Object.
- * @return true if the given YASL_Object is string, else false.
+ * checks if the top of the stack is str.
+ * @param S the YASL_State to which the stack belongs.
+ * @return true if the top of the stack is str, else false.
  */
-YASL_DEPRECATE
-int YASL_isstring(struct YASL_Object *obj);
-
 bool YASL_top_isstring(struct YASL_State *S);
 
 /**
- * Checks if given YASL_Object is list.
- * @param obj the given YASL_Object.
- * @return true if the given YASL_Object is list, else false.
+ * checks if the top of the stack is list.
+ * @param S the YASL_State to which the stack belongs.
+ * @return true if the top of the stack is list, else false.
  */
-YASL_DEPRECATE
-int YASL_islist(struct YASL_Object *obj);
-
 bool YASL_top_islist(struct YASL_State *S);
 
 /**
- * Checks if given YASL_Object is table.
- * @param obj the given YASL_Object.
- * @return true if the given YASL_Object is table, else false.
+ * checks if the top of the stack is table.
+ * @param S the YASL_State to which the stack belongs.
+ * @return true if the top of the stack is table, else false.
  */
-YASL_DEPRECATE
-int YASL_istable(struct YASL_Object *obj);
-
 bool YASL_top_istable(struct YASL_State *S);
 
 /**
- * Checks if given YASL_Object is function.
- * @param obj the given YASL_Object.
- * @return true if the given YASL_Object is function, else false.
+ * checks if the top of the stack is userdata.
+ * @param S the YASL_State to which the stack belongs.
+ * @return true if the top of the stack is userdata, else false.
  */
-YASL_DEPRECATE
-int YASL_isfunction(struct YASL_Object *obj);
-
-/**
- * Checks if given YASL_Object is C function.
- * @param obj the given YASL_Object.
- * @return true if the given YASL_Object is a C function, else false.
- */
-YASL_DEPRECATE
-int YASL_iscfunction(struct YASL_Object *obj);
-
-/**
- * Checks if given YASL_Object is userdata.
- * @param obj the given YASL_Object.
- * @return true if the given YASL_Object is userdata, else false.
- */
-YASL_DEPRECATE
-int YASL_isuserdata(struct YASL_Object *obj, int tag);
-
 bool YASL_top_isuserdata(struct YASL_State *S, int tag);
 
 /**
- * Checks if given YASL_Object is userpointer.
- * @param obj the given YASL_Object.
- * @return true if the given YASL_Object is userpointer, else false.
+ * checks if the top of the stack is userpointer.
+ * @param S the YASL_State to which the stack belongs.
+ * @return true if the top of the stack is userpointer, else false.
  */
-YASL_DEPRECATE
-int YASL_isuserpointer(struct YASL_Object *obj);
-
 bool YASL_top_isuserpointer(struct YASL_State *S);
-
-/**
- * Retrieves the boolean value of the YASL_Object.
- * @param obj the given YASL_Object.
- * @return the boolean value of the given YASL_Object, or false if the YASL_Object doesn't have type bool.
- */
-YASL_DEPRECATE
-bool YASL_getboolean(struct YASL_Object *obj);
 
 bool YASL_top_peekboolean(struct YASL_State *S);
 bool YASL_top_popboolean(struct YASL_State *S);
 
-/**
- * Retrieves the double value of the YASL_Object.
- * @param obj the given YASL_Object.
- * @return the double value of the given YASL_Object, or 0.0 if the YASL_Object doesn't have type double.
- */
 YASL_DEPRECATE
-yasl_float YASL_getdouble(struct YASL_Object *obj);
-
 yasl_float YASL_top_peekdouble(struct YASL_State *S);
+YASL_DEPRECATE
 yasl_float YASL_top_popdouble(struct YASL_State *S);
 
-/**
- * Retrieves the integer value of the YASL_Object.
- * @param obj the given YASL_Object.
- * @return the integer value of the given YASL_Object, or 0 if the YASL_Object doesn't have type integer.
- */
-YASL_DEPRECATE
-yasl_int YASL_getinteger(struct YASL_Object *obj);
+yasl_float YASL_top_peekfloat(struct YASL_State *S);
+yasl_float YASL_top_popfloat(struct YASL_State *S);
 
 yasl_int YASL_top_peekinteger(struct YASL_State *S);
 yasl_int YASL_top_popinteger(struct YASL_State *S);
-
-/**
- * Retrieves the null-terminated string value of the YASL_Object.
- * @param obj the given YASL_Object.
- * @return the null-terminated string value of the given YASL_Object, or NULL if the YASL_Object doesn't have type string.
- */
-YASL_DEPRECATE
-char *YASL_getcstring(struct YASL_Object *obj);
 
 char *YASL_top_peekcstring(struct YASL_State *S);
 
 size_t YASL_getstringlen(struct YASL_Object *obj);
 
-/**
- * Retrieves the string value of the YASL_Object.
- * @param obj the given YASL_Object.
- * @return the string value of the given YASL_Object, or NULL if the YASL_Object doesn't have type string.
- */
-YASL_DEPRECATE
-char *YASL_getstring(struct YASL_Object *obj);
-
-/**
- * Retrieves the userdata value of the YASL_Object.
- * @param obj the given YASL_Object.
- * @return the userdata value of the given YASL_Object, or NULL if the YASL_Object doesn't have type userdata.
- */
-YASL_DEPRECATE
-void *YASL_getuserdata(struct YASL_Object *obj);
-
 void *YASL_top_peekuserdata(struct YASL_State *S);
 void *YASL_top_popuserdata(struct YASL_State *S);
-
-/**
- * Retrieves the userpointer value of the YASL_Object.
- * @param obj the given YASL_Object.
- * @return the userpointer value of the given YASL_Object, or NULL if the YASL_Object doesn't have type userpointer.
- */
-YASL_DEPRECATE
-void *YASL_getuserpointer(struct YASL_Object *obj);
 
 void *YASL_top_peekuserpointer(struct YASL_State *S);
 void *YASL_top_popuserpointer(struct YASL_State *S);

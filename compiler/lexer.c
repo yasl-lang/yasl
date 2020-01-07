@@ -5,7 +5,6 @@
 #include <string.h>
 
 #include "debug.h"
-#include "token.h"
 #include "yasl_error.h"
 #include "yasl_include.h"
 
@@ -635,7 +634,19 @@ static void YASLKeywords(struct Lexer *lex) {
 	 *  return
 	 */
 
-	if (matches_keyword(lex, "enum")) {
+	if (matches_keyword(lex, "header")) {
+		lex_print_err_syntax(lex,  "header is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
+		lex_error(lex);
+		return;
+	} else if (matches_keyword(lex, "match")) {
+		lex_print_err_syntax(lex,  "match is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
+		lex_error(lex);
+		return;
+	} else if (matches_keyword(lex, "global")) {
+		lex_print_err_syntax(lex,  "global is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
+		lex_error(lex);
+		return;
+	} else if (matches_keyword(lex, "enum")) {
 		lex_print_err_syntax(lex,  "enum is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
 		lex_error(lex);
 		return;
@@ -679,6 +690,11 @@ static void YASLKeywords(struct Lexer *lex) {
 					lex->line);
 		lex_error(lex);
 		return;
+	} else if (matches_keyword(lex, "in")) {
+		lex_print_err_syntax(lex,  "in is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n",
+				     lex->line);
+		lex_error(lex);
+		return;
 	}
 
 	if (matches_keyword(lex, "break")) set_keyword(lex, T_BREAK);
@@ -690,7 +706,6 @@ static void YASLKeywords(struct Lexer *lex) {
 	else if (matches_keyword(lex, "fn")) set_keyword(lex, T_FN);
 	else if (matches_keyword(lex, "for")) set_keyword(lex, T_FOR);
 	else if (matches_keyword(lex, "if")) set_keyword(lex, T_IF);
-	else if (matches_keyword(lex, "in")) set_keyword(lex, T_IN);
 	else if (matches_keyword(lex, "echo")) set_keyword(lex, T_ECHO);
 	else if (matches_keyword(lex, "let")) set_keyword(lex, T_LET);
 	else if (matches_keyword(lex, "return")) set_keyword(lex, T_RET);
@@ -717,8 +732,6 @@ const char *YASL_TOKEN_NAMES[] = {
 	"break",        // T_BREAK,
 	"continue",     // T_CONT,
 	"for",          // T_FOR,
-	"in",           // T_IN
-	"!in",          // T_BANGIN,
 	"id",           // T_ID,
 	"const",        // T_CONST,
 	"fn",           // T_FN,
@@ -742,8 +755,6 @@ const char *YASL_TOKEN_NAMES[] = {
 	"+=",           // PLUSEQ,
 	"-",            // MINUS,
 	"-=",           // MINUSEQ,
-	"#",            // HASH,
-	"@",            // AT,
 	"!",            // BANG,
 	"!=",           // BANGEQ,
 	"!==",          // BANGDEQ,

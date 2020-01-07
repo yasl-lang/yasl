@@ -114,7 +114,6 @@ void vm_cleanup(struct VM *vm) {
 	free(vm->global_vars);
 	free(vm->stack);
 
-	// free(vm->code);
 	for (size_t i = 0; i < vm->headers_size; i++) {
 		free(vm->headers[i]);
 	}
@@ -164,6 +163,9 @@ void vm_pushbool(struct VM *const vm, bool b) {
 
 struct YASL_Object vm_pop(struct VM *const vm) {
 	return vm->stack[vm->sp--];
+}
+bool vm_popbool(struct VM *const vm) {
+	return (bool)YASL_GETBOOL(vm_pop(vm));
 }
 
 yasl_float vm_popfloat(struct VM *const vm) {
@@ -225,7 +227,7 @@ static int vm_int_binop(struct VM *vm, yasl_int (*op)(yasl_int, yasl_int), const
 		vm_push(vm, left);
 		vm_push(vm, op_name);
 		vm_GET(vm);
-		if (YASL_ISUNDEF(vm_peek(vm))) {
+		if (vm_isundef(vm)) {
 			vm_print_err_type(vm, "%s not supported for operands of types %s and %s.\n",
 					      opstr,
 					      YASL_TYPE_NAMES[left.type],
@@ -280,7 +282,7 @@ static int vm_num_binop(
 		vm_push(vm, left);
 		vm_push(vm, op_name);
 		vm_GET(vm);
-		if (YASL_ISUNDEF(vm_peek(vm))) {
+		if (vm_isundef(vm)) {
 			vm_print_err_type(vm, "%s not supported for operands of types %s and %s.\n",
 					      opstr,
 					      YASL_TYPE_NAMES[left.type],
@@ -321,7 +323,7 @@ static int vm_fdiv(struct VM *vm) {
 		vm_push(vm, left);
 		vm_push(vm, op_name);
 		vm_GET(vm);
-		if (YASL_ISUNDEF(vm_peek(vm))) {
+		if (vm_isundef(vm)) {
 			vm_print_err_type(vm, "/ not supported for operands of types %s and %s.\n",
 					      YASL_TYPE_NAMES[left.type],
 					      YASL_TYPE_NAMES[right.type]);
@@ -374,7 +376,7 @@ static int vm_int_unop(struct VM *vm, yasl_int (*op)(yasl_int), const char *opst
 		vm_push(vm, a);
 		vm_push(vm, op_name);
 		vm_GET(vm);
-		if (YASL_ISUNDEF(vm_peek(vm))) {
+		if (vm_isundef(vm)) {
 			vm_print_err_type(vm, "%s not supported for operand of type %s.\n",
 					      opstr,
 					      YASL_TYPE_NAMES[a.type]);
@@ -399,7 +401,7 @@ static int vm_num_unop(struct VM *vm, yasl_int (*int_op)(yasl_int), yasl_float (
 		vm_push(vm, expr);
 		vm_push(vm, op_name);
 		vm_GET(vm);
-		if (YASL_ISUNDEF(vm_peek(vm))) {
+		if (vm_isundef(vm)) {
 			vm_print_err_type(vm,  "%s not supported for operand of type %s.\n",
 					      opstr,
 					      YASL_TYPE_NAMES[expr.type]);
@@ -426,7 +428,7 @@ static int vm_len_unop(struct VM *vm) {
 		vm_push(vm, v);
 		vm_push(vm, op_name);
 		vm_GET(vm);
-		if (YASL_ISUNDEF(vm_peek(vm))) {
+		if (vm_isundef(vm)) {
 			vm_print_err_type(vm,  "len not supported for operand of type %s.\n",
 					      YASL_TYPE_NAMES[v.type]);
 			return YASL_TYPE_ERROR;
@@ -457,13 +459,13 @@ static int vm_CNCT(struct VM *vm) {
 }
 
 int vm_stringify_top(struct VM *vm) {
-	enum YASL_Types index = VM_PEEK(vm, vm->sp).type;
-	if (YASL_ISFN(VM_PEEK(vm, vm->sp)) || YASL_ISCFN(VM_PEEK(vm, vm->sp))) {
+	enum YASL_Types index = vm_peek(vm, vm->sp).type;
+	if (YASL_ISFN(vm_peek(vm, vm->sp)) || YASL_ISCFN(vm_peek(vm, vm->sp))) {
 		size_t n = (size_t)snprintf(NULL, 0, "<fn: %d>", (int)YASL_GETINT(vm_peek(vm))) + 1;
 		char *buffer = (char *)malloc(n);
 		snprintf(buffer, n, "<fn: %d>", (int)vm_pop(vm).value.ival);
 		vm_pushstr(vm, YASL_String_new_sized_heap(0, strlen(buffer), buffer));
-	} else if (YASL_ISUSERDATA(VM_PEEK(vm, vm->sp))) {
+	} else if (YASL_ISUSERDATA(vm_peek(vm, vm->sp))) {
 		struct YASL_Object key = YASL_STR(YASL_String_new_sized(strlen("tostr"), "tostr"));
 		struct YASL_Object result = YASL_Table_search(vm_peek(vm).value.uval->mt, key);
 		str_del(YASL_GETSTR(key));
@@ -482,10 +484,10 @@ int vm_stringify_top(struct VM *vm) {
 }
 
 static int vm_SLICE(struct VM *vm) {
-	if (!vm_isint(vm) || !YASL_ISINT(VM_PEEK(vm, vm->sp - 1))) {
+	if (!vm_isint(vm) || !YASL_ISINT(vm_peek(vm, vm->sp - 1))) {
 		vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
-				      YASL_TYPE_NAMES[VM_PEEK(vm, vm->sp - 1).type],
-				      YASL_TYPE_NAMES[VM_PEEK(vm, vm->sp).type]
+				      YASL_TYPE_NAMES[vm_peek(vm, vm->sp - 1).type],
+				      YASL_TYPE_NAMES[vm_peek(vm, vm->sp).type]
 		);
 		return YASL_TYPE_ERROR;
 	}
@@ -493,7 +495,7 @@ static int vm_SLICE(struct VM *vm) {
 	yasl_int end = vm_popint(vm);
 	yasl_int start = vm_popint(vm);
 
-	if (YASL_ISLIST(vm_peek(vm))) {
+	if (vm_islist(vm)) {
 		struct YASL_List *list = vm_poplist(vm);
 		yasl_int len = list->count;
 		if (end < 0)
@@ -513,7 +515,7 @@ static int vm_SLICE(struct VM *vm) {
 		for (yasl_int i = start; i <end; ++i) {
 			YASL_List_append((struct YASL_List *) new_ls->data, list->items[i]);
 		}
-		VM_PUSH(vm, YASL_LIST(new_ls));
+		vm_push(vm, YASL_LIST(new_ls));
 		return YASL_SUCCESS;
 	}
 
@@ -532,7 +534,7 @@ static int vm_SLICE(struct VM *vm) {
 		if (start < 0)
 			start = 0;
 
-		VM_PUSH(vm, YASL_STR(YASL_String_new_substring(start, end, str)));
+		vm_push(vm, YASL_STR(YASL_String_new_substring(start, end, str)));
 		return YASL_SUCCESS;
 	}
 
@@ -544,22 +546,22 @@ static int vm_SLICE(struct VM *vm) {
 static int vm_GET(struct VM *vm) {
 	vm->sp--;
 	int index = vm_peek(vm).type;
-	if (YASL_ISLIST(vm_peek(vm))) {
+	if (vm_islist(vm)) {
 		vm->sp++;
 		if (!list___get((struct YASL_State *) vm)) {
 			return YASL_SUCCESS;
 		}
-	} else if (YASL_ISTABLE(vm_peek(vm))) {
+	} else if (vm_istable(vm)) {
 		vm->sp++;
 		if (!table___get((struct YASL_State *) vm)) {
 			return YASL_SUCCESS;
 		}
-	} else if (vm_isstr(vm) && YASL_ISINT(VM_PEEK(vm, vm->sp + 1))) {
+	} else if (vm_isstr(vm) && YASL_ISINT(vm_peek(vm, vm->sp + 1))) {
 		vm->sp++;
 		if (!str___get((struct YASL_State *) vm)) {
 			return YASL_SUCCESS;
 		}
-	} else if (YASL_ISUSERDATA(vm_peek(vm))) {
+	} else if (vm_isuserdata(vm)) {
 		vm->sp++;
 		struct YASL_Object key = vm_pop(vm);
 		struct YASL_Object result = YASL_Table_search(vm_peek(vm).value.uval->mt, key);
@@ -587,10 +589,10 @@ static int vm_GET(struct VM *vm) {
 
 static int vm_SET(struct VM *vm) {
 	vm->sp -= 2;
-	if (YASL_ISLIST(vm_peek(vm))) {
+	if (vm_islist(vm)) {
 		vm->sp += 2;
 		list___set((struct YASL_State *) vm);
-	} else if (YASL_ISTABLE(vm_peek(vm))) {
+	} else if (vm_istable(vm)) {
 		vm->sp += 2;
 		table___set((struct YASL_State *) vm);
 	} else {
@@ -628,7 +630,7 @@ static int vm_NEWSTR(struct VM *vm) {
 }
 
 static int vm_ITER_1(struct VM *vm) {
-	switch (VM_PEEK(vm, vm->lp).type) {
+	switch (vm_peek(vm, vm->lp).type) {
 	case Y_LIST:
 		if ((yasl_int)vm_peeklist(vm, vm->lp)->count <= vm_peekint(vm, vm->lp + 1)) {
 			vm_pushbool(vm, 0);
@@ -658,7 +660,7 @@ static int vm_ITER_1(struct VM *vm) {
 			vm_push(vm, YASL_BOOL(0));
 		} else {
 			size_t i = (size_t)vm_peekint(vm, vm->lp + 1);
-			VM_PUSH(vm, YASL_STR(YASL_String_new_substring(i, i + 1, vm_peekstr(vm, vm->lp))));
+			vm_push(vm, YASL_STR(YASL_String_new_substring(i, i + 1, vm_peekstr(vm, vm->lp))));
 			vm_peekint(vm, vm->lp + 1)++;
 			vm_pushbool(vm, 1);
 		}
@@ -808,6 +810,13 @@ static int vm_RET(struct VM *vm) {
 	return YASL_SUCCESS;
 }
 
+static void vm_PRINT(struct VM *vm) {
+	vm_stringify_top(vm);
+	struct YASL_String *v = vm_popstr(vm);
+	vm->out.print(&vm->out, v->start + v->str, YASL_String_len(v));
+	vm->out.print(&vm->out, "\n", 1);
+}
+
 int vm_run(struct VM *vm) {
 	while (1) {
 		unsigned char opcode = NCODE(vm);        // fetch
@@ -899,7 +908,7 @@ int vm_run(struct VM *vm) {
 			if ((res = vm_fdiv(vm))) return res;   // handled differently because we always convert to float
 			break;
 		case IDIV:
-			if (vm_isint(vm) && YASL_GETINT(vm_peek(vm)) == 0) {
+			if (vm_isint(vm) && vm_peekint(vm) == 0) {
 				vm_print_err_divide_by_zero(vm);
 				return YASL_DIVIDE_BY_ZERO_ERROR;
 				break;
@@ -908,7 +917,7 @@ int vm_run(struct VM *vm) {
 			break;
 		case MOD:
 			// TODO: handle undefined C behaviour for negative numbers.
-			if (vm_isint(vm) && YASL_GETINT(vm_peek(vm)) == 0) {
+			if (vm_isint(vm) && vm_peekint(vm) == 0) {
 				vm_print_err_divide_by_zero(vm);
 				return YASL_DIVIDE_BY_ZERO_ERROR;
 				break;
@@ -982,16 +991,15 @@ int vm_run(struct VM *vm) {
 			if ((res = vm_NEWSTR(vm))) return res;
 			break;
 		case NEWTABLE: {
-			struct YASL_Object *table = YASL_Table();
-			struct YASL_Table *ht = YASL_GETTABLE(*table);
+			struct RC_UserData *table = rcht_new();
+			struct YASL_Table *ht = (struct YASL_Table *)table->data;
 			while (vm_peek(vm).type != Y_END) {
 				struct YASL_Object value = vm_pop(vm);
 				struct YASL_Object key = vm_pop(vm);
 				YASL_Table_insert(ht, key, value);
 			}
 			vm_pop(vm);
-			vm_push(vm, *table);
-			free(table);
+			vm_push(vm, YASL_TABLE(table));
 			break;
 		}
 		case NEWLIST: {
@@ -1001,7 +1009,7 @@ int vm_run(struct VM *vm) {
 			}
 			YASL_reverse((struct YASL_List *) ls->data);
 			vm_pop(vm);
-			VM_PUSH(vm, YASL_LIST(ls));
+			vm_push(vm, YASL_LIST(ls));
 			break;
 		}
 		case INITFOR:
@@ -1075,13 +1083,13 @@ int vm_run(struct VM *vm) {
 			break;
 		case LLOAD_1:
 			offset = NCODE(vm);
-			vm_push(vm, VM_PEEK(vm, vm->fp + offset + 4));
+			vm_push(vm, vm_peek(vm, vm->fp + offset + 4));
 			break;
 		case LSTORE_1:
 			offset = NCODE(vm);
-			dec_ref(&VM_PEEK(vm, vm->fp + offset + 4));
-			VM_PEEK(vm, vm->fp + offset + 4) = vm_pop(vm);
-			inc_ref(&VM_PEEK(vm, vm->fp + offset + 4));
+			dec_ref(&vm_peek(vm, vm->fp + offset + 4));
+			vm_peek(vm, vm->fp + offset + 4) = vm_pop(vm);
+			inc_ref(&vm_peek(vm, vm->fp + offset + 4));
 			break;
 		case INIT_MC:
 			if ((res = vm_INIT_MC(vm))) return res;
@@ -1110,8 +1118,7 @@ int vm_run(struct VM *vm) {
 		case POP:
 			vm_pop(vm);
 			break;
-		case PRINT:
-			yasl_print(vm);
+		case PRINT: vm_PRINT(vm);
 			break;
 		default:
 			vm_print_err(vm, "ERROR UNKNOWN OPCODE: %x\n", opcode);

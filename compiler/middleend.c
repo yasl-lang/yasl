@@ -63,25 +63,45 @@ void fold_TriOp(struct Node *const node) {
 	}
 }
 
-void make_float(struct Node *const node, yasl_float val) {
+static void make_float(struct Node *const node, yasl_float val) {
 	node->nodetype = N_FLOAT;
 	node->value.dval = val;
 	node->children_len = 0;
 }
 
-void make_int(struct Node *const node, yasl_int val) {
+static void make_int(struct Node *const node, yasl_int val) {
 	node->nodetype = N_INT;
 	node->value.ival = val;
 	node->children_len = 0;
 }
 
-void make_bool(struct Node *const node, int val) {
+static void make_bool(struct Node *const node, int val) {
 	node->nodetype = N_BOOL;
 	node->value.ival = val;
 	node->children_len = 0;
 }
 
-void fold_BinOp(struct Node *const node) {
+#define FOLD_BINOP_INT_INT(left, right, op, type) \
+make_##type(node, (left)->value.ival op (right)->value.ival);\
+node_del(left);\
+node_del(right);
+
+#define FOLD_BINOP_FLOAT_INT(left, right, op, type) \
+make_##type(node, (left)->value.dval op (yasl_float)(right)->value.ival);\
+node_del(left);\
+node_del(right);
+
+#define FOLD_BINOP_INT_FLOAT(left, right, op, type) \
+make_##type(node, (yasl_float)(left)->value.ival op (right)->value.dval);\
+node_del(left);\
+node_del(right);
+
+#define FOLD_BINOP_FLOAT_FLOAT(left, right, op, type) \
+make_##type(node, (left)->value.dval op (right)->value.dval);\
+node_del(left);\
+node_del(right);
+
+static void fold_BinOp(struct Node *const node) {
 	fold(node->children[0]);
 	fold(node->children[1]);
 	struct Node *left = node->children[0];
@@ -89,97 +109,54 @@ void fold_BinOp(struct Node *const node) {
 	if (left->nodetype == N_INT && right->nodetype == N_INT) {
 		switch (node->type) {
 		case T_BAR:
-			make_int(node, left->value.ival | right->value.ival);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_INT_INT(left, right, |, int);
 			break;
 		case T_CARET:
-			make_int(node, left->value.ival ^ right->value.ival);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_INT_INT(left, right, ^, int);
 			break;
 		case T_AMP:
-			make_int(node, left->value.ival & right->value.ival);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_INT_INT(left, right, &, int);
 			break;
 		case T_AMPCARET:
-			make_int(node, left->value.ival & ~right->value.ival);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_INT_INT(left, right, &~, int);
 			break;
 		case T_DEQ:
-			make_bool(node, left->value.ival == right->value.ival);
-			node_del(left);
-			node_del(right);
-			break;
 		case T_TEQ:
-			make_bool(node, left->value.ival == right->value.ival);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_INT_INT(left, right, ==, bool);
 			break;
 		case T_BANGEQ:
-			make_bool(node, left->value.ival != right->value.ival);
-			node_del(left);
-			node_del(right);
-			break;
 		case T_BANGDEQ:
-			make_bool(node, left->value.ival != right->value.ival);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_INT_INT(left, right, !=, bool);
 			break;
 		case T_GT:
-			make_bool(node, left->value.ival > right->value.ival);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_INT_INT(left, right, >, bool);
 			break;
 		case T_GTEQ:
-			make_bool(node, left->value.ival >= right->value.ival);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_INT_INT(left, right, >=, bool);
 			break;
 		case T_LT:
-			make_bool(node, left->value.ival < right->value.ival);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_INT_INT(left, right, <, bool);
 			break;
 		case T_LTEQ:
-			make_bool(node, left->value.ival <= right->value.ival);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_INT_INT(left, right, <=, bool);
 			break;
 		case T_TILDE:
-			/*
-			size_t len = snprintf(NULL, 0, "%lld", (long long) left->value.ival);
-			make_bool(node, left->value.ival == right->value.ival);
-			node_del(left);
-			node_del(right);
-			*/
+			// TODO
 			break;
 		case T_DGT:
-			make_int(node, left->value.ival >> right->value.ival);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_INT_INT(left, right, >>, int);
 			break;
 		case T_DLT:
-			make_int(node, left->value.ival << right->value.ival);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_INT_INT(left, right, <<, int);
 			break;
 		case T_PLUS:
-			make_int(node, left->value.ival + right->value.ival);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_INT_INT(left, right, +, int);
 			break;
 		case T_MINUS:
-			make_int(node, left->value.ival - right->value.ival);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_INT_INT(left, right, -, int);
 			break;
 		case T_STAR:
-			make_int(node, left->value.ival * right->value.ival);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_INT_INT(left, right, *, int);
 			break;
 		case T_SLASH:
 			make_float(node, (yasl_float)left->value.ival / (yasl_float)right->value.ival);
@@ -188,16 +165,12 @@ void fold_BinOp(struct Node *const node) {
 			break;
 		case T_DSLASH:
 			if (right->value.ival != 0) {
-				make_int(node, left->value.ival / right->value.ival);
-				node_del(left);
-				node_del(right);
+				FOLD_BINOP_INT_INT(left, right, /, int);
 			}
 			break;
 		case T_MOD:
 			if (right->value.ival != 0) {
-				make_int(node, left->value.ival % right->value.ival);
-				node_del(left);
-				node_del(right);
+				FOLD_BINOP_INT_INT(left, right, %, int);
 			}
 			break;
 		case T_DSTAR:
@@ -209,63 +182,38 @@ void fold_BinOp(struct Node *const node) {
 		switch (node->type) {
 		case T_DEQ:
 		case T_TEQ:
-			make_bool(node, left->value.dval == right->value.dval);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_FLOAT_FLOAT(left, right, ==, bool);
 			break;
 		case T_BANGEQ:
 		case T_BANGDEQ:
-			make_bool(node, left->value.dval != right->value.dval);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_FLOAT_FLOAT(left, right, !=, bool);
 			break;
 		case T_GT:
-			make_bool(node, left->value.dval > right->value.dval);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_FLOAT_FLOAT(left, right, >, bool);
 			break;
 		case T_GTEQ:
-			make_bool(node, left->value.dval >= right->value.dval);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_FLOAT_FLOAT(left, right, >=, bool);
 			break;
 		case T_LT:
-			make_bool(node, left->value.dval < right->value.dval);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_FLOAT_FLOAT(left, right, <, bool);
 			break;
 		case T_LTEQ:
-			make_bool(node, left->value.dval <= right->value.dval);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_FLOAT_FLOAT(left, right, <=, bool);
 			break;
 		case T_TILDE:
-			/*
-			size_t len = snprintf(NULL, 0, "%lld", (long long) left->value.ival);
-			make_bool(node, left->value.ival == right->value.ival);
-			node_del(left);
-			node_del(right);
-			*/
+			// TODO
 			break;
 		case T_PLUS:
-			make_float(node, left->value.dval + right->value.dval);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_FLOAT_FLOAT(left, right, +, float);
 			break;
 		case T_MINUS:
-			make_float(node, left->value.dval - right->value.dval);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_FLOAT_FLOAT(left, right, -, float);
 			break;
 		case T_STAR:
-			make_float(node, left->value.dval * right->value.dval);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_FLOAT_FLOAT(left, right, *, float);
 			break;
 		case T_SLASH:
-			make_float(node, left->value.dval / right->value.dval);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_FLOAT_FLOAT(left, right, /, float);
 			break;
 		case T_DSTAR:
 			break;
@@ -273,67 +221,41 @@ void fold_BinOp(struct Node *const node) {
 			break;
 		}
 	} else if (left->nodetype == N_FLOAT && right->nodetype == N_INT) {
-
 		switch (node->type) {
 		case T_DEQ:
 		case T_TEQ:
-			make_bool(node, left->value.dval == right->value.ival);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_FLOAT_INT(left, right, ==, bool);
 			break;
 		case T_BANGEQ:
 		case T_BANGDEQ:
-			make_bool(node, left->value.dval != right->value.ival);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_FLOAT_INT(left, right, !=, bool);
 			break;
 		case T_GT:
-			make_bool(node, left->value.dval > right->value.ival);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_FLOAT_INT(left, right, >, bool);
 			break;
 		case T_GTEQ:
-			make_bool(node, left->value.dval >= right->value.ival);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_FLOAT_INT(left, right, >=, bool);
 			break;
 		case T_LT:
-			make_bool(node, left->value.dval < right->value.ival);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_FLOAT_INT(left, right, <, bool);
 			break;
 		case T_LTEQ:
-			make_bool(node, left->value.dval <= right->value.ival);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_FLOAT_INT(left, right, <=, bool);
 			break;
 		case T_TILDE:
-			/*
-			size_t len = snprintf(NULL, 0, "%lld", (long long) left->value.ival);
-			make_bool(node, left->value.ival == right->value.ival);
-			node_del(left);
-			node_del(right);
-			*/
+			// TODO
 			break;
 		case T_PLUS:
-			make_float(node, left->value.dval + right->value.ival);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_FLOAT_INT(left, right, +, float);
 			break;
 		case T_MINUS:
-			make_float(node, left->value.dval - right->value.ival);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_FLOAT_INT(left, right, -, float);
 			break;
 		case T_STAR:
-			make_float(node, left->value.dval * right->value.ival);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_FLOAT_INT(left, right, *, float);
 			break;
 		case T_SLASH:
-			make_float(node, left->value.dval / right->value.ival);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_FLOAT_INT(left, right, /, float);
 			break;
 		case T_DSTAR:
 			break;
@@ -344,63 +266,38 @@ void fold_BinOp(struct Node *const node) {
 		switch (node->type) {
 		case T_DEQ:
 		case T_TEQ:
-			make_bool(node, left->value.ival == right->value.dval);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_INT_FLOAT(left, right, ==, bool);
 			break;
 		case T_BANGEQ:
 		case T_BANGDEQ:
-			make_bool(node, left->value.ival != right->value.dval);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_INT_FLOAT(left, right, !=, bool);
 			break;
 		case T_GT:
-			make_bool(node, left->value.ival > right->value.dval);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_INT_FLOAT(left, right, >, bool);
 			break;
 		case T_GTEQ:
-			make_bool(node, left->value.ival >= right->value.dval);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_INT_FLOAT(left, right, >=, bool);
 			break;
 		case T_LT:
-			make_bool(node, left->value.ival < right->value.dval);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_INT_FLOAT(left, right, <, bool);
 			break;
 		case T_LTEQ:
-			make_bool(node, left->value.ival <= right->value.dval);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_INT_FLOAT(left, right, <=, bool);
 			break;
 		case T_TILDE:
-			/*
-			size_t len = snprintf(NULL, 0, "%lld", (long long) left->value.ival);
-			make_bool(node, left->value.ival == right->value.ival);
-			node_del(left);
-			node_del(right);
-			*/
+			// TODO
 			break;
 		case T_PLUS:
-			make_float(node, left->value.ival + right->value.dval);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_INT_FLOAT(left, right, +, float);
 			break;
 		case T_MINUS:
-			make_float(node, left->value.ival - right->value.dval);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_INT_FLOAT(left, right, -, float);
 			break;
 		case T_STAR:
-			make_float(node, left->value.ival * right->value.dval);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_INT_FLOAT(left, right, *, float);
 			break;
 		case T_SLASH:
-			make_float(node, left->value.ival / right->value.dval);
-			node_del(left);
-			node_del(right);
+			FOLD_BINOP_INT_FLOAT(left, right, /, float);
 			break;
 		case T_DSTAR:
 			break;
@@ -457,7 +354,7 @@ void fold_UnOp(struct Node *const node) {
 			node_del(expr);
 			break;
 		case T_BANG:
-			make_bool(node, 0);
+			make_bool(node, 0);  // NOTE: safe because we don't have NaN literals
 			node_del(expr);
 			break;
 		default:
@@ -474,30 +371,6 @@ void fold_Assign(struct Node *const node) {
 	fold(Assign_get_expr(node));
 }
 
-void fold_Var(struct Node *const node) {
-	// pass
-}
-
-void fold_Undef(struct Node *const node) {
-	// pass
-}
-
-void fold_Float(struct Node *const node) {
-	// pass
-}
-
-void fold_Integer(struct Node *const node) {
-	// pass
-}
-
-void fold_Boolean(struct Node *const node) {
-	// pass
-}
-
-void fold_String(struct Node *const node) {
-	// pass
-}
-
 void fold_List(struct Node *const node) {
 	FOR_CHILDREN(i, child, node) {
 		fold(child);
@@ -510,81 +383,57 @@ void fold_Table(struct Node *const node) {
 	}
 }
 
-/*
-	&visit_ExprStmt,
-	&visit_Block,
-	&visit_Body,
-	&visit_FunctionDecl,
-	&visit_Return,
-	&visit_Export,
-	&visit_Call,
-	&visit_MethodCall,
-	&visit_Set,
-	&visit_Get,
-	&visit_Slice,
-	NULL,
-	&visit_ListComp,
-	&visit_TableComp,
-	&visit_ForIter,
-	&visit_While,
-	&visit_Break,
-	&visit_Continue,
-	&visit_If,
-	&visit_Print,
-	&visit_Let,
-	&visit_Const,
-	&visit_TriOp,
-	&visit_BinOp,
-	&visit_UnOp,
-	&visit_Assign,
-	&visit_Var,
-	&visit_Undef,
-	&visit_Float,
-	&visit_Integer,
-	&visit_Boolean,
-	&visit_String,
-	&visit_List,
-	&visit_Table
- */
-
-static void (*jumptable[])(struct Node *const ) = {
-	&fold_ExprStmt,
-	&fold_Block,
-	&fold_Body,
-	NULL, // Function Decl
-	NULL, // Return
-	NULL, // Export
-	&fold_Call,
-	&fold_MethodCall,
-	&fold_Set,
-	&fold_Get,
-	&fold_Slice,
-	NULL,
-	&fold_ListComp,
-	&fold_TableComp,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL, // N_LET
-	NULL, // N_CONST
-	NULL, // N_DECL
-	&fold_TriOp,
-	&fold_BinOp,
-	&fold_UnOp,
-	&fold_Assign,
-	&fold_Var,
-	&fold_Undef,
-	&fold_Float,
-	&fold_Integer,
-	&fold_Boolean,
-	&fold_String,
-	&fold_List,
-	&fold_Table
-};
-
 void fold(struct Node *const node) {
-	jumptable[node->nodetype](node);
+	switch (node->nodetype) {
+	case N_EXPRSTMT:
+		fold_ExprStmt(node);
+		break;
+	case N_BLOCK:
+		fold_Block(node);
+		break;
+	case N_BODY:
+		fold_Body(node);
+		break;
+	case N_CALL:
+		fold_Call(node);
+		break;
+	case N_MCALL:
+		fold_MethodCall(node);
+		break;
+	case N_SET:
+		fold_Set(node);
+		break;
+	case N_GET:
+		fold_Get(node);
+		break;
+	case N_SLICE:
+		fold_Slice(node);
+		break;
+	case N_LISTCOMP:
+		fold_ListComp(node);
+		break;
+	case N_TABLECOMP:
+		fold_TableComp(node);
+		break;
+	case N_TRIOP:
+		fold_TriOp(node);
+		break;
+	case N_BINOP:
+		fold_BinOp(node);
+		break;
+	case N_UNOP:
+		fold_UnOp(node);
+		break;
+	case N_ASSIGN:
+		fold_Assign(node);
+		break;
+	case N_LIST:
+		fold_List(node);
+		break;
+	case N_TABLE:
+		fold_Table(node);
+		break;
+	default:
+		break;
+	}
 }

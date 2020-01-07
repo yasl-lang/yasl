@@ -7,17 +7,21 @@
 
 struct YASL_State *YASL_newstate_num(char *filename, size_t num);
 
+// TODO: rewrite this whole fucking mess. I'm not even sure if it works properly honestly.
+
 int YASL_require(struct YASL_State *S) {
 	if (!YASL_top_isstring(S)) {
-		return YASL_ERROR;
+		// TODO error message
+		return YASL_TYPE_ERROR;
 	}
 
 	char *mode_str = YASL_top_peekcstring(S);
-	YASL_popobject(S);
+	YASL_pop(S);
 
 	struct YASL_State *Ss = YASL_newstate_num(mode_str, S->vm.headers_size);
 
 	if (!Ss) {
+		// TODO error message
 		return -1;
 	}
 
@@ -63,13 +67,9 @@ int YASL_require(struct YASL_State *S) {
 }
 
 int YASL_load_require(struct YASL_State *S) {
-	struct YASL_Object *require = YASL_CFunction(YASL_require, 1);
-
 	YASL_declglobal(S, "require");
-	YASL_pushobject(S, require);
+	YASL_pushcfunction(S, YASL_require, 1);
 	YASL_setglobal(S, "require");
-
-	free(require);
 
 	return YASL_SUCCESS;
 }

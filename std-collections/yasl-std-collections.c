@@ -2,6 +2,7 @@
 
 #include "data-structures/YASL_Set.h"
 #include "interpreter/VM.h"
+#include "yasl_state.h"
 
 static struct YASL_Table *set_mt = NULL;
 
@@ -11,9 +12,7 @@ static int YASL_collections_set_new(struct YASL_State *S) {
 	while (i-- > 0) {
 		YASL_Set_insert(set, vm_pop((struct VM *) S));
 	}
-	struct YASL_Object *obj = YASL_UserData(set, T_SET, set_mt, YASL_Set_del);
-	vm_push((struct VM *)S, *obj);
-	free(obj);
+	YASL_pushuserdata(S, set, T_SET, set_mt, YASL_Set_del);
 	return YASL_SUCCESS;
 }
 
@@ -122,19 +121,20 @@ static int YASL_collections_set___len(struct YASL_State *S) {
 }
 
 static int YASL_collections_set_add(struct YASL_State *S) {
-	struct YASL_Object *right_obj = YASL_popobject(S);
-
-
-	if (YASL_ISLIST(*right_obj) || YASL_ISTABLE(*right_obj) || YASL_ISUSERDATA(*right_obj)) {
-		printf("Error: unable to insert mutable object of type %x into set.\n", right_obj->type);
+	if (!YASL_top_isundef(S) && !YASL_top_isfloat(S) && !YASL_top_isboolean(S) && !YASL_top_isinteger(S) && !YASL_top_isuserpointer(S)) {
+		// TODO: fix error message
+		printf("Error: unable to insert mutable object of type %x into set.\n", vm_pop(&S->vm).type);
 		return YASL_TYPE_ERROR;
 	}
+	struct YASL_Object right = vm_pop(&S->vm);
+
 	if (!YASL_top_isuserdata(S, T_SET)) {
+		// TODO: error message
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_Set *left = (struct YASL_Set *)YASL_top_popuserdata(S);
 
-	YASL_Set_insert(left, *right_obj);
+	YASL_Set_insert(left, right);
 
 	return YASL_SUCCESS;
 }
@@ -187,13 +187,13 @@ static int YASL_collections_set_clear(struct YASL_State *S) {
 }
 
 static int YASL_collections_set_contains(struct YASL_State *S) {
-	struct YASL_Object *object = YASL_popobject(S);
+	struct YASL_Object object = vm_pop(&S->vm);
 	if (!YASL_top_isuserdata(S, T_SET)) {
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_Set *set = (struct YASL_Set *)YASL_top_popuserdata(S);
 
-	vm_push((struct VM *)S, YASL_Set_search(set, *object));
+	vm_push((struct VM *)S, YASL_Set_search(set, object));
 	return YASL_SUCCESS;
 }
 

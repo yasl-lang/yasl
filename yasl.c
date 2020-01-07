@@ -10,7 +10,6 @@
 #include "compiler/compiler.h"
 #include "interpreter/VM.h"
 #include "compiler/lexinput.h"
-//#include "interpreter/YASL_object/YASL_Object.h"
 
 struct YASL_State *YASL_newstate_num(char *filename, size_t num) {
 	struct YASL_State *S = (struct YASL_State *)malloc(sizeof(struct YASL_State));
@@ -67,11 +66,6 @@ int YASL_resetstate(struct YASL_State *S, const char *filename) {
 	S->compiler.parser.lex = NEW_LEXER(lexinput_new_file(fp));
 	S->compiler.code->count = 0;
 	S->compiler.buffer->count = 0;
-	// S->compiler.header->count = 16;
-	// YASL_Table_del_string_int(S->compiler.strings);
-	// S->compiler.strings = YASL_Table_new();
-	//if (S->vm.code)	free(S->vm.code);
-	//S->vm.code = NULL;
 
 	return YASL_SUCCESS;
 }
@@ -96,15 +90,11 @@ int YASL_resetstate_bb(struct YASL_State *S, const char *buf, size_t len) {
 	S->compiler.parser.lex = NEW_LEXER(lexinput_new_bb(buf, len));
 	S->compiler.code->count = 0;
 	S->compiler.buffer->count = 0;
-	// S->compiler.header->count = 16;
-	// YASL_Table_del_string_int(S->compiler.strings);
-	// S->compiler.strings = YASL_Table_new();
 	if (S->vm.code)	free(S->vm.code);
 	S->vm.code = NULL;
 
 	return YASL_SUCCESS;
 }
-
 
 int YASL_delstate(struct YASL_State *S) {
 	compiler_cleanup(&S->compiler);
@@ -148,7 +138,6 @@ int YASL_execute(struct YASL_State *S) {
 	return vm_run((struct VM *) S);  // TODO: error handling for runtime errors.
 }
 
-
 int YASL_declglobal(struct YASL_State *S, const char *name) {
 	struct YASL_Object value = YASL_Table_search_string_int(S->compiler.strings, name, strlen(name));
 	if (value.type == Y_END) {
@@ -173,31 +162,11 @@ int YASL_setglobal(struct YASL_State *S, const char *name) {
 	int64_t index = env_get(S->compiler.globals, name, strlen(name));
 	if (is_const(index)) return YASL_ERROR;
 
-	// int64_t num_globals = S->compiler.globals->vars->count;
-
-	// S->vm.globals = realloc(S->vm.globals, num_globals * sizeof(YASL_Object));
-
 	struct YASL_String *string = YASL_String_new_sized(strlen(name), name);
-	//struct YASL_Object obj = YASL_Table_search(S->vm.globals[0], YASL_STR(string));
-//	dec_ref(&obj);
-	// inc_ref(S->vm.stack + S->vm.sp);
 	YASL_Table_insert(S->vm.globals[0], YASL_STR(string), vm_peek((struct VM *) S));
 	S->vm.sp--;
-//	vm_pop((struct VM *) S);
-	// inc_ref(S->vm.globals + index);
 
 	return YASL_SUCCESS;
-}
-
-struct YASL_Object *YASL_getglobal(struct YASL_State *S, const char *name) {
-	struct YASL_String *string = YASL_String_new_sized(strlen(name), name);
-	struct YASL_Object global = YASL_Table_search(S->vm.globals[0], YASL_STR(string));
-	if (global.type == Y_END) {
-		return NULL;
-	}
-	struct YASL_Object *tmp = (struct YASL_Object *) malloc(sizeof(struct YASL_Object));
-	*tmp = global;
-	return tmp;
 }
 
 int YASL_loadglobal(struct YASL_State *S, const char *name) {
@@ -236,24 +205,22 @@ int YASL_pushboolean(struct YASL_State *S, int value) {
 }
 
 int YASL_pushliteralstring(struct YASL_State *S, char *value) {
-	VM_PUSH((struct VM *) S, YASL_STR(YASL_String_new_sized(strlen(value), value)));
+	vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized(strlen(value), value)));
 	return YASL_SUCCESS;
 }
 
 int YASL_pushcstring(struct YASL_State *S, char *value) {
-	VM_PUSH((struct VM *) S, YASL_STR(YASL_String_new_sized(strlen(value), value)));
+	vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized(strlen(value), value)));
 	return YASL_SUCCESS;
 }
 
 int YASL_pushuserdata(struct YASL_State *S, void *data, int tag, struct YASL_Table *mt, void (*destructor)(void *)) {
-	struct YASL_Object *userdata = YASL_UserData(data, tag, mt, destructor);
-	VM_PUSH(&S->vm, *userdata);
-	free(userdata);
+	vm_push(&S->vm, YASL_USERDATA(ud_new(data, tag, mt, destructor)));
 	return YASL_SUCCESS;
 }
 
 int YASL_pushuserpointer(struct YASL_State *S, void *userpointer) {
-	VM_PUSH((struct VM *) S, YASL_USERPTR(userpointer));
+	vm_push((struct VM *) S, YASL_USERPTR(userpointer));
 	return YASL_SUCCESS;
 }
 
@@ -278,14 +245,13 @@ int YASL_pushlitstring(struct YASL_State *S, const char *value, const size_t siz
 }
 
 int YASL_pushcfunction(struct YASL_State *S, int (*value)(struct YASL_State *), int num_args) {
-	VM_PUSH((struct VM *) S, YASL_CFN(value, num_args));
+	vm_push((struct VM *) S, YASL_CFN(value, num_args));
 	return YASL_SUCCESS;
 }
 
 int YASL_pushtable(struct YASL_State *S) {
-	struct YASL_Object *table = YASL_Table();
-	vm_push(&S->vm, *table);
-	free(table);
+	struct RC_UserData *table = rcht_new();
+	vm_push(&S->vm, YASL_TABLE(table));
 	return YASL_SUCCESS;
 }
 
@@ -300,28 +266,9 @@ struct YASL_Object *YASL_popobject(struct YASL_State *S) {
 	return &S->vm.stack[S->vm.sp--];
 }
 
-int YASL_unsaveobject(struct YASL_State *S, struct YASL_Object *obj) {
-	vm_push(&S->vm, *obj);
-	dec_ref(obj);
-	free(obj);
-	return YASL_SUCCESS;
-}
-
-struct YASL_Object *YASL_saveobject(struct YASL_State *S) {
-	struct YASL_Object *obj = (struct YASL_Object *)malloc(sizeof(struct YASL_Object *));
-	*obj = S->vm.stack[S->vm.sp--];
-	inc_ref(obj);
-	return obj;
-}
-
-int YASL_Table_set(struct YASL_Object *table, struct YASL_Object *key, struct YASL_Object *value) {
-	if (!table || !key || !value) return YASL_ERROR;
-
-	// TODO: fix this to YASL_isTable(table)
-	if (table->type != Y_TABLE)
-		return YASL_ERROR;
-	YASL_Table_insert(YASL_GETTABLE(*table), *key, *value);
-
+int YASL_pop(struct YASL_State *S) {
+	// TODO: check the stack pointer?
+	vm_pop(&S->vm);
 	return YASL_SUCCESS;
 }
 
@@ -345,105 +292,49 @@ void *YASL_UserData_getdata(struct YASL_Object *obj) {
 	return obj->value.uval->data;
 }
 
-struct YASL_Object *YASL_LiteralString(const char *str) {
-	return YASL_String(YASL_String_new_sized(strlen(str), str));
-}
-
-struct YASL_Object *YASL_CString(char *str) {
-	return YASL_String(YASL_String_new_sized(strlen(str), str));
-}
-
-
-
-int YASL_isundef(struct YASL_Object *obj) {
-	return obj->type != Y_UNDEF;
-}
-
 bool YASL_top_isundef(struct YASL_State *S) {
-	return YASL_ISUNDEF(vm_peek(&S->vm));
-}
-
-int YASL_isboolean(struct YASL_Object *obj) {
-	return obj->type != Y_BOOL;
+	return vm_isundef(&S->vm);
 }
 
 bool YASL_top_isboolean(struct YASL_State *S) {
-	return YASL_ISBOOL(vm_peek(&S->vm));
-}
-
-int YASL_isdouble(struct YASL_Object *obj) {
-	return obj->type != Y_FLOAT;
+	return vm_isbool(&S->vm);
 }
 
 bool YASL_top_isdouble(struct YASL_State *S) {
-	return YASL_ISFLOAT(vm_peek(&S->vm));
+	return vm_isfloat(&S->vm);
 }
 
-int YASL_isinteger(struct YASL_Object *obj) {
-	return obj->type != Y_INT;
+bool YASL_top_isfloat(struct YASL_State *S) {
+	return vm_isfloat(&S->vm);
 }
 
 bool YASL_top_isinteger(struct YASL_State *S) {
-	return YASL_ISINT(vm_peek(&S->vm));
-}
-
-int YASL_isstring(struct YASL_Object *obj) {
-	return obj->type != Y_STR && obj->type != Y_STR_W;
+	return vm_isint(&S->vm);
 }
 
 bool YASL_top_isstring(struct YASL_State *S) {
-	return YASL_ISSTR(vm_peek(&S->vm));
-}
-
-int YASL_islist(struct YASL_Object *obj) {
-	return obj->type != Y_LIST && obj->type != Y_LIST_W;
+	return vm_isstr(&S->vm);
 }
 
 bool YASL_top_islist(struct YASL_State *S) {
-	return YASL_ISLIST(vm_peek(&S->vm));
-}
-
-int YASL_istable(struct YASL_Object *obj) {
-	return obj->type != Y_TABLE && obj->type != Y_TABLE_W;
+	return vm_islist(&S->vm);
 }
 
 bool YASL_top_istable(struct YASL_State *S) {
-	return YASL_ISTABLE(vm_peek(&S->vm));
-}
-
-int YASL_isfunction(struct YASL_Object *obj);
-
-
-int YASL_iscfunction(struct YASL_Object *obj);
-
-
-int YASL_isuserdata(struct YASL_Object *obj, int tag) {
-	if (YASL_ISUSERDATA(*obj) && obj->value.uval->tag == tag) {
-		return YASL_SUCCESS;
-	}
-	return YASL_ERROR;
+	return vm_istable(&S->vm);
 }
 
 bool YASL_top_isuserdata(struct YASL_State *S, int tag) {
-	return YASL_ISUSERDATA(vm_peek(&S->vm)) && vm_peek(&S->vm).value.uval->tag == tag;
-}
-
-int YASL_isuserpointer(struct YASL_Object *obj) {
-	return obj->type == Y_USERPTR ? YASL_SUCCESS : YASL_ERROR;
+	return vm_isuserdata(&S->vm) && vm_peek(&S->vm).value.uval->tag == tag;
 }
 
 bool YASL_top_isuserpointer(struct YASL_State *S) {
-	return YASL_ISUSERPTR(vm_peek(&S->vm));
-}
-
-bool YASL_getboolean(struct YASL_Object *obj) {
-        if (YASL_ISBOOL(*obj)) return (bool)obj->value.ival;
-	return false;
+	return vm_isuserptr(&S->vm);
 }
 
 bool YASL_top_peekboolean(struct YASL_State *S) {
 	if (YASL_top_isboolean(S)) {
-		return (bool)YASL_GETBOOL(vm_peek(&S->vm));
+		return vm_popbool(&S->vm);
 	}
 	return false;
 }
@@ -455,53 +346,46 @@ bool YASL_top_popboolean(struct YASL_State *S) {
 	return false;
 }
 
-yasl_float YASL_getdouble(struct YASL_Object *obj) {
-        if (YASL_ISFLOAT(*obj)) return obj->value.dval;
+yasl_float YASL_top_peekdouble(struct YASL_State *S) {
+	if (YASL_top_isfloat(S)) {
+		return vm_peekfloat(&S->vm);
+	}
 	return 0.0;
 }
 
-yasl_float YASL_top_peekdouble(struct YASL_State *S) {
-	if (YASL_top_isdouble(S)) {
-		return YASL_GETFLOAT(vm_peek(&S->vm));
+yasl_float YASL_top_peekfloat(struct YASL_State *S) {
+	if (YASL_top_isfloat(S)) {
+		return vm_peekfloat(&S->vm);
 	}
 	return 0.0;
 }
 
 yasl_float YASL_top_popdouble(struct YASL_State *S) {
-	if (YASL_top_isdouble(S)) {
-		return YASL_GETFLOAT(vm_pop(&S->vm));
+	if (YASL_top_isfloat(S)) {
+		return vm_popfloat(&S->vm);
 	}
 	return 0.0;
 }
 
-yasl_int YASL_getinteger(struct YASL_Object *obj) {
-        if (YASL_ISINT(*obj)) return obj->value.ival;
-	return 0;
+yasl_float YASL_top_popfloat(struct YASL_State *S) {
+	if (YASL_top_isfloat(S)) {
+		return vm_popfloat(&S->vm);
+	}
+	return 0.0;
 }
 
 yasl_int YASL_top_peekinteger(struct YASL_State *S) {
 	if (YASL_top_isinteger(S)) {
-		return YASL_GETINT(vm_peek(&S->vm));
+		return vm_peekint(&S->vm);
 	}
 	return 0;
 }
 
 yasl_int YASL_top_popinteger(struct YASL_State *S) {
 	if (YASL_top_isinteger(S)) {
-		return YASL_GETINT(vm_pop(&S->vm));
+		return vm_popint(&S->vm);
 	}
 	return 0;
-}
-
-char *YASL_getcstring(struct YASL_Object *obj) {
-	if (!YASL_ISSTR(*obj)) return NULL;
-
-	char *tmp = (char *) malloc(YASL_String_len(obj->value.sval) + 1);
-
-	memcpy(tmp, obj->value.sval->str + obj->value.sval->start, YASL_String_len(obj->value.sval));
-	tmp[YASL_String_len(obj->value.sval)] = '\0';
-
-	return tmp;
 }
 
 char *YASL_top_peekcstring(struct YASL_State *S) {
@@ -516,38 +400,12 @@ char *YASL_top_peekcstring(struct YASL_State *S) {
 	return tmp;
 }
 
-size_t YASL_getstringlen(struct YASL_Object *obj) {
-	if (!YASL_ISSTR(*obj)) return 0;
-
-	return YASL_String_len(obj->value.sval);
-}
-
-char *YASL_getstring(struct YASL_Object *obj) {
-	if (!YASL_ISSTR(*obj)) return NULL;
-
-	return obj->value.sval->str + obj->value.sval->start;
-}
-
-void *YASL_getuserdata(struct YASL_Object *obj) {
-	if (obj->type == Y_USERDATA || obj->type == Y_USERDATA_W) {
-		return obj->value.uval->data;
-	}
-	return NULL;
-}
-
 void *YASL_top_peekuserdata(struct YASL_State *S) {
 	return YASL_GETUSERDATA(vm_peek(&S->vm))->data;
 }
 
 void *YASL_top_popuserdata(struct YASL_State *S) {
 	return YASL_GETUSERDATA(vm_pop(&S->vm))->data;
-}
-
-void *YASL_getuserpointer(struct YASL_Object *obj) {
-	if (obj->type != Y_USERPTR) {
-		return NULL;
-	}
-	return obj->value.pval;
 }
 
 void *YASL_top_peekuserpointer(struct YASL_State *S) {

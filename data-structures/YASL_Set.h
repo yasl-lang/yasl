@@ -1,3 +1,5 @@
+#pragma once
+
 #include "interpreter/YASL_Object.h"
 
 #define FOR_SET(i, item, table) struct YASL_Object *item; for (size_t i = 0; i < (table)->size; i++) \

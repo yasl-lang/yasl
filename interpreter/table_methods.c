@@ -46,7 +46,7 @@ int table___set(struct YASL_State *S) {
 }
 
 int object_tostr(struct YASL_State *S) {
-	enum YASL_Types index = VM_PEEK((struct VM *) S, S->vm.sp).type;
+	enum YASL_Types index = vm_peek((struct VM *) S, S->vm.sp).type;
 	struct YASL_Object key = YASL_STR(YASL_String_new_sized(strlen("tostr"), "tostr"));
 	struct YASL_Object result = YASL_Table_search(S->vm.builtins_htable[index], key);
 	str_del(YASL_GETSTR(key));
@@ -66,7 +66,7 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 	if (table->count == 0) {
 		vm_pop((struct VM *) S);
 		string[string_count++] = '}';
-		VM_PUSH((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, string_count, string)));
+		vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, string_count, string)));
 		return YASL_SUCCESS;
 	}
 
@@ -94,7 +94,7 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 
 		vm_push((struct VM *) S, item->value);
 
-		if (YASL_ISLIST(VM_PEEK((struct VM *) S, S->vm.sp))) {
+		if (YASL_ISLIST(vm_peek((struct VM *) S, S->vm.sp))) {
 			int found = 0;
 			for (size_t j = 0; j < buffer_count; j++) {
 				if (buffer[j] == vm_peeklist((struct VM *) S, S->vm.sp)) {
@@ -120,7 +120,7 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 				list_tostr_helper(S, tmp_buffer, tmp_buffer_size, buffer_count + 1);
 				free(tmp_buffer);
 			}
-		} else if (YASL_ISTABLE(VM_PEEK((struct VM *) S, S->vm.sp))) {
+		} else if (YASL_ISTABLE(vm_peek((struct VM *) S, S->vm.sp))) {
 			int found = 0;
 			for (size_t j = 0; j < buffer_count; j++) {
 				if (buffer[j] == vm_peeklist((struct VM *) S, S->vm.sp)) {
@@ -178,7 +178,7 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 	string_count -= 2;
 	string[string_count++] = '}';
 
-	VM_PUSH((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, string_count, string)));
+	vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, string_count, string)));
 
 	return YASL_SUCCESS;
 }
@@ -208,7 +208,7 @@ int table_keys(struct YASL_State *S) {
 			YASL_List_append((struct YASL_List *) ls->data, (item->key));
 	}
 
-	VM_PUSH((struct VM *) S, YASL_LIST(ls));
+	vm_push((struct VM *) S, YASL_LIST(ls));
 	return YASL_SUCCESS;
 }
 
@@ -222,7 +222,7 @@ int table_values(struct YASL_State *S) {
 	FOR_TABLE(i, item, ht) {
 			YASL_List_append((struct YASL_List *) ls->data, (item->value));
 	}
-	VM_PUSH((struct VM *) S, YASL_LIST(ls));
+	vm_push((struct VM *) S, YASL_LIST(ls));
 	return YASL_SUCCESS;
 }
 
@@ -250,7 +250,7 @@ int table_clone(struct YASL_State *S) {
 			YASL_Table_insert((struct YASL_Table *) new_ht->data, item->key, item->value);
 	}
 
-	VM_PUSH((struct VM *) S, YASL_TABLE(new_ht));
+	vm_push((struct VM *) S, YASL_TABLE(new_ht));
 	return YASL_SUCCESS;
 }
 

@@ -14,16 +14,20 @@
 #define NUM_GLOBALS 256
 #define NUM_TYPES 13                                     // number of builtin types, each needs a vtable
 
-#define VM_PUSH(vm, x) do {struct YASL_Object to = x; vm_push(vm, to);} while(0)
+// EXPAND is to deal with MSVC bullshit
+#define GET_MACRO(_1, _2, NAME, ...) NAME
+#define EXPAND(x) x
+#define vm_peek_offset(vm, offset) ((vm)->stack[offset])
+#define vm_peek_default(vm) ((vm)->stack[(vm)->sp])
+#define vm_peek(...) EXPAND(GET_MACRO(__VA_ARGS__, vm_peek_offset, vm_peek_default,)(__VA_ARGS__))
 
-#define VM_PEEK(vm, offset) ((vm)->stack[offset])
-#define vm_peek(vm) ((vm)->stack[(vm)->sp])
-
-#define vm_peekint(vm, offset) (YASL_GETINT(VM_PEEK(vm, offset)))
-#define vm_peekstr(vm, offset) (YASL_GETSTR(VM_PEEK(vm, offset)))
-#define vm_peeklist(vm, offset) (YASL_GETLIST(VM_PEEK(vm, offset)))
-#define vm_peektable(vm, offset) (YASL_GETTABLE(VM_PEEK(vm, offset)))
-#define vm_peekcfn(vm, offset) (YASL_GETCFN(VM_PEEK(vm, offset)))
+#define vm_peekbool(...) EXPAND(YASL_GETBOOL(vm_peek(__VA_ARGS__)))
+#define vm_peekfloat(...) EXPAND(YASL_GETFLOAT(vm_peek(__VA_ARGS__)))
+#define vm_peekint(...) EXPAND(YASL_GETINT(vm_peek(__VA_ARGS__)))
+#define vm_peekstr(vm, offset) (YASL_GETSTR(vm_peek(vm, offset)))
+#define vm_peeklist(vm, offset) (YASL_GETLIST(vm_peek(vm, offset)))
+#define vm_peektable(vm, offset) (YASL_GETTABLE(vm_peek(vm, offset)))
+#define vm_peekcfn(vm, offset) (YASL_GETCFN(vm_peek(vm, offset)))
 
 #define vm_isend(vm) (YASL_ISEND(vm_peek(vm)))
 #define vm_isundef(vm) (YASL_ISUNDEF(vm_peek(vm)))
@@ -31,6 +35,10 @@
 #define vm_isint(vm) (YASL_ISINT(vm_peek(vm)))
 #define vm_isbool(vm) (YASL_ISBOOL(vm_peek(vm)))
 #define vm_isstr(vm) (YASL_ISSTR(vm_peek(vm)))
+#define vm_istable(vm) (YASL_ISTABLE(vm_peek(vm)))
+#define vm_islist(vm) (YASL_ISLIST(vm_peek(vm)))
+#define vm_isuserdata(vm) (YASL_ISUSERDATA(vm_peek(vm)))
+#define vm_isuserptr(vm) (YASL_ISUSERPTR(vm_peek(vm)))
 
 #define BUFFER_SIZE 256
 #define NCODE(vm)    (*((vm)->pc++))     // get next bytecode
@@ -110,6 +118,7 @@ void vm_cleanup(struct VM *vm);
 int vm_stringify_top(struct VM *vm);
 
 struct YASL_Object vm_pop(struct VM *const vm);
+bool vm_popbool(struct VM *const vm);
 yasl_float vm_popfloat(struct VM *const vm);
 yasl_int vm_popint(struct VM *const vm);
 struct YASL_String *vm_popstr(struct VM *const vm);
@@ -121,17 +130,10 @@ void vm_pushundef(struct VM *const vm);
 void vm_pushfloat(struct VM *const vm, yasl_float f);
 void vm_pushint(struct VM *const vm, yasl_int i);
 void vm_pushbool(struct VM *const vm, bool b);
-#define vm_pushstr(vm, s) VM_PUSH(vm, YASL_STR(s))
-#define vm_pushlist(vm, l) VM_PUSH(vm, YASL_LIST(l))
-#define vm_pushtable(vm, l) VM_PUSH(vm, YASL_TABLE(l))
-#define vm_pushfn(vm, f) VM_PUSH(vm, YASL_FN(f))
+#define vm_pushstr(vm, s) vm_push(vm, YASL_STR(s))
+#define vm_pushlist(vm, l) vm_push(vm, YASL_LIST(l))
+#define vm_pushtable(vm, l) vm_push(vm, YASL_TABLE(l))
+#define vm_pushfn(vm, f) vm_push(vm, YASL_FN(f))
 
 int vm_run(struct VM *vm);
 
-struct YASL_Table *undef_builtins(struct VM *vm);
-struct YASL_Table *float_builtins(struct VM *vm);
-struct YASL_Table *int_builtins(struct VM *vm);
-struct YASL_Table *bool_builtins(struct VM *vm);
-struct YASL_Table *str_builtins(struct VM *vm);
-struct YASL_Table *list_builtins(struct VM *vm);
-struct YASL_Table *table_builtins(struct VM *vm);

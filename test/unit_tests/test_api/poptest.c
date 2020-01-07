@@ -11,8 +11,8 @@ static void testpopfloat(void) {
 	ASSERT_SUCCESS(YASL_compile(S));
 	ASSERT_SUCCESS(YASL_execute(S));
 	ASSERT_SUCCESS(YASL_loadglobal(S, "x"));
-	ASSERT(YASL_top_isdouble(S));
-	ASSERT_EQ(YASL_top_peekdouble(S), 12.5);
+	ASSERT(YASL_top_isfloat(S));
+	ASSERT_EQ(YASL_top_peekfloat(S), 12.5);
 	YASL_delstate(S);
 }
 
