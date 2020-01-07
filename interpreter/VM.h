@@ -14,20 +14,21 @@
 #define NUM_GLOBALS 256
 #define NUM_TYPES 13                                     // number of builtin types, each needs a vtable
 
+// EXPAND is to deal with MSVC bullshit
 #define GET_MACRO(_1, _2, NAME, ...) NAME
 #define EXPAND(x) x
 #define vm_peek_offset(vm, offset) ((vm)->stack[offset])
 #define vm_peek_default(vm) ((vm)->stack[(vm)->sp])
 #define vm_peek(...) EXPAND(GET_MACRO(__VA_ARGS__, vm_peek_offset, vm_peek_default,)(__VA_ARGS__))
 
-#define VM_PEEK(vm, offset) vm_peek(vm, offset)
+// #define VM_PEEK(vm, offset) vm_peek(vm, offset)
 // #define vm_peek(vm) ((vm)->stack[(vm)->sp])
 
-#define vm_peekint(vm, offset) (YASL_GETINT(VM_PEEK(vm, offset)))
-#define vm_peekstr(vm, offset) (YASL_GETSTR(VM_PEEK(vm, offset)))
-#define vm_peeklist(vm, offset) (YASL_GETLIST(VM_PEEK(vm, offset)))
-#define vm_peektable(vm, offset) (YASL_GETTABLE(VM_PEEK(vm, offset)))
-#define vm_peekcfn(vm, offset) (YASL_GETCFN(VM_PEEK(vm, offset)))
+#define vm_peekint(vm, offset) (YASL_GETINT(vm_peek(vm, offset)))
+#define vm_peekstr(vm, offset) (YASL_GETSTR(vm_peek(vm, offset)))
+#define vm_peeklist(vm, offset) (YASL_GETLIST(vm_peek(vm, offset)))
+#define vm_peektable(vm, offset) (YASL_GETTABLE(vm_peek(vm, offset)))
+#define vm_peekcfn(vm, offset) (YASL_GETCFN(vm_peek(vm, offset)))
 
 #define vm_isend(vm) (YASL_ISEND(vm_peek(vm)))
 #define vm_isundef(vm) (YASL_ISUNDEF(vm_peek(vm)))

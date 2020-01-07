@@ -456,13 +456,13 @@ static int vm_CNCT(struct VM *vm) {
 }
 
 int vm_stringify_top(struct VM *vm) {
-	enum YASL_Types index = VM_PEEK(vm, vm->sp).type;
-	if (YASL_ISFN(VM_PEEK(vm, vm->sp)) || YASL_ISCFN(VM_PEEK(vm, vm->sp))) {
+	enum YASL_Types index = vm_peek(vm, vm->sp).type;
+	if (YASL_ISFN(vm_peek(vm, vm->sp)) || YASL_ISCFN(vm_peek(vm, vm->sp))) {
 		size_t n = (size_t)snprintf(NULL, 0, "<fn: %d>", (int)YASL_GETINT(vm_peek(vm))) + 1;
 		char *buffer = (char *)malloc(n);
 		snprintf(buffer, n, "<fn: %d>", (int)vm_pop(vm).value.ival);
 		vm_pushstr(vm, YASL_String_new_sized_heap(0, strlen(buffer), buffer));
-	} else if (YASL_ISUSERDATA(VM_PEEK(vm, vm->sp))) {
+	} else if (YASL_ISUSERDATA(vm_peek(vm, vm->sp))) {
 		struct YASL_Object key = YASL_STR(YASL_String_new_sized(strlen("tostr"), "tostr"));
 		struct YASL_Object result = YASL_Table_search(vm_peek(vm).value.uval->mt, key);
 		str_del(YASL_GETSTR(key));
@@ -481,10 +481,10 @@ int vm_stringify_top(struct VM *vm) {
 }
 
 static int vm_SLICE(struct VM *vm) {
-	if (!vm_isint(vm) || !YASL_ISINT(VM_PEEK(vm, vm->sp - 1))) {
+	if (!vm_isint(vm) || !YASL_ISINT(vm_peek(vm, vm->sp - 1))) {
 		vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
-				      YASL_TYPE_NAMES[VM_PEEK(vm, vm->sp - 1).type],
-				      YASL_TYPE_NAMES[VM_PEEK(vm, vm->sp).type]
+				      YASL_TYPE_NAMES[vm_peek(vm, vm->sp - 1).type],
+				      YASL_TYPE_NAMES[vm_peek(vm, vm->sp).type]
 		);
 		return YASL_TYPE_ERROR;
 	}
@@ -553,7 +553,7 @@ static int vm_GET(struct VM *vm) {
 		if (!table___get((struct YASL_State *) vm)) {
 			return YASL_SUCCESS;
 		}
-	} else if (vm_isstr(vm) && YASL_ISINT(VM_PEEK(vm, vm->sp + 1))) {
+	} else if (vm_isstr(vm) && YASL_ISINT(vm_peek(vm, vm->sp + 1))) {
 		vm->sp++;
 		if (!str___get((struct YASL_State *) vm)) {
 			return YASL_SUCCESS;
@@ -627,7 +627,7 @@ static int vm_NEWSTR(struct VM *vm) {
 }
 
 static int vm_ITER_1(struct VM *vm) {
-	switch (VM_PEEK(vm, vm->lp).type) {
+	switch (vm_peek(vm, vm->lp).type) {
 	case Y_LIST:
 		if ((yasl_int)vm_peeklist(vm, vm->lp)->count <= vm_peekint(vm, vm->lp + 1)) {
 			vm_pushbool(vm, 0);
@@ -1080,13 +1080,13 @@ int vm_run(struct VM *vm) {
 			break;
 		case LLOAD_1:
 			offset = NCODE(vm);
-			vm_push(vm, VM_PEEK(vm, vm->fp + offset + 4));
+			vm_push(vm, vm_peek(vm, vm->fp + offset + 4));
 			break;
 		case LSTORE_1:
 			offset = NCODE(vm);
-			dec_ref(&VM_PEEK(vm, vm->fp + offset + 4));
-			VM_PEEK(vm, vm->fp + offset + 4) = vm_pop(vm);
-			inc_ref(&VM_PEEK(vm, vm->fp + offset + 4));
+			dec_ref(&vm_peek(vm, vm->fp + offset + 4));
+			vm_peek(vm, vm->fp + offset + 4) = vm_pop(vm);
+			inc_ref(&vm_peek(vm, vm->fp + offset + 4));
 			break;
 		case INIT_MC:
 			if ((res = vm_INIT_MC(vm))) return res;
