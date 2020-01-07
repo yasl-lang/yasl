@@ -21,10 +21,9 @@
 #define vm_peek_default(vm) ((vm)->stack[(vm)->sp])
 #define vm_peek(...) EXPAND(GET_MACRO(__VA_ARGS__, vm_peek_offset, vm_peek_default,)(__VA_ARGS__))
 
-// #define VM_PEEK(vm, offset) vm_peek(vm, offset)
-// #define vm_peek(vm) ((vm)->stack[(vm)->sp])
-
-#define vm_peekint(vm, offset) (YASL_GETINT(vm_peek(vm, offset)))
+#define vm_peekbool(...) EXPAND(YASL_GETBOOL(vm_peek(__VA_ARGS__)))
+#define vm_peekfloat(...) EXPAND(YASL_GETFLOAT(vm_peek(__VA_ARGS__)))
+#define vm_peekint(...) EXPAND(YASL_GETINT(vm_peek(__VA_ARGS__)))
 #define vm_peekstr(vm, offset) (YASL_GETSTR(vm_peek(vm, offset)))
 #define vm_peeklist(vm, offset) (YASL_GETLIST(vm_peek(vm, offset)))
 #define vm_peektable(vm, offset) (YASL_GETTABLE(vm_peek(vm, offset)))
@@ -39,6 +38,7 @@
 #define vm_istable(vm) (YASL_ISTABLE(vm_peek(vm)))
 #define vm_islist(vm) (YASL_ISLIST(vm_peek(vm)))
 #define vm_isuserdata(vm) (YASL_ISUSERDATA(vm_peek(vm)))
+#define vm_isuserptr(vm) (YASL_ISUSERPTR(vm_peek(vm)))
 
 #define BUFFER_SIZE 256
 #define NCODE(vm)    (*((vm)->pc++))     // get next bytecode
@@ -118,6 +118,7 @@ void vm_cleanup(struct VM *vm);
 int vm_stringify_top(struct VM *vm);
 
 struct YASL_Object vm_pop(struct VM *const vm);
+bool vm_popbool(struct VM *const vm);
 yasl_float vm_popfloat(struct VM *const vm);
 yasl_int vm_popint(struct VM *const vm);
 struct YASL_String *vm_popstr(struct VM *const vm);

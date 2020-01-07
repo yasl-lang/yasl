@@ -164,6 +164,9 @@ void vm_pushbool(struct VM *const vm, bool b) {
 struct YASL_Object vm_pop(struct VM *const vm) {
 	return vm->stack[vm->sp--];
 }
+bool vm_popbool(struct VM *const vm) {
+	return (bool)YASL_GETBOOL(vm_pop(vm));
+}
 
 yasl_float vm_popfloat(struct VM *const vm) {
 	return YASL_GETFLOAT(vm_pop(vm));
@@ -905,7 +908,7 @@ int vm_run(struct VM *vm) {
 			if ((res = vm_fdiv(vm))) return res;   // handled differently because we always convert to float
 			break;
 		case IDIV:
-			if (vm_isint(vm) && YASL_GETINT(vm_peek(vm)) == 0) {
+			if (vm_isint(vm) && vm_peekint(vm) == 0) {
 				vm_print_err_divide_by_zero(vm);
 				return YASL_DIVIDE_BY_ZERO_ERROR;
 				break;
@@ -914,7 +917,7 @@ int vm_run(struct VM *vm) {
 			break;
 		case MOD:
 			// TODO: handle undefined C behaviour for negative numbers.
-			if (vm_isint(vm) && YASL_GETINT(vm_peek(vm)) == 0) {
+			if (vm_isint(vm) && vm_peekint(vm) == 0) {
 				vm_print_err_divide_by_zero(vm);
 				return YASL_DIVIDE_BY_ZERO_ERROR;
 				break;
