@@ -634,7 +634,11 @@ static void YASLKeywords(struct Lexer *lex) {
 	 *  return
 	 */
 
-	if (matches_keyword(lex, "match")) {
+	if (matches_keyword(lex, "header")) {
+		lex_print_err_syntax(lex,  "header is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
+		lex_error(lex);
+		return;
+	} else if (matches_keyword(lex, "match")) {
 		lex_print_err_syntax(lex,  "match is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
 		lex_error(lex);
 		return;
