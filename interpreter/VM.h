@@ -15,10 +15,10 @@
 #define NUM_TYPES 13                                     // number of builtin types, each needs a vtable
 
 #define GET_MACRO(_1, _2, NAME, ...) NAME
-
+#define EXPAND(x) x
 #define vm_peek_offset(vm, offset) ((vm)->stack[offset])
 #define vm_peek_default(vm) ((vm)->stack[(vm)->sp])
-#define vm_peek(...) GET_MACRO(__VA_ARGS__, vm_peek_offset, vm_peek_default,)(__VA_ARGS__)
+#define vm_peek(...) EXPAND(GET_MACRO(__VA_ARGS__, vm_peek_offset, vm_peek_default,)(__VA_ARGS__))
 
 #define VM_PEEK(vm, offset) vm_peek(vm, offset)
 // #define vm_peek(vm) ((vm)->stack[(vm)->sp])
