@@ -93,7 +93,6 @@ struct Node {
 
 struct Node {
 	enum NodeType nodetype;
-	// enum Token type;
 	size_t line;
 	union {
 		struct {
