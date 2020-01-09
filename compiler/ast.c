@@ -9,13 +9,18 @@ struct Node *node_clone(const struct Node *const node) {
 	if (node == NULL) return NULL;
 	struct Node *clone = (struct Node *)malloc(sizeof(struct Node) + node->children_len * sizeof(struct Node *));
 	clone->nodetype = node->nodetype;
-	clone->type = node->type;
+	// clone->type = node->type;
 	clone->children_len = node->children_len;
 	for (size_t i = 0; i < clone->children_len; i++) {
 		clone->children[i] = node_clone(node->children[i]);
 	}
 
 	switch (node->nodetype) {
+	case N_BINOP:
+	case N_UNOP:
+	case N_TRIOP:
+		clone->value.type = node->value.type;
+		break;
 	case N_INT:
 	case N_BOOL:
 	case N_FLOAT: clone->value.ival = node->value.ival;
@@ -29,14 +34,18 @@ struct Node *node_clone(const struct Node *const node) {
 	return clone;
 }
 
-static struct Node *new_Node(const AST nodetype, const enum Token type, const size_t line, const size_t name_len,
+static struct Node *new_Node(const enum NodeType nodetype, const enum Token type, const size_t line, const size_t name_len,
 		char *const name /* OWN */, const size_t n, ... /* OWN */) {
 	struct Node *const node = (struct Node *)malloc(sizeof(struct Node) + sizeof(struct Node *) * n);
 	node->nodetype = nodetype;
-	node->type = type;
 	node->children_len = n;
-	node->value.sval.str_len = name_len;
-	node->value.sval.str = name;
+	if (type == T_UNKNOWN) {
+		node->value.sval.str_len = name_len;
+		node->value.sval.str = name;
+	} else {
+		node->value.type = type;
+	}
+
 	node->line = line;
 	va_list children;
 	va_start(children, n);
@@ -208,6 +217,9 @@ void node_del(struct Node *node) {
 			node_del(node->children[node->children_len]);
 	}
 	switch (node->nodetype) {
+	case N_BINOP:
+	case N_UNOP:
+	case N_TRIOP:
 	case N_BOOL:
 	case N_INT:
 	case N_FLOAT:

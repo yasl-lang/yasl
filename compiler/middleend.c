@@ -107,7 +107,7 @@ static void fold_BinOp(struct Node *const node) {
 	struct Node *left = node->children[0];
 	struct Node *right = node->children[1];
 	if (left->nodetype == N_INT && right->nodetype == N_INT) {
-		switch (node->type) {
+		switch (node->value.type) {
 		case T_BAR:
 			FOLD_BINOP_INT_INT(left, right, |, int);
 			break;
@@ -179,7 +179,7 @@ static void fold_BinOp(struct Node *const node) {
 			break;
 		}
 	} else if (left->nodetype == N_FLOAT && right->nodetype == N_FLOAT) {
-		switch (node->type) {
+		switch (node->value.type) {
 		case T_DEQ:
 		case T_TEQ:
 			FOLD_BINOP_FLOAT_FLOAT(left, right, ==, bool);
@@ -221,7 +221,7 @@ static void fold_BinOp(struct Node *const node) {
 			break;
 		}
 	} else if (left->nodetype == N_FLOAT && right->nodetype == N_INT) {
-		switch (node->type) {
+		switch (node->value.type) {
 		case T_DEQ:
 		case T_TEQ:
 			FOLD_BINOP_FLOAT_INT(left, right, ==, bool);
@@ -263,7 +263,7 @@ static void fold_BinOp(struct Node *const node) {
 			break;
 		}
 	} else if (left->nodetype == N_INT && right->nodetype == N_FLOAT) {
-		switch (node->type) {
+		switch (node->value.type) {
 		case T_DEQ:
 		case T_TEQ:
 			FOLD_BINOP_INT_FLOAT(left, right, ==, bool);
@@ -312,7 +312,7 @@ void fold_UnOp(struct Node *const node) {
 	struct Node *expr = UnOp_get_expr(node);
 	switch (expr->nodetype) {
 	case N_INT:
-		switch (node->type) {
+		switch (node->value.type) {
 		case T_PLUS:
 			make_int(node, +expr->value.ival);
 			node_del(expr);
@@ -334,7 +334,7 @@ void fold_UnOp(struct Node *const node) {
 		}
 		break;
 	case N_BOOL:
-		switch (node->type) {
+		switch (node->value.type) {
 		case T_BANG:
 			make_bool(node, !expr->value.ival);
 			node_del(expr);
@@ -344,7 +344,7 @@ void fold_UnOp(struct Node *const node) {
 		}
 		break;
 	case N_FLOAT:
-		switch (node->type) {
+		switch (node->value.type) {
 		case T_PLUS:
 			make_float(node, +expr->value.dval);
 			node_del(expr);

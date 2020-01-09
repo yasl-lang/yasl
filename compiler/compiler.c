@@ -790,7 +790,7 @@ static void visit_TriOp(struct Compiler *const compiler, const struct Node *cons
 
 static void visit_BinOp(struct Compiler *const compiler, const struct Node *const node) {
 	// complicated bin ops are handled on their own.
-	if (node->type == T_DQMARK) {     // ?? operator
+	if (node->value.type == T_DQMARK) {     // ?? operator
 		visit(compiler, node->children[0]);
 		YASL_ByteBuffer_add_byte(compiler->buffer, DUP);
 		YASL_ByteBuffer_add_byte(compiler->buffer, BRN_8);
@@ -800,7 +800,7 @@ static void visit_BinOp(struct Compiler *const compiler, const struct Node *cons
 		visit(compiler, node->children[1]);
 		YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, index, compiler->buffer->count - index - 8);
 		return;
-	} else if (node->type == T_DBAR) {  // or operator
+	} else if (node->value.type == T_DBAR) {  // or operator
 		visit(compiler, node->children[0]);
 		YASL_ByteBuffer_add_byte(compiler->buffer, DUP);
 		YASL_ByteBuffer_add_byte(compiler->buffer, BRT_8);
@@ -810,7 +810,7 @@ static void visit_BinOp(struct Compiler *const compiler, const struct Node *cons
 		visit(compiler, node->children[1]);
 		YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, index, compiler->buffer->count - index - 8);
 		return;
-	} else if (node->type == T_DAMP) {   // and operator
+	} else if (node->value.type == T_DAMP) {   // and operator
 		visit(compiler, node->children[0]);
 		YASL_ByteBuffer_add_byte(compiler->buffer, DUP);
 
@@ -825,7 +825,7 @@ static void visit_BinOp(struct Compiler *const compiler, const struct Node *cons
 	// all other operators follow the same pattern of visiting one child then the other.
 	visit(compiler, node->children[0]);
 	visit(compiler, node->children[1]);
-	switch (node->type) {
+	switch (node->value.type) {
 	case T_BAR: YASL_ByteBuffer_add_byte(compiler->buffer, BOR);
 		break;
 	case T_CARET: YASL_ByteBuffer_add_byte(compiler->buffer, BXOR);
@@ -882,7 +882,7 @@ static void visit_BinOp(struct Compiler *const compiler, const struct Node *cons
 
 static void visit_UnOp(struct Compiler *const compiler, const struct Node *const node) {
 	visit(compiler, UnOp_get_expr(node));
-	switch (node->type) {
+	switch (node->value.type) {
 	case T_PLUS: YASL_ByteBuffer_add_byte(compiler->buffer, POS);
 		break;
 	case T_MINUS: YASL_ByteBuffer_add_byte(compiler->buffer, NEG);
@@ -1003,45 +1003,113 @@ static void visit_Table(struct Compiler *const compiler, const struct Node *cons
 	make_new_collection(compiler, Table_get_values(node), NEWTABLE);
 }
 
-// NOTE: _MUST_ keep this synced with the enum in ast.h, and the jumptable in middleend.c
-static void (*jumptable[])(struct Compiler *const, const struct Node *const) = {
-	&visit_ExprStmt,
-	&visit_Block,
-	&visit_Body,
-	&visit_FunctionDecl,
-	&visit_Return,
-	&visit_Export,
-	&visit_Call,
-	&visit_MethodCall,
-	&visit_Set,
-	&visit_Get,
-	&visit_Slice,
-	NULL,
-	&visit_ListComp,
-	&visit_TableComp,
-	&visit_ForIter,
-	&visit_While,
-	&visit_Break,
-	&visit_Continue,
-	&visit_If,
-	&visit_Print,
-	&visit_Let,
-	&visit_Const,
-	&visit_Decl,
-	&visit_TriOp,
-	&visit_BinOp,
-	&visit_UnOp,
-	&visit_Assign,
-	&visit_Var,
-	&visit_Undef,
-	&visit_Float,
-	&visit_Integer,
-	&visit_Boolean,
-	&visit_String,
-	&visit_List,
-	&visit_Table
-};
-
 static void visit(struct Compiler *const compiler, const struct Node *const node) {
-	jumptable[node->nodetype](compiler, node);
+	switch (node->nodetype) {
+	case N_EXPRSTMT:
+		visit_ExprStmt(compiler, node);
+		break;
+	case N_BLOCK:
+		visit_Block(compiler, node);
+		break;
+	case N_BODY:
+		visit_Body(compiler, node);
+		break;
+	case N_FNDECL:
+		visit_FunctionDecl(compiler, node);
+		break;
+	case N_RET:
+		visit_Return(compiler, node);
+		break;
+	case N_EXPORT:
+		visit_Export(compiler, node);
+		break;
+	case N_CALL:
+		visit_Call(compiler, node);
+		break;
+	case N_MCALL:
+		visit_MethodCall(compiler, node);
+		break;
+	case N_SET:
+		visit_Set(compiler, node);
+		break;
+	case N_GET:
+		visit_Get(compiler, node);
+		break;
+	case N_SLICE:
+		visit_Slice(compiler, node);
+		break;
+	case N_LETITER:
+		exit(1);
+		break;
+	case N_LISTCOMP:
+		visit_ListComp(compiler, node);
+		break;
+	case N_TABLECOMP:
+		visit_TableComp(compiler, node);
+		break;
+	case N_FORITER:
+		visit_ForIter(compiler, node);
+		break;
+	case N_WHILE:
+		visit_While(compiler, node);
+		break;
+	case N_BREAK:
+		visit_Break(compiler, node);
+		break;
+	case N_CONT:
+		visit_Continue(compiler, node);
+		break;
+	case N_IF:
+		visit_If(compiler, node);
+		break;
+	case N_PRINT:
+		visit_Print(compiler, node);
+		break;
+	case N_LET:
+		visit_Let(compiler, node);
+		break;
+	case N_CONST:
+		visit_Const(compiler, node);
+		break;
+	case N_DECL:
+		visit_Decl(compiler, node);
+		break;
+	case N_TRIOP:
+		visit_TriOp(compiler, node);
+		break;
+	case N_BINOP:
+		visit_BinOp(compiler, node);
+		break;
+	case N_UNOP:
+		visit_UnOp(compiler, node);
+		break;
+	case N_ASSIGN:
+		visit_Assign(compiler, node);
+		break;
+	case N_LIST:
+		visit_List(compiler, node);
+		break;
+	case N_TABLE:
+		visit_Table(compiler, node);
+		break;
+	case N_VAR:
+		visit_Var(compiler, node);
+		break;
+	case N_UNDEF:
+		visit_Undef(compiler, node);
+		break;
+	case N_FLOAT:
+		visit_Float(compiler, node);
+		break;
+	case N_INT:
+		visit_Integer(compiler, node);
+		break;
+	case N_BOOL:
+		visit_Boolean(compiler, node);
+		break;
+	case N_STR:
+		visit_String(compiler, node);
+		break;
+	}
+	//jumptable[node->nodetype](compiler, node);
 }

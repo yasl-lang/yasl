@@ -325,7 +325,7 @@ bool YASL_top_istable(struct YASL_State *S) {
 }
 
 bool YASL_top_isuserdata(struct YASL_State *S, int tag) {
-	return vm_isuserdata(&S->vm) && vm_peek(&S->vm).value.uval->tag == tag;
+	return vm_isuserdata(&S->vm) && YASL_GETUSERDATA(vm_peek(&S->vm))->tag == tag;
 }
 
 bool YASL_top_isuserpointer(struct YASL_State *S) {

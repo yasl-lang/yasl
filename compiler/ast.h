@@ -7,7 +7,7 @@
 #include "yasl_conf.h"
 
 // NOTE: _MUST_ keep this up to date with the jumptable in compiler.c and the jumptable in middleend.c
-typedef enum NodeType {
+enum NodeType {
 	N_EXPRSTMT,
 	N_BLOCK,
 	N_BODY,
@@ -43,11 +43,57 @@ typedef enum NodeType {
 	N_STR,
 	N_LIST,
 	N_TABLE
-} AST;
+};
+
+struct BinOpNode {
+	enum Token op;
+	struct Node *left;
+	struct Node *right;
+};
+
+struct UnOpNode {
+	enum Token op;
+	struct Node *expr;
+	struct Node *left;
+	struct Node *right;
+};
+
+struct TriOpNode {
+	struct Node *cond;
+};
+
+struct Node1 {
+	struct Node *child;
+};
+
+struct Node2 {
+	struct Node *children[2];
+};
+
+struct Node3 {
+	struct Node *children[3];
+};
+
+struct BodyNode {
+	size_t num_children;
+	struct Node *children[];
+};
+
+/*
+struct Node {
+	enum NodeType tag;
+	void (*visit)(struct Compiler *compiler, struct Node *node);
+	union {
+		struct UnOpNode unop;
+		struct BinOpNode binop;
+		struct TriOpNode triop;
+	} val;
+};
+*/
 
 struct Node {
-	AST nodetype;
-	enum Token type;
+	enum NodeType nodetype;
+	// enum Token type;
 	size_t line;
 	union {
 		struct {
@@ -56,7 +102,9 @@ struct Node {
 		} sval;
 		yasl_int ival;
 		yasl_float dval;
+		enum Token type;
 	} value;
+	// void (*visit)(struct Compiler *compiler, struct Node *node);
 	size_t children_len;
 	struct Node *children[];
 };
