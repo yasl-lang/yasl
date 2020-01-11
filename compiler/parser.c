@@ -196,7 +196,9 @@ static struct Node *parse_function_params(struct Parser *const parser) {
 	struct Node *block = new_Body(parser->lex.line);
 	while (TOKEN_MATCHES(parser, T_ID, T_CONST)) {
 		if (TOKEN_MATCHES(parser, T_ID)) {
-			body_append(&block, parse_id(parser));
+			struct Node *cur_node = parse_id(parser);
+			cur_node->nodetype = N_LET;
+			body_append(&block, cur_node);
 		} else {
 			eattok(parser, T_CONST);
 			struct Node *cur_node = parse_id(parser);
