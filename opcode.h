@@ -22,6 +22,11 @@ enum Opcode {
 	O_DCONST_N = 0x1E, // push nan onto stack
 	O_DCONST_I = 0x1F, // push inf onto stack
 
+	O_ICONST_B1 = 0x20,
+	O_ICONST_B2 = 0x21, // TODO
+	O_ICONST_B4 = 0x22, // TODO
+	O_ICONST_B8 = 0x23, // synonym for O_ICONST
+
 	O_BOR = 0x40, // bitwise or
 	O_BXOR = 0x41, // bitwise xor
 	O_BAND = 0x42, // bitwise and

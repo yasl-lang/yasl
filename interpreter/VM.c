@@ -863,6 +863,9 @@ int vm_run(struct VM *vm) {
 			c = vm_read_int(vm);
 			vm_pushint(vm, c);
 			break;
+		case O_ICONST_B1:
+			vm_pushint(vm, (signed char)NCODE(vm));
+			break;
 		case O_BCONST_F:
 		case O_BCONST_T:
 			vm_pushbool(vm, opcode & 0x01);

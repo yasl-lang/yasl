@@ -986,8 +986,14 @@ static void visit_Integer(struct Compiler *const compiler, const struct Node *co
 		break;
 	case 5: YASL_ByteBuffer_add_byte(compiler->buffer, O_ICONST_5);
 		break;
-	default: YASL_ByteBuffer_add_byte(compiler->buffer, O_ICONST);
-		YASL_ByteBuffer_add_int(compiler->buffer, val);
+	default:
+		if (-128 < val && val < 128) {
+			YASL_ByteBuffer_add_byte(compiler->buffer, O_ICONST_B1);
+			YASL_ByteBuffer_add_byte(compiler->buffer, val);
+		} else {
+			YASL_ByteBuffer_add_byte(compiler->buffer, O_ICONST);
+			YASL_ByteBuffer_add_int(compiler->buffer, val);
+		}
 		break;
 	}
 }
