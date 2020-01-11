@@ -93,7 +93,6 @@ struct Node {
 
 struct Node {
 	enum NodeType nodetype;
-	size_t line;
 	union {
 		struct {
 			char *str;
@@ -105,6 +104,7 @@ struct Node {
 		struct UnOpNode unop;
 		struct BinOpNode binop;
 	} value;
+	size_t line;
 	// void (*visit)(struct Compiler *compiler, struct Node *node);
 	size_t children_len;
 	struct Node *children[];
@@ -163,6 +163,12 @@ struct Node *ListComp_get_cond(const struct Node *const node);
 struct Node *TableComp_get_cond(const struct Node *const node);
 struct Node *LetIter_get_var(const struct Node *const node);
 struct Node *LetIter_get_collection(const struct Node *const node);
+const char *String_get_str(const struct Node *const node);
+size_t String_get_len(const struct Node *const node);
+yasl_int Integer_get_int(const struct Node *const node);
+yasl_float Float_get_float(const struct Node *const node);
+bool Boolean_get_bool(const struct Node *const node);
+const char *Var_get_name(const struct Node *const node);
 
 struct Node *new_ExprStmt(const struct Node *const child, const size_t line);
 struct Node *new_Block(const struct Node *const body, const size_t line);

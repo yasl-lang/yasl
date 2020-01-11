@@ -779,7 +779,7 @@ static void declare_with_let_or_const(struct Compiler *const compiler, const str
 
 	decl_var(compiler, node->value.sval.str, node->line);
 
-	if (Let_get_expr(node) != NULL) visit(compiler, Let_get_expr(node));
+	if (Let_get_expr(node)) visit(compiler, Let_get_expr(node));
 	else YASL_ByteBuffer_add_byte(compiler->buffer, NCONST);
 
 	store_var(compiler, node->value.sval.str, node->line);
@@ -952,7 +952,7 @@ static void visit_Undef(struct Compiler *const compiler, const struct Node *cons
 }
 
 static void visit_Float(struct Compiler *const compiler, const struct Node *const node) {
-	yasl_float val = node->value.dval;
+	yasl_float val = Float_get_float(node);
 	if (val == 0.0) {
 		YASL_ByteBuffer_add_byte(compiler->buffer, DCONST_0);
 	} else if (val == 1.0) {
@@ -971,7 +971,7 @@ static void visit_Float(struct Compiler *const compiler, const struct Node *cons
 
 static void visit_Integer(struct Compiler *const compiler, const struct Node *const node) {
 	YASL_COMPILE_DEBUG_LOG("int64: %" PRId64 "\n", node->value.ival);
-	yasl_int val = node->value.ival;
+	yasl_int val = Integer_get_int(node);
 	switch (val) {
 	case -1: YASL_ByteBuffer_add_byte(compiler->buffer, ICONST_M1);
 		break;
@@ -994,7 +994,7 @@ static void visit_Integer(struct Compiler *const compiler, const struct Node *co
 }
 
 static void visit_Boolean(struct Compiler *const compiler, const struct Node *const node) {
-	YASL_ByteBuffer_add_byte(compiler->buffer, node->value.ival ? BCONST_T : BCONST_F);
+	YASL_ByteBuffer_add_byte(compiler->buffer, Boolean_get_bool(node) ? BCONST_T : BCONST_F);
 }
 
 static void visit_String(struct Compiler *const compiler, const struct Node *const node) {

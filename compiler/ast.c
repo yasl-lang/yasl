@@ -453,3 +453,23 @@ struct Node *LetIter_get_collection(const struct Node *const node) {
 struct Node *LetIter_get_var(const struct Node *const node) {
 	return node->children[0];
 }
+
+yasl_float Float_get_float(const struct Node *const node) {
+	YASL_ASSERT(node->nodetype == N_FLOAT, "Expected Float");
+	return node->value.dval;
+}
+
+yasl_int Integer_get_int(const struct Node *const node) {
+	YASL_ASSERT(node->nodetype == N_INT, "Expected Integer");
+	return node->value.ival;
+}
+
+bool Boolean_get_bool(const struct Node *const node) {
+	YASL_ASSERT(node->nodetype == N_BOOL, "Expected Boolean");
+	return (bool)node->value.ival;
+}
+
+const char *Var_get_name(const struct Node *const node) {
+	YASL_ASSERT(node->nodetype == N_VAR, "Expected Var");
+	return node->value.sval.str;
+}
