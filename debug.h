@@ -24,9 +24,9 @@ enum LogLevel {
 #define YASL_VM_DEBUG_LOG(str, ...) do { if ((LOGLEVEL) & D_VM) printf(K_CYN str K_END, __VA_ARGS__); } while(0)
 #define YASL_RC_DEBUG_LOG(str, ...) do { if ((LOGLEVEL) & D_RC) printf(K_MAG str K_END, __VA_ARGS__); } while(0)
 
-//#define YASL_DEBUG
+#define YASL_DEBUG
 #ifdef YASL_DEBUG
-#define YASL_ASSERT(expr, msg) do { if (!(expr)) { puts(msg " (line " __LINE__ ".)"); exit(EXIT_FAILURE); } } while(0)
+#define YASL_ASSERT(expr, msg) do { if (!(expr)) { puts(msg /*" (line " __LINE__ ".)"*/); exit(EXIT_FAILURE); } } while(0)
 #else
 #define YASL_ASSERT(expr, msg)
 #endif

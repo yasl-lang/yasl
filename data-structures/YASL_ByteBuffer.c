@@ -45,6 +45,6 @@ void YASL_ByteBuffer_add_int(struct YASL_ByteBuffer *const bb, const yasl_int va
 
 
 void YASL_ByteBuffer_rewrite_int_fast(struct YASL_ByteBuffer *const bb, const size_t index, const yasl_int value) {
-	YASL_ASSERT(bb->size < index + sizeof(yasl_int), "index is out of range.");
+	YASL_ASSERT(bb->count >= index + sizeof(yasl_int), "index is out of range.");
 	memcpy(bb->bytes + index, &value, sizeof(yasl_int));
 }

@@ -437,7 +437,7 @@ struct RC_UserData *string_split_default(struct YASL_String *haystack) {
 
 // Caller makes sure needle is not 0 length
 struct RC_UserData *YASL_String_split_fast(struct YASL_String *haystack, struct YASL_String *needle) {
-	YASL_ASSERT(YASL_String_len(needle) != 0, "needle must have non-zero length")
+	YASL_ASSERT(YASL_String_len(needle) != 0, "needle must have non-zero length");
 	int64_t end = 0, start = 0;
 	struct RC_UserData *result = rcls_new();
 	while (end + YASL_String_len(needle) <= YASL_String_len(haystack)) {

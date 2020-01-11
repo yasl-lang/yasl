@@ -21,7 +21,7 @@ void fold_Call(struct Node *const node) {
 
 void fold_MethodCall(struct Node *const node) {
 	fold(node->children[1]);
-	fold_Body(node->children[0]);
+	fold_Body(Call_get_params(node));
 }
 
 void fold_Set(struct Node *const node) {
@@ -102,10 +102,10 @@ node_del(left);\
 node_del(right);
 
 static void fold_BinOp(struct Node *const node) {
-	fold(node->children[0]);
-	fold(node->children[1]);
-	struct Node *left = node->children[0];
-	struct Node *right = node->children[1];
+	fold(BinOp_get_left(node));
+	fold(BinOp_get_right(node));
+	struct Node *left = BinOp_get_left(node);
+	struct Node *right = BinOp_get_right(node);
 	if (left->nodetype == N_INT && right->nodetype == N_INT) {
 		switch (node->value.type) {
 		case T_BAR:

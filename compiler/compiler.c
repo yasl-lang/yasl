@@ -265,7 +265,8 @@ static int contains_var(const struct Compiler *const compiler, char *name, size_
 		env_contains_cur_scope(compiler->globals, name, name_len);
 }
 
-static void decl_var(struct Compiler *const compiler, char *name, size_t name_len, size_t line) {
+static void decl_var(struct Compiler *const compiler, const char *const name, const size_t line) {
+	const size_t name_len = strlen(name);
 	if (in_function(compiler)) {
 		int64_t index = env_decl_var(compiler->params, name, name_len);
 		if (index > 255) {
@@ -414,8 +415,7 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	enter_scope(compiler);
 
 	FOR_CHILDREN(i, child, FnDecl_get_params(node)) {
-		decl_var(compiler, child->value.sval.str,
-			 child->value.sval.str_len, child->line);
+		decl_var(compiler, child->value.sval.str, child->line);
 		if (child->nodetype == N_CONST) {
 			make_const(compiler, child->value.sval.str,
 				   child->value.sval.str_len);
@@ -451,7 +451,7 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 
 static void visit_Call(struct Compiler *const compiler, const struct Node *const node) {
 	YASL_COMPILE_DEBUG_LOG("Visit Call: %s\n", node->value.sval.str);
-	visit(compiler, node->children[1]);
+	visit(compiler, Call_get_object(node));
 	YASL_ByteBuffer_add_byte(compiler->buffer, INIT_CALL);
 	visit_Body(compiler, Call_get_params(node));
 	YASL_ByteBuffer_add_byte(compiler->buffer, CALL);
@@ -459,7 +459,7 @@ static void visit_Call(struct Compiler *const compiler, const struct Node *const
 
 static void visit_MethodCall(struct Compiler *const compiler, const struct Node *const node) {
 	YASL_COMPILE_DEBUG_LOG("Visit MethodCall: %s\n", node->value.sval.str);
-	visit(compiler, node->children[1]);
+	visit(compiler, Call_get_object(node));
 	enum SpecialStrings index = get_special_string(node);
 	if (index != S_UNKNOWN_STR) {
 		YASL_ByteBuffer_add_byte(compiler->buffer, INIT_MC_SPECIAL);
@@ -526,7 +526,8 @@ static void visit_Slice(struct Compiler *const compiler, const struct Node *cons
 
 static void visit_Block(struct Compiler *const compiler, const struct Node *const node) {
 	enter_scope(compiler);
-	visit(compiler, node->children[0]);
+	visit(compiler, Block_get_block(node));
+	// visit(compiler, node->children[0]);
 	exit_scope(compiler);
 }
 
@@ -538,13 +539,17 @@ static inline void branch_back(struct Compiler *const compiler, int64_t index) {
 static void visit_ListComp(struct Compiler *const compiler, const struct Node *const node) {
 	enter_scope(compiler);
 
-	visit(compiler, node->children[1]->children[1]);
+	struct Node *expr = ListComp_get_expr(node);
+	struct Node *iter = ListComp_get_iter(node);
+	struct Node *cond = ListComp_get_cond(node);
+
+	visit(compiler, iter->children[1]);
 
 	YASL_ByteBuffer_add_byte(compiler->buffer, INITFOR);
 
 	YASL_ByteBuffer_add_byte(compiler->buffer, END);
 
-	decl_var(compiler, node->children[1]->children[0]->value.sval.str, node->children[1]->children[0]->value.sval.str_len, node->children[1]->children[0]->line);
+	decl_var(compiler, iter->children[0]->value.sval.str, iter->children[0]->line);
 
 	int64_t index_start = compiler->buffer->count;
 
@@ -553,18 +558,18 @@ static void visit_ListComp(struct Compiler *const compiler, const struct Node *c
 	int64_t index_second;
 	enter_conditional_false(compiler, &index_second);
 
-	store_var(compiler, node->children[1]->children[0]->value.sval.str, node->children[1]->children[0]->value.sval.str_len, node->line);
+	store_var(compiler, iter->children[0]->value.sval.str, iter->children[0]->value.sval.str_len, node->line);
 
-	if (node->children[2]) {
+	if (cond) {
 		int64_t index_third;
-		visit(compiler, node->children[2]);
+		visit(compiler, cond);
 		enter_conditional_false(compiler, &index_third);
 
-		visit(compiler, ListComp_get_expr(node));
+		visit(compiler, expr);
 
 		exit_conditional_false(compiler, &index_third);
 	} else {
-		visit(compiler, ListComp_get_expr(node));
+		visit(compiler, expr);
 	}
 
 	branch_back(compiler, index_start);
@@ -580,12 +585,16 @@ static void visit_ListComp(struct Compiler *const compiler, const struct Node *c
 static void visit_TableComp(struct Compiler *const compiler, const struct Node *const node) {
 	enter_scope(compiler);
 
-	visit(compiler, node->children[1]->children[1]);
+	struct Node *expr = TableComp_get_key_value(node);
+	struct Node *iter = TableComp_get_iter(node);
+	struct Node *cond = TableComp_get_cond(node);
+
+	visit(compiler, iter->children[1]);
 
 	YASL_ByteBuffer_add_byte(compiler->buffer, INITFOR);
 	YASL_ByteBuffer_add_byte(compiler->buffer, END);
 
-	decl_var(compiler, node->children[1]->children[0]->value.sval.str, node->children[1]->children[0]->value.sval.str_len,  node->children[1]->children[0]->line);
+	decl_var(compiler, iter->children[0]->value.sval.str, iter->children[0]->line);
 
 	int64_t index_start = compiler->buffer->count;
 
@@ -594,20 +603,20 @@ static void visit_TableComp(struct Compiler *const compiler, const struct Node *
 	int64_t index_second;
 	enter_conditional_false(compiler, &index_second);
 
-	store_var(compiler, node->children[1]->children[0]->value.sval.str, node->children[1]->children[0]->value.sval.str_len, node->line);
+	store_var(compiler, iter->children[0]->value.sval.str, iter->children[0]->value.sval.str_len, node->line);
 
-	if (node->children[2]) {
+	if (cond) {
 		int64_t index_third;
-		visit(compiler, node->children[2]);
+		visit(compiler, cond);
 		enter_conditional_false(compiler, &index_third);
 
-		visit(compiler, TableComp_get_key_value(node)->children[0]);
-		visit(compiler, TableComp_get_key_value(node)->children[1]);
+		visit(compiler, expr->children[0]);
+		visit(compiler, expr->children[1]);
 
 		exit_conditional_false(compiler, &index_third);
 	} else {
-		visit(compiler, TableComp_get_key_value(node)->children[0]);
-		visit(compiler, TableComp_get_key_value(node)->children[1]);
+		visit(compiler, expr->children[0]);
+		visit(compiler, expr->children[1]);
 	}
 
 	branch_back(compiler, index_start);
@@ -627,7 +636,7 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 
 	YASL_ByteBuffer_add_byte(compiler->buffer, INITFOR);
 
-	decl_var(compiler, node->children[0]->children[0]->value.sval.str, node->children[0]->children[0]->value.sval.str_len, node->children[0]->children[0]->line);
+	decl_var(compiler, node->children[0]->children[0]->value.sval.str, node->children[0]->children[0]->line);
 
 	size_t index_start = compiler->buffer->count;
 	add_checkpoint(compiler, index_start);
@@ -747,7 +756,7 @@ static void declare_with_let_or_const(struct Compiler *const compiler, const str
 		return;
 	}
 
-	decl_var(compiler, node->value.sval.str, node->value.sval.str_len, node->line);
+	decl_var(compiler, node->value.sval.str, node->line);
 
 	if (Let_get_expr(node) != NULL) visit(compiler, Let_get_expr(node));
 	else YASL_ByteBuffer_add_byte(compiler->buffer, NCONST);
@@ -791,40 +800,40 @@ static void visit_TriOp(struct Compiler *const compiler, const struct Node *cons
 static void visit_BinOp(struct Compiler *const compiler, const struct Node *const node) {
 	// complicated bin ops are handled on their own.
 	if (node->value.type == T_DQMARK) {     // ?? operator
-		visit(compiler, node->children[0]);
+		visit(compiler, BinOp_get_left(node));
 		YASL_ByteBuffer_add_byte(compiler->buffer, DUP);
 		YASL_ByteBuffer_add_byte(compiler->buffer, BRN_8);
 		size_t index = compiler->buffer->count;
 		YASL_ByteBuffer_add_int(compiler->buffer, 0);
 		YASL_ByteBuffer_add_byte(compiler->buffer, POP);
-		visit(compiler, node->children[1]);
+		visit(compiler, BinOp_get_right(node));
 		YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, index, compiler->buffer->count - index - 8);
 		return;
 	} else if (node->value.type == T_DBAR) {  // or operator
-		visit(compiler, node->children[0]);
+		visit(compiler, BinOp_get_left(node));
 		YASL_ByteBuffer_add_byte(compiler->buffer, DUP);
 		YASL_ByteBuffer_add_byte(compiler->buffer, BRT_8);
 		size_t index = compiler->buffer->count;
 		YASL_ByteBuffer_add_int(compiler->buffer, 0);
 		YASL_ByteBuffer_add_byte(compiler->buffer, POP);
-		visit(compiler, node->children[1]);
+		visit(compiler, BinOp_get_right(node));
 		YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, index, compiler->buffer->count - index - 8);
 		return;
 	} else if (node->value.type == T_DAMP) {   // and operator
-		visit(compiler, node->children[0]);
+		visit(compiler, BinOp_get_left(node));
 		YASL_ByteBuffer_add_byte(compiler->buffer, DUP);
 
 		int64_t index;
 		enter_conditional_false(compiler, &index);
 
 		YASL_ByteBuffer_add_byte(compiler->buffer, POP);
-		visit(compiler, node->children[1]);
+		visit(compiler, BinOp_get_right(node));
 		exit_conditional_false(compiler, &index);
 		return;
 	}
 	// all other operators follow the same pattern of visiting one child then the other.
-	visit(compiler, node->children[0]);
-	visit(compiler, node->children[1]);
+	visit(compiler, BinOp_get_left(node));
+	visit(compiler, BinOp_get_right(node));
 	switch (node->value.type) {
 	case T_BAR: YASL_ByteBuffer_add_byte(compiler->buffer, BOR);
 		break;

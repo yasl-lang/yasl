@@ -168,21 +168,20 @@ struct Node *new_TriOp(enum Token op, struct Node *left, struct Node *middle, st
 struct Node *new_BinOp(enum Token op, struct Node *left, struct Node *right, const size_t line) {
 	struct Node *const node = (struct Node *)malloc(sizeof(struct Node) + sizeof(struct Node *) * 2);
 	node->nodetype = N_BINOP;
-	node->children_len = 2;
-	node->value.type = op;
+	node->children_len = 0;
+	node->value.binop = ((struct BinOpNode) { op, left, right });
 	node->line = line;
-	node->children[0] = left;
-	node->children[1] = right;
+	// node->children[0] = left;
+	// node->children[1] = right;
 	return node;
 }
 
 struct Node *new_UnOp(enum Token op, struct Node *child, const size_t line) {
 	struct Node *const node = (struct Node *)malloc(sizeof(struct Node) + sizeof(struct Node *) * 1);
 	node->nodetype = N_UNOP;
-	node->children_len = 1;
-	node->value.type = op;
+	node->children_len = 0;
+	node->value.unop = ((struct UnOpNode) { op, child });
 	node->line = line;
-	node->children[0] = child;
 	return node;
 }
 
@@ -246,4 +245,149 @@ void node_del(struct Node *node) {
 		free(node->value.sval.str);
 	}
 	free(node);
+}
+
+struct Node *Block_get_block(const struct Node *const node) {
+	YASL_ASSERT(node->nodetype == N_BLOCK, "Expected Block");
+	return node->children[0];
+}
+
+struct Node *Const_get_expr(const struct Node *const node) {
+	YASL_ASSERT(node->nodetype == N_CONST, "Expected Const");
+	return node->children[0];
+}
+
+struct Node *TableComp_get_key_value(const struct Node *const node) {
+	YASL_ASSERT(node->nodetype == N_TABLECOMP, "Expected TableComp");
+	return node->children[0];
+}
+
+struct Node *ListComp_get_expr(const struct Node *const node) {
+	return ((node)->children[0]);
+}
+
+struct Node *ForIter_get_body(const struct Node *const node) {
+	return ((node)->children[1]);
+}
+
+struct Node *While_get_cond(const struct Node *const node) {
+	return ((node)->children[0]);
+}
+
+struct Node *Table_get_values(const struct Node *const node) {
+	return ((node)->children[0]);
+}
+
+struct Node *While_get_body(const struct Node *const node) {
+	return ((node)->children[1]);
+}
+
+struct Node *Print_get_expr(const struct Node *const node) {
+	return ((node)->children[0]);
+}
+
+struct Node *Let_get_expr(const struct Node *const node) {
+	return ((node)->children[0]);
+}
+
+struct Node *List_get_values(const struct Node *const node) {
+	return ((node)->children[0]);
+}
+
+struct Node *ExprStmt_get_expr(const struct Node *const node) {
+	return ((node)->children[0]);
+}
+
+struct Node *FnDecl_get_params(const struct Node *const node) {
+	return ((node)->children[0]);
+}
+
+struct Node *FnDecl_get_body(const struct Node *const node) {
+	return ((node)->children[1]);
+}
+
+struct Node *Call_get_params(const struct Node *const node) {
+	return ((node)->children[0]);
+}
+
+struct Node *Call_get_object(const struct Node *const node) {
+	return ((node)->children[1]);
+}
+
+struct Node *Return_get_expr(const struct Node *const node) {
+	return ((node)->children[0]);
+}
+
+struct Node *Export_get_expr(const struct Node *const node) {
+	return ((node)->children[0]);
+}
+
+struct Node *Set_get_collection(const struct Node *const node) {
+	return ((node)->children[0]);
+}
+
+struct Node *Set_get_key(const struct Node *const node) {
+	return ((node)->children[1]);
+}
+
+struct Node *Set_get_value(const struct Node *const node) {
+	return ((node)->children[2]);
+}
+
+struct Node *Get_get_collection(const struct Node *const node) {
+	return ((node)->children[0]);
+}
+
+struct Node *Get_get_value(const struct Node *const node) {
+	return ((node)->children[1]);
+}
+
+struct Node *Slice_get_collection(const struct Node *const node) {
+	return ((node)->children[0]);
+}
+
+struct Node *Slice_get_start(const struct Node *const node) {
+	return ((node)->children[1]);
+}
+
+struct Node *Slice_get_end(const struct Node *const node) {
+	return ((node)->children[2]);
+}
+
+struct Node *UnOp_get_expr(const struct Node *const node) {
+	return ((node)->value.unop.expr);
+}
+
+struct Node *BinOp_get_left(const struct Node *const node) {
+	return ((node)->value.binop.left);
+}
+
+struct Node *BinOp_get_right(const struct Node *const node) {
+	return ((node)->value.binop.right);
+}
+
+struct Node *Assign_get_expr(const struct Node *const node) {
+	return ((node)->children[0]);
+}
+
+struct Node *ListComp_get_iter(const struct Node *const node) {
+	YASL_ASSERT(node->nodetype == N_LISTCOMP, "Expected ListComp");
+	return node->children[1];
+}
+
+struct Node *TableComp_get_iter(const struct Node *const node) {
+	YASL_ASSERT(node->nodetype == N_TABLECOMP, "Expected TableComp");
+	return node->children[1];
+}
+
+
+struct Node *ListComp_get_cond(const struct Node *const node) {
+	YASL_ASSERT(node->nodetype == N_LISTCOMP, "Expected ListComp");
+	return node->children[2];
+}
+
+
+struct Node *TableComp_get_cond(const struct Node *const node) {
+	YASL_ASSERT(node->nodetype == N_TABLECOMP, "Expected TableComp");
+	return node->children[2];
 }

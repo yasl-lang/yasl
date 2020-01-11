@@ -54,12 +54,12 @@ struct BinOpNode {
 struct UnOpNode {
 	enum Token op;
 	struct Node *expr;
-	struct Node *left;
-	struct Node *right;
 };
 
 struct TriOpNode {
-	struct Node *cond;
+	struct Node *left;
+	struct Node *middle;
+	struct Node *right;
 };
 
 struct Node1 {
@@ -102,6 +102,8 @@ struct Node {
 		yasl_int ival;
 		yasl_float dval;
 		enum Token type;
+		struct UnOpNode unop;
+		struct BinOpNode binop;
 	} value;
 	// void (*visit)(struct Compiler *compiler, struct Node *node);
 	size_t children_len;
@@ -115,34 +117,40 @@ struct Node *node_clone(const struct Node *const node);
 #define FOR_CHILDREN(i, child, node) struct Node *child;\
 for (size_t i = 0; i < (node)->children_len; i++ ) if (child = (node)->children[i], child != NULL)
 
-#define Const_get_expr(node) ((node)->children[0])
-#define TableComp_get_key_value(node) ((node)->children[0])
-#define ListComp_get_expr(node) ((node)->children[0])
-#define ForIter_get_body(node) ((node)->children[1])
-#define While_get_cond(node) ((node)->children[0])
-#define Table_get_values(node) ((node)->children[0])
-#define While_get_body(node) ((node)->children[1])
-#define Print_get_expr(node) ((node)->children[0])
-#define Let_get_expr(node) ((node)->children[0])
-#define List_get_values(node) ((node)->children[0])
-#define ExprStmt_get_expr(node) ((node)->children[0])
-#define FnDecl_get_params(node) ((node)->children[0])
-#define FnDecl_get_body(node) ((node)->children[1])
-#define Call_get_params(node) ((node)->children[0])
-#define Return_get_expr(node) ((node)->children[0])
-#define Export_get_expr(node) ((node)->children[0])
-#define Set_get_collection(node) ((node)->children[0])
-#define Set_get_key(node) ((node)->children[1])
-#define Set_get_value(node) ((node)->children[2])
-#define Get_get_collection(node) ((node)->children[0])
-#define Get_get_value(node) ((node)->children[1])
-#define Slice_get_collection(node) ((node)->children[0])
-#define Slice_get_start(node) ((node)->children[1])
-#define Slice_get_end(node) ((node)->children[2])
-#define UnOp_get_expr(node) ((node)->children[0])
-#define Assign_get_expr(node) ((node)->children[0])
-
-
+struct Node *Const_get_expr(const struct Node *const node);
+struct Node *Block_get_block(const struct Node *const node);
+struct Node *TableComp_get_key_value(const struct Node *const node);
+struct Node *ListComp_get_expr(const struct Node *const node);
+struct Node *ForIter_get_body(const struct Node *const node);
+struct Node *While_get_cond(const struct Node *const node);
+struct Node *Table_get_values(const struct Node *const node);
+struct Node *While_get_body(const struct Node *const node);
+struct Node *Print_get_expr(const struct Node *const node);
+struct Node *Let_get_expr(const struct Node *const node);
+struct Node *List_get_values(const struct Node *const node);
+struct Node *ExprStmt_get_expr(const struct Node *const node);
+struct Node *FnDecl_get_params(const struct Node *const node);
+struct Node *FnDecl_get_body(const struct Node *const node);
+struct Node *Call_get_params(const struct Node *const node);
+struct Node *Call_get_object(const struct Node *const node);
+struct Node *Return_get_expr(const struct Node *const node);
+struct Node *Export_get_expr(const struct Node *const node);
+struct Node *Set_get_collection(const struct Node *const node);
+struct Node *Set_get_key(const struct Node *const node);
+struct Node *Set_get_value(const struct Node *const node);
+struct Node *Get_get_collection(const struct Node *const node);
+struct Node *Get_get_value(const struct Node *const node);
+struct Node *Slice_get_collection(const struct Node *const node);
+struct Node *Slice_get_start(const struct Node *const node);
+struct Node *Slice_get_end(const struct Node *const node);
+struct Node *UnOp_get_expr(const struct Node *const node);
+struct Node *BinOp_get_left(const struct Node *const node);
+struct Node *BinOp_get_right(const struct Node *const node);
+struct Node *Assign_get_expr(const struct Node *const node);
+struct Node *ListComp_get_iter(const struct Node *const node);
+struct Node *TableComp_get_iter(const struct Node *const node);
+struct Node *ListComp_get_cond(const struct Node *const node);
+struct Node *TableComp_get_cond(const struct Node *const node);
 
 struct Node *new_ExprStmt(const struct Node *const child, const size_t line);
 struct Node *new_Block(const struct Node *const body, const size_t line);

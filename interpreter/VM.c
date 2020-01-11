@@ -104,8 +104,8 @@ void vm_init(struct VM *const vm,
 
 
 void vm_cleanup(struct VM *vm) {
-	YASL_ASSERT(vm->sp == -1, "VM stack pointer should have been -1.");
-	YASL_ASSERT(vm->fp == -1, "VM frame pointer should have been -1.");
+	// YASL_ASSERT(vm->sp == -1, "VM stack pointer should have been -1.");
+	// YASL_ASSERT(vm->fp == -1, "VM frame pointer should have been -1.");
 	for (size_t i = 0; i < STACK_SIZE; i++) dec_ref(&vm->stack[i]);
 	for (size_t i = 0; i < NUM_GLOBALS; i++) {
 		dec_ref(&vm->global_vars[i]);
