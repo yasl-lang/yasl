@@ -17,7 +17,14 @@ struct Node *node_clone(const struct Node *const node) {
 
 	switch (node->nodetype) {
 	case N_BINOP:
+		clone->value.binop = node->value.binop;
+		clone->value.binop.left = node_clone(node->value.binop.left);
+		clone->value.binop.right = node_clone(node->value.binop.right);
+		break;
 	case N_UNOP:
+		clone->value.unop = node->value.unop;
+		clone->value.unop.expr = node_clone(node->value.unop.expr);
+		break;
 	case N_TRIOP:
 		clone->value.type = node->value.type;
 		break;
@@ -235,7 +242,12 @@ void node_del(struct Node *node) {
 	}
 	switch (node->nodetype) {
 	case N_BINOP:
+		node_del(node->value.binop.left);
+		node_del(node->value.binop.right);
+		break;
 	case N_UNOP:
+		node_del(node->value.unop.expr);
+		break;
 	case N_TRIOP:
 	case N_BOOL:
 	case N_INT:
