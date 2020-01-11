@@ -252,6 +252,21 @@ struct Node *Block_get_block(const struct Node *const node) {
 	return node->children[0];
 }
 
+struct Node *If_get_cond(const struct Node *const node) {
+	YASL_ASSERT(node->nodetype == N_IF, "Expected If");
+	return node->children[0];
+}
+
+struct Node *If_get_then(const struct Node *const node) {
+	YASL_ASSERT(node->nodetype == N_IF, "Expected If");
+	return node->children[1];
+}
+
+struct Node *If_get_else(const struct Node *const node) {
+	YASL_ASSERT(node->nodetype == N_IF, "Expected If");
+	return node->children[2];
+}
+
 struct Node *Const_get_expr(const struct Node *const node) {
 	YASL_ASSERT(node->nodetype == N_CONST, "Expected Const");
 	return node->children[0];
@@ -266,12 +281,20 @@ struct Node *ListComp_get_expr(const struct Node *const node) {
 	return ((node)->children[0]);
 }
 
+struct Node *ForIter_get_iter(const struct Node *const node) {
+	return ((node)->children[0]);
+}
+
 struct Node *ForIter_get_body(const struct Node *const node) {
 	return ((node)->children[1]);
 }
 
 struct Node *While_get_cond(const struct Node *const node) {
 	return ((node)->children[0]);
+}
+
+struct Node *While_get_post(const struct Node *const node) {
+	return ((node)->children[2]);
 }
 
 struct Node *Table_get_values(const struct Node *const node) {

@@ -400,6 +400,12 @@ char *YASL_top_peekcstring(struct YASL_State *S) {
 	return tmp;
 }
 
+char *YASL_top_popcstring(struct YASL_State *S) {
+	char *tmp = YASL_top_peekcstring(S);
+	YASL_pop(S);
+	return tmp;
+}
+
 void *YASL_top_peekuserdata(struct YASL_State *S) {
 	return YASL_GETUSERDATA(vm_peek(&S->vm))->data;
 }

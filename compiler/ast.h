@@ -118,11 +118,17 @@ struct Node *node_clone(const struct Node *const node);
 for (size_t i = 0; i < (node)->children_len; i++ ) if (child = (node)->children[i], child != NULL)
 
 struct Node *Const_get_expr(const struct Node *const node);
+struct Node *If_get_cond(const struct Node *const node);
+struct Node *If_get_then(const struct Node *const node);
+struct Node *If_get_else(const struct Node *const node);
 struct Node *Block_get_block(const struct Node *const node);
 struct Node *TableComp_get_key_value(const struct Node *const node);
 struct Node *ListComp_get_expr(const struct Node *const node);
+struct Node *ForIter_get_iter(const struct Node *const node);
 struct Node *ForIter_get_body(const struct Node *const node);
 struct Node *While_get_cond(const struct Node *const node);
+struct Node *While_get_body(const struct Node *const node);
+struct Node *While_get_post(const struct Node *const node);
 struct Node *Table_get_values(const struct Node *const node);
 struct Node *While_get_body(const struct Node *const node);
 struct Node *Print_get_expr(const struct Node *const node);

@@ -527,7 +527,6 @@ static void visit_Slice(struct Compiler *const compiler, const struct Node *cons
 static void visit_Block(struct Compiler *const compiler, const struct Node *const node) {
 	enter_scope(compiler);
 	visit(compiler, Block_get_block(node));
-	// visit(compiler, node->children[0]);
 	exit_scope(compiler);
 }
 
@@ -632,11 +631,14 @@ static void visit_TableComp(struct Compiler *const compiler, const struct Node *
 static void visit_ForIter(struct Compiler *const compiler, const struct Node *const node) {
 	enter_scope(compiler);
 
-	visit(compiler, node->children[0]->children[1]);
+	struct Node *iter = ForIter_get_iter(node);
+	struct Node *body = ForIter_get_body(node);
+
+	visit(compiler, iter->children[1]);
 
 	YASL_ByteBuffer_add_byte(compiler->buffer, INITFOR);
 
-	decl_var(compiler, node->children[0]->children[0]->value.sval.str, node->children[0]->children[0]->line);
+	decl_var(compiler, iter->children[0]->value.sval.str, iter->children[0]->line);
 
 	size_t index_start = compiler->buffer->count;
 	add_checkpoint(compiler, index_start);
@@ -649,9 +651,9 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 	enter_conditional_false(compiler, &index_second);
 
 
-	store_var(compiler, node->children[0]->children[0]->value.sval.str, node->children[0]->children[0]->value.sval.str_len, node->line);
+	store_var(compiler, iter->children[0]->value.sval.str, iter->children[0]->value.sval.str_len, node->line);
 
-	visit(compiler, ForIter_get_body(node));
+	visit(compiler, body);
 
 	branch_back(compiler, index_start);
 
@@ -667,18 +669,22 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 static void visit_While(struct Compiler *const compiler, const struct Node *const node) {
 	size_t index_start = compiler->buffer->count;
 
-	if (node->children[2] != NULL) {
+	struct Node *cond = While_get_cond(node);
+	struct Node *body = While_get_body(node);
+	struct Node *post = While_get_post(node);
+
+	if (post) {
 		YASL_ByteBuffer_add_byte(compiler->buffer, BR_8);
 		size_t index = compiler->buffer->count;
 		YASL_ByteBuffer_add_int(compiler->buffer, 0);
 		index_start = compiler->buffer->count;
-		visit(compiler, node->children[2]);
+		visit(compiler, post);
 		YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, index, compiler->buffer->count - index - 8);
 	}
 
 	add_checkpoint(compiler, index_start);
 
-	visit(compiler, While_get_cond(node));
+	visit(compiler, cond);
 
 	add_checkpoint(compiler, compiler->buffer->count);
 
@@ -686,7 +692,7 @@ static void visit_While(struct Compiler *const compiler, const struct Node *cons
 	enter_conditional_false(compiler, &index_second);
 	enter_scope(compiler);
 
-	visit(compiler, While_get_body(node));
+	visit(compiler, body);
 
 	branch_back(compiler, index_start);
 
@@ -717,17 +723,21 @@ static void visit_Continue(struct Compiler *const compiler, const struct Node *c
 }
 
 static void visit_If(struct Compiler *const compiler, const struct Node *const node) {
-	visit(compiler, node->children[0]);
+	struct Node *cond = If_get_cond(node);
+	struct Node *then_br = If_get_then(node);
+	struct Node *else_br = If_get_else(node);
+
+	visit(compiler, cond);
 
 	int64_t index_then;
 	enter_conditional_false(compiler, &index_then);
 	enter_scope(compiler);
 
-	visit(compiler, node->children[1]);
+	visit(compiler, then_br);
 
 	size_t index_else = 0;
 
-	if (node->children[2] != NULL) {
+	if (else_br) {
 		YASL_ByteBuffer_add_byte(compiler->buffer, BR_8);
 		index_else = compiler->buffer->count;
 		YASL_ByteBuffer_add_int(compiler->buffer, 0);
@@ -736,9 +746,9 @@ static void visit_If(struct Compiler *const compiler, const struct Node *const n
 	exit_scope(compiler);
 	exit_conditional_false(compiler, &index_then);
 
-	if (node->children[2] != NULL) {
+	if (else_br) {
 		enter_scope(compiler);
-		visit(compiler, node->children[2]);
+		visit(compiler, else_br);
 		exit_scope(compiler);
 		YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, index_else, compiler->buffer->count - index_else - 8);
 	}
