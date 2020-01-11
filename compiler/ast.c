@@ -327,8 +327,14 @@ struct Node *Print_get_expr(const struct Node *const node) {
 	return ((node)->children[0]);
 }
 
-struct Node *Let_get_expr(const struct Node *const node) {
+struct Node *Decl_get_expr(const struct Node *const node) {
+	YASL_ASSERT(node->nodetype == N_LET || node->nodetype == N_CONST, "Expected let or const");
 	return ((node)->children[0]);
+}
+
+char *Decl_get_name(const struct Node *const node) {
+	YASL_ASSERT(node->nodetype == N_LET || node->nodetype == N_CONST, "Expected let or const");
+	return node->value.sval.str;
 }
 
 struct Node *List_get_values(const struct Node *const node) {
@@ -452,6 +458,14 @@ struct Node *LetIter_get_collection(const struct Node *const node) {
 
 struct Node *LetIter_get_var(const struct Node *const node) {
 	return node->children[0];
+}
+
+const char *String_get_str(const struct Node *const node) {
+	return node->value.sval.str;
+}
+
+size_t String_get_len(const struct Node *const node) {
+	return node->value.sval.str_len;
 }
 
 yasl_float Float_get_float(const struct Node *const node) {
