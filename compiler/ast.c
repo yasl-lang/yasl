@@ -9,7 +9,6 @@ struct Node *node_clone(const struct Node *const node) {
 	if (node == NULL) return NULL;
 	struct Node *clone = (struct Node *)malloc(sizeof(struct Node) + node->children_len * sizeof(struct Node *));
 	clone->nodetype = node->nodetype;
-	// clone->type = node->type;
 	clone->children_len = node->children_len;
 	for (size_t i = 0; i < clone->children_len; i++) {
 		clone->children[i] = node_clone(node->children[i]);
