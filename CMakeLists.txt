@@ -17,10 +17,10 @@ if(MSVC)
 endif()
 
 if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
-    set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-unused-function -Wno-unused-result -Wno-unused-parameter -Wno-invalid-pp-token -Wpedantic -Werror")
+    set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-unused-function -Wno-unused-result -Wno-unused-parameter -Wno-vla -Wpedantic -Werror")
 endif()
 if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
-    set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-function -Wno-unused-result -Wno-unused-variable -Wno-unused-parameter -Wno-invalid-pp-token -Wno-deprecated -Werror")
+    set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-function -Wno-unused-result -Wno-unused-variable -Wno-unused-parameter -Wno-vla -Wno-deprecated -Werror")
 endif()
 
 if (CMAKE_COMPILER_IS_GNUCC)
