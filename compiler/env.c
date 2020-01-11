@@ -1,6 +1,7 @@
 #include "env.h"
 
 #include <stdio.h>
+#include <string.h>
 
 #include "data-structures/YASL_String.h"
 
@@ -36,7 +37,8 @@ size_t env_len(const struct Env *const env) {
 	return env->vars->count + env_len(env->parent);
 }
 
-int env_contains_cur_scope(const struct Env *const env, const char *const name, const size_t name_len) {
+int env_contains_cur_scope(const struct Env *const env, const char *const name) {
+	const size_t name_len = strlen(name);
 	struct YASL_String *string = YASL_String_new_sized_heap(0, name_len, copy_char_buffer(name_len, name));
 	struct YASL_Object key = YASL_STR(string); // (struct YASL_Object) { .value.sval = string, .type = Y_STR };
 
@@ -48,7 +50,8 @@ int env_contains_cur_scope(const struct Env *const env, const char *const name, 
 	return 1;
 }
 
-int env_contains(const struct Env *const env, const char *const name, const size_t name_len) {
+int env_contains(const struct Env *const env, const char *const name) {
+	const size_t name_len = strlen(name);
 	if (env == NULL) return 0;
 	struct YASL_String *string = YASL_String_new_sized_heap(0, name_len, copy_char_buffer(name_len, name));
 	struct YASL_Object key = YASL_STR(string);
@@ -58,11 +61,12 @@ int env_contains(const struct Env *const env, const char *const name, const size
 	if (value.type == Y_END && env->parent == NULL) {
 		return 0;
 	}
-	if (value.type == Y_END) return env_contains(env->parent, name, name_len);
+	if (value.type == Y_END) return env_contains(env->parent, name);
 	return 1;
 }
 
-int64_t env_get(const struct Env *const env, const char *const name, const size_t name_len) {
+int64_t env_get(const struct Env *const env, const char *const name) {
+	const size_t name_len = strlen(name);
 	struct YASL_String *string = YASL_String_new_sized_heap(0, name_len, copy_char_buffer(name_len, name));
 	struct YASL_Object key = YASL_STR(string);
 
@@ -73,11 +77,12 @@ int64_t env_get(const struct Env *const env, const char *const name, const size_
 		print(key);
 		exit(EXIT_FAILURE);
 	}
-	if (value.type == Y_END) return env_get(env->parent, name, name_len);
+	if (value.type == Y_END) return env_get(env->parent, name);
 	return value.value.ival;
 }
 
-int64_t env_decl_var(struct Env *const env, const char *const name, const size_t name_len) {
+int64_t env_decl_var(struct Env *const env, const char *const name) {
+	const size_t name_len = strlen(name);
 	struct YASL_String *string = YASL_String_new_sized_heap(0, name_len, copy_char_buffer(name_len, name));
 	struct YASL_Object key = YASL_STR(string);
 	struct YASL_Object value = YASL_INT((long)env_len(env));
@@ -90,7 +95,8 @@ static struct YASL_Table *get_closest_scope_with_var(const struct Env *const env
 	return key.type != Y_END ? env->vars : get_closest_scope_with_var(env->parent, name, name_len);
 }
 
-void env_make_const(struct Env *const env, const char *const name, const size_t name_len) {
+void env_make_const(struct Env *const env, const char *const name) {
+	const size_t name_len = strlen(name);
 	struct YASL_Table *ht = get_closest_scope_with_var(env, name, name_len);
 	YASL_Table_insert_string_int(ht, name, name_len, ~YASL_Table_search_string_int(ht, name, name_len).value.ival);
 }

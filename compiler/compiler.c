@@ -193,16 +193,17 @@ static inline int64_t get_index(const int64_t value) {
 	return is_const(value) ? ~value : value;
 }
 
-static void load_var(struct Compiler *const compiler, char *const name, const size_t name_len, const size_t line) {
-	if (env_contains(compiler->params, name, name_len)) {
-		int64_t index = get_index(env_get(compiler->params, name, name_len));
+static void load_var(struct Compiler *const compiler, char *const name, const size_t line) {
+	const size_t name_len = strlen(name);
+	if (env_contains(compiler->params, name)) {
+		int64_t index = get_index(env_get(compiler->params, name));
 		YASL_ByteBuffer_add_byte(compiler->buffer, LLOAD_1);
 		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) index);
-	} else if (env_contains(compiler->stack, name, name_len)) {
-		int64_t index = get_index(env_get(compiler->stack, name, name_len));
+	} else if (env_contains(compiler->stack, name)) {
+		int64_t index = get_index(env_get(compiler->stack, name));
 		YASL_ByteBuffer_add_byte(compiler->buffer, GLOAD_1);
 		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) index);
-	} else if (env_contains(compiler->globals, name, name_len)) {
+	} else if (env_contains(compiler->globals, name)) {
 		YASL_ByteBuffer_add_byte(compiler->buffer, GLOAD_8);
 		YASL_ByteBuffer_add_int(compiler->buffer, compiler->num);
 		YASL_ByteBuffer_add_int(compiler->buffer,
@@ -216,8 +217,8 @@ static void load_var(struct Compiler *const compiler, char *const name, const si
 
 static void store_var(struct Compiler *const compiler, char *const name, const size_t line) {
 	const size_t name_len = strlen(name);
-	if (env_contains(compiler->params, name, name_len)) {
-		int64_t index = env_get(compiler->params, name, name_len);
+	if (env_contains(compiler->params, name)) {
+		int64_t index = env_get(compiler->params, name);
 		if (is_const(index)) {
 			compiler_print_err_const(compiler, name, line);
 			handle_error(compiler);
@@ -225,8 +226,8 @@ static void store_var(struct Compiler *const compiler, char *const name, const s
 		}
 		YASL_ByteBuffer_add_byte(compiler->buffer, LSTORE_1);
 		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) index);
-	} else if (env_contains(compiler->stack, name, name_len)) {
-		int64_t index = env_get(compiler->stack, name, name_len);
+	} else if (env_contains(compiler->stack, name)) {
+		int64_t index = env_get(compiler->stack, name);
 		if (is_const(index)) {
 			compiler_print_err_const(compiler, name, line);
 			handle_error(compiler);
@@ -234,8 +235,8 @@ static void store_var(struct Compiler *const compiler, char *const name, const s
 		}
 		YASL_ByteBuffer_add_byte(compiler->buffer, GSTORE_1);
 		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) index);
-	} else if (env_contains(compiler->globals, name, name_len)) {
-		int64_t index = env_get(compiler->globals, name, name_len);
+	} else if (env_contains(compiler->globals, name)) {
+		int64_t index = env_get(compiler->globals, name);
 		if (is_const(index)) {
 			compiler_print_err_const(compiler, name, line);
 			handle_error(compiler);
@@ -252,30 +253,30 @@ static void store_var(struct Compiler *const compiler, char *const name, const s
 	}
 }
 
-static int contains_var_in_current_scope(const struct Compiler *const compiler, char *name, size_t name_len) {
+static int contains_var_in_current_scope(const struct Compiler *const compiler, char *name) {
 	return in_function(compiler) ?
-	       env_contains_cur_scope(compiler->params, name, name_len) :
+	       env_contains_cur_scope(compiler->params, name) :
 	       compiler->stack ?
-	       env_contains_cur_scope(compiler->stack, name, name_len) :
-	       env_contains_cur_scope(compiler->globals, name, name_len);
+	       env_contains_cur_scope(compiler->stack, name) :
+	       env_contains_cur_scope(compiler->globals, name);
 }
 
-static int contains_var(const struct Compiler *const compiler, char *name, size_t name_len) {
-	return env_contains(compiler->stack, name, name_len) ||
-		env_contains(compiler->params, name, name_len) ||
-		env_contains_cur_scope(compiler->globals, name, name_len);
+static int contains_var(const struct Compiler *const compiler, char *name) {
+	return env_contains(compiler->stack, name) ||
+		env_contains(compiler->params, name) ||
+		env_contains_cur_scope(compiler->globals, name);
 }
 
 static void decl_var(struct Compiler *const compiler, const char *const name, const size_t line) {
 	const size_t name_len = strlen(name);
 	if (in_function(compiler)) {
-		int64_t index = env_decl_var(compiler->params, name, name_len);
+		int64_t index = env_decl_var(compiler->params, name);
 		if (index > 255) {
 			YASL_PRINT_ERROR_TOO_MANY_VAR(line);
 			handle_error(compiler);
 		}
 	} else if (compiler->stack) {
-		int64_t index = env_decl_var(compiler->stack, name, name_len);
+		int64_t index = env_decl_var(compiler->stack, name);
 		if (index > 255) {
 			YASL_PRINT_ERROR_TOO_MANY_VAR(line);
 			handle_error(compiler);
@@ -288,7 +289,7 @@ static void decl_var(struct Compiler *const compiler, const char *const name, co
 			YASL_ByteBuffer_add_int(compiler->header, name_len);
 			YASL_ByteBuffer_extend(compiler->header, (unsigned char *) name, name_len);
 		}
-		env_decl_var(compiler->globals, name, name_len);
+		env_decl_var(compiler->globals, name);
 		//if (index > 255) {
 		//	YASL_PRINT_ERROR_TOO_MANY_VAR(line);
 		//	handle_error(compiler);
@@ -296,10 +297,10 @@ static void decl_var(struct Compiler *const compiler, const char *const name, co
 	}
 }
 
-static void make_const(struct Compiler * const compiler, char *name, size_t name_len) {
-	if (in_function(compiler)) env_make_const(compiler->params, name, name_len);
-	else if (compiler->stack) env_make_const(compiler->stack, name, name_len);
-	else env_make_const(compiler->globals, name, name_len);
+static void make_const(struct Compiler * const compiler, char *name) {
+	if (in_function(compiler)) env_make_const(compiler->params, name);
+	else if (compiler->stack) env_make_const(compiler->stack, name);
+	else env_make_const(compiler->globals, name);
 }
 
 static unsigned char *return_bytes(struct Compiler *const compiler) {
@@ -418,8 +419,7 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	FOR_CHILDREN(i, child, FnDecl_get_params(node)) {
 		decl_var(compiler, child->value.sval.str, child->line);
 		if (child->nodetype == N_CONST) {
-			make_const(compiler, child->value.sval.str,
-				   child->value.sval.str_len);
+			make_const(compiler, child->value.sval.str);
 		}
 	}
 
@@ -771,7 +771,7 @@ static void visit_Print(struct Compiler *const compiler, const struct Node *cons
 }
 
 static void declare_with_let_or_const(struct Compiler *const compiler, const struct Node *const node) {
-	if (contains_var_in_current_scope(compiler, node->value.sval.str, node->value.sval.str_len)) {
+	if (contains_var_in_current_scope(compiler, node->value.sval.str)) {
 		compiler_print_err_syntax(compiler, "Illegal redeclaration of %s (line %" PRI_SIZET ").\n", node->value.sval.str, node->line);
 		handle_error(compiler);
 		return;
@@ -791,7 +791,7 @@ static void visit_Let(struct Compiler *const compiler, const struct Node *const 
 
 static void visit_Const(struct Compiler *const compiler, const struct Node *const node) {
 	declare_with_let_or_const(compiler, node);
-	make_const(compiler, node->value.sval.str, node->value.sval.str_len);
+	make_const(compiler, node->value.sval.str);
 }
 
 static void visit_Decl(struct Compiler *const compiler, const struct Node *const node) {
@@ -934,7 +934,7 @@ static void visit_UnOp(struct Compiler *const compiler, const struct Node *const
 }
 
 static void visit_Assign(struct Compiler *const compiler, const struct Node *const node) {
-	if (!contains_var(compiler, node->value.sval.str, node->value.sval.str_len)) {
+	if (!contains_var(compiler, node->value.sval.str)) {
 		compiler_print_err_undeclared_var(compiler, node->value.sval.str, node->line);
 		handle_error(compiler);
 		return;
@@ -944,7 +944,7 @@ static void visit_Assign(struct Compiler *const compiler, const struct Node *con
 }
 
 static void visit_Var(struct Compiler *const compiler, const struct Node *const node) {
-	load_var(compiler, node->value.sval.str, node->value.sval.str_len, node->line);
+	load_var(compiler, node->value.sval.str, node->line);
 }
 
 static void visit_Undef(struct Compiler *const compiler, const struct Node *const node) {

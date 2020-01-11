@@ -33,7 +33,8 @@ struct Node *node_clone(const struct Node *const node) {
 	case N_FLOAT: clone->value.ival = node->value.ival;
 		break;
 	default: clone->value.sval.str_len = node->value.sval.str_len;
-      	  clone->value.sval.str = (char *)malloc(node->value.sval.str_len);
+      	  clone->value.sval.str = (char *)malloc(node->value.sval.str_len + 1);
+      	  clone->value.sval.str[clone->value.sval.str_len] = '\0';
 	  memcpy(clone->value.sval.str, node->value.sval.str, clone->value.sval.str_len);
 	}
 
