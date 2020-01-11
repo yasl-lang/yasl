@@ -214,7 +214,8 @@ static void load_var(struct Compiler *const compiler, char *const name, const si
 	}
 }
 
-static void store_var(struct Compiler *const compiler, char *const name, const size_t name_len, const size_t line) {
+static void store_var(struct Compiler *const compiler, char *const name, const size_t line) {
+	const size_t name_len = strlen(name);
 	if (env_contains(compiler->params, name, name_len)) {
 		int64_t index = env_get(compiler->params, name, name_len);
 		if (is_const(index)) {
@@ -542,13 +543,16 @@ static void visit_ListComp(struct Compiler *const compiler, const struct Node *c
 	struct Node *iter = ListComp_get_iter(node);
 	struct Node *cond = ListComp_get_cond(node);
 
-	visit(compiler, iter->children[1]);
+	struct Node *var = LetIter_get_var(iter);
+	struct Node *collection = LetIter_get_collection(iter);
+
+	visit(compiler, collection);
 
 	YASL_ByteBuffer_add_byte(compiler->buffer, INITFOR);
 
 	YASL_ByteBuffer_add_byte(compiler->buffer, END);
 
-	decl_var(compiler, iter->children[0]->value.sval.str, iter->children[0]->line);
+	decl_var(compiler, var->value.sval.str, var->line);
 
 	int64_t index_start = compiler->buffer->count;
 
@@ -557,7 +561,7 @@ static void visit_ListComp(struct Compiler *const compiler, const struct Node *c
 	int64_t index_second;
 	enter_conditional_false(compiler, &index_second);
 
-	store_var(compiler, iter->children[0]->value.sval.str, iter->children[0]->value.sval.str_len, node->line);
+	store_var(compiler, var->value.sval.str, node->line);
 
 	if (cond) {
 		int64_t index_third;
@@ -588,12 +592,15 @@ static void visit_TableComp(struct Compiler *const compiler, const struct Node *
 	struct Node *iter = TableComp_get_iter(node);
 	struct Node *cond = TableComp_get_cond(node);
 
-	visit(compiler, iter->children[1]);
+	struct Node *var = LetIter_get_var(iter);
+	struct Node *collection = LetIter_get_collection(iter);
+
+	visit(compiler, collection);
 
 	YASL_ByteBuffer_add_byte(compiler->buffer, INITFOR);
 	YASL_ByteBuffer_add_byte(compiler->buffer, END);
 
-	decl_var(compiler, iter->children[0]->value.sval.str, iter->children[0]->line);
+	decl_var(compiler, var->value.sval.str, var->line);
 
 	int64_t index_start = compiler->buffer->count;
 
@@ -602,7 +609,7 @@ static void visit_TableComp(struct Compiler *const compiler, const struct Node *
 	int64_t index_second;
 	enter_conditional_false(compiler, &index_second);
 
-	store_var(compiler, iter->children[0]->value.sval.str, iter->children[0]->value.sval.str_len, node->line);
+	store_var(compiler, var->value.sval.str, node->line);
 
 	if (cond) {
 		int64_t index_third;
@@ -634,11 +641,14 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 	struct Node *iter = ForIter_get_iter(node);
 	struct Node *body = ForIter_get_body(node);
 
-	visit(compiler, iter->children[1]);
+	struct Node *var = LetIter_get_var(iter);
+	struct Node *collection = LetIter_get_collection(iter);
+
+	visit(compiler, collection);
 
 	YASL_ByteBuffer_add_byte(compiler->buffer, INITFOR);
 
-	decl_var(compiler, iter->children[0]->value.sval.str, iter->children[0]->line);
+	decl_var(compiler, var->value.sval.str, var->line);
 
 	size_t index_start = compiler->buffer->count;
 	add_checkpoint(compiler, index_start);
@@ -651,7 +661,7 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 	enter_conditional_false(compiler, &index_second);
 
 
-	store_var(compiler, iter->children[0]->value.sval.str, iter->children[0]->value.sval.str_len, node->line);
+	store_var(compiler, var->value.sval.str, node->line);
 
 	visit(compiler, body);
 
@@ -771,7 +781,7 @@ static void declare_with_let_or_const(struct Compiler *const compiler, const str
 	if (Let_get_expr(node) != NULL) visit(compiler, Let_get_expr(node));
 	else YASL_ByteBuffer_add_byte(compiler->buffer, NCONST);
 
-	store_var(compiler, node->value.sval.str, node->value.sval.str_len, node->line);
+	store_var(compiler, node->value.sval.str, node->line);
 }
 
 static void visit_Let(struct Compiler *const compiler, const struct Node *const node) {
@@ -925,7 +935,7 @@ static void visit_Assign(struct Compiler *const compiler, const struct Node *con
 		return;
 	}
 	visit(compiler, Assign_get_expr(node));
-	store_var(compiler, node->value.sval.str, node->value.sval.str_len, node->line);
+	store_var(compiler, node->value.sval.str, node->line);
 	// load_var(compiler, node->value.sval.str, node->value.sval.str_len, node->line);
 }
 

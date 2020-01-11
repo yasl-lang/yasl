@@ -426,3 +426,12 @@ struct Node *TableComp_get_cond(const struct Node *const node) {
 	YASL_ASSERT(node->nodetype == N_TABLECOMP, "Expected TableComp");
 	return node->children[2];
 }
+
+
+struct Node *LetIter_get_collection(const struct Node *const node) {
+	return node->children[1];
+}
+
+struct Node *LetIter_get_var(const struct Node *const node) {
+	return node->children[0];
+}

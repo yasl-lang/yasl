@@ -157,6 +157,8 @@ struct Node *ListComp_get_iter(const struct Node *const node);
 struct Node *TableComp_get_iter(const struct Node *const node);
 struct Node *ListComp_get_cond(const struct Node *const node);
 struct Node *TableComp_get_cond(const struct Node *const node);
+struct Node *LetIter_get_var(const struct Node *const node);
+struct Node *LetIter_get_collection(const struct Node *const node);
 
 struct Node *new_ExprStmt(const struct Node *const child, const size_t line);
 struct Node *new_Block(const struct Node *const body, const size_t line);
