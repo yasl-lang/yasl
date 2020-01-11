@@ -425,7 +425,8 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 
 	size_t old_size = compiler->buffer->count;
 	// TODO: verfiy that number of params is small enough. (same for the other casts below.)
-	YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) FnDecl_get_params(node)->children_len);
+
+	YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) Body_get_len(FnDecl_get_params(node)));
 	size_t index = compiler->buffer->count;
 	YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) compiler->params->vars->count);
 	visit_Body(compiler, FnDecl_get_body(node));
@@ -800,12 +801,16 @@ static void visit_Decl(struct Compiler *const compiler, const struct Node *const
 }
 
 static void visit_TriOp(struct Compiler *const compiler, const struct Node *const node) {
-	visit(compiler, node->children[0]);
+	struct Node *left = TriOp_get_left(node);
+	struct Node *middle = TriOp_get_middle(node);
+	struct Node *right = TriOp_get_right(node);
+
+	visit(compiler, left);
 
 	int64_t index_l;
 	enter_conditional_false(compiler, &index_l);
 
-	visit(compiler, node->children[1]);
+	visit(compiler, middle);
 
 	YASL_ByteBuffer_add_byte(compiler->buffer, BR_8);
 	size_t index_r = compiler->buffer->count;
@@ -813,7 +818,7 @@ static void visit_TriOp(struct Compiler *const compiler, const struct Node *cons
 
 	exit_conditional_false(compiler, &index_l);
 
-	visit(compiler, node->children[2]);
+	visit(compiler, right);
 	YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, index_r, compiler->buffer->count - index_r - 8);
 }
 
@@ -936,7 +941,6 @@ static void visit_Assign(struct Compiler *const compiler, const struct Node *con
 	}
 	visit(compiler, Assign_get_expr(node));
 	store_var(compiler, node->value.sval.str, node->line);
-	// load_var(compiler, node->value.sval.str, node->value.sval.str_len, node->line);
 }
 
 static void visit_Var(struct Compiler *const compiler, const struct Node *const node) {

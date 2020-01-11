@@ -264,6 +264,11 @@ struct Node *Block_get_block(const struct Node *const node) {
 	return node->children[0];
 }
 
+size_t Body_get_len(const struct Node *const node) {
+	YASL_ASSERT(node->nodetype == N_BODY, "Expected Block");
+	return node->children_len;
+}
+
 struct Node *If_get_cond(const struct Node *const node) {
 	YASL_ASSERT(node->nodetype == N_IF, "Expected If");
 	return node->children[0];
@@ -399,6 +404,18 @@ struct Node *BinOp_get_left(const struct Node *const node) {
 
 struct Node *BinOp_get_right(const struct Node *const node) {
 	return ((node)->value.binop.right);
+}
+
+struct Node *TriOp_get_left(const struct Node *const node) {
+	return ((node)->children[0]);
+}
+
+struct Node *TriOp_get_middle(const struct Node *const node) {
+	return ((node)->children[1]);
+}
+
+struct Node *TriOp_get_right(const struct Node *const node) {
+	return ((node)->children[2]);
 }
 
 struct Node *Assign_get_expr(const struct Node *const node) {
