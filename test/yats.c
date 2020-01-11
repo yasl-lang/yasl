@@ -27,7 +27,7 @@ unsigned char *setup_compiler(const char *file_contents) {
 	unsigned char *bytecode = compile(compiler);
 	FILE *f = fopen("dump.yb", "wb");
 	if (bytecode == NULL) {
-		fputc(HALT, f);
+		fputc(O_HALT, f);
 	} else {
 		fwrite(bytecode, 1, compiler->code->count + compiler->header->count + 1, f);
 	}
