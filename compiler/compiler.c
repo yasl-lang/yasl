@@ -154,13 +154,13 @@ static void exit_scope(struct Compiler *const compiler) {
 	}
 }
 
-static inline void enter_conditional_false(struct Compiler *const compiler, int64_t *const index) {
+static inline void enter_conditional_false(const struct Compiler *const compiler, int64_t *const index) {
 	YASL_ByteBuffer_add_byte(compiler->buffer, O_BRF_8);
 	*index = compiler->buffer->count;
 	YASL_ByteBuffer_add_int(compiler->buffer, 0);
 }
 
-static inline void exit_conditional_false(struct Compiler *const compiler, const int64_t *const index) {
+static inline void exit_conditional_false(const struct Compiler *const compiler, const int64_t *const index) {
 	YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, (size_t) *index, compiler->buffer->count - *index - 8);
 }
 
@@ -172,7 +172,7 @@ static void add_checkpoint(struct Compiler *const compiler, const size_t cp) {
 	compiler->checkpoints[compiler->checkpoints_count++] = cp;
 }
 
-static void rm_checkpoint(struct Compiler *compiler) {
+static void rm_checkpoint(struct Compiler *const compiler) {
 	compiler->checkpoints_count--;
 }
 
@@ -215,7 +215,7 @@ static void load_var(struct Compiler *const compiler, const char *const name, co
 	}
 }
 
-static void store_var(struct Compiler *const compiler, char *const name, const size_t line) {
+static void store_var(struct Compiler *const compiler, const char *const name, const size_t line) {
 	const size_t name_len = strlen(name);
 	if (env_contains(compiler->params, name)) {
 		int64_t index = env_get(compiler->params, name);
@@ -253,7 +253,7 @@ static void store_var(struct Compiler *const compiler, char *const name, const s
 	}
 }
 
-static int contains_var_in_current_scope(const struct Compiler *const compiler, char *name) {
+static int contains_var_in_current_scope(const struct Compiler *const compiler, const char *const name) {
 	return in_function(compiler) ?
 	       env_contains_cur_scope(compiler->params, name) :
 	       compiler->stack ?
@@ -261,7 +261,7 @@ static int contains_var_in_current_scope(const struct Compiler *const compiler, 
 	       env_contains_cur_scope(compiler->globals, name);
 }
 
-static int contains_var(const struct Compiler *const compiler, char *name) {
+static int contains_var(const struct Compiler *const compiler, const char *const name) {
 	return env_contains(compiler->stack, name) ||
 		env_contains(compiler->params, name) ||
 		env_contains_cur_scope(compiler->globals, name);
@@ -297,13 +297,13 @@ static void decl_var(struct Compiler *const compiler, const char *const name, co
 	}
 }
 
-static void make_const(struct Compiler * const compiler, char *name) {
+static void make_const(const struct Compiler * const compiler, const char *const name) {
 	if (in_function(compiler)) env_make_const(compiler->params, name);
 	else if (compiler->stack) env_make_const(compiler->stack, name);
 	else env_make_const(compiler->globals, name);
 }
 
-static unsigned char *return_bytes(struct Compiler *const compiler) {
+static unsigned char *return_bytes(const struct Compiler *const compiler) {
 	if (compiler->status) return NULL;
 
 	YASL_ByteBuffer_rewrite_int_fast(compiler->header, 0, compiler->header->count);

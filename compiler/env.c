@@ -81,7 +81,7 @@ int64_t env_get(const struct Env *const env, const char *const name) {
 	return value.value.ival;
 }
 
-int64_t env_decl_var(struct Env *const env, const char *const name) {
+int64_t env_decl_var(const struct Env *const env, const char *const name) {
 	const size_t name_len = strlen(name);
 	struct YASL_String *string = YASL_String_new_sized_heap(0, name_len, copy_char_buffer(name_len, name));
 	struct YASL_Object key = YASL_STR(string);
@@ -95,7 +95,7 @@ static struct YASL_Table *get_closest_scope_with_var(const struct Env *const env
 	return key.type != Y_END ? env->vars : get_closest_scope_with_var(env->parent, name, name_len);
 }
 
-void env_make_const(struct Env *const env, const char *const name) {
+void env_make_const(const struct Env *const env, const char *const name) {
 	const size_t name_len = strlen(name);
 	struct YASL_Table *ht = get_closest_scope_with_var(env, name, name_len);
 	YASL_Table_insert_string_int(ht, name, name_len, ~YASL_Table_search_string_int(ht, name, name_len).value.ival);
