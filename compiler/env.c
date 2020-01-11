@@ -5,21 +5,21 @@
 
 #include "data-structures/YASL_String.h"
 
-struct Env *env_new(struct Env *parent) {
+struct Env *env_new(struct Env *const parent) {
 	struct Env *env = (struct Env *)malloc(sizeof(struct Env));
 	env->parent = parent;
 	env->vars = YASL_Table_new();
 	return env;
 }
 
-void env_del(struct Env *env) {
+void env_del(struct Env *const env) {
 	if (env == NULL) return;
 	env_del(env->parent);
 	free(env->parent);
 	env_del_current_only(env);
 }
 
-void env_del_current_only(struct Env *env) {
+void env_del_current_only(struct Env *const env) {
 	for (size_t i = 0; i < env->vars->size; i++) {
 		struct YASL_Table_Item *item = &env->vars->items[i];
 		if (item->key.type != Y_END && item->key.type != Y_UNDEF) {

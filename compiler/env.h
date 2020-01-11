@@ -7,9 +7,9 @@ struct Env {
     struct YASL_Table *vars;
 };
 
-struct Env *env_new(struct Env *env);
-void env_del(struct Env *env);
-void env_del_current_only(struct Env *env);
+struct Env *env_new(struct Env *const env);
+void env_del(struct Env *const env);
+void env_del_current_only(struct Env *const env);
 
 size_t env_len(const struct Env *const env);
 int env_contains_cur_scope(const struct Env *const env, const char *const name);
