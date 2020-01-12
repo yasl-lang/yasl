@@ -308,28 +308,21 @@ static struct Node *parse_let(struct Parser *const parser) {
 	return new_Let(name, expr, line);
 }
 
+static struct Node *parse_iterate(struct Parser *const parser) {
+	size_t line = parser->lex.line;
+	char *name = parser->lex.value;
+	eattok(parser, T_ID);
+	eattok(parser, T_LEFT_ARR);
+	struct Node *collection = parse_expr(parser);
+	return new_LetIter(name, collection, line);
+}
+
 static struct Node *parse_let_iterate_or_let(struct Parser *const parser) {
 	if (curtok(parser) == T_LET) {
 		return parse_let(parser);
 	} else {
-		char *name = parser->lex.value;
-		size_t line = parser->lex.line;
-		eattok(parser, T_ID);
-		eattok(parser, T_LEFT_ARR);
-		struct Node *expr = parse_expr(parser);
-		return new_LetIter(name, expr, line);
+		return parse_iterate(parser);
 	}
-}
-
-static struct Node *parse_iterate(struct Parser *const parser) {
-	size_t line = parser->lex.line;
-	struct Node *var = parse_id(parser);
-	eattok(parser, T_LEFT_ARR);
-	struct Node *collection = parse_expr(parser);
-	const char *name = Var_get_name(var);
-	var->value.sval.str = NULL;
-	node_del(var);
-	return new_LetIter((char *)name, collection, line);
 }
 
 static struct Node *parse_for(struct Parser *const parser) {
