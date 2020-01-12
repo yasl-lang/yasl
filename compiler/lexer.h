@@ -137,11 +137,11 @@ struct Lexer {
     struct IO err;
 };
 
-void lex_cleanup(struct Lexer *lex);
-void gettok(struct Lexer *lex);
-void lex_eatinterpstringbody(struct Lexer *lex);
-void lex_error(struct Lexer *lex);
-int lex_getchar(struct Lexer *lex);
+void lex_cleanup(struct Lexer *const lex);
+void gettok(struct Lexer *const lex);
+void lex_eatinterpstringbody(struct Lexer *const lex);
+void lex_error(struct Lexer *const lex);
+int lex_getchar(struct Lexer *const lex);
 
 extern const char *YASL_TOKEN_NAMES[82];
 

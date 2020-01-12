@@ -146,7 +146,7 @@ int YASL_declglobal(struct YASL_State *S, const char *name) {
 		YASL_ByteBuffer_add_int(S->compiler.header, strlen(name));
 		YASL_ByteBuffer_extend(S->compiler.header, (unsigned char *) name, strlen(name));
 	}
-	/* int64_t index =*/ env_decl_var(S->compiler.globals, name, strlen(name));
+	/* int64_t index =*/ env_decl_var(S->compiler.globals, name);
 	return YASL_SUCCESS;
 }
 
@@ -157,9 +157,9 @@ static inline int is_const(int64_t value) {
 
 int YASL_setglobal(struct YASL_State *S, const char *name) {
 
-	if (!env_contains(S->compiler.globals, name, strlen(name))) return YASL_ERROR;
+	if (!env_contains(S->compiler.globals, name)) return YASL_ERROR;
 
-	int64_t index = env_get(S->compiler.globals, name, strlen(name));
+	int64_t index = env_get(S->compiler.globals, name);
 	if (is_const(index)) return YASL_ERROR;
 
 	struct YASL_String *string = YASL_String_new_sized(strlen(name), name);
@@ -325,7 +325,7 @@ bool YASL_top_istable(struct YASL_State *S) {
 }
 
 bool YASL_top_isuserdata(struct YASL_State *S, int tag) {
-	return vm_isuserdata(&S->vm) && vm_peek(&S->vm).value.uval->tag == tag;
+	return vm_isuserdata(&S->vm) && YASL_GETUSERDATA(vm_peek(&S->vm))->tag == tag;
 }
 
 bool YASL_top_isuserpointer(struct YASL_State *S) {
@@ -397,6 +397,12 @@ char *YASL_top_peekcstring(struct YASL_State *S) {
 	memcpy(tmp, obj.value.sval->str + obj.value.sval->start, YASL_String_len(obj.value.sval));
 	tmp[YASL_String_len(obj.value.sval)] = '\0';
 
+	return tmp;
+}
+
+char *YASL_top_popcstring(struct YASL_State *S) {
+	char *tmp = YASL_top_peekcstring(S);
+	YASL_pop(S);
 	return tmp;
 }
 

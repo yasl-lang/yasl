@@ -104,8 +104,8 @@ void vm_init(struct VM *const vm,
 
 
 void vm_cleanup(struct VM *vm) {
-	YASL_ASSERT(vm->sp == -1, "VM stack pointer should have been -1.");
-	YASL_ASSERT(vm->fp == -1, "VM frame pointer should have been -1.");
+	// YASL_ASSERT(vm->sp == -1, "VM stack pointer should have been -1.");
+	// YASL_ASSERT(vm->fp == -1, "VM frame pointer should have been -1.");
 	for (size_t i = 0; i < STACK_SIZE; i++) dec_ref(&vm->stack[i]);
 	for (size_t i = 0; i < NUM_GLOBALS; i++) {
 		dec_ref(&vm->global_vars[i]);
@@ -831,83 +831,86 @@ int vm_run(struct VM *vm) {
 				  "opcode: %x\n"
 				  "vm->sp, vm->fp, vm->next_fp: %d, %d, %d\n\n", opcode, vm->sp, vm->fp, vm->next_fp);
 		switch (opcode) {
-		case EXPORT:
+		case O_EXPORT:
 			return YASL_MODULE_SUCCESS;
-		case HALT:
+		case O_HALT:
 			return YASL_SUCCESS;
-		case ICONST_M1:
-		case ICONST_0:
-		case ICONST_1:
-		case ICONST_2:
-		case ICONST_3:
-		case ICONST_4:
-		case ICONST_5:
-			vm_pushint(vm, opcode - ICONST_0); // make sure no changes to opcodes ruin this
+		case O_ICONST_M1:
+		case O_ICONST_0:
+		case O_ICONST_1:
+		case O_ICONST_2:
+		case O_ICONST_3:
+		case O_ICONST_4:
+		case O_ICONST_5:
+			vm_pushint(vm, opcode - O_ICONST_0); // make sure no changes to opcodes ruin this
 			break;
-		case DCONST_0:
-		case DCONST_1:
-		case DCONST_2:
-			vm_pushfloat(vm, (yasl_float)(opcode - DCONST_0)); // make sure no changes to opcodes ruin this
+		case O_DCONST_0:
+		case O_DCONST_1:
+		case O_DCONST_2:
+			vm_pushfloat(vm, (yasl_float)(opcode - O_DCONST_0)); // make sure no changes to opcodes ruin this
 			break;
-		case DCONST_N:
+		case O_DCONST_N:
 			vm_pushfloat(vm, NAN);
 			break;
-		case DCONST_I:
+		case O_DCONST_I:
 			vm_pushfloat(vm, INFINITY);
 			break;
-		case DCONST:        // constants have native endianness
+		case O_DCONST:        // constants have native endianness
 			d = vm_read_float(vm);
 			vm_pushfloat(vm, d);
 			break;
-		case ICONST:        // constants have native endianness
+		case O_ICONST:        // constants have native endianness
 			c = vm_read_int(vm);
 			vm_pushint(vm, c);
 			break;
-		case BCONST_F:
-		case BCONST_T:
+		case O_ICONST_B1:
+			vm_pushint(vm, (signed char)NCODE(vm));
+			break;
+		case O_BCONST_F:
+		case O_BCONST_T:
 			vm_pushbool(vm, opcode & 0x01);
 			break;
-		case NCONST:
+		case O_NCONST:
 			vm_pushundef(vm);
 			break;
-		case FCONST:
+		case O_FCONST:
 			c = vm_read_int(vm);
 			vm_pushfn(vm, vm->code + c);
 			break;
-		case BOR:
+		case O_BOR:
 			if ((res = vm_int_binop(vm, &bor, "|", OP_BIN_BAR))) return res;
 			break;
-		case BXOR:
+		case O_BXOR:
 			if ((res = vm_int_binop(vm, &bxor, "^", OP_BIN_CARET))) return res;
 			break;
-		case BAND:
+		case O_BAND:
 			if ((res = vm_int_binop(vm, &band, "&", OP_BIN_AMP))) return res;
 			break;
-		case BANDNOT:
+		case O_BANDNOT:
 			if ((res = vm_int_binop(vm, &bandnot, "&^", OP_BIN_AMPCARET))) return res;
 			break;
-		case BNOT:
+		case O_BNOT:
 			if ((res = vm_int_unop(vm, &bnot, "^", OP_UN_CARET))) return res;
 			break;
-		case BSL:
+		case O_BSL:
 			if ((res = vm_int_binop(vm, &shift_left, "<<", OP_BIN_SHL))) return res;
 			break;
-		case BSR:
+		case O_BSR:
 			if ((res = vm_int_binop(vm, &shift_right, ">>", OP_BIN_SHR))) return res;
 			break;
-		case ADD:
+		case O_ADD:
 			if ((res = vm_num_binop(vm, &int_add, &float_add, "+", OP_BIN_PLUS))) return res;
 			break;
-		case MUL:
+		case O_MUL:
 			if ((res = vm_num_binop(vm, &int_mul, &float_mul, "*", OP_BIN_TIMES))) return res;
 			break;
-		case SUB:
+		case O_SUB:
 			if ((res = vm_num_binop(vm, &int_sub, &float_sub, "-", OP_BIN_MINUS))) return res;
 			break;
-		case FDIV:
+		case O_FDIV:
 			if ((res = vm_fdiv(vm))) return res;   // handled differently because we always convert to float
 			break;
-		case IDIV:
+		case O_IDIV:
 			if (vm_isint(vm) && vm_peekint(vm) == 0) {
 				vm_print_err_divide_by_zero(vm);
 				return YASL_DIVIDE_BY_ZERO_ERROR;
@@ -915,7 +918,7 @@ int vm_run(struct VM *vm) {
 			}
 			if ((res = vm_int_binop(vm, &idiv, "//", OP_BIN_IDIV))) return res;
 			break;
-		case MOD:
+		case O_MOD:
 			// TODO: handle undefined C behaviour for negative numbers.
 			if (vm_isint(vm) && vm_peekint(vm) == 0) {
 				vm_print_err_divide_by_zero(vm);
@@ -924,26 +927,26 @@ int vm_run(struct VM *vm) {
 			}
 			if ((res = vm_int_binop(vm, &modulo, "%", OP_BIN_MOD))) return res;
 			break;
-		case EXP:
+		case O_EXP:
 			if ((res = vm_pow(vm))) return res;
 			break;
-		case NEG:
+		case O_NEG:
 			if ((res = vm_num_unop(vm, &int_neg, &float_neg, "-", OP_UN_MINUS))) return res;
 			break;
-		case POS:
+		case O_POS:
 			if ((res = vm_num_unop(vm, &int_pos, &float_pos, "+", OP_UN_PLUS))) return res;
 			break;
-		case NOT:
+		case O_NOT:
 			c = isfalsey(vm_pop(vm));
 			vm_pushbool(vm, c);
 			break;
-		case LEN:
+		case O_LEN:
 			if ((res = vm_len_unop(vm))) return res;
 			break;
-		case CNCT:
+		case O_CNCT:
 			if ((res = vm_CNCT(vm))) return res;
 			break;
-		case GT:
+		case O_GT:
 			b = vm_pop(vm);
 			a = vm_pop(vm);
 			if (YASL_ISSTR(a) && YASL_ISSTR(b)) {
@@ -958,7 +961,7 @@ int vm_run(struct VM *vm) {
 			}
 			COMP(vm, a, b, GT, ">");
 			break;
-		case GE:
+		case O_GE:
 			b = vm_pop(vm);
 			a = vm_pop(vm);
 			if (YASL_ISSTR(a) && YASL_ISSTR(b)) {
@@ -973,24 +976,24 @@ int vm_run(struct VM *vm) {
 			}
 			COMP(vm, a, b, GE, ">=");
 			break;
-		case EQ:
+		case O_EQ:
 			b = vm_pop(vm);
 			a = vm_pop(vm);
 			v = isequal(a, b);
 			vm_push(vm, v);
 			break;
-		case ID: // TODO: clean-up
+		case O_ID: // TODO: clean-up
 			b = vm_pop(vm);
 			a = vm_pop(vm);
 			vm_push(vm, YASL_BOOL(a.type == b.type && YASL_GETINT(a) == YASL_GETINT(b)));
 			break;
-		case NEWSPECIALSTR:
+		case O_NEWSPECIALSTR:
 			if ((res = vm_NEWSPECIALSTR(vm))) return res;
 			break;
-		case NEWSTR:
+		case O_NEWSTR:
 			if ((res = vm_NEWSTR(vm))) return res;
 			break;
-		case NEWTABLE: {
+		case O_NEWTABLE: {
 			struct RC_UserData *table = rcht_new();
 			struct YASL_Table *ht = (struct YASL_Table *)table->data;
 			while (vm_peek(vm).type != Y_END) {
@@ -1002,7 +1005,7 @@ int vm_run(struct VM *vm) {
 			vm_push(vm, YASL_TABLE(table));
 			break;
 		}
-		case NEWLIST: {
+		case O_NEWLIST: {
 			struct RC_UserData *ls = rcls_new();
 			while (vm_peek(vm).type != Y_END) {
 				YASL_List_append((struct YASL_List *) ls->data, vm_pop(vm));
@@ -1012,113 +1015,113 @@ int vm_run(struct VM *vm) {
 			vm_push(vm, YASL_LIST(ls));
 			break;
 		}
-		case INITFOR:
+		case O_INITFOR:
 			vm_pushint(vm, 0);
 			vm_pushint(vm, vm->lp);
 			vm->lp = vm->sp - 2;
 			break;
-		case ENDCOMP:
+		case O_ENDCOMP:
 			a = vm_pop(vm);
 			vm->lp = vm_popint(vm);
 			vm_pop(vm);
 			vm_pop(vm);
 			vm_push(vm, a);
 			break;
-		case ENDFOR:
+		case O_ENDFOR:
 			vm->lp = vm_popint(vm);
 			vm_pop(vm);
 			vm_pop(vm);
 			break;
-		case ITER_1:
+		case O_ITER_1:
 			if ((res = vm_ITER_1(vm))) return res;
 			break;
-		case ITER_2:
+		case O_ITER_2:
 			puts("NOT IMPLEMENTED");
 			exit(1);
-		case END:
+		case O_END:
 			vm_pushend(vm);
 			break;
-		case DUP: {
+		case O_DUP: {
 			a = vm_peek(vm);
 			vm_push(vm, a);
 			break;
 		}
-		case SWAP:
+		case O_SWAP:
 			if ((res = vm_SWAP(vm))) return res;
 			break;
-		case BR_8:
+		case O_BR_8:
 			c = vm_read_int(vm);
 			vm->pc += c;
 			break;
-		case BRF_8:
+		case O_BRF_8:
 			c = vm_read_int(vm);
 			v = vm_pop(vm);
 			if (isfalsey(v)) vm->pc += c;
 			break;
-		case BRT_8:
+		case O_BRT_8:
 			c = vm_read_int(vm);
 			v = vm_pop(vm);
 			if (!(isfalsey(v))) vm->pc += c;
 			break;
-		case BRN_8:
+		case O_BRN_8:
 			c = vm_read_int(vm);
 			v = vm_pop(vm);
 			if (!YASL_ISUNDEF(v)) vm->pc += c;
 			break;
-		case GLOAD_8:
+		case O_GLOAD_8:
 			if ((res = vm_GLOAD_8(vm))) return res;
 			break;
-		case GSTORE_8:
+		case O_GSTORE_8:
 			if ((res = vm_GSTORE_8(vm))) return res;
 			break;
-		case GLOAD_1:
+		case O_GLOAD_1:
 			addr = vm->code[vm->pc++ - vm->code];
 			vm_push(vm, vm->global_vars[addr]);
 			break;
-		case GSTORE_1:
+		case O_GSTORE_1:
 			addr = vm->code[vm->pc++ - vm->code];
 			dec_ref(&vm->global_vars[addr]);
 			vm->global_vars[addr] = vm_pop(vm);
 			inc_ref(&vm->global_vars[addr]);
 			break;
-		case LLOAD_1:
+		case O_LLOAD_1:
 			offset = NCODE(vm);
 			vm_push(vm, vm_peek(vm, vm->fp + offset + 4));
 			break;
-		case LSTORE_1:
+		case O_LSTORE_1:
 			offset = NCODE(vm);
 			dec_ref(&vm_peek(vm, vm->fp + offset + 4));
 			vm_peek(vm, vm->fp + offset + 4) = vm_pop(vm);
 			inc_ref(&vm_peek(vm, vm->fp + offset + 4));
 			break;
-		case INIT_MC:
+		case O_INIT_MC:
 			if ((res = vm_INIT_MC(vm))) return res;
 			break;
-		case INIT_MC_SPECIAL:
+		case O_INIT_MC_SPECIAL:
 			if ((res = vm_INIT_MC_SPECIAL(vm))) return res;
 			break;
-		case INIT_CALL:
+		case O_INIT_CALL:
 			if ((res = vm_INIT_CALL(vm))) return res;
 			break;
-		case CALL:
+		case O_CALL:
 			if ((res = vm_CALL(vm))) return res;
 			break;
-		case RET:
+		case O_RET:
 			if ((res = vm_RET(vm))) return res;
 			break;
-		case GET:
+		case O_GET:
 			if ((res = vm_GET(vm))) return res;
 			break;
-		case SLICE:
+		case O_SLICE:
 			if ((res = vm_SLICE(vm))) return res;
 			break;
-		case SET:
+		case O_SET:
 			if ((res = vm_SET(vm))) return res;
 			break;
-		case POP:
+		case O_POP:
 			vm_pop(vm);
 			break;
-		case PRINT: vm_PRINT(vm);
+		case O_PRINT: vm_PRINT(vm);
 			break;
 		default:
 			vm_print_err(vm, "ERROR UNKNOWN OPCODE: %x\n", opcode);

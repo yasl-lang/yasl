@@ -314,6 +314,7 @@ yasl_int YASL_top_peekinteger(struct YASL_State *S);
 yasl_int YASL_top_popinteger(struct YASL_State *S);
 
 char *YASL_top_peekcstring(struct YASL_State *S);
+char *YASL_top_popcstring(struct YASL_State *S);
 
 size_t YASL_getstringlen(struct YASL_Object *obj);
 
