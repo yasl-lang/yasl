@@ -327,6 +327,8 @@ static struct Node *parse_iterate(struct Parser *const parser) {
 	eattok(parser, T_LEFT_ARR);
 	struct Node *collection = parse_expr(parser);
 	const char *name = Var_get_name(var);
+	var->value.sval.str = NULL;
+	node_del(var);
 	return new_LetIter((char *)name, collection, line);
 }
 
