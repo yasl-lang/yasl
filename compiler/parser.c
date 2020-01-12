@@ -247,6 +247,7 @@ static struct Node *parse_fn(struct Parser *const parser) {
 	char *name2 = (char *)malloc(name_len);
 	memcpy(name2, name, name_len);
 	return new_Let(name, new_FnDecl(block, body, name2, name_len, parser->lex.line), line);
+	// TODO Fix this ^
 }
 
 static struct Node *parse_const(struct Parser *const parser) {
