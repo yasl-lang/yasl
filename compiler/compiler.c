@@ -459,7 +459,7 @@ static void visit_Call(struct Compiler *const compiler, const struct Node *const
 }
 
 static void visit_MethodCall(struct Compiler *const compiler, const struct Node *const node) {
-	char *str = node->value.sval.str;
+	char *str = MCall_get_name(node);
 	size_t len = strlen(str);
 	visit(compiler, Call_get_object(node));
 	enum SpecialStrings index = get_special_string(node);
@@ -539,9 +539,8 @@ static void visit_ListComp(struct Compiler *const compiler, const struct Node *c
 	struct Node *iter = ListComp_get_iter(node);
 	struct Node *cond = ListComp_get_cond(node);
 
-	struct Node *var = LetIter_get_var(iter);
 	struct Node *collection = LetIter_get_collection(iter);
-	char *name = var->value.sval.str;
+	char *name = iter->value.sval.str;
 
 	visit(compiler, collection);
 
@@ -549,7 +548,7 @@ static void visit_ListComp(struct Compiler *const compiler, const struct Node *c
 
 	YASL_ByteBuffer_add_byte(compiler->buffer, O_END);
 
-	decl_var(compiler, name, var->line);
+	decl_var(compiler, name, iter->line);
 
 	int64_t index_start = compiler->buffer->count;
 
@@ -589,16 +588,15 @@ static void visit_TableComp(struct Compiler *const compiler, const struct Node *
 	struct Node *iter = TableComp_get_iter(node);
 	struct Node *cond = TableComp_get_cond(node);
 
-	struct Node *var = LetIter_get_var(iter);
 	struct Node *collection = LetIter_get_collection(iter);
-	char *name = var->value.sval.str;
+	char *name = iter->value.sval.str;
 
 	visit(compiler, collection);
 
 	YASL_ByteBuffer_add_byte(compiler->buffer, O_INITFOR);
 	YASL_ByteBuffer_add_byte(compiler->buffer, O_END);
 
-	decl_var(compiler, name, var->line);
+	decl_var(compiler, name, iter->line);
 
 	int64_t index_start = compiler->buffer->count;
 
@@ -639,15 +637,14 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 	struct Node *iter = ForIter_get_iter(node);
 	struct Node *body = ForIter_get_body(node);
 
-	struct Node *var = LetIter_get_var(iter);
 	struct Node *collection = LetIter_get_collection(iter);
-	char *name = var->value.sval.str;
+	char *name = iter->value.sval.str;
 
 	visit(compiler, collection);
 
 	YASL_ByteBuffer_add_byte(compiler->buffer, O_INITFOR);
 
-	decl_var(compiler, name, var->line);
+	decl_var(compiler, name, iter->line);
 
 	size_t index_start = compiler->buffer->count;
 	add_checkpoint(compiler, index_start);

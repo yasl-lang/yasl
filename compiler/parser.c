@@ -218,7 +218,7 @@ static struct Node *parse_fn(struct Parser *const parser) {
 	size_t name_len = strlen(name);
 	eattok(parser, T_ID);
 	if (matcheattok(parser, T_DOT)) {
-		struct Node *collection = new_Var(name, name_len, line);
+		struct Node *collection = new_Var(name, line);
 		size_t line = parser->lex.line;
 		char *name = parser->lex.value;
 		size_t name_len = strlen(name);
@@ -242,7 +242,7 @@ static struct Node *parse_fn(struct Parser *const parser) {
 
 	char *name2 = (char *)malloc(name_len);
 	memcpy(name2, name, name_len);
-	return new_Let(name, name_len, new_FnDecl(block, body, name2, name_len, parser->lex.line), line);
+	return new_Let(name, new_FnDecl(block, body, name2, name_len, parser->lex.line), line);
 }
 
 static struct Node *parse_const(struct Parser *const parser) {
@@ -262,15 +262,14 @@ static struct Node *parse_const(struct Parser *const parser) {
 		// TODO: clean this up
 		char *name2 = (char *)malloc(name_len);
 		memcpy(name2, name, name_len);
-		return new_Const(name, name_len, new_FnDecl(block, body, name2, name_len, parser->lex.line), line);
+		return new_Const(name, new_FnDecl(block, body, name2, name_len, parser->lex.line), line);
 	}
 	char *name = parser->lex.value;
-	size_t name_len = strlen(name);
 	size_t line = parser->lex.line;
 	eattok(parser, T_ID);
 	eattok(parser, T_EQ);
 	struct Node *expr = parse_expr(parser);
-	return new_Const(name, name_len, expr, line);
+	return new_Const(name, expr, line);
 }
 
 static struct Node *parse_decl(struct Parser *const parser) {
@@ -281,10 +280,9 @@ static struct Node *parse_decl(struct Parser *const parser) {
 	do {
 		eattok(parser, T_LET);
 		char *name = parser->lex.value;
-		size_t name_len = strlen(name);
 		size_t line = parser->lex.line;
 		eattok(parser, T_ID);
-		body_append(&buffer, new_Let(name, name_len, NULL, line));
+		body_append(&buffer, new_Let(name, NULL, line));
 		i++;
 	} while (matcheattok(parser, T_COMMA));
 
@@ -303,12 +301,11 @@ static struct Node *parse_let(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("parsing let in line %" PRI_SIZET "\n", parser->lex.line);
 	eattok(parser, T_LET);
 	char *name = parser->lex.value;
-	size_t name_len = strlen(name);
 	size_t line = parser->lex.line;
 	eattok(parser, T_ID);
 	eattok(parser, T_EQ);
 	struct Node *expr = parse_expr(parser);
-	return new_Let(name, name_len, expr, line);
+	return new_Let(name, expr, line);
 }
 
 static struct Node *parse_let_iterate_or_let(struct Parser *const parser) {
@@ -316,12 +313,11 @@ static struct Node *parse_let_iterate_or_let(struct Parser *const parser) {
 		return parse_let(parser);
 	} else {
 		char *name = parser->lex.value;
-		size_t name_len = strlen(name);
 		size_t line = parser->lex.line;
 		eattok(parser, T_ID);
 		eattok(parser, T_LEFT_ARR);
 		struct Node *expr = parse_expr(parser);
-		return new_LetIter(new_Var(name, name_len, line), expr, line);
+		return new_LetIter(name, expr, line);
 	}
 }
 
@@ -330,7 +326,8 @@ static struct Node *parse_iterate(struct Parser *const parser) {
 	struct Node *var = parse_id(parser);
 	eattok(parser, T_LEFT_ARR);
 	struct Node *collection = parse_expr(parser);
-	return new_LetIter(var, collection, line);
+	const char *name = Var_get_name(var);
+	return new_LetIter((char *)name, collection, line);
 }
 
 static struct Node *parse_for(struct Parser *const parser) {
@@ -404,8 +401,7 @@ static struct Node *parse_assign(struct Parser *const parser, struct Node *cur_n
 	if (matcheattok(parser, T_EQ)) {
 		switch (cur_node->nodetype) {
 		case N_VAR: {
-			struct Node *assign_node = new_Assign(cur_node->value.sval.str, cur_node->value.sval.str_len,
-							      parse_expr(parser), line);
+			struct Node *assign_node = new_Assign(cur_node->value.sval.str, parse_expr(parser), line);
 			free(cur_node);
 			return assign_node;
 		}
@@ -425,10 +421,9 @@ static struct Node *parse_assign(struct Parser *const parser, struct Node *cur_n
 		switch (cur_node->nodetype) {
 		case N_VAR: {
 			char *name = cur_node->value.sval.str;
-			size_t name_len = cur_node->value.sval.str_len;
 			struct Node *tmp = node_clone(cur_node);
 			free(cur_node);
-			return new_Assign(name, name_len, new_BinOp(op, tmp, parse_expr(parser), line), line);
+			return new_Assign(name, new_BinOp(op, tmp, parse_expr(parser), line), line);
 		}
 		case N_GET: {
 			struct Node *collection = cur_node->children[0];
@@ -619,11 +614,10 @@ static struct Node *parse_constant(struct Parser *const parser) {
 
 static struct Node *parse_id(struct Parser *const parser) {
 	char *name = parser->lex.value;
-	size_t name_len = strlen(name);
 	size_t line = parser->lex.line;
 	eattok(parser, T_ID);
 	YASL_PARSE_DEBUG_LOG("%s\n", "Parsing variable");
-	struct Node *cur_node = new_Var(name, name_len, line);
+	struct Node *cur_node = new_Var(name, line);
 	return cur_node;
 }
 

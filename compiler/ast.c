@@ -124,8 +124,8 @@ struct Node *new_TableComp(struct Node *expr, struct Node *iter, struct Node *co
 	return new_Node_3(N_TABLECOMP, expr, iter, cond, NULL, 0, line);
 }
 
-struct Node *new_LetIter(struct Node *var, struct Node *collection, const size_t line) {
-	return new_Node_2(N_LETITER, var, collection, NULL, 0, line);
+struct Node *new_LetIter(char *const name, struct Node *collection, const size_t line) {
+	return new_Node_1(N_LETITER, collection, name, strlen(name), line);
 }
 
 struct Node *new_ForIter(struct Node *iter, struct Node *body, const size_t line) {
@@ -152,12 +152,12 @@ struct Node *new_Print(struct Node *expr, const size_t line) {
 	return new_Node_1(N_PRINT, expr, NULL, 0, line);
 }
 
-struct Node *new_Let(char *name, size_t name_len, struct Node *expr, const size_t line) {
-	return new_Node_1(N_LET, expr, name, name_len, line);
+struct Node *new_Let(char *const name, struct Node *expr, const size_t line) {
+	return new_Node_1(N_LET, expr, name, strlen(name), line);
 }
 
-struct Node *new_Const(char *name, size_t name_len, struct Node *expr, const size_t line) {
-	return new_Node_1(N_CONST, expr, name, name_len, line);
+struct Node *new_Const(char *const name, struct Node *expr, const size_t line) {
+	return new_Node_1(N_CONST, expr, name, strlen(name), line);
 }
 
 struct Node *new_TriOp(enum Token op, struct Node *left, struct Node *middle, struct Node *right, const size_t line) {
@@ -192,12 +192,12 @@ struct Node *new_UnOp(enum Token op, struct Node *child, const size_t line) {
 	return node;
 }
 
-struct Node *new_Assign(char *name, size_t name_len, struct Node *child, const size_t line) {
-	return new_Node_1(N_ASSIGN, child, name, name_len, line);
+struct Node *new_Assign(char *const name, struct Node *child, const size_t line) {
+	return new_Node_1(N_ASSIGN, child, name, strlen(name), line);
 }
 
-struct Node *new_Var(char *name, size_t name_len, const size_t line) {
-	return new_Node_0(N_VAR, name, name_len, line);
+struct Node *new_Var(char *const name, const size_t line) {
+	return new_Node_0(N_VAR, name, strlen(name), line);
 }
 
 struct Node *new_Undef(size_t line) {
@@ -352,6 +352,10 @@ struct Node *FnDecl_get_body(const struct Node *const node) {
 	return ((node)->children[1]);
 }
 
+char *MCall_get_name(const struct Node *const node) {
+	return node->value.sval.str;
+}
+
 struct Node *Call_get_params(const struct Node *const node) {
 	return ((node)->children[0]);
 }
@@ -452,10 +456,6 @@ struct Node *TableComp_get_cond(const struct Node *const node) {
 
 
 struct Node *LetIter_get_collection(const struct Node *const node) {
-	return node->children[1];
-}
-
-struct Node *LetIter_get_var(const struct Node *const node) {
 	return node->children[0];
 }
 
