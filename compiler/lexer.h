@@ -5,8 +5,7 @@
 #include "IO.h"
 #include "lexinput.h"
 
-#define  ispotentialend(l) ((l)->type == T_ID || (l)->struct IO *const, const char *const, const size_t);
-	FILE *file;type == T_STR || \
+#define  ispotentialend(l) ((l)->type == T_ID || (l)->type == T_STR || \
             (l)->type == T_INT || (l)->type == T_FLOAT || (l)->type == T_BREAK || \
             (l)->type == T_CONT || (l)->type == T_RPAR || (l)->type == T_RSQB || \
             (l)->type == T_RBRC || (l)->type == T_UNDEF || (l)->type == T_BOOL)
