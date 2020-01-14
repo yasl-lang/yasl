@@ -2,6 +2,8 @@
 
 #include "data-structures/YASL_Table.h"
 
+struct Env;
+
 struct Env {
     struct Env *parent;
     struct YASL_Table *vars;
