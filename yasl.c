@@ -1,5 +1,3 @@
-#include <compiler/compiler.h>
-#include <interpreter/VM.h>
 #include <interpreter/table_methods.h>
 #include <interpreter/YASL_Object.h>
 #include <data-structures/YASL_String.h>
