@@ -137,6 +137,22 @@ struct Lexer {
     struct IO err;
 };
 
+struct Lexer new_lex(struct LEXINPUT *f) {
+    struct Lexer lex = ((struct Lexer) {
+             .file = f,
+             .c = 0,
+             .type = T_UNKNOWN,
+             .value = NULL,
+             .val_cap = 0,
+             .val_len = 0,
+             .line = 1,
+             .status = YASL_SUCCESS,
+             .mode = L_NORMAL,
+             .err = ((struct IO) { io_print_file, stderr, NULL, 0 })
+    })
+    return lex;
+}
+
 void lex_cleanup(struct Lexer *const lex);
 void gettok(struct Lexer *const lex);
 void lex_eatinterpstringbody(struct Lexer *const lex);
