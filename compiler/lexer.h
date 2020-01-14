@@ -1,4 +1,4 @@
-Loading...#pragma once
+error: ';' error: ';' #pragma once
 
 #include <stdbool.h>
 
