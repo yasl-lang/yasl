@@ -1,4 +1,4 @@
-#pragma once
+Loading...#pragma once
 
 #include <stdbool.h>
 
@@ -21,8 +21,7 @@
              .line = 1,\
              .status = YASL_SUCCESS,\
              .mode = L_NORMAL,\
-             .err = ((struct IO)({ io_print_file, stderr, NULL, 0 }))struct IO *const, const char *const, const size_t);
-	FILE *file;\
+             .err = ((struct IO){ io_print_file, stderr, NULL, 0 })\
 })
 
 #define ESCAPE_CHAR '\\'
