@@ -43,11 +43,11 @@ jobs:
     vmImage: 'ubuntu-latest'
   steps:
   - script:
-    sudo apt install valgrind
-  displayName: "Install Valgrind"
+      sudo apt install valgrind
+    displayName: "Install Valgrind"
   - script:
-    sudo apt install tcc
-  displayName: "Install TCC"
+      sudo apt install tcc
+    displayName: "Install TCC"
   - script: |
       set -e
       export CC=tcc
@@ -56,7 +56,7 @@ jobs:
       make yasltest
       make tests
       make yaslapi
-  displayName: "Compile"
+    displayName: "Compile"
   - script:
       ./tests
     displayName: "Run Tests"
