@@ -154,7 +154,7 @@ struct Lexer new_lex(struct LEXINPUT *f) {
                  .string = NULL,
                  .len = 0
              })
-    })
+    });
     return lex;
 }
 
