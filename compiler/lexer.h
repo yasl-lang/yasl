@@ -20,12 +20,7 @@
              .line = 1,\
              .status = YASL_SUCCESS,\
              .mode = L_NORMAL,\
-             .err = ((struct IO) {\
-                 .print = io_print_file,\
-                 .file = stderr,\
-                 .string = NULL,\
-                 .len = 0\
-             })\
+             .err = NEW_IO()\
 })
 
 #define ESCAPE_CHAR '\\'
