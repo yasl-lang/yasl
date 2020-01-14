@@ -148,7 +148,12 @@ struct Lexer new_lex(struct LEXINPUT *f) {
              .line = 1,
              .status = YASL_SUCCESS,
              .mode = L_NORMAL,
-             .err = ((struct IO) { io_print_file, stderr, NULL, 0 })
+             .err = ((struct IO) {
+                 .print = io_print_file,
+                 .file = stderr,
+                 .string = NULL,
+                 .len = 0
+             })
     })
     return lex;
 }
