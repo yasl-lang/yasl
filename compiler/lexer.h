@@ -1,4 +1,4 @@
-error: ';' error: ';' #pragma once
+#pragma once
 
 #include <stdbool.h>
 
