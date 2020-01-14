@@ -56,7 +56,7 @@ jobs:
       make yasltest
       make tests
       make yaslapi
-    displayName: "Compile"
+  displayName: "Compile"
   - script:
       ./tests
     displayName: "Run Tests"
