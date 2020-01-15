@@ -244,9 +244,9 @@ static struct Node *parse_fn(struct Parser *const parser) {
 
 	struct Node *body = parse_body(parser);
 
-	char *name2 = (char *)malloc(name_len);
-	memcpy(name2, name, name_len);
-	return new_Let(name, new_FnDecl(block, body, name2, name_len, parser->lex.line), line);
+	char *name2 = (char *)malloc(name_len + 1);
+	strcpy(name2, name);
+	return new_Let(name, new_FnDecl(block, body, name2, strlen(name2), parser->lex.line), line);
 	// TODO Fix this ^
 }
 
@@ -264,9 +264,9 @@ static struct Node *parse_const(struct Parser *const parser) {
 		struct Node *body = parse_body(parser);
 
 		// TODO: clean this up
-		char *name2 = (char *)malloc(name_len);
-		memcpy(name2, name, name_len);
-		return new_Const(name, new_FnDecl(block, body, name2, name_len, parser->lex.line), line);
+		char *name2 = (char *)malloc(name_len + 1);
+		strcpy(name2, name);
+		return new_Const(name, new_FnDecl(block, body, name2, strlen(name2), parser->lex.line), line);
 	}
 	size_t line = parser->lex.line;
 	char *name = eatname(parser);
