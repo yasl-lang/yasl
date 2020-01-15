@@ -43,8 +43,8 @@ void vm_init(struct VM *const vm,
 	vm->headers_size = datasize;
 	vm->num_globals = datasize;
 	vm->globals = (struct YASL_Table **)calloc(sizeof(struct YASL_Table *), datasize);
-	vm->out = (struct IO) { io_print_file, stdout, NULL, 0 };
-	vm->err = (struct IO) { io_print_file, stderr, NULL, 0 };
+	vm->out = NEW_IO(stdout);
+	vm->err = NEW_IO(stderr);
 	for (size_t i = 0; i < datasize; i++) {
 		vm->headers[i] = NULL;
 		vm->globals[i] = NULL;

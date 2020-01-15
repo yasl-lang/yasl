@@ -10,17 +10,17 @@
             (l)->type == T_CONT || (l)->type == T_RPAR || (l)->type == T_RSQB || \
             (l)->type == T_RBRC || (l)->type == T_UNDEF || (l)->type == T_BOOL)
 
-#define NEW_LEXER(f) \
-  ((struct Lexer) { .file = (f),\
-             .c = 0,\
-             .type = T_UNKNOWN,\
-             .value = NULL,\
-             .val_cap = 0,\
-             .val_len = 0,\
-             .line = 1,\
-             .status = YASL_SUCCESS,\
-             .mode = L_NORMAL,\
-             .err = ((struct IO) { io_print_file, stderr, NULL, 0 })\
+#define NEW_LEXER(f) ((struct Lexer) {\
+        .file = (f),\
+        .c = 0,\
+        .type = T_UNKNOWN,\
+        .value = NULL,\
+        .val_cap = 0,\
+        .val_len = 0,\
+        .line = 1,\
+        .status = YASL_SUCCESS,\
+        .mode = L_NORMAL,\
+        .err = NEW_IO(stderr)\
 })
 
 #define ESCAPE_CHAR '\\'
