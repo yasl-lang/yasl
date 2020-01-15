@@ -410,7 +410,6 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	}
 
 	// start logic for function, now that we are sure it's legal to do so, and have set up.
-
 	compiler->params = env_new(compiler->params);
 	compiler->num_locals = 0;
 
@@ -441,7 +440,6 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 
 	// zero buffer length
 	compiler->buffer->count = old_size;
-	// compiler->buffer->count = 0;
 
 	struct Env *tmp = compiler->params->parent;
 	env_del_current_only(compiler->params);
@@ -536,10 +534,11 @@ static void visit_ListComp(struct Compiler *const compiler, const struct Node *c
 	enter_scope(compiler);
 
 	struct Node *expr = ListComp_get_expr(node);
-	struct Node *iter = ListComp_get_iter(node);
 	struct Node *cond = ListComp_get_cond(node);
+	struct Node *iter = ListComp_get_iter(node);
 
 	struct Node *collection = LetIter_get_collection(iter);
+
 	char *name = iter->value.sval.str;
 
 	visit(compiler, collection);
@@ -656,7 +655,6 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 	int64_t index_second;
 	enter_conditional_false(compiler, &index_second);
 
-
 	store_var(compiler, name, node->line);
 
 	visit(compiler, body);
@@ -733,6 +731,7 @@ static void visit_If(struct Compiler *const compiler, const struct Node *const n
 	struct Node *then_br = If_get_then(node);
 	struct Node *else_br = If_get_else(node);
 
+	//int64_t start = compiler->buffer->count;
 	visit(compiler, cond);
 
 	int64_t index_then;
@@ -817,38 +816,27 @@ static void visit_TriOp(struct Compiler *const compiler, const struct Node *cons
 	YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, index_r, compiler->buffer->count - index_r - 8);
 }
 
+static void visit_BinOp_shortcircuit(struct Compiler *const compiler, const struct Node *const node, enum Opcode jump_type) {
+	visit(compiler, BinOp_get_left(node));
+	YASL_ByteBuffer_add_byte(compiler->buffer, O_DUP);
+	YASL_ByteBuffer_add_byte(compiler->buffer, jump_type);
+	size_t index = compiler->buffer->count;
+	YASL_ByteBuffer_add_int(compiler->buffer, 0);
+	YASL_ByteBuffer_add_byte(compiler->buffer, O_POP);
+	visit(compiler, BinOp_get_right(node));
+	YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, index, compiler->buffer->count - index - 8);
+}
+
 static void visit_BinOp(struct Compiler *const compiler, const struct Node *const node) {
 	// complicated bin ops are handled on their own.
 	if (node->value.type == T_DQMARK) {     // ?? operator
-		visit(compiler, BinOp_get_left(node));
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_DUP);
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_BRN_8);
-		size_t index = compiler->buffer->count;
-		YASL_ByteBuffer_add_int(compiler->buffer, 0);
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_POP);
-		visit(compiler, BinOp_get_right(node));
-		YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, index, compiler->buffer->count - index - 8);
+		visit_BinOp_shortcircuit(compiler, node, O_BRN_8);
 		return;
 	} else if (node->value.type == T_DBAR) {  // or operator
-		visit(compiler, BinOp_get_left(node));
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_DUP);
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_BRT_8);
-		size_t index = compiler->buffer->count;
-		YASL_ByteBuffer_add_int(compiler->buffer, 0);
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_POP);
-		visit(compiler, BinOp_get_right(node));
-		YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, index, compiler->buffer->count - index - 8);
+		visit_BinOp_shortcircuit(compiler, node, O_BRT_8);
 		return;
 	} else if (node->value.type == T_DAMP) {   // and operator
-		visit(compiler, BinOp_get_left(node));
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_DUP);
-
-		int64_t index;
-		enter_conditional_false(compiler, &index);
-
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_POP);
-		visit(compiler, BinOp_get_right(node));
-		exit_conditional_false(compiler, &index);
+		visit_BinOp_shortcircuit(compiler, node, O_BRF_8);
 		return;
 	}
 	// all other operators follow the same pattern of visiting one child then the other.
