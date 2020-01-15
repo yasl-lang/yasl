@@ -1,4 +1,5 @@
-#pragma once
+#ifndef YASL_YASL_ERROR_H
+#define YASL_YASL_ERROR_H
 
 /*
  * Definition of all YASL error codes.
@@ -15,3 +16,5 @@ enum YASL_Error {
 	YASL_VALUE_ERROR,          // Invalid value (at runtime).
 	YASL_TOO_MANY_VAR_ERROR    // Too many variables in current scope
 };
+
+#endif

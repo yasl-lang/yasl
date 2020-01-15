@@ -1,9 +1,11 @@
-#pragma once
+#ifndef YASL_YASL_STRING_H
+#define YASL_YASL_STRING_H
 
-#include "interpreter/refcount.h"
+// #include "interpreter/refcount.h"
 #include "yasl_conf.h"
 #include "yasl_include.h"
 
+struct RC;
 
 struct YASL_String {
 	struct RC *rc;      // NOTE: RC MUST BE THE FIRST MEMBER OF THIS STRUCT. DO NOT REARRANGE.
@@ -50,3 +52,5 @@ struct YASL_String *YASL_String_trim_default(struct YASL_String *haystack);
 struct YASL_String *YASL_String_trim(struct YASL_String *haystack, struct YASL_String *needle);
 // Caller ensures num is greater than or equal to zero
 struct YASL_String *YASL_String_rep_fast(struct YASL_String *string, yasl_int num);
+
+#endif

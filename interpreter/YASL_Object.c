@@ -2,9 +2,11 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "data-structures/YASL_Table.h"
 #include "interpreter/userdata.h"
+#include "interpreter/refcount.h"
 
 char *float64_to_str(yasl_float d);
 

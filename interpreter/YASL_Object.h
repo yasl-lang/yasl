@@ -1,4 +1,5 @@
-#pragma once
+#ifndef YASL_YASL_OBJECT_H
+#define YASL_YASL_OBJECT_H
 
 #include "data-structures/YASL_String.h"
 #include "yasl_conf.h"
@@ -94,3 +95,4 @@ int print(struct YASL_Object a);
 void inc_ref(struct YASL_Object *v);
 void dec_ref(struct YASL_Object *v);
 
+#endif

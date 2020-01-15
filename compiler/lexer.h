@@ -1,27 +1,18 @@
-#pragma once
+#ifndef YASL_LEXER_H
+#define YASL_LEXER_H
 
 #include <stdbool.h>
 
 #include "IO.h"
 #include "lexinput.h"
+#include "../IO.h"
 
 #define  ispotentialend(l) ((l)->type == T_ID || (l)->type == T_STR || \
             (l)->type == T_INT || (l)->type == T_FLOAT || (l)->type == T_BREAK || \
             (l)->type == T_CONT || (l)->type == T_RPAR || (l)->type == T_RSQB || \
             (l)->type == T_RBRC || (l)->type == T_UNDEF || (l)->type == T_BOOL)
 
-#define NEW_LEXER(f) \
-  ((struct Lexer) { .file = (f),\
-             .c = 0,\
-             .type = T_UNKNOWN,\
-             .value = NULL,\
-             .val_cap = 0,\
-             .val_len = 0,\
-             .line = 1,\
-             .status = YASL_SUCCESS,\
-             .mode = L_NORMAL,\
-             .err = NEW_IO()\
-})
+#define NEW_LEXER(f) new_lexer(f)
 
 #define ESCAPE_CHAR '\\'
 #define STR_DELIM '\''
@@ -137,6 +128,25 @@ struct Lexer {
     struct IO err;
 };
 
+struct Lexer new_lexer(struct LEXINPUT *f) {
+	struct Lexer lex = ((struct Lexer) {
+             .c = 0,
+             .type = T_UNKNOWN,
+             .value = NULL,
+             .val_cap = 0,
+             .val_len = 0,
+             .line = 1,\
+             .status = 0,
+             .mode = L_NORMAL
+});
+	lex.file = f;
+	lex.err.print = io_print_file;
+	lex.err.file = stderr;
+	lex.err.string = NULL;
+	lex.err.len = 0;
+	return lex;
+}
+
 void lex_cleanup(struct Lexer *const lex);
 void gettok(struct Lexer *const lex);
 void lex_eatinterpstringbody(struct Lexer *const lex);
@@ -145,3 +155,4 @@ int lex_getchar(struct Lexer *const lex);
 
 extern const char *YASL_TOKEN_NAMES[82];
 
+#endif

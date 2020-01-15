@@ -95,7 +95,7 @@ struct Compiler *compiler_new(FILE *const fp) {
 	init_compiler(compiler);
 
 	struct LEXINPUT *lp = lexinput_new_file(fp);
-	compiler->parser = NEW_PARSER(lp);
+	compiler->parser = new_parser(lp);
 	return compiler;
 }
 
@@ -104,7 +104,7 @@ struct Compiler *compiler_new_bb(const char *const buf, const size_t len) {
 	init_compiler(compiler);
 
 	struct LEXINPUT *lp = lexinput_new_bb(buf, len);
-	compiler->parser = NEW_PARSER(lp);
+	compiler->parser = new_parser(lp);
 	return compiler;
 }
 
