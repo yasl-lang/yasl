@@ -6,7 +6,6 @@
 #include "debug.h"
 #include "hash_function.h"
 #include "interpreter/refcount.h"
-#include "interpreter/YASL_Object.h"
 
 struct YASL_Table_Item TOMBSTONE = { { Y_END, { Y_END } }, { Y_END, { Y_END } } };
 

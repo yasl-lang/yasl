@@ -15,9 +15,6 @@ const yasl_float YASL_PI = 3.141592653589793238512808959406186204432742670178413
 #if _MSC_VER
 const yasl_float YASL_NAN = NAN;
 const yasl_float YASL_INF = INFINITY;
-#elseif __TINYC__
-const yasl_float YASL_NAN = NAN;
-const yasl_float YASL_INF = INF;
 #elif defined(__TINYC__)
 #define YASL_NAN nan("")
 #define YASL_INF INFINITY
