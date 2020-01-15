@@ -770,6 +770,14 @@ static struct Node *parse_collection(struct Parser *const parser) {
 	}
 }
 
+struct Parser new_parser(struct LEXINPUT *lp) {
+	struct Parser p = ((struct Parser) {
+		.status = 0
+	});
+	p.lex = new_lexer(lp);
+	return p;
+}
+
 #ifdef _MSC_VER
 // To avoid MSVC _VA_ARGS_ macro expansion bug
 int token_matches(struct Parser *const parser, ...) {

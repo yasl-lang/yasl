@@ -802,6 +802,25 @@ const char *YASL_TOKEN_NAMES[] = {
 	"<-",           // LEFT_ARR
 };
 
+struct Lexer new_lexer(struct LEXINPUT *f) {
+	struct Lexer lex = ((struct Lexer) {
+		.c = 0,
+		.type = T_UNKNOWN,
+		.value = NULL,
+		.val_cap = 0,
+		.val_len = 0,
+		.line = 1,
+		.status = 0,
+		.mode = L_NORMAL
+	});
+	lex.file = f;
+	lex.err.print = io_print_file;
+	lex.err.file = stderr;
+	lex.err.string = NULL;
+	lex.err.len = 0;
+	return lex;
+}
+
 struct Lexer *lex_new(FILE *file /* OWN */) {
 	struct Lexer *const lex = (struct Lexer *) malloc(sizeof(struct Lexer));
 	lex->line = 1;

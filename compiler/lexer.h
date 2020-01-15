@@ -128,24 +128,7 @@ struct Lexer {
     struct IO err;
 };
 
-struct Lexer new_lexer(struct LEXINPUT *f) {
-	struct Lexer lex = ((struct Lexer) {
-             .c = 0,
-             .type = T_UNKNOWN,
-             .value = NULL,
-             .val_cap = 0,
-             .val_len = 0,
-             .line = 1,\
-             .status = 0,
-             .mode = L_NORMAL
-});
-	lex.file = f;
-	lex.err.print = io_print_file;
-	lex.err.file = stderr;
-	lex.err.string = NULL;
-	lex.err.len = 0;
-	return lex;
-}
+struct Lexer new_lexer(struct LEXINPUT *f);
 
 void lex_cleanup(struct Lexer *const lex);
 void gettok(struct Lexer *const lex);

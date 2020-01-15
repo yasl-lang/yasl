@@ -21,14 +21,7 @@ struct Parser {
     int status;
 };
 
-struct Parser new_parser(struct LEXINPUT *lp) {
-	struct Parser p = ((struct Parser) {
-		//.lex = new_lexer(lp),
-		.status = 0
-	});
-	p.lex = new_lexer(lp);
-	return p;
-}
+struct Parser new_parser(struct LEXINPUT *lp);
 
 int peof(const struct Parser *const parser);
 // struct Parser *parser_new(FILE *fp);
