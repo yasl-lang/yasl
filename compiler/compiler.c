@@ -712,9 +712,7 @@ static void visit_While(struct Compiler *const compiler, const struct Node *cons
 	int64_t index_second;
 	enter_conditional_false(compiler, &index_second);
 
-	enter_scope(compiler);
 	visit(compiler, body);
-	exit_scope(compiler);
 
 	branch_back(compiler, index_start);
 
@@ -748,14 +746,11 @@ static void visit_If(struct Compiler *const compiler, const struct Node *const n
 	struct Node *then_br = If_get_then(node);
 	struct Node *else_br = If_get_else(node);
 
-	//int64_t start = compiler->buffer->count;
 	visit(compiler, cond);
 
 	int64_t index_then;
 	enter_conditional_false(compiler, &index_then);
-	enter_scope(compiler);
 	visit(compiler, then_br);
-	exit_scope(compiler);
 
 	size_t index_else = 0;
 
@@ -767,9 +762,7 @@ static void visit_If(struct Compiler *const compiler, const struct Node *const n
 	exit_conditional_false(compiler, &index_then);
 
 	if (else_br) {
-		enter_scope(compiler);
 		visit(compiler, else_br);
-		exit_scope(compiler);
 		exit_jump(compiler, &index_else);
 	}
 }
