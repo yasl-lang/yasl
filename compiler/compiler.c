@@ -530,6 +530,36 @@ static inline void branch_back(struct Compiler *const compiler, int64_t index) {
 	YASL_ByteBuffer_add_int(compiler->buffer, index - compiler->buffer->count - 8);
 }
 
+static void visit_ListComp_cond(struct Compiler *const compiler, const struct Node *const cond, const struct Node *const expr) {
+	if (cond) {
+		int64_t index_third;
+		visit(compiler, cond);
+		enter_conditional_false(compiler, &index_third);
+
+		visit(compiler, expr);
+
+		exit_conditional_false(compiler, &index_third);
+	} else {
+		visit(compiler, expr);
+	}
+}
+
+static void visit_TableComp_cond(struct Compiler *const compiler, const struct Node *const cond, const struct Node *const expr) {
+	if (cond) {
+		int64_t index_third;
+		visit(compiler, cond);
+		enter_conditional_false(compiler, &index_third);
+
+		visit(compiler, expr->children[0]);
+		visit(compiler, expr->children[1]);
+
+		exit_conditional_false(compiler, &index_third);
+	} else {
+		visit(compiler, expr->children[0]);
+		visit(compiler, expr->children[1]);
+	}
+}
+
 static void visit_ListComp(struct Compiler *const compiler, const struct Node *const node) {
 	enter_scope(compiler);
 
@@ -556,19 +586,9 @@ static void visit_ListComp(struct Compiler *const compiler, const struct Node *c
 	int64_t index_second;
 	enter_conditional_false(compiler, &index_second);
 
-	store_var(compiler, name, node->line);
+	store_var(compiler, name, iter->line);
 
-	if (cond) {
-		int64_t index_third;
-		visit(compiler, cond);
-		enter_conditional_false(compiler, &index_third);
-
-		visit(compiler, expr);
-
-		exit_conditional_false(compiler, &index_third);
-	} else {
-		visit(compiler, expr);
-	}
+	visit_ListComp_cond(compiler, cond, expr);
 
 	branch_back(compiler, index_start);
 
@@ -604,21 +624,9 @@ static void visit_TableComp(struct Compiler *const compiler, const struct Node *
 	int64_t index_second;
 	enter_conditional_false(compiler, &index_second);
 
-	store_var(compiler, name, node->line);
+	store_var(compiler, name, iter->line);
 
-	if (cond) {
-		int64_t index_third;
-		visit(compiler, cond);
-		enter_conditional_false(compiler, &index_third);
-
-		visit(compiler, expr->children[0]);
-		visit(compiler, expr->children[1]);
-
-		exit_conditional_false(compiler, &index_third);
-	} else {
-		visit(compiler, expr->children[0]);
-		visit(compiler, expr->children[1]);
-	}
+	visit_TableComp_cond(compiler, cond, expr);
 
 	branch_back(compiler, index_start);
 
@@ -655,7 +663,7 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 	int64_t index_second;
 	enter_conditional_false(compiler, &index_second);
 
-	store_var(compiler, name, node->line);
+	store_var(compiler, name, iter->line);
 
 	visit(compiler, body);
 
