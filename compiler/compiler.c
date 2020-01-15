@@ -670,6 +670,16 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 	rm_checkpoint(compiler);
 }
 
+static void enter_jump(struct Compiler *const compiler, size_t *index) {
+	YASL_ByteBuffer_add_byte(compiler->buffer, O_BR_8);
+	*index = compiler->buffer->count;
+	YASL_ByteBuffer_add_int(compiler->buffer, 0);
+}
+
+static void exit_jump(struct Compiler *const compiler, const size_t *const index) {
+	YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, *index, compiler->buffer->count - *index - 8);
+}
+
 static void visit_While(struct Compiler *const compiler, const struct Node *const node) {
 	size_t index_start = compiler->buffer->count;
 
@@ -678,12 +688,11 @@ static void visit_While(struct Compiler *const compiler, const struct Node *cons
 	struct Node *post = While_get_post(node);
 
 	if (post) {
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_BR_8);
-		size_t index = compiler->buffer->count;
-		YASL_ByteBuffer_add_int(compiler->buffer, 0);
+		size_t index;
+		enter_jump(compiler, &index);
 		index_start = compiler->buffer->count;
 		visit(compiler, post);
-		YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, index, compiler->buffer->count - index - 8);
+		exit_jump(compiler, &index);
 	}
 
 	add_checkpoint(compiler, index_start);
@@ -743,9 +752,7 @@ static void visit_If(struct Compiler *const compiler, const struct Node *const n
 	size_t index_else = 0;
 
 	if (else_br) {
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_BR_8);
-		index_else = compiler->buffer->count;
-		YASL_ByteBuffer_add_int(compiler->buffer, 0);
+		enter_jump(compiler, &index_else);
 	}
 
 	exit_scope(compiler);
@@ -755,7 +762,7 @@ static void visit_If(struct Compiler *const compiler, const struct Node *const n
 		enter_scope(compiler);
 		visit(compiler, else_br);
 		exit_scope(compiler);
-		YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, index_else, compiler->buffer->count - index_else - 8);
+		exit_jump(compiler, &index_else);
 	}
 }
 
@@ -806,14 +813,13 @@ static void visit_TriOp(struct Compiler *const compiler, const struct Node *cons
 
 	visit(compiler, middle);
 
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_BR_8);
-	size_t index_r = compiler->buffer->count;
-	YASL_ByteBuffer_add_int(compiler->buffer, 0);
+	size_t index_r;
+	enter_jump(compiler, &index_r);
 
 	exit_conditional_false(compiler, &index_l);
 
 	visit(compiler, right);
-	YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, index_r, compiler->buffer->count - index_r - 8);
+	exit_jump(compiler, &index_r);
 }
 
 static void visit_BinOp_shortcircuit(struct Compiler *const compiler, const struct Node *const node, enum Opcode jump_type) {
