@@ -1,11 +1,10 @@
-#include <compiler/compiler.h>
-#include <interpreter/VM.h>
-#include <interpreter/table_methods.h>
-#include <interpreter/YASL_Object.h>
-#include <data-structures/YASL_String.h>
-#include <interpreter/userdata.h>
-#include <data-structures/YASL_ByteBuffer.h>
 #include "yasl.h"
+
+#include "interpreter/table_methods.h"
+#include "interpreter/YASL_Object.h"
+#include "data-structures/YASL_String.h"
+#include "interpreter/userdata.h"
+#include "data-structures/YASL_ByteBuffer.h"
 #include "yasl_state.h"
 #include "compiler/compiler.h"
 #include "interpreter/VM.h"
