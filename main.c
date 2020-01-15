@@ -4,10 +4,10 @@
 #include <time.h>
 
 #include "yasl.h"
-#include "yasl-std-io.h"
-#include "yasl-std-math.h"
-#include "yasl-std-require.h"
-#include "yasl-std-collections.h"
+#include "std/yasl-std-io.h"
+#include "std/yasl-std-math.h"
+#include "std/yasl-std-require.h"
+#include "std/yasl-std-collections.h"
 #include "yasl_state.h"
 
 

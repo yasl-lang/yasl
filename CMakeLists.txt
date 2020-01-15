@@ -34,10 +34,11 @@ endif()
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 include_directories(.)
-include_directories(std-io)
-include_directories(std-math)
-include_directories(std-require)
-include_directories(std-collections)
+include_directories(compiler)
+include_directories(data-structures)
+include_directories(interpreter)
+include_directories(prime)
+include_directories(std)
 include_directories(test)
 
 add_executable(yasl
@@ -69,11 +70,11 @@ add_executable(yasl
         interpreter/userdata.c
         interpreter/undef_methods.c
         prime/prime.c
-        std-io/yasl-std-io.c
-        std-math/yasl-std-math.c
-        std-require/yasl-std-require.c
+        std/yasl-std-io.c
+        std/yasl-std-math.c
+        std/yasl-std-require.c
         data-structures/YASL_Set.c
-        std-collections/yasl-std-collections.c
+        std/yasl-std-collections.c
         IO.c)
 
 add_executable(yasltest
