@@ -11,7 +11,7 @@
 #include "yasl_state.h"
 
 
-#define VERSION "v0.7.1"
+#define VERSION "v0.7.2"
 #define VERSION_PRINTOUT "YASL " VERSION
 
 static int load_libs(struct YASL_State *S) {
