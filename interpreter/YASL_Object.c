@@ -99,6 +99,8 @@ int yasl_object_cmp(struct YASL_Object a, struct YASL_Object b) {
 		printf("Cannot apply object compare to types %s and %s.\n", YASL_TYPE_NAMES[a.type], YASL_TYPE_NAMES[b.type]);
 		exit(-1);
 	}
+	// should never reach here.
+	return 0;
 }
 
 int isfalsey(struct YASL_Object v) {
