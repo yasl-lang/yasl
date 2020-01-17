@@ -52,11 +52,11 @@ jobs:
       cd tcc-0.9.27/
       ./configure
       make
-      make install
+      sudo make install
     displayName: "Install TCC"
   - script: |
       set -e
-      cmake .
+      cmake -DCMAKE_C_COMPILER=tcc .
       make yasl
       make yasltest
       make tests
