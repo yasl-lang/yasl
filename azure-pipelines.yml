@@ -37,21 +37,26 @@ jobs:
     inputs:
       solution: yasl.sln
     displayName: "Compile"
-- job:
+- job: 
   displayName: "C TCC Ubuntu"
   pool:
     vmImage: 'ubuntu-latest'
   steps:
   - script:
       sudo apt install valgrind
-    displayName: "Install Valgrind"
-  - script:
-      sudo apt install tcc
+    displayName: "Install Valgrind"  
+  - script: |
+      set -e
+      curl -o tcc.tar.bz2 http://download-mirror.savannah.gnu.org/releases/tinycc/tcc-0.9.27.tar.bz2
+      tar xjf tcc.tar.bz2
+      cd tcc-0.9.27/
+      ./configure
+      make
+      sudo make install
     displayName: "Install TCC"
   - script: |
       set -e
-      export CC=tcc
-      cmake .
+      cmake -DCMAKE_C_COMPILER=tcc .
       make yasl
       make yasltest
       make tests
