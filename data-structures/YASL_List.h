@@ -1,4 +1,5 @@
-#pragma once
+#ifndef YASL_YASL_LIST_H_
+#define YASL_YASL_LIST_H_
 
 #include "data-structures/YASL_ByteBuffer.h"
 #include "interpreter/refcount.h"
@@ -23,3 +24,5 @@ void YASL_reverse(struct YASL_List *const ls);
 
 struct RC_UserData *rcls_new(void);
 struct RC_UserData* rcls_new_sized(const size_t base_size);
+
+#endif

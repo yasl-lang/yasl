@@ -1,4 +1,5 @@
-#pragma once
+#ifndef YASL_USERDATA_H_
+#define YASL_USERDATA_H_
 
 struct YASL_Table;
 struct RC;
@@ -16,3 +17,5 @@ struct RC_UserData *ud_new(void *data, int tag, struct YASL_Table *mt, void (*de
 void ud_del_data(struct RC_UserData *ud);
 void ud_del_rc(struct RC_UserData *ud);
 void ud_del(struct RC_UserData *ud);
+
+#endif

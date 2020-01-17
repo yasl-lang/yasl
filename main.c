@@ -39,12 +39,12 @@ static int main_help(int argc, char **argv) {
 	     "\t-V: print current version.\n"
 	     "\tinput: name of file containing script (or literal to execute with -e or -E)."
 	);
-	exit(EXIT_SUCCESS);
+	return 0;
 }
 
 static int main_version(int argc, char **argv) {
 	puts(VERSION_PRINTOUT);
-	exit(EXIT_SUCCESS);
+	return 0;
 }
 
 static int main_file(int argc, char **argv) {

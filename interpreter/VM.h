@@ -1,4 +1,5 @@
-#pragma once
+#ifndef YASL_VM_H_
+#define YASL_VM_H_
 
 #include "IO.h"
 #include "data-structures/YASL_Table.h"
@@ -137,3 +138,4 @@ void vm_pushbool(struct VM *const vm, bool b);
 
 int vm_run(struct VM *vm);
 
+#endif

@@ -2,9 +2,11 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "data-structures/YASL_Table.h"
 #include "interpreter/userdata.h"
+#include "interpreter/refcount.h"
 
 char *float64_to_str(yasl_float d);
 
@@ -97,6 +99,7 @@ int yasl_object_cmp(struct YASL_Object a, struct YASL_Object b) {
 		printf("Cannot apply object compare to types %s and %s.\n", YASL_TYPE_NAMES[a.type], YASL_TYPE_NAMES[b.type]);
 		exit(-1);
 	}
+	return 0;
 }
 
 int isfalsey(struct YASL_Object v) {
