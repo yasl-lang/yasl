@@ -741,10 +741,60 @@ static void visit_Continue(struct Compiler *const compiler, const struct Node *c
 	branch_back(compiler, continue_checkpoint(compiler));
 }
 
+static bool Node_istruthy(const struct Node *const node) {
+	switch (node->nodetype)	{
+	case N_BOOL:
+		return Boolean_get_bool(node);
+	default:
+		return false;
+	}
+}
+
+static bool Node_isfalsey(const struct Node *const node) {
+	switch (node->nodetype)	{
+	case N_BOOL:
+		return !Boolean_get_bool(node);
+	case N_UNDEF:
+		return true;
+	default:
+		return false;
+	}
+}
+
+static void visit_If_true(struct Compiler *const compiler, const struct Node *const then_br, const struct Node *const else_br) {
+	visit(compiler, then_br);
+
+	if (else_br) {
+		size_t curr = compiler->buffer->count;
+		visit(compiler, else_br);
+		compiler->buffer->count = curr;
+	}
+}
+
+static void visit_If_false(struct Compiler *const compiler, const struct Node *const then_br, const struct Node *const else_br) {
+	size_t curr = compiler->buffer->count;
+	visit(compiler, then_br);
+	compiler->buffer->count = curr;
+
+	if (else_br) {
+		visit(compiler, else_br);
+	}
+}
+
 static void visit_If(struct Compiler *const compiler, const struct Node *const node) {
 	struct Node *cond = If_get_cond(node);
 	struct Node *then_br = If_get_then(node);
 	struct Node *else_br = If_get_else(node);
+
+	if (Node_istruthy(cond)) {
+		visit_If_true(compiler, then_br, else_br);
+		return;
+	}
+
+	if (Node_isfalsey(cond)) {
+		visit_If_false(compiler, then_br, else_br);
+		return;
+	}
 
 	visit(compiler, cond);
 
