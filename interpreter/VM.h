@@ -122,9 +122,9 @@ struct VM {
 
 void vm_init(struct VM *const vm, unsigned char *const code, const size_t pc, const size_t datasize);
 
-void vm_cleanup(struct VM *vm);
+void vm_cleanup(struct VM *const vm);
 
-int vm_stringify_top(struct VM *vm);
+int vm_stringify_top(struct VM *const vm);
 
 struct YASL_Object vm_pop(struct VM *const vm);
 bool vm_popbool(struct VM *const vm);
@@ -145,6 +145,6 @@ void vm_pushbool(struct VM *const vm, bool b);
 #define vm_pushfn(vm, f) vm_push(vm, YASL_FN(f))
 void vm_pushclosure(struct VM *const vm, const unsigned char *const f);
 
-int vm_run(struct VM *vm);
+int vm_run(struct VM *const vm);
 
 #endif
