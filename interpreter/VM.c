@@ -162,7 +162,7 @@ void vm_pushbool(struct VM *const vm, bool b) {
 }
 
 void vm_pushclosure(struct VM *const vm, const unsigned char *const f) {
-	struct Closure *c = malloc(sizeof(struct Closure));
+	struct Closure *c = (struct Closure *)malloc(sizeof(struct Closure));
 	c->f = f;
 	vm_push(vm, ((struct YASL_Object){.type = Y_CLOSURE, .value = {.lval = c}}));
 }
@@ -828,8 +828,7 @@ static int vm_RET(struct VM *vm) {
 	// TODO: handle multiple returns
 	struct YASL_Object v = vm_pop(vm);
 	vm->sp = vm->fp + 3;
-	vm->next_fp = (int)YASL_GETINT(vm->stack[vm->fp + 3]);
-	vm_pop(vm);
+	vm->next_fp = (int)vm_popint(vm);
 	vm->fp = (int)vm_popint(vm);
 	vm->pc = vm_pop(vm).value.fval;
 	vm_pop(vm);
