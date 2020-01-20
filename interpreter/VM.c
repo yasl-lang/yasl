@@ -198,26 +198,17 @@ static yasl_int vm_read_int(struct VM *const vm) {
     return val;
 }
 
-static yasl_int vm_read_int16(struct VM *const vm) {
-	int16_t val;
-	memcpy(&val, vm->pc, sizeof(int16_t));
-	vm->pc += sizeof(int16_t);
-	return (yasl_int) val;
-}
+#define READ_INT(size) \
+	static yasl_int vm_read_int##size(struct VM *const vm) {\
+		int##size##_t val;\
+		memcpy(&val, vm->pc, sizeof(int##size##_t));\
+		vm->pc += sizeof(int##size##_t);\
+		return (yasl_int) val;\
+	}
 
-static yasl_int vm_read_int32(struct VM *const vm) {
-	int32_t val;
-	memcpy(&val, vm->pc, sizeof(int32_t));
-	vm->pc += sizeof(int32_t);
-	return (yasl_int) val;
-}
-
-static yasl_int vm_read_int64(struct VM *const vm) {
-	int64_t val;
-	memcpy(&val, vm->pc, sizeof(int64_t));
-	vm->pc += sizeof(int64_t);
-	return (yasl_int) val;
-}
+READ_INT(16)
+READ_INT(32)
+READ_INT(64)
 
 static yasl_float vm_read_float(struct VM *const vm) {
     yasl_float val;
