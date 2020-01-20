@@ -37,7 +37,7 @@ include_directories(.)
 include_directories(compiler)
 include_directories(data-structures)
 include_directories(interpreter)
-include_directories(prime)
+include_directories(util)
 include_directories(std)
 include_directories(test)
 
@@ -53,7 +53,7 @@ add_executable(yasl
         compiler/lexinput.c
         compiler/parser.c
         compiler/middleend.c
-        data-structures/hash_function.c
+        util/hash_function.c
         data-structures/YASL_Table.c
         interpreter/bool_methods.c
         interpreter/builtins.c
@@ -70,7 +70,7 @@ add_executable(yasl
         data-structures/YASL_String.c
         interpreter/userdata.c
         interpreter/undef_methods.c
-        prime/prime.c
+        util/prime.c
         std/yasl-std-io.c
         std/yasl-std-math.c
         std/yasl-std-require.c
@@ -109,7 +109,7 @@ add_executable(yasltest
         compiler/parser.c
         compiler/ast.c
         compiler/middleend.c
-        data-structures/hash_function.c
+        util/hash_function.c
         data-structures/YASL_Table.c
         interpreter/yasl_float.c
         interpreter/YASL_Object.c
@@ -118,7 +118,7 @@ add_executable(yasltest
         interpreter/refcount.c
         data-structures/YASL_List.c
         interpreter/userdata.c
-        prime/prime.c
+        util/prime.c
         data-structures/YASL_Set.c
         compiler/env.c
         yasl.c
@@ -154,7 +154,7 @@ add_library(yaslapi
         compiler/lexinput.c
         compiler/parser.c
         compiler/middleend.c
-        data-structures/hash_function.c
+        util/hash_function.c
         data-structures/YASL_Table.c
         interpreter/bool_methods.c
         interpreter/builtins.c
@@ -171,7 +171,7 @@ add_library(yaslapi
         data-structures/YASL_String.c
         interpreter/userdata.c
         interpreter/undef_methods.c
-        prime/prime.c
+        util/prime.c
         IO.c)
 
 if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")

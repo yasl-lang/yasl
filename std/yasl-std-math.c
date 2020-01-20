@@ -6,7 +6,7 @@
 #include <data-structures/YASL_Set.h>
 #include <interpreter/VM.h>
 
-#include "prime/prime.h"
+#include "util/prime.h"
 #include "interpreter/YASL_Object.h"
 #include "yasl_conf.h"
 #include "yasl.h"

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef YASL_YASL_SET_H_
+#define YASL_YASL_SET_H_
 
 #include "interpreter/YASL_Object.h"
 
@@ -23,3 +24,5 @@ struct YASL_Set *YASL_Set_intersection(const struct YASL_Set *const left, const 
 struct YASL_Set *YASL_Set_symmetric_difference(const struct YASL_Set *const left, const struct YASL_Set *const right);
 struct YASL_Set *YASL_Set_difference(const struct YASL_Set *const left, const struct YASL_Set *const right);
 size_t YASL_Set_length(const struct YASL_Set *const set);
+
+#endif

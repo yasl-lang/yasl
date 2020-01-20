@@ -2,7 +2,7 @@
 #define YASL_YASL_TABLE_H_
 
 #include "interpreter/YASL_Object.h"
-#include "prime/prime.h"
+#include "util/prime.h"
 
 #define TABLE_BASESIZE 30
 
@@ -11,8 +11,8 @@
 
 
 #define NEW_TABLE() ((struct YASL_Table){\
-	.base_size = (TABLE_BASESIZE),\
 	.size = next_prime(TABLE_BASESIZE),\
+	.base_size = TABLE_BASESIZE,\
 	.count = 0,\
 	.items = (struct YASL_Table_Item *)calloc((size_t) next_prime(TABLE_BASESIZE), sizeof(struct YASL_Table_Item))\
 })
