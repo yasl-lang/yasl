@@ -1,16 +1,16 @@
 #ifndef YASL_VM_H_
 #define YASL_VM_H_
 
+#include <inttypes.h>
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+
 #include "IO.h"
 #include "data-structures/YASL_Table.h"
 #include "data-structures/YASL_List.h"
 #include "yasl_conf.h"
 #include "opcode.h"
-
-#include <inttypes.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
 
 #define NUM_GLOBALS 256
 #define NUM_TYPES 13                                     // number of builtin types, each needs a vtable
@@ -135,6 +135,7 @@ void vm_pushbool(struct VM *const vm, bool b);
 #define vm_pushlist(vm, l) vm_push(vm, YASL_LIST(l))
 #define vm_pushtable(vm, l) vm_push(vm, YASL_TABLE(l))
 #define vm_pushfn(vm, f) vm_push(vm, YASL_FN(f))
+void vm_pushclosure(struct VM *const vm, const unsigned char *const f);
 
 int vm_run(struct VM *vm);
 

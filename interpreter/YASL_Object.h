@@ -33,6 +33,7 @@
 #define YASL_ISUSERDATA(v) ((v).type == Y_USERDATA)
 #define YASL_ISUSERPTR(v) ((v).type == Y_USERPTR)
 #define YASL_ISFN(v) ((v).type == Y_FN)
+#define YASL_ISCLOSURE(v) ((v).type == Y_CLOSURE)
 #define YASL_ISCFN(v) ((v).type == Y_CFN)
 
 #define YASL_GETFLOAT(v) ((v).value.dval)
@@ -44,21 +45,11 @@
 #define YASL_GETTABLE(v) ((struct YASL_Table *)((v).value.uval->data))
 #define YASL_GETUSERDATA(v) ((v).value.uval)
 #define YASL_GETUSERPTR(v) ((v).value.pval)
-#define YASL_GETFN(v) ((v).value.ival)
+#define YASL_GETFN(v) ((v).value.fval)
 #define YASL_GETCFN(v) ((v).value.cval)
 
 struct YASL_State;
 struct RC_UserData;
-
-struct CFunction_s {
-	struct RC *rc;
-	int num_args;
-	int (*value)(struct YASL_State *);
-};
-
-struct CFunction_s *new_cfn(int (*value)(struct YASL_State *), int num_args);
-void cfn_del_rc(struct CFunction_s *cfn);
-void cfn_del_data(struct CFunction_s *cfn);
 
 struct YASL_Object {
 	enum YASL_Types type;
@@ -67,11 +58,31 @@ struct YASL_Object {
 		yasl_float dval;
 		struct YASL_String *sval;
 		struct RC_UserData *uval;
-		struct CFunction_s *cval;
+		struct CFunction *cval;
+		struct Closure *lval;
 		unsigned char *fval;
 		void *pval;
 	} value;
 };
+
+struct CFunction {
+	struct RC *rc;
+	int num_args;
+	int (*value)(struct YASL_State *);
+};
+
+struct Upvalue {
+	struct YASL_Object *location;
+};
+
+struct Closure {
+	const unsigned char *f;
+	struct Upvalue *upvalues[];
+};
+
+struct CFunction *new_cfn(int (*value)(struct YASL_State *), int num_args);
+void cfn_del_rc(struct CFunction *cfn);
+void cfn_del_data(struct CFunction *cfn);
 
 struct YASL_Object *YASL_Undef(void);
 struct YASL_Object *YASL_Float(yasl_float value);

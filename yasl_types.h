@@ -21,10 +21,11 @@ enum YASL_Types {
 	Y_TABLE,
 	Y_TABLE_W,
 	Y_FN,
+	Y_CLOSURE,
 	Y_CFN,
 	Y_USERPTR,
 	Y_USERDATA,
 	Y_USERDATA_W,
 };
 
-extern const char *YASL_TYPE_NAMES[15];
+extern const char *YASL_TYPE_NAMES[16];

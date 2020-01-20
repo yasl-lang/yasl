@@ -42,6 +42,7 @@ include_directories(std)
 include_directories(test)
 
 add_executable(yasl
+        opcode.h
         yasl.c
         main.c
         compiler/ast.c
@@ -78,6 +79,7 @@ add_executable(yasl
         IO.c)
 
 add_executable(yasltest
+        opcode.h
         test/yats.c
         test/yasl_test.c
         test/unit_tests/test_api/apitest.c
@@ -132,15 +134,17 @@ add_executable(yasltest
         IO.c)
 
 if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
-	add_executable(tests
-		test/test.c
+    add_executable(tests
+            opcode.h
+            test/test.c
             test/clitest.c
             test/filetest.c
-		test/memtest.c
-        	test/test_util.c)
+            test/memtest.c
+            test/test_util.c)
 endif()
 
 add_library(yaslapi
+        opcode.h
         yasl.c
         compiler/ast.c
         data-structures/YASL_ByteBuffer.c

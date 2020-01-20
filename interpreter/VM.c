@@ -161,6 +161,12 @@ void vm_pushbool(struct VM *const vm, bool b) {
 	vm_push(vm, YASL_BOOL(b));
 }
 
+void vm_pushclosure(struct VM *const vm, const unsigned char *const f) {
+	struct Closure *c = malloc(sizeof(struct Closure));
+	c->f = f;
+	vm_push(vm, ((struct YASL_Object){.type = Y_CLOSURE, .value = {.lval = c}}));
+}
+
 struct YASL_Object vm_pop(struct VM *const vm) {
 	return vm->stack[vm->sp--];
 }
@@ -190,6 +196,27 @@ static yasl_int vm_read_int(struct VM *const vm) {
     memcpy(&val, vm->pc, sizeof(yasl_int));
     vm->pc += sizeof(yasl_int);
     return val;
+}
+
+static yasl_int vm_read_int16(struct VM *const vm) {
+	int16_t val;
+	memcpy(&val, vm->pc, sizeof(int16_t));
+	vm->pc += sizeof(int16_t);
+	return (yasl_int) val;
+}
+
+static yasl_int vm_read_int32(struct VM *const vm) {
+	int32_t val;
+	memcpy(&val, vm->pc, sizeof(int32_t));
+	vm->pc += sizeof(int32_t);
+	return (yasl_int) val;
+}
+
+static yasl_int vm_read_int64(struct VM *const vm) {
+	int64_t val;
+	memcpy(&val, vm->pc, sizeof(int64_t));
+	vm->pc += sizeof(int64_t);
+	return (yasl_int) val;
 }
 
 static yasl_float vm_read_float(struct VM *const vm) {
@@ -859,12 +886,20 @@ int vm_run(struct VM *vm) {
 			d = vm_read_float(vm);
 			vm_pushfloat(vm, d);
 			break;
-		case O_ICONST:        // constants have native endianness
-			c = vm_read_int(vm);
-			vm_pushint(vm, c);
-			break;
 		case O_ICONST_B1:
 			vm_pushint(vm, (signed char)NCODE(vm));
+			break;
+		case O_ICONST_B2:
+			vm_pushint(vm, vm_read_int16(vm));
+			break;
+		case O_ICONST_B4:
+			vm_pushint(vm, vm_read_int32(vm));
+			break;
+		case O_ICONST_B8:
+			vm_pushint(vm, vm_read_int64(vm));
+			break;
+		case O_ICONST:        // constants have native endianness
+			vm_pushint(vm, vm_read_int(vm));
 			break;
 		case O_BCONST_F:
 		case O_BCONST_T:
@@ -876,6 +911,10 @@ int vm_run(struct VM *vm) {
 		case O_FCONST:
 			c = vm_read_int(vm);
 			vm_pushfn(vm, vm->code + c);
+			break;
+		case O_CCONST:
+			c = vm_read_int(vm);
+			vm_pushclosure(vm, vm->code + c);
 			break;
 		case O_BOR:
 			if ((res = vm_int_binop(vm, &bor, "|", OP_BIN_BAR))) return res;

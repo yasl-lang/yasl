@@ -1,4 +1,5 @@
-#pragma once
+#ifndef YASL_YASL_TABLE_H_
+#define YASL_YASL_TABLE_H_
 
 #include "interpreter/YASL_Object.h"
 
@@ -40,3 +41,5 @@ struct RC_UserData* rcht_new_sized(const size_t base_size);
 void rcht_del(struct RC_UserData *const hashtable);
 void rcht_del_data(void *const hashtable);
 void rcht_del_cstring_cfn(struct RC_UserData *const hashtable);
+
+#endif
