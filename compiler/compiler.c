@@ -143,7 +143,7 @@ static void enter_scope(struct Compiler *const compiler) {
 
 static void exit_scope(struct Compiler *const compiler) {
 	if (in_function(compiler)) {
-		compiler->num_locals += compiler->params->vars->count;
+		compiler->num_locals += compiler->params->vars.count;
 		struct Env *tmp = compiler->params;
 		compiler->params = compiler->params->parent;
 		env_del_current_only(tmp);
@@ -427,7 +427,7 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 
 	YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) Body_get_len(FnDecl_get_params(node)));
 	size_t index = compiler->buffer->count;
-	YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) compiler->params->vars->count);
+	YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) compiler->params->vars.count);
 	visit_Body(compiler, FnDecl_get_body(node));
 	exit_scope(compiler);
 	compiler->buffer->bytes[index] = (unsigned char)compiler->num_locals;
