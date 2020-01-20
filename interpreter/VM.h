@@ -93,6 +93,12 @@ vm_print_err_type((vm),\
  YASL_TYPE_NAMES[expected],\
  YASL_TYPE_NAMES[actual])
 
+struct CallFrame {
+	unsigned char *pc;
+	int fp;
+	int next_fp;
+};
+
 struct VM {
 	struct IO out;
 	struct IO err;
@@ -100,6 +106,8 @@ struct VM {
 	struct YASL_Table **globals;         // variables, see "constant.c" for details on YASL_Object.
 	size_t num_globals;
 	struct YASL_Object *stack;            // stack
+	struct CallFrame frames[1000];
+	size_t frame_num;
 	unsigned char *code;           // bytecode
 	unsigned char **headers;
 	size_t headers_size;

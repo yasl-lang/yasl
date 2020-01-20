@@ -42,6 +42,7 @@ void vm_init(struct VM *const vm,
 	// vm->headers[0] = code;
 	vm->headers_size = datasize;
 	vm->num_globals = datasize;
+	vm->frame_num = -1;
 	vm->globals = (struct YASL_Table **)calloc(sizeof(struct YASL_Table *), datasize);
 	vm->out = NEW_IO(stdout);
 	vm->err = NEW_IO(stderr);
@@ -106,6 +107,7 @@ void vm_init(struct VM *const vm,
 void vm_cleanup(struct VM *vm) {
 	// YASL_ASSERT(vm->sp == -1, "VM stack pointer should have been -1.");
 	// YASL_ASSERT(vm->fp == -1, "VM frame pointer should have been -1.");
+	// YASL_ASSERT(vm->frame_num == (size_t)-1, "frame num should be 0.");
 	for (size_t i = 0; i < STACK_SIZE; i++) dec_ref(&vm->stack[i]);
 	for (size_t i = 0; i < NUM_GLOBALS; i++) {
 		dec_ref(&vm->global_vars[i]);
@@ -730,17 +732,32 @@ static int vm_GLOAD_8(struct VM *vm) {
 	return YASL_SUCCESS;
 }
 
+static void vm_enterframe(struct VM *vm) {
+	int next_fp = vm->next_fp;
+	vm->next_fp = vm->sp;
+	vm->frames[++vm->frame_num] = ((struct CallFrame) { vm->pc, vm->fp, next_fp });
+}
+
+static void vm_exitframe(struct VM *vm) {
+	struct YASL_Object v = vm_pop(vm);
+	vm->sp = vm->fp;
+	vm_pop(vm);
+
+	vm->pc = vm->frames[vm->frame_num].pc;
+	vm->fp = vm->frames[vm->frame_num].fp;
+	vm->next_fp = vm->frames[vm->frame_num].next_fp;
+	vm->frame_num--;
+
+	vm_push(vm, v);
+}
+
 static int vm_INIT_CALL(struct VM *vm) {
 	if (!YASL_ISFN(vm_peek(vm)) && !YASL_ISCFN(vm_peek(vm))) {
 		vm_print_err_type(vm,  "%s is not callable.", YASL_TYPE_NAMES[vm_peek(vm).type]);
 		return YASL_TYPE_ERROR;
 	}
 
-	int next_fp = vm->next_fp;
-	vm->next_fp = vm->sp;
-	vm_pushint(vm, -1);
-	vm_pushint(vm, vm->fp);
-	vm_pushint(vm, next_fp);
+	vm_enterframe(vm);
 
 	return YASL_SUCCESS;
 }
@@ -768,13 +785,13 @@ static int vm_INIT_MC_SPECIAL(struct VM *vm) {
 }
 
 static int vm_CALL_fn(struct VM *vm) {
-	vm->stack[vm->fp + 1].value.fval = vm->pc;
+	vm->frames[vm->frame_num].pc = vm->pc;
 
-	while (vm->sp - (vm->fp + 3) < vm->stack[vm->fp].value.fval[0]) {
+	while (vm->sp - (vm->fp) < vm->stack[vm->fp].value.fval[0]) {
 		vm_pushundef(vm);
 	}
 
-	while (vm->sp - (vm->fp + 3) > vm->stack[vm->fp].value.fval[0]) {
+	while (vm->sp - (vm->fp) > vm->stack[vm->fp].value.fval[0]) {
 		vm_pop(vm);
 	}
 
@@ -785,15 +802,16 @@ static int vm_CALL_fn(struct VM *vm) {
 }
 
 static int vm_CALL_cfn(struct VM *vm) {
+	vm->frames[vm->frame_num].pc = vm->pc;
 	if (vm_peekcfn(vm, vm->fp)->num_args == -1) {
-		YASL_VM_DEBUG_LOG("vm->sp - vm->fp: %d\n", vm->sp - (vm->fp + 3));
-		vm_pushint(vm, vm->sp - (vm->fp + 3));
+		YASL_VM_DEBUG_LOG("vm->sp - vm->fp: %d\n", vm->sp - (vm->fp));
+		vm_pushint(vm, vm->sp - (vm->fp));
 	} else {
-		while (vm->sp - (vm->fp + 3) < vm_peekcfn(vm, vm->fp)->num_args) {
+		while (vm->sp - (vm->fp) < vm_peekcfn(vm, vm->fp)->num_args) {
 			vm_pushundef(vm);
 		}
 
-		while (vm->sp - (vm->fp + 3) > vm_peekcfn(vm, vm->fp)->num_args) {
+		while (vm->sp - (vm->fp) > vm_peekcfn(vm, vm->fp)->num_args) {
 			vm_pop(vm);
 		}
 	}
@@ -802,13 +820,7 @@ static int vm_CALL_cfn(struct VM *vm) {
 		return result;
 	};
 
-	struct YASL_Object v = vm_pop(vm);
-	vm->sp = vm->fp + 3;
-	vm->next_fp = vm_popint(vm);
-	vm->fp = vm_popint(vm);
-	vm_pop(vm);
-	vm_pop(vm);
-	vm_push(vm, v);
+	vm_exitframe(vm);
 	return YASL_SUCCESS;
 }
 
@@ -826,13 +838,7 @@ static int vm_CALL(struct VM *vm) {
 
 static int vm_RET(struct VM *vm) {
 	// TODO: handle multiple returns
-	struct YASL_Object v = vm_pop(vm);
-	vm->sp = vm->fp + 3;
-	vm->next_fp = (int)vm_popint(vm);
-	vm->fp = (int)vm_popint(vm);
-	vm->pc = vm_pop(vm).value.fval;
-	vm_pop(vm);
-	vm_push(vm, v);
+	vm_exitframe(vm);
 	return YASL_SUCCESS;
 }
 
@@ -1124,13 +1130,13 @@ int vm_run(struct VM *vm) {
 			break;
 		case O_LLOAD_1:
 			offset = NCODE(vm);
-			vm_push(vm, vm_peek(vm, vm->fp + offset + 4));
+			vm_push(vm, vm_peek(vm, vm->fp + offset + 1));
 			break;
 		case O_LSTORE_1:
 			offset = NCODE(vm);
-			dec_ref(&vm_peek(vm, vm->fp + offset + 4));
-			vm_peek(vm, vm->fp + offset + 4) = vm_pop(vm);
-			inc_ref(&vm_peek(vm, vm->fp + offset + 4));
+			dec_ref(&vm_peek(vm, vm->fp + offset + 1));
+			vm_peek(vm, vm->fp + offset + 1) = vm_pop(vm);
+			inc_ref(&vm_peek(vm, vm->fp + offset + 1));
 			break;
 		case O_INIT_MC:
 			if ((res = vm_INIT_MC(vm))) return res;
