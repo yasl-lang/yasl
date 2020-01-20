@@ -1,4 +1,5 @@
-#pragma once
+#ifndef YASL_AST_H_
+#define YASL_AST_H_
 
 #include <stdlib.h>
 #include <string.h>
@@ -208,3 +209,5 @@ struct Node *new_List(struct Node *values, const size_t line);
 struct Node *new_Table(struct Node *keys, const size_t line);
 
 void node_del(struct Node *node);
+
+#endif
