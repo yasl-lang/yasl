@@ -20,7 +20,7 @@
 #include "operator_names.h"
 #include "YASL_Object.h"
 
-static struct YASL_Table **builtins_htable_new(struct VM *vm) {
+static struct YASL_Table **builtins_htable_new(struct VM *const vm) {
     struct YASL_Table **ht = (struct YASL_Table **)malloc(sizeof(struct YASL_Table*) * NUM_TYPES);
     ht[Y_UNDEF] = undef_builtins(vm);
     ht[Y_FLOAT] = float_builtins(vm);
@@ -103,8 +103,7 @@ void vm_init(struct VM *const vm,
 	vm->builtins_htable = builtins_htable_new(vm);
 }
 
-
-void vm_cleanup(struct VM *vm) {
+void vm_cleanup(struct VM *const vm) {
 	// YASL_ASSERT(vm->sp == -1, "VM stack pointer should have been -1.");
 	// YASL_ASSERT(vm->fp == -1, "VM frame pointer should have been -1.");
 	// YASL_ASSERT(vm->frame_num == (size_t)-1, "frame num should be 0.");
@@ -192,7 +191,6 @@ struct YASL_List *vm_poplist(struct VM *const vm) {
 	return YASL_GETLIST(vm_pop(vm));
 }
 
-
 static yasl_int vm_read_int(struct VM *const vm) {
     yasl_int val;
     memcpy(&val, vm->pc, sizeof(yasl_int));
@@ -228,9 +226,9 @@ static yasl_float vm_read_float(struct VM *const vm) {
     return val;
 }
 
-static int vm_GET(struct VM *vm);
-static int vm_INIT_CALL(struct VM *vm);
-static int vm_CALL(struct VM *vm);
+static int vm_GET(struct VM *const vm);
+static int vm_INIT_CALL(struct VM *const vm);
+static int vm_CALL(struct VM *const vm);
 
 #define INT_BINOP(name, op) yasl_int name(yasl_int left, yasl_int right) { return left op right; }
 
@@ -243,7 +241,7 @@ INT_BINOP(shift_right, >>)
 INT_BINOP(modulo, %)
 INT_BINOP(idiv, /)
 
-static int vm_int_binop(struct VM *vm, yasl_int (*op)(yasl_int, yasl_int), const char *opstr, const char *overload_name) {
+static int vm_int_binop(struct VM *const vm, yasl_int (*op)(yasl_int, yasl_int), const char *opstr, const char *overload_name) {
 	struct YASL_Object right = vm_pop(vm);
 	struct YASL_Object left = vm_pop(vm);
 	if (YASL_ISINT(left) && YASL_ISINT(right)) {
@@ -290,7 +288,7 @@ static yasl_int int_pow(yasl_int left, yasl_int right) {
 }
 
 static int vm_num_binop(
-        struct VM *vm, yasl_int (*int_op)(yasl_int, yasl_int),
+        struct VM *const vm, yasl_int (*int_op)(yasl_int, yasl_int),
         yasl_float (*float_op)(yasl_float, yasl_float),
         const char *const opstr,
         const char *overload_name) {
@@ -333,7 +331,7 @@ static int vm_num_binop(
 	return YASL_SUCCESS;
 }
 
-static int vm_fdiv(struct VM *vm) {
+static int vm_fdiv(struct VM *const vm) {
 	const char *overload_name = OP_BIN_FDIV;
 	struct YASL_Object right = vm_pop(vm);
 	struct YASL_Object left = vm_pop(vm);
@@ -373,7 +371,7 @@ static int vm_fdiv(struct VM *vm) {
 	return YASL_SUCCESS;
 }
 
-static int vm_pow(struct VM *vm) {
+static int vm_pow(struct VM *const vm) {
 	struct YASL_Object right = vm_pop(vm);
 	struct YASL_Object left = vm_peek(vm);
 	if (YASL_ISINT(left) && YASL_ISINT(right) && YASL_GETINT(right) < 0) {
@@ -395,7 +393,7 @@ INT_UNOP(bnot, ~)
 NUM_UNOP(neg, -)
 NUM_UNOP(pos, +)
 
-static int vm_int_unop(struct VM *vm, yasl_int (*op)(yasl_int), const char *opstr, const char *overload_name) {
+static int vm_int_unop(struct VM *const vm, yasl_int (*op)(yasl_int), const char *opstr, const char *overload_name) {
 	struct YASL_Object a = vm_pop(vm);
 	if (YASL_ISINT(a)) {
 		vm_push(vm, YASL_INT(op(YASL_GETINT(a))));
@@ -419,7 +417,7 @@ static int vm_int_unop(struct VM *vm, yasl_int (*op)(yasl_int), const char *opst
 	return YASL_SUCCESS;
 }
 
-static int vm_num_unop(struct VM *vm, yasl_int (*int_op)(yasl_int), yasl_float (*float_op)(yasl_float), const char *opstr, const char *overload_name) {
+static int vm_num_unop(struct VM *const vm, yasl_int (*int_op)(yasl_int), yasl_float (*float_op)(yasl_float), const char *opstr, const char *overload_name) {
 	struct YASL_Object expr = vm_pop(vm);
 	if (YASL_ISINT(expr)) {
 		vm_push(vm, YASL_INT(int_op(YASL_GETINT(expr))));
@@ -444,7 +442,7 @@ static int vm_num_unop(struct VM *vm, yasl_int (*int_op)(yasl_int), yasl_float (
 	return YASL_SUCCESS;
 }
 
-static int vm_len_unop(struct VM *vm) {
+static int vm_len_unop(struct VM *const vm) {
 	struct YASL_Object v = vm_pop(vm);
 	if (YASL_ISSTR(v)) {
 		vm_pushint(vm, (yasl_int) YASL_String_len(YASL_GETSTR(v)));
@@ -470,7 +468,7 @@ static int vm_len_unop(struct VM *vm) {
 	return YASL_SUCCESS;
 }
 
-static int vm_CNCT(struct VM *vm) {
+static int vm_CNCT(struct VM *const vm) {
 		vm_stringify_top(vm);
 		struct YASL_String *b = vm_popstr(vm);
 		vm_stringify_top(vm);
@@ -487,7 +485,7 @@ static int vm_CNCT(struct VM *vm) {
 		return YASL_SUCCESS;
 }
 
-int vm_stringify_top(struct VM *vm) {
+int vm_stringify_top(struct VM *const vm) {
 	enum YASL_Types index = vm_peek(vm, vm->sp).type;
 	if (YASL_ISFN(vm_peek(vm, vm->sp)) || YASL_ISCFN(vm_peek(vm, vm->sp))) {
 		size_t n = (size_t)snprintf(NULL, 0, "<fn: %d>", (int)YASL_GETINT(vm_peek(vm))) + 1;
@@ -512,7 +510,7 @@ int vm_stringify_top(struct VM *vm) {
 	return YASL_SUCCESS;
 }
 
-static int vm_SLICE(struct VM *vm) {
+static int vm_SLICE(struct VM *const vm) {
 	if (!vm_isint(vm) || !YASL_ISINT(vm_peek(vm, vm->sp - 1))) {
 		vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
 				      YASL_TYPE_NAMES[vm_peek(vm, vm->sp - 1).type],
@@ -572,7 +570,7 @@ static int vm_SLICE(struct VM *vm) {
 
 }
 
-static int vm_GET(struct VM *vm) {
+static int vm_GET(struct VM *const vm) {
 	vm->sp--;
 	int index = vm_peek(vm).type;
 	if (vm_islist(vm)) {
@@ -616,7 +614,7 @@ static int vm_GET(struct VM *vm) {
 	return YASL_SUCCESS;
 }
 
-static int vm_SET(struct VM *vm) {
+static int vm_SET(struct VM *const vm) {
 	vm->sp -= 2;
 	if (vm_islist(vm)) {
 		vm->sp += 2;
@@ -632,20 +630,12 @@ static int vm_SET(struct VM *vm) {
 	return YASL_SUCCESS;
 }
 
-static int vm_SWAP(struct VM *vm) {
-	struct YASL_Object a = vm->stack[vm->sp];
-	struct YASL_Object b = vm->stack[vm->sp - 1];
-	vm->stack[vm->sp - 1] = a;
-	vm->stack[vm->sp] = b;
-	return YASL_SUCCESS;
-}
-
-static int vm_NEWSPECIALSTR(struct VM *vm) {
+static int vm_NEWSPECIALSTR(struct VM *const vm) {
 	vm_pushstr(vm, vm->special_strings[NCODE(vm)]);
 	return YASL_SUCCESS;
 }
 
-static int vm_NEWSTR(struct VM *vm) {
+static int vm_NEWSTR(struct VM *const vm) {
 	yasl_int table = vm_read_int(vm);
 	yasl_int addr = vm_read_int(vm);
 
@@ -658,7 +648,7 @@ static int vm_NEWSTR(struct VM *vm) {
 	return YASL_SUCCESS;
 }
 
-static int vm_ITER_1(struct VM *vm) {
+static int vm_ITER_1(struct VM *const vm) {
 	switch (vm_peek(vm, vm->lp).type) {
 	case Y_LIST:
 		if ((yasl_int)vm_peeklist(vm, vm->lp)->count <= vm_peekint(vm, vm->lp + 1)) {
@@ -695,12 +685,12 @@ static int vm_ITER_1(struct VM *vm) {
 		}
 		return YASL_SUCCESS;
 	default:
-		vm_print_err_type(vm,  "object of type %s is not iterable.\n", YASL_TYPE_NAMES[vm->stack[vm->lp].type]);
+		vm_print_err_type(vm,  "object of type %s is not iterable.\n", YASL_TYPE_NAMES[vm_peek(vm, vm->lp).type]);
 		return YASL_TYPE_ERROR;
 	}
 }
 
-static int vm_GSTORE_8(struct VM *vm) {
+static int vm_GSTORE_8(struct VM *const vm) {
 	yasl_int table = vm_read_int(vm);
 	yasl_int addr = vm_read_int(vm);
 
@@ -714,7 +704,7 @@ static int vm_GSTORE_8(struct VM *vm) {
 	return YASL_SUCCESS;
 }
 
-static int vm_GLOAD_8(struct VM *vm) {
+static int vm_GLOAD_8(struct VM *const vm) {
 	yasl_int table = vm_read_int(vm);
 	yasl_int addr = vm_read_int(vm);
 
@@ -732,13 +722,13 @@ static int vm_GLOAD_8(struct VM *vm) {
 	return YASL_SUCCESS;
 }
 
-static void vm_enterframe(struct VM *vm) {
+static void vm_enterframe(struct VM *const vm) {
 	int next_fp = vm->next_fp;
 	vm->next_fp = vm->sp;
 	vm->frames[++vm->frame_num] = ((struct CallFrame) { vm->pc, vm->fp, next_fp });
 }
 
-static void vm_exitframe(struct VM *vm) {
+static void vm_exitframe(struct VM *const vm) {
 	struct YASL_Object v = vm_pop(vm);
 	vm->sp = vm->fp;
 	vm_pop(vm);
@@ -751,7 +741,7 @@ static void vm_exitframe(struct VM *vm) {
 	vm_push(vm, v);
 }
 
-static int vm_INIT_CALL(struct VM *vm) {
+static int vm_INIT_CALL(struct VM *const vm) {
 	if (!YASL_ISFN(vm_peek(vm)) && !YASL_ISCFN(vm_peek(vm))) {
 		vm_print_err_type(vm,  "%s is not callable.", YASL_TYPE_NAMES[vm_peek(vm).type]);
 		return YASL_TYPE_ERROR;
@@ -762,7 +752,7 @@ static int vm_INIT_CALL(struct VM *vm) {
 	return YASL_SUCCESS;
 }
 
-static int vm_INIT_MC(struct VM *vm) {
+static int vm_INIT_MC(struct VM *const vm) {
 	struct YASL_Object top = vm_peek(vm);
 	inc_ref(&top);
 	vm_NEWSTR(vm);
@@ -773,7 +763,7 @@ static int vm_INIT_MC(struct VM *vm) {
 	return YASL_SUCCESS;
 }
 
-static int vm_INIT_MC_SPECIAL(struct VM *vm) {
+static int vm_INIT_MC_SPECIAL(struct VM *const vm) {
 	struct YASL_Object top = vm_peek(vm);
 	inc_ref(&top);
 	vm_NEWSPECIALSTR(vm);
@@ -784,24 +774,24 @@ static int vm_INIT_MC_SPECIAL(struct VM *vm) {
 	return YASL_SUCCESS;
 }
 
-static int vm_CALL_fn(struct VM *vm) {
+static int vm_CALL_fn(struct VM *const vm) {
 	vm->frames[vm->frame_num].pc = vm->pc;
 
-	while (vm->sp - (vm->fp) < vm->stack[vm->fp].value.fval[0]) {
+	while (vm->sp - vm->fp < vm_peek(vm, vm->fp).value.fval[0]) {
 		vm_pushundef(vm);
 	}
 
-	while (vm->sp - (vm->fp) > vm->stack[vm->fp].value.fval[0]) {
+	while (vm->sp - vm->fp > vm_peek(vm, vm->fp).value.fval[0]) {
 		vm_pop(vm);
 	}
 
-	vm->sp += vm->stack[vm->fp].value.fval[1];
+	vm->sp += vm_peek(vm, vm->fp).value.fval[1];
 
-	vm->pc =  vm->stack[vm->fp].value.fval + 2;
+	vm->pc =  vm_peek(vm, vm->fp).value.fval + 2;
 	return YASL_SUCCESS;
 }
 
-static int vm_CALL_cfn(struct VM *vm) {
+static int vm_CALL_cfn(struct VM *const vm) {
 	vm->frames[vm->frame_num].pc = vm->pc;
 	if (vm_peekcfn(vm, vm->fp)->num_args == -1) {
 		YASL_VM_DEBUG_LOG("vm->sp - vm->fp: %d\n", vm->sp - (vm->fp));
@@ -824,32 +814,32 @@ static int vm_CALL_cfn(struct VM *vm) {
 	return YASL_SUCCESS;
 }
 
-static int vm_CALL(struct VM *vm) {
+static int vm_CALL(struct VM *const vm) {
 	vm->fp = vm->next_fp;
-	if (YASL_ISFN(vm->stack[vm->fp])) {
+	if (YASL_ISFN(vm_peek(vm, vm->fp))) {
 		return vm_CALL_fn(vm);
-	} else if (YASL_ISCFN(vm->stack[vm->fp])) {
+	} else if (YASL_ISCFN(vm_peek(vm, vm->fp))) {
 		return vm_CALL_cfn(vm);
 	} else {
-		printf("ERROR: %s is not callable", YASL_TYPE_NAMES[vm->stack[vm->sp].type]);
+		printf("ERROR: %s is not callable", YASL_TYPE_NAMES[vm_peek(vm).type]);
 		return YASL_TYPE_ERROR;
 	}
 }
 
-static int vm_RET(struct VM *vm) {
+static int vm_RET(struct VM *const vm) {
 	// TODO: handle multiple returns
 	vm_exitframe(vm);
 	return YASL_SUCCESS;
 }
 
-static void vm_PRINT(struct VM *vm) {
+static void vm_PRINT(struct VM *const vm) {
 	vm_stringify_top(vm);
 	struct YASL_String *v = vm_popstr(vm);
 	vm->out.print(&vm->out, v->start + v->str, YASL_String_len(v));
 	vm->out.print(&vm->out, "\n", 1);
 }
 
-int vm_run(struct VM *vm) {
+int vm_run(struct VM *const vm) {
 	while (1) {
 		unsigned char opcode = NCODE(vm);        // fetch
 		signed char offset;
@@ -1090,9 +1080,6 @@ int vm_run(struct VM *vm) {
 			vm_push(vm, a);
 			break;
 		}
-		case O_SWAP:
-			if ((res = vm_SWAP(vm))) return res;
-			break;
 		case O_BR_8:
 			c = vm_read_int(vm);
 			vm->pc += c;
