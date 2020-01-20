@@ -1,4 +1,5 @@
-#pragma once
+#ifndef YASL_LEXER_H_
+#define	YASL_LEXER_H_
 
 #include <stdbool.h>
 
@@ -145,3 +146,4 @@ int lex_getchar(struct Lexer *const lex);
 
 extern const char *YASL_TOKEN_NAMES[82];
 
+#endif

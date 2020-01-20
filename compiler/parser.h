@@ -1,4 +1,5 @@
-#pragma once
+#ifndef YASL_PARSER_H_
+#define YASL_PARSER_H_
 
 #include "lexer.h"
 
@@ -33,4 +34,6 @@ struct Node *parse(struct Parser *const parser);
 int token_matches(struct Parser *const parser, ...);
 #undef TOKEN_MATCHES
 #define TOKEN_MATCHES(px, ...) token_matches(parser, __VA_ARGS__, (enum Token)-1)
+#endif
+
 #endif

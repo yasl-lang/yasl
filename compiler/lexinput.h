@@ -1,4 +1,5 @@
-#pragma once
+#ifndef YASL_LEXINPUT_H_
+#define YASL_LEXINPUT_H_
 
 #include <stdio.h>
 
@@ -10,3 +11,5 @@ int lxtell(struct LEXINPUT *const lp);
 int lxseek(struct LEXINPUT *const lp, const int w, const int cmd);
 int lxclose(struct LEXINPUT *const lp);
 int lxeof(struct LEXINPUT *const lp);
+
+#endif
