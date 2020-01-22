@@ -143,7 +143,7 @@ static void enter_scope(struct Compiler *const compiler) {
 
 static void exit_scope(struct Compiler *const compiler) {
 	if (in_function(compiler)) {
-		compiler->num_locals += compiler->params->vars->count;
+		compiler->num_locals += compiler->params->vars.count;
 		struct Env *tmp = compiler->params;
 		compiler->params = compiler->params->parent;
 		env_del_current_only(tmp);
@@ -410,7 +410,6 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	}
 
 	// start logic for function, now that we are sure it's legal to do so, and have set up.
-
 	compiler->params = env_new(compiler->params);
 	compiler->num_locals = 0;
 
@@ -428,7 +427,7 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 
 	YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) Body_get_len(FnDecl_get_params(node)));
 	size_t index = compiler->buffer->count;
-	YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) compiler->params->vars->count);
+	YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) compiler->params->vars.count);
 	visit_Body(compiler, FnDecl_get_body(node));
 	exit_scope(compiler);
 	compiler->buffer->bytes[index] = (unsigned char)compiler->num_locals;
@@ -441,7 +440,6 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 
 	// zero buffer length
 	compiler->buffer->count = old_size;
-	// compiler->buffer->count = 0;
 
 	struct Env *tmp = compiler->params->parent;
 	env_del_current_only(compiler->params);
@@ -532,14 +530,45 @@ static inline void branch_back(struct Compiler *const compiler, int64_t index) {
 	YASL_ByteBuffer_add_int(compiler->buffer, index - compiler->buffer->count - 8);
 }
 
+static void visit_ListComp_cond(struct Compiler *const compiler, const struct Node *const cond, const struct Node *const expr) {
+	if (cond) {
+		int64_t index_third;
+		visit(compiler, cond);
+		enter_conditional_false(compiler, &index_third);
+
+		visit(compiler, expr);
+
+		exit_conditional_false(compiler, &index_third);
+	} else {
+		visit(compiler, expr);
+	}
+}
+
+static void visit_TableComp_cond(struct Compiler *const compiler, const struct Node *const cond, const struct Node *const expr) {
+	if (cond) {
+		int64_t index_third;
+		visit(compiler, cond);
+		enter_conditional_false(compiler, &index_third);
+
+		visit(compiler, expr->children[0]);
+		visit(compiler, expr->children[1]);
+
+		exit_conditional_false(compiler, &index_third);
+	} else {
+		visit(compiler, expr->children[0]);
+		visit(compiler, expr->children[1]);
+	}
+}
+
 static void visit_ListComp(struct Compiler *const compiler, const struct Node *const node) {
 	enter_scope(compiler);
 
 	struct Node *expr = ListComp_get_expr(node);
-	struct Node *iter = ListComp_get_iter(node);
 	struct Node *cond = ListComp_get_cond(node);
+	struct Node *iter = ListComp_get_iter(node);
 
 	struct Node *collection = LetIter_get_collection(iter);
+
 	char *name = iter->value.sval.str;
 
 	visit(compiler, collection);
@@ -557,19 +586,9 @@ static void visit_ListComp(struct Compiler *const compiler, const struct Node *c
 	int64_t index_second;
 	enter_conditional_false(compiler, &index_second);
 
-	store_var(compiler, name, node->line);
+	store_var(compiler, name, iter->line);
 
-	if (cond) {
-		int64_t index_third;
-		visit(compiler, cond);
-		enter_conditional_false(compiler, &index_third);
-
-		visit(compiler, expr);
-
-		exit_conditional_false(compiler, &index_third);
-	} else {
-		visit(compiler, expr);
-	}
+	visit_ListComp_cond(compiler, cond, expr);
 
 	branch_back(compiler, index_start);
 
@@ -605,21 +624,9 @@ static void visit_TableComp(struct Compiler *const compiler, const struct Node *
 	int64_t index_second;
 	enter_conditional_false(compiler, &index_second);
 
-	store_var(compiler, name, node->line);
+	store_var(compiler, name, iter->line);
 
-	if (cond) {
-		int64_t index_third;
-		visit(compiler, cond);
-		enter_conditional_false(compiler, &index_third);
-
-		visit(compiler, expr->children[0]);
-		visit(compiler, expr->children[1]);
-
-		exit_conditional_false(compiler, &index_third);
-	} else {
-		visit(compiler, expr->children[0]);
-		visit(compiler, expr->children[1]);
-	}
+	visit_TableComp_cond(compiler, cond, expr);
 
 	branch_back(compiler, index_start);
 
@@ -656,8 +663,7 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 	int64_t index_second;
 	enter_conditional_false(compiler, &index_second);
 
-
-	store_var(compiler, name, node->line);
+	store_var(compiler, name, iter->line);
 
 	visit(compiler, body);
 
@@ -672,6 +678,16 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 	rm_checkpoint(compiler);
 }
 
+static void enter_jump(struct Compiler *const compiler, size_t *index) {
+	YASL_ByteBuffer_add_byte(compiler->buffer, O_BR_8);
+	*index = compiler->buffer->count;
+	YASL_ByteBuffer_add_int(compiler->buffer, 0);
+}
+
+static void exit_jump(struct Compiler *const compiler, const size_t *const index) {
+	YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, *index, compiler->buffer->count - *index - 8);
+}
+
 static void visit_While(struct Compiler *const compiler, const struct Node *const node) {
 	size_t index_start = compiler->buffer->count;
 
@@ -680,12 +696,11 @@ static void visit_While(struct Compiler *const compiler, const struct Node *cons
 	struct Node *post = While_get_post(node);
 
 	if (post) {
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_BR_8);
-		size_t index = compiler->buffer->count;
-		YASL_ByteBuffer_add_int(compiler->buffer, 0);
+		size_t index;
+		enter_jump(compiler, &index);
 		index_start = compiler->buffer->count;
 		visit(compiler, post);
-		YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, index, compiler->buffer->count - index - 8);
+		exit_jump(compiler, &index);
 	}
 
 	add_checkpoint(compiler, index_start);
@@ -696,13 +711,11 @@ static void visit_While(struct Compiler *const compiler, const struct Node *cons
 
 	int64_t index_second;
 	enter_conditional_false(compiler, &index_second);
-	enter_scope(compiler);
 
 	visit(compiler, body);
 
 	branch_back(compiler, index_start);
 
-	exit_scope(compiler);
 	exit_conditional_false(compiler, &index_second);
 
 	rm_checkpoint(compiler);
@@ -728,35 +741,79 @@ static void visit_Continue(struct Compiler *const compiler, const struct Node *c
 	branch_back(compiler, continue_checkpoint(compiler));
 }
 
+static bool Node_istruthy(const struct Node *const node) {
+	switch (node->nodetype)	{
+	case N_BOOL:
+		return Boolean_get_bool(node);
+	default:
+		return false;
+	}
+}
+
+static bool Node_isfalsey(const struct Node *const node) {
+	switch (node->nodetype)	{
+	case N_BOOL:
+		return !Boolean_get_bool(node);
+	case N_UNDEF:
+		return true;
+	default:
+		return false;
+	}
+}
+
+static void visit_If_true(struct Compiler *const compiler, const struct Node *const then_br, const struct Node *const else_br) {
+	visit(compiler, then_br);
+
+	if (else_br) {
+		size_t curr = compiler->buffer->count;
+		visit(compiler, else_br);
+		compiler->buffer->count = curr;
+	}
+}
+
+static void visit_If_false(struct Compiler *const compiler, const struct Node *const then_br, const struct Node *const else_br) {
+	size_t curr = compiler->buffer->count;
+	visit(compiler, then_br);
+	compiler->buffer->count = curr;
+
+	if (else_br) {
+		visit(compiler, else_br);
+	}
+}
+
 static void visit_If(struct Compiler *const compiler, const struct Node *const node) {
 	struct Node *cond = If_get_cond(node);
 	struct Node *then_br = If_get_then(node);
 	struct Node *else_br = If_get_else(node);
 
+	if (Node_istruthy(cond)) {
+		visit_If_true(compiler, then_br, else_br);
+		return;
+	}
+
+	if (Node_isfalsey(cond)) {
+		visit_If_false(compiler, then_br, else_br);
+		return;
+	}
+
 	visit(compiler, cond);
 
 	int64_t index_then;
 	enter_conditional_false(compiler, &index_then);
-	enter_scope(compiler);
-
 	visit(compiler, then_br);
 
 	size_t index_else = 0;
 
 	if (else_br) {
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_BR_8);
-		index_else = compiler->buffer->count;
-		YASL_ByteBuffer_add_int(compiler->buffer, 0);
+		enter_jump(compiler, &index_else);
 	}
 
-	exit_scope(compiler);
+
 	exit_conditional_false(compiler, &index_then);
 
 	if (else_br) {
-		enter_scope(compiler);
 		visit(compiler, else_br);
-		exit_scope(compiler);
-		YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, index_else, compiler->buffer->count - index_else - 8);
+		exit_jump(compiler, &index_else);
 	}
 }
 
@@ -807,48 +864,36 @@ static void visit_TriOp(struct Compiler *const compiler, const struct Node *cons
 
 	visit(compiler, middle);
 
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_BR_8);
-	size_t index_r = compiler->buffer->count;
-	YASL_ByteBuffer_add_int(compiler->buffer, 0);
+	size_t index_r;
+	enter_jump(compiler, &index_r);
 
 	exit_conditional_false(compiler, &index_l);
 
 	visit(compiler, right);
-	YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, index_r, compiler->buffer->count - index_r - 8);
+	exit_jump(compiler, &index_r);
+}
+
+static void visit_BinOp_shortcircuit(struct Compiler *const compiler, const struct Node *const node, enum Opcode jump_type) {
+	visit(compiler, BinOp_get_left(node));
+	YASL_ByteBuffer_add_byte(compiler->buffer, O_DUP);
+	YASL_ByteBuffer_add_byte(compiler->buffer, jump_type);
+	size_t index = compiler->buffer->count;
+	YASL_ByteBuffer_add_int(compiler->buffer, 0);
+	YASL_ByteBuffer_add_byte(compiler->buffer, O_POP);
+	visit(compiler, BinOp_get_right(node));
+	YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, index, compiler->buffer->count - index - 8);
 }
 
 static void visit_BinOp(struct Compiler *const compiler, const struct Node *const node) {
 	// complicated bin ops are handled on their own.
 	if (node->value.type == T_DQMARK) {     // ?? operator
-		visit(compiler, BinOp_get_left(node));
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_DUP);
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_BRN_8);
-		size_t index = compiler->buffer->count;
-		YASL_ByteBuffer_add_int(compiler->buffer, 0);
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_POP);
-		visit(compiler, BinOp_get_right(node));
-		YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, index, compiler->buffer->count - index - 8);
+		visit_BinOp_shortcircuit(compiler, node, O_BRN_8);
 		return;
 	} else if (node->value.type == T_DBAR) {  // or operator
-		visit(compiler, BinOp_get_left(node));
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_DUP);
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_BRT_8);
-		size_t index = compiler->buffer->count;
-		YASL_ByteBuffer_add_int(compiler->buffer, 0);
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_POP);
-		visit(compiler, BinOp_get_right(node));
-		YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, index, compiler->buffer->count - index - 8);
+		visit_BinOp_shortcircuit(compiler, node, O_BRT_8);
 		return;
 	} else if (node->value.type == T_DAMP) {   // and operator
-		visit(compiler, BinOp_get_left(node));
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_DUP);
-
-		int64_t index;
-		enter_conditional_false(compiler, &index);
-
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_POP);
-		visit(compiler, BinOp_get_right(node));
-		exit_conditional_false(compiler, &index);
+		visit_BinOp_shortcircuit(compiler, node, O_BRF_8);
 		return;
 	}
 	// all other operators follow the same pattern of visiting one child then the other.
@@ -984,7 +1029,7 @@ static void visit_Integer(struct Compiler *const compiler, const struct Node *co
 	case 5: YASL_ByteBuffer_add_byte(compiler->buffer, O_ICONST_5);
 		break;
 	default:
-		if (-128 < val && val < 128) {
+		if (-(1 << 7) < val && val < (1 << 7)) {
 			YASL_ByteBuffer_add_byte(compiler->buffer, O_ICONST_B1);
 			YASL_ByteBuffer_add_byte(compiler->buffer, val);
 		} else {

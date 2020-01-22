@@ -6,7 +6,7 @@
 #include <data-structures/YASL_Set.h>
 #include <interpreter/VM.h>
 
-#include "prime/prime.h"
+#include "util/prime.h"
 #include "interpreter/YASL_Object.h"
 #include "yasl_conf.h"
 #include "yasl.h"
@@ -15,6 +15,9 @@ const yasl_float YASL_PI = 3.141592653589793238512808959406186204432742670178413
 #if _MSC_VER
 const yasl_float YASL_NAN = NAN;
 const yasl_float YASL_INF = INFINITY;
+#elif defined(__TINYC__)
+#define YASL_NAN nan("")
+#define YASL_INF INFINITY
 #else
 const yasl_float YASL_NAN = 0.0 / 0.0;
 const yasl_float YASL_INF = 1.0 / 0.0;

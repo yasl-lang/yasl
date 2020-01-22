@@ -4,14 +4,14 @@
 #include <time.h>
 
 #include "yasl.h"
-#include "yasl-std-io.h"
-#include "yasl-std-math.h"
-#include "yasl-std-require.h"
-#include "yasl-std-collections.h"
+#include "std/yasl-std-io.h"
+#include "std/yasl-std-math.h"
+#include "std/yasl-std-require.h"
+#include "std/yasl-std-collections.h"
 #include "yasl_state.h"
 
 
-#define VERSION "v0.7.1"
+#define VERSION "v0.7.2"
 #define VERSION_PRINTOUT "YASL " VERSION
 
 static int load_libs(struct YASL_State *S) {
@@ -39,12 +39,12 @@ static int main_help(int argc, char **argv) {
 	     "\t-V: print current version.\n"
 	     "\tinput: name of file containing script (or literal to execute with -e or -E)."
 	);
-	exit(EXIT_SUCCESS);
+	return 0;
 }
 
 static int main_version(int argc, char **argv) {
 	puts(VERSION_PRINTOUT);
-	exit(EXIT_SUCCESS);
+	return 0;
 }
 
 static int main_file(int argc, char **argv) {

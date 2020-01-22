@@ -2,9 +2,11 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "data-structures/YASL_Table.h"
 #include "interpreter/userdata.h"
+#include "interpreter/refcount.h"
 
 char *float64_to_str(yasl_float d);
 
@@ -21,24 +23,25 @@ const char *YASL_TYPE_NAMES[] = {
 	"table",    // Y_TABLE,
 	"table",    // Y_TABLE_W,
 	"fn",       // Y_FN,
-	"mn",       // Y_BFN,
+	"fn",	    // Y_CLOSURE,
+	"fn",       // Y_CFN,
 	"userptr",  // Y_USERPTR,
 	"userdata", // Y_USERDATA,
 	"userdata", // Y_USERDATA_W
 };
 
-struct CFunction_s *new_cfn(int (*value)(struct YASL_State *), int num_args) {
-	struct CFunction_s *fn = (struct CFunction_s *) malloc(sizeof(struct CFunction_s));
+struct CFunction *new_cfn(int (*value)(struct YASL_State *), int num_args) {
+	struct CFunction *fn = (struct CFunction *) malloc(sizeof(struct CFunction));
 	fn->value = value;
 	fn->num_args = num_args;
 	fn->rc = rc_new();
 	return fn;
 }
 
-void cfn_del_data(struct CFunction_s *cfn) {
+void cfn_del_data(struct CFunction *cfn) {
 }
 
-void cfn_del_rc(struct CFunction_s *cfn) {
+void cfn_del_rc(struct CFunction *cfn) {
 	rc_del(cfn->rc);
 	free(cfn);
 }
@@ -67,7 +70,7 @@ struct YASL_Object *YASL_Function(int64_t index) {
 struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *), int num_args) {
 	struct YASL_Object *fn = (struct YASL_Object *) malloc(sizeof(struct YASL_Object));
 	fn->type = Y_CFN;
-	fn->value.pval = malloc(sizeof(struct CFunction_s));
+	fn->value.pval = malloc(sizeof(struct CFunction));
 	fn->value.cval->value = value;
 	fn->value.cval->num_args = num_args;
 	fn->value.cval->rc = rc_new();
@@ -97,6 +100,7 @@ int yasl_object_cmp(struct YASL_Object a, struct YASL_Object b) {
 		printf("Cannot apply object compare to types %s and %s.\n", YASL_TYPE_NAMES[a.type], YASL_TYPE_NAMES[b.type]);
 		exit(-1);
 	}
+	return 0;
 }
 
 int isfalsey(struct YASL_Object v) {

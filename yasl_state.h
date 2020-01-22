@@ -1,4 +1,5 @@
-#pragma once
+#ifndef YASL_YASL_STATE_H_
+#define YASL_YASL_STATE_H_
 
 #include "compiler/compiler.h"
 #include "interpreter/VM.h"
@@ -8,3 +9,5 @@ struct YASL_State {
     struct VM vm;
     struct Compiler compiler;
 };
+
+#endif

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef YASL_COMPILER_H_
+#define YASL_COMPILER_H_
 
 #include <inttypes.h>
 
@@ -47,3 +48,5 @@ struct Compiler *compiler_new_bb(const char *const buf, const size_t len);
 void compiler_cleanup(struct Compiler *const compiler);
 unsigned char *compile(struct Compiler *const compiler);
 unsigned char *compile_REPL(struct Compiler *const compiler);
+
+#endif

@@ -6,6 +6,7 @@ enum Opcode {
 	O_BCONST_F = 0x08, // push literal false onto stack
 	O_BCONST_T = 0x09, // push literal true onto stack
 	O_FCONST = 0x0A, // push function literal onto stack
+	O_CCONST = 0x0B, // push closure literal onto stack
 
 	O_ICONST = 0x10, // push next 8 bytes onto stack as integer constant
 	O_ICONST_M1 = 0x11, // push -1 onto stack
@@ -22,7 +23,7 @@ enum Opcode {
 	O_DCONST_N = 0x1E, // push nan onto stack
 	O_DCONST_I = 0x1F, // push inf onto stack
 
-	O_ICONST_B1 = 0x20,
+	O_ICONST_B1 = 0x20, // push literal integer that only requires 1 byte onto stack.
 	O_ICONST_B2 = 0x21, // TODO
 	O_ICONST_B4 = 0x22, // TODO
 	O_ICONST_B8 = 0x23, // synonym for O_ICONST
@@ -88,9 +89,11 @@ enum Opcode {
 
 	O_GSTORE_8 = 0xF0, // from string
 	O_GLOAD_8 = 0xF1, // from string
+	O_USTORE_1 = 0xF2, // load upvalue
+	O_ULOAD_1 = 0xF3, // store upvalue
 	O_GSTORE_1 = 0xF4, // store top of stack at addr provided
-	O_LSTORE_1 = 0xF5, // store top of stack as local at addr
-	O_GLOAD_1 = 0xF6, // load global from addr
+	O_GLOAD_1 = 0xF5, // load global from addr
+	O_LSTORE_1 = 0xF6, // store top of stack as local at addr
 	O_LLOAD_1 = 0xF7, // load local from addr
 	O_PRINT = 0xFF  // print
 };

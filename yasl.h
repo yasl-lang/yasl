@@ -1,4 +1,5 @@
-#pragma once
+#ifndef YASL_YASL_H_
+#define YASL_YASL_H_
 
 #include "yasl_conf.h"
 #include "yasl_error.h"
@@ -323,3 +324,5 @@ void *YASL_top_popuserdata(struct YASL_State *S);
 
 void *YASL_top_peekuserpointer(struct YASL_State *S);
 void *YASL_top_popuserpointer(struct YASL_State *S);
+
+#endif

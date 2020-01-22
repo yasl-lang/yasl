@@ -1,6 +1,7 @@
 #include "YASL_Set.h"
 
-#include "data-structures/hash_function.h"
+#include "util/hash_function.h"
+#include "util/prime.h"
 
 #define SET_BASESIZE 30
 

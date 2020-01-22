@@ -34,13 +34,15 @@ endif()
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 include_directories(.)
-include_directories(std-io)
-include_directories(std-math)
-include_directories(std-require)
-include_directories(std-collections)
+include_directories(compiler)
+include_directories(data-structures)
+include_directories(interpreter)
+include_directories(util)
+include_directories(std)
 include_directories(test)
 
 add_executable(yasl
+        opcode.h
         yasl.c
         main.c
         compiler/ast.c
@@ -51,7 +53,7 @@ add_executable(yasl
         compiler/lexinput.c
         compiler/parser.c
         compiler/middleend.c
-        data-structures/hash_function.c
+        util/hash_function.c
         data-structures/YASL_Table.c
         interpreter/bool_methods.c
         interpreter/builtins.c
@@ -68,15 +70,16 @@ add_executable(yasl
         data-structures/YASL_String.c
         interpreter/userdata.c
         interpreter/undef_methods.c
-        prime/prime.c
-        std-io/yasl-std-io.c
-        std-math/yasl-std-math.c
-        std-require/yasl-std-require.c
+        util/prime.c
+        std/yasl-std-io.c
+        std/yasl-std-math.c
+        std/yasl-std-require.c
         data-structures/YASL_Set.c
-        std-collections/yasl-std-collections.c
+        std/yasl-std-collections.c
         IO.c)
 
 add_executable(yasltest
+        opcode.h
         test/yats.c
         test/yasl_test.c
         test/unit_tests/test_api/apitest.c
@@ -106,7 +109,7 @@ add_executable(yasltest
         compiler/parser.c
         compiler/ast.c
         compiler/middleend.c
-        data-structures/hash_function.c
+        util/hash_function.c
         data-structures/YASL_Table.c
         interpreter/yasl_float.c
         interpreter/YASL_Object.c
@@ -115,7 +118,7 @@ add_executable(yasltest
         interpreter/refcount.c
         data-structures/YASL_List.c
         interpreter/userdata.c
-        prime/prime.c
+        util/prime.c
         data-structures/YASL_Set.c
         compiler/env.c
         yasl.c
@@ -131,15 +134,17 @@ add_executable(yasltest
         IO.c)
 
 if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
-	add_executable(tests
-		test/test.c
+    add_executable(tests
+            opcode.h
+            test/test.c
             test/clitest.c
             test/filetest.c
-		test/memtest.c
-        	test/test_util.c)
+            test/memtest.c
+            test/test_util.c)
 endif()
 
 add_library(yaslapi
+        opcode.h
         yasl.c
         compiler/ast.c
         data-structures/YASL_ByteBuffer.c
@@ -149,7 +154,7 @@ add_library(yaslapi
         compiler/lexinput.c
         compiler/parser.c
         compiler/middleend.c
-        data-structures/hash_function.c
+        util/hash_function.c
         data-structures/YASL_Table.c
         interpreter/bool_methods.c
         interpreter/builtins.c
@@ -166,7 +171,7 @@ add_library(yaslapi
         data-structures/YASL_String.c
         interpreter/userdata.c
         interpreter/undef_methods.c
-        prime/prime.c
+        util/prime.c
         IO.c)
 
 if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")

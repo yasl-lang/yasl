@@ -1,11 +1,21 @@
-#pragma once
+#ifndef YASL_YASL_TABLE_H_
+#define YASL_YASL_TABLE_H_
 
 #include "interpreter/YASL_Object.h"
+#include "util/prime.h"
 
 #define TABLE_BASESIZE 30
 
 #define FOR_TABLE(i, item, table) struct YASL_Table_Item *item; for (size_t i = 0; i < (table)->size; i++) \
                                                   if (item = &table->items[i], item->key.type != Y_END && !YASL_ISUNDEF(item->value))
+
+
+#define NEW_TABLE() ((struct YASL_Table){\
+	.size = next_prime(TABLE_BASESIZE),\
+	.base_size = TABLE_BASESIZE,\
+	.count = 0,\
+	.items = (struct YASL_Table_Item *)calloc((size_t) next_prime(TABLE_BASESIZE), sizeof(struct YASL_Table_Item))\
+})
 
 struct YASL_Table_Item {
 	struct YASL_Object key;
@@ -40,3 +50,5 @@ struct RC_UserData* rcht_new_sized(const size_t base_size);
 void rcht_del(struct RC_UserData *const hashtable);
 void rcht_del_data(void *const hashtable);
 void rcht_del_cstring_cfn(struct RC_UserData *const hashtable);
+
+#endif

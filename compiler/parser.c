@@ -244,9 +244,9 @@ static struct Node *parse_fn(struct Parser *const parser) {
 
 	struct Node *body = parse_body(parser);
 
-	char *name2 = (char *)malloc(name_len);
-	memcpy(name2, name, name_len);
-	return new_Let(name, new_FnDecl(block, body, name2, name_len, parser->lex.line), line);
+	char *name2 = (char *)malloc(name_len + 1);
+	strcpy(name2, name);
+	return new_Let(name, new_FnDecl(block, body, name2, strlen(name2), parser->lex.line), line);
 	// TODO Fix this ^
 }
 
@@ -264,9 +264,9 @@ static struct Node *parse_const(struct Parser *const parser) {
 		struct Node *body = parse_body(parser);
 
 		// TODO: clean this up
-		char *name2 = (char *)malloc(name_len);
-		memcpy(name2, name, name_len);
-		return new_Const(name, new_FnDecl(block, body, name2, name_len, parser->lex.line), line);
+		char *name2 = (char *)malloc(name_len + 1);
+		strcpy(name2, name);
+		return new_Const(name, new_FnDecl(block, body, name2, strlen(name2), parser->lex.line), line);
 	}
 	size_t line = parser->lex.line;
 	char *name = eatname(parser);
@@ -353,7 +353,7 @@ static struct Node *parse_while(struct Parser *const parser) {
 	eattok(parser, T_WHILE);
 	struct Node *cond = parse_expr(parser);
 	struct Node *body = parse_body(parser);
-	return new_While(cond, body, NULL, parser->lex.line);
+	return new_While(cond, new_Block(body, parser->lex.line), NULL, parser->lex.line);
 }
 
 static struct Node *parse_if(struct Parser *const parser) {
@@ -368,16 +368,16 @@ static struct Node *parse_if(struct Parser *const parser) {
 	struct Node *then_block = parse_body(parser);
 	if (curtok(parser) != T_ELSE && curtok(parser) != T_ELSEIF) {
 		YASL_PARSE_DEBUG_LOG("%s\n", "no else");
-		return new_If(cond, then_block, NULL, parser->lex.line);
+		return new_If(cond, new_Block(then_block, parser->lex.line), NULL, parser->lex.line);
 	}
 	if (curtok(parser) == T_ELSEIF) {
 		YASL_PARSE_DEBUG_LOG("%s\n", "elseif");
-		return new_If(cond, then_block, parse_if(parser), parser->lex.line);
+		return new_If(cond, new_Block(then_block, parser->lex.line), parse_if(parser), parser->lex.line);
 	}
 	if (matcheattok(parser, T_ELSE)) {
 		YASL_PARSE_DEBUG_LOG("%s\n", "else");
 		struct Node *else_block = parse_body(parser);
-		return new_If(cond, then_block, else_block, parser->lex.line);
+		return new_If(cond, new_Block(then_block, parser->lex.line), new_Block(else_block, parser->lex.line), parser->lex.line);
 	}
 	YASL_PRINT_ERROR_SYNTAX("Expected newline, got `%s`.\n", YASL_TOKEN_NAMES[curtok(parser)]);
 	return handle_error(parser);

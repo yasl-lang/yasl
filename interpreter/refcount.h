@@ -1,4 +1,5 @@
-#pragma once
+#ifndef YASL_REFCOUNT_H_
+#define YASL_REFCOUNT_H_
 
 #include <stdlib.h>
 
@@ -13,3 +14,5 @@ struct RC *rc_new(void);
 void rc_del(struct RC *rc);
 
 void dec_ref(struct YASL_Object *v);
+
+#endif

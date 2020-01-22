@@ -2,6 +2,13 @@
 
 #include <stdio.h>
 
+#define NEW_IO(f) ((struct IO) {\
+	.print = io_print_file,\
+	.file = (f),\
+	.string = NULL,\
+	.len = 0\
+})
+
 struct IO {
 	void (*print)(struct IO *const, const char *const, const size_t);
 	FILE *file;

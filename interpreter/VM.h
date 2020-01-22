@@ -1,15 +1,16 @@
-#pragma once
+#ifndef YASL_VM_H_
+#define YASL_VM_H_
+
+#include <inttypes.h>
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
 
 #include "IO.h"
 #include "data-structures/YASL_Table.h"
 #include "data-structures/YASL_List.h"
 #include "yasl_conf.h"
 #include "opcode.h"
-
-#include <inttypes.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
 
 #define NUM_GLOBALS 256
 #define NUM_TYPES 13                                     // number of builtin types, each needs a vtable
@@ -92,6 +93,12 @@ vm_print_err_type((vm),\
  YASL_TYPE_NAMES[expected],\
  YASL_TYPE_NAMES[actual])
 
+struct CallFrame {
+	unsigned char *pc;
+	int fp;
+	int next_fp;
+};
+
 struct VM {
 	struct IO out;
 	struct IO err;
@@ -99,6 +106,8 @@ struct VM {
 	struct YASL_Table **globals;         // variables, see "constant.c" for details on YASL_Object.
 	size_t num_globals;
 	struct YASL_Object *stack;            // stack
+	struct CallFrame frames[1000];
+	size_t frame_num;
 	unsigned char *code;           // bytecode
 	unsigned char **headers;
 	size_t headers_size;
@@ -113,9 +122,9 @@ struct VM {
 
 void vm_init(struct VM *const vm, unsigned char *const code, const size_t pc, const size_t datasize);
 
-void vm_cleanup(struct VM *vm);
+void vm_cleanup(struct VM *const vm);
 
-int vm_stringify_top(struct VM *vm);
+int vm_stringify_top(struct VM *const vm);
 
 struct YASL_Object vm_pop(struct VM *const vm);
 bool vm_popbool(struct VM *const vm);
@@ -134,6 +143,8 @@ void vm_pushbool(struct VM *const vm, bool b);
 #define vm_pushlist(vm, l) vm_push(vm, YASL_LIST(l))
 #define vm_pushtable(vm, l) vm_push(vm, YASL_TABLE(l))
 #define vm_pushfn(vm, f) vm_push(vm, YASL_FN(f))
+void vm_pushclosure(struct VM *const vm, const unsigned char *const f);
 
-int vm_run(struct VM *vm);
+int vm_run(struct VM *const vm);
 
+#endif

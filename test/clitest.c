@@ -22,7 +22,7 @@ static const struct {
 	int line;
 	const char *args[3];
 } tests[] =
-	{{"YASL v0.7.1\n", TST, {"-V", NULL}},
+	{{"YASL v0.7.2\n", TST, {"-V", NULL}},
 	 {"10\n", TST, {"-e", "let x=10; x;", NULL}},
 	 {"", TST, {"-E", "let x=10; x;", NULL}},
 	 {"10\n", TST, {"-E", "let x=10; echo x;", NULL}},

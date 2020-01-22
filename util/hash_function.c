@@ -1,5 +1,7 @@
 #include "hash_function.h"
 
+#include "prime.h"
+
 size_t hash_function(const struct YASL_Object s, const size_t a, const size_t m) {
 	size_t hash = 0;
 	if (YASL_ISSTR(s)) {
