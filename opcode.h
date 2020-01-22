@@ -1,4 +1,5 @@
-#pragma once
+#ifndef YASL_OPCODE_H_
+#define YASL_OPCODE_H_
 
 enum Opcode {
 	O_HALT = 0x0F, // halt
@@ -67,7 +68,6 @@ enum Opcode {
 
 	O_END = 0xB0, // indicate end of list on stack.
 	O_DUP = 0xB8, // duplicate top value of stack
-	O_SWAP = 0xBB, // swap top two elements of the stack
 	O_POP = 0xBF, // pop top of stack
 
 	O_BR_8 = 0xC0, // branch unconditionally (takes next 8 bytes as jump length)
@@ -150,3 +150,5 @@ enum SpecialStrings {
 	
 	NUM_SPECIAL_STRINGS // don't treat this as a member
 };
+
+#endif

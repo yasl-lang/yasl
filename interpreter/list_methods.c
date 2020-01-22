@@ -287,45 +287,6 @@ int list_reverse(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
-int list_slice(struct YASL_State *S) {
-	struct YASL_Object end_index = vm_pop((struct VM *) S);
-	struct YASL_Object start_index = vm_pop((struct VM *) S);
-	if (!YASL_top_islist(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "list.slice", 0, Y_LIST, YASL_top_peektype(S));
-		return YASL_TYPE_ERROR;
-	}
-	struct YASL_List *list = vm_poplist((struct VM *) S);
-	if (!YASL_ISINT(start_index) || !YASL_ISINT(end_index)) {
-		// TODO: ERROR MESSAGE HERE
-		return -1;
-	} else if (YASL_GETINT(start_index) < -(int64_t) list->count ||
-		   YASL_GETINT(start_index) > (int64_t) list->count) {
-		return -1;
-	} else if (YASL_GETINT(end_index) < -(int64_t) list->count || YASL_GETINT(end_index) > (int64_t) list->count) {
-		return -1;
-	}
-
-	int64_t start = YASL_GETINT(start_index) < 0 ? YASL_GETINT(start_index) + (int64_t) list->count : YASL_GETINT(
-		start_index);
-	int64_t end =
-		YASL_GETINT(end_index) < 0 ? YASL_GETINT(end_index) + (int64_t) list->count : YASL_GETINT(end_index);
-
-	if (start > end) {
-		return -1;
-	}
-
-	struct RC_UserData *new_list = rcls_new_sized((size_t) (end - start));
-
-	for (int64_t i = start; i < end; i++) {
-		YASL_List_append((struct YASL_List *) new_list->data, list->items[i]); // = list->items[i];
-		inc_ref(list->items + i);
-	}
-
-	vm_pushlist((struct VM *) S, new_list);
-
-	return YASL_SUCCESS;
-}
-
 int list_clear(struct YASL_State *S) {
 	if (!YASL_top_islist(S)) {
 		vm_print_err_bad_arg_type((struct VM *)S, "list.clear", 0, Y_LIST, YASL_top_peektype(S));

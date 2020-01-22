@@ -43,7 +43,7 @@ int float_tostr(struct YASL_State *S) {
 		return YASL_TYPE_ERROR;
 	}
 	yasl_float val = YASL_top_popfloat(S);
-	char *ptr = float64_to_str(val);
+	const char *ptr = float64_to_str(val);
 	YASL_pushstring(S, ptr, strlen(ptr));
 	return YASL_SUCCESS;
 }

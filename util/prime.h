@@ -1,4 +1,5 @@
-#pragma once
+#ifndef YASL_PRIME_H_
+#define YASL_PRIME_H_
 
 #include "yasl_include.h"
 
@@ -10,3 +11,5 @@
 
 bool is_prime(const size_t x);
 size_t next_prime(size_t x);
+
+#endif

@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-char *float64_to_str(yasl_float d) {
+const char *float64_to_str(const yasl_float d) {
 	int size = snprintf(NULL, 0, "%f", d);
 	char *ptr = (char *)malloc((size_t)size+ 1);
 	snprintf(ptr, (size_t)size+1, "%f", d);
