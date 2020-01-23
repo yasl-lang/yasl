@@ -71,8 +71,13 @@ struct CFunction {
 	int (*value)(struct YASL_State *);
 };
 
+#define UPVAL_GET(uv) (*(uv)->location)
+#define UPVAL_SET(uv, val) (*(uv)->location = val)
+
 struct Upvalue {
 	struct YASL_Object *location;
+	struct YASL_Object closed;
+	struct Upvalue *next;
 };
 
 struct Closure {

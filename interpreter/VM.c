@@ -101,6 +101,7 @@ void vm_init(struct VM *const vm,
 #undef DEF_SPECIAL_STR
 
 	vm->builtins_htable = builtins_htable_new(vm);
+	vm->pending = NULL;
 }
 
 void vm_cleanup(struct VM *const vm) {
@@ -133,6 +134,7 @@ void vm_cleanup(struct VM *const vm) {
 	YASL_Table_del(vm->builtins_htable[Y_LIST]);
 	YASL_Table_del(vm->builtins_htable[Y_TABLE]);
 	free(vm->builtins_htable);
+	// TODO: free upvalues
 }
 
 void vm_push(struct VM *const vm, const struct YASL_Object val) {

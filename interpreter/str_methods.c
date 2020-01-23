@@ -36,42 +36,6 @@ int str___get(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
-int str_slice(struct YASL_State *S) {
-	struct YASL_Object end_index = vm_pop((struct VM *) S);
-	struct YASL_Object start_index = vm_pop((struct VM *) S);
-	if (!YASL_top_isstring(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.__get", 0, Y_STR, YASL_top_peektype(S));
-		return YASL_TYPE_ERROR;
-	}
-	struct YASL_String *str = YASL_GETSTR(vm_pop((struct VM *) S));
-	if (!YASL_ISINT(start_index) || !YASL_ISINT(end_index)) {
-		// TODO: clean this up
-		return -1;
-	} else if (YASL_GETINT(start_index) < -(yasl_int) YASL_String_len(str) ||
-		   YASL_GETINT(start_index) > (yasl_int) YASL_String_len(str)) {
-		return -1;
-	} else if (YASL_GETINT(end_index) < -(yasl_int) YASL_String_len(str) ||
-		   YASL_GETINT(end_index) > (yasl_int) YASL_String_len(
-			   str)) {
-		return -1;
-	}
-
-	int64_t start =
-		YASL_GETINT(start_index) < 0 ? YASL_GETINT(start_index) + (yasl_int) YASL_String_len(str) : YASL_GETINT(
-			start_index);
-	int64_t end =
-		YASL_GETINT(end_index) < 0 ? YASL_GETINT(end_index) + (yasl_int) YASL_String_len(str) : YASL_GETINT(
-			end_index);
-
-	if (start > end) {
-		return -1;
-	}
-
-	vm_push((struct VM *) S, YASL_STR(YASL_String_new_substring(str->start + start, str->start + end, str)));
-
-	return YASL_SUCCESS;
-}
-
 int str_tofloat(struct YASL_State *S) {
 	if (!YASL_top_isstring(S)) {
 		vm_print_err_bad_arg_type((struct VM *)S, "str.tofloat", 0, Y_STR, YASL_top_peektype(S));
