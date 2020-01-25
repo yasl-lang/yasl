@@ -12,7 +12,7 @@ struct Upvalue {
     struct Upvalue *next;
 };
 
-void vm_insert_upval(struct VM *vm, size_t offset, struct Upvalue *upval);
+void vm_insert_upval(struct VM *const vm, const size_t offset, struct Upvalue *const upval);
 void vm_close_all(struct VM *vm, int bottom);
 
 struct Closure {
