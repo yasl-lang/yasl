@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <memory.h>
 #include <stdint.h>
-#include <interpreter/YASL_Object.h>
 
 #include "interpreter/builtins.h"
 #include "data-structures/YASL_String.h"
@@ -19,6 +18,7 @@
 #include "opcode.h"
 #include "operator_names.h"
 #include "YASL_Object.h"
+#include "upvalue.h"
 
 static struct YASL_Table **builtins_htable_new(struct VM *const vm) {
     struct YASL_Table **ht = (struct YASL_Table **)malloc(sizeof(struct YASL_Table*) * NUM_TYPES);

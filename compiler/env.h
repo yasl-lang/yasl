@@ -6,6 +6,8 @@
 struct Env {
     struct Env *parent;
     struct YASL_Table vars;
+    bool used_in_closure;
+    // TODO: keep track of which variables need to be closed over...?
 };
 
 struct Env *env_new(struct Env *const env);

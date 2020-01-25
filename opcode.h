@@ -66,6 +66,8 @@ enum Opcode {
 	O_NEWTABLE = 0x9C, // make new HashTable and push it onto stack
 	O_NEWLIST = 0x9D, // make new List and push it onto stack
 
+	O_CLOSE = 0xA0, // close top N elements
+
 	O_END = 0xB0, // indicate end of list on stack.
 	O_DUP = 0xB8, // duplicate top value of stack
 	O_POP = 0xBF, // pop top of stack

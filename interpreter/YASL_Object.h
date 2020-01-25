@@ -4,7 +4,7 @@
 #include "data-structures/YASL_String.h"
 #include "yasl_conf.h"
 #include "yasl_types.h"
-#include "VM.h"
+//#include "VM.h"
 
 #define UNDEF_C ((struct YASL_Object){ .type = Y_UNDEF, .value = { .ival = 0 }  })
 #define FALSE_C ((struct YASL_Object){ .type = Y_BOOL, .value = {.ival = 0 }})

@@ -10,6 +10,7 @@ struct Env *env_new(struct Env *const parent) {
 	struct Env *env = (struct Env *)malloc(sizeof(struct Env));
 	env->parent = parent;
 	env->vars = NEW_TABLE();
+	env->used_in_closure = false;
 	return env;
 }
 
@@ -25,11 +26,9 @@ void env_del_current_only(struct Env *const env) {
 		struct YASL_Table_Item *item = &env->vars.items[i];
 		if (item->key.type != Y_END && item->key.type != Y_UNDEF) {
 			str_del(item->key.value.sval);
-			// free(item);
 		}
 	}
 	free(env->vars.items);
-	//free(env->vars);
 	free(env);
 }
 

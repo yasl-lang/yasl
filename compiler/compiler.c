@@ -143,12 +143,22 @@ static void enter_scope(struct Compiler *const compiler) {
 
 static void exit_scope(struct Compiler *const compiler) {
 	if (in_function(compiler)) {
-		compiler->num_locals += compiler->params->vars.count;
+		size_t num_locals = compiler->params->vars.count;
+		compiler->num_locals += num_locals;
 		struct Env *tmp = compiler->params;
+		if (tmp->used_in_closure) {
+			YASL_ByteBuffer_add_byte(compiler->buffer, O_CLOSE);
+			YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char)num_locals);
+		}
 		compiler->params = compiler->params->parent;
 		env_del_current_only(tmp);
 	} else {
+		size_t num_locals = compiler->stack->vars.count;
 		struct Env *tmp = compiler->stack;
+		if (tmp->used_in_closure) {
+			YASL_ByteBuffer_add_byte(compiler->buffer, O_CLOSE);
+			YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char)num_locals);
+		}
 		compiler->stack = compiler->stack->parent;
 		env_del_current_only(tmp);
 	}
@@ -486,6 +496,11 @@ static void visit_MethodCall(struct Compiler *const compiler, const struct Node 
 
 static void visit_Return(struct Compiler *const compiler, const struct Node *const node) {
 	visit(compiler, Return_get_expr(node));
+	if (compiler->params->used_in_closure) {
+		size_t num_locals = compiler->params->vars.count;
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_CLOSE);
+		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char)num_locals);
+	}
 	YASL_ByteBuffer_add_byte(compiler->buffer, O_RET);
 }
 
