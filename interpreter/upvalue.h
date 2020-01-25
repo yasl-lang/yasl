@@ -13,6 +13,7 @@ struct Upvalue {
 };
 
 void vm_insert_upval(struct VM *vm, size_t offset, struct Upvalue *upval);
+void vm_close_all(struct VM *vm, int bottom);
 
 struct Closure {
     const unsigned char *f;

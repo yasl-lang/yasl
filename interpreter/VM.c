@@ -715,6 +715,10 @@ static int vm_GLOAD_8(struct VM *const vm) {
 	return YASL_SUCCESS;
 }
 
+void vm_CLOSE(struct VM *const vm) {
+	// TODO
+}
+
 static void vm_enterframe(struct VM *const vm) {
 	int next_fp = vm->next_fp;
 	vm->next_fp = vm->sp;
@@ -822,6 +826,13 @@ static int vm_CALL(struct VM *const vm) {
 static int vm_RET(struct VM *const vm) {
 	// TODO: handle multiple returns
 	vm_exitframe(vm);
+	return YASL_SUCCESS;
+}
+
+static int vm_CRET(struct VM *const vm) {
+	int tmp = vm->fp;
+	vm_exitframe(vm);
+	vm_close_all(vm, tmp);
 	return YASL_SUCCESS;
 }
 
@@ -1132,6 +1143,9 @@ int vm_run(struct VM *const vm) {
 			break;
 		case O_RET:
 			if ((res = vm_RET(vm))) return res;
+			break;
+		case O_CRET:
+			vm_CRET(vm);
 			break;
 		case O_GET:
 			if ((res = vm_GET(vm))) return res;

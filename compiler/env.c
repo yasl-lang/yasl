@@ -90,6 +90,11 @@ int64_t env_decl_var(struct Env *const env, const char *const name) {
 	return env_len(env);
 }
 
+bool env_used_in_closure(const struct Env *const env) {
+	if (env == NULL) return false;
+	return env->used_in_closure || env_used_in_closure(env->parent);
+}
+
 static struct YASL_Table *get_closest_scope_with_var(struct Env *const env, const char *const name, const size_t name_len) {
 	struct YASL_Object key = YASL_Table_search_string_int(&env->vars, name, name_len);
 	return key.type != Y_END ? &env->vars : get_closest_scope_with_var(env->parent, name, name_len);

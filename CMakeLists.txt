@@ -53,6 +53,7 @@ add_executable(yasl
         compiler/lexinput.c
         compiler/parser.c
         compiler/middleend.c
+        interpreter/upvalue.c
         util/hash_function.c
         data-structures/YASL_Table.c
         interpreter/bool_methods.c
@@ -122,6 +123,7 @@ add_executable(yasltest
         data-structures/YASL_Set.c
         compiler/env.c
         yasl.c
+        interpreter/upvalue.c
         interpreter/VM.c
         interpreter/builtins.c
         interpreter/list_methods.c
@@ -159,6 +161,7 @@ add_library(yaslapi
         interpreter/bool_methods.c
         interpreter/builtins.c
         interpreter/float_methods.c
+        interpreter/upvalue.c
         util/yasl_float.c
         interpreter/int_methods.c
         data-structures/YASL_List.c
