@@ -7,6 +7,7 @@ struct Env {
     struct Env *parent;
     struct YASL_Table vars;
     bool used_in_closure;
+    size_t num_locals;   // keep track of number of locals (for when this is top level of a function).
     // TODO: keep track of which variables need to be closed over...?
 };
 
@@ -19,7 +20,7 @@ int env_contains_cur_scope(const struct Env *const env, const char *const name);
 int env_contains(const struct Env *const env, const char *const name);
 int64_t env_get(const struct Env *const env, const char *const name);
 int64_t env_decl_var(struct Env *const env, const char *const name);
-bool env_used_in_closure(const struct Env *const env);
+bool env_used_in_closure(const struct Env *const env, const struct Env *const fn);
 void env_make_const(struct Env *const env,  const char *const name);
 
 #endif

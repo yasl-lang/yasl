@@ -5,7 +5,6 @@
 #include "ast.h"
 #include "data-structures/YASL_String.h"
 #include "lexinput.h"
-#include "middleend.h"
 #include "opcode.h"
 #include "yasl_error.h"
 #include "yasl_include.h"
@@ -143,7 +142,7 @@ static void enter_scope(struct Compiler *const compiler) {
 
 static void exit_scope(struct Compiler *const compiler) {
 	if (in_function(compiler)) {
-		compiler->num_locals += compiler->params->vars.count;
+		compiler->function_env->num_locals += compiler->params->vars.count;
 		struct Env *tmp = compiler->params;
 		compiler->params = compiler->params->parent;
 		env_del_current_only(tmp);
@@ -304,33 +303,35 @@ static void make_const(const struct Compiler * const compiler, const char *const
 }
 
 static unsigned char *return_bytes(const struct Compiler *const compiler) {
-	if (compiler->status) return NULL;
+    if (compiler->status) return NULL;
 
-	YASL_ByteBuffer_rewrite_int_fast(compiler->header, 0, compiler->header->count);
-	YASL_ByteBuffer_rewrite_int_fast(compiler->header, 8, compiler->code->count + compiler->header->count + 1);   // TODO: put num globals here eventually.
+    YASL_ByteBuffer_rewrite_int_fast(compiler->header, 0, compiler->header->count);
+    YASL_ByteBuffer_rewrite_int_fast(compiler->header, 8, compiler->code->count + compiler->header->count +
+                                                          1);   // TODO: put num globals here eventually.
 
-	YASL_BYTECODE_DEBUG_LOG("%s\n", "header");
-	for (size_t i = 0; i < compiler->header->count; i++) {
-		if (i % 16 == 15)
-			YASL_BYTECODE_DEBUG_LOG("%02x\n", compiler->header->bytes[i]);
-		else
-			YASL_BYTECODE_DEBUG_LOG("%02x ", compiler->header->bytes[i]);
-	}
-	YASL_BYTECODE_DEBUG_LOG("%s\n", "entry point");
-	for (size_t i = 0; i < compiler->code->count; i++) {
-		if (i % 16 == 15)
-			YASL_BYTECODE_DEBUG_LOG("%02x\n", compiler->code->bytes[i]);
-		else
-			YASL_BYTECODE_DEBUG_LOG("%02x ", compiler->code->bytes[i]);
-	}
-	YASL_BYTECODE_DEBUG_LOG("%02x\n", O_HALT);
+    YASL_BYTECODE_DEBUG_LOG("%s\n", "header");
+    for (size_t i = 0; i < compiler->header->count; i++) {
+        if (i % 16 == 15)
+            YASL_BYTECODE_DEBUG_LOG("%02x\n", compiler->header->bytes[i]);
+        else
+            YASL_BYTECODE_DEBUG_LOG("%02x ", compiler->header->bytes[i]);
+    }
+    YASL_BYTECODE_DEBUG_LOG("%s\n", "entry point");
+    for (size_t i = 0; i < compiler->code->count; i++) {
+        if (i % 16 == 15)
+            YASL_BYTECODE_DEBUG_LOG("%02x\n", compiler->code->bytes[i]);
+        else
+            YASL_BYTECODE_DEBUG_LOG("%02x ", compiler->code->bytes[i]);
+    }
+    YASL_BYTECODE_DEBUG_LOG("%02x\n", O_HALT);
 
-	fflush(stdout);
-	unsigned char *bytecode = (unsigned char *)malloc(compiler->code->count + compiler->header->count + 1);    // NOT OWN
-	memcpy(bytecode, compiler->header->bytes, compiler->header->count);
-	memcpy(bytecode + compiler->header->count, compiler->code->bytes, compiler->code->count);
-	bytecode[compiler->code->count + compiler->header->count] = O_HALT;
-	return bytecode;
+    fflush(stdout);
+    unsigned char *bytecode = (unsigned char *) malloc(
+            compiler->code->count + compiler->header->count + 1);    // NOT OWN
+    memcpy(bytecode, compiler->header->bytes, compiler->header->count);
+    memcpy(bytecode + compiler->header->count, compiler->code->bytes, compiler->code->count);
+    bytecode[compiler->code->count + compiler->header->count] = O_HALT;
+    return bytecode;
 }
 
 unsigned char *compile(struct Compiler *const compiler) {
@@ -402,16 +403,17 @@ static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *c
 }
 
 static void visit_FunctionDecl(struct Compiler *const compiler, const struct Node *const node) {
-	if (in_function(compiler)) {
+	/*if (in_function(compiler)) {
 		YASL_PRINT_ERROR_SYNTAX("Illegal function declaration outside global scope, in line %" PRI_SIZET ".\n",
 					node->line);
 		handle_error(compiler);
 		return;
-	}
+	}*/
 
 	// start logic for function, now that we are sure it's legal to do so, and have set up.
 	compiler->params = env_new(compiler->params);
-	compiler->num_locals = 0;
+	compiler->function_env = compiler->params;
+	compiler->function_env->num_locals = 0;
 
 	enter_scope(compiler);
 
@@ -430,7 +432,7 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) compiler->params->vars.count);
 	visit_Body(compiler, FnDecl_get_body(node));
 	exit_scope(compiler);
-	compiler->buffer->bytes[index] = (unsigned char)compiler->num_locals;
+	compiler->buffer->bytes[index] = (unsigned char)compiler->function_env->num_locals;
 
 	int64_t fn_val = compiler->header->count;
 	YASL_ByteBuffer_extend(compiler->header, compiler->buffer->bytes + old_size, compiler->buffer->count - old_size);
@@ -486,15 +488,7 @@ static void visit_MethodCall(struct Compiler *const compiler, const struct Node 
 
 static void visit_Return(struct Compiler *const compiler, const struct Node *const node) {
 	visit(compiler, Return_get_expr(node));
-	// TODO? fix all this up, none of this is right
-	/*
-	if (compiler->params->used_in_closure) {
-		size_t num_locals = compiler->params->vars.count;
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_CLOSE);
-		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char)num_locals);
-	}
-	*/
-	if (env_used_in_closure(compiler->params)) {
+	if (env_used_in_closure(compiler->params, compiler->function_env)) {
 		YASL_ByteBuffer_add_byte(compiler->buffer, O_CRET);
 	} else {
 		YASL_ByteBuffer_add_byte(compiler->buffer, O_RET);

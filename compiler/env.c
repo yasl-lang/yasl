@@ -11,6 +11,7 @@ struct Env *env_new(struct Env *const parent) {
 	env->parent = parent;
 	env->vars = NEW_TABLE();
 	env->used_in_closure = false;
+	// env->num_locals = 0;
 	return env;
 }
 
@@ -90,9 +91,10 @@ int64_t env_decl_var(struct Env *const env, const char *const name) {
 	return env_len(env);
 }
 
-bool env_used_in_closure(const struct Env *const env) {
+bool env_used_in_closure(const struct Env *const env, const struct Env *const fn) {
 	if (env == NULL) return false;
-	return env->used_in_closure || env_used_in_closure(env->parent);
+	if (env == fn) return fn->used_in_closure;
+	return env->used_in_closure || env_used_in_closure(env->parent, fn);
 }
 
 static struct YASL_Table *get_closest_scope_with_var(struct Env *const env, const char *const name, const size_t name_len) {
