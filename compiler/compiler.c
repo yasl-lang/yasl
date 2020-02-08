@@ -24,8 +24,8 @@
 #define compiler_print_err_const(compiler, name, line) \
 	compiler_print_err_syntax((compiler), "Cannot assign to constant %s (line %" PRI_SIZET ").\n", name, line)
 
-#define break_checkpoint(compiler)    ((compiler)->checkpoints[(compiler)->checkpoints_count-1])
-#define continue_checkpoint(compiler) ((compiler)->checkpoints[(compiler)->checkpoints_count-2])
+#define break_checkpoint(compiler)    ((compiler)->checkpoints.items[(compiler)->checkpoints.count-1])
+#define continue_checkpoint(compiler) ((compiler)->checkpoints.items[(compiler)->checkpoints.count-2])
 
 
 static enum SpecialStrings get_special_string(const struct Node *const node) {
@@ -82,9 +82,7 @@ static void *init_compiler(struct Compiler *compiler) {
 	compiler->header = YASL_ByteBuffer_new(16);
 	compiler->header->count = 16;
 	compiler->status = YASL_SUCCESS;
-	compiler->checkpoints_size = 4;
-	compiler->checkpoints = (size_t *)malloc(sizeof(size_t) * compiler->checkpoints_size);
-	compiler->checkpoints_count = 0;
+	compiler->checkpoints = NEW_SIZEBUFFER(4);
 	compiler->code = YASL_ByteBuffer_new(16);
 	return compiler;
 }
@@ -124,7 +122,7 @@ void compiler_cleanup(struct Compiler *const compiler) {
 	env_del(compiler->params);
 	parser_cleanup(&compiler->parser);
 	compiler_buffers_del(compiler);
-	free(compiler->checkpoints);
+	free(compiler->checkpoints.items);
 }
 
 static void handle_error(struct Compiler *const compiler) {
@@ -142,7 +140,7 @@ static void enter_scope(struct Compiler *const compiler) {
 
 static void exit_scope(struct Compiler *const compiler) {
 	if (in_function(compiler)) {
-		compiler->function_env->num_locals += compiler->params->vars.count;
+		compiler->locals[compiler->locals_count].num_locals += compiler->params->vars.count;
 		struct Env *tmp = compiler->params;
 		compiler->params = compiler->params->parent;
 		env_del_current_only(tmp);
@@ -163,16 +161,40 @@ static inline void exit_conditional_false(const struct Compiler *const compiler,
 	YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, (size_t) *index, compiler->buffer->count - *index - 8);
 }
 
-static void add_checkpoint(struct Compiler *const compiler, const size_t cp) {
-	if (compiler->checkpoints_count >= compiler->checkpoints_size) {
-		compiler->checkpoints_size *= 2;
-		compiler->checkpoints = (size_t *)realloc(compiler->checkpoints, sizeof(compiler->checkpoints[0]) * compiler->checkpoints_size);
+static void sizebuffer_push(struct SizeBuffer *sb, const size_t item) {
+	if (sb->count >= sb->size) {
+		sb->size *= 2;
+		sb->items = (size_t *)realloc(sb->items, sizeof(size_t) * sb->size);
 	}
-	compiler->checkpoints[compiler->checkpoints_count++] = cp;
+	sb->items[sb->count++] = item;
+}
+
+static void sizebuffer_pop(struct SizeBuffer *sb) {
+	sb->count--;
+}
+
+static void add_checkpoint(struct Compiler *const compiler, const size_t cp) {
+	sizebuffer_push(&compiler->checkpoints, cp);
+}
+
+static void add_num_locals(struct Compiler *const compiler) {
+	if (compiler->locals_count >= compiler->locals_size) {
+		compiler->locals_size *= 2;
+		compiler->locals = (struct Frame *)realloc(compiler->locals, sizeof(compiler->locals[0]) * compiler->locals_size);
+	}
+	compiler->locals[compiler->locals_count].num_locals = 0;
+	compiler->locals[compiler->locals_count].num_upvals = 0;
+	compiler->locals[compiler->locals_count].upvals = NULL;
+	compiler->locals_count++;
+
 }
 
 static void rm_checkpoint(struct Compiler *const compiler) {
-	compiler->checkpoints_count--;
+	sizebuffer_pop(&compiler->checkpoints);
+}
+
+static void rm_num_local(struct Compiler *const compiler) {
+	compiler->locals_count--;
 }
 
 static void visit(struct Compiler *const compiler, const struct Node *const node);
@@ -192,11 +214,24 @@ static inline int64_t get_index(const int64_t value) {
 	return is_const(value) ? ~value : value;
 }
 
+static unsigned char add_upval(struct Compiler *const compiler, const char *const name) {
+	struct Frame *frame = compiler->locals + compiler->locals_count;
+	for (size_t i = 0; i < frame->num_upvals; i++) {
+
+	}
+	return 0; // TODO fix
+}
+
 static void load_var(struct Compiler *const compiler, const char *const name, const size_t line) {
 	const size_t name_len = strlen(name);
 	if (env_contains(compiler->params, name)) {
 		int64_t index = get_index(env_get(compiler->params, name));
 		YASL_ByteBuffer_add_byte(compiler->buffer, O_LLOAD_1);
+		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) index);
+	} else if (env_contains(compiler->outer, name)) {
+		compiler->params->isclosure = true;
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_ULOAD_1);
+		int64_t index = add_upval(compiler, name);
 		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) index);
 	} else if (env_contains(compiler->stack, name)) {
 		int64_t index = get_index(env_get(compiler->stack, name));
@@ -303,35 +338,35 @@ static void make_const(const struct Compiler * const compiler, const char *const
 }
 
 static unsigned char *return_bytes(const struct Compiler *const compiler) {
-    if (compiler->status) return NULL;
+	if (compiler->status) return NULL;
 
-    YASL_ByteBuffer_rewrite_int_fast(compiler->header, 0, compiler->header->count);
-    YASL_ByteBuffer_rewrite_int_fast(compiler->header, 8, compiler->code->count + compiler->header->count +
-                                                          1);   // TODO: put num globals here eventually.
+	YASL_ByteBuffer_rewrite_int_fast(compiler->header, 0, compiler->header->count);
+	YASL_ByteBuffer_rewrite_int_fast(compiler->header, 8, compiler->code->count + compiler->header->count +
+							      1);   // TODO: put num globals here eventually.
 
-    YASL_BYTECODE_DEBUG_LOG("%s\n", "header");
-    for (size_t i = 0; i < compiler->header->count; i++) {
-        if (i % 16 == 15)
-            YASL_BYTECODE_DEBUG_LOG("%02x\n", compiler->header->bytes[i]);
-        else
-            YASL_BYTECODE_DEBUG_LOG("%02x ", compiler->header->bytes[i]);
-    }
-    YASL_BYTECODE_DEBUG_LOG("%s\n", "entry point");
-    for (size_t i = 0; i < compiler->code->count; i++) {
-        if (i % 16 == 15)
-            YASL_BYTECODE_DEBUG_LOG("%02x\n", compiler->code->bytes[i]);
-        else
-            YASL_BYTECODE_DEBUG_LOG("%02x ", compiler->code->bytes[i]);
-    }
-    YASL_BYTECODE_DEBUG_LOG("%02x\n", O_HALT);
+	YASL_BYTECODE_DEBUG_LOG("%s\n", "header");
+	for (size_t i = 0; i < compiler->header->count; i++) {
+		if (i % 16 == 15)
+			YASL_BYTECODE_DEBUG_LOG("%02x\n", compiler->header->bytes[i]);
+		else
+			YASL_BYTECODE_DEBUG_LOG("%02x ", compiler->header->bytes[i]);
+	}
+	YASL_BYTECODE_DEBUG_LOG("%s\n", "entry point");
+	for (size_t i = 0; i < compiler->code->count; i++) {
+		if (i % 16 == 15)
+			YASL_BYTECODE_DEBUG_LOG("%02x\n", compiler->code->bytes[i]);
+		else
+			YASL_BYTECODE_DEBUG_LOG("%02x ", compiler->code->bytes[i]);
+	}
+	YASL_BYTECODE_DEBUG_LOG("%02x\n", O_HALT);
 
-    fflush(stdout);
-    unsigned char *bytecode = (unsigned char *) malloc(
-            compiler->code->count + compiler->header->count + 1);    // NOT OWN
-    memcpy(bytecode, compiler->header->bytes, compiler->header->count);
-    memcpy(bytecode + compiler->header->count, compiler->code->bytes, compiler->code->count);
-    bytecode[compiler->code->count + compiler->header->count] = O_HALT;
-    return bytecode;
+	fflush(stdout);
+	unsigned char *bytecode = (unsigned char *) malloc(
+		compiler->code->count + compiler->header->count + 1);    // NOT OWN
+	memcpy(bytecode, compiler->header->bytes, compiler->header->count);
+	memcpy(bytecode + compiler->header->count, compiler->code->bytes, compiler->code->count);
+	bytecode[compiler->code->count + compiler->header->count] = O_HALT;
+	return bytecode;
 }
 
 unsigned char *compile(struct Compiler *const compiler) {
@@ -411,9 +446,10 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	}*/
 
 	// start logic for function, now that we are sure it's legal to do so, and have set up.
-	compiler->params = env_new(compiler->params);
-	compiler->function_env = compiler->params;
-	compiler->function_env->num_locals = 0;
+	compiler->outer = compiler->params;
+	compiler->params = env_new(NULL);
+	compiler->params->num_locals = 0;
+	add_num_locals(compiler);
 
 	enter_scope(compiler);
 
@@ -432,7 +468,7 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) compiler->params->vars.count);
 	visit_Body(compiler, FnDecl_get_body(node));
 	exit_scope(compiler);
-	compiler->buffer->bytes[index] = (unsigned char)compiler->function_env->num_locals;
+	compiler->buffer->bytes[index] = (unsigned char)compiler->locals[compiler->locals_count].num_locals;
 
 	int64_t fn_val = compiler->header->count;
 	YASL_ByteBuffer_extend(compiler->header, compiler->buffer->bytes + old_size, compiler->buffer->count - old_size);
@@ -443,12 +479,18 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	// zero buffer length
 	compiler->buffer->count = old_size;
 
-	struct Env *tmp = compiler->params->parent;
-	env_del_current_only(compiler->params);
-	compiler->params = tmp;
+	if (!compiler->params->isclosure) {
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_FCONST);
+		YASL_ByteBuffer_add_int(compiler->buffer, fn_val);
+	} else {
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_CCONST);
+		YASL_ByteBuffer_add_int(compiler->buffer, fn_val);
+	}
 
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_FCONST);
-	YASL_ByteBuffer_add_int(compiler->buffer, fn_val);
+	env_del(compiler->params);
+	compiler->params = compiler->outer;
+	compiler->outer = NULL;
+	rm_num_local(compiler);
 }
 
 static void visit_Call(struct Compiler *const compiler, const struct Node *const node) {
@@ -488,7 +530,7 @@ static void visit_MethodCall(struct Compiler *const compiler, const struct Node 
 
 static void visit_Return(struct Compiler *const compiler, const struct Node *const node) {
 	visit(compiler, Return_get_expr(node));
-	if (env_used_in_closure(compiler->params, compiler->function_env)) {
+	if (env_used_in_closure(compiler->params)) {
 		YASL_ByteBuffer_add_byte(compiler->buffer, O_CRET);
 	} else {
 		YASL_ByteBuffer_add_byte(compiler->buffer, O_RET);
@@ -730,7 +772,7 @@ static void visit_While(struct Compiler *const compiler, const struct Node *cons
 }
 
 static void visit_Break(struct Compiler *const compiler, const struct Node *const node) {
-	if (compiler->checkpoints_count == 0) {
+	if (compiler->checkpoints.count == 0) {
 		YASL_PRINT_ERROR_SYNTAX("break outside of loop (line %" PRI_SIZET ").\n", node->line);
 		handle_error(compiler);
 		return;
@@ -740,7 +782,7 @@ static void visit_Break(struct Compiler *const compiler, const struct Node *cons
 }
 
 static void visit_Continue(struct Compiler *const compiler, const struct Node *const node) {
-	if (compiler->checkpoints_count == 0) {
+	if (compiler->checkpoints.count == 0) {
 		YASL_PRINT_ERROR_SYNTAX("continue outside of loop (line %" PRI_SIZET ").\n", node->line);
 		handle_error(compiler);
 		return;
@@ -841,7 +883,9 @@ static void declare_with_let_or_const(struct Compiler *const compiler, const str
 	if (Decl_get_expr(node)) visit(compiler, Decl_get_expr(node));
 	else YASL_ByteBuffer_add_byte(compiler->buffer, O_NCONST);
 
-	store_var(compiler, Decl_get_name(node), node->line);
+	if (!(env_contains(compiler->params, Decl_get_name(node)))) {
+		store_var(compiler, Decl_get_name(node), node->line);
+	}
 }
 
 static void visit_Let(struct Compiler *const compiler, const struct Node *const node) {

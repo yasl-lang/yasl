@@ -782,7 +782,7 @@ static int vm_CALL_fn(struct VM *const vm) {
 		vm_pop(vm);
 	}
 
-	vm->sp += vm_peek(vm, vm->fp).value.fval[1];
+	// vm->sp += vm_peek(vm, vm->fp).value.fval[1];
 
 	vm->pc =  vm_peek(vm, vm->fp).value.fval + 2;
 	return YASL_SUCCESS;
@@ -1124,11 +1124,18 @@ int vm_run(struct VM *const vm) {
 			vm_push(vm, vm_peek(vm, vm->fp + offset + 1));
 			break;
 		case O_LSTORE_1:
+			//printf("%d\n", (int)offset);
+			//printf("vm->sp: %d\n", vm->sp);
+			//printf("vm->fp: %d\n", vm->fp);
+			fprintf(fopen("/home/thiabaud/Documents/yasl-lang/yasl/tmp.txt", "a"), "%d, %d, %d\n", (int)offset, vm->sp, vm->fp);
 			offset = NCODE(vm);
 			dec_ref(&vm_peek(vm, vm->fp + offset + 1));
 			vm_peek(vm, vm->fp + offset + 1) = vm_pop(vm);
 			inc_ref(&vm_peek(vm, vm->fp + offset + 1));
 			break;
+		case O_ULOAD_1:
+			offset = NCODE(vm);
+			exit(1);
 		case O_INIT_MC:
 			if ((res = vm_INIT_MC(vm))) return res;
 			break;

@@ -10,7 +10,7 @@ struct Env *env_new(struct Env *const parent) {
 	struct Env *env = (struct Env *)malloc(sizeof(struct Env));
 	env->parent = parent;
 	env->vars = NEW_TABLE();
-	env->used_in_closure = false;
+	env->isclosure = false;
 	// env->num_locals = 0;
 	return env;
 }
@@ -38,7 +38,7 @@ size_t env_len(const struct Env *const env) {
 	return env->vars.count + env_len(env->parent);
 }
 
-int env_contains_cur_scope(const struct Env *const env, const char *const name) {
+bool env_contains_cur_scope(const struct Env *const env, const char *const name) {
 	const size_t name_len = strlen(name);
 	struct YASL_String *string = YASL_String_new_sized_heap(0, name_len, copy_char_buffer(name_len, name));
 	struct YASL_Object key = YASL_STR(string); // (struct YASL_Object) { .value.sval = string, .type = Y_STR };
@@ -46,24 +46,24 @@ int env_contains_cur_scope(const struct Env *const env, const char *const name) 
 	struct YASL_Object value = YASL_Table_search(&env->vars, key);
 	str_del(key.value.sval);
 	if (value.type == Y_END) {
-		return 0;
+		return false;
 	}
-	return 1;
+	return true;
 }
 
-int env_contains(const struct Env *const env, const char *const name) {
+bool env_contains(const struct Env *const env, const char *const name) {
 	const size_t name_len = strlen(name);
-	if (env == NULL) return 0;
+	if (env == NULL) return false;
 	struct YASL_String *string = YASL_String_new_sized_heap(0, name_len, copy_char_buffer(name_len, name));
 	struct YASL_Object key = YASL_STR(string);
 
 	struct YASL_Object value = YASL_Table_search(&env->vars, key);
 	str_del(key.value.sval);
 	if (value.type == Y_END && env->parent == NULL) {
-		return 0;
+		return false;
 	}
 	if (value.type == Y_END) return env_contains(env->parent, name);
-	return 1;
+	return true;
 }
 
 int64_t env_get(const struct Env *const env, const char *const name) {
@@ -91,10 +91,9 @@ int64_t env_decl_var(struct Env *const env, const char *const name) {
 	return env_len(env);
 }
 
-bool env_used_in_closure(const struct Env *const env, const struct Env *const fn) {
+bool env_used_in_closure(const struct Env *const env) {
 	if (env == NULL) return false;
-	if (env == fn) return fn->used_in_closure;
-	return env->used_in_closure || env_used_in_closure(env->parent, fn);
+	return env->isclosure || env_used_in_closure(env->parent);
 }
 
 static struct YASL_Table *get_closest_scope_with_var(struct Env *const env, const char *const name, const size_t name_len) {
