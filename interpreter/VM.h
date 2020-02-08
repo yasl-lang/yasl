@@ -99,6 +99,11 @@ struct CallFrame {
 	int next_fp;
 };
 
+struct LoopFrame {
+	int iter;
+	struct YASL_Object iterable;
+};
+
 struct VM {
 	struct IO out;
 	struct IO err;
@@ -108,6 +113,8 @@ struct VM {
 	struct YASL_Object *stack;            // stack
 	struct CallFrame frames[1000];
 	size_t frame_num;
+	struct LoopFrame loopframes[16];
+	size_t loopframe_num;
 	unsigned char *code;           // bytecode
 	unsigned char **headers;
 	size_t headers_size;
@@ -115,7 +122,6 @@ struct VM {
 	int sp;                        // stack pointer
 	int fp;                        // frame pointer
 	int next_fp;
-	int lp;                        // foreach pointer
 	struct YASL_String *special_strings[NUM_SPECIAL_STRINGS];
 	struct YASL_Table **builtins_htable;   // htable of builtin methods
 	struct Upvalue *pending;

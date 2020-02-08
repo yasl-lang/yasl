@@ -623,10 +623,9 @@ static void visit_ListComp(struct Compiler *const compiler, const struct Node *c
 	visit(compiler, collection);
 
 	YASL_ByteBuffer_add_byte(compiler->buffer, O_INITFOR);
-
 	YASL_ByteBuffer_add_byte(compiler->buffer, O_END);
-
 	decl_var(compiler, name, iter->line);
+	YASL_ByteBuffer_add_byte(compiler->buffer, O_END);
 
 	int64_t index_start = compiler->buffer->count;
 
@@ -663,8 +662,8 @@ static void visit_TableComp(struct Compiler *const compiler, const struct Node *
 
 	YASL_ByteBuffer_add_byte(compiler->buffer, O_INITFOR);
 	YASL_ByteBuffer_add_byte(compiler->buffer, O_END);
-
 	decl_var(compiler, name, iter->line);
+	YASL_ByteBuffer_add_byte(compiler->buffer, O_END);
 
 	int64_t index_start = compiler->buffer->count;
 
@@ -699,7 +698,7 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 	visit(compiler, collection);
 
 	YASL_ByteBuffer_add_byte(compiler->buffer, O_INITFOR);
-
+	YASL_ByteBuffer_add_byte(compiler->buffer, O_END);
 	decl_var(compiler, name, iter->line);
 
 	size_t index_start = compiler->buffer->count;
@@ -878,10 +877,10 @@ static void declare_with_let_or_const(struct Compiler *const compiler, const str
 		return;
 	}
 
-	decl_var(compiler, Decl_get_name(node), node->line);
-
 	if (Decl_get_expr(node)) visit(compiler, Decl_get_expr(node));
 	else YASL_ByteBuffer_add_byte(compiler->buffer, O_NCONST);
+
+	decl_var(compiler, Decl_get_name(node), node->line);
 
 	if (!(env_contains(compiler->params, Decl_get_name(node)))) {
 		store_var(compiler, Decl_get_name(node), node->line);

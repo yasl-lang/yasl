@@ -54,7 +54,6 @@ void vm_init(struct VM *const vm,
 	vm->globals[0] = YASL_Table_new();
 	vm->pc = code + pc;
 	vm->fp = -1;
-	vm->lp = -1;
 	vm->sp = -1;
 	vm->global_vars = (struct YASL_Object *)calloc(sizeof(struct YASL_Object), NUM_GLOBALS);
 
@@ -642,43 +641,43 @@ static int vm_NEWSTR(struct VM *const vm) {
 }
 
 static int vm_ITER_1(struct VM *const vm) {
-	switch (vm_peek(vm, vm->lp).type) {
+	switch (vm->loopframes[vm->loopframe_num].iterable.type) {
 	case Y_LIST:
-		if ((yasl_int)vm_peeklist(vm, vm->lp)->count <= vm_peekint(vm, vm->lp + 1)) {
+		if ((yasl_int)YASL_GETLIST(vm->loopframes[vm->loopframe_num].iterable)->count <= vm->loopframes[vm->loopframe_num].iter) {
 			vm_pushbool(vm, 0);
 		} else {
-			vm_push(vm, vm_peeklist(vm, vm->lp)->items[vm_peekint(vm, vm->lp + 1)++]);
+			vm_push(vm, YASL_GETLIST(vm->loopframes[vm->loopframe_num].iterable)->items[vm->loopframes[vm->loopframe_num].iter++]);
 			vm_pushbool(vm, 1);
 		}
 		return YASL_SUCCESS;
 	case Y_TABLE:
-		while (vm_peektable(vm, vm->lp)->size > (size_t) vm_peekint(vm, vm->lp + 1) &&
-		       (vm_peektable(vm, vm->lp)->items[vm_peekint(vm, vm->lp + 1)].key.type == Y_END ||
-			vm_peektable(vm, vm->lp)->items[vm_peekint(vm, vm->lp + 1)].key.type == Y_UNDEF)
+		while (YASL_GETTABLE(vm->loopframes[vm->loopframe_num].iterable)->size > (size_t) vm->loopframes[vm->loopframe_num].iter &&
+		       (YASL_GETTABLE(vm->loopframes[vm->loopframe_num].iterable)->items[vm->loopframes[vm->loopframe_num].iter].key.type == Y_END ||
+			YASL_GETTABLE(vm->loopframes[vm->loopframe_num].iterable)->items[vm->loopframes[vm->loopframe_num].iter].key.type == Y_UNDEF)
 			) {
-			vm_peekint(vm, vm->lp + 1)++;
+			vm->loopframes[vm->loopframe_num].iter++;
 		}
-		if (vm_peektable(vm, vm->lp)->size <=
-		    (size_t) vm_peekint(vm, vm->lp + 1)) {
+		if (YASL_GETTABLE(vm->loopframes[vm->loopframe_num].iterable)->size <=
+		    (size_t) vm->loopframes[vm->loopframe_num].iter) {
 			vm_pushbool(vm, 0);
 			return YASL_SUCCESS;
 		}
 		vm_push(vm,
-			vm_peektable(vm, vm->lp)->items[vm_peekint(vm, vm->lp + 1)++].key);
+			YASL_GETTABLE(vm->loopframes[vm->loopframe_num].iterable)->items[vm->loopframes[vm->loopframe_num].iter++].key);
 		vm_pushbool(vm, 1);
 		return YASL_SUCCESS;
 	case Y_STR:
-		if ((yasl_int) YASL_String_len(vm_peekstr(vm, vm->lp)) <= vm_peekint(vm, vm->lp + 1)) {
+		if ((yasl_int) YASL_String_len(YASL_GETSTR(vm->loopframes[vm->loopframe_num].iterable)) <= vm->loopframes[vm->loopframe_num].iter) {
 			vm_push(vm, YASL_BOOL(0));
 		} else {
-			size_t i = (size_t)vm_peekint(vm, vm->lp + 1);
-			vm_push(vm, YASL_STR(YASL_String_new_substring(i, i + 1, vm_peekstr(vm, vm->lp))));
-			vm_peekint(vm, vm->lp + 1)++;
+			size_t i = (size_t)vm->loopframes[vm->loopframe_num].iter;
+			vm_push(vm, YASL_STR(YASL_String_new_substring(i, i + 1, YASL_GETSTR(vm->loopframes[vm->loopframe_num].iterable))));
+			vm->loopframes[vm->loopframe_num].iter++;
 			vm_pushbool(vm, 1);
 		}
 		return YASL_SUCCESS;
 	default:
-		vm_print_err_type(vm,  "object of type %s is not iterable.\n", YASL_TYPE_NAMES[vm_peek(vm, vm->lp).type]);
+		vm_print_err_type(vm,  "object of type %s is not iterable.\n", YASL_TYPE_NAMES[vm->loopframes[vm->loopframe_num].iterable.type]);
 		return YASL_TYPE_ERROR;
 	}
 }
@@ -1054,21 +1053,21 @@ int vm_run(struct VM *const vm) {
 			break;
 		}
 		case O_INITFOR:
-			vm_pushint(vm, 0);
-			vm_pushint(vm, vm->lp);
-			vm->lp = vm->sp - 2;
-			break;
-		case O_ENDCOMP:
-			a = vm_pop(vm);
-			vm->lp = vm_popint(vm);
-			vm_pop(vm);
-			vm_pop(vm);
-			vm_push(vm, a);
+			inc_ref(&vm_peek(vm));
+			vm->loopframe_num++;
+			vm->loopframes[vm->loopframe_num].iter = 0;
+			vm->loopframes[vm->loopframe_num].iterable = vm_pop(vm);
 			break;
 		case O_ENDFOR:
-			vm->lp = vm_popint(vm);
+			dec_ref(&vm->loopframes[vm->loopframe_num].iterable);
+			vm->loopframe_num--;
+			break;
+		case O_ENDCOMP:
+			dec_ref(&vm->loopframes[vm->loopframe_num].iterable);
+			a = vm_pop(vm);
 			vm_pop(vm);
-			vm_pop(vm);
+			vm_push(vm, a);
+			vm->loopframe_num--;
 			break;
 		case O_ITER_1:
 			if ((res = vm_ITER_1(vm))) return res;
@@ -1166,7 +1165,8 @@ int vm_run(struct VM *const vm) {
 		case O_POP:
 			vm_pop(vm);
 			break;
-		case O_PRINT: vm_PRINT(vm);
+		case O_PRINT:
+			vm_PRINT(vm);
 			break;
 		default:
 			vm_print_err(vm, "ERROR UNKNOWN OPCODE: %x\n", opcode);
