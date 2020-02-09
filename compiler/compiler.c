@@ -140,10 +140,14 @@ static void enter_scope(struct Compiler *const compiler) {
 
 static void exit_scope(struct Compiler *const compiler) {
 	if (in_function(compiler)) {
-		compiler->locals[compiler->locals_count].num_locals += compiler->params->vars.count;
+		size_t num_locals = compiler->params->vars.count;
+		compiler->locals[compiler->locals_count].num_locals += num_locals;
 		struct Env *tmp = compiler->params;
 		compiler->params = compiler->params->parent;
 		env_del_current_only(tmp);
+		while (num_locals-- > 0) {
+			YASL_ByteBuffer_add_byte(compiler->buffer, O_POP);
+		}
 	} else {
 		struct Env *tmp = compiler->stack;
 		compiler->stack = compiler->stack->parent;
@@ -645,7 +649,10 @@ static void visit_ListComp(struct Compiler *const compiler, const struct Node *c
 	YASL_ByteBuffer_add_byte(compiler->buffer, O_NEWLIST);
 
 	YASL_ByteBuffer_add_byte(compiler->buffer, O_ENDCOMP);
+
+	size_t curr = compiler->buffer->count;
 	exit_scope(compiler);
+	compiler->buffer->count = curr;
 }
 
 static void visit_TableComp(struct Compiler *const compiler, const struct Node *const node) {
@@ -683,7 +690,9 @@ static void visit_TableComp(struct Compiler *const compiler, const struct Node *
 	YASL_ByteBuffer_add_byte(compiler->buffer, O_NEWTABLE);
 	YASL_ByteBuffer_add_byte(compiler->buffer, O_ENDCOMP);
 
+	size_t curr = compiler->buffer->count;
 	exit_scope(compiler);
+	compiler->buffer->count = curr;
 }
 
 static void visit_ForIter(struct Compiler *const compiler, const struct Node *const node) {
@@ -877,10 +886,15 @@ static void declare_with_let_or_const(struct Compiler *const compiler, const str
 		return;
 	}
 
-	if (Decl_get_expr(node)) visit(compiler, Decl_get_expr(node));
-	else YASL_ByteBuffer_add_byte(compiler->buffer, O_NCONST);
+	if (Decl_get_expr(node) && Decl_get_expr(node)->nodetype == N_FNDECL) {
+		decl_var(compiler, Decl_get_name(node), node->line);
+		visit(compiler, Decl_get_expr(node));
+	} else {
+		if (Decl_get_expr(node)) visit(compiler, Decl_get_expr(node));
+		else YASL_ByteBuffer_add_byte(compiler->buffer, O_NCONST);
 
-	decl_var(compiler, Decl_get_name(node), node->line);
+		decl_var(compiler, Decl_get_name(node), node->line);
+	}
 
 	if (!(env_contains(compiler->params, Decl_get_name(node)))) {
 		store_var(compiler, Decl_get_name(node), node->line);
