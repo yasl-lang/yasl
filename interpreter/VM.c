@@ -43,6 +43,7 @@ void vm_init(struct VM *const vm,
 	vm->headers_size = datasize;
 	vm->num_globals = datasize;
 	vm->frame_num = -1;
+	vm->loopframe_num = -1;
 	vm->globals = (struct YASL_Table **)calloc(sizeof(struct YASL_Table *), datasize);
 	vm->out = NEW_IO(stdout);
 	vm->err = NEW_IO(stderr);
@@ -641,43 +642,44 @@ static int vm_NEWSTR(struct VM *const vm) {
 }
 
 static int vm_ITER_1(struct VM *const vm) {
-	switch (vm->loopframes[vm->loopframe_num].iterable.type) {
+	struct LoopFrame *frame = &vm->loopframes[vm->loopframe_num];
+	switch (frame->iterable.type) {
 	case Y_LIST:
-		if ((yasl_int)YASL_GETLIST(vm->loopframes[vm->loopframe_num].iterable)->count <= vm->loopframes[vm->loopframe_num].iter) {
+		if ((yasl_int)YASL_GETLIST(frame->iterable)->count <= frame->iter) {
 			vm_pushbool(vm, 0);
 		} else {
-			vm_push(vm, YASL_GETLIST(vm->loopframes[vm->loopframe_num].iterable)->items[vm->loopframes[vm->loopframe_num].iter++]);
+			vm_push(vm, YASL_GETLIST(frame->iterable)->items[frame->iter++]);
 			vm_pushbool(vm, 1);
 		}
 		return YASL_SUCCESS;
 	case Y_TABLE:
-		while (YASL_GETTABLE(vm->loopframes[vm->loopframe_num].iterable)->size > (size_t) vm->loopframes[vm->loopframe_num].iter &&
-		       (YASL_GETTABLE(vm->loopframes[vm->loopframe_num].iterable)->items[vm->loopframes[vm->loopframe_num].iter].key.type == Y_END ||
-			YASL_GETTABLE(vm->loopframes[vm->loopframe_num].iterable)->items[vm->loopframes[vm->loopframe_num].iter].key.type == Y_UNDEF)
+		while (YASL_GETTABLE(frame->iterable)->size > (size_t) frame->iter &&
+		       (YASL_GETTABLE(frame->iterable)->items[frame->iter].key.type == Y_END ||
+			YASL_GETTABLE(frame->iterable)->items[frame->iter].key.type == Y_UNDEF)
 			) {
-			vm->loopframes[vm->loopframe_num].iter++;
+			frame->iter++;
 		}
-		if (YASL_GETTABLE(vm->loopframes[vm->loopframe_num].iterable)->size <=
-		    (size_t) vm->loopframes[vm->loopframe_num].iter) {
+		if (YASL_GETTABLE(frame->iterable)->size <=
+		    (size_t) frame->iter) {
 			vm_pushbool(vm, 0);
 			return YASL_SUCCESS;
 		}
 		vm_push(vm,
-			YASL_GETTABLE(vm->loopframes[vm->loopframe_num].iterable)->items[vm->loopframes[vm->loopframe_num].iter++].key);
+			YASL_GETTABLE(frame->iterable)->items[frame->iter++].key);
 		vm_pushbool(vm, 1);
 		return YASL_SUCCESS;
 	case Y_STR:
-		if ((yasl_int) YASL_String_len(YASL_GETSTR(vm->loopframes[vm->loopframe_num].iterable)) <= vm->loopframes[vm->loopframe_num].iter) {
+		if ((yasl_int) YASL_String_len(YASL_GETSTR(frame->iterable)) <= frame->iter) {
 			vm_push(vm, YASL_BOOL(0));
 		} else {
-			size_t i = (size_t)vm->loopframes[vm->loopframe_num].iter;
-			vm_push(vm, YASL_STR(YASL_String_new_substring(i, i + 1, YASL_GETSTR(vm->loopframes[vm->loopframe_num].iterable))));
-			vm->loopframes[vm->loopframe_num].iter++;
+			size_t i = (size_t)frame->iter;
+			vm_push(vm, YASL_STR(YASL_String_new_substring(i, i + 1, YASL_GETSTR(frame->iterable))));
+			frame->iter++;
 			vm_pushbool(vm, 1);
 		}
 		return YASL_SUCCESS;
 	default:
-		vm_print_err_type(vm,  "object of type %s is not iterable.\n", YASL_TYPE_NAMES[vm->loopframes[vm->loopframe_num].iterable.type]);
+		vm_print_err_type(vm,  "object of type %s is not iterable.\n", YASL_TYPE_NAMES[frame->iterable.type]);
 		return YASL_TYPE_ERROR;
 	}
 }
@@ -721,7 +723,7 @@ void vm_CLOSE(struct VM *const vm) {
 static void vm_enterframe(struct VM *const vm) {
 	int next_fp = vm->next_fp;
 	vm->next_fp = vm->sp;
-	vm->frames[++vm->frame_num] = ((struct CallFrame) { vm->pc, vm->fp, next_fp });
+	vm->frames[++vm->frame_num] = ((struct CallFrame) { vm->pc, vm->fp, next_fp, vm->loopframe_num });
 }
 
 static void vm_exitframe(struct VM *const vm) {
@@ -732,6 +734,10 @@ static void vm_exitframe(struct VM *const vm) {
 	vm->pc = vm->frames[vm->frame_num].pc;
 	vm->fp = vm->frames[vm->frame_num].fp;
 	vm->next_fp = vm->frames[vm->frame_num].next_fp;
+	while (vm->loopframe_num > vm->frames[vm->frame_num].lp) {
+		dec_ref(&vm->loopframes[vm->loopframe_num--].iterable);
+	}
+
 	vm->frame_num--;
 
 	vm_push(vm, v);
@@ -1061,13 +1067,14 @@ int vm_run(struct VM *const vm) {
 		case O_ENDFOR:
 			dec_ref(&vm->loopframes[vm->loopframe_num].iterable);
 			vm->loopframe_num--;
-			// vm_pop(vm);
 			break;
 		case O_ENDCOMP:
-			dec_ref(&vm->loopframes[vm->loopframe_num].iterable);
+			//inc_ref(&vm_peek(vm));
 			a = vm_pop(vm);
 			vm_pop(vm);
 			vm_push(vm, a);
+			//dec_ref(&vm_peek(vm));
+			dec_ref(&vm->loopframes[vm->loopframe_num].iterable);
 			vm->loopframe_num--;
 			break;
 		case O_ITER_1:
@@ -1124,10 +1131,6 @@ int vm_run(struct VM *const vm) {
 			vm_push(vm, vm_peek(vm, vm->fp + offset + 1));
 			break;
 		case O_LSTORE_1:
-			//printf("%d\n", (int)offset);
-			//printf("vm->sp: %d\n", vm->sp);
-			//printf("vm->fp: %d\n", vm->fp);
-			fprintf(fopen("/home/thiabaud/Documents/yasl-lang/yasl/tmp.txt", "a"), "%d, %d, %d\n", (int)offset, vm->sp, vm->fp);
 			offset = NCODE(vm);
 			dec_ref(&vm_peek(vm, vm->fp + offset + 1));
 			vm_peek(vm, vm->fp + offset + 1) = vm_pop(vm);

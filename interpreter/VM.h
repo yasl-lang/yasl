@@ -97,6 +97,7 @@ struct CallFrame {
 	unsigned char *pc;
 	int fp;
 	int next_fp;
+	int lp;
 };
 
 struct LoopFrame {
@@ -112,9 +113,9 @@ struct VM {
 	size_t num_globals;
 	struct YASL_Object *stack;            // stack
 	struct CallFrame frames[1000];
-	size_t frame_num;
+	int frame_num;
 	struct LoopFrame loopframes[16];
-	size_t loopframe_num;
+	int loopframe_num;
 	unsigned char *code;           // bytecode
 	unsigned char **headers;
 	size_t headers_size;

@@ -84,6 +84,9 @@ static void *init_compiler(struct Compiler *compiler) {
 	compiler->status = YASL_SUCCESS;
 	compiler->checkpoints = NEW_SIZEBUFFER(4);
 	compiler->code = YASL_ByteBuffer_new(16);
+	compiler->locals = (struct Frame *)malloc(sizeof(struct Frame) * 4);
+	compiler->locals_count = 0;
+	compiler->locals_size = 4;
 	return compiler;
 }
 
@@ -123,6 +126,7 @@ void compiler_cleanup(struct Compiler *const compiler) {
 	parser_cleanup(&compiler->parser);
 	compiler_buffers_del(compiler);
 	free(compiler->checkpoints.items);
+	free(compiler->locals);
 }
 
 static void handle_error(struct Compiler *const compiler) {
