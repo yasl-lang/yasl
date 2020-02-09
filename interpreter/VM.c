@@ -1061,6 +1061,7 @@ int vm_run(struct VM *const vm) {
 		case O_ENDFOR:
 			dec_ref(&vm->loopframes[vm->loopframe_num].iterable);
 			vm->loopframe_num--;
+			vm_pop(vm);
 			break;
 		case O_ENDCOMP:
 			dec_ref(&vm->loopframes[vm->loopframe_num].iterable);
