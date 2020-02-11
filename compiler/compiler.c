@@ -68,47 +68,6 @@ static enum SpecialStrings get_special_string(const struct Node *const node) {
 #undef STR_EQ
 }
 
-/*
- * Initialise everything in the compiler except the parser
- */
-static void *init_compiler(struct Compiler *compiler) {
-	compiler->globals = env_new(NULL);
-	compiler->stack = NULL;
-	compiler->outer = NULL;
-	compiler->params = NULL;
-
-	compiler->num = 0;
-	compiler->strings = YASL_Table_new();
-	compiler->buffer = YASL_ByteBuffer_new(16);
-	compiler->header = YASL_ByteBuffer_new(16);
-	compiler->header->count = 16;
-	compiler->status = YASL_SUCCESS;
-	compiler->checkpoints = NEW_SIZEBUFFER(4);
-	compiler->code = YASL_ByteBuffer_new(16);
-	compiler->locals = (struct Frame *)malloc(sizeof(struct Frame) * 4);
-	compiler->locals_count = 0;
-	compiler->locals_size = 4;
-	return compiler;
-}
-
-struct Compiler *compiler_new(FILE *const fp) {
-	struct Compiler *compiler = (struct Compiler *)malloc(sizeof(struct Compiler));
-	init_compiler(compiler);
-
-	struct LEXINPUT *lp = lexinput_new_file(fp);
-	compiler->parser = NEW_PARSER(lp);
-	return compiler;
-}
-
-struct Compiler *compiler_new_bb(const char *const buf, const size_t len) {
-	struct Compiler *compiler = (struct Compiler *)malloc(sizeof(struct Compiler));
-	init_compiler(compiler);
-
-	struct LEXINPUT *lp = lexinput_new_bb(buf, len);
-	compiler->parser = NEW_PARSER(lp);
-	return compiler;
-}
-
 void compiler_tables_del(struct Compiler *compiler) {
 	YASL_Table_del(compiler->strings);
 }
