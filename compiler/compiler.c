@@ -74,6 +74,7 @@ static enum SpecialStrings get_special_string(const struct Node *const node) {
 static void *init_compiler(struct Compiler *compiler) {
 	compiler->globals = env_new(NULL);
 	compiler->stack = NULL;
+	compiler->outer = NULL;
 	compiler->params = NULL;
 
 	compiler->num = 0;
