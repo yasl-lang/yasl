@@ -32,6 +32,7 @@ int syntaxerrortest(void) {
 	ASSERT_SYNTAX_ERR("x.5;", "Invalid member access (line 1)");
 
 	ASSERT_SYNTAX_ERR("x;", "Undeclared variable x (line 1)");
+	ASSERT_SYNTAX_ERR("let x = x;", "Undeclared variable x (line 1)");
 	ASSERT_SYNTAX_ERR("echo 'hello \\o world'\n", "Invalid string escape sequence in line 1");
 	ASSERT_SYNTAX_ERR("echo 'hello \\xworld'\n", "Invalid hex string escape in line 1");
 	ASSERT_SYNTAX_ERR("0b__2", "Invalid int literal in line 1");
