@@ -1,2 +1,7 @@
 echo 'YASL'->replace('T', 'S')
 echo 'YASL'->replace('SL', '')
+echo 'AAA'->replace('A', 'B', 0)
+echo 'AAA'->replace('A', 'B', 1)
+echo 'AAA'->replace('A', 'B', 2)
+echo 'AAA'->replace('A', 'B', 3)
+echo 'AAA'->replace('A', 'B', 4)

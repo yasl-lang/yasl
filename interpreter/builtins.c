@@ -69,7 +69,7 @@ struct YASL_Table* str_builtins(struct VM *vm) {
 	table_insert_specialstring_cfunction(vm, table, S_TOLOWER, &str_tolower, 1);
 	table_insert_specialstring_cfunction(vm, table, S_STARTSWITH, &str_startswith, 2);
 	table_insert_specialstring_cfunction(vm, table, S_ENDSWITH, &str_endswith, 2);
-	table_insert_specialstring_cfunction(vm, table, S_REPLACE, &str_replace, 3);
+	table_insert_specialstring_cfunction(vm, table, S_REPLACE, &str_replace, 4);
 	table_insert_specialstring_cfunction(vm, table, S_SEARCH, &str_search, 2);
 	table_insert_specialstring_cfunction(vm, table, S_COUNT, &str_count, 2);
 	// table_insert_specialstring_cfunction(vm, table, S_SLICE, &str_slice, 3);
