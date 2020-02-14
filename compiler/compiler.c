@@ -182,12 +182,11 @@ static inline int64_t get_index(const int64_t value) {
 	return is_const(value) ? ~value : value;
 }
 
-static unsigned char add_upval(struct Compiler *const compiler, const char *const name) {
+static void add_upval(struct Compiler *const compiler, const char *const name) {
 	struct Frame *frame = compiler->locals + compiler->locals_count;
 	for (size_t i = 0; i < frame->num_upvals; i++) {
 
 	}
-	return 0; // TODO fix
 }
 
 static void load_var(struct Compiler *const compiler, const char *const name, const size_t line) {
@@ -199,8 +198,8 @@ static void load_var(struct Compiler *const compiler, const char *const name, co
 	} else if (env_contains(compiler->outer, name)) {
 		compiler->params->isclosure = true;
 		YASL_ByteBuffer_add_byte(compiler->buffer, O_ULOAD_1);
-		int64_t index = add_upval(compiler, name);
-		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) index);
+		add_upval(compiler, name);
+		// YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) index);
 	} else if (env_contains(compiler->stack, name)) {
 		int64_t index = get_index(env_get(compiler->stack, name));
 		YASL_ByteBuffer_add_byte(compiler->buffer, O_GLOAD_1);
