@@ -18,10 +18,9 @@
 #define NEW_COMPILER(fp)\
   ((struct Compiler) {\
     .parser = NEW_PARSER(fp),\
-    .globals = env_new(NULL),\
+    .globals = scope_new(NULL),\
     .stack = NULL,\
     .params = NULL,\
-    .outer = NULL,\
     .strings = YASL_Table_new(),\
     .buffer = YASL_ByteBuffer_new(16),\
     .header = YASL_ByteBuffer_new(16),\
@@ -41,17 +40,15 @@ struct SizeBuffer {
 };
 
 struct Frame {
-	size_t num_locals;
 	size_t num_upvals;
 	signed char *upvals;
 };
 
 struct Compiler {
 	struct Parser parser;
-	struct Env *globals;
-	struct Env *stack;
+	struct Scope *globals;
+	struct Scope *stack;
 	struct Env *params;
-	struct Env *outer;
 	struct YASL_Table *strings;
 	struct YASL_ByteBuffer *buffer;
 	struct YASL_ByteBuffer *header;

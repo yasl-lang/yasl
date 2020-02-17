@@ -164,9 +164,15 @@ void vm_pushbool(struct VM *const vm, bool b) {
 	vm_push(vm, YASL_BOOL(b));
 }
 
-void vm_pushclosure(struct VM *const vm, const unsigned char *const f) {
-	struct Closure *c = (struct Closure *)malloc(sizeof(struct Closure));
+void vm_pushclosure(struct VM *const vm, unsigned char *const f) {
+	const size_t num_upvalues = 1;
+	struct Closure *c = (struct Closure *)malloc(sizeof(struct Closure) + num_upvalues*sizeof(struct Upvalue *));
 	c->f = f;
+	c->num_upvalues = num_upvalues;
+	c->upvalues[0] = (struct Upvalue *)malloc(sizeof(struct Upvalue));
+	c->upvalues[0]->location = &vm_peek(vm, vm->frames[vm->frame_num].fp + 2);
+	// TODO remove hacks
+	vm->pending = c->upvalues[0];
 	vm_push(vm, ((struct YASL_Object){.type = Y_CLOSURE, .value = {.lval = c}}));
 }
 
@@ -744,7 +750,7 @@ static void vm_exitframe(struct VM *const vm) {
 }
 
 static int vm_INIT_CALL(struct VM *const vm) {
-	if (!YASL_ISFN(vm_peek(vm)) && !YASL_ISCFN(vm_peek(vm))) {
+	if (!YASL_ISFN(vm_peek(vm)) && !YASL_ISCFN(vm_peek(vm)) && !YASL_ISCLOSURE(vm_peek(vm))) {
 		vm_print_err_type(vm,  "%s is not callable.", YASL_TYPE_NAMES[vm_peek(vm).type]);
 		return YASL_TYPE_ERROR;
 	}
@@ -776,20 +782,36 @@ static int vm_INIT_MC_SPECIAL(struct VM *const vm) {
 	return YASL_SUCCESS;
 }
 
-static int vm_CALL_fn(struct VM *const vm) {
-	vm->frames[vm->frame_num].pc = vm->pc;
 
-	while (vm->sp - vm->fp < vm_peek(vm, vm->fp).value.fval[0]) {
+static int vm_CALL_closure(struct VM *const vm) {
+	vm->frames[vm->frame_num].pc = vm->pc;
+	unsigned char *const code = vm_peek(vm, vm->fp).value.lval->f;
+
+	while (vm->sp - vm->fp < code[0]) {
 		vm_pushundef(vm);
 	}
 
-	while (vm->sp - vm->fp > vm_peek(vm, vm->fp).value.fval[0]) {
+	while (vm->sp - vm->fp > code[0]) {
 		vm_pop(vm);
 	}
 
-	// vm->sp += vm_peek(vm, vm->fp).value.fval[1];
+	vm->pc =  code + 2;
+	return YASL_SUCCESS;
+}
 
-	vm->pc =  vm_peek(vm, vm->fp).value.fval + 2;
+static int vm_CALL_fn(struct VM *const vm) {
+	vm->frames[vm->frame_num].pc = vm->pc;
+	unsigned char *const code = vm_peek(vm, vm->fp).value.fval;
+
+	while (vm->sp - vm->fp < code[0]) {
+		vm_pushundef(vm);
+	}
+
+	while (vm->sp - vm->fp > code[0]) {
+		vm_pop(vm);
+	}
+
+	vm->pc =  code + 2;
 	return YASL_SUCCESS;
 }
 
@@ -822,6 +844,8 @@ static int vm_CALL(struct VM *const vm) {
 		return vm_CALL_fn(vm);
 	} else if (YASL_ISCFN(vm_peek(vm, vm->fp))) {
 		return vm_CALL_cfn(vm);
+	} else if (YASL_ISCLOSURE(vm_peek(vm, vm->fp))) {
+		return vm_CALL_closure(vm);
 	} else {
 		printf("ERROR: %s is not callable", YASL_TYPE_NAMES[vm_peek(vm).type]);
 		return YASL_TYPE_ERROR;
@@ -835,9 +859,15 @@ static int vm_RET(struct VM *const vm) {
 }
 
 static int vm_CRET(struct VM *const vm) {
-	int tmp = vm->fp;
+	if (vm->pending) {
+		vm->pending->closed = *vm->pending->location;
+		vm->pending->location = &vm->pending->closed;
+		vm->pending = NULL;
+	}
+	//int tmp = vm->fp;
 	vm_exitframe(vm);
-	vm_close_all(vm, tmp);
+	//vm_close_all(vm, tmp);
+
 	return YASL_SUCCESS;
 }
 
@@ -1138,7 +1168,9 @@ int vm_run(struct VM *const vm) {
 			break;
 		case O_ULOAD_1:
 			offset = NCODE(vm);
-			exit(1);
+			vm_push(vm, *vm_peek(vm, vm->fp).value.lval->upvalues[offset]->location);
+			break;
+			// exit(1);
 		case O_INIT_MC:
 			if ((res = vm_INIT_MC(vm))) return res;
 			break;

@@ -3,24 +3,33 @@
 
 #include "data-structures/YASL_Table.h"
 
-struct Env {
-    struct Env *parent;
+struct Scope {
+    struct Scope *parent;
     struct YASL_Table vars;
-    bool isclosure;
-    size_t num_locals;   // keep track of number of locals (for when this is top level of a function).
     // TODO: keep track of which variables need to be closed over...?
 };
 
+struct Env {
+	struct Env *parent;
+	struct Scope *scope;
+	bool isclosure;
+	bool usedinclosure;
+	size_t num_locals;   // keep track of number of locals (for when this is top level of a function).
+};
+
+struct Scope *scope_new(struct Scope *const scope);
+void scope_del(struct Scope *const scope);
+void scope_del_current_only(struct Scope *const scope);
+
+size_t scope_len(const struct Scope *const scope);
+bool scope_contains_cur_scope(const struct Scope *const scope, const char *const name);
+bool scope_contains(const struct Scope *const scope, const char *const name);
+int64_t scope_get(const struct Scope *const scope, const char *const name);
+int64_t scope_decl_var(struct Scope *const scope, const char *const name);
+bool scope_used_in_closure(const struct Scope *const scope);
+void scope_make_const(struct Scope *const scope, const char *const name);
+
 struct Env *env_new(struct Env *const env);
 void env_del(struct Env *const env);
-void env_del_current_only(struct Env *const env);
-
-size_t env_len(const struct Env *const env);
-bool env_contains_cur_scope(const struct Env *const env, const char *const name);
-bool env_contains(const struct Env *const env, const char *const name);
-int64_t env_get(const struct Env *const env, const char *const name);
-int64_t env_decl_var(struct Env *const env, const char *const name);
-bool env_used_in_closure(const struct Env *const env);
-void env_make_const(struct Env *const env,  const char *const name);
 
 #endif

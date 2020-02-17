@@ -142,7 +142,7 @@ int YASL_declglobal(struct YASL_State *S, const char *name) {
 		YASL_ByteBuffer_add_int(S->compiler.header, strlen(name));
 		YASL_ByteBuffer_extend(S->compiler.header, (unsigned char *) name, strlen(name));
 	}
-	/* int64_t index =*/ env_decl_var(S->compiler.globals, name);
+	/* int64_t index =*/ scope_decl_var(S->compiler.globals, name);
 	return YASL_SUCCESS;
 }
 
@@ -153,9 +153,9 @@ static inline int is_const(int64_t value) {
 
 int YASL_setglobal(struct YASL_State *S, const char *name) {
 
-	if (!env_contains(S->compiler.globals, name)) return YASL_ERROR;
+	if (!scope_contains(S->compiler.globals, name)) return YASL_ERROR;
 
-	int64_t index = env_get(S->compiler.globals, name);
+	int64_t index = scope_get(S->compiler.globals, name);
 	if (is_const(index)) return YASL_ERROR;
 
 	struct YASL_String *string = YASL_String_new_sized(strlen(name), name);

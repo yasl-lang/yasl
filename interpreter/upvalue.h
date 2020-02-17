@@ -16,7 +16,8 @@ void vm_insert_upval(struct VM *const vm, struct Upvalue *const upval);
 void vm_close_all(struct VM *const vm, const int bottom);
 
 struct Closure {
-    const unsigned char *f;
+    unsigned char *f;
+    size_t num_upvalues;
     struct Upvalue *upvalues[];
 };
 
