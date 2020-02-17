@@ -12,9 +12,9 @@ struct Scope {
 struct Env {
 	struct Env *parent;
 	struct Scope *scope;
+	struct YASL_Table upvals;
 	bool isclosure;
 	bool usedinclosure;
-	size_t num_locals;   // keep track of number of locals (for when this is top level of a function).
 };
 
 struct Scope *scope_new(struct Scope *const scope);

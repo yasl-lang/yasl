@@ -1,6 +1,7 @@
 #include "compiler.h"
 
 #include <math.h>
+#include <interpreter/YASL_Object.h>
 
 #include "ast.h"
 #include "data-structures/YASL_String.h"
@@ -168,11 +169,22 @@ static inline int64_t get_index(const int64_t value) {
 	return is_const(value) ? ~value : value;
 }
 
-static void add_upval(struct Compiler *const compiler, const char *const name) {
-	struct Frame *frame = compiler->locals + compiler->locals_count;
-	for (size_t i = 0; i < frame->num_upvals; i++) {
+static int64_t resolve_upval(struct Compiler *const compiler, const char *const name) {
+	struct YASL_String *string = YASL_String_new_sized_heap(0, strlen(name), copy_char_buffer(strlen(name), name));
+	struct YASL_Object key = YASL_STR(string);
 
+	struct YASL_Object value = YASL_Table_search(&compiler->params->upvals, key);
+
+	if (value.type == Y_INT) {
+		str_del(key.value.sval);
+		return value.value.ival;
 	}
+
+	YASL_Table_insert(&compiler->params->upvals, key, YASL_INT(compiler->params->upvals.count));
+	// str_del(key.value.sval);
+
+	return compiler->params->upvals.count - 1;
+
 }
 
 static void load_var(struct Compiler *const compiler, const char *const name, const size_t line) {
@@ -181,14 +193,12 @@ static void load_var(struct Compiler *const compiler, const char *const name, co
 		int64_t index = get_index(scope_get(compiler->params->scope, name));
 		YASL_ByteBuffer_add_byte(compiler->buffer, O_LLOAD_1);
 		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) index);
-	} else if (compiler->params && compiler->params-> parent && scope_contains(compiler->params->parent->scope, name)) {
+	} else if (compiler->params && compiler->params->parent && scope_contains(compiler->params->parent->scope, name)) {
 		compiler->params->isclosure = true;
 		// TODO fix this, we need to handle arbitrarily nested closures
 		compiler->params->parent->usedinclosure = true;
 		YASL_ByteBuffer_add_byte(compiler->buffer, O_ULOAD_1);
-		YASL_ByteBuffer_add_byte(compiler->buffer, 0);
-		// add_upval(compiler, name);
-		// YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) index);
+		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) resolve_upval(compiler, name));
 	} else if (scope_contains(compiler->stack, name)) {
 		int64_t index = get_index(scope_get(compiler->stack, name));
 		YASL_ByteBuffer_add_byte(compiler->buffer, O_GLOAD_1);
@@ -439,6 +449,7 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	}
 
 	struct Env *tmp = compiler->params->parent;
+	compiler->params->parent = NULL;
 	env_del(compiler->params);
 	compiler->params = tmp;
 }

@@ -9,16 +9,23 @@
 struct Env *env_new(struct Env *const parent) {
 	struct Env *env = (struct Env *)malloc(sizeof(struct Env));
 	env->scope = NULL;
+	env->upvals = NEW_TABLE();
 	env->usedinclosure = false;
 	env->isclosure = false;
 	env->parent = parent;
-	env->num_locals = 0;
 	return env;
 }
 
 void env_del(struct Env *const env) {
 	if (env == NULL) return;
 	scope_del(env->scope);
+	for (size_t i = 0; i < env->upvals.size; i++) {
+		struct YASL_Table_Item *item = &env->upvals.items[i];
+		if (item->key.type != Y_END && item->key.type != Y_UNDEF) {
+			str_del(item->key.value.sval);
+		}
+	}
+	free(env->upvals.items);
 	env_del(env->parent);
 	free(env);
 }
