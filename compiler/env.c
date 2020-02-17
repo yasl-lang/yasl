@@ -90,7 +90,7 @@ bool scope_contains(const struct Scope *const scope, const char *const name) {
 
 int64_t scope_get(const struct Scope *const scope, const char *const name) {
 	const size_t name_len = strlen(name);
-	struct YASL_String *string = YASL_String_new_sized_heap(0, name_len, copy_char_buffer(name_len, name));
+	struct YASL_String *string = YASL_String_new_sized_heap(0, name_len, copy_char_buffer(name_len + 1, name));
 	struct YASL_Object key = YASL_STR(string);
 
 	struct YASL_Object value = YASL_Table_search(&scope->vars, key);

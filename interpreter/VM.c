@@ -164,18 +164,6 @@ void vm_pushbool(struct VM *const vm, bool b) {
 	vm_push(vm, YASL_BOOL(b));
 }
 
-void vm_pushclosure(struct VM *const vm, unsigned char *const f) {
-	const size_t num_upvalues = 1;
-	struct Closure *c = (struct Closure *)malloc(sizeof(struct Closure) + num_upvalues*sizeof(struct Upvalue *));
-	c->f = f;
-	c->num_upvalues = num_upvalues;
-	c->upvalues[0] = (struct Upvalue *)malloc(sizeof(struct Upvalue));
-	c->upvalues[0]->location = &vm_peek(vm, vm->frames[vm->frame_num].fp + 2);
-	// TODO remove hacks
-	vm->pending = c->upvalues[0];
-	vm_push(vm, ((struct YASL_Object){.type = Y_CLOSURE, .value = {.lval = c}}));
-}
-
 struct YASL_Object vm_pop(struct VM *const vm) {
 	return vm->stack[vm->sp--];
 }
@@ -506,6 +494,27 @@ int vm_stringify_top(struct VM *const vm) {
 		str_del(YASL_GETSTR(key));
 		YASL_GETCFN(result)->value((struct YASL_State *)vm);
 	}
+	return YASL_SUCCESS;
+}
+
+static int vm_CCONST(struct VM *const vm) {
+	yasl_int c = vm_read_int(vm);
+	const size_t num_upvalues = NCODE(vm);
+	struct Closure *closure = (struct Closure *)malloc(sizeof(struct Closure) + num_upvalues*sizeof(struct Upvalue *));
+	closure->f = vm->code + c;
+	closure->num_upvalues = num_upvalues;
+	// TODO remove hacks
+
+	for (size_t i = 0; i < num_upvalues; i++) {
+		unsigned char u = NCODE(vm);
+		closure->upvalues[i] = (struct Upvalue *)malloc(sizeof(struct Upvalue));
+		closure->upvalues[i]->location = &vm_peek(vm, vm->frames[vm->frame_num].fp + 2 + u);
+	}
+
+	vm->pending = closure->upvalues[0];
+
+	vm_push(vm, ((struct YASL_Object){.type = Y_CLOSURE, .value = {.lval = closure}}));
+
 	return YASL_SUCCESS;
 }
 
@@ -947,8 +956,7 @@ int vm_run(struct VM *const vm) {
 			vm_pushfn(vm, vm->code + c);
 			break;
 		case O_CCONST:
-			c = vm_read_int(vm);
-			vm_pushclosure(vm, vm->code + c);
+			vm_CCONST(vm);
 			break;
 		case O_BOR:
 			if ((res = vm_int_binop(vm, &bor, "|", OP_BIN_BAR))) return res;

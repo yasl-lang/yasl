@@ -180,8 +180,7 @@ static int64_t resolve_upval(struct Compiler *const compiler, const char *const 
 		return value.value.ival;
 	}
 
-	YASL_Table_insert(&compiler->params->upvals, key, YASL_INT(compiler->params->upvals.count));
-	// str_del(key.value.sval);
+	YASL_Table_insert(&compiler->params->upvals, key, YASL_INT((yasl_int)compiler->params->upvals.count));
 
 	return compiler->params->upvals.count - 1;
 
@@ -446,6 +445,18 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	} else {
 		YASL_ByteBuffer_add_byte(compiler->buffer, O_CCONST);
 		YASL_ByteBuffer_add_int(compiler->buffer, fn_val);
+		const size_t count = compiler->params->upvals.count;
+		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) count);
+		const size_t index = compiler->buffer->count;
+		for (size_t i = 0; i < count; i++) {
+			YASL_ByteBuffer_add_byte(compiler->buffer, 0);
+		}
+		FOR_TABLE(i, item, &compiler->params->upvals) {
+			struct YASL_Object obj = YASL_Table_search(&compiler->params->parent->scope->vars, item->key);
+			compiler->buffer->bytes[index + item->value.value.ival] = obj.value.ival;
+		}
+
+
 	}
 
 	struct Env *tmp = compiler->params->parent;
