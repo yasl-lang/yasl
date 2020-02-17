@@ -890,15 +890,23 @@ static int vm_RET(struct VM *const vm) {
 	return YASL_SUCCESS;
 }
 
-static int vm_CRET(struct VM *const vm) {
-	if (vm->pending) {
-		vm->pending->closed = *vm->pending->location;
-		vm->pending->location = &vm->pending->closed;
-		vm->pending = NULL;
+void vm_close_all(struct VM *const vm) {
+	const struct YASL_Object *end = vm->stack + vm->fp;
+	struct Upvalue *curr = vm->pending;
+	while (curr && curr->location > end) {
+		struct Upvalue *tmp = curr->next;
+		curr->closed = *curr->location;
+		curr->location = &curr->closed;
+		curr->next = NULL;
+		curr = tmp;
 	}
-	//int tmp = vm->fp;
+	vm->pending = curr;
+}
+
+static int vm_CRET(struct VM *const vm) {
+	vm_close_all(vm);
 	vm_exitframe(vm);
-	//vm_close_all(vm, tmp);
+
 
 	return YASL_SUCCESS;
 }
