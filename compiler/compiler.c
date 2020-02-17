@@ -453,7 +453,8 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 		}
 		FOR_TABLE(i, item, &compiler->params->upvals) {
 			struct YASL_Object obj = YASL_Table_search(&compiler->params->parent->scope->vars, item->key);
-			compiler->buffer->bytes[index + item->value.value.ival] = obj.value.ival;
+			int64_t tmp = obj.value.ival;
+			compiler->buffer->bytes[index + item->value.value.ival] = tmp >= 0 ? tmp : ~tmp;
 		}
 
 
