@@ -497,21 +497,44 @@ int vm_stringify_top(struct VM *const vm) {
 	return YASL_SUCCESS;
 }
 
+static struct Upvalue *add_upvalue(struct VM *const vm, struct YASL_Object *const location) {
+	// TODO handle case where upvalue already exists
+	struct Upvalue *upvalue = (struct Upvalue *)malloc(sizeof(struct Upvalue));
+	upvalue->location = location;
+	upvalue->next = NULL;
+
+	if (vm->pending == NULL) {
+		vm->pending = upvalue;
+	}
+
+	struct Upvalue *curr = vm->pending;
+	while (curr->next) {
+		if (curr->next->location > location) {
+			curr = curr->next;
+			continue;
+		}
+		upvalue->next = curr->next;
+		curr->next = upvalue;
+		break;
+	}
+	if (curr->next == NULL) {
+		curr->next = upvalue;
+	}
+
+	return upvalue;
+}
+
 static int vm_CCONST(struct VM *const vm) {
 	yasl_int c = vm_read_int(vm);
 	const size_t num_upvalues = NCODE(vm);
 	struct Closure *closure = (struct Closure *)malloc(sizeof(struct Closure) + num_upvalues*sizeof(struct Upvalue *));
 	closure->f = vm->code + c;
 	closure->num_upvalues = num_upvalues;
-	// TODO remove hacks
 
 	for (size_t i = 0; i < num_upvalues; i++) {
 		unsigned char u = NCODE(vm);
-		closure->upvalues[i] = (struct Upvalue *)malloc(sizeof(struct Upvalue));
-		closure->upvalues[i]->location = &vm_peek(vm, vm->frames[vm->frame_num].fp + 2 + u);
+		closure->upvalues[i] = add_upvalue(vm, &vm_peek(vm, vm->frames[vm->frame_num].fp + 2 + u));
 	}
-
-	vm->pending = closure->upvalues[0];
 
 	vm_push(vm, ((struct YASL_Object){.type = Y_CLOSURE, .value = {.lval = closure}}));
 
