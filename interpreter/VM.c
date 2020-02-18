@@ -505,6 +505,7 @@ static struct Upvalue *add_upvalue(struct VM *const vm, struct YASL_Object *cons
 
 	if (vm->pending == NULL) {
 		vm->pending = upvalue;
+		return upvalue;
 	}
 
 	struct Upvalue *curr = vm->pending;
@@ -891,18 +892,16 @@ static int vm_RET(struct VM *const vm) {
 	return YASL_SUCCESS;
 }
 
+static struct Upvalue *vm_close_all_helper(struct YASL_Object *const end, struct Upvalue *const curr) {
+	if (curr == NULL) return curr;
+	if (curr->location < end) return curr;
+	curr->closed = *curr->location;
+	curr->location = &curr->closed;
+	return (vm_close_all_helper(end, curr->next));
+}
+
 void vm_close_all(struct VM *const vm) {
-	const struct YASL_Object *end = vm->stack + vm->fp;
-	struct Upvalue *curr = vm->pending;
-	while (curr && curr->location >= end) {
-		struct Upvalue *tmp = curr->next;
-		printf("curr->closed is now: %lld\n", (long long) curr->location->value.ival);
-		curr->closed = *curr->location;
-		curr->location = &curr->closed;
-		curr->next = NULL;
-		curr = tmp;
-	}
-	vm->pending = curr;
+	vm->pending = vm_close_all_helper(vm->stack + vm->fp, vm->pending);
 }
 
 static int vm_CRET(struct VM *const vm) {

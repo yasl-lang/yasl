@@ -1,6 +1,6 @@
 fn f(a) {
     fn g(b) {
-        echo "#{a}, #{b}"
+        # echo "#{a}, #{b}"
         return a + b;
     }
     echo g(a)
