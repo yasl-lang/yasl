@@ -894,7 +894,7 @@ static int vm_RET(struct VM *const vm) {
 void vm_close_all(struct VM *const vm) {
 	const struct YASL_Object *end = vm->stack + vm->fp;
 	struct Upvalue *curr = vm->pending;
-	while (curr && curr->location > end) {
+	while (curr && curr->location >= end) {
 		struct Upvalue *tmp = curr->next;
 		curr->closed = *curr->location;
 		curr->location = &curr->closed;
