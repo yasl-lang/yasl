@@ -896,6 +896,7 @@ void vm_close_all(struct VM *const vm) {
 	struct Upvalue *curr = vm->pending;
 	while (curr && curr->location >= end) {
 		struct Upvalue *tmp = curr->next;
+		printf("curr->closed is now: %lld\n", (long long) curr->location->value.ival);
 		curr->closed = *curr->location;
 		curr->location = &curr->closed;
 		curr->next = NULL;
