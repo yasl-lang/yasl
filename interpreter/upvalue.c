@@ -27,15 +27,3 @@ static void upval_close(struct Upvalue *const upval) {
 	upval->location = &upval->closed;
 }
 
-/*
-void vm_close_all(struct VM *const vm, const int bottom) {
-	struct YASL_Object *tmp = vm->stack + bottom;
-	if (vm->pending == NULL) return;
-	struct Upvalue *curr = vm->pending;
-	while (curr && curr->location > tmp) {
-		upval_close(curr);
-		curr = curr->next;
-	}
-	vm->pending = curr;
-}
-*/

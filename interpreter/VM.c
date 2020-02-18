@@ -18,7 +18,7 @@
 #include "opcode.h"
 #include "operator_names.h"
 #include "YASL_Object.h"
-#include "upvalue.h"
+#include "closure.h"
 
 static struct YASL_Table **builtins_htable_new(struct VM *const vm) {
     struct YASL_Table **ht = (struct YASL_Table **)malloc(sizeof(struct YASL_Table*) * NUM_TYPES);
@@ -530,6 +530,7 @@ static int vm_CCONST(struct VM *const vm) {
 	struct Closure *closure = (struct Closure *)malloc(sizeof(struct Closure) + num_upvalues*sizeof(struct Upvalue *));
 	closure->f = vm->code + c;
 	closure->num_upvalues = num_upvalues;
+	closure->rc = rc_new();
 
 	for (size_t i = 0; i < num_upvalues; i++) {
 		unsigned char u = NCODE(vm);

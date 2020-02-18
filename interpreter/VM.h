@@ -11,6 +11,7 @@
 #include "data-structures/YASL_List.h"
 #include "yasl_conf.h"
 #include "opcode.h"
+// #include "closure.h"
 
 #define NUM_GLOBALS 256
 #define NUM_TYPES 13                                     // number of builtin types, each needs a vtable
