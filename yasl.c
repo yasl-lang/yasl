@@ -251,6 +251,12 @@ int YASL_pushtable(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
+int YASL_pushlist(struct YASL_State *S) {
+	struct RC_UserData *list = rcls_new();
+	vm_push(&S->vm, YASL_LIST(list));
+	return YASL_SUCCESS;
+}
+
 int YASL_pushobject(struct YASL_State *S, struct YASL_Object *obj) {
 	if (!obj) return YASL_ERROR;
 	vm_push((struct VM *) S, *obj);
@@ -268,14 +274,33 @@ int YASL_pop(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
+int YASL_top_dup(struct YASL_State *S) {
+	vm_push(&S->vm, vm_peek(&S->vm));
+	return YASL_SUCCESS;
+}
+
 int YASL_settable(struct YASL_State *S) {
 	struct YASL_Object value = vm_pop(&S->vm);
 	struct YASL_Object key = vm_pop(&S->vm);
 	struct YASL_Object table = vm_pop(&S->vm);
 
+	// TODO change to TYPE_ERROR
 	if (!YASL_ISTABLE(table))
 		return YASL_ERROR;
 	YASL_Table_insert(YASL_GETTABLE(table), key, value);
+
+	return YASL_SUCCESS;
+}
+
+int YASL_appendlist(struct YASL_State *S) {
+	struct YASL_Object value = vm_pop(&S->vm);
+	struct YASL_Object list = vm_pop(&S->vm);
+
+	// TODO change to TYPE_ERROR
+	if (!YASL_ISLIST(list)) {
+		return YASL_ERROR;
+	}
+	YASL_List_append(YASL_GETLIST(list), value);
 
 	return YASL_SUCCESS;
 }
