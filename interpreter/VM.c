@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <memory.h>
 #include <stdint.h>
-#include <interpreter/YASL_Object.h>
 
 #include "interpreter/builtins.h"
 #include "data-structures/YASL_String.h"
@@ -19,6 +18,7 @@
 #include "opcode.h"
 #include "operator_names.h"
 #include "YASL_Object.h"
+#include "upvalue.h"
 
 static struct YASL_Table **builtins_htable_new(struct VM *const vm) {
     struct YASL_Table **ht = (struct YASL_Table **)malloc(sizeof(struct YASL_Table*) * NUM_TYPES);
@@ -101,6 +101,7 @@ void vm_init(struct VM *const vm,
 #undef DEF_SPECIAL_STR
 
 	vm->builtins_htable = builtins_htable_new(vm);
+	vm->pending = NULL;
 }
 
 void vm_cleanup(struct VM *const vm) {
@@ -133,6 +134,7 @@ void vm_cleanup(struct VM *const vm) {
 	YASL_Table_del(vm->builtins_htable[Y_LIST]);
 	YASL_Table_del(vm->builtins_htable[Y_TABLE]);
 	free(vm->builtins_htable);
+	// TODO: free upvalues
 }
 
 void vm_push(struct VM *const vm, const struct YASL_Object val) {
@@ -713,6 +715,10 @@ static int vm_GLOAD_8(struct VM *const vm) {
 	return YASL_SUCCESS;
 }
 
+void vm_CLOSE(struct VM *const vm) {
+	// TODO
+}
+
 static void vm_enterframe(struct VM *const vm) {
 	int next_fp = vm->next_fp;
 	vm->next_fp = vm->sp;
@@ -820,6 +826,13 @@ static int vm_CALL(struct VM *const vm) {
 static int vm_RET(struct VM *const vm) {
 	// TODO: handle multiple returns
 	vm_exitframe(vm);
+	return YASL_SUCCESS;
+}
+
+static int vm_CRET(struct VM *const vm) {
+	int tmp = vm->fp;
+	vm_exitframe(vm);
+	vm_close_all(vm, tmp);
 	return YASL_SUCCESS;
 }
 
@@ -1130,6 +1143,9 @@ int vm_run(struct VM *const vm) {
 			break;
 		case O_RET:
 			if ((res = vm_RET(vm))) return res;
+			break;
+		case O_CRET:
+			vm_CRET(vm);
 			break;
 		case O_GET:
 			if ((res = vm_GET(vm))) return res;

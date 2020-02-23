@@ -1,4 +1,5 @@
-#pragma once
+#ifndef YASL_LIST_METHODS_H_
+#define YASL_LIST_METHODS_H_
 
 struct YASL_State;
 
@@ -22,10 +23,10 @@ int list_search(struct YASL_State *S);
 
 int list_reverse(struct YASL_State *S);
 
-int list_slice(struct YASL_State *S);
-
 int list_clear(struct YASL_State *S);
 
 int list_join(struct YASL_State *S);
 
 int list_sort(struct YASL_State *S);
+
+#endif

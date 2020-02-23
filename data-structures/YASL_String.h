@@ -38,8 +38,10 @@ bool YASL_String_isspace(struct YASL_String *a);
 bool YASL_String_startswith(struct YASL_String *haystack, struct YASL_String *needle);
 bool YASL_String_endswith(struct YASL_String *haystack, struct YASL_String *needle);
 // Caller makes sure search_str is at least length 1.
-struct YASL_String *YASL_String_replace_fast(struct YASL_String *str, struct YASL_String *search_str,
+struct YASL_String *YASL_String_replace_fast_default(struct YASL_String *str, struct YASL_String *search_str,
 					     struct YASL_String *replace_str);
+struct YASL_String *YASL_String_replace_fast(struct YASL_String *str, struct YASL_String *search_str,
+					     struct YASL_String *replace_str, yasl_int);
 yasl_int YASL_String_count(struct YASL_String *haystack, struct YASL_String *needle);
 struct RC_UserData *string_split_default(struct YASL_String *haystack);
 // Caller makes sure needle is not 0 length

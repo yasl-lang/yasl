@@ -1,4 +1,5 @@
-#pragma once
+#ifndef YASL_YASL_CONF_H_
+#define YASL_YASL_CONF_H_
 
 #include <inttypes.h>
 
@@ -19,3 +20,5 @@
 // @@ STACK_SIZE
 // How big the stack is for the YASL VM
 #define STACK_SIZE 1024
+
+#endif

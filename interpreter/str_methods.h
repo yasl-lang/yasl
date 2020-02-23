@@ -1,12 +1,9 @@
-#pragma once
+#ifndef YASL_STR_METHODS_H_
+#define YASL_STR_METHODS_H_
 
 struct YASL_State;
 
 int str___get(struct YASL_State *S);
-
-int str_slice(struct YASL_State *S);
-
-int str_contains(struct YASL_State *S);
 
 int str_tobool(struct YASL_State *S);
 
@@ -47,3 +44,5 @@ int str_rtrim(struct YASL_State *S);
 int str_trim(struct YASL_State *S);
 
 int str_repeat(struct YASL_State *S);
+
+#endif

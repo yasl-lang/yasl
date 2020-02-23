@@ -53,12 +53,13 @@ add_executable(yasl
         compiler/lexinput.c
         compiler/parser.c
         compiler/middleend.c
+        interpreter/upvalue.c
         util/hash_function.c
         data-structures/YASL_Table.c
         interpreter/bool_methods.c
         interpreter/builtins.c
         interpreter/float_methods.c
-        interpreter/yasl_float.c
+        util/yasl_float.c
         interpreter/int_methods.c
         data-structures/YASL_List.c
         interpreter/list_methods.c
@@ -76,7 +77,7 @@ add_executable(yasl
         std/yasl-std-require.c
         data-structures/YASL_Set.c
         std/yasl-std-collections.c
-        IO.c)
+        util/IO.c)
 
 add_executable(yasltest
         opcode.h
@@ -111,7 +112,7 @@ add_executable(yasltest
         compiler/middleend.c
         util/hash_function.c
         data-structures/YASL_Table.c
-        interpreter/yasl_float.c
+        util/yasl_float.c
         interpreter/YASL_Object.c
         data-structures/YASL_ByteBuffer.c
         data-structures/YASL_String.c
@@ -122,6 +123,7 @@ add_executable(yasltest
         data-structures/YASL_Set.c
         compiler/env.c
         yasl.c
+        interpreter/upvalue.c
         interpreter/VM.c
         interpreter/builtins.c
         interpreter/list_methods.c
@@ -131,7 +133,7 @@ add_executable(yasltest
         interpreter/float_methods.c
         interpreter/int_methods.c
         interpreter/bool_methods.c
-        IO.c)
+        util/IO.c)
 
 if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
     add_executable(tests
@@ -159,7 +161,8 @@ add_library(yaslapi
         interpreter/bool_methods.c
         interpreter/builtins.c
         interpreter/float_methods.c
-        interpreter/yasl_float.c
+        interpreter/upvalue.c
+        util/yasl_float.c
         interpreter/int_methods.c
         data-structures/YASL_List.c
         interpreter/list_methods.c
@@ -172,7 +175,7 @@ add_library(yaslapi
         interpreter/userdata.c
         interpreter/undef_methods.c
         util/prime.c
-        IO.c)
+        util/IO.c)
 
 if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
     target_link_libraries(yasl m)

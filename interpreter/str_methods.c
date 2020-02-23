@@ -36,42 +36,6 @@ int str___get(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
-int str_slice(struct YASL_State *S) {
-	struct YASL_Object end_index = vm_pop((struct VM *) S);
-	struct YASL_Object start_index = vm_pop((struct VM *) S);
-	if (!YASL_top_isstring(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.__get", 0, Y_STR, YASL_top_peektype(S));
-		return YASL_TYPE_ERROR;
-	}
-	struct YASL_String *str = YASL_GETSTR(vm_pop((struct VM *) S));
-	if (!YASL_ISINT(start_index) || !YASL_ISINT(end_index)) {
-		// TODO: clean this up
-		return -1;
-	} else if (YASL_GETINT(start_index) < -(yasl_int) YASL_String_len(str) ||
-		   YASL_GETINT(start_index) > (yasl_int) YASL_String_len(str)) {
-		return -1;
-	} else if (YASL_GETINT(end_index) < -(yasl_int) YASL_String_len(str) ||
-		   YASL_GETINT(end_index) > (yasl_int) YASL_String_len(
-			   str)) {
-		return -1;
-	}
-
-	int64_t start =
-		YASL_GETINT(start_index) < 0 ? YASL_GETINT(start_index) + (yasl_int) YASL_String_len(str) : YASL_GETINT(
-			start_index);
-	int64_t end =
-		YASL_GETINT(end_index) < 0 ? YASL_GETINT(end_index) + (yasl_int) YASL_String_len(str) : YASL_GETINT(
-			end_index);
-
-	if (start > end) {
-		return -1;
-	}
-
-	vm_push((struct VM *) S, YASL_STR(YASL_String_new_substring(str->start + start, str->start + end, str)));
-
-	return YASL_SUCCESS;
-}
-
 int str_tofloat(struct YASL_State *S) {
 	if (!YASL_top_isstring(S)) {
 		vm_print_err_bad_arg_type((struct VM *)S, "str.tofloat", 0, Y_STR, YASL_top_peektype(S));
@@ -210,7 +174,7 @@ int str_endswith(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
-int str_replace(struct YASL_State *S) {
+static int str_replace_default(struct YASL_State *S) {
 	if (!YASL_top_isstring(S)) {
 		vm_print_err_bad_arg_type((struct VM *)S, "str.replace", 2, Y_STR, YASL_top_peektype(S));
 		return YASL_TYPE_ERROR;
@@ -234,7 +198,45 @@ int str_replace(struct YASL_State *S) {
 		return YASL_VALUE_ERROR;
 	}
 
-	vm_push((struct VM *) S, YASL_STR(YASL_String_replace_fast(str, search_str, replace_str)));
+	vm_push((struct VM *) S, YASL_STR(YASL_String_replace_fast_default(str, search_str, replace_str)));
+	return YASL_SUCCESS;
+}
+
+int str_replace(struct YASL_State *S) {
+	if (YASL_top_isundef(S)) {
+		YASL_pop(S);
+		return str_replace_default(S);
+	}
+
+	if (!YASL_top_isinteger(S)) {
+		vm_print_err_bad_arg_type((struct VM *)S, "str.replace", 3, Y_INT, YASL_top_peektype(S));
+		return YASL_TYPE_ERROR;
+	}
+	yasl_int max = YASL_top_popinteger(S);
+	if (!YASL_top_isstring(S)) {
+		vm_print_err_bad_arg_type((struct VM *)S, "str.replace", 2, Y_STR, YASL_top_peektype(S));
+		return YASL_TYPE_ERROR;
+	}
+	struct YASL_String *replace_str = YASL_GETSTR(vm_pop((struct VM *) S));
+	if (!YASL_top_isstring(S)) {
+		vm_print_err_bad_arg_type((struct VM *)S, "str.replace", 1, Y_STR, YASL_top_peektype(S));
+		return YASL_TYPE_ERROR;
+	}
+	struct YASL_String *search_str = YASL_GETSTR(vm_pop((struct VM *) S));
+	if (!YASL_top_isstring(S)) {
+		vm_print_err_bad_arg_type((struct VM *)S, "str.replace", 0, Y_STR, YASL_top_peektype(S));
+		return YASL_TYPE_ERROR;
+	}
+	struct YASL_String *str = YASL_GETSTR(vm_pop((struct VM *) S));
+
+	if (YASL_String_len(search_str) < 1) {
+		vm_print_err((struct VM *)S,
+			     "ValueError: %s expected a nonempty str as arg 1.\n",
+			     "str.replace");
+		return YASL_VALUE_ERROR;
+	}
+
+	vm_push((struct VM *) S, YASL_STR(YASL_String_replace_fast(str, search_str, replace_str, max)));
 	return YASL_SUCCESS;
 }
 

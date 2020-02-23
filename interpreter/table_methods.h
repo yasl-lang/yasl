@@ -1,4 +1,5 @@
-#pragma once
+#ifndef YASL_TABLE_METHODS_H_
+#define YASL_TABLE_METHODS_H_
 
 struct YASL_State;
 
@@ -17,3 +18,5 @@ int table_remove(struct YASL_State *S);
 int table_clone(struct YASL_State *S);
 
 int table_clear(struct YASL_State *S);
+
+#endif

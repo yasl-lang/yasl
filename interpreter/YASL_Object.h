@@ -4,6 +4,7 @@
 #include "data-structures/YASL_String.h"
 #include "yasl_conf.h"
 #include "yasl_types.h"
+//#include "VM.h"
 
 #define UNDEF_C ((struct YASL_Object){ .type = Y_UNDEF, .value = { .ival = 0 }  })
 #define FALSE_C ((struct YASL_Object){ .type = Y_BOOL, .value = {.ival = 0 }})
@@ -69,15 +70,6 @@ struct CFunction {
 	struct RC *rc;
 	int num_args;
 	int (*value)(struct YASL_State *);
-};
-
-struct Upvalue {
-	struct YASL_Object *location;
-};
-
-struct Closure {
-	const unsigned char *f;
-	struct Upvalue *upvalues[];
 };
 
 struct CFunction *new_cfn(int (*value)(struct YASL_State *), int num_args);

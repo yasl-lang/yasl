@@ -10,6 +10,7 @@ struct Env *env_new(struct Env *const parent) {
 	struct Env *env = (struct Env *)malloc(sizeof(struct Env));
 	env->parent = parent;
 	env->vars = NEW_TABLE();
+	env->used_in_closure = false;
 	return env;
 }
 
@@ -25,11 +26,9 @@ void env_del_current_only(struct Env *const env) {
 		struct YASL_Table_Item *item = &env->vars.items[i];
 		if (item->key.type != Y_END && item->key.type != Y_UNDEF) {
 			str_del(item->key.value.sval);
-			// free(item);
 		}
 	}
 	free(env->vars.items);
-	//free(env->vars);
 	free(env);
 }
 
@@ -89,6 +88,11 @@ int64_t env_decl_var(struct Env *const env, const char *const name) {
 	struct YASL_Object value = YASL_INT((long)env_len(env));
 	YASL_Table_insert(&env->vars, key, value);
 	return env_len(env);
+}
+
+bool env_used_in_closure(const struct Env *const env) {
+	if (env == NULL) return false;
+	return env->used_in_closure || env_used_in_closure(env->parent);
 }
 
 static struct YASL_Table *get_closest_scope_with_var(struct Env *const env, const char *const name, const size_t name_len) {

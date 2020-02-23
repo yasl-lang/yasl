@@ -118,6 +118,7 @@ struct VM {
 	int lp;                        // foreach pointer
 	struct YASL_String *special_strings[NUM_SPECIAL_STRINGS];
 	struct YASL_Table **builtins_htable;   // htable of builtin methods
+	struct Upvalue *pending;
 };
 
 void vm_init(struct VM *const vm, unsigned char *const code, const size_t pc, const size_t datasize);

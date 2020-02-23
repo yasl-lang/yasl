@@ -1,4 +1,5 @@
-#pragma once
+#ifndef YASL_DEBUG_H_
+#define YASL_DEBUG_H_
 
 #include <stdio.h>
 
@@ -29,4 +30,6 @@ enum LogLevel {
 #define YASL_ASSERT(expr, msg) do { if (!(expr)) { puts(msg /*"(line " __LINE__ ", " __FILE__ ")"*/); exit(EXIT_FAILURE); } } while(0)
 #else
 #define YASL_ASSERT(expr, msg)
+#endif
+
 #endif

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef YASL_YASL_BYTEBUFFER_H_
+#define YASL_YASL_BYTEBUFFER_H_
 
 #include <stdlib.h>
 
@@ -19,3 +20,5 @@ void YASL_ByteBuffer_add_float(struct YASL_ByteBuffer *const bb, const yasl_floa
 void YASL_ByteBuffer_add_int(struct YASL_ByteBuffer *const bb, const yasl_int value);
 /* Caller must check that index is within range */
 void YASL_ByteBuffer_rewrite_int_fast(struct YASL_ByteBuffer *const bb, const size_t index, const yasl_int value);
+
+#endif

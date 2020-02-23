@@ -154,6 +154,13 @@ int YASL_pushlitstring(struct YASL_State *S, const char *value, const size_t siz
 int YASL_pushtable(struct YASL_State *S);
 
 /**
+ * Pushes an empty list onto the stack.
+ * @param S the YASL_State onto which to push the list.
+ * @return 0 on success, else error code.
+ */
+int YASL_pushlist(struct YASL_State *S);
+
+/**
  * Pushes a function pointer onto the stack
  * @param S the YASL_State onto which to push the string.
  * @param value the function pointer to be pushed onto the stack.
@@ -201,6 +208,8 @@ struct YASL_Object *YASL_popobject(struct YASL_State *S);
  */
 int YASL_pop(struct YASL_State *S);
 
+int YASL_top_dup(struct YASL_State *S);
+
 /**
  * Makes a new YASL_Table
  * @return the YASL_Table
@@ -226,6 +235,8 @@ struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *), int num_ar
  * @return 0 on success, else error code
  */
 int YASL_settable(struct YASL_State *S);
+
+int YASL_pushlist(struct YASL_State *S);
 
 /**
  * returns the type of the top of the stack.

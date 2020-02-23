@@ -1,4 +1,5 @@
-#pragma once
+#ifndef YASL_IO_H_
+#define YASL_IO_H_
 
 #include <stdio.h>
 
@@ -18,3 +19,5 @@ struct IO {
 
 void io_print_file(struct IO *const io, const char *const format, const size_t len);
 void io_print_string(struct IO *const io, const char *const format, const size_t len);
+
+#endif

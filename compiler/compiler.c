@@ -486,7 +486,20 @@ static void visit_MethodCall(struct Compiler *const compiler, const struct Node 
 
 static void visit_Return(struct Compiler *const compiler, const struct Node *const node) {
 	visit(compiler, Return_get_expr(node));
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_RET);
+	// TODO? fix all this up, none of this is right
+	/*
+	if (compiler->params->used_in_closure) {
+		size_t num_locals = compiler->params->vars.count;
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_CLOSE);
+		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char)num_locals);
+	}
+	*/
+	if (env_used_in_closure(compiler->params)) {
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_CRET);
+	} else {
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_RET);
+	}
+
 }
 
 static void visit_Export(struct Compiler *const compiler, const struct Node *const node) {
