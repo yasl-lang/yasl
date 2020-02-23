@@ -11,8 +11,8 @@ s2->add(0)
 echo s1 & s2
 echo s1 | s2
 echo s1 ^ s2
-echo s1 - s2
-echo s2 - s1
+echo s1 &^ s2
+echo s2 &^ s1
 echo len s1
 echo len s2
 
@@ -22,16 +22,16 @@ s2->remove(2)
 echo s1 & s2
 echo s1 | s2
 echo s1 ^ s2
-echo s1 - s2
-echo s2 - s1
+echo s1 &^ s2
+echo s2 &^ s1
 echo len s1
 echo len s2
 
 echo s1 & s3
 echo s1 | s3
 echo s1 ^ s3
-echo s1 - s3
-echo s3 - s1
+echo s1 &^ s3
+echo s3 &^ s1
 echo len s1
 echo len s3
 
@@ -40,8 +40,8 @@ s1->clear()
 echo s1 & s3
 echo s1 | s3
 echo s1 ^ s3
-echo s1 - s3
-echo s3 - s1
+echo s1 &^ s3
+echo s3 &^ s1
 echo len s1
 echo len s3
 

@@ -124,7 +124,8 @@ static int YASL_collections_set_##name(struct YASL_State *S) {\
 YASL_COLLECTIONS_SET_BINOP(__band, YASL_Set_intersection)
 YASL_COLLECTIONS_SET_BINOP(__bor, YASL_Set_union)
 YASL_COLLECTIONS_SET_BINOP(__bxor, YASL_Set_symmetric_difference)
-YASL_COLLECTIONS_SET_BINOP(__sub, YASL_Set_difference)
+
+YASL_COLLECTIONS_SET_BINOP(__bandnot, YASL_Set_difference)
 
 static int YASL_collections_set___len(struct YASL_State *S) {
 	if (!YASL_top_isuserdata(S, T_SET)) {
@@ -221,7 +222,7 @@ int YASL_load_collections(struct YASL_State *S) {
 		YASL_Table_insert_literalcstring_cfunction(set_mt, "__band", YASL_collections_set___band, 2);
 		YASL_Table_insert_literalcstring_cfunction(set_mt, "__bor", YASL_collections_set___bor, 2);
 		YASL_Table_insert_literalcstring_cfunction(set_mt, "__bxor", YASL_collections_set___bxor, 2);
-		YASL_Table_insert_literalcstring_cfunction(set_mt, "__sub", YASL_collections_set___sub, 2);
+		YASL_Table_insert_literalcstring_cfunction(set_mt, "__bandnot", YASL_collections_set___bandnot, 2);
 		YASL_Table_insert_literalcstring_cfunction(set_mt, "__len", YASL_collections_set___len, 1);
 		YASL_Table_insert_literalcstring_cfunction(set_mt, "add", YASL_collections_set_add, 2);
 		YASL_Table_insert_literalcstring_cfunction(set_mt, "remove", YASL_collections_set_remove, 2);
