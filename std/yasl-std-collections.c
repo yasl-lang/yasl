@@ -87,6 +87,22 @@ static int YASL_collections_set_tostr(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
+static int YASL_collections_set_tolist(struct YASL_State *S) {
+	if (!YASL_top_isuserdata(S, T_SET)) {
+		return YASL_TYPE_ERROR;
+	}
+	struct YASL_Set *set = (struct YASL_Set *)YASL_top_popuserdata(S);
+	struct RC_UserData *list = rcls_new();
+	struct YASL_List *ls = (struct YASL_List *)list->data;
+	FOR_SET(i, item, set) {
+		YASL_List_append(ls, *item);
+	}
+
+	vm_pushlist(&S->vm, list);
+
+	return YASL_SUCCESS;
+}
+
 #define YASL_COLLECTIONS_SET_BINOP(name, fn) \
 static int YASL_collections_set_##name(struct YASL_State *S) {\
 	if (!YASL_top_isuserdata(S, T_SET)) {\
@@ -201,6 +217,7 @@ int YASL_load_collections(struct YASL_State *S) {
 	if (!set_mt) {
 		set_mt = YASL_Table_new();
 		YASL_Table_insert_literalcstring_cfunction(set_mt, "tostr", YASL_collections_set_tostr, 1);
+		YASL_Table_insert_literalcstring_cfunction(set_mt, "tolist", YASL_collections_set_tolist, 1);
 		YASL_Table_insert_literalcstring_cfunction(set_mt, "__band", YASL_collections_set___band, 2);
 		YASL_Table_insert_literalcstring_cfunction(set_mt, "__bor", YASL_collections_set___bor, 2);
 		YASL_Table_insert_literalcstring_cfunction(set_mt, "__bxor", YASL_collections_set___bxor, 2);
