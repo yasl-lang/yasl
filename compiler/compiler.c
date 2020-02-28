@@ -1002,6 +1002,7 @@ static void visit_Var(struct Compiler *const compiler, const struct Node *const 
 }
 
 static void visit_Undef(struct Compiler *const compiler, const struct Node *const node) {
+	(void) node;
 	YASL_ByteBuffer_add_byte(compiler->buffer, O_NCONST);
 }
 

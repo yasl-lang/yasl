@@ -716,6 +716,7 @@ static int vm_GLOAD_8(struct VM *const vm) {
 }
 
 void vm_CLOSE(struct VM *const vm) {
+	(void) vm;
 	// TODO
 }
 

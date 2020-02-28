@@ -91,7 +91,8 @@ struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *), int num_ar
  */
 int yasl_object_cmp(struct YASL_Object a, struct YASL_Object b);
 
-int isfalsey(struct YASL_Object v);
+bool ishashable(struct YASL_Object v);
+bool isfalsey(struct YASL_Object v);
 struct YASL_Object isequal(struct YASL_Object a, struct YASL_Object b);
 int print(struct YASL_Object a);
 
