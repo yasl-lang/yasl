@@ -38,7 +38,7 @@
 #if defined __GNUC__ || defined __clang__
 #define YASL_WARN_UNUSED __attribute((warn_unused_result))
 #else
-#define YASYASL_WARN_UNUSED
+#define YASL_WARN_UNUSED
 #endif
 
 
