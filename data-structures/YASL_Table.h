@@ -3,6 +3,7 @@
 
 #include "interpreter/YASL_Object.h"
 #include "util/prime.h"
+#include "yasl_include.h"
 
 #define TABLE_BASESIZE 30
 
