@@ -83,10 +83,10 @@ int64_t env_get(const struct Env *const env, const char *const name) {
 
 int64_t env_decl_var(struct Env *const env, const char *const name) {
 	const size_t name_len = strlen(name);
-	// struct YASL_String *string = YASL_String_new_sized_heap(0, name_len, copy_char_buffer(name_len, name));
-	// struct YASL_Object key = YASL_STR(string);
-	// struct YASL_Object value = YASL_INT((long)env_len(env));
-	YASL_Table_insert_string_int(&env->vars, copy_char_buffer(name_len, name), name_len, env_len(env));
+	struct YASL_String *string = YASL_String_new_sized_heap(0, name_len, copy_char_buffer(name_len, name));
+	struct YASL_Object key = YASL_STR(string);
+	struct YASL_Object value = YASL_INT((long)env_len(env));
+	YASL_Table_insert_fast(&env->vars, key, value);
 	return env_len(env);
 }
 
