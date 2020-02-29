@@ -37,7 +37,7 @@ int table___set(struct YASL_State *S) {
 		return YASL_SUCCESS;
 	}
 
-	if (YASL_Table_insert_slow(ht, key, val) != YASL_SUCCESS) {
+	if (!YASL_Table_insert(ht, key, val)) {
 		vm_print_err_type(&S->vm, "unable to use mutable object of type %s as key.\n", YASL_TYPE_NAMES[key.type]);
 		return YASL_TYPE_ERROR;
 	}
@@ -246,7 +246,7 @@ int table_clone(struct YASL_State *S) {
 	struct RC_UserData *new_ht = rcht_new_sized(ht->base_size);
 
 	FOR_TABLE(i, item, ht) {
-			YASL_Table_insert((struct YASL_Table *) new_ht->data, item->key, item->value);
+			YASL_Table_insert_fast((struct YASL_Table *) new_ht->data, item->key, item->value);
 	}
 
 	vm_push((struct VM *) S, YASL_TABLE(new_ht));

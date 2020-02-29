@@ -37,7 +37,7 @@ static int YASL_collections_table_new(struct YASL_State *S) {
 	while (i > 0) {
 		struct YASL_Object value = vm_pop((struct VM *)S);
 		struct YASL_Object key = vm_pop((struct VM *)S);
-		YASL_Table_insert((struct YASL_Table *)table->data, key, value);
+		YASL_Table_insert_fast((struct YASL_Table *) table->data, key, value);
 		i -= 2;
 	}
 	vm_pushtable((struct VM *)S, table);

@@ -159,7 +159,7 @@ int YASL_setglobal(struct YASL_State *S, const char *name) {
 	if (is_const(index)) return YASL_ERROR;
 
 	struct YASL_String *string = YASL_String_new_sized(strlen(name), name);
-	YASL_Table_insert(S->vm.globals[0], YASL_STR(string), vm_peek((struct VM *) S));
+	YASL_Table_insert_fast(S->vm.globals[0], YASL_STR(string), vm_peek((struct VM *) S));
 	YASL_pop(S);
 
 	return YASL_SUCCESS;
@@ -275,8 +275,11 @@ int YASL_settable(struct YASL_State *S) {
 
 	// TODO change to TYPE_ERROR
 	if (!YASL_ISTABLE(table))
-		return YASL_ERROR;
-	return YASL_Table_insert_slow(YASL_GETTABLE(table), key, value);
+		return YASL_TYPE_ERROR;
+	if (!YASL_Table_insert(YASL_GETTABLE(table), key, value)) {
+		return YASL_TYPE_ERROR;
+	}
+	return YASL_SUCCESS;
 }
 
 int YASL_appendlist(struct YASL_State *S) {

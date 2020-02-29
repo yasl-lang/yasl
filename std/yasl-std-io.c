@@ -181,12 +181,12 @@ static int YASL_io_flush(struct YASL_State *S) {
 int YASL_load_io(struct YASL_State *S) {
 	if (!mt) {
 		mt = YASL_Table_new();
-		YASL_Table_insert(mt, YASL_STR(YASL_String_new_sized(strlen("read"), "read")),
-				  YASL_CFN(YASL_io_read, 2));
-		YASL_Table_insert(mt, YASL_STR(YASL_String_new_sized(strlen("write"), "write")),
-				  YASL_CFN(YASL_io_write, 2));
-		YASL_Table_insert(mt, YASL_STR(YASL_String_new_sized(strlen("flush"), "flush")),
-				  YASL_CFN(YASL_io_flush, 1));
+		YASL_Table_insert_fast(mt, YASL_STR(YASL_String_new_sized(strlen("read"), "read")),
+				       YASL_CFN(YASL_io_read, 2));
+		YASL_Table_insert_fast(mt, YASL_STR(YASL_String_new_sized(strlen("write"), "write")),
+				       YASL_CFN(YASL_io_write, 2));
+		YASL_Table_insert_fast(mt, YASL_STR(YASL_String_new_sized(strlen("flush"), "flush")),
+				       YASL_CFN(YASL_io_flush, 1));
 	}
 
 	YASL_declglobal(S, "io");

@@ -691,7 +691,7 @@ static int vm_GSTORE_8(struct VM *const vm) {
 	addr += sizeof(yasl_int);
 	struct YASL_String *string = YASL_String_new_sized(size, ((char *) vm->headers[table]) + addr);
 
-	YASL_Table_insert(vm->globals[table], YASL_STR(string), vm_pop(vm));
+	YASL_Table_insert_fast(vm->globals[table], YASL_STR(string), vm_pop(vm));
 	return YASL_SUCCESS;
 }
 
@@ -1036,7 +1036,7 @@ int vm_run(struct VM *const vm) {
 			while (vm_peek(vm).type != Y_END) {
 				struct YASL_Object val = vm_pop(vm);
 				struct YASL_Object key = vm_pop(vm);
-				if (YASL_Table_insert_slow(ht, key, val) != YASL_SUCCESS) {
+				if (!YASL_Table_insert(ht, key, val)) {
 					vm_print_err_type(vm, "unable to use mutable object of type %s as key.\n", YASL_TYPE_NAMES[key.type]);
 					return YASL_TYPE_ERROR;
 				}
