@@ -8,6 +8,7 @@
 #include "interpreter/refcount.h"
 #include "interpreter/YASL_Object.h"
 #include "interpreter/userdata.h"
+#include "yasl_error.h"
 
 struct YASL_Table_Item TOMBSTONE = { { Y_END, { Y_END } }, { Y_END, { Y_END } } };
 
@@ -77,7 +78,7 @@ static void table_resize(struct YASL_Table *const table, const size_t base_size)
 	if (base_size < TABLE_BASESIZE) return;
 	struct YASL_Table *new_table = table_new_sized(base_size);
 	FOR_TABLE(i, item, table) {
-			YASL_Table_insert(new_table, item->key, item->value);
+			YASL_Table_insert_fast(new_table, item->key, item->value);
 	}
 	table->base_size = new_table->base_size;
 	table->count = new_table->count;
@@ -103,7 +104,7 @@ static void table_resize_down(struct YASL_Table *const table) {
 	table_resize(table, new_size);
 }
 
-void YASL_Table_insert(struct YASL_Table *const table, const struct YASL_Object key, const struct YASL_Object value) {
+void YASL_Table_insert_fast(struct YASL_Table *const table, const struct YASL_Object key, const struct YASL_Object value) {
 	const size_t load = table->count * 100 / table->size;
 	if (load > 70) table_resize_up(table);
 	struct YASL_Table_Item item = new_item(key, value);
@@ -125,12 +126,20 @@ void YASL_Table_insert(struct YASL_Table *const table, const struct YASL_Object 
 	table->count++;
 }
 
+bool YASL_Table_insert(struct YASL_Table *const table, const struct YASL_Object key, const struct YASL_Object value) {
+	if (!ishashable(key)) {
+		return false;
+	}
+	YASL_Table_insert_fast(table, key, value);
+	return true;
+}
+
 void YASL_Table_insert_string_int(struct YASL_Table *const table, const char *const key, const size_t key_len,
 				  const int64_t val) {
 	struct YASL_String *string = YASL_String_new_sized_heap(0, key_len, copy_char_buffer(key_len, key));
 	struct YASL_Object ko = YASL_STR(string);
 	struct YASL_Object vo = YASL_INT(val);
-	YASL_Table_insert(table, ko, vo);
+	YASL_Table_insert_fast(table, ko, vo);
 }
 
 void YASL_Table_insert_literalcstring_cfunction(struct YASL_Table *const ht, const char *key,
@@ -138,7 +147,7 @@ void YASL_Table_insert_literalcstring_cfunction(struct YASL_Table *const ht, con
 	struct YASL_String *string = YASL_String_new_sized(strlen(key), key);
 	struct YASL_Object f = YASL_CFN(addr, num_args);
 	struct YASL_Object s = YASL_STR(string);
-	YASL_Table_insert(ht, s, f);
+	YASL_Table_insert_fast(ht, s, f);
 }
 
 struct YASL_Object YASL_Table_search(const struct YASL_Table *const table, const struct YASL_Object key) {

@@ -35,6 +35,13 @@
 #define K_WHT "\x1B[37m"
 #endif
 
+#if defined __GNUC__ || defined __clang__
+#define YASL_WARN_UNUSED __attribute((warn_unused_result))
+#else
+#define YASL_WARN_UNUSED
+#endif
+
+
 #define MSG_SYNTAX_ERROR "SyntaxError: "
 #define MSG_TYPE_ERROR "TypeError: "
 

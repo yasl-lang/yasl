@@ -611,16 +611,14 @@ static int vm_SET(struct VM *const vm) {
 	vm->sp -= 2;
 	if (vm_islist(vm)) {
 		vm->sp += 2;
-		list___set((struct YASL_State *) vm);
+		return list___set((struct YASL_State *) vm);
 	} else if (vm_istable(vm)) {
 		vm->sp += 2;
-		table___set((struct YASL_State *) vm);
-	} else {
-		vm->sp += 2;
-		vm_print_err_type(vm,  "object of type %s is immutable.", YASL_TYPE_NAMES[vm_peek(vm).type]);
-		return YASL_TYPE_ERROR;
+		return table___set((struct YASL_State *) vm);
 	}
-	return YASL_SUCCESS;
+	vm->sp += 2;
+	vm_print_err_type(vm,  "object of type %s is immutable.", YASL_TYPE_NAMES[vm_peek(vm).type]);
+	return YASL_TYPE_ERROR;
 }
 
 static int vm_NEWSPECIALSTR(struct VM *const vm) {
@@ -693,7 +691,7 @@ static int vm_GSTORE_8(struct VM *const vm) {
 	addr += sizeof(yasl_int);
 	struct YASL_String *string = YASL_String_new_sized(size, ((char *) vm->headers[table]) + addr);
 
-	YASL_Table_insert(vm->globals[table], YASL_STR(string), vm_pop(vm));
+	YASL_Table_insert_fast(vm->globals[table], YASL_STR(string), vm_pop(vm));
 	return YASL_SUCCESS;
 }
 
@@ -716,6 +714,7 @@ static int vm_GLOAD_8(struct VM *const vm) {
 }
 
 void vm_CLOSE(struct VM *const vm) {
+	(void) vm;
 	// TODO
 }
 
@@ -1035,9 +1034,12 @@ int vm_run(struct VM *const vm) {
 			struct RC_UserData *table = rcht_new();
 			struct YASL_Table *ht = (struct YASL_Table *)table->data;
 			while (vm_peek(vm).type != Y_END) {
-				struct YASL_Object value = vm_pop(vm);
+				struct YASL_Object val = vm_pop(vm);
 				struct YASL_Object key = vm_pop(vm);
-				YASL_Table_insert(ht, key, value);
+				if (!YASL_Table_insert(ht, key, val)) {
+					vm_print_err_type(vm, "unable to use mutable object of type %s as key.\n", YASL_TYPE_NAMES[key.type]);
+					return YASL_TYPE_ERROR;
+				}
 			}
 			vm_pop(vm);
 			vm_push(vm, YASL_TABLE(table));

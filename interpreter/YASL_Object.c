@@ -39,6 +39,7 @@ struct CFunction *new_cfn(int (*value)(struct YASL_State *), int num_args) {
 }
 
 void cfn_del_data(struct CFunction *cfn) {
+	(void) cfn;
 }
 
 void cfn_del_rc(struct CFunction *cfn) {
@@ -79,7 +80,18 @@ int yasl_object_cmp(struct YASL_Object a, struct YASL_Object b) {
 	return 0;
 }
 
-int isfalsey(struct YASL_Object v) {
+bool ishashable(struct YASL_Object v) {
+	return (
+		YASL_ISUNDEF(v) ||
+		YASL_ISBOOL(v) ||
+		YASL_ISFLOAT(v) ||
+		YASL_ISINT(v) ||
+		YASL_ISSTR(v) ||
+		YASL_ISUSERPTR(v)
+		);
+}
+
+bool isfalsey(struct YASL_Object v) {
 	/*
 	 * Falsey values are:
 	 * 	undef
