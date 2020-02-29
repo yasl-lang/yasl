@@ -8,6 +8,7 @@
 #include "interpreter/refcount.h"
 #include "interpreter/YASL_Object.h"
 #include "interpreter/userdata.h"
+#include "yasl_error.h"
 
 struct YASL_Table_Item TOMBSTONE = { { Y_END, { Y_END } }, { Y_END, { Y_END } } };
 
@@ -123,6 +124,14 @@ void YASL_Table_insert(struct YASL_Table *const table, const struct YASL_Object 
 	}
 	table->items[index] = item;
 	table->count++;
+}
+
+int YASL_Table_insert_slow(struct YASL_Table *const table, const struct YASL_Object key, const struct YASL_Object value) {
+	if (!ishashable(key)) {
+		return YASL_TYPE_ERROR;
+	}
+	YASL_Table_insert(table, key, value);
+	return YASL_SUCCESS;
 }
 
 void YASL_Table_insert_string_int(struct YASL_Table *const table, const char *const key, const size_t key_len,

@@ -80,6 +80,17 @@ int yasl_object_cmp(struct YASL_Object a, struct YASL_Object b) {
 	return 0;
 }
 
+bool ishashable(struct YASL_Object v) {
+	return (
+		YASL_ISUNDEF(v) ||
+		YASL_ISBOOL(v) ||
+		YASL_ISFLOAT(v) ||
+		YASL_ISINT(v) ||
+		YASL_ISSTR(v) ||
+		YASL_ISUSERPTR(v)
+		);
+}
+
 bool isfalsey(struct YASL_Object v) {
 	/*
 	 * Falsey values are:
