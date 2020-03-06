@@ -48,10 +48,10 @@ int list___set(struct YASL_State *S) {
 	if (index < -(yasl_int) ls->count || index >= (yasl_int) ls->count) {
 		vm_print_err_value(&S->vm, "unable to index list of length %" PRI_SIZET " with index %" PRId64 ".\n", ls->count, index);
 		return YASL_VALUE_ERROR;
-	} else {
-		if (index >= 0) ls->items[index] = value;
-		else ls->items[index + ls->count] = value;
 	}
+	if (index >= 0) ls->items[index] = value;
+	else ls->items[index + ls->count] = value;
+
 	return YASL_SUCCESS;
 }
 
