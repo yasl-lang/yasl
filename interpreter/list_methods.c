@@ -42,16 +42,11 @@ int list___set(struct YASL_State *S) {
 		vm_print_err_bad_arg_type((struct VM *)S, "list.__set", 1, Y_INT, index.type);
 		return YASL_TYPE_ERROR;
 	} else if (YASL_GETINT(index) < -(int64_t) ls->count || YASL_GETINT(index) >= (int64_t) ls->count) {
-		// TODO: fix this
-		printf("%d || %d\n", YASL_GETINT(index) < -(int64_t) ls->count,
-		       YASL_GETINT(index) >= (int64_t) ls->count);
-		printf("IndexError\n");
-		//vm_push((struct VM *)S, YASL_UNDEF());
-		return -1;
+		vm_print_err_value(&S->vm, "unable to index list of length %" PRI_SIZET " with index %" PRId64 ".\n", ls->count, YASL_GETINT(index));
+		return YASL_VALUE_ERROR;
 	} else {
 		if (YASL_GETINT(index) >= 0) ls->items[YASL_GETINT(index)] = value;
 		else ls->items[YASL_GETINT(index) + ls->count] = value;
-		//vm_push((struct VM *)S, value);
 	}
 	return YASL_SUCCESS;
 }
