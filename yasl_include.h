@@ -41,9 +41,9 @@
 #define YASL_WARN_UNUSED
 #endif
 
-
 #define MSG_SYNTAX_ERROR "SyntaxError: "
 #define MSG_TYPE_ERROR "TypeError: "
+#define MSG_VALUE_ERROR "ValueError: "
 
 #define YASL_PRINT_ERROR(fmt, ...) fprintf(stderr, K_RED fmt K_END, __VA_ARGS__)
 #define YASL_PRINT_ERROR_SYNTAX(fmt, ...) YASL_PRINT_ERROR(MSG_SYNTAX_ERROR fmt, __VA_ARGS__)

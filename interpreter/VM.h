@@ -81,6 +81,7 @@
 }
 
 #define vm_print_err_type(vm, format, ...) vm_print_err(vm, MSG_TYPE_ERROR format, __VA_ARGS__)
+#define vm_print_err_value(vm, format, ...) vm_print_err(vm, MSG_VALUE_ERROR format, __VA_ARGS__)
 #define vm_print_err_divide_by_zero(vm) {\
 	const char *tmp = "DivisionByZeroError\n";\
 	vm->err.print(&vm->err, tmp, strlen(tmp));\
