@@ -225,6 +225,12 @@ static void store_var(struct Compiler *const compiler, const char *const name, c
 		}
 		YASL_ByteBuffer_add_byte(compiler->buffer, O_LSTORE_1);
 		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) index);
+	} else if (compiler->params && compiler->params->parent && scope_contains(compiler->params->parent->scope, name)) {
+		compiler->params->isclosure = true;
+		// TODO fix this, we need to handle arbitrarily nested closures
+		compiler->params->parent->usedinclosure = true;
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_USTORE_1);
+		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) resolve_upval(compiler, name));
 	} else if (scope_contains(compiler->stack, name)) {
 		int64_t index = scope_get(compiler->stack, name);
 		if (is_const(index)) {
@@ -261,9 +267,13 @@ static int contains_var_in_current_scope(const struct Compiler *const compiler, 
 }
 
 static int contains_var(const struct Compiler *const compiler, const char *const name) {
-	return scope_contains(compiler->stack, name) ||
-		(compiler->params && scope_contains(compiler->params->scope, name)) ||
-		scope_contains_cur_scope(compiler->globals, name);
+	if (scope_contains(compiler->stack, name)) return true;
+	struct Env *tmp = compiler->params;
+	while (tmp != NULL) {
+		if (scope_contains(tmp->scope, name)) return true;
+		tmp = tmp->parent;
+	}
+	return scope_contains_cur_scope(compiler->globals, name);
 }
 
 static void decl_var(struct Compiler *const compiler, const char *const name, const size_t line) {

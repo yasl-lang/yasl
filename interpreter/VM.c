@@ -1208,9 +1208,12 @@ int vm_run(struct VM *const vm) {
 			break;
 		case O_ULOAD_1:
 			offset = NCODE(vm);
-			vm_push(vm, *vm_peek(vm, vm->fp).value.lval->upvalues[offset]->location);
+			vm_push(vm, UPVAL_GET(vm_peek(vm, vm->fp).value.lval->upvalues[offset]));
 			break;
-			// exit(1);
+		case O_USTORE_1:
+			offset = NCODE(vm);
+			UPVAL_SET(vm_peek(vm, vm->fp).value.lval->upvalues[offset], vm_pop(vm));
+			break;
 		case O_INIT_MC:
 			if ((res = vm_INIT_MC(vm))) return res;
 			break;

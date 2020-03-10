@@ -1,0 +1,13 @@
+fn f(a) {
+    fn g(b) {
+        a = b
+    }
+    echo a
+    g(2*a)
+    echo a
+    return g
+}
+
+let g = f(10)
+g(30)
+
