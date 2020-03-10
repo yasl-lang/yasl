@@ -60,7 +60,7 @@ size_t scope_len(const struct Scope *const scope) {
 	return scope->vars.count + scope_len(scope->parent);
 }
 
-bool scope_contains_cur_scope(const struct Scope *const scope, const char *const name) {
+bool scope_contains_cur_only(const struct Scope *const scope, const char *const name) {
 	const size_t name_len = strlen(name);
 	struct YASL_String *string = YASL_String_new_sized_heap(0, name_len, copy_char_buffer(name_len, name));
 	struct YASL_Object key = YASL_STR(string); // (struct YASL_Object) { .value.sval = string, .type = Y_STR };
@@ -86,6 +86,18 @@ bool scope_contains(const struct Scope *const scope, const char *const name) {
 	}
 	if (value.type == Y_END) return scope_contains(scope->parent, name);
 	return true;
+}
+
+bool env_contains(const struct Env *env, const char *const name) {
+	while (env != NULL) {
+		if (scope_contains(env->scope, name)) return true;
+		env = env->parent;
+	}
+	return false;
+}
+
+bool env_contains_cur_only(const struct Env *const env, const char *const name) {
+	return scope_contains(env->scope, name);
 }
 
 int64_t scope_get(const struct Scope *const scope, const char *const name) {

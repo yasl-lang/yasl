@@ -498,31 +498,28 @@ int vm_stringify_top(struct VM *const vm) {
 }
 
 static struct Upvalue *add_upvalue(struct VM *const vm, struct YASL_Object *const location) {
-	// TODO handle case where upvalue already exists
-	struct Upvalue *upvalue = (struct Upvalue *)malloc(sizeof(struct Upvalue));
-	upvalue->location = location;
-	upvalue->next = NULL;
-
 	if (vm->pending == NULL) {
-		vm->pending = upvalue;
-		return upvalue;
+		return (vm->pending = upval_new(location));
 	}
 
 	struct Upvalue *curr = vm->pending;
-	while (curr->next) {
-		if (curr->next->location > location) {
+	while (curr) {
+		if (curr->location > location) {
 			curr = curr->next;
 			continue;
 		}
-		upvalue->next = curr->next;
-		curr->next = upvalue;
-		break;
+		if (curr->location == location) {
+			return curr;
+		}
+		if (curr->location < location) {
+			struct Upvalue *upval = upval_new(location);
+			upval->next = curr->next;
+			curr->next = upval;
+			return upval;
+		}
+		return (curr->next = upval_new(location));
 	}
-	if (curr->next == NULL) {
-		curr->next = upvalue;
-	}
-
-	return upvalue;
+	return NULL;
 }
 
 static int vm_CCONST(struct VM *const vm) {
@@ -536,6 +533,7 @@ static int vm_CCONST(struct VM *const vm) {
 	for (size_t i = 0; i < num_upvalues; i++) {
 		unsigned char u = NCODE(vm);
 		closure->upvalues[i] = add_upvalue(vm, &vm_peek(vm, vm->frames[vm->frame_num].fp + 2 + u));
+		closure->upvalues[i]->rc->refs++;
 	}
 
 	vm_push(vm, ((struct YASL_Object){.type = Y_CLOSURE, .value = {.lval = closure}}));
@@ -895,7 +893,8 @@ static int vm_RET(struct VM *const vm) {
 static struct Upvalue *vm_close_all_helper(struct YASL_Object *const end, struct Upvalue *const curr) {
 	if (curr == NULL) return curr;
 	if (curr->location < end) return curr;
-	curr->closed = *curr->location;
+	inc_ref(curr->location);
+	curr->closed = upval_get(curr);
 	curr->location = &curr->closed;
 	return (vm_close_all_helper(end, curr->next));
 }
@@ -907,7 +906,6 @@ void vm_close_all(struct VM *const vm) {
 static int vm_CRET(struct VM *const vm) {
 	vm_close_all(vm);
 	vm_exitframe(vm);
-
 
 	return YASL_SUCCESS;
 }
@@ -1208,11 +1206,12 @@ int vm_run(struct VM *const vm) {
 			break;
 		case O_ULOAD_1:
 			offset = NCODE(vm);
-			vm_push(vm, UPVAL_GET(vm_peek(vm, vm->fp).value.lval->upvalues[offset]));
+			vm_push(vm, upval_get(vm_peek(vm, vm->fp).value.lval->upvalues[offset]));
 			break;
 		case O_USTORE_1:
 			offset = NCODE(vm);
-			UPVAL_SET(vm_peek(vm, vm->fp).value.lval->upvalues[offset], vm_pop(vm));
+			inc_ref(&vm_peek(vm));
+			upval_set(vm_peek(vm, vm->fp).value.lval->upvalues[offset], vm_pop(vm));
 			break;
 		case O_INIT_MC:
 			if ((res = vm_INIT_MC(vm))) return res;

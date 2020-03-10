@@ -169,6 +169,10 @@ static inline int64_t get_index(const int64_t value) {
 	return is_const(value) ? ~value : value;
 }
 
+//static int64_t add_upval(struct Compiler *const compiler, const int64_t index, bool islocal) {
+
+//}
+
 static int64_t resolve_upval(struct Compiler *const compiler, const char *const name) {
 	struct YASL_String *string = YASL_String_new_sized_heap(0, strlen(name), copy_char_buffer(strlen(name), name));
 	struct YASL_Object key = YASL_STR(string);
@@ -180,9 +184,11 @@ static int64_t resolve_upval(struct Compiler *const compiler, const char *const 
 		return value.value.ival;
 	}
 
-	YASL_Table_insert(&compiler->params->upvals, key, YASL_INT((yasl_int)compiler->params->upvals.count));
+	yasl_int index = (yasl_int)compiler->params->upvals.count;
 
-	return compiler->params->upvals.count - 1;
+	YASL_Table_insert(&compiler->params->upvals, key, YASL_INT(index));
+
+	return index;
 
 }
 
@@ -192,7 +198,7 @@ static void load_var(struct Compiler *const compiler, const char *const name, co
 		int64_t index = get_index(scope_get(compiler->params->scope, name));
 		YASL_ByteBuffer_add_byte(compiler->buffer, O_LLOAD_1);
 		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) index);
-	} else if (compiler->params && compiler->params->parent && scope_contains(compiler->params->parent->scope, name)) {
+	} else if (env_contains(compiler->params, name)) {
 		compiler->params->isclosure = true;
 		// TODO fix this, we need to handle arbitrarily nested closures
 		compiler->params->parent->usedinclosure = true;
@@ -260,20 +266,16 @@ static void store_var(struct Compiler *const compiler, const char *const name, c
 
 static int contains_var_in_current_scope(const struct Compiler *const compiler, const char *const name) {
 	return in_function(compiler) ?
-	       scope_contains_cur_scope(compiler->params->scope, name) :
+	       scope_contains_cur_only(compiler->params->scope, name) :
 	       compiler->stack ?
-	       scope_contains_cur_scope(compiler->stack, name) :
-	       scope_contains_cur_scope(compiler->globals, name);
+	       scope_contains_cur_only(compiler->stack, name) :
+	       scope_contains_cur_only(compiler->globals, name);
 }
 
 static int contains_var(const struct Compiler *const compiler, const char *const name) {
 	if (scope_contains(compiler->stack, name)) return true;
-	struct Env *tmp = compiler->params;
-	while (tmp != NULL) {
-		if (scope_contains(tmp->scope, name)) return true;
-		tmp = tmp->parent;
-	}
-	return scope_contains_cur_scope(compiler->globals, name);
+	if (env_contains(compiler->params, name)) return true;
+	return scope_contains_cur_only(compiler->globals, name);
 }
 
 static void decl_var(struct Compiler *const compiler, const char *const name, const size_t line) {

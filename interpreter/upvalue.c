@@ -1,29 +1,24 @@
 #include "upvalue.h"
 
-void vm_insert_upval(struct VM *const vm, struct Upvalue *const upval) {
-	if (vm->pending == NULL) {
-		vm->pending = upval;
-		return;
-	}
+struct Upvalue *upval_new(struct YASL_Object *const location) {
+	struct Upvalue *upval = (struct Upvalue *)malloc(sizeof(struct Upvalue));
+	upval->rc = rc_new();
+	upval->location = location;
+	upval->next = NULL;
+	return upval;
+}
 
-	if (vm->pending->location < upval->location) {
-	    upval->next = vm->pending;
-	    vm->pending = upval;
-	    return;
-	}
+struct YASL_Object upval_get(const struct Upvalue *const upval) {
+	return (*upval->location);
+}
 
-	struct Upvalue *prev = NULL;
-	struct Upvalue *curr = vm->pending;
-	while (curr && curr->location > upval->location) {
-		prev = curr;
-		curr = curr->next;
-	}
-	prev->next = upval;
-	upval->next = curr;
+void upval_set(struct Upvalue *const upval, const struct YASL_Object v) {
+	dec_ref(upval->location);
+	*upval->location = v;
 }
 
 static void upval_close(struct Upvalue *const upval) {
-	upval->closed = UPVAL_GET(upval);
+	upval->closed = upval_get(upval);
 	upval->location = &upval->closed;
 }
 
