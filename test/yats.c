@@ -4,7 +4,7 @@
 #include "compiler/compiler.h"
 #include "compiler/lexinput.h"
 #include "compiler/parser.h"
-#include "test/unit_tests/test_compiler/compilertest.h"
+// #include "test/unit_tests/test_compiler/compilertest.h"
 #include "yasl.h"
 
 struct Lexer setup_lexer(const char *file_contents) {
