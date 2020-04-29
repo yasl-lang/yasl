@@ -1044,7 +1044,7 @@ static void visit_Integer(struct Compiler *const compiler, const struct Node *co
 	default:
 		if (-(1 << 7) < val && val < (1 << 7)) {
 			YASL_ByteBuffer_add_byte(compiler->buffer, O_ICONST_B1);
-			YASL_ByteBuffer_add_byte(compiler->buffer, val);
+			YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) val);
 		} else {
 			YASL_ByteBuffer_add_byte(compiler->buffer, O_ICONST);
 			YASL_ByteBuffer_add_int(compiler->buffer, val);
