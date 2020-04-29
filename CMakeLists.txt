@@ -11,6 +11,8 @@ set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 11)
 
+# 4244 is lossy coercions:
+# https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-levels-3-and-4-c4244
 if(MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
     set(CMAKE_C_FLAGS "/WX /W3 /Wd4244")
