@@ -554,7 +554,7 @@ static int vm_SLICE(struct VM *const vm) {
 		if (start < 0)
 			start = 0;
 
-		vm_push(vm, YASL_STR(YASL_String_new_substring(start, end, str)));
+		vm_push(vm, YASL_STR(YASL_String_new_substring((size_t)start, (size_t)end, str)));
 		return YASL_SUCCESS;
 	}
 
@@ -634,7 +634,7 @@ static int vm_NEWSTR(struct VM *const vm) {
 	memcpy(&size, vm->headers[table] + addr, sizeof(yasl_int));
 
 	addr += sizeof(yasl_int);
-	struct YASL_String *string = YASL_String_new_sized(size, ((char *) vm->headers[table]) + addr);
+	struct YASL_String *string = YASL_String_new_sized((size_t)size, ((char *) vm->headers[table]) + addr);
 	vm_pushstr(vm, string);
 	return YASL_SUCCESS;
 }
@@ -689,7 +689,7 @@ static int vm_GSTORE_8(struct VM *const vm) {
 	memcpy(&size, vm->headers[table] + addr, sizeof(yasl_int));
 
 	addr += sizeof(yasl_int);
-	struct YASL_String *string = YASL_String_new_sized(size, ((char *) vm->headers[table]) + addr);
+	struct YASL_String *string = YASL_String_new_sized((size_t)size, ((char *) vm->headers[table]) + addr);
 
 	YASL_Table_insert_fast(vm->globals[table], YASL_STR(string), vm_pop(vm));
 	return YASL_SUCCESS;
@@ -1062,13 +1062,13 @@ int vm_run(struct VM *const vm) {
 			break;
 		case O_ENDCOMP:
 			a = vm_pop(vm);
-			vm->lp = vm_popint(vm);
+			vm->lp = (int)vm_popint(vm);
 			vm_pop(vm);
 			vm_pop(vm);
 			vm_push(vm, a);
 			break;
 		case O_ENDFOR:
-			vm->lp = vm_popint(vm);
+			vm->lp = (int)vm_popint(vm);
 			vm_pop(vm);
 			vm_pop(vm);
 			break;
