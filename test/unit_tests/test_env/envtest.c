@@ -95,20 +95,50 @@ static void test_multi_reversed(void) {
 	ASSERT_EQ(a, 1);
 	ASSERT_EQ(a_again, 1);
 	ASSERT_EQ(b, 0);
-	
+
 	int64_t a_value = env_resolve_upval_value(inner, "a");
 	int64_t b_value = env_resolve_upval_value(inner, "b");
 	ASSERT_EQ(a_value, 1);
 	ASSERT_EQ(b_value, 2);
 }
 
-static void test_simple_nested(void) {
+/*
+fn outer() {
+  let x = 1;
+  fn middle() {
+    fn inner() {
+      echo x;
+    }
+    return inner
+  }
+  let i = middle()
+  return i
+}
 
+let inside = outer()
+inside()
+ */
+static void test_deep(void) {
+	struct Env *outer = env_new(NULL);
+	struct Env *middle = env_new(outer);
+	struct Env *inner = env_new(middle);
+
+	scope_decl_var(outer->scope, "x");
+	scope_decl_var(outer->scope, "middle");
+	scope_decl_var(middle->scope, "inner");
+	scope_decl_var(outer->scope, "i");
+
+	ASSERT_EQ(env_resolve_upval_index(inner, "x"), 0);
+	ASSERT_EQ(env_resolve_upval_value(inner, "x"), ~0);
+
+	ASSERT_EQ(env_resolve_upval_index(middle, "x"), 0);
+	ASSERT_EQ(env_resolve_upval_value(middle, "x"), 0);
 }
 
 int envtest(void) {
 	test_two();
 	test_multi();
 	test_multi_reversed();
+	test_deep();
 	return __YASL_TESTS_FAILED__;
 }
