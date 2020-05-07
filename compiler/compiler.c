@@ -169,29 +169,6 @@ static inline int64_t get_index(const int64_t value) {
 	return is_const(value) ? ~value : value;
 }
 
-//static int64_t add_upval(struct Compiler *const compiler, const int64_t index, bool islocal) {
-
-//}
-
-static int64_t resolve_upval(struct Compiler *const compiler, const char *const name) {
-	struct YASL_String *string = YASL_String_new_sized_heap(0, strlen(name), copy_char_buffer(strlen(name), name));
-	struct YASL_Object key = YASL_STR(string);
-
-	struct YASL_Object value = YASL_Table_search(&compiler->params->upvals, key);
-
-	if (value.type == Y_INT) {
-		str_del(key.value.sval);
-		return value.value.ival;
-	}
-
-	yasl_int index = (yasl_int)compiler->params->upvals.count;
-
-	YASL_Table_insert(&compiler->params->upvals, key, YASL_INT(index));
-
-	return index;
-
-}
-
 static void load_var(struct Compiler *const compiler, const char *const name, const size_t line) {
 	const size_t name_len = strlen(name);
 	if (compiler->params && scope_contains(compiler->params->scope, name)) {
@@ -201,9 +178,16 @@ static void load_var(struct Compiler *const compiler, const char *const name, co
 	} else if (env_contains(compiler->params, name)) {
 		compiler->params->isclosure = true;
 		// TODO fix this, we need to handle arbitrarily nested closures
-		compiler->params->parent->usedinclosure = true;
+		// compiler->params->parent->usedinclosure = true;
+		// I Think I got it now?
+		struct Env *curr = compiler->params;
+		while (!env_contains_cur_only(curr, name)) {
+			curr = curr->parent;
+		}
+		curr->usedinclosure = true;
 		YASL_ByteBuffer_add_byte(compiler->buffer, O_ULOAD_1);
-		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) resolve_upval(compiler, name));
+		yasl_int tmp = env_resolve_upval_index(compiler->params, name);
+		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) tmp);
 	} else if (scope_contains(compiler->stack, name)) {
 		int64_t index = get_index(scope_get(compiler->stack, name));
 		YASL_ByteBuffer_add_byte(compiler->buffer, O_GLOAD_1);
@@ -236,7 +220,7 @@ static void store_var(struct Compiler *const compiler, const char *const name, c
 		// TODO fix this, we need to handle arbitrarily nested closures
 		compiler->params->parent->usedinclosure = true;
 		YASL_ByteBuffer_add_byte(compiler->buffer, O_USTORE_1);
-		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) resolve_upval(compiler, name));
+		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) env_resolve_upval_index(compiler->params, name));
 	} else if (scope_contains(compiler->stack, name)) {
 		int64_t index = scope_get(compiler->stack, name);
 		if (is_const(index)) {
@@ -457,16 +441,17 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	} else {
 		YASL_ByteBuffer_add_byte(compiler->buffer, O_CCONST);
 		YASL_ByteBuffer_add_int(compiler->buffer, fn_val);
-		const size_t count = compiler->params->upvals.count;
+		const size_t count = compiler->params->upval_indices.count;
 		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) count);
-		const size_t index = compiler->buffer->count;
+		const size_t start = compiler->buffer->count;
+		// TODO what's below is wrong. We need to get the right value for the upvals.
 		for (size_t i = 0; i < count; i++) {
 			YASL_ByteBuffer_add_byte(compiler->buffer, 0);
 		}
-		FOR_TABLE(i, item, &compiler->params->upvals) {
-			struct YASL_Object obj = YASL_Table_search(&compiler->params->parent->scope->vars, item->key);
-			int64_t tmp = obj.value.ival;
-			compiler->buffer->bytes[index + item->value.value.ival] = tmp >= 0 ? tmp : ~tmp;
+		FOR_TABLE(i, item, &compiler->params->upval_indices) {
+			int64_t index = item->value.value.ival;
+			int64_t value = YASL_Table_search(&compiler->params->upval_values, item->key).value.ival;
+			compiler->buffer->bytes[start + index] = value;
 		}
 
 

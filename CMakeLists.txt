@@ -88,6 +88,7 @@ add_executable(yasltest
         test/unit_tests/test_api/pushtest.c
         test/unit_tests/test_api/poptest.c
         test/unit_tests/test_lexer/lexertest.c
+        test/unit_tests/test_env/envtest.c
         test/unit_tests/test_compiler/compilertest.c
         test/unit_tests/test_compiler/binoptest.c
         test/unit_tests/test_compiler/unoptest.c
@@ -99,6 +100,7 @@ add_executable(yasltest
         test/unit_tests/test_compiler/foldingtest.c
         test/unit_tests/test_compiler/comprehensiontest.c
         test/unit_tests/test_compiler/syntaxerrortest.c
+        test/unit_tests/test_compiler/closuretest.c
         test/unit_tests/test_collections/collectiontest.c
         test/unit_tests/test_collections/settest.c
         test/unit_tests/test_methods/methodtest.c

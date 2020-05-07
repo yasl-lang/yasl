@@ -1206,6 +1206,7 @@ int vm_run(struct VM *const vm) {
 			break;
 		case O_ULOAD_1:
 			offset = NCODE(vm);
+			// printf("offset: %d\n", offset);
 			vm_push(vm, upval_get(vm_peek(vm, vm->fp).value.lval->upvalues[offset]));
 			break;
 		case O_USTORE_1:

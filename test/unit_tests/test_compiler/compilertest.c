@@ -2,6 +2,7 @@
 #include "yats.h"
 #include "compilertest.h"
 #include "binoptest.h"
+#include "closuretest.h"
 #include "unoptest.h"
 #include "literaltest.h"
 #include "iftest.h"
@@ -24,6 +25,7 @@ int compilertest() {
 	RUN(literaltest);
 	RUN(unoptest);
 	RUN(binoptest);
+	RUN(closuretest);
 	RUN(iftest);
 	RUN(whiletest);
 	RUN(fortest);

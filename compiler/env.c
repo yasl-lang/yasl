@@ -3,13 +3,16 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <interpreter/YASL_Object.h>
 
+#include "debug.h"
 #include "data-structures/YASL_String.h"
 
 struct Env *env_new(struct Env *const parent) {
 	struct Env *env = (struct Env *)malloc(sizeof(struct Env));
 	env->scope = NULL;
-	env->upvals = NEW_TABLE();
+	env->upval_indices = NEW_TABLE();
+	env->upval_values = NEW_TABLE();
 	env->usedinclosure = false;
 	env->isclosure = false;
 	env->parent = parent;
@@ -19,13 +22,20 @@ struct Env *env_new(struct Env *const parent) {
 void env_del(struct Env *const env) {
 	if (env == NULL) return;
 	scope_del(env->scope);
-	for (size_t i = 0; i < env->upvals.size; i++) {
-		struct YASL_Table_Item *item = &env->upvals.items[i];
+	for (size_t i = 0; i < env->upval_indices.size; i++) {
+		struct YASL_Table_Item *item = &env->upval_indices.items[i];
 		if (item->key.type != Y_END && item->key.type != Y_UNDEF) {
-			str_del(item->key.value.sval);
+			free(item->key.value.sval);
 		}
 	}
-	free(env->upvals.items);
+	free(env->upval_indices.items);
+	for (size_t i = 0; i < env->upval_values.size; i++) {
+		struct YASL_Table_Item *item = &env->upval_values.items[i];
+		if (item->key.type != Y_END && item->key.type != Y_UNDEF) {
+			//free(item->key.value.sval);
+		}
+	}
+	free(env->upval_values.items);
 	env_del(env->parent);
 	free(env);
 }
@@ -98,6 +108,73 @@ bool env_contains(const struct Env *env, const char *const name) {
 
 bool env_contains_cur_only(const struct Env *const env, const char *const name) {
 	return scope_contains(env->scope, name);
+}
+
+static int is_const(const int64_t value) {
+	const uint64_t MASK = 0x8000000000000000;
+	return (MASK & value) != 0;
+}
+
+static inline int64_t get_index(const int64_t value) {
+	return is_const(value) ? ~value : value;
+}
+
+static int64_t env_add_upval(struct Env *env, const char *const name, bool islocal) {
+	struct YASL_String *string = YASL_String_new_sized_heap(0, strlen(name), copy_char_buffer(strlen(name), name));
+	struct YASL_Object key = YASL_STR(string);
+	struct YASL_Object res;
+	YASL_ASSERT(env->parent, "Parent cannot be null in add_upval.");
+
+	if (!env_contains_cur_only(env->parent, name) && (res = YASL_Table_search(&env->parent->upval_indices, key)).type != Y_INT) {
+		env_add_upval(env->parent, name, false);
+	}
+
+	if (env_contains_cur_only(env->parent, name)) {
+		env->parent->usedinclosure = true;
+		yasl_int value = get_index(scope_get(env->parent->scope, name));
+		YASL_Table_insert(&env->upval_values, key, YASL_INT(value));
+		int64_t index = env->upval_indices.count;
+		YASL_Table_insert(&env->upval_indices, key, YASL_INT(index));
+		return index;
+	}
+
+	if ((res = YASL_Table_search(&env->parent->upval_indices, key)).type == Y_INT) {
+		yasl_int value = res.value.ival;
+		YASL_Table_insert(&env->upval_values, key, YASL_INT(value < 0 ? value : ~value));
+		int64_t index = env->upval_indices.count;
+		YASL_Table_insert(&env->upval_indices, key, YASL_INT(index));
+		return index;
+	}
+
+	YASL_ASSERT(false, "shouldn't reach here.");
+	return 0;
+}
+
+int64_t env_resolve_upval_index(struct Env *const env, const char *const name) {
+	struct YASL_String *string = YASL_String_new_sized_heap(0, strlen(name), copy_char_buffer(strlen(name), name));
+	struct YASL_Object key = YASL_STR(string);
+
+	struct YASL_Object value = YASL_Table_search(&env->upval_indices, key);
+
+	if (value.type == Y_INT) {
+		str_del(key.value.sval);
+		return value.value.ival;
+	}
+
+	return env_add_upval(env, name, true);
+}
+
+// Assumes that the upval in question is already in the upvals for env.
+int64_t env_resolve_upval_value(struct Env *const env, const char *const name) {
+	struct YASL_String *string = YASL_String_new_sized_heap(0, strlen(name), copy_char_buffer(strlen(name), name));
+	struct YASL_Object key = YASL_STR(string);
+
+	struct YASL_Object value = YASL_Table_search(&env->upval_values, key);
+
+	YASL_ASSERT(value.type == Y_INT, "Value must be found in upvals for env.");
+
+	str_del(key.value.sval);
+	return YASL_GETINT(value);
 }
 
 int64_t scope_get(const struct Scope *const scope, const char *const name) {

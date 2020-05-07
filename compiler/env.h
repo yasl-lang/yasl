@@ -12,7 +12,8 @@ struct Scope {
 struct Env {
 	struct Env *parent;
 	struct Scope *scope;
-	struct YASL_Table upvals;
+	struct YASL_Table upval_indices;  // Which order to store the upvalues in the closure
+	struct YASL_Table upval_values;   // What index to look at in the above scope
 	bool isclosure;
 	bool usedinclosure;
 };
@@ -32,6 +33,8 @@ void scope_make_const(struct Scope *const scope, const char *const name);
 bool env_contains(const struct Env *const env, const char *const name);
 bool env_contains_cur_only(const struct Env *const env, const char *const name);
 struct Env *env_new(struct Env *const env);
+int64_t env_resolve_upval_index(struct Env *const env, const char *const name);
+int64_t env_resolve_upval_value(struct Env *const env, const char *const name);
 void env_del(struct Env *const env);
 
 #endif
