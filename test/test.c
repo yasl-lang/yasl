@@ -1,3 +1,5 @@
+#include "yasl_test.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -17,6 +19,7 @@ const char *cmake[] = {"cmake", "--build", ".", NULL};
 int neatsystem(const char *const *command) {
 	pid_t child = fork();
 	if (!child) {
+		printf("!child");
 		execvp(*command, (char *const *)command);
 		exit(1);
 	}
@@ -25,10 +28,8 @@ int neatsystem(const char *const *command) {
 	return WEXITSTATUS(status);
 }
 
-const char *yasltest[] = {"./yasltest", NULL};
-
 int comp_main(void) {
-	return neatsystem(yasltest);
+	return yasl_test();
 }
 
 static const struct {

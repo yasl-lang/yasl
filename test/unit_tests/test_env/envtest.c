@@ -3,6 +3,8 @@
 
 SETUP_YATS();
 
+#define ENTER_SCOPE(env) do { (env)->scope = scope_new((env)->scope); } while(0)
+
 /*
 fn f(a) {
     fn g(b) {
@@ -21,6 +23,9 @@ echo add2(3)
 static void test_two(void) {
 	struct Env *outer = env_new(NULL);
 	struct Env *inner = env_new(outer);
+
+	ENTER_SCOPE(outer);
+	ENTER_SCOPE(inner);
 
 	scope_decl_var(outer->scope, "a");
 	scope_decl_var(outer->scope, "g");
@@ -49,6 +54,9 @@ echo tmp(3)
 static void test_multi(void) {
 	struct Env *outer = env_new(NULL);
 	struct Env *inner = env_new(outer);
+
+	ENTER_SCOPE(outer);
+	ENTER_SCOPE(inner);
 
 	scope_decl_var(outer->scope, "x");
 	scope_decl_var(outer->scope, "a");
@@ -81,6 +89,9 @@ echo tmp(3)
 static void test_multi_reversed(void) {
 	struct Env *outer = env_new(NULL);
 	struct Env *inner = env_new(outer);
+
+	ENTER_SCOPE(outer);
+	ENTER_SCOPE(inner);
 
 	scope_decl_var(outer->scope, "x");
 	scope_decl_var(outer->scope, "a");
@@ -123,6 +134,10 @@ static void test_deep(void) {
 	struct Env *middle = env_new(outer);
 	struct Env *inner = env_new(middle);
 
+	ENTER_SCOPE(outer);
+	ENTER_SCOPE(middle);
+	ENTER_SCOPE(inner);
+
 	scope_decl_var(outer->scope, "x");
 	scope_decl_var(outer->scope, "middle");
 	scope_decl_var(middle->scope, "inner");
@@ -135,10 +150,37 @@ static void test_deep(void) {
 	ASSERT_EQ(env_resolve_upval_value(middle, "x"), 0);
 }
 
+static void test_deep_many_vars(void) {
+	struct Env *outer = env_new(NULL);
+	struct Env *middle = env_new(outer);
+	struct Env *inner = env_new(middle);
+
+	ENTER_SCOPE(outer);
+	ENTER_SCOPE(middle);
+	ENTER_SCOPE(inner);
+
+	scope_decl_var(outer->scope, "x");
+	scope_decl_var(outer->scope, "y");
+	scope_decl_var(outer->scope, "z");
+	scope_decl_var(outer->scope, "middle");
+	scope_decl_var(middle->scope, "inner");
+	scope_decl_var(outer->scope, "i");
+
+	ASSERT_EQ(env_resolve_upval_index(middle, "y"), 0);
+	ASSERT_EQ(env_resolve_upval_value(middle, "y"), 1);
+
+	ASSERT_EQ(env_resolve_upval_index(inner, "z"), 0);
+	ASSERT_EQ(env_resolve_upval_value(inner, "z"), ~1);
+
+	ASSERT_EQ(env_resolve_upval_index(middle, "z"), 1);
+	ASSERT_EQ(env_resolve_upval_value(middle, "z"), 2);
+}
+
 int envtest(void) {
 	test_two();
 	test_multi();
 	test_multi_reversed();
 	test_deep();
+	test_deep_many_vars();
 	return __YASL_TESTS_FAILED__;
 }
