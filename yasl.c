@@ -159,8 +159,8 @@ int YASL_setglobal(struct YASL_State *S, const char *name) {
 	if (is_const(index)) return YASL_ERROR;
 
 	struct YASL_String *string = YASL_String_new_sized(strlen(name), name);
-	YASL_Table_insert(S->vm.globals[0], YASL_STR(string), vm_peek((struct VM *) S));
-	S->vm.sp--;
+	YASL_Table_insert_fast(S->vm.globals[0], YASL_STR(string), vm_peek((struct VM *) S));
+	YASL_pop(S);
 
 	return YASL_SUCCESS;
 }
@@ -251,15 +251,10 @@ int YASL_pushtable(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
-int YASL_pushobject(struct YASL_State *S, struct YASL_Object *obj) {
-	if (!obj) return YASL_ERROR;
-	vm_push((struct VM *) S, *obj);
-	// free(obj); // TODO: delete properly
+int YASL_pushlist(struct YASL_State *S) {
+	struct RC_UserData *list = rcls_new();
+	vm_push(&S->vm, YASL_LIST(list));
 	return YASL_SUCCESS;
-}
-
-struct YASL_Object *YASL_popobject(struct YASL_State *S) {
-	return &S->vm.stack[S->vm.sp--];
 }
 
 int YASL_pop(struct YASL_State *S) {
@@ -268,24 +263,36 @@ int YASL_pop(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
+int YASL_top_dup(struct YASL_State *S) {
+	vm_push(&S->vm, vm_peek(&S->vm));
+	return YASL_SUCCESS;
+}
+
 int YASL_settable(struct YASL_State *S) {
 	struct YASL_Object value = vm_pop(&S->vm);
 	struct YASL_Object key = vm_pop(&S->vm);
 	struct YASL_Object table = vm_pop(&S->vm);
 
+	// TODO change to TYPE_ERROR
 	if (!YASL_ISTABLE(table))
-		return YASL_ERROR;
-	YASL_Table_insert(YASL_GETTABLE(table), key, value);
-
+		return YASL_TYPE_ERROR;
+	if (!YASL_Table_insert(YASL_GETTABLE(table), key, value)) {
+		return YASL_TYPE_ERROR;
+	}
 	return YASL_SUCCESS;
 }
 
-int YASL_UserData_gettag(struct YASL_Object *obj) {
-	return obj->value.uval->tag;
-}
+int YASL_appendlist(struct YASL_State *S) {
+	struct YASL_Object value = vm_pop(&S->vm);
+	struct YASL_Object list = vm_pop(&S->vm);
 
-void *YASL_UserData_getdata(struct YASL_Object *obj) {
-	return obj->value.uval->data;
+	// TODO change to TYPE_ERROR
+	if (!YASL_ISLIST(list)) {
+		return YASL_ERROR;
+	}
+	YASL_List_append(YASL_GETLIST(list), value);
+
+	return YASL_SUCCESS;
 }
 
 bool YASL_top_isundef(struct YASL_State *S) {
@@ -294,10 +301,6 @@ bool YASL_top_isundef(struct YASL_State *S) {
 
 bool YASL_top_isboolean(struct YASL_State *S) {
 	return vm_isbool(&S->vm);
-}
-
-bool YASL_top_isdouble(struct YASL_State *S) {
-	return vm_isfloat(&S->vm);
 }
 
 bool YASL_top_isfloat(struct YASL_State *S) {
@@ -342,23 +345,9 @@ bool YASL_top_popboolean(struct YASL_State *S) {
 	return false;
 }
 
-yasl_float YASL_top_peekdouble(struct YASL_State *S) {
-	if (YASL_top_isfloat(S)) {
-		return vm_peekfloat(&S->vm);
-	}
-	return 0.0;
-}
-
 yasl_float YASL_top_peekfloat(struct YASL_State *S) {
 	if (YASL_top_isfloat(S)) {
 		return vm_peekfloat(&S->vm);
-	}
-	return 0.0;
-}
-
-yasl_float YASL_top_popdouble(struct YASL_State *S) {
-	if (YASL_top_isfloat(S)) {
-		return vm_popfloat(&S->vm);
 	}
 	return 0.0;
 }

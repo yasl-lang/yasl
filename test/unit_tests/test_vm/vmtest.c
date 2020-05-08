@@ -195,6 +195,11 @@ int vmtest(void) {
 	ASSERT_DIV_BY_ZERO_ERR("echo 1 // 0;");
 	ASSERT_DIV_BY_ZERO_ERR("echo 1 % 0;");
 
+	ASSERT_TYPE_ERR("echo { []: .list };", "unable to use mutable object of type list as key");
+	ASSERT_TYPE_ERR("const x = {}; x[[]] = .list;", "unable to use mutable object of type list as key");
+
+	ASSERT_VALUE_ERR("const x = [ .a, .b, .c ]; x[3] = .d;", "unable to index list of length 3 with index 3");
+
 	// math type errors
 	// ASSERT_ARG_TYPE_ERR("math.max(1, 2, .a);", "math.max", "float", "str", 2);
 	// ASSERT_ARG_TYPE_ERR("math.min(1, 2, .a);", "math.max", "float", "str", 2);

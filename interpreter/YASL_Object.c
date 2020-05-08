@@ -39,6 +39,7 @@ struct CFunction *new_cfn(int (*value)(struct YASL_State *), int num_args) {
 }
 
 void cfn_del_data(struct CFunction *cfn) {
+	(void) cfn;
 }
 
 void cfn_del_rc(struct CFunction *cfn) {
@@ -46,35 +47,11 @@ void cfn_del_rc(struct CFunction *cfn) {
 	free(cfn);
 }
 
-struct YASL_Object *YASL_Table() {
+struct YASL_Object *YASL_Table(void) {
 	struct YASL_Object *table = (struct YASL_Object *) malloc(sizeof(struct YASL_Object));
 	table->type = Y_TABLE;
 	table->value.uval = rcht_new();
 	return table;
-}
-
-struct YASL_Object *YASL_UserData(void *userdata, int tag, struct YASL_Table *mt, void (*destructor)(void *)) {
-	struct YASL_Object *obj = (struct YASL_Object *)malloc(sizeof(struct YASL_Object));
-	obj->type = Y_USERDATA;
-	obj->value.uval = ud_new(userdata, tag, mt, destructor);
-	return obj;
-}
-
-struct YASL_Object *YASL_Function(int64_t index) {
-	struct YASL_Object *fn = (struct YASL_Object *) malloc(sizeof(struct YASL_Object));
-	fn->type = Y_FN;
-	fn->value.ival = index;
-	return fn;
-}
-
-struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *), int num_args) {
-	struct YASL_Object *fn = (struct YASL_Object *) malloc(sizeof(struct YASL_Object));
-	fn->type = Y_CFN;
-	fn->value.pval = malloc(sizeof(struct CFunction));
-	fn->value.cval->value = value;
-	fn->value.cval->num_args = num_args;
-	fn->value.cval->rc = rc_new();
-	return fn;
 }
 
 int yasl_object_cmp(struct YASL_Object a, struct YASL_Object b) {
@@ -103,7 +80,18 @@ int yasl_object_cmp(struct YASL_Object a, struct YASL_Object b) {
 	return 0;
 }
 
-int isfalsey(struct YASL_Object v) {
+bool ishashable(struct YASL_Object v) {
+	return (
+		YASL_ISUNDEF(v) ||
+		YASL_ISBOOL(v) ||
+		YASL_ISFLOAT(v) ||
+		YASL_ISINT(v) ||
+		YASL_ISSTR(v) ||
+		YASL_ISUSERPTR(v)
+		);
+}
+
+bool isfalsey(struct YASL_Object v) {
 	/*
 	 * Falsey values are:
 	 * 	undef

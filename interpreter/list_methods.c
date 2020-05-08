@@ -32,27 +32,26 @@ int list___get(struct YASL_State *S) {
 
 int list___set(struct YASL_State *S) {
 	struct YASL_Object value = vm_pop((struct VM *) S);
-	struct YASL_Object index = vm_pop((struct VM *) S);
+	if (!YASL_top_isinteger(S)) {
+		vm_print_err_bad_arg_type((struct VM *)S, "list.__set", 1, Y_INT, YASL_top_peektype(S));
+		return YASL_TYPE_ERROR;
+	}
+
+	yasl_int index = YASL_top_popinteger(S);
 	if (!YASL_top_islist(S)) {
 		vm_print_err_bad_arg_type((struct VM *)S, "list.__set", 0, Y_LIST, YASL_top_peektype(S));
 		return YASL_TYPE_ERROR;
 	}
-	struct YASL_List *ls = YASL_GETLIST(vm_pop((struct VM *) S));
-	if (!YASL_ISINT(index)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "list.__set", 1, Y_INT, index.type);
-		return YASL_TYPE_ERROR;
-	} else if (YASL_GETINT(index) < -(int64_t) ls->count || YASL_GETINT(index) >= (int64_t) ls->count) {
-		// TODO: fix this
-		printf("%d || %d\n", YASL_GETINT(index) < -(int64_t) ls->count,
-		       YASL_GETINT(index) >= (int64_t) ls->count);
-		printf("IndexError\n");
-		//vm_push((struct VM *)S, YASL_UNDEF());
-		return -1;
-	} else {
-		if (YASL_GETINT(index) >= 0) ls->items[YASL_GETINT(index)] = value;
-		else ls->items[YASL_GETINT(index) + ls->count] = value;
-		//vm_push((struct VM *)S, value);
+
+	struct YASL_List *ls = vm_poplist((struct VM *) S);
+
+	if (index < -(yasl_int) ls->count || index >= (yasl_int) ls->count) {
+		vm_print_err_value(&S->vm, "unable to index list of length %" PRI_SIZET " with index %" PRId64 ".\n", ls->count, index);
+		return YASL_VALUE_ERROR;
 	}
+	if (index >= 0) ls->items[index] = value;
+	else ls->items[index + ls->count] = value;
+
 	return YASL_SUCCESS;
 }
 
