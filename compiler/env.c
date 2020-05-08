@@ -133,9 +133,9 @@ static int64_t env_add_upval(struct Env *env, const char *const name) {
 	if (env_contains_cur_only(env->parent, name)) {
 		env->parent->usedinclosure = true;
 		yasl_int value = get_index(scope_get(env->parent->scope, name));
-		(bool)YASL_Table_insert(&env->upval_values, key, YASL_INT(value));
+		YASL_Table_insert(&env->upval_values, key, YASL_INT(value));
 		int64_t index = env->upval_indices.count;
-		(bool)YASL_Table_insert(&env->upval_indices, key, YASL_INT(index));
+		YASL_Table_insert(&env->upval_indices, key, YASL_INT(index));
 		return index;
 	}
 

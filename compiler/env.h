@@ -30,7 +30,7 @@ int64_t scope_decl_var(struct Scope *const scope, const char *const name);
 bool scope_used_in_closure(const struct Scope *const scope);
 void scope_make_const(struct Scope *const scope, const char *const name);
 
-bool env_contains(const struct Env *const env, const char *const name);
+bool env_contains(const struct Env *env, const char *const name);
 bool env_contains_cur_only(const struct Env *const env, const char *const name);
 struct Env *env_new(struct Env *const env);
 int64_t env_resolve_upval_index(struct Env *const env, const char *const name);
