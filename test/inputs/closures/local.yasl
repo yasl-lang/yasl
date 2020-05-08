@@ -1,0 +1,11 @@
+fn f(x) {
+    const a = 2 * x
+    fn g(b) {
+        return a + b;
+    }
+    echo g(1)
+    return g
+}
+
+let add4 = f(2);
+echo add4(3)

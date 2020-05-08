@@ -1,0 +1,14 @@
+fn outer() {
+  let x = 100;
+  fn middle() {
+    fn inner() {
+      echo x;
+    }
+    return inner
+  }
+  let i = middle()
+  return i
+}
+
+let inside = outer()
+inside()

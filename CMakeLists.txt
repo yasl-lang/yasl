@@ -56,6 +56,7 @@ add_executable(yasl
         compiler/parser.c
         compiler/middleend.c
         interpreter/upvalue.c
+        interpreter/closure.c
         util/hash_function.c
         data-structures/YASL_Table.c
         interpreter/bool_methods.c
@@ -81,62 +82,6 @@ add_executable(yasl
         std/yasl-std-collections.c
         util/IO.c)
 
-add_executable(yasltest
-        opcode.h
-        test/yats.c
-        test/yasl_test.c
-        test/unit_tests/test_api/apitest.c
-        test/unit_tests/test_api/pushtest.c
-        test/unit_tests/test_api/poptest.c
-        test/unit_tests/test_lexer/lexertest.c
-        test/unit_tests/test_compiler/compilertest.c
-        test/unit_tests/test_compiler/binoptest.c
-        test/unit_tests/test_compiler/unoptest.c
-        test/unit_tests/test_compiler/literaltest.c
-        test/unit_tests/test_compiler/iftest.c
-        test/unit_tests/test_compiler/whiletest.c
-        test/unit_tests/test_compiler/fortest.c
-        test/unit_tests/test_compiler/foreachtest.c
-        test/unit_tests/test_compiler/foldingtest.c
-        test/unit_tests/test_compiler/comprehensiontest.c
-        test/unit_tests/test_compiler/syntaxerrortest.c
-        test/unit_tests/test_collections/collectiontest.c
-        test/unit_tests/test_collections/settest.c
-        test/unit_tests/test_methods/methodtest.c
-        test/unit_tests/test_methods/listtest.c
-        test/unit_tests/test_methods/strtest.c
-        test/unit_tests/test_vm/vmtest.c
-        compiler/lexer.c
-        compiler/lexinput.c
-        compiler/compiler.c
-        compiler/parser.c
-        compiler/ast.c
-        compiler/middleend.c
-        util/hash_function.c
-        data-structures/YASL_Table.c
-        util/yasl_float.c
-        interpreter/YASL_Object.c
-        data-structures/YASL_ByteBuffer.c
-        data-structures/YASL_String.c
-        interpreter/refcount.c
-        data-structures/YASL_List.c
-        interpreter/userdata.c
-        util/prime.c
-        data-structures/YASL_Set.c
-        compiler/env.c
-        yasl.c
-        interpreter/upvalue.c
-        interpreter/VM.c
-        interpreter/builtins.c
-        interpreter/list_methods.c
-        interpreter/table_methods.c
-        interpreter/str_methods.c
-        interpreter/undef_methods.c
-        interpreter/float_methods.c
-        interpreter/int_methods.c
-        interpreter/bool_methods.c
-        util/IO.c)
-
 if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
     add_executable(tests
             opcode.h
@@ -144,7 +89,65 @@ if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
             test/clitest.c
             test/filetest.c
             test/memtest.c
-            test/test_util.c)
+            test/test_util.c
+            opcode.h
+            test/yats.c
+            test/yasl_test.c
+            test/unit_tests/test_api/apitest.c
+            test/unit_tests/test_api/pushtest.c
+            test/unit_tests/test_api/poptest.c
+            test/unit_tests/test_lexer/lexertest.c
+            test/unit_tests/test_env/envtest.c
+            test/unit_tests/test_compiler/compilertest.c
+            test/unit_tests/test_compiler/binoptest.c
+            test/unit_tests/test_compiler/unoptest.c
+            test/unit_tests/test_compiler/literaltest.c
+            test/unit_tests/test_compiler/iftest.c
+            test/unit_tests/test_compiler/whiletest.c
+            test/unit_tests/test_compiler/fortest.c
+            test/unit_tests/test_compiler/foreachtest.c
+            test/unit_tests/test_compiler/foldingtest.c
+            test/unit_tests/test_compiler/comprehensiontest.c
+            test/unit_tests/test_compiler/syntaxerrortest.c
+            test/unit_tests/test_compiler/closuretest.c
+            test/unit_tests/test_collections/collectiontest.c
+            test/unit_tests/test_collections/settest.c
+            test/unit_tests/test_methods/methodtest.c
+            test/unit_tests/test_methods/listtest.c
+            test/unit_tests/test_methods/strtest.c
+            test/unit_tests/test_vm/vmtest.c
+            compiler/lexer.c
+            compiler/lexinput.c
+            compiler/compiler.c
+            compiler/parser.c
+            compiler/ast.c
+            compiler/middleend.c
+            util/hash_function.c
+            data-structures/YASL_Table.c
+            util/yasl_float.c
+            interpreter/YASL_Object.c
+            data-structures/YASL_ByteBuffer.c
+            data-structures/YASL_String.c
+            interpreter/refcount.c
+            data-structures/YASL_List.c
+            interpreter/userdata.c
+            util/prime.c
+            data-structures/YASL_Set.c
+            compiler/env.c
+            yasl.c
+            interpreter/upvalue.c
+            interpreter/closure.c
+            interpreter/VM.c
+            interpreter/builtins.c
+            interpreter/list_methods.c
+            interpreter/table_methods.c
+            interpreter/str_methods.c
+            interpreter/undef_methods.c
+            interpreter/float_methods.c
+            interpreter/int_methods.c
+            interpreter/bool_methods.c
+            util/IO.c
+            )
 endif()
 
 add_library(yaslapi
@@ -164,6 +167,7 @@ add_library(yaslapi
         interpreter/builtins.c
         interpreter/float_methods.c
         interpreter/upvalue.c
+        interpreter/closure.c
         util/yasl_float.c
         interpreter/int_methods.c
         data-structures/YASL_List.c
@@ -181,7 +185,6 @@ add_library(yaslapi
 
 if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
     target_link_libraries(yasl m)
-    target_link_libraries(yasltest m)
     target_link_libraries(yaslapi m)
     target_link_libraries(tests m)
 endif()

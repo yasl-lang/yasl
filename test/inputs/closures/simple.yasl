@@ -1,0 +1,11 @@
+fn f(a) {
+    fn g(b) {
+        return a + b;
+    }
+    echo g(1)
+    return g
+}
+
+let add2 = f(2);
+echo add2(3)
+

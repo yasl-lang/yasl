@@ -4,8 +4,9 @@
 #include "test/unit_tests/test_methods/methodtest.h"
 #include "test/unit_tests/test_api/apitest.h"
 #include "test/unit_tests/test_vm/vmtest.h"
+#include "test/unit_tests/test_env/envtest.h"
 
-int main() {
+int yasl_test(void) {
 	int failed = 0;
 	failed += apitest();
 	failed += lexertest();
@@ -13,5 +14,6 @@ int main() {
 	failed += collectiontest();
 	failed += methodtest();
 	failed += vmtest();
+	failed += envtest();
 	return failed;
 }
