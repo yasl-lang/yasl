@@ -177,9 +177,6 @@ static void load_var(struct Compiler *const compiler, const char *const name, co
 		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) index);
 	} else if (env_contains(compiler->params, name)) {
 		compiler->params->isclosure = true;
-		// TODO fix this, we need to handle arbitrarily nested closures
-		// compiler->params->parent->usedinclosure = true;
-		// I Think I got it now?
 		struct Env *curr = compiler->params;
 		while (!env_contains_cur_only(curr, name)) {
 			curr = curr->parent;
@@ -215,12 +212,16 @@ static void store_var(struct Compiler *const compiler, const char *const name, c
 		}
 		YASL_ByteBuffer_add_byte(compiler->buffer, O_LSTORE_1);
 		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) index);
-	} else if (compiler->params && compiler->params->parent && scope_contains(compiler->params->parent->scope, name)) {
+	} else if (env_contains(compiler->params, name)) {
 		compiler->params->isclosure = true;
-		// TODO fix this, we need to handle arbitrarily nested closures
-		compiler->params->parent->usedinclosure = true;
+		struct Env *curr = compiler->params;
+		while (!env_contains_cur_only(curr, name)) {
+			curr = curr->parent;
+		}
+		curr->usedinclosure = true;
 		YASL_ByteBuffer_add_byte(compiler->buffer, O_USTORE_1);
-		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) env_resolve_upval_index(compiler->params, name));
+		yasl_int tmp = env_resolve_upval_index(compiler->params, name);
+		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) tmp);
 	} else if (scope_contains(compiler->stack, name)) {
 		int64_t index = scope_get(compiler->stack, name);
 		if (is_const(index)) {
