@@ -119,7 +119,7 @@ static inline int64_t get_index(const int64_t value) {
 	return is_const(value) ? ~value : value;
 }
 
-static int64_t env_add_upval(struct Env *env, const char *const name, bool islocal) {
+static int64_t env_add_upval(struct Env *env, const char *const name) {
 	struct YASL_String *string = YASL_String_new_sized_heap(0, strlen(name), copy_char_buffer(strlen(name), name));
 	struct YASL_Object key = YASL_STR(string);
 	struct YASL_Object res;
@@ -127,15 +127,15 @@ static int64_t env_add_upval(struct Env *env, const char *const name, bool isloc
 
 	env->isclosure = true;
 	if (!env_contains_cur_only(env->parent, name) && (YASL_Table_search(&env->parent->upval_indices, key)).type != Y_INT) {
-		env_add_upval(env->parent, name, false);
+		env_add_upval(env->parent, name);
 	}
 
 	if (env_contains_cur_only(env->parent, name)) {
 		env->parent->usedinclosure = true;
 		yasl_int value = get_index(scope_get(env->parent->scope, name));
-		YASL_Table_insert(&env->upval_values, key, YASL_INT(value));
+		(bool)YASL_Table_insert(&env->upval_values, key, YASL_INT(value));
 		int64_t index = env->upval_indices.count;
-		YASL_Table_insert(&env->upval_indices, key, YASL_INT(index));
+		(bool)YASL_Table_insert(&env->upval_indices, key, YASL_INT(index));
 		return index;
 	}
 
@@ -162,7 +162,7 @@ int64_t env_resolve_upval_index(struct Env *const env, const char *const name) {
 		return value.value.ival;
 	}
 
-	return env_add_upval(env, name, true);
+	return env_add_upval(env, name);
 }
 
 // Assumes that the upval in question is already in the upvals for env.
