@@ -219,6 +219,12 @@ static void store_var(struct Compiler *const compiler, const char *const name, c
 			curr = curr->parent;
 		}
 		curr->usedinclosure = true;
+		int64_t index = scope_get(curr->scope, name);
+		if (is_const(index)) {
+			compiler_print_err_const(compiler, name, line);
+			handle_error(compiler);
+			return;
+		}
 		YASL_ByteBuffer_add_byte(compiler->buffer, O_USTORE_1);
 		yasl_int tmp = env_resolve_upval_index(compiler->params, name);
 		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) tmp);
