@@ -532,7 +532,11 @@ static int vm_CCONST(struct VM *const vm) {
 
 	for (size_t i = 0; i < num_upvalues; i++) {
 		unsigned char u = NCODE(vm);
-		closure->upvalues[i] = add_upvalue(vm, &vm_peek(vm, vm->frames[vm->frame_num].fp + 2 + u));
+		if ((signed char)u >= 0) {
+			closure->upvalues[i] = add_upvalue(vm, &vm_peek(vm, vm->frames[vm->frame_num].fp + 2 + u));
+		} else {
+			closure->upvalues[i] = vm->stack[vm->fp].value.lval->upvalues[~(signed char)u];
+		}
 		closure->upvalues[i]->rc->refs++;
 	}
 
@@ -1206,7 +1210,7 @@ int vm_run(struct VM *const vm) {
 			break;
 		case O_ULOAD_1:
 			offset = NCODE(vm);
-			// printf("offset: %d\n", offset);
+			//printf("offset: %d\n", offset);
 			vm_push(vm, upval_get(vm_peek(vm, vm->fp).value.lval->upvalues[offset]));
 			break;
 		case O_USTORE_1:

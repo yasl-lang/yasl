@@ -125,7 +125,8 @@ static int64_t env_add_upval(struct Env *env, const char *const name, bool isloc
 	struct YASL_Object res;
 	YASL_ASSERT(env->parent, "Parent cannot be null in add_upval.");
 
-	if (!env_contains_cur_only(env->parent, name) && (res = YASL_Table_search(&env->parent->upval_indices, key)).type != Y_INT) {
+	env->isclosure = true;
+	if (!env_contains_cur_only(env->parent, name) && (YASL_Table_search(&env->parent->upval_indices, key)).type != Y_INT) {
 		env_add_upval(env->parent, name, false);
 	}
 

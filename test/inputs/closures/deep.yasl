@@ -1,5 +1,5 @@
 fn outer() {
-  let x = 1;
+  let x = 100;
   fn middle() {
     fn inner() {
       echo x;
