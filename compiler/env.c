@@ -25,14 +25,14 @@ void env_del(struct Env *const env) {
 	for (size_t i = 0; i < env->upval_indices.size; i++) {
 		struct YASL_Table_Item *item = &env->upval_indices.items[i];
 		if (item->key.type != Y_END && item->key.type != Y_UNDEF) {
-			free(item->key.value.sval);
+			dec_ref(&item->key);
 		}
 	}
 	free(env->upval_indices.items);
 	for (size_t i = 0; i < env->upval_values.size; i++) {
 		struct YASL_Table_Item *item = &env->upval_values.items[i];
 		if (item->key.type != Y_END && item->key.type != Y_UNDEF) {
-			//free(item->key.value.sval);
+			dec_ref(&item->key);
 		}
 	}
 	free(env->upval_values.items);
@@ -156,9 +156,9 @@ int64_t env_resolve_upval_index(struct Env *const env, const char *const name) {
 	struct YASL_Object key = YASL_STR(string);
 
 	struct YASL_Object value = YASL_Table_search(&env->upval_indices, key);
+	str_del(key.value.sval);
 
 	if (value.type == Y_INT) {
-		str_del(key.value.sval);
 		return value.value.ival;
 	}
 
