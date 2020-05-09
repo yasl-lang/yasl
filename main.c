@@ -147,11 +147,6 @@ static int main_REPL(int argc, char **argv) {
 		}
 		buffer[count++] = '\n';
 
-		/*
-		if (count == strlen("quit\n") && !memcmp(buffer, "quit\n", strlen("quit\n"))) {
-			break;
-		}
-		 */
 		YASL_resetstate_bb(S, buffer, count); 
 
 		count = 0;
