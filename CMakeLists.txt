@@ -116,6 +116,10 @@ if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
             test/unit_tests/test_methods/listtest.c
             test/unit_tests/test_methods/strtest.c
             test/unit_tests/test_vm/vmtest.c
+            std/yasl-std-collections.c
+            std/yasl-std-require.c
+            std/yasl-std-io.c
+            std/yasl-std-math.c
             compiler/lexer.c
             compiler/lexinput.c
             compiler/compiler.c

@@ -4,23 +4,11 @@
 #include <time.h>
 
 #include "yasl.h"
-#include "std/yasl-std-io.h"
-#include "std/yasl-std-math.h"
-#include "std/yasl-std-require.h"
-#include "std/yasl-std-collections.h"
+#include "std/yasl-std.h"
 #include "yasl_state.h"
-
 
 #define VERSION "v0.8.1"
 #define VERSION_PRINTOUT "YASL " VERSION
-
-static int load_libs(struct YASL_State *S) {
-	YASL_load_math(S);
-	YASL_load_io(S);
-	YASL_load_require(S);
-	YASL_load_collections(S);
-	return YASL_SUCCESS;
-}
 
 static int main_error(int argc, char **argv) {
 	(void) argv;

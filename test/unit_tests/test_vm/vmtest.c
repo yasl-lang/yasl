@@ -2,6 +2,7 @@
 #include "yasl.h"
 #include "IO.h"
 #include "yasl_state.h"
+#include "yasl-std.h"
 
 SETUP_YATS();
 
@@ -9,6 +10,7 @@ SETUP_YATS();
 
 #define ASSERT_VALUE_ERR(code, expected) {\
 	struct YASL_State *S = YASL_newstate_bb(code, strlen(code));\
+	load_libs(S);\
 	S->vm.err.print = io_print_string;\
 	S->vm.out.print = io_print_string;\
 	ASSERT_SUCCESS(YASL_compile(S));\
@@ -23,6 +25,7 @@ SETUP_YATS();
 
 #define ASSERT_DIV_BY_ZERO_ERR(code) {\
 	struct YASL_State *S = YASL_newstate_bb(code, strlen(code));\
+	load_libs(S);\
 	S->vm.err.print = io_print_string;\
 	S->vm.out.print = io_print_string;\
 	ASSERT_SUCCESS(YASL_compile(S));\
@@ -37,6 +40,7 @@ SETUP_YATS();
 
 #define ASSERT_TYPE_ERR(code, expected) {\
 	struct YASL_State *S = YASL_newstate_bb(code, strlen(code));\
+	load_libs(S);\
 	S->vm.err.print = io_print_string;\
 	S->vm.out.print = io_print_string;\
 	ASSERT_SUCCESS(YASL_compile(S));\
@@ -201,8 +205,31 @@ int vmtest(void) {
 	ASSERT_VALUE_ERR("const x = [ .a, .b, .c ]; x[3] = .d;", "unable to index list of length 3 with index 3");
 
 	// math type errors
-	// ASSERT_ARG_TYPE_ERR("math.max(1, 2, .a);", "math.max", "float", "str", 2);
-	// ASSERT_ARG_TYPE_ERR("math.min(1, 2, .a);", "math.max", "float", "str", 2);
+	ASSERT_ARG_TYPE_ERR("math.max(1, 2, .a);", "math.max", "float", "str", 2);
+	ASSERT_ARG_TYPE_ERR("math.min(1, 2, .a);", "math.min", "float", "str", 2);
+	ASSERT_ARG_TYPE_ERR("math.max(.a, 1);", "math.max", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.min(.a, 1);", "math.min", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.abs(.str);", "math.abs", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.log(.str);", "math.log", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.exp(.str);", "math.exp", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.sqrt(.str);", "math.sqrt", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.cos(.str);", "math.cos", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.sin(.str);", "math.sin", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.tan(.str);", "math.tan", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.acos(.str);", "math.acos", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.asin(.str);", "math.asin", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.atan(.str);", "math.atan", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.ceil(.str);", "math.ceil", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.floor(.str);", "math.floor", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.deg(.str);", "math.deg", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.rad(.str);", "math.rad", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.isprime(.str);", "math.isprime", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.gcd(.str, 1);", "math.gcd", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.gcd(2, .s);", "math.gcd", "float", "str", 1);
+	ASSERT_ARG_TYPE_ERR("math.gcd(.a, .b);", "math.gcd", "float", "str", 1);
+	ASSERT_ARG_TYPE_ERR("math.lcm(.str, 1);", "math.lcm", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.lcm(2, .s);", "math.lcm", "float", "str", 1);
+	ASSERT_ARG_TYPE_ERR("math.lcm(.a, .b);", "math.lcm", "float", "str", 1);
 
 	return __YASL_TESTS_FAILED__;
 }
