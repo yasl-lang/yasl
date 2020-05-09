@@ -10,7 +10,12 @@ static int YASL_collections_set_new(struct YASL_State *S) {
 	struct YASL_Set *set = YASL_Set_new();
 	yasl_int i = vm_popint((struct VM *)S);
 	while (i-- > 0) {
-		YASL_Set_insert(set, vm_pop((struct VM *) S));
+		if (!YASL_Set_insert(set, vm_peek((struct VM *) S))) {
+			vm_print_err_type(&S->vm, "unable to use mutable object of type %s as key.\n",
+					  YASL_TYPE_NAMES[vm_peek((struct VM*)S).type]);
+			return YASL_TYPE_ERROR;
+		}
+		vm_pop((struct VM *)S);
 	}
 	YASL_pushuserdata(S, set, T_SET, set_mt, YASL_Set_del);
 	return YASL_SUCCESS;

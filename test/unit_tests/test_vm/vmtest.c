@@ -231,5 +231,8 @@ int vmtest(void) {
 	ASSERT_ARG_TYPE_ERR("math.lcm(2, .s);", "math.lcm", "float", "str", 1);
 	ASSERT_ARG_TYPE_ERR("math.lcm(.a, .b);", "math.lcm", "float", "str", 1);
 
+	// collection errors
+	ASSERT_TYPE_ERR("echo collections.set([], []);", "unable to use mutable object of type list as key");
+
 	return __YASL_TESTS_FAILED__;
 }
