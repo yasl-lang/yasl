@@ -4,6 +4,9 @@
 #include "interpreter/VM.h"
 #include "yasl_state.h"
 
+// what to prepend to method names in messages to user
+#define SET_PRE "collections.set"
+
 static struct YASL_Table *set_mt = NULL;
 
 static int YASL_collections_set_new(struct YASL_State *S) {
@@ -34,7 +37,7 @@ static int YASL_collections_list_new(struct YASL_State *S) {
 
 static int YASL_collections_table_new(struct YASL_State *S) {
 	yasl_int i = vm_popint((struct VM *)S);
-	// TODO: error for odd num args?
+	// If we have an odd number of args, we just add an undef to balance it out.
 	if (i % 2 != 0) {
 		vm_pushundef((struct VM *)S);
 	}
@@ -42,7 +45,11 @@ static int YASL_collections_table_new(struct YASL_State *S) {
 	while (i > 0) {
 		struct YASL_Object value = vm_pop((struct VM *)S);
 		struct YASL_Object key = vm_pop((struct VM *)S);
-		YASL_Table_insert_fast((struct YASL_Table *) table->data, key, value);
+		if (!YASL_Table_insert((struct YASL_Table *) table->data, key, value)) {
+			vm_print_err_type(&S->vm, "unable to use mutable object of type %s as key.\n",
+					  YASL_TYPE_NAMES[key.type]);
+			return YASL_TYPE_ERROR;
+		}
 		i -= 2;
 	}
 	vm_pushtable((struct VM *)S, table);
@@ -51,6 +58,8 @@ static int YASL_collections_table_new(struct YASL_State *S) {
 
 static int YASL_collections_set_tostr(struct YASL_State *S) {
 	if (!YASL_top_isuserdata(S, T_SET)) {
+		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type set, got arg of type %s.\n",
+				  SET_PRE ".tostr", 0, YASL_TYPE_NAMES[vm_peek(&S->vm).type]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_Set *set = (struct YASL_Set *)YASL_top_popuserdata(S);
@@ -94,6 +103,8 @@ static int YASL_collections_set_tostr(struct YASL_State *S) {
 
 static int YASL_collections_set_tolist(struct YASL_State *S) {
 	if (!YASL_top_isuserdata(S, T_SET)) {
+		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type set, got arg of type %s.\n",
+				  SET_PRE ".tolist", 0, YASL_TYPE_NAMES[vm_peek(&S->vm).type]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_Set *set = (struct YASL_Set *)YASL_top_popuserdata(S);
@@ -111,11 +122,15 @@ static int YASL_collections_set_tolist(struct YASL_State *S) {
 #define YASL_COLLECTIONS_SET_BINOP(name, fn) \
 static int YASL_collections_set_##name(struct YASL_State *S) {\
 	if (!YASL_top_isuserdata(S, T_SET)) {\
+		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type set, got arg of type %s.\n",\
+				SET_PRE "." #name, 1, YASL_TYPE_NAMES[vm_peek(&S->vm).type]);\
 		return YASL_TYPE_ERROR;\
 	}\
 	struct YASL_Set *right = (struct YASL_Set *)YASL_top_popuserdata(S);\
 \
 	if (!YASL_top_isuserdata(S, T_SET)) {\
+		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type set, got arg of type %s.\n",\
+				SET_PRE "." #name, 0, YASL_TYPE_NAMES[vm_peek(&S->vm).type]);\
 		return YASL_TYPE_ERROR;\
 	}\
 	struct YASL_Set *left = (struct YASL_Set *)YASL_top_popuserdata(S);\
@@ -134,6 +149,8 @@ YASL_COLLECTIONS_SET_BINOP(__bandnot, YASL_Set_difference)
 
 static int YASL_collections_set___len(struct YASL_State *S) {
 	if (!YASL_top_isuserdata(S, T_SET)) {
+		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type set, got arg of type %s.\n",
+				  SET_PRE ".__len", 0, YASL_TYPE_NAMES[vm_peek(&S->vm).type]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_Set *set = (struct YASL_Set *)YASL_top_popuserdata(S);
@@ -143,20 +160,19 @@ static int YASL_collections_set___len(struct YASL_State *S) {
 }
 
 static int YASL_collections_set_add(struct YASL_State *S) {
-	if (!YASL_top_isundef(S) && !YASL_top_isfloat(S) && !YASL_top_isboolean(S) && !YASL_top_isinteger(S) && !YASL_top_isuserpointer(S)) {
-		// TODO: fix error message
-		printf("Error: unable to insert mutable object of type %x into set.\n", vm_pop(&S->vm).type);
-		return YASL_TYPE_ERROR;
-	}
-	struct YASL_Object right = vm_pop(&S->vm);
+	struct YASL_Object val = vm_pop(&S->vm);
 
 	if (!YASL_top_isuserdata(S, T_SET)) {
-		// TODO: error message
+		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type set, got arg of type %s.\n",
+				  SET_PRE ".add", 0, YASL_TYPE_NAMES[vm_peek(&S->vm).type]);
 		return YASL_TYPE_ERROR;
 	}
-	struct YASL_Set *left = (struct YASL_Set *)YASL_top_popuserdata(S);
+	struct YASL_Set *set = (struct YASL_Set *)YASL_top_popuserdata(S);
 
-	YASL_Set_insert(left, right);
+	if (!YASL_Set_insert(set, val)) {
+		vm_print_err_type(&S->vm, "unable to use mutable object of type %s as key.\n", YASL_TYPE_NAMES[val.type]);
+		return YASL_TYPE_ERROR;
+	}
 
 	return YASL_SUCCESS;
 }
@@ -164,12 +180,9 @@ static int YASL_collections_set_add(struct YASL_State *S) {
 static int YASL_collections_set_remove(struct YASL_State *S) {
 	struct YASL_Object right_obj =  vm_pop((struct VM *)S);
 
-
-	if (YASL_ISLIST(right_obj) || YASL_ISTABLE(right_obj) || YASL_ISUSERDATA(right_obj)) {
-		printf("Error: unable to remove mutable object of type %x into set.\n", right_obj.type);
-		return YASL_TYPE_ERROR;
-	}
 	if (!YASL_top_isuserdata(S, T_SET)) {
+		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type set, got arg of type %s.\n",
+				  SET_PRE ".remove", 0, YASL_TYPE_NAMES[vm_peek(&S->vm).type]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_Set *left = (struct YASL_Set *)YASL_top_popuserdata(S);
@@ -182,6 +195,8 @@ static int YASL_collections_set_remove(struct YASL_State *S) {
 
 static int YASL_collections_set_copy(struct YASL_State *S) {
 	if (!YASL_top_isuserdata(S, T_SET)) {
+		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type set, got arg of type %s.\n",
+				  SET_PRE ".copy", 0, YASL_TYPE_NAMES[vm_peek(&S->vm).type]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_Set *set = (struct YASL_Set *)YASL_top_popuserdata(S);
@@ -197,6 +212,8 @@ static int YASL_collections_set_copy(struct YASL_State *S) {
 
 static int YASL_collections_set_clear(struct YASL_State *S) {
 	if (!YASL_top_isuserdata(S, T_SET)) {
+		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type set, got arg of type %s.\n",
+				  SET_PRE ".clear", 0, YASL_TYPE_NAMES[vm_peek(&S->vm).type]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_Set *set = (struct YASL_Set *)YASL_top_popuserdata(S);
@@ -211,6 +228,8 @@ static int YASL_collections_set_clear(struct YASL_State *S) {
 static int YASL_collections_set_contains(struct YASL_State *S) {
 	struct YASL_Object object = vm_pop(&S->vm);
 	if (!YASL_top_isuserdata(S, T_SET)) {
+		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type set, got arg of type %s.\n",
+				  SET_PRE ".contains", 0, YASL_TYPE_NAMES[vm_peek(&S->vm).type]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_Set *set = (struct YASL_Set *)YASL_top_popuserdata(S);

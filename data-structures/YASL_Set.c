@@ -100,6 +100,9 @@ struct YASL_Object YASL_Set_search(const struct YASL_Set *const table, const str
 }
 
 void YASL_Set_rm(struct YASL_Set *const table, struct YASL_Object key) {
+	if (!ishashable(key)) {
+		return;
+	}
 	const size_t load = table->count * 100 / table->size;
 	if (load < 10) set_resize_down(table);
 	size_t index = get_hash(key, table->size, 0);

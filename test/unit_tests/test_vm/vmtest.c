@@ -232,7 +232,50 @@ int vmtest(void) {
 	ASSERT_ARG_TYPE_ERR("math.lcm(.a, .b);", "math.lcm", "float", "str", 1);
 
 	// collection errors
+	ASSERT_TYPE_ERR("echo collections.table({},[]);", "unable to use mutable object of type table as key");
+
 	ASSERT_TYPE_ERR("echo collections.set([], []);", "unable to use mutable object of type list as key");
+
+	ASSERT_TYPE_ERR("const x = collections.set(); x->add([]);", "unable to use mutable object of type list as key");
+	ASSERT_TYPE_ERR("const x = collections.set(); collections.set().add(x, []);",
+			"unable to use mutable object of type list as key");
+	ASSERT_ARG_TYPE_ERR("const x = collections.set(); collections.set().add([], 1);",
+			    "collections.set.add", "set", "list", 0);
+
+	ASSERT_ARG_TYPE_ERR("const x = collections.set(); collections.set().remove([], 1);",
+			    "collections.set.remove", "set", "list", 0);
+
+	ASSERT_ARG_TYPE_ERR("echo collections.set().tostr(1);", "collections.set.tostr", "set", "int", 0);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().tolist(1);", "collections.set.tolist", "set", "int", 0);
+
+	ASSERT_ARG_TYPE_ERR("echo collections.set().__band(collections.set(), true);",
+			    "collections.set.__band", "set", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().__band(1, collections.set());",
+			    "collections.set.__band", "set", "int", 0);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().__band(1, true);", "collections.set.__band", "set", "bool", 1);
+
+	ASSERT_ARG_TYPE_ERR("echo collections.set().__bor(collections.set(), true);",
+			    "collections.set.__bor", "set", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().__bor(1, collections.set());",
+			    "collections.set.__bor", "set", "int", 0);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().__bor(1, true);", "collections.set.__bor", "set", "bool", 1);
+
+	ASSERT_ARG_TYPE_ERR("echo collections.set().__bxor(collections.set(), true);",
+			    "collections.set.__bxor", "set", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().__bxor(1, collections.set());",
+			    "collections.set.__bxor", "set", "int", 0);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().__bxor(1, true);", "collections.set.__bxor", "set", "bool", 1);
+
+	ASSERT_ARG_TYPE_ERR("echo collections.set().__bandnot(collections.set(), true);",
+			    "collections.set.__bandnot", "set", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().__bandnot(1, collections.set());",
+			    "collections.set.__bandnot", "set", "int", 0);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().__bandnot(1, true);", "collections.set.__bandnot", "set", "bool", 1);
+
+	ASSERT_ARG_TYPE_ERR("echo collections.set().__len(1);", "collections.set.__len", "set", "int", 0);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().copy(1);", "collections.set.copy", "set", "int", 0);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().clear(1);", "collections.set.clear", "set", "int", 0);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().contains([], true);", "collections.set.contains", "set", "list", 0);
 
 	return __YASL_TESTS_FAILED__;
 }
