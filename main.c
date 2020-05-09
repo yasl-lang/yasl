@@ -11,7 +11,7 @@
 #include "yasl_state.h"
 
 
-#define VERSION "v0.7.3"
+#define VERSION "v0.8.0"
 #define VERSION_PRINTOUT "YASL " VERSION
 
 static int load_libs(struct YASL_State *S) {
@@ -23,6 +23,7 @@ static int load_libs(struct YASL_State *S) {
 }
 
 static int main_error(int argc, char **argv) {
+	(void) argv;
 	printf("error: Invalid arguments passed (passed %d arguments). Type `yasl -h` for help (without the backticks).\n", argc);
 	return EXIT_FAILURE;
 }
@@ -30,6 +31,8 @@ static int main_error(int argc, char **argv) {
 // -b: run bytecode
 // -c: compile to bytecode
 static int main_help(int argc, char **argv) {
+	(void) argc;
+	(void) argv;
 	puts("usage: yasl [option] [input]\n"
 	     "options:\n"
 	     "\t-C: checks `input` for syntax errors but doesn't run it.\n"
@@ -43,6 +46,8 @@ static int main_help(int argc, char **argv) {
 }
 
 static int main_version(int argc, char **argv) {
+	(void) argc;
+	(void) argv;
 	puts(VERSION_PRINTOUT);
 	return 0;
 }
@@ -72,6 +77,7 @@ static int main_file(int argc, char **argv) {
 }
 
 static int main_compile(int argc, char **argv) {
+	(void) argc;
 	struct YASL_State *S = YASL_newstate(argv[2]);
 
 	if (!S) {
@@ -90,6 +96,7 @@ static int main_compile(int argc, char **argv) {
 }
 
 static int main_command_REPL(int argc, char **argv) {
+	(void) argc;
 	const size_t size = strlen(argv[2]);
 	struct YASL_State *S = YASL_newstate_bb(argv[2], size);
 	load_libs(S);
@@ -99,6 +106,7 @@ static int main_command_REPL(int argc, char **argv) {
 }
 
 static int main_command(int argc, char **argv) {
+	(void) argc;
 	const size_t size = strlen(argv[2]);
 	struct YASL_State *S = YASL_newstate_bb(argv[2], size);
 	load_libs(S);
@@ -108,6 +116,8 @@ static int main_command(int argc, char **argv) {
 }
 
 static int main_REPL(int argc, char **argv) {
+	(void) argc;
+	(void) argv;
 	int next;
 	size_t size = 8, count = 0;
 	char *buffer = (char *)malloc(size);

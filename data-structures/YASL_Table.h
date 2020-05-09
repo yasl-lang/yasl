@@ -3,11 +3,12 @@
 
 #include "interpreter/YASL_Object.h"
 #include "util/prime.h"
+#include "yasl_include.h"
 
 #define TABLE_BASESIZE 30
 
 #define FOR_TABLE(i, item, table) struct YASL_Table_Item *item; for (size_t i = 0; i < (table)->size; i++) \
-                                                  if (item = &table->items[i], item->key.type != Y_END && !YASL_ISUNDEF(item->value))
+                                                  if (item = &(table)->items[i], item->key.type != Y_END && !YASL_ISUNDEF(item->value))
 
 
 #define NEW_TABLE() ((struct YASL_Table){\
@@ -35,7 +36,8 @@ void del_item(struct YASL_Table_Item *const item);
 
 struct YASL_Table *YASL_Table_new(void);
 void YASL_Table_del(struct YASL_Table *const table);
-void YASL_Table_insert(struct YASL_Table *const table, const struct YASL_Object key, const struct YASL_Object value);
+bool YASL_Table_insert(struct YASL_Table *const table, const struct YASL_Object key, const struct YASL_Object value) /* YASL_WARN_UNUSED */;
+void YASL_Table_insert_fast(struct YASL_Table *const table, const struct YASL_Object key, const struct YASL_Object value);
 void YASL_Table_insert_string_int(struct YASL_Table *const table, const char *const key, const size_t key_len,
 				  const int64_t val);
 void YASL_Table_insert_literalcstring_cfunction(struct YASL_Table *const ht, const char *key,

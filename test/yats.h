@@ -13,10 +13,11 @@
 #define SETUP_YATS() \
 	static int __YASL_TESTS_FAILED__ = 0
 
-
+// change to true to print out all passing tests as well.
+#define SHOW_PASSING false
 #define ASSERT_BC_EQ(left, right, sr) do {\
 	if (sizeof(left) == sr && !memcmp(left, right, sizeof(left))) {\
-		/*printf(K_GRN "assert passed in %s: line %d" K_END "\n", __func__, __LINE__);*/\
+		if (SHOW_PASSING) printf(K_GRN "assert passed in %s: line %d" K_END "\n", __func__, __LINE__);\
 	} else {\
 		printf(K_RED "assert failed in %s: line %d (%s)" K_END "\n", __func__, __LINE__, __FILE__);\
 		puts("expected: ");\
@@ -31,7 +32,7 @@
 
 #define ASSERT_GEN_BC_EQ(expected, fc) do{\
 	remove("dump.yb");\
-	/*unsigned char *bytecode = */setup_compiler(fc);\
+	setup_compiler(fc);\
 	FILE *file = fopen("dump.yb", "rb");\
 	int64_t size = getsize(file);\
 	unsigned char *actual = (unsigned char *)malloc(size);\
@@ -45,6 +46,8 @@
 	if ((left) != (right)) {\
 		printf(K_RED "assert failed in %s (in %s): line %d: `%s` =/= `%s`" K_END "\n", __FILE__, __func__, __LINE__, #left, #right);\
 		__YASL_TESTS_FAILED__ = 1;\
+	} else {\
+		if (SHOW_PASSING) printf(K_GRN "assert passed in %s: line %d" K_END "\n", __func__, __LINE__);\
 	}\
 } while(0)
 
@@ -52,6 +55,8 @@
 	if (memcmp(left, right, len) != 0) {\
 	printf(K_RED "assert failed in %s (in %s): line %d: `%s` =/= `%s`" K_END "\n", __FILE__, __func__, __LINE__, left, right);\
 		__YASL_TESTS_FAILED__ = 1;\
+	} else {\
+		if (SHOW_PASSING) printf(K_GRN "assert passed in %s: line %d" K_END "\n", __func__, __LINE__);\
 	}\
 } while(0)
 

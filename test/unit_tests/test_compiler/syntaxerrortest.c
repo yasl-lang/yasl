@@ -30,8 +30,25 @@ int syntaxerrortest(void) {
 	ASSERT_SYNTAX_ERR("5 += 10;", "Invalid l-value (line 1)");
 	ASSERT_SYNTAX_ERR("x->5();", "Invalid method call (line 1)");
 	ASSERT_SYNTAX_ERR("x.5;", "Invalid member access (line 1)");
+	ASSERT_SYNTAX_ERR("fn outer() {\n"
+			  "  const a = 10\n"
+			  "  let b = 12\n"
+			  "  fn middle() {\n"
+			  "    fn inner() {\n"
+			  "      echo a;\n"
+			  "      a = 100;\n"
+			  "    }\n"
+			  "    return inner\n"
+			  "  }\n"
+			  "  middle()()\n"
+			  "  return middle()\n"
+			  "}\n"
+			  "\n"
+			  "let inside = outer()\n"
+			  "inside()\n", "Cannot assign to constant a (line 7)");
 
 	ASSERT_SYNTAX_ERR("x;", "Undeclared variable x (line 1)");
+	ASSERT_SYNTAX_ERR("let x = x;", "Undeclared variable x (line 1)");
 	ASSERT_SYNTAX_ERR("echo 'hello \\o world'\n", "Invalid string escape sequence in line 1");
 	ASSERT_SYNTAX_ERR("echo 'hello \\xworld'\n", "Invalid hex string escape in line 1");
 	ASSERT_SYNTAX_ERR("0b__2", "Invalid int literal in line 1");

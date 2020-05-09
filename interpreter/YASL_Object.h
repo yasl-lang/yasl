@@ -4,7 +4,7 @@
 #include "data-structures/YASL_String.h"
 #include "yasl_conf.h"
 #include "yasl_types.h"
-//#include "VM.h"
+// #include "interpreter/closure.h"
 
 #define UNDEF_C ((struct YASL_Object){ .type = Y_UNDEF, .value = { .ival = 0 }  })
 #define FALSE_C ((struct YASL_Object){ .type = Y_BOOL, .value = {.ival = 0 }})
@@ -51,6 +51,7 @@
 
 struct YASL_State;
 struct RC_UserData;
+struct Closure;
 
 struct YASL_Object {
 	enum YASL_Types type;
@@ -91,7 +92,8 @@ struct YASL_Object *YASL_CFunction(int (*value)(struct YASL_State *), int num_ar
  */
 int yasl_object_cmp(struct YASL_Object a, struct YASL_Object b);
 
-int isfalsey(struct YASL_Object v);
+bool ishashable(struct YASL_Object v);
+bool isfalsey(struct YASL_Object v);
 struct YASL_Object isequal(struct YASL_Object a, struct YASL_Object b);
 int print(struct YASL_Object a);
 

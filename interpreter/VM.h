@@ -11,6 +11,7 @@
 #include "data-structures/YASL_List.h"
 #include "yasl_conf.h"
 #include "opcode.h"
+// #include "closure.h"
 
 #define NUM_GLOBALS 256
 #define NUM_TYPES 13                                     // number of builtin types, each needs a vtable
@@ -81,6 +82,7 @@
 }
 
 #define vm_print_err_type(vm, format, ...) vm_print_err(vm, MSG_TYPE_ERROR format, __VA_ARGS__)
+#define vm_print_err_value(vm, format, ...) vm_print_err(vm, MSG_VALUE_ERROR format, __VA_ARGS__)
 #define vm_print_err_divide_by_zero(vm) {\
 	const char *tmp = "DivisionByZeroError\n";\
 	vm->err.print(&vm->err, tmp, strlen(tmp));\
@@ -97,6 +99,12 @@ struct CallFrame {
 	unsigned char *pc;
 	int fp;
 	int next_fp;
+	int lp;
+};
+
+struct LoopFrame {
+	int iter;
+	struct YASL_Object iterable;
 };
 
 struct VM {
@@ -107,7 +115,9 @@ struct VM {
 	size_t num_globals;
 	struct YASL_Object *stack;            // stack
 	struct CallFrame frames[1000];
-	size_t frame_num;
+	int frame_num;
+	struct LoopFrame loopframes[16];
+	int loopframe_num;
 	unsigned char *code;           // bytecode
 	unsigned char **headers;
 	size_t headers_size;
@@ -115,7 +125,6 @@ struct VM {
 	int sp;                        // stack pointer
 	int fp;                        // frame pointer
 	int next_fp;
-	int lp;                        // foreach pointer
 	struct YASL_String *special_strings[NUM_SPECIAL_STRINGS];
 	struct YASL_Table **builtins_htable;   // htable of builtin methods
 	struct Upvalue *pending;
@@ -144,7 +153,7 @@ void vm_pushbool(struct VM *const vm, bool b);
 #define vm_pushlist(vm, l) vm_push(vm, YASL_LIST(l))
 #define vm_pushtable(vm, l) vm_push(vm, YASL_TABLE(l))
 #define vm_pushfn(vm, f) vm_push(vm, YASL_FN(f))
-void vm_pushclosure(struct VM *const vm, const unsigned char *const f);
+void vm_pushclosure(struct VM *const vm, unsigned char *const f);
 
 int vm_run(struct VM *const vm);
 

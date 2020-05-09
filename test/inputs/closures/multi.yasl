@@ -1,0 +1,13 @@
+fn f(x) {
+    const a = 2 * x
+    const b = 3 * x
+    fn g(y) {
+        return y + a + b;
+    }
+    echo g(1)
+    return g
+}
+
+let tmp = f(2);
+echo tmp(1)
+echo tmp(3)

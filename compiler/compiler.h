@@ -8,39 +8,57 @@
 #include "env.h"
 #include "parser.h"
 
+#define NEW_SIZEBUFFER(s)\
+	((struct SizeBuffer){\
+		.count = 0,\
+		.size = (s),\
+		.items = (size_t *)malloc(sizeof(size_t)*(s)),\
+	})
+
 #define NEW_COMPILER(fp)\
   ((struct Compiler) {\
-  	.parser = NEW_PARSER(fp),\
-	.globals = env_new(NULL),\
-	.stack = NULL,\
-	.params = NULL,\
-        .num_locals = 0,	\
-	.strings = YASL_Table_new(),\
-	.buffer = YASL_ByteBuffer_new(16),\
-	.header = YASL_ByteBuffer_new(16),\
-	.code = YASL_ByteBuffer_new(16),\
-        .checkpoints = (size_t *)malloc(sizeof(size_t) * 4),\
-	.checkpoints_count = 0,\
-	.checkpoints_size = 4,\
-	.status = YASL_SUCCESS,\
-	.num = 0,\
+    .parser = NEW_PARSER(fp),\
+    .globals = scope_new(NULL),\
+    .stack = NULL,\
+    .params = NULL,\
+    .strings = YASL_Table_new(),\
+    .buffer = YASL_ByteBuffer_new(16),\
+    .header = YASL_ByteBuffer_new(16),\
+    .code = YASL_ByteBuffer_new(16),\
+    .checkpoints = NEW_SIZEBUFFER(4),\
+    .locals = (struct Frame *)malloc(sizeof(struct Frame) * 4),\
+    .locals_count = 0,\
+    .locals_size = 4,\
+    .status = YASL_SUCCESS,\
+    .num = 0,\
   })
 
+struct SizeBuffer {
+	size_t count;
+	size_t size;
+	size_t *items;
+};
+
+struct Frame {
+	size_t num_upvals;
+	signed char *upvals;
+};
+
 struct Compiler {
-    struct Parser parser;
-    struct Env *globals;
-    struct Env *stack;
-    struct Env *params;
-    size_t num_locals;
-    struct YASL_Table *strings;
-    struct YASL_ByteBuffer *buffer;
-    struct YASL_ByteBuffer *header;
-    struct YASL_ByteBuffer *code;
-    size_t *checkpoints;
-    size_t checkpoints_count;
-    size_t checkpoints_size;
-    int status;
-    int64_t num;
+	struct Parser parser;
+	struct Scope *globals;
+	struct Scope *stack;
+	struct Env *params;
+	struct YASL_Table *strings;
+	struct YASL_ByteBuffer *buffer;
+	struct YASL_ByteBuffer *header;
+	struct YASL_ByteBuffer *code;
+	struct SizeBuffer checkpoints;
+	struct Frame *locals;
+	size_t locals_count;
+	size_t locals_size;
+	int status;
+	int64_t num;
 };
 
 struct Compiler *compiler_new(FILE *const fp);

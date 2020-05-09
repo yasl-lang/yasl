@@ -4,7 +4,7 @@
 #include "compiler/compiler.h"
 #include "compiler/lexinput.h"
 #include "compiler/parser.h"
-#include "test/unit_tests/test_compiler/compilertest.h"
+// #include "test/unit_tests/test_compiler/compilertest.h"
 #include "yasl.h"
 
 struct Lexer setup_lexer(const char *file_contents) {
@@ -23,16 +23,17 @@ unsigned char *setup_compiler(const char *file_contents) {
 	fseek(fptr, 0, SEEK_SET);
 	fclose(fptr);
 	fptr = fopen("dump.ysl", "r");
-	struct Compiler *compiler = compiler_new(fptr);
-	unsigned char *bytecode = compile(compiler);
+	struct Compiler compiler = NEW_COMPILER(lexinput_new_file(fptr));
+	compiler.header->count = 16;
+	unsigned char *bytecode = compile(&compiler);
 	FILE *f = fopen("dump.yb", "wb");
 	if (bytecode == NULL) {
 		fputc(O_HALT, f);
 	} else {
-		fwrite(bytecode, 1, compiler->code->count + compiler->header->count + 1, f);
+		fwrite(bytecode, 1, compiler.code->count + compiler.header->count + 1, f);
 	}
 	fclose(f);
-	compiler_cleanup(compiler);
+	compiler_cleanup(&compiler);
 	return bytecode;
 }
 
