@@ -105,6 +105,11 @@ static int main_command_REPL(int argc, char **argv) {
 	return status;
 }
 
+static int YASL_quit(struct YASL_State *S) {
+	(void) S;
+	exit(0);
+}
+
 static int main_command(int argc, char **argv) {
 	(void) argc;
 	const size_t size = strlen(argv[2]);
@@ -123,8 +128,11 @@ static int main_REPL(int argc, char **argv) {
 	char *buffer = (char *)malloc(size);
 	struct YASL_State *S = YASL_newstate_bb(buffer, 0);
 	load_libs(S);
+	YASL_declglobal(S, "quit");
+	YASL_pushcfunction(S, YASL_quit, 0);
+	YASL_setglobal(S, "quit");
 	puts(VERSION_PRINTOUT);
-	while (1) {
+	while (true) {
 		printf("yasl> ");
 		while ((next = getchar()) != '\n') {
 			if (size == count) {
@@ -139,9 +147,11 @@ static int main_REPL(int argc, char **argv) {
 		}
 		buffer[count++] = '\n';
 
+		/*
 		if (count == strlen("quit\n") && !memcmp(buffer, "quit\n", strlen("quit\n"))) {
 			break;
 		}
+		 */
 		YASL_resetstate_bb(S, buffer, count); 
 
 		count = 0;
