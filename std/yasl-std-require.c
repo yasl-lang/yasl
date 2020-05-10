@@ -3,11 +3,7 @@
 #include "yasl-std-require.h"
 #include "yasl-std-math.h"
 #include "yasl-std-io.h"
-#include "yasl_conf.h"
-
-#if defined(YASL_USE_UNIX)
-#include <dlfcn.h>
-#endif
+#include "yasl_plat.h"
 
 #define LOAD_LIB_FUN_NAME "YASL_load_dyn_lib"
 
@@ -69,7 +65,6 @@ int YASL_require(struct YASL_State *S) {
 	free(mode_str);
 
 	return YASL_SUCCESS;
-
 }
 
 int YASL_require_c(struct YASL_State *S) {
@@ -82,7 +77,7 @@ int YASL_require_c(struct YASL_State *S) {
 	YASL_pop(S);
 
 #if defined(YASL_USE_WIN)
-	return YASL_ERROR
+	return YASL_PLATFORM_NOT_SUPP;
 #elif defined(YASL_USE_UNIX)
 	void *lib = dlopen(mode_str, RTLD_NOW);
 	if (!lib) puts(dlerror());
@@ -90,7 +85,7 @@ int YASL_require_c(struct YASL_State *S) {
 	if (!fun) puts(dlerror());
 	return fun(S);
 #else
-	return YASL_ERROR;
+	return YASL_PLATFORM_NOT_SUPP;
 #endif
 }
 

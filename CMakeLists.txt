@@ -82,6 +82,7 @@ add_executable(yasl
         std/yasl-std-collections.c
         util/IO.c
         yasl_conf.h
+        yasl_error.h
         )
 
 if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")

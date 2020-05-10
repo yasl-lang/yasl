@@ -13,5 +13,6 @@ enum YASL_Error {
 	YASL_TYPE_ERROR,           // Type error (at runtime).
 	YASL_DIVIDE_BY_ZERO_ERROR, // Division by zero error (at runtime).
 	YASL_VALUE_ERROR,          // Invalid value (at runtime).
-	YASL_TOO_MANY_VAR_ERROR    // Too many variables in current scope
+	YASL_TOO_MANY_VAR_ERROR,   // Too many variables in current scope
+	YASL_PLATFORM_NOT_SUPP     // Platform specific code not supported for this platform.
 };
