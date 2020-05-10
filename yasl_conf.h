@@ -13,6 +13,8 @@
 #define YASL_USE_WIN
 #elif defined(__unix__)
 #define YASL_USE_UNIX
+#elif defined(__APPLE__)
+#define YASL_USE_APPLE
 #endif
 
 // @@ yasl_float
