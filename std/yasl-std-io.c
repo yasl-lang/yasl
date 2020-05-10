@@ -155,14 +155,15 @@ static int YASL_io_read(struct YASL_State *S) {
 
 static int YASL_io_write(struct YASL_State *S) {
 	if (!YASL_top_isstring(S)) {
-		// TODO error message
+		vm_print_err_bad_arg_type((struct VM *)S, FILE_PRE ".write", 1, Y_STR, YASL_top_peektype(S));
 		return YASL_TYPE_ERROR;
 	}
 	char *str = YASL_top_peekcstring(S);
 	YASL_pop(S);
 
 	if (!YASL_top_isuserdata(S, T_FILE)) {
-		// TODO error message
+		vm_print_err_type((struct VM *)S, "%s expected arg in position %d to be of type file, got arg of type %s.\n",
+				  FILE_PRE ".write", 0, YASL_TYPE_NAMES[YASL_top_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	FILE *f = (FILE *)YASL_top_popuserdata(S);

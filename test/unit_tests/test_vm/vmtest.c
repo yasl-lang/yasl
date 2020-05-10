@@ -293,5 +293,14 @@ int vmtest(void) {
 	ASSERT_VALUE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f->read('ysadasd');",
 			 "io.file.read was passed invalid mode: ysadasd");
 
+	ASSERT_ARG_TYPE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f->write(false);",
+			    "io.file.write", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f.write([], false);",
+			    "io.file.write", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f.write(f, false);",
+			    "io.file.write", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f.write([], 'l');",
+			    "io.file.write", "file", "list", 0);
+
 	return __YASL_TESTS_FAILED__;
 }
