@@ -273,11 +273,9 @@ int vmtest(void) {
 	ASSERT_ARG_TYPE_ERR("let f = io.open(1, 'w');", "io.open", "str", "int", 0);
 	ASSERT_ARG_TYPE_ERR("let f = io.open(1, true);", "io.open", "str", "bool", 1);
 	ASSERT_ARG_TYPE_ERR("let f = io.open(1);", "io.open", "str", "int", 0);
-
 	ASSERT_VALUE_ERR("let f = io.open('f', 'www');", "io.open was passed invalid mode: www");
 	ASSERT_VALUE_ERR("let f = io.open('f', 'y+');", "io.open was passed invalid mode: y+");
 	ASSERT_VALUE_ERR("let f = io.open('f', 'p');", "io.open was passed invalid mode: p");
-
 	ASSERT_ARG_TYPE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f->read(false);",
 			    "io.file.read", "str", "bool", 1);
 	ASSERT_ARG_TYPE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f.read([], false);",
@@ -292,7 +290,6 @@ int vmtest(void) {
 			    "io.file.read was passed invalid mode: y");
 	ASSERT_VALUE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f->read('ysadasd');",
 			 "io.file.read was passed invalid mode: ysadasd");
-
 	ASSERT_ARG_TYPE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f->write(false);",
 			    "io.file.write", "str", "bool", 1);
 	ASSERT_ARG_TYPE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f.write([], false);",
@@ -301,7 +298,6 @@ int vmtest(void) {
 			    "io.file.write", "str", "bool", 1);
 	ASSERT_ARG_TYPE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f.write([], 'l');",
 			    "io.file.write", "file", "list", 0);
-
 	ASSERT_ARG_TYPE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f.flush([]);",
 			    "io.file.flush", "file", "list", 0);
 

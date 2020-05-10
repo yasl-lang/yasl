@@ -10,6 +10,13 @@
 #define VERSION "v0.8.1"
 #define VERSION_PRINTOUT "YASL " VERSION
 
+#define YASL_LOGO " __ __  _____   ____   __   \n" \
+                  "|  |  ||     | /    \\ |  |    \n" \
+                  "|  |  ||  O  | |  __| |  |  \n" \
+                  "|___  ||     | |__  | |  |__ \n" \
+		  "|     ||  |  | |    | |     |\n" \
+		  "|_____/|__|__| \\____/ |_____|"
+
 static int main_error(int argc, char **argv) {
 	(void) argv;
 	printf("error: Invalid arguments passed (passed %d arguments). Type `yasl -h` for help (without the backticks).\n", argc);
@@ -119,6 +126,7 @@ static int main_REPL(int argc, char **argv) {
 	YASL_declglobal(S, "quit");
 	YASL_pushcfunction(S, YASL_quit, 0);
 	YASL_setglobal(S, "quit");
+	puts(YASL_LOGO "\n");
 	puts(VERSION_PRINTOUT);
 	while (true) {
 		printf("yasl> ");
