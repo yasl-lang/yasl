@@ -15,7 +15,7 @@
                   "|  |  ||  O  | |  __| |  |  \n" \
                   "|___  ||     | |__  | |  |__ \n" \
 		  "|     ||  |  | |    | |     |\n" \
-		  "|_____/|__|__| \\____/ |_____|"
+		  "|_____/|__|__| \\____/ |_____|\n"
 
 static int main_error(int argc, char **argv) {
 	(void) argv;
@@ -126,7 +126,7 @@ static int main_REPL(int argc, char **argv) {
 	YASL_declglobal(S, "quit");
 	YASL_pushcfunction(S, YASL_quit, 0);
 	YASL_setglobal(S, "quit");
-	puts(YASL_LOGO "\n");
+	puts(YASL_LOGO);
 	puts(VERSION_PRINTOUT);
 	while (true) {
 		printf("yasl> ");

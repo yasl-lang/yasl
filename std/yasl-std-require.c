@@ -3,7 +3,13 @@
 #include "yasl-std-require.h"
 #include "yasl-std-math.h"
 #include "yasl-std-io.h"
+#include "yasl_conf.h"
 
+#if defined(YASL_USE_UNIX)
+#include <dlfcn.h>
+#endif
+
+#define LOAD_LIB_FUN_NAME "YASL_load_dyn_lib"
 
 struct YASL_State *YASL_newstate_num(char *filename, size_t num);
 
@@ -66,10 +72,37 @@ int YASL_require(struct YASL_State *S) {
 
 }
 
+int YASL_require_c(struct YASL_State *S) {
+	if (!YASL_top_isstring(S)) {
+		vm_print_err_bad_arg_type((struct VM *)S, "require_c", 0, Y_STR, YASL_top_peektype(S));
+		return YASL_TYPE_ERROR;
+	}
+
+	char *mode_str = YASL_top_peekcstring(S);
+	YASL_pop(S);
+
+#if defined(YASL_USE_WIN)
+
+#elif defined(YASL_USE_UNIX)
+	void *lib = dlopen(mode_str, RTLD_NOW);
+	if (!lib) puts(dlerror());
+	int (*fun)(struct YASL_State *) = (int (*)(struct YASL_State *))dlsym(lib, LOAD_LIB_FUN_NAME);
+	if (!fun) puts(dlerror());
+	return fun(S);
+#else
+#error "unknown platform"
+#endif
+	return YASL_SUCCESS;
+}
+
 int YASL_load_require(struct YASL_State *S) {
 	YASL_declglobal(S, "require");
 	YASL_pushcfunction(S, YASL_require, 1);
 	YASL_setglobal(S, "require");
+
+	YASL_declglobal(S, "require_c");
+	YASL_pushcfunction(S, YASL_require_c, 1);
+	YASL_setglobal(S, "require_c");
 
 	return YASL_SUCCESS;
 }
