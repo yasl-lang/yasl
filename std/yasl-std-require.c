@@ -82,7 +82,7 @@ int YASL_require_c(struct YASL_State *S) {
 	YASL_pop(S);
 
 #if defined(YASL_USE_WIN)
-
+	return YASL_ERROR
 #elif defined(YASL_USE_UNIX)
 	void *lib = dlopen(mode_str, RTLD_NOW);
 	if (!lib) puts(dlerror());
@@ -90,9 +90,8 @@ int YASL_require_c(struct YASL_State *S) {
 	if (!fun) puts(dlerror());
 	return fun(S);
 #else
-#error "unknown platform"
+	return YASL_ERROR;
 #endif
-	return YASL_SUCCESS;
 }
 
 int YASL_load_require(struct YASL_State *S) {

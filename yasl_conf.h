@@ -13,8 +13,6 @@
 #define YASL_USE_WIN
 #elif defined(__unix__)
 #define YASL_USE_UNIX
-#else
-#error "unknown platform"
 #endif
 
 // @@ yasl_float
