@@ -302,5 +302,8 @@ int vmtest(void) {
 	ASSERT_ARG_TYPE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f.write([], 'l');",
 			    "io.file.write", "file", "list", 0);
 
+	ASSERT_ARG_TYPE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f.flush([]);",
+			    "io.file.flush", "file", "list", 0);
+
 	return __YASL_TESTS_FAILED__;
 }

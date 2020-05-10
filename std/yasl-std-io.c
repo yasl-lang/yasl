@@ -179,7 +179,8 @@ static int YASL_io_write(struct YASL_State *S) {
 
 static int YASL_io_flush(struct YASL_State *S) {
 	if (!YASL_top_isuserdata(S, T_FILE)) {
-		// TODO error message
+		vm_print_err_type((struct VM *)S, "%s expected arg in position %d to be of type file, got arg of type %s.\n",
+				  FILE_PRE ".flush", 0, YASL_TYPE_NAMES[YASL_top_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	FILE *f = (FILE *)YASL_top_popuserdata(S);
