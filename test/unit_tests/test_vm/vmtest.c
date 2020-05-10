@@ -278,5 +278,20 @@ int vmtest(void) {
 	ASSERT_VALUE_ERR("let f = io.open('f', 'y+');", "io.open was passed invalid mode: y+");
 	ASSERT_VALUE_ERR("let f = io.open('f', 'p');", "io.open was passed invalid mode: p");
 
+	ASSERT_ARG_TYPE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f->read(false);",
+			    "io.file.read", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f.read([], false);",
+			    "io.file.read", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f.read(f, false);",
+			    "io.file.read", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f.read([], 'l');",
+			    "io.file.read", "file", "list", 0);
+	ASSERT_ARG_TYPE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f.read([]);",
+			    "io.file.read", "file", "list", 0);
+	ASSERT_VALUE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f->read('y');",
+			    "io.file.read was passed invalid mode: y");
+	ASSERT_VALUE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f->read('ysadasd');",
+			 "io.file.read was passed invalid mode: ysadasd");
+
 	return __YASL_TESTS_FAILED__;
 }
