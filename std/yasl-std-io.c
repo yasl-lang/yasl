@@ -5,6 +5,10 @@
 #include <string.h>
 
 #include "data-structures/YASL_Table.h"
+#include "VM.h"
+
+// what to prepend to method names in messages to user
+#define FILE_PRE "io.file"
 
 static struct YASL_Table *mt;
 
@@ -16,13 +20,13 @@ static int YASL_io_open(struct YASL_State *S) {
 	} else if (YASL_top_isstring(S)) {
 		mode_str = YASL_top_peekcstring(S);
 	} else {
-		// TODO error message
+		vm_print_err_bad_arg_type((struct VM *)S, "io.open", 1, Y_STR, YASL_top_peektype(S));
 		return YASL_TYPE_ERROR;
 	}
 	YASL_pop(S);
 
 	if (!YASL_top_isstring(S)) {
-		// TODO error message
+		vm_print_err_bad_arg_type((struct VM *)S, "io.open", 0, Y_STR, YASL_top_peektype(S));
 		return YASL_TYPE_ERROR;
 	}
 
@@ -32,8 +36,8 @@ static int YASL_io_open(struct YASL_State *S) {
 	size_t mode_len = strlen(mode_str);
 
 	if (mode_len > 2 || mode_len < 1 || (mode_len == 2 && mode_str[1] != '+')) {
-		// TODO error message
-		return -1;
+		vm_print_err_value((struct VM *)S, "io.open was passed invalid mode: %*s.\n", (int)mode_len, mode_str);
+		return YASL_VALUE_ERROR;
 	}
 
 	char mode_char = mode_str[0];
@@ -41,16 +45,20 @@ static int YASL_io_open(struct YASL_State *S) {
 	FILE *f = 0;
 	if (mode_len == 1) {
 		switch (mode_char) {
-		case 'r':f = fopen(filename_str, "r");
+		case 'r':
+			f = fopen(filename_str, "r");
 			break;
-		case 'w':f = fopen(filename_str, "w");
+		case 'w':
+			f = fopen(filename_str, "w");
 			break;
-		case 'a':f = fopen(filename_str, "a");
+		case 'a':
+			f = fopen(filename_str, "a");
 			break;
 		default:
 			// invalid mode;
 			free(filename_str);
-			return -1;
+			vm_print_err_value((struct VM *)S, "io.open was passed invalid mode: %c.\n", mode_char);
+			return YASL_VALUE_ERROR;
 		}
 	}
 	if (mode_len == 2) {
@@ -67,8 +75,8 @@ static int YASL_io_open(struct YASL_State *S) {
 		default:
 			// invalid mode;
 			free(filename_str);
-			// TODO error message
-			return -1;
+			vm_print_err_value((struct VM *)S, "io.open was passed invalid mode: %c+.\n", mode_char);
+			return YASL_VALUE_ERROR;
 		}
 	}
 	if (f) {
