@@ -19,7 +19,7 @@ SETUP_YATS();
 	const char *exp_err = "ValueError: " expected ".\n";\
 	ASSERT_EQ(S->vm.out.len, 0);\
 	ASSERT_EQ(strlen(exp_err), S->vm.err.len);\
-	ASSERT_EQ(memcmp(exp_err, S->vm.err.string, S->vm.err.len), 0);\
+	ASSERT_STR_EQ(exp_err, S->vm.err.string, S->vm.err.len);\
 	YASL_delstate(S);\
 }
 
@@ -34,7 +34,7 @@ SETUP_YATS();
 	const char *exp_err = "DivisionByZeroError\n";\
 	ASSERT_EQ(S->vm.out.len, 0);\
 	ASSERT_EQ(strlen(exp_err), S->vm.err.len);\
-	ASSERT_EQ(memcmp(exp_err, S->vm.err.string, S->vm.err.len), 0);\
+	ASSERT_STR_EQ(exp_err, S->vm.err.string, S->vm.err.len);\
 	YASL_delstate(S);\
 }
 
@@ -49,7 +49,7 @@ SETUP_YATS();
 	const char *exp_err = "TypeError: " expected ".\n";\
 	ASSERT_EQ(S->vm.out.len, 0);\
 	ASSERT_EQ(strlen(exp_err), S->vm.err.len);\
-	ASSERT_EQ(memcmp(exp_err, S->vm.err.string, S->vm.err.len), 0);\
+	ASSERT_STR_EQ(exp_err, S->vm.err.string, S->vm.err.len);\
 	YASL_delstate(S);\
 }
 

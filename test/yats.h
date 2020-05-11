@@ -15,6 +15,7 @@
 
 // change to true to print out all passing tests as well.
 #define SHOW_PASSING false
+
 #define ASSERT_BC_EQ(left, right, sr) do {\
 	if (sizeof(left) == sr && !memcmp(left, right, sizeof(left))) {\
 		if (SHOW_PASSING) printf(K_GRN "assert passed in %s: line %d" K_END "\n", __func__, __LINE__);\

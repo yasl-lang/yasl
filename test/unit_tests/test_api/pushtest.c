@@ -54,6 +54,27 @@ static void testsetglobal_int(void) {
 	ASSERT_SUCCESS(YASL_execute(S));
 	YASL_delstate(S);
 }
+static void testsetglobal_litstr(void) {
+	struct YASL_State *S = YASL_newstate_bb("echo x;", strlen("echo x;"));
+	S->vm.out.print = io_print_string;
+	ASSERT_SUCCESS(YASL_declglobal(S, "x"));
+	ASSERT_SUCCESS(YASL_pushlitstring(S, "hello world", strlen("hello world")));
+	ASSERT_SUCCESS(YASL_setglobal(S, "x"));
+	ASSERT_SUCCESS(YASL_compile(S));
+	ASSERT_SUCCESS(YASL_execute(S));
+	YASL_delstate(S);
+}
+
+static void testsetglobal_list(void) {
+	struct YASL_State *S = YASL_newstate_bb("echo x;", strlen("echo x;"));
+	S->vm.out.print = io_print_string;
+	ASSERT_SUCCESS(YASL_declglobal(S, "x"));
+	ASSERT_SUCCESS(YASL_pushlist(S));
+	ASSERT_SUCCESS(YASL_setglobal(S, "x"));
+	ASSERT_SUCCESS(YASL_compile(S));
+	ASSERT_SUCCESS(YASL_execute(S));
+	YASL_delstate(S);
+}
 
 int pushtest(void) {
 	testrun();
@@ -61,5 +82,7 @@ int pushtest(void) {
 	testsetglobal_float();
 	testsetglobal_bool();
 	testsetglobal_int();
+	testsetglobal_litstr();
+	testsetglobal_list();
 	return __YASL_TESTS_FAILED__;
 }

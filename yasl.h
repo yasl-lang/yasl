@@ -61,6 +61,14 @@ int YASL_compile(struct YASL_State *S);
  * @return 0 on successful execution, else an error code.
  */
 int YASL_execute(struct YASL_State *S);
+
+/**
+ * Execute the bytecode for the given YASL_State in REPL mode. The only difference
+ * between YASL_execute_REPL and YASL_execute is that YASL_execute_REPL will
+ * print the last statement passed to it if that statement is an expression.
+ * @param S the YASL_State to use to execute the bytecode.
+ * @return 0 on successful execution, else an error code.
+ */
 int YASL_execute_REPL(struct YASL_State *S);
 
 /**
@@ -202,8 +210,6 @@ int YASL_top_dup(struct YASL_State *S);
  * @return 0 on success, else error code
  */
 int YASL_settable(struct YASL_State *S);
-
-int YASL_pushlist(struct YASL_State *S);
 
 /**
  * returns the type of the top of the stack.
