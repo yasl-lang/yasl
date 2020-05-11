@@ -103,6 +103,7 @@ int YASL_require_c(struct YASL_State *S) {
 	}
 	return fun(S);
 #else
+	(void) mode_str;
 	return YASL_PLATFORM_NOT_SUPP;
 #endif
 }
