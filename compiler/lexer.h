@@ -127,8 +127,8 @@ enum Token {
 
 struct Lexer {
     struct LEXINPUT *file;   // OWN
-    char c;
-    enum Token type;
+    int c;                   // current character
+    enum Token type;         // type of current token
     char *value;             // NOT OWN
     size_t val_cap;
     size_t val_len;

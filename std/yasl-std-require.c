@@ -68,6 +68,7 @@ int YASL_require(struct YASL_State *S) {
 }
 
 int YASL_require_c(struct YASL_State *S) {
+    // TODO: Do I need anything else here?
 	if (!YASL_top_isstring(S)) {
 		vm_print_err_bad_arg_type((struct VM *)S, "require_c", 0, Y_STR, YASL_top_peektype(S));
 		return YASL_TYPE_ERROR;
@@ -77,12 +78,29 @@ int YASL_require_c(struct YASL_State *S) {
 	YASL_pop(S);
 
 #if defined(YASL_USE_WIN)
-	return YASL_PLATFORM_NOT_SUPP;
+	void *lib = LoadLibrary(TEXT(mode_str));
+	if (!lib) {
+	    vm_print_err_value((struct VM *)S, "couldn't open shared library: %s.\n", mode_str);
+	    return YASL_VALUE_ERROR;
+	}
+	int (*fun)(struct YASL_State *) =
+	        (int (*)(struct YASL_State *))GetProcAddress(lib, LOAD_LIB_FUN_NAME);
+	if (!fun) {
+	    vm_print_err_value((struct VM *)S, "couldn't load function: %s.\n", LOAD_LIB_FUN_NAME);
+	    return YASL_VALUE_ERROR;
+	}
+	return fun(S);
 #elif defined(YASL_USE_UNIX)
 	void *lib = dlopen(mode_str, RTLD_NOW);
-	if (!lib) puts(dlerror());
+	if (!lib) {
+	    vm_print_err_value((struct VM *)S, "couldn't open shared library: %s.\n", mode_str);
+	    return YASL_VALUE_ERROR;
+	}
 	int (*fun)(struct YASL_State *) = (int (*)(struct YASL_State *))dlsym(lib, LOAD_LIB_FUN_NAME);
-	if (!fun) puts(dlerror());
+	if (!fun) {
+	    vm_print_err_value((struct VM *)S, "couldn't load function: %s.\n", LOAD_LIB_FUN_NAME);
+	    return YASL_VALUE_ERROR;
+	}
 	return fun(S);
 #else
 	return YASL_PLATFORM_NOT_SUPP;
