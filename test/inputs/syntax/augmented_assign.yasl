@@ -1,0 +1,71 @@
+/* arithmetic */
+let star = 2
+star *= 5
+echo star
+
+let slash = 5
+slash /= 2
+echo slash
+
+let dslash = 5
+dslash //= 2
+echo dslash
+
+let mod = 10
+mod %= 7
+echo mod
+
+let plus = 20
+plus += 4
+echo plus
+
+let sub = 30
+sub -= 3
+echo sub
+
+let dstar = 3
+dstar **= 2
+echo dstar
+
+/* bitwise */
+let caret = 0b1111
+caret ^= 0b0101
+echo caret
+
+let bar = 0b0100
+bar |= 0b0001
+echo bar
+
+let amp = 0b1111
+amp &= 0b1000
+echo amp
+
+let ampcaret = 0b0101
+ampcaret &^= 0b0001
+echo ampcaret
+
+let rsh = 4
+rsh >>= 1
+echo rsh
+
+let lsh = 8
+lsh <<= 2
+echo lsh
+
+/* logical */
+let or = true
+or ||= false
+echo or
+
+let and = true
+and &&= false
+echo and
+
+let uor = undef
+uor ??= true
+echo uor
+
+/* concat */
+let tilde = 'hello'
+tilde ~= 'world'
+echo tilde
