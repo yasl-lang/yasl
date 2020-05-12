@@ -90,7 +90,7 @@ int YASL_require_c(struct YASL_State *S) {
 	    return YASL_VALUE_ERROR;
 	}
 	return fun(S);
-#elif defined(YASL_USE_UNIX)
+#elif defined(YASL_USE_UNIX) || defined(YASL_USE_APPLE)
 	void *lib = dlopen(mode_str, RTLD_NOW);
 	if (!lib) {
 	    vm_print_err_value((struct VM *)S, "couldn't open shared library: %s.\n", mode_str);
