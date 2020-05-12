@@ -854,7 +854,9 @@ static void declare_with_let_or_const(struct Compiler *const compiler, const str
 		return;
 	}
 
-	if (Decl_get_expr(node) && Decl_get_expr(node)->nodetype == N_FNDECL) {
+	if (Decl_get_expr(node) &&
+	    Decl_get_expr(node)->nodetype == N_FNDECL &&
+	    Decl_get_expr(node)->value.sval.str != NULL) {
 		decl_var(compiler, Decl_get_name(node), node->line);
 		visit(compiler, Decl_get_expr(node));
 	} else {
