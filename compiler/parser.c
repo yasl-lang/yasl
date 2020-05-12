@@ -143,6 +143,7 @@ static bool isfndecl(struct Parser *const parser) {
 	(void) parser;
 	long curr = lxtell(parser->lex.file);
 	eattok(parser, T_FN);
+	free(parser->lex.value);
 	if (matcheattok(parser, T_ID)) {
 		lxseek(parser->lex.file, curr, SEEK_SET);
 		parser->lex.type = T_FN;
