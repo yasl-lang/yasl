@@ -9,6 +9,14 @@
 #define YASL_DEPRECATE
 #endif
 
+#if defined(WIN32) || defined(_WIN32)
+#define YASL_USE_WIN
+#elif defined(__unix__)
+#define YASL_USE_UNIX
+#elif defined(__APPLE__)
+#define YASL_USE_APPLE
+#endif
+
 // @@ yasl_float
 // Which floating point type YASL will use.
 #define yasl_float double

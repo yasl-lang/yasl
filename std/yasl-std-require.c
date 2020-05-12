@@ -3,7 +3,9 @@
 #include "yasl-std-require.h"
 #include "yasl-std-math.h"
 #include "yasl-std-io.h"
+#include "yasl_plat.h"
 
+#define LOAD_LIB_FUN_NAME "YASL_load_dyn_lib"
 
 struct YASL_State *YASL_newstate_num(char *filename, size_t num);
 
@@ -63,13 +65,57 @@ int YASL_require(struct YASL_State *S) {
 	free(mode_str);
 
 	return YASL_SUCCESS;
+}
 
+int YASL_require_c(struct YASL_State *S) {
+    // TODO: Do I need anything else here?
+	if (!YASL_top_isstring(S)) {
+		vm_print_err_bad_arg_type((struct VM *)S, "require_c", 0, Y_STR, YASL_top_peektype(S));
+		return YASL_TYPE_ERROR;
+	}
+
+	char *mode_str = YASL_top_peekcstring(S);
+	YASL_pop(S);
+
+#if defined(YASL_USE_WIN)
+	void *lib = LoadLibrary(TEXT(mode_str));
+	if (!lib) {
+	    vm_print_err_value((struct VM *)S, "couldn't open shared library: %s.\n", mode_str);
+	    return YASL_VALUE_ERROR;
+	}
+	int (*fun)(struct YASL_State *) =
+	        (int (*)(struct YASL_State *))GetProcAddress(lib, LOAD_LIB_FUN_NAME);
+	if (!fun) {
+	    vm_print_err_value((struct VM *)S, "couldn't load function: %s.\n", LOAD_LIB_FUN_NAME);
+	    return YASL_VALUE_ERROR;
+	}
+	return fun(S);
+#elif defined(YASL_USE_UNIX) || defined(YASL_USE_APPLE)
+	void *lib = dlopen(mode_str, RTLD_NOW);
+	if (!lib) {
+	    vm_print_err_value((struct VM *)S, "couldn't open shared library: %s.\n", mode_str);
+	    return YASL_VALUE_ERROR;
+	}
+	int (*fun)(struct YASL_State *) = (int (*)(struct YASL_State *))dlsym(lib, LOAD_LIB_FUN_NAME);
+	if (!fun) {
+	    vm_print_err_value((struct VM *)S, "couldn't load function: %s.\n", LOAD_LIB_FUN_NAME);
+	    return YASL_VALUE_ERROR;
+	}
+	return fun(S);
+#else
+	(void) mode_str;
+	return YASL_PLATFORM_NOT_SUPP;
+#endif
 }
 
 int YASL_load_require(struct YASL_State *S) {
 	YASL_declglobal(S, "require");
 	YASL_pushcfunction(S, YASL_require, 1);
 	YASL_setglobal(S, "require");
+
+	YASL_declglobal(S, "require_c");
+	YASL_pushcfunction(S, YASL_require_c, 1);
+	YASL_setglobal(S, "require_c");
 
 	return YASL_SUCCESS;
 }
