@@ -64,7 +64,7 @@ int peof(const struct Parser *const parser) {
 static inline int tok_isaugmented(const enum Token t) {
 	// ^=, *=, /=, //=,
 	// %=, +=, -=, >>=, <<=,
-	// ||=, |||=, &=, **=, |=,
+	// ||=, &&=, ~=, **=, |=,
 	// ??=
 	return t == T_CARETEQ || t == T_STAREQ || t == T_SLASHEQ || t == T_DSLASHEQ ||
 	       t == T_MODEQ || t == T_PLUSEQ || t == T_MINUSEQ || t == T_DGTEQ || t == T_DLTEQ ||
