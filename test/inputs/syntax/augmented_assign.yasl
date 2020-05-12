@@ -61,7 +61,7 @@ let and = true
 and &&= false
 echo and
 
-let uor = undef
+let uor = false
 uor ??= true
 echo uor
 
