@@ -10,6 +10,7 @@
 #include <windows.h>
 #elif defined(YASL_USE_APPLE)
 #include <mach-o/dyld.h>
+#include <dlfcn.h>
 #else
 /* Unknown Platform */
 #endif
