@@ -1,0 +1,2 @@
+let f = fn(a, b) { return a + b; }
+echo f(1, 2)

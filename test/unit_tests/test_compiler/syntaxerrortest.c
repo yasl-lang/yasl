@@ -46,7 +46,7 @@ int syntaxerrortest(void) {
 			  "\n"
 			  "let inside = outer()\n"
 			  "inside()\n", "Cannot assign to constant a (line 7)");
-
+	ASSERT_SYNTAX_ERR("let f = fn(n) { return n == 0 ? 1 : f(n-1); };", "Undeclared variable f (line 1)");
 	ASSERT_SYNTAX_ERR("x;", "Undeclared variable x (line 1)");
 	ASSERT_SYNTAX_ERR("let x = x;", "Undeclared variable x (line 1)");
 	ASSERT_SYNTAX_ERR("echo 'hello \\o world'\n", "Invalid string escape sequence in line 1");
