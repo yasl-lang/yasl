@@ -67,26 +67,9 @@
                             }\
                             vm_pushbool(vm, c);} while(0);
 
-#define vm_print_out(vm, format, ...) {\
-	char *tmp = (char *)malloc(snprintf(NULL, 0, format, __VA_ARGS__) + 1);\
-	sprintf(tmp, format, __VA_ARGS__);\
-	vm->out.print(&vm->out, tmp, strlen(tmp));\
-	free(tmp);\
-}
-
-#define vm_print_err(vm, format, ...) {\
-	char *tmp = (char *)malloc(snprintf(NULL, 0, format, __VA_ARGS__) + 1);\
-	sprintf(tmp, format, __VA_ARGS__);\
-	(vm)->err.print(&(vm)->err, tmp, strlen(tmp));\
-	free(tmp);\
-}
-
-#define vm_print_err_type(vm, format, ...) vm_print_err(vm, MSG_TYPE_ERROR format, __VA_ARGS__)
-#define vm_print_err_value(vm, format, ...) vm_print_err(vm, MSG_VALUE_ERROR format, __VA_ARGS__)
-#define vm_print_err_divide_by_zero(vm) {\
-	const char *tmp = "DivisionByZeroError\n";\
-	vm->err.print(&vm->err, tmp, strlen(tmp));\
-}
+#define vm_print_err_type(vm, format, ...) vm_print_err((vm), MSG_TYPE_ERROR format, __VA_ARGS__)
+#define vm_print_err_value(vm, format, ...) vm_print_err((vm), MSG_VALUE_ERROR format, __VA_ARGS__)
+#define vm_print_err_divide_by_zero(vm) vm_print_err((vm), "DivisionByZeroError\n")
 #define vm_print_err_bad_arg_type(vm, name, position, expected, actual) \
 vm_print_err_type((vm),\
  "%s expected arg in position %d to be of type %s, got arg of type %s.\n",\
@@ -133,6 +116,8 @@ struct VM {
 void vm_init(struct VM *const vm, unsigned char *const code, const size_t pc, const size_t datasize);
 
 void vm_cleanup(struct VM *const vm);
+
+void vm_print_err(struct VM *vm, const char *const fmt, ...);
 
 int vm_stringify_top(struct VM *const vm);
 

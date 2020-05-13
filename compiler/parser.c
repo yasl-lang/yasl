@@ -1,6 +1,7 @@
 #include "parser.h"
 
 #include <inttypes.h>
+#include <stdarg.h>
 
 #include "ast.h"
 #include "debug.h"
@@ -47,11 +48,11 @@ static struct Node *parse_table(struct Parser *const parser);
 static struct Node *parse_lambda(struct Parser *const parser);
 static struct Node *parse_collection(struct Parser *const parser);
 
-#define parser_print_err(parser, format, ...) {\
-	char *tmp = (char *)malloc(snprintf(NULL, 0, format, __VA_ARGS__) + 1);\
-	sprintf(tmp, format, __VA_ARGS__);\
-	(parser)->lex.err.print(&(parser)->lex.err, tmp, strlen(tmp));\
-	free(tmp);\
+void parser_print_err(struct Parser *parser, const char *const fmt, ...) {
+	va_list args;
+	va_start(args, fmt);
+	parser->lex.err.print(&parser->lex.err, fmt, args);
+	va_end(args);
 }
 
 #define parser_print_err_syntax(parser, format, ...) parser_print_err(parser, "SyntaxError: " format, __VA_ARGS__)

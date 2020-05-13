@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <memory.h>
 #include <stdint.h>
+#include <stdarg.h>
 
 #include "interpreter/builtins.h"
 #include "data-structures/YASL_String.h"
@@ -135,6 +136,20 @@ void vm_cleanup(struct VM *const vm) {
 	YASL_Table_del(vm->builtins_htable[Y_TABLE]);
 	free(vm->builtins_htable);
 	// TODO: free upvalues
+}
+
+void vm_print_err(struct VM *vm, const char *const fmt, ...) {
+	va_list args;
+	va_start(args, fmt);
+	vm->err.print(&vm->err, fmt, args);
+	va_end(args);
+}
+
+static void vm_print_out(struct VM *vm, const char *const fmt, ...) {
+	va_list args;
+	va_start(args, fmt);
+	vm->out.print(&vm->out, fmt, args);
+	va_end(args);
 }
 
 void vm_push(struct VM *const vm, const struct YASL_Object val) {
@@ -916,8 +931,7 @@ static int vm_CRET(struct VM *const vm) {
 static void vm_PRINT(struct VM *const vm) {
 	vm_stringify_top(vm);
 	struct YASL_String *v = vm_popstr(vm);
-	vm->out.print(&vm->out, v->start + v->str, YASL_String_len(v));
-	vm->out.print(&vm->out, "\n", 1);
+	vm_print_out(vm, "%.*s\n", YASL_String_len(v), v->start + v->str);
 }
 
 int vm_run(struct VM *const vm) {

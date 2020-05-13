@@ -46,6 +46,7 @@ include_directories(test)
 add_executable(yasl
         opcode.h
         yasl.c
+        yasl_aux.c
         main.c
         compiler/ast.c
         data-structures/YASL_ByteBuffer.c
@@ -143,6 +144,7 @@ if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
             data-structures/YASL_Set.c
             compiler/env.c
             yasl.c
+            yasl_aux.c
             interpreter/upvalue.c
             interpreter/closure.c
             interpreter/VM.c
@@ -161,6 +163,7 @@ endif()
 add_library(yaslapi
         opcode.h
         yasl.c
+        yasl_aux.c
         compiler/ast.c
         data-structures/YASL_ByteBuffer.c
         compiler/compiler.c

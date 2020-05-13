@@ -107,6 +107,8 @@ int YASL_setglobal(struct YASL_State *S, const char *name);
  */
 int YASL_loadglobal(struct YASL_State *S, const char *name);
 
+void YASL_print_err(struct YASL_State *S, const char *const fmt, ...) __attribute__((format (printf, 2, 3)));
+
 /**
  * Pushes an undef value onto the stack.
  * @param S the YASL_State onto which to push the undef.
@@ -358,7 +360,6 @@ bool YASL_isuserptr(struct YASL_State *S);
  * Use YASL_isuserptr instead.
  */
 YASL_DEPRECATE bool YASL_top_isuserpointer(struct YASL_State *S);
-
 
 bool YASL_peekbool(struct YASL_State *S);
 bool YASL_popbool(struct YASL_State *S);

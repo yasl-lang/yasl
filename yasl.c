@@ -1,5 +1,7 @@
 #include "yasl.h"
 
+#include <stdarg.h>
+
 #include "interpreter/table_methods.h"
 #include "interpreter/userdata.h"
 #include "yasl_state.h"
@@ -174,6 +176,13 @@ int YASL_loadglobal(struct YASL_State *S, const char *name) {
 	}
 	vm_push(&S->vm, global);
 	return YASL_SUCCESS;
+}
+
+void YASL_print_err(struct YASL_State *S, const char *const fmt, ...) {
+	va_list args;
+	va_start(args, fmt);
+	S->vm.err.print(&S->vm.err, fmt, args);
+	va_end(args);
 }
 
 int YASL_peektype(struct YASL_State *S) {
