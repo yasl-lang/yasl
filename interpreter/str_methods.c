@@ -1,6 +1,7 @@
 #include "str_methods.h"
 
 #include "yasl.h"
+#include "yasl_aux.h"
 #include "yasl_include.h"
 #include "yasl_types.h"
 #include "yasl_state.h"
@@ -11,7 +12,7 @@ int str___get(struct YASL_State *S) {
 	}
 	yasl_int index = YASL_popint(S);
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.__get", 0, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.__get", 0, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *str = YASL_GETSTR(vm_pop((struct VM *) S));
@@ -38,7 +39,7 @@ int str___get(struct YASL_State *S) {
 
 int str_tofloat(struct YASL_State *S) {
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.tofloat", 0, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.tofloat", 0, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *str = YASL_GETSTR(vm_pop((struct VM *) S));
@@ -49,7 +50,7 @@ int str_tofloat(struct YASL_State *S) {
 
 int str_toint(struct YASL_State *S) {
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.toint", 0, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.toint", 0, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *str = vm_popstr((struct VM *)S);
@@ -60,7 +61,7 @@ int str_toint(struct YASL_State *S) {
 
 int str_tobool(struct YASL_State* S) {
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.tobool", 0, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.tobool", 0, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *a = YASL_GETSTR(vm_pop((struct VM *) S));
@@ -70,7 +71,7 @@ int str_tobool(struct YASL_State* S) {
 
 int str_tostr(struct YASL_State *S) {
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.tostr", 0, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.tostr", 0, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	return YASL_SUCCESS;
@@ -78,7 +79,7 @@ int str_tostr(struct YASL_State *S) {
 
 int str_toupper(struct YASL_State *S) {
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.toupper", 0, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.toupper", 0, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *a = YASL_GETSTR(vm_pop((struct VM *) S));
@@ -89,7 +90,7 @@ int str_toupper(struct YASL_State *S) {
 
 int str_tolower(struct YASL_State *S) {
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.tolower", 0, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.tolower", 0, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *a = YASL_GETSTR(vm_pop((struct VM *) S));
@@ -100,7 +101,7 @@ int str_tolower(struct YASL_State *S) {
 
 int str_isalnum(struct YASL_State *S) {
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.isalnum", 0, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.isalnum", 0, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *a = YASL_GETSTR(vm_pop((struct VM *) S));
@@ -111,7 +112,7 @@ int str_isalnum(struct YASL_State *S) {
 
 int str_isal(struct YASL_State *S) {
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.isal", 0, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.isal", 0, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *a = YASL_GETSTR(vm_pop((struct VM *) S));
@@ -122,7 +123,7 @@ int str_isal(struct YASL_State *S) {
 
 int str_isnum(struct YASL_State *S) {
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.isnum", 0, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.isnum", 0, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *a = YASL_GETSTR(vm_pop((struct VM *) S));
@@ -133,7 +134,7 @@ int str_isnum(struct YASL_State *S) {
 
 int str_isspace(struct YASL_State *S) {
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.isspace", 0, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.isspace", 0, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *a = YASL_GETSTR(vm_pop((struct VM *) S));
@@ -144,12 +145,12 @@ int str_isspace(struct YASL_State *S) {
 
 int str_startswith(struct YASL_State *S) {
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.startswith", 1, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.startswith", 1, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *needle = YASL_GETSTR(vm_pop((struct VM *) S));
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.startswith", 0, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.startswith", 0, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *haystack = YASL_GETSTR(vm_pop((struct VM *) S));
@@ -160,12 +161,12 @@ int str_startswith(struct YASL_State *S) {
 
 int str_endswith(struct YASL_State *S) {
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.endswith", 1, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.endswith", 1, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *needle = YASL_GETSTR(vm_pop((struct VM *) S));
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.endswith", 0, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.endswith", 0, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *haystack = YASL_GETSTR(vm_pop((struct VM *) S));
@@ -176,17 +177,17 @@ int str_endswith(struct YASL_State *S) {
 
 static int str_replace_default(struct YASL_State *S) {
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.replace", 2, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.replace", 2, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *replace_str = YASL_GETSTR(vm_pop((struct VM *) S));
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.replace", 1, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.replace", 1, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *search_str = YASL_GETSTR(vm_pop((struct VM *) S));
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.replace", 0, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.replace", 0, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *str = YASL_GETSTR(vm_pop((struct VM *) S));
@@ -209,22 +210,22 @@ int str_replace(struct YASL_State *S) {
 	}
 
 	if (!YASL_isint(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.replace", 3, Y_INT, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.replace", 3, "int", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	yasl_int max = YASL_popint(S);
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.replace", 2, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.replace", 2, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *replace_str = YASL_GETSTR(vm_pop((struct VM *) S));
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.replace", 1, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.replace", 1, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *search_str = YASL_GETSTR(vm_pop((struct VM *) S));
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.replace", 0, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.replace", 0, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *str = YASL_GETSTR(vm_pop((struct VM *) S));
@@ -242,12 +243,12 @@ int str_replace(struct YASL_State *S) {
 
 int str_search(struct YASL_State *S) {
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.search", 1, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.search", 1, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *needle = vm_popstr((struct VM *) S);
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.search", 0, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.search", 0, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *haystack = vm_popstr((struct VM *) S);
@@ -261,12 +262,12 @@ int str_search(struct YASL_State *S) {
 
 int str_count(struct YASL_State *S) {
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.count", 1, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.count", 1, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *needle = vm_popstr((struct VM *) S);
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.count", 0, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.count", 0, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *haystack = vm_popstr((struct VM *) S);
@@ -277,7 +278,7 @@ int str_count(struct YASL_State *S) {
 
 static int str_split_default(struct YASL_State *S) {
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.split", 0, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.split", 0, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *haystack = YASL_GETSTR(vm_pop((struct VM *) S));
@@ -292,12 +293,12 @@ int str_split(struct YASL_State *S) {
 		return str_split_default(S);
 	}
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.split", 1, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.split", 1, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *needle = YASL_GETSTR(vm_pop((struct VM *) S));
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.split", 0, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.split", 0, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *haystack = YASL_GETSTR(vm_pop((struct VM *) S));
@@ -313,7 +314,7 @@ int str_split(struct YASL_State *S) {
 
 static int str_ltrim_default(struct YASL_State *S) {
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.ltrim", 0, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.ltrim", 0, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_Object top = vm_peek((struct VM *) S);
@@ -331,12 +332,12 @@ int str_ltrim(struct YASL_State *S) {
 		return str_ltrim_default(S);
 	}
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.ltrim", 1, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.ltrim", 1, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *needle = YASL_GETSTR(vm_pop((struct VM *) S));
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.ltrim", 0, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.ltrim", 0, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *haystack = YASL_GETSTR(vm_pop((struct VM *) S));
@@ -349,7 +350,7 @@ int str_ltrim(struct YASL_State *S) {
 
 static int str_rtrim_default(struct YASL_State *S) {
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.rtrim", 0, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.rtrim", 0, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_Object top = vm_peek((struct VM *) S);
@@ -367,12 +368,12 @@ int str_rtrim(struct YASL_State *S) {
 		return str_rtrim_default(S);
 	}
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.rtrim", 1, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.rtrim", 1, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *needle = YASL_GETSTR(vm_pop((struct VM *) S));
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.rtrim", 0, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.rtrim", 0, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *haystack = YASL_GETSTR(vm_pop((struct VM *) S));
@@ -383,7 +384,7 @@ int str_rtrim(struct YASL_State *S) {
 
 static int str_trim_default(struct YASL_State *S) {
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.trim", 0, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.trim", 0, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_Object top = vm_peek((struct VM *) S);
@@ -401,12 +402,12 @@ int str_trim(struct YASL_State *S) {
 		return str_trim_default(S);
 	}
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.trim", 1, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.trim", 1, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *needle = YASL_GETSTR(vm_pop((struct VM *) S));
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.trim", 0, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.trim", 0, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_Object top = vm_peek((struct VM *) S);
@@ -420,12 +421,12 @@ int str_trim(struct YASL_State *S) {
 
 int str_repeat(struct YASL_State *S) {
 	if (!YASL_ISINT(vm_peek((struct VM *) S))) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.rep", 1, Y_INT, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.rep", 1, "int", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	yasl_int num = YASL_GETINT(vm_pop((struct VM *) S));
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "str.rep", 0, Y_STR, YASL_peektype(S));
+		YASL_print_err_bad_arg_type(S, "str.rep", 0, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *string = YASL_GETSTR(vm_pop((struct VM *) S));
