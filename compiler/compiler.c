@@ -11,7 +11,7 @@
 #include "yasl_error.h"
 #include "yasl_include.h"
 
-static void compiler_print_err(struct Compiler *compiler, const char *const fmt, ...) {
+YASL_FORMAT_CHECK static void compiler_print_err(struct Compiler *compiler, const char *const fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
 	compiler->parser.lex.err.print(&compiler->parser.lex.err, fmt, args);

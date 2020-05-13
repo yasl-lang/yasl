@@ -1,8 +1,11 @@
-#pragma once
+#ifndef YASL_YASL_INCLUDE_H_
+#define YASL_YASL_INCLUDE_H_
 
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdio.h>
+
+#include "yasl_conf.h"
 
 // Ugly hack for MinGW, since it doesn't support %z
 #ifdef _WIN32
@@ -57,3 +60,5 @@ YASL_PRINT_ERROR_TYPE("%s expected arg in position %d to be of type %s, got arg 
                       YASL_TYPE_NAMES[actual]);
 
 #define YASL_PRINT_ERROR_TOO_MANY_VAR(line) YASL_PRINT_ERROR("Too many variables in current scope (line %" PRI_SIZET ").\n", line)
+
+#endif

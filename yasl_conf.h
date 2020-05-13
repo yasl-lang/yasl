@@ -9,6 +9,12 @@
 #define YASL_DEPRECATE
 #endif
 
+#if defined __GNUC__ || defined __clang__
+#define YASL_FORMAT_CHECK __attribute__((format (printf, 2, 3)))
+#else
+#define YASL_FORMAT_CHECK
+#endif
+
 #if defined(WIN32) || defined(_WIN32)
 #define YASL_USE_WIN
 #elif defined(__unix__)

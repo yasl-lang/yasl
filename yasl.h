@@ -107,7 +107,7 @@ int YASL_setglobal(struct YASL_State *S, const char *name);
  */
 int YASL_loadglobal(struct YASL_State *S, const char *name);
 
-void YASL_print_err(struct YASL_State *S, const char *const fmt, ...) __attribute__((format (printf, 2, 3)));
+void YASL_print_err(struct YASL_State *S, const char *const fmt, ...) YASL_FORMAT_CHECK;
 
 /**
  * Pushes an undef value onto the stack.

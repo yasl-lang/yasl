@@ -48,7 +48,7 @@ static struct Node *parse_table(struct Parser *const parser);
 static struct Node *parse_lambda(struct Parser *const parser);
 static struct Node *parse_collection(struct Parser *const parser);
 
-void parser_print_err(struct Parser *parser, const char *const fmt, ...) {
+YASL_FORMAT_CHECK static void parser_print_err(struct Parser *parser, const char *const fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
 	parser->lex.err.print(&parser->lex.err, fmt, args);

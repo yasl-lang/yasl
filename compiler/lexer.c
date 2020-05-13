@@ -26,7 +26,7 @@ static bool iswhitespace(int c) {
 	return c == ' ' || c == '\n' || c == '\t';
 }
 
-static void lex_print_err(struct Lexer *lex, const char *const fmt, ...) {
+YASL_FORMAT_CHECK static void lex_print_err(struct Lexer *lex, const char *const fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
 	lex->err.print(&lex->err, fmt, args);
