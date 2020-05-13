@@ -15,22 +15,22 @@ static struct YASL_Table *mt;
 // TODO: fix mem leak in here.
 static int YASL_io_open(struct YASL_State *S) {
 	const char *mode_str;
-	if (YASL_top_isundef(S)) {
+	if (YASL_isundef(S)) {
 		mode_str = "r";
-	} else if (YASL_top_isstring(S)) {
-		mode_str = YASL_top_peekcstring(S);
+	} else if (YASL_isstr(S)) {
+		mode_str = YASL_peekcstr(S);
 	} else {
-		vm_print_err_bad_arg_type((struct VM *)S, "io.open", 1, Y_STR, YASL_top_peektype(S));
+		vm_print_err_bad_arg_type((struct VM *)S, "io.open", 1, Y_STR, YASL_peektype(S));
 		return YASL_TYPE_ERROR;
 	}
 	YASL_pop(S);
 
-	if (!YASL_top_isstring(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "io.open", 0, Y_STR, YASL_top_peektype(S));
+	if (!YASL_isstr(S)) {
+		vm_print_err_bad_arg_type((struct VM *)S, "io.open", 0, Y_STR, YASL_peektype(S));
 		return YASL_TYPE_ERROR;
 	}
 
-	char *filename_str = YASL_top_peekcstring(S);
+	char *filename_str = YASL_peekcstr(S);
 	YASL_pop(S);
 
 	size_t mode_len = strlen(mode_str);
@@ -91,24 +91,24 @@ static int YASL_io_open(struct YASL_State *S) {
 static int YASL_io_read(struct YASL_State *S) {
 	char *mode_str;
 
-	if (YASL_top_isundef(S)) {
+	if (YASL_isundef(S)) {
 		mode_str = (char *)malloc(2);
 		mode_str[0] = 'l';
 		mode_str[1] = '\0';
-	} else if (YASL_top_isstring(S)) {
-		mode_str = YASL_top_peekcstring(S);
+	} else if (YASL_isstr(S)) {
+		mode_str = YASL_peekcstr(S);
 	} else {
-		vm_print_err_bad_arg_type((struct VM *)S, FILE_PRE ".read", 1, Y_STR, YASL_top_peektype(S));
+		vm_print_err_bad_arg_type((struct VM *)S, FILE_PRE ".read", 1, Y_STR, YASL_peektype(S));
 		return YASL_TYPE_ERROR;
 	}
 	YASL_pop(S);
 
-	if (!YASL_top_isuserdata(S, T_FILE)) {
+	if (!YASL_isuserdata(S, T_FILE)) {
 		vm_print_err_type((struct VM *)S, "%s expected arg in position %d to be of type file, got arg of type %s.\n",
-				  FILE_PRE ".read", 0, YASL_TYPE_NAMES[YASL_top_peektype(S)]);
+				  FILE_PRE ".read", 0, YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
-	FILE *f = (FILE *)YASL_top_popuserdata(S);
+	FILE *f = (FILE *)YASL_popuserdata(S);
 
 	size_t mode_len = strlen(mode_str);
 
@@ -154,19 +154,19 @@ static int YASL_io_read(struct YASL_State *S) {
 }
 
 static int YASL_io_write(struct YASL_State *S) {
-	if (!YASL_top_isstring(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, FILE_PRE ".write", 1, Y_STR, YASL_top_peektype(S));
+	if (!YASL_isstr(S)) {
+		vm_print_err_bad_arg_type((struct VM *)S, FILE_PRE ".write", 1, Y_STR, YASL_peektype(S));
 		return YASL_TYPE_ERROR;
 	}
-	char *str = YASL_top_peekcstring(S);
+	char *str = YASL_peekcstr(S);
 	YASL_pop(S);
 
-	if (!YASL_top_isuserdata(S, T_FILE)) {
+	if (!YASL_isuserdata(S, T_FILE)) {
 		vm_print_err_type((struct VM *)S, "%s expected arg in position %d to be of type file, got arg of type %s.\n",
-				  FILE_PRE ".write", 0, YASL_TYPE_NAMES[YASL_top_peektype(S)]);
+				  FILE_PRE ".write", 0, YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
-	FILE *f = (FILE *)YASL_top_popuserdata(S);
+	FILE *f = (FILE *)YASL_popuserdata(S);
 
 	size_t len = strlen(str);
 
@@ -178,12 +178,12 @@ static int YASL_io_write(struct YASL_State *S) {
 }
 
 static int YASL_io_flush(struct YASL_State *S) {
-	if (!YASL_top_isuserdata(S, T_FILE)) {
+	if (!YASL_isuserdata(S, T_FILE)) {
 		vm_print_err_type((struct VM *)S, "%s expected arg in position %d to be of type file, got arg of type %s.\n",
-				  FILE_PRE ".flush", 0, YASL_TYPE_NAMES[YASL_top_peektype(S)]);
+				  FILE_PRE ".flush", 0, YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
-	FILE *f = (FILE *)YASL_top_popuserdata(S);
+	FILE *f = (FILE *)YASL_popuserdata(S);
 
 	int success = fflush(f);
 

@@ -24,18 +24,18 @@ const yasl_float YASL_INF = 1.0 / 0.0;
 #endif
 
 static bool YASL_top_isnumber(struct YASL_State *S) {
-	return YASL_top_isinteger(S) || YASL_top_isfloat(S);
+	return YASL_isint(S) || YASL_isfloat(S);
 }
 
 static int YASL_math_abs(struct YASL_State *S) {
-	if (YASL_top_isinteger(S)) {
-		yasl_int i = YASL_top_popinteger(S);
+	if (YASL_isint(S)) {
+		yasl_int i = YASL_popint(S);
 		if (i < 0) i = -i;
 		return YASL_pushinteger(S, i);
 	}
 
-	if (YASL_top_isfloat(S)) {
-		yasl_float f = YASL_top_popfloat(S);
+	if (YASL_isfloat(S)) {
+		yasl_float f = YASL_popfloat(S);
 		if (f < 0) f = -f;
 		return YASL_pushfloat(S, f);
 	}
@@ -51,10 +51,10 @@ static int YASL_math_exp(struct YASL_State *S) {
 	}
 
 	yasl_float n;
-	if (YASL_top_isinteger(S)) {
-		n = (yasl_float)YASL_top_popinteger(S);
+	if (YASL_isint(S)) {
+		n = (yasl_float)YASL_popint(S);
 	} else {
-		n = YASL_top_popfloat(S);
+		n = YASL_popfloat(S);
 	}
 	return YASL_pushfloat(S, exp(n));
 }
@@ -66,10 +66,10 @@ static int YASL_math_log(struct YASL_State *S) {
 	}
 
 	yasl_float n;
-	if (YASL_top_isinteger(S)) {
-		n = (yasl_float)YASL_top_popinteger(S);
+	if (YASL_isint(S)) {
+		n = (yasl_float)YASL_popint(S);
 	} else {
-		n = YASL_top_popfloat(S);
+		n = YASL_popfloat(S);
 	}
 	return YASL_pushfloat(S, log(n));
 }
@@ -81,10 +81,10 @@ static int YASL_math_sqrt(struct YASL_State *S) {
 	}
 
 	yasl_float n;
-	if (YASL_top_isinteger(S)) {
-		n = (yasl_float)YASL_top_popinteger(S);
+	if (YASL_isint(S)) {
+		n = (yasl_float)YASL_popint(S);
 	} else {
-		n = YASL_top_popfloat(S);
+		n = YASL_popfloat(S);
 	}
 	return YASL_pushfloat(S, sqrt(n));
 }
@@ -96,10 +96,10 @@ static int YASL_math_cos(struct YASL_State *S) {
 	}
 
 	yasl_float n;
-	if (YASL_top_isinteger(S)) {
-		n = (yasl_float)YASL_top_popinteger(S);
+	if (YASL_isint(S)) {
+		n = (yasl_float)YASL_popint(S);
 	} else {
-		n = YASL_top_popfloat(S);
+		n = YASL_popfloat(S);
 	}
 	return YASL_pushfloat(S, cos(n));
 }
@@ -110,10 +110,10 @@ static int YASL_math_sin(struct YASL_State *S) {
 	}
 
 	yasl_float n;
-	if (YASL_top_isinteger(S)) {
-		n = (yasl_float)YASL_top_popinteger(S);
+	if (YASL_isint(S)) {
+		n = (yasl_float)YASL_popint(S);
 	} else {
-		n = YASL_top_popfloat(S);
+		n = YASL_popfloat(S);
 	}
 	return YASL_pushfloat(S, sin(n));
 }
@@ -124,10 +124,10 @@ static int YASL_math_tan(struct YASL_State *S) {
 	}
 
 	yasl_float n;
-	if (YASL_top_isinteger(S)) {
-		n = (yasl_float)YASL_top_popinteger(S);
+	if (YASL_isint(S)) {
+		n = (yasl_float)YASL_popint(S);
 	} else {
-		n = YASL_top_popfloat(S);
+		n = YASL_popfloat(S);
 	}
 	return YASL_pushfloat(S, tan(n));
 }
@@ -138,10 +138,10 @@ static int YASL_math_acos(struct YASL_State *S) {
 	}
 
 	yasl_float n;
-	if (YASL_top_isinteger(S)) {
-		n = (yasl_float)YASL_top_popinteger(S);
+	if (YASL_isint(S)) {
+		n = (yasl_float)YASL_popint(S);
 	} else {
-		n = YASL_top_popfloat(S);
+		n = YASL_popfloat(S);
 	}
 	return YASL_pushfloat(S, acos(n));
 }
@@ -152,10 +152,10 @@ static int YASL_math_asin(struct YASL_State *S) {
 	}
 
 	yasl_float n;
-	if (YASL_top_isinteger(S)) {
-		n = (yasl_float)YASL_top_popinteger(S);
+	if (YASL_isint(S)) {
+		n = (yasl_float)YASL_popint(S);
 	} else {
-		n = YASL_top_popfloat(S);
+		n = YASL_popfloat(S);
 	}
 	return YASL_pushfloat(S, asin(n));
 }
@@ -166,10 +166,10 @@ static int YASL_math_atan(struct YASL_State *S) {
 	}
 
 	yasl_float n;
-	if (YASL_top_isinteger(S)) {
-		n = (yasl_float)YASL_top_popinteger(S);
+	if (YASL_isint(S)) {
+		n = (yasl_float)YASL_popint(S);
 	} else {
-		n = YASL_top_popfloat(S);
+		n = YASL_popfloat(S);
 	}
 	return YASL_pushfloat(S, atan(n));
 }
@@ -181,10 +181,10 @@ static int YASL_math_ceil(struct YASL_State *S) {
 	}
 
 	yasl_float n;
-	if (YASL_top_isinteger(S)) {
-		n = (yasl_float)YASL_top_popinteger(S);
+	if (YASL_isint(S)) {
+		n = (yasl_float)YASL_popint(S);
 	} else {
-		n = YASL_top_popfloat(S);
+		n = YASL_popfloat(S);
 	}
 	return YASL_pushfloat(S, ceil(n));
 }
@@ -195,10 +195,10 @@ static int YASL_math_floor(struct YASL_State *S) {
 	}
 
 	yasl_float n;
-	if (YASL_top_isinteger(S)) {
-		n = (yasl_float)YASL_top_popinteger(S);
+	if (YASL_isint(S)) {
+		n = (yasl_float)YASL_popint(S);
 	} else {
-		n = YASL_top_popfloat(S);
+		n = YASL_popfloat(S);
 	}
 	return YASL_pushfloat(S, floor(n));
 }
@@ -277,10 +277,10 @@ static int YASL_math_deg(struct YASL_State *S) {
 	}
 
 	yasl_float n;
-	if (YASL_top_isinteger(S)) {
-		n = (yasl_float)YASL_top_popinteger(S);
+	if (YASL_isint(S)) {
+		n = (yasl_float)YASL_popint(S);
 	} else {
-		n = YASL_top_popfloat(S);
+		n = YASL_popfloat(S);
 	}
 
 	n *= (yasl_float)180.0/YASL_PI;
@@ -293,10 +293,10 @@ static int YASL_math_rad(struct YASL_State *S) {
 	}
 
 	yasl_float n;
-	if (YASL_top_isinteger(S)) {
-		n = (yasl_float)YASL_top_popinteger(S);
+	if (YASL_isint(S)) {
+		n = (yasl_float)YASL_popint(S);
 	} else {
-		n = YASL_top_popfloat(S);
+		n = YASL_popfloat(S);
 	}
 
 	n *= YASL_PI/(yasl_float)180.0;
@@ -310,10 +310,10 @@ static int YASL_math_isprime(struct YASL_State *S) {
 	}
 
 	yasl_int n;
-	if (YASL_top_isinteger(S)) {
-		n = YASL_top_popinteger(S);
+	if (YASL_isint(S)) {
+		n = YASL_popint(S);
 	} else {
-		n = (yasl_int)YASL_top_popfloat(S);
+		n = (yasl_int)YASL_popfloat(S);
 	}
 
 	int p = is_prime(n);
@@ -342,10 +342,10 @@ static int YASL_math_gcd(struct YASL_State *S) {
 	}
 
 	yasl_int a;
-	if (YASL_top_isinteger(S)) {
-		a = YASL_top_popinteger(S);
+	if (YASL_isint(S)) {
+		a = YASL_popint(S);
 	} else {
-		a = (yasl_int)YASL_top_popfloat(S);
+		a = (yasl_int)YASL_popfloat(S);
 	}
 
 	if (!YASL_top_isnumber(S)) {
@@ -354,10 +354,10 @@ static int YASL_math_gcd(struct YASL_State *S) {
 	}
 
 	yasl_int b;
-	if (YASL_top_isinteger(S)) {
-		b = YASL_top_popinteger(S);
+	if (YASL_isint(S)) {
+		b = YASL_popint(S);
 	} else {
-		b = (yasl_int)YASL_top_popfloat(S);
+		b = (yasl_int)YASL_popfloat(S);
 	}
 
 	if (!(a > 0 && b > 0)) {
@@ -374,10 +374,10 @@ static int YASL_math_lcm(struct YASL_State *S) {
 	}
 
 	yasl_int a;
-	if (YASL_top_isinteger(S)) {
-		a = YASL_top_popinteger(S);
+	if (YASL_isint(S)) {
+		a = YASL_popint(S);
 	} else {
-		a = (yasl_int)YASL_top_popfloat(S);
+		a = (yasl_int)YASL_popfloat(S);
 	}
 
 	if (!YASL_top_isnumber(S)) {
@@ -386,10 +386,10 @@ static int YASL_math_lcm(struct YASL_State *S) {
 	}
 
 	yasl_int b;
-	if (YASL_top_isinteger(S)) {
-		b = YASL_top_popinteger(S);
+	if (YASL_isint(S)) {
+		b = YASL_popint(S);
 	} else {
-		b = (yasl_int)YASL_top_popfloat(S);
+		b = (yasl_int)YASL_popfloat(S);
 	}
 
 	if (!(a > 0 && b > 0)) {
