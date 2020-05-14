@@ -502,7 +502,12 @@ int vm_stringify_top(struct VM *const vm) {
 			exit(EXIT_FAILURE);
 		}
 		YASL_GETCFN(result)->value((struct YASL_State *)vm);
-		// vm_push(vm, result);
+	} else if (YASL_ISUSERPTR(vm_peek(vm))) {
+		// TODO clean up
+		size_t n = (size_t)snprintf(NULL, 0, "<userptr: %p>", (void *)vm_peekint(vm)) + 1;
+		char *buffer = (char *)malloc(n);
+		snprintf(buffer, n, "<userptr: %p>", (void *)vm_popint(vm));
+		vm_pushstr(vm, YASL_String_new_sized_heap(0, strlen(buffer), buffer));
 	} else {
 		struct YASL_Object key = YASL_STR(YASL_String_new_sized(strlen("tostr"), "tostr"));
 		struct YASL_Object result = YASL_Table_search(vm->builtins_htable[index], key);

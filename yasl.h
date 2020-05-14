@@ -212,7 +212,12 @@ int YASL_pushuserdata(struct YASL_State *S, void *data, int tag, struct YASL_Tab
  * @param userpointer the user-pointer to push onto the stack.
  * @return YASL_SUCCESS on success, otherwise an error code.
  */
-int YASL_pushuserpointer(struct YASL_State *S, void *userpointer);
+int YASL_pushuserptr(struct YASL_State *S, void *userpointer);
+
+/**
+ * Use YASL_pushuserptr instead.
+ */
+YASL_DEPRECATE int YASL_pushuserpointer(struct YASL_State *S, void *userpointer);
 
 /**
  * pops the top of the stack.

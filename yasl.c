@@ -228,9 +228,13 @@ int YASL_pushuserdata(struct YASL_State *S, void *data, int tag, struct YASL_Tab
 	return YASL_SUCCESS;
 }
 
-int YASL_pushuserpointer(struct YASL_State *S, void *userpointer) {
+int YASL_pushuserptr(struct YASL_State *S, void *userpointer) {
 	vm_push((struct VM *) S, YASL_USERPTR(userpointer));
 	return YASL_SUCCESS;
+}
+
+int YASL_pushuserpointer(struct YASL_State *S, void *userpointer) {
+	return YASL_pushuserptr(S, userpointer);
 }
 
 int YASL_pushszstring(struct YASL_State *S, const char *value) {
@@ -486,6 +490,10 @@ void *YASL_top_peekuserpointer(struct YASL_State *S) {
 	return YASL_GETUSERPTR(vm_peek(&S->vm));
 }
 
-void *YASL_top_popuserpointer(struct YASL_State *S) {
+void *YASL_popuserptr(struct YASL_State *S) {
 	return YASL_GETUSERPTR(vm_pop(&S->vm));
+}
+
+void *YASL_top_popuserpointer(struct YASL_State *S) {
+	return YASL_popuserptr(S);
 }
