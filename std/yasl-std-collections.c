@@ -1,7 +1,6 @@
 #include "yasl-std-collections.h"
 
 #include "data-structures/YASL_Set.h"
-#include "interpreter/VM.h"
 #include "yasl_state.h"
 
 // what to prepend to method names in messages to user
@@ -11,21 +10,21 @@ static struct YASL_Table *set_mt = NULL;
 
 static int YASL_collections_set_new(struct YASL_State *S) {
 	struct YASL_Set *set = YASL_Set_new();
-	yasl_int i = vm_popint((struct VM *)S);
+	yasl_int i = YASL_popint(S);
 	while (i-- > 0) {
 		if (!YASL_Set_insert(set, vm_peek((struct VM *) S))) {
 			vm_print_err_type(&S->vm, "unable to use mutable object of type %s as key.\n",
 					  YASL_TYPE_NAMES[vm_peek((struct VM*)S).type]);
 			return YASL_TYPE_ERROR;
 		}
-		vm_pop((struct VM *)S);
+		YASL_pop(S);
 	}
 	YASL_pushuserdata(S, set, T_SET, set_mt, YASL_Set_del);
 	return YASL_SUCCESS;
 }
 
 static int YASL_collections_list_new(struct YASL_State *S) {
-	yasl_int i = vm_popint((struct VM *)S);
+	yasl_int i = YASL_popint(S);
 	struct RC_UserData *list = rcls_new();
 	while (i-- > 0) {
 		YASL_List_append((struct YASL_List *) list->data, vm_pop((struct VM *) S));
@@ -36,10 +35,10 @@ static int YASL_collections_list_new(struct YASL_State *S) {
 }
 
 static int YASL_collections_table_new(struct YASL_State *S) {
-	yasl_int i = vm_popint((struct VM *)S);
+	yasl_int i = YASL_popint(S);
 	// If we have an odd number of args, we just add an undef to balance it out.
 	if (i % 2 != 0) {
-		vm_pushundef((struct VM *)S);
+		YASL_pushundef(S);
 	}
 	struct RC_UserData *table = rcht_new();
 	while (i > 0) {

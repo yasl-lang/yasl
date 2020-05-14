@@ -243,4 +243,3 @@ int YASL_load_io(struct YASL_State *S) {
 
 	return YASL_SUCCESS;
 }
-
