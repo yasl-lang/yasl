@@ -11,13 +11,13 @@
 })
 
 struct IO {
-	void (*print)(struct IO *const, const char *const, const size_t);
+	void (*print)(struct IO *const, const char *const, va_list);
 	FILE *file;
 	char *string;
 	size_t len;
 };
 
-void io_print_file(struct IO *const io, const char *const format, const size_t len);
-void io_print_string(struct IO *const io, const char *const format, const size_t len);
+void io_print_file(struct IO *const io, const char *const format, va_list);
+void io_print_string(struct IO *const io, const char *const format, va_list);
 
 #endif

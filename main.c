@@ -4,23 +4,18 @@
 #include <time.h>
 
 #include "yasl.h"
-#include "std/yasl-std-io.h"
-#include "std/yasl-std-math.h"
-#include "std/yasl-std-require.h"
-#include "std/yasl-std-collections.h"
+#include "std/yasl-std.h"
 #include "yasl_state.h"
 
-
-#define VERSION "v0.8.0"
+#define VERSION "v0.8.1"
 #define VERSION_PRINTOUT "YASL " VERSION
 
-static int load_libs(struct YASL_State *S) {
-	YASL_load_math(S);
-	YASL_load_io(S);
-	YASL_load_require(S);
-	YASL_load_collections(S);
-	return YASL_SUCCESS;
-}
+#define YASL_LOGO " __ __  _____   ____   __   \n" \
+                  "|  |  ||     | /    \\ |  |    \n" \
+                  "|  |  ||  O  | |  __| |  |  \n" \
+                  "|___  ||     | |__  | |  |__ \n" \
+		  "|     ||  |  | |    | |     |\n" \
+		  "|_____/|__|__| \\____/ |_____|\n"
 
 static int main_error(int argc, char **argv) {
 	(void) argv;
@@ -105,6 +100,11 @@ static int main_command_REPL(int argc, char **argv) {
 	return status;
 }
 
+static int YASL_quit(struct YASL_State *S) {
+	(void) S;
+	exit(0);
+}
+
 static int main_command(int argc, char **argv) {
 	(void) argc;
 	const size_t size = strlen(argv[2]);
@@ -123,8 +123,12 @@ static int main_REPL(int argc, char **argv) {
 	char *buffer = (char *)malloc(size);
 	struct YASL_State *S = YASL_newstate_bb(buffer, 0);
 	load_libs(S);
+	YASL_declglobal(S, "quit");
+	YASL_pushcfunction(S, YASL_quit, 0);
+	YASL_setglobal(S, "quit");
+	puts(YASL_LOGO);
 	puts(VERSION_PRINTOUT);
-	while (1) {
+	while (true) {
 		printf("yasl> ");
 		while ((next = getchar()) != '\n') {
 			if (size == count) {
@@ -139,9 +143,6 @@ static int main_REPL(int argc, char **argv) {
 		}
 		buffer[count++] = '\n';
 
-		if (count == strlen("quit\n") && !memcmp(buffer, "quit\n", strlen("quit\n"))) {
-			break;
-		}
 		YASL_resetstate_bb(S, buffer, count); 
 
 		count = 0;

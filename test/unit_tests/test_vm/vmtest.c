@@ -2,6 +2,7 @@
 #include "yasl.h"
 #include "IO.h"
 #include "yasl_state.h"
+#include "yasl-std.h"
 
 SETUP_YATS();
 
@@ -9,6 +10,7 @@ SETUP_YATS();
 
 #define ASSERT_VALUE_ERR(code, expected) {\
 	struct YASL_State *S = YASL_newstate_bb(code, strlen(code));\
+	load_libs(S);\
 	S->vm.err.print = io_print_string;\
 	S->vm.out.print = io_print_string;\
 	ASSERT_SUCCESS(YASL_compile(S));\
@@ -17,12 +19,13 @@ SETUP_YATS();
 	const char *exp_err = "ValueError: " expected ".\n";\
 	ASSERT_EQ(S->vm.out.len, 0);\
 	ASSERT_EQ(strlen(exp_err), S->vm.err.len);\
-	ASSERT_EQ(memcmp(exp_err, S->vm.err.string, S->vm.err.len), 0);\
+	ASSERT_STR_EQ(exp_err, S->vm.err.string, S->vm.err.len);\
 	YASL_delstate(S);\
 }
 
 #define ASSERT_DIV_BY_ZERO_ERR(code) {\
 	struct YASL_State *S = YASL_newstate_bb(code, strlen(code));\
+	load_libs(S);\
 	S->vm.err.print = io_print_string;\
 	S->vm.out.print = io_print_string;\
 	ASSERT_SUCCESS(YASL_compile(S));\
@@ -31,12 +34,13 @@ SETUP_YATS();
 	const char *exp_err = "DivisionByZeroError\n";\
 	ASSERT_EQ(S->vm.out.len, 0);\
 	ASSERT_EQ(strlen(exp_err), S->vm.err.len);\
-	ASSERT_EQ(memcmp(exp_err, S->vm.err.string, S->vm.err.len), 0);\
+	ASSERT_STR_EQ(exp_err, S->vm.err.string, S->vm.err.len);\
 	YASL_delstate(S);\
 }
 
 #define ASSERT_TYPE_ERR(code, expected) {\
 	struct YASL_State *S = YASL_newstate_bb(code, strlen(code));\
+	load_libs(S);\
 	S->vm.err.print = io_print_string;\
 	S->vm.out.print = io_print_string;\
 	ASSERT_SUCCESS(YASL_compile(S));\
@@ -45,7 +49,7 @@ SETUP_YATS();
 	const char *exp_err = "TypeError: " expected ".\n";\
 	ASSERT_EQ(S->vm.out.len, 0);\
 	ASSERT_EQ(strlen(exp_err), S->vm.err.len);\
-	ASSERT_EQ(memcmp(exp_err, S->vm.err.string, S->vm.err.len), 0);\
+	ASSERT_STR_EQ(exp_err, S->vm.err.string, S->vm.err.len);\
 	YASL_delstate(S);\
 }
 
@@ -201,8 +205,101 @@ int vmtest(void) {
 	ASSERT_VALUE_ERR("const x = [ .a, .b, .c ]; x[3] = .d;", "unable to index list of length 3 with index 3");
 
 	// math type errors
-	// ASSERT_ARG_TYPE_ERR("math.max(1, 2, .a);", "math.max", "float", "str", 2);
-	// ASSERT_ARG_TYPE_ERR("math.min(1, 2, .a);", "math.max", "float", "str", 2);
+	ASSERT_ARG_TYPE_ERR("math.max(1, 2, .a);", "math.max", "float", "str", 2);
+	ASSERT_ARG_TYPE_ERR("math.min(1, 2, .a);", "math.min", "float", "str", 2);
+	ASSERT_ARG_TYPE_ERR("math.max(.a, 1);", "math.max", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.min(.a, 1);", "math.min", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.abs(.str);", "math.abs", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.log(.str);", "math.log", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.exp(.str);", "math.exp", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.sqrt(.str);", "math.sqrt", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.cos(.str);", "math.cos", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.sin(.str);", "math.sin", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.tan(.str);", "math.tan", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.acos(.str);", "math.acos", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.asin(.str);", "math.asin", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.atan(.str);", "math.atan", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.ceil(.str);", "math.ceil", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.floor(.str);", "math.floor", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.deg(.str);", "math.deg", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.rad(.str);", "math.rad", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.isprime(.str);", "math.isprime", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.gcd(.str, 1);", "math.gcd", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.gcd(2, .s);", "math.gcd", "float", "str", 1);
+	ASSERT_ARG_TYPE_ERR("math.gcd(.a, .b);", "math.gcd", "float", "str", 1);
+	ASSERT_ARG_TYPE_ERR("math.lcm(.str, 1);", "math.lcm", "float", "str", 0);
+	ASSERT_ARG_TYPE_ERR("math.lcm(2, .s);", "math.lcm", "float", "str", 1);
+	ASSERT_ARG_TYPE_ERR("math.lcm(.a, .b);", "math.lcm", "float", "str", 1);
+
+	// collection errors
+	ASSERT_TYPE_ERR("echo collections.table({},[]);", "unable to use mutable object of type table as key");
+	ASSERT_TYPE_ERR("echo collections.set([], []);", "unable to use mutable object of type list as key");
+	ASSERT_TYPE_ERR("const x = collections.set(); x->add([]);", "unable to use mutable object of type list as key");
+	ASSERT_TYPE_ERR("const x = collections.set(); collections.set().add(x, []);",
+			"unable to use mutable object of type list as key");
+	ASSERT_ARG_TYPE_ERR("const x = collections.set(); collections.set().add([], 1);",
+			    "collections.set.add", "set", "list", 0);
+	ASSERT_ARG_TYPE_ERR("const x = collections.set(); collections.set().remove([], 1);",
+			    "collections.set.remove", "set", "list", 0);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().tostr(1);", "collections.set.tostr", "set", "int", 0);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().tolist(1);", "collections.set.tolist", "set", "int", 0);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().__band(collections.set(), true);",
+			    "collections.set.__band", "set", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().__band(1, collections.set());",
+			    "collections.set.__band", "set", "int", 0);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().__band(1, true);", "collections.set.__band", "set", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().__bor(collections.set(), true);",
+			    "collections.set.__bor", "set", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().__bor(1, collections.set());",
+			    "collections.set.__bor", "set", "int", 0);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().__bor(1, true);", "collections.set.__bor", "set", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().__bxor(collections.set(), true);",
+			    "collections.set.__bxor", "set", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().__bxor(1, collections.set());",
+			    "collections.set.__bxor", "set", "int", 0);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().__bxor(1, true);", "collections.set.__bxor", "set", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().__bandnot(collections.set(), true);",
+			    "collections.set.__bandnot", "set", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().__bandnot(1, collections.set());",
+			    "collections.set.__bandnot", "set", "int", 0);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().__bandnot(1, true);", "collections.set.__bandnot", "set", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().__len(1);", "collections.set.__len", "set", "int", 0);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().copy(1);", "collections.set.copy", "set", "int", 0);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().clear(1);", "collections.set.clear", "set", "int", 0);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().contains([], true);", "collections.set.contains", "set", "list", 0);
+
+	// io errors
+	ASSERT_ARG_TYPE_ERR("let f = io.open('f', true);", "io.open", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("let f = io.open(1, 'w');", "io.open", "str", "int", 0);
+	ASSERT_ARG_TYPE_ERR("let f = io.open(1, true);", "io.open", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("let f = io.open(1);", "io.open", "str", "int", 0);
+	ASSERT_VALUE_ERR("let f = io.open('f', 'www');", "io.open was passed invalid mode: www");
+	ASSERT_VALUE_ERR("let f = io.open('f', 'y+');", "io.open was passed invalid mode: y+");
+	ASSERT_VALUE_ERR("let f = io.open('f', 'p');", "io.open was passed invalid mode: p");
+	ASSERT_ARG_TYPE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f->read(false);",
+			    "io.file.read", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f.read([], false);",
+			    "io.file.read", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f.read(f, false);",
+			    "io.file.read", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f.read([], 'l');",
+			    "io.file.read", "file", "list", 0);
+	ASSERT_ARG_TYPE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f.read([]);",
+			    "io.file.read", "file", "list", 0);
+	ASSERT_VALUE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f->read('y');",
+			    "io.file.read was passed invalid mode: y");
+	ASSERT_VALUE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f->read('ysadasd');",
+			 "io.file.read was passed invalid mode: ysadasd");
+	ASSERT_ARG_TYPE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f->write(false);",
+			    "io.file.write", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f.write([], false);",
+			    "io.file.write", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f.write(f, false);",
+			    "io.file.write", "str", "bool", 1);
+	ASSERT_ARG_TYPE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f.write([], 'l');",
+			    "io.file.write", "file", "list", 0);
+	ASSERT_ARG_TYPE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f.flush([]);",
+			    "io.file.flush", "file", "list", 0);
 
 	return __YASL_TESTS_FAILED__;
 }

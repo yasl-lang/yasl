@@ -1,6 +1,7 @@
 #include "parser.h"
 
 #include <inttypes.h>
+#include <stdarg.h>
 
 #include "ast.h"
 #include "debug.h"
@@ -44,13 +45,14 @@ static struct Node *parse_integer(struct Parser *const parser);
 static struct Node *parse_boolean(struct Parser *const parser);
 static struct Node *parse_string(struct Parser *const parser);
 static struct Node *parse_table(struct Parser *const parser);
+static struct Node *parse_lambda(struct Parser *const parser);
 static struct Node *parse_collection(struct Parser *const parser);
 
-#define parser_print_err(parser, format, ...) {\
-	char *tmp = (char *)malloc(snprintf(NULL, 0, format, __VA_ARGS__) + 1);\
-	sprintf(tmp, format, __VA_ARGS__);\
-	(parser)->lex.err.print(&(parser)->lex.err, tmp, strlen(tmp));\
-	free(tmp);\
+YASL_FORMAT_CHECK static void parser_print_err(struct Parser *parser, const char *const fmt, ...) {
+	va_list args;
+	va_start(args, fmt);
+	parser->lex.err.print(&parser->lex.err, fmt, args);
+	va_end(args);
 }
 
 #define parser_print_err_syntax(parser, format, ...) parser_print_err(parser, "SyntaxError: " format, __VA_ARGS__)
@@ -63,10 +65,10 @@ int peof(const struct Parser *const parser) {
 static inline int tok_isaugmented(const enum Token t) {
 	// ^=, *=, /=, //=,
 	// %=, +=, -=, >>=, <<=,
-	// ||=, |||=, &=, **=, |=,
+	// ||=, &&=, ~=, **=, |=,
 	// ??=
 	return t == T_CARETEQ || t == T_STAREQ || t == T_SLASHEQ || t == T_DSLASHEQ ||
-	       t == T_MOD || t == T_PLUSEQ || t == T_MINUSEQ || t == T_DGTEQ || t == T_DLTEQ ||
+	       t == T_MODEQ || t == T_PLUSEQ || t == T_MINUSEQ || t == T_DGTEQ || t == T_DLTEQ ||
 	       t == T_DBAREQ || t == T_DAMPEQ || t == T_TILDEEQ || t == T_AMPEQ || t == T_AMPCARETEQ ||
 	       t == T_DSTAREQ || t == T_BAREQ ||
 	       t == T_DQMARKEQ;
@@ -138,6 +140,21 @@ struct Node *parse_assign_or_exprstmt(struct Parser *const parser) {
 
 	return new_ExprStmt(expr, line);
 }
+static bool isfndecl(struct Parser *const parser) {
+	(void) parser;
+	long curr = lxtell(parser->lex.file);
+	eattok(parser, T_FN);
+	free(parser->lex.value);
+	if (matcheattok(parser, T_ID)) {
+		lxseek(parser->lex.file, curr, SEEK_SET);
+		parser->lex.type = T_FN;
+		return true;
+	} else {
+		lxseek(parser->lex.file, curr, SEEK_SET);
+		parser->lex.type = T_FN;
+		return false;
+	}
+}
 
 static struct Node *parse_program(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("parsing statement in line %" PRI_SIZET "\n", parser->lex.line);
@@ -147,7 +164,8 @@ static struct Node *parse_program(struct Parser *const parser) {
 		eattok(parser, T_ECHO);
 		return new_Print(parse_expr(parser), parser->lex.line);
 	case T_FN:
-		return parse_fn(parser);
+		if (isfndecl(parser)) return parse_fn(parser);
+		else return parse_expr(parser);
 	case T_RET:
 		eattok(parser, T_RET);
 		return new_Return(parse_expr(parser), parser->lex.line);
@@ -585,9 +603,9 @@ static struct Node *parse_constant(struct Parser *const parser) {
 	case T_FLOAT: return parse_float(parser);
 	case T_BOOL: return parse_boolean(parser);
 	case T_UNDEF: return parse_undef(parser);
+	case T_FN: return parse_lambda(parser);
 		// handle invalid expressions with sensible error messages.
 	case T_ECHO:
-	case T_FN:
 	case T_WHILE:
 	case T_BREAK:
 	case T_RET:
@@ -621,6 +639,20 @@ static struct Node *parse_undef(struct Parser *const parser) {
 	eattok(parser, T_UNDEF);
 	return cur_node;
 }
+
+static struct Node *parse_lambda(struct Parser *const parser) {
+	YASL_PARSE_DEBUG_LOG("%s\n", "Parsing lambda");
+	size_t line = parser->lex.line;
+
+	eattok(parser, T_FN);
+	eattok(parser, T_LPAR);
+	struct Node *block = parse_function_params(parser);
+	eattok(parser, T_RPAR);
+	struct Node *body = parse_body(parser);
+
+	return new_FnDecl(block, body, NULL, 0, line);
+}
+
 
 static yasl_float get_float(char *buffer) {
 	return strtod(buffer, (char **) NULL);

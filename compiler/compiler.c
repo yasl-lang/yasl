@@ -1,8 +1,9 @@
 #include "compiler.h"
 
 #include <math.h>
-#include <interpreter/YASL_Object.h>
+#include <stdarg.h>
 
+#include "YASL_Object.h"
 #include "ast.h"
 #include "data-structures/YASL_String.h"
 #include "lexinput.h"
@@ -10,11 +11,11 @@
 #include "yasl_error.h"
 #include "yasl_include.h"
 
-#define compiler_print_err(compiler, format, ...) {\
-	char *tmp = (char *)malloc(snprintf(NULL, 0, format, __VA_ARGS__) + 1);\
-	sprintf(tmp, format, __VA_ARGS__);\
-	(compiler)->parser.lex.err.print(&(compiler)->parser.lex.err, tmp, strlen(tmp));\
-	free(tmp);\
+YASL_FORMAT_CHECK static void compiler_print_err(struct Compiler *compiler, const char *const fmt, ...) {
+	va_list args;
+	va_start(args, fmt);
+	compiler->parser.lex.err.print(&compiler->parser.lex.err, fmt, args);
+	va_end(args);
 }
 
 #define compiler_print_err_syntax(compiler, format, ...) compiler_print_err(compiler, "SyntaxError: " format, __VA_ARGS__)
@@ -854,7 +855,9 @@ static void declare_with_let_or_const(struct Compiler *const compiler, const str
 		return;
 	}
 
-	if (Decl_get_expr(node) && Decl_get_expr(node)->nodetype == N_FNDECL) {
+	if (Decl_get_expr(node) &&
+	    Decl_get_expr(node)->nodetype == N_FNDECL &&
+	    Decl_get_expr(node)->value.sval.str != NULL) {
 		decl_var(compiler, Decl_get_name(node), node->line);
 		visit(compiler, Decl_get_expr(node));
 	} else {

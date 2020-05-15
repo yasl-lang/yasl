@@ -58,7 +58,11 @@ static void set_resize_down(struct YASL_Set *set) {
 	set_resize(set, new_size);
 }
 
-void YASL_Set_insert(struct YASL_Set *const set, struct YASL_Object value) {
+bool YASL_Set_insert(struct YASL_Set *const set, struct YASL_Object value) {
+	if (!ishashable(value)) {
+		return false;
+	}
+
 	const size_t load = set->count * 100 / set->size;
 	if (load > 70) set_resize_up(set);
 	size_t index = get_hash(value, set->size, 0);
@@ -70,7 +74,7 @@ void YASL_Set_insert(struct YASL_Set *const set, struct YASL_Object value) {
 			if (!isfalsey(isequal(curr_item, value))) {
 				dec_ref(&curr_item);
 				set->items[index] = value;
-				return;
+				return true;
 			}
 		}
 		index = get_hash(value, set->size, i++);
@@ -78,6 +82,7 @@ void YASL_Set_insert(struct YASL_Set *const set, struct YASL_Object value) {
 	}
 	set->items[index] = value;
 	set->count++;
+	return true;
 }
 
 struct YASL_Object YASL_Set_search(const struct YASL_Set *const table, const struct YASL_Object key) {
@@ -95,6 +100,9 @@ struct YASL_Object YASL_Set_search(const struct YASL_Set *const table, const str
 }
 
 void YASL_Set_rm(struct YASL_Set *const table, struct YASL_Object key) {
+	if (!ishashable(key)) {
+		return;
+	}
 	const size_t load = table->count * 100 / table->size;
 	if (load < 10) set_resize_down(table);
 	size_t index = get_hash(key, table->size, 0);

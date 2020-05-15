@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 
 #include "debug.h"
 #include "yasl_error.h"
@@ -25,11 +26,11 @@ static bool iswhitespace(int c) {
 	return c == ' ' || c == '\n' || c == '\t';
 }
 
-#define lex_print_err(lex, format, ...) {\
-	char *tmp = (char *)malloc(snprintf(NULL, 0, format, __VA_ARGS__) + 1);\
-	sprintf(tmp, format, __VA_ARGS__);\
-	(lex)->err.print(&(lex)->err, tmp, strlen(tmp));\
-	free(tmp);\
+YASL_FORMAT_CHECK static void lex_print_err(struct Lexer *lex, const char *const fmt, ...) {
+	va_list args;
+	va_start(args, fmt);
+	lex->err.print(&lex->err, fmt, args);
+	va_end(args);
 }
 
 #define lex_print_err_syntax(lex, format, ...) lex_print_err(lex, "SyntaxError: " format, __VA_ARGS__)

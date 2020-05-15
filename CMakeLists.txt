@@ -19,7 +19,7 @@ if(MSVC)
 endif()
 
 if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
-    set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-unused-function -Wno-vla -Wpedantic -Werror")
+    set(CMAKE_C_FLAGS "-fPIC -Wall -Wextra -Wno-unused-function -Wno-vla -Werror")
 endif()
 if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
     set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-function -Wno-unused-variable -Wno-vla -Wno-deprecated -Werror")
@@ -46,6 +46,7 @@ include_directories(test)
 add_executable(yasl
         opcode.h
         yasl.c
+        yasl_aux.c
         main.c
         compiler/ast.c
         data-structures/YASL_ByteBuffer.c
@@ -80,7 +81,11 @@ add_executable(yasl
         std/yasl-std-require.c
         data-structures/YASL_Set.c
         std/yasl-std-collections.c
-        util/IO.c)
+        util/IO.c
+        yasl_conf.h
+        yasl_error.h
+        yasl_plat.h
+        )
 
 if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
     add_executable(tests
@@ -116,6 +121,10 @@ if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
             test/unit_tests/test_methods/listtest.c
             test/unit_tests/test_methods/strtest.c
             test/unit_tests/test_vm/vmtest.c
+            std/yasl-std-collections.c
+            std/yasl-std-require.c
+            std/yasl-std-io.c
+            std/yasl-std-math.c
             compiler/lexer.c
             compiler/lexinput.c
             compiler/compiler.c
@@ -135,6 +144,7 @@ if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
             data-structures/YASL_Set.c
             compiler/env.c
             yasl.c
+            yasl_aux.c
             interpreter/upvalue.c
             interpreter/closure.c
             interpreter/VM.c
@@ -153,6 +163,7 @@ endif()
 add_library(yaslapi
         opcode.h
         yasl.c
+        yasl_aux.c
         compiler/ast.c
         data-structures/YASL_ByteBuffer.c
         compiler/compiler.c
@@ -187,4 +198,10 @@ if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
     target_link_libraries(yasl m)
     target_link_libraries(yaslapi m)
     target_link_libraries(tests m)
+endif()
+
+if (UNIX)
+    target_link_libraries(yasl dl)
+    target_link_libraries(yaslapi dl)
+    target_link_libraries(tests dl)
 endif()

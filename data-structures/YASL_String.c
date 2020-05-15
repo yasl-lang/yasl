@@ -133,7 +133,7 @@ bool isvaliddouble(const char *str) {
 
 		}
 	}
-	return hasdot && isdigit(str[len-1]) && isdigit(str[0]);
+	return hasdot && isdigit((int)str[len-1]) && isdigit((int)str[0]);
 }
 
 int64_t str_find_index(const struct YASL_String *const haystack, const struct YASL_String *const needle) {
@@ -180,7 +180,7 @@ static yasl_int parseint64(const char *str, int *error) {
 
 yasl_float YASL_String_tofloat(struct YASL_String *str) {
 	char *buffer = (char *)malloc(YASL_String_len(str) + 1);
-	if (!isdigit(str->str[str->start])) {
+	if (!isdigit((int)str->str[str->start])) {
 		free(buffer);
 		return NAN;
 	}
@@ -221,7 +221,7 @@ yasl_int YASL_String_toint(struct YASL_String *str) {
 		return tmp;
 	}
 
-	if (str->str[str->start + 0] == '0' && (isalpha(str->str[str->start + 1]))) {
+	if (str->str[str->start + 0] == '0' && (isalpha((int)str->str[str->start + 1]))) {
 		size_t curr = 2;
 		buffer[0] = str->str[str->start + 0];
 		buffer[1] = str->str[str->start + 1];
