@@ -8,10 +8,26 @@
 
 #include "yasl.h"
 
+/**
+ * Prints an error message
+ * @param S The YASL State.
+ * @param fn_name name of the function in which the error occured.
+ * @param position which arg had the wrong type.
+ * @param exp expected type of the arg.
+ * @param act actual type of the arg.
+ */
+void YASLX_print_err_bad_arg_type(struct YASL_State *S,
+				 const char *const fn_name,
+				 int position,
+				 const char *const exp,
+				 const char *const act);
+/**
+ * Use YASLX_print_err_bad_arg_type instead.
+ */
+YASL_DEPRECATE
 void YASL_print_err_bad_arg_type(struct YASL_State *S,
 				 const char *const fn_name,
 				 int position,
 				 const char *const exp,
 				 const char *const act);
-
 #endif
