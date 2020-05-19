@@ -154,7 +154,7 @@ static int YASL_collections_set___len(struct YASL_State *S) {
 	}
 	struct YASL_Set *set = (struct YASL_Set *)YASL_popuserdata(S);
 
-	YASL_pushinteger(S, YASL_Set_length(set));
+	YASL_pushint(S, YASL_Set_length(set));
 	return YASL_SUCCESS;
 }
 

@@ -130,6 +130,12 @@ int YASL_pushfloat(struct YASL_State *S, yasl_float value);
  * @param integer to be pushed onto the stack.
  * @return YASL_SUCCESS on success, otherwise an error code.
  */
+int YASL_pushint(struct YASL_State *S, yasl_int value);
+
+/**
+ * Use YASL_pushint instead.
+ */
+YASL_DEPRECATE
 int YASL_pushinteger(struct YASL_State *S, yasl_int value);
 
 /**
@@ -138,7 +144,13 @@ int YASL_pushinteger(struct YASL_State *S, yasl_int value);
  * @param value boolean to be pushed onto the stack.
  * @return YASL_SUCCESS on success, otherwise an error code.
  */
-int YASL_pushboolean(struct YASL_State *S, int value);
+int YASL_pushbool(struct YASL_State *S, bool value);
+
+/**
+ * Use YASL_pushbool instead.
+ */
+YASL_DEPRECATE
+int YASL_pushboolean(struct YASL_State *S, bool value);
 
 /**
  * Pushes a null-terminated string onto the stack.

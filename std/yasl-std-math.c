@@ -41,7 +41,7 @@ static int YASL_math_abs(struct YASL_State *S) {
 	if (YASL_isint(S)) {
 		yasl_int i = YASL_popint(S);
 		if (i < 0) i = -i;
-		return YASL_pushinteger(S, i);
+		return YASL_pushint(S, i);
 	}
 
 	if (YASL_isfloat(S)) {
@@ -263,7 +263,7 @@ static int YASL_math_isprime(struct YASL_State *S) {
 
 	int p = is_prime(n);
 	if (p < 0) return YASL_pushundef(S);
-	return YASL_pushboolean(S, p);
+	return YASL_pushbool(S, p);
 }
 yasl_int gcd_helper(yasl_int a, yasl_int b) {
 	if (a < b) {
@@ -310,7 +310,7 @@ static int YASL_math_gcd(struct YASL_State *S) {
 		return YASL_pushundef(S);
 	}
 
-	return YASL_pushinteger(S, gcd_helper(a, b));
+	return YASL_pushint(S, gcd_helper(a, b));
 }
 static int YASL_math_lcm(struct YASL_State *S) {
 	if (!YASL_isnum(S)) {
@@ -342,13 +342,13 @@ static int YASL_math_lcm(struct YASL_State *S) {
 	}
 
 	yasl_int gcd = gcd_helper(a, b);
-	return YASL_pushinteger(S, b*a/gcd);
+	return YASL_pushint(S, b*a/gcd);
 }
 
 static int YASL_math_rand(struct YASL_State *S) {
 	// rand() is only guarenteed to return a maximum of ~32000. Ensure all 64 bits are used
 	yasl_int r = (yasl_int) rand() ^((yasl_int) rand() << 16) ^((yasl_int) rand() << 32) ^((yasl_int) rand() << 48);
-	return YASL_pushinteger(S, r);
+	return YASL_pushint(S, r);
 }
 
 int YASL_load_math(struct YASL_State *S) {

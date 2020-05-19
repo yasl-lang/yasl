@@ -172,7 +172,7 @@ static int YASL_io_write(struct YASL_State *S) {
 
 	size_t write_len = fwrite(str, 1, len, f);
 
-	YASL_pushinteger(S, write_len);
+	YASL_pushint(S, write_len);
 	free(str);
 	return YASL_SUCCESS;
 }
@@ -187,7 +187,7 @@ static int YASL_io_flush(struct YASL_State *S) {
 
 	int success = fflush(f);
 
-	YASL_pushboolean(S, success == 0);
+	YASL_pushbool(S, success == 0);
 	return YASL_SUCCESS;
 }
 

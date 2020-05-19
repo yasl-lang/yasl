@@ -18,7 +18,7 @@ int int_tobool(struct YASL_State *S) {
 		YASLX_print_err_bad_arg_type(S, "int.tobool", 0, "int", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
-	YASL_pushboolean(S, true);
+	YASL_pushbool(S, true);
 	return YASL_SUCCESS;
 }
 

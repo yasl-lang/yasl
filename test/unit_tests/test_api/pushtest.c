@@ -37,7 +37,7 @@ static void testsetglobal_bool(void) {
 	struct YASL_State *S = YASL_newstate_bb("echo x;", strlen("echo x;"));
 	S->vm.out.print = io_print_string;
 	ASSERT_SUCCESS(YASL_declglobal(S, "x"));
-	ASSERT_SUCCESS(YASL_pushboolean(S, true));
+	ASSERT_SUCCESS(YASL_pushbool(S, true));
 	ASSERT_SUCCESS(YASL_setglobal(S, "x"));
 	ASSERT_SUCCESS(YASL_compile(S));
 	ASSERT_SUCCESS(YASL_execute(S));
@@ -48,7 +48,7 @@ static void testsetglobal_int(void) {
 	struct YASL_State *S = YASL_newstate_bb("echo x;", strlen("echo x;"));
 	S->vm.out.print = io_print_string;
 	ASSERT_SUCCESS(YASL_declglobal(S, "x"));
-	ASSERT_SUCCESS(YASL_pushinteger(S, 12));
+	ASSERT_SUCCESS(YASL_pushint(S, 12));
 	ASSERT_SUCCESS(YASL_setglobal(S, "x"));
 	ASSERT_SUCCESS(YASL_compile(S));
 	ASSERT_SUCCESS(YASL_execute(S));

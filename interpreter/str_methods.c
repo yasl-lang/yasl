@@ -55,7 +55,7 @@ int str_toint(struct YASL_State *S) {
 	}
 	struct YASL_String *str = vm_popstr((struct VM *)S);
 
-	YASL_pushinteger(S, YASL_String_toint(str));
+	YASL_pushint(S, YASL_String_toint(str));
 	return YASL_SUCCESS;
 }
 
@@ -65,7 +65,7 @@ int str_tobool(struct YASL_State* S) {
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_String *a = YASL_GETSTR(vm_pop((struct VM *) S));
-	YASL_pushboolean(S, YASL_String_len(a) != 0);
+	YASL_pushbool(S, YASL_String_len(a) != 0);
 	return YASL_SUCCESS;
 }
 
@@ -106,7 +106,7 @@ int str_isalnum(struct YASL_State *S) {
 	}
 	struct YASL_String *a = YASL_GETSTR(vm_pop((struct VM *) S));
 
-	YASL_pushboolean(S, YASL_String_isalnum(a));
+	YASL_pushbool(S, YASL_String_isalnum(a));
 	return YASL_SUCCESS;
 }
 
@@ -117,7 +117,7 @@ int str_isal(struct YASL_State *S) {
 	}
 	struct YASL_String *a = YASL_GETSTR(vm_pop((struct VM *) S));
 
-	YASL_pushboolean(S, YASL_String_isal(a));
+	YASL_pushbool(S, YASL_String_isal(a));
 	return YASL_SUCCESS;
 }
 
@@ -128,7 +128,7 @@ int str_isnum(struct YASL_State *S) {
 	}
 	struct YASL_String *a = YASL_GETSTR(vm_pop((struct VM *) S));
 
-	YASL_pushboolean(S, YASL_String_isnum(a));
+	YASL_pushbool(S, YASL_String_isnum(a));
 	return YASL_SUCCESS;
 }
 
@@ -139,7 +139,7 @@ int str_isspace(struct YASL_State *S) {
 	}
 	struct YASL_String *a = YASL_GETSTR(vm_pop((struct VM *) S));
 
-	YASL_pushboolean(S, YASL_String_isspace(a));
+	YASL_pushbool(S, YASL_String_isspace(a));
 	return YASL_SUCCESS;
 }
 
@@ -155,7 +155,7 @@ int str_startswith(struct YASL_State *S) {
 	}
 	struct YASL_String *haystack = YASL_GETSTR(vm_pop((struct VM *) S));
 
-	YASL_pushboolean(S, YASL_String_startswith(haystack, needle));
+	YASL_pushbool(S, YASL_String_startswith(haystack, needle));
 	return YASL_SUCCESS;
 }
 
@@ -171,7 +171,7 @@ int str_endswith(struct YASL_State *S) {
 	}
 	struct YASL_String *haystack = YASL_GETSTR(vm_pop((struct VM *) S));
 
-	YASL_pushboolean(S, YASL_String_endswith(haystack, needle));
+	YASL_pushbool(S, YASL_String_endswith(haystack, needle));
 	return YASL_SUCCESS;
 }
 
@@ -254,7 +254,7 @@ int str_search(struct YASL_State *S) {
 	struct YASL_String *haystack = vm_popstr((struct VM *) S);
 
 	int64_t index = str_find_index(haystack, needle);
-	if (index != -1) YASL_pushinteger(S, index);
+	if (index != -1) YASL_pushint(S, index);
 	else
 		YASL_pushundef(S);
 	return YASL_SUCCESS;
@@ -272,7 +272,7 @@ int str_count(struct YASL_State *S) {
 	}
 	struct YASL_String *haystack = vm_popstr((struct VM *) S);
 
-	YASL_pushinteger(S, YASL_String_count(haystack, needle));
+	YASL_pushint(S, YASL_String_count(haystack, needle));
 	return YASL_SUCCESS;
 }
 

@@ -14,7 +14,7 @@ int float_toint(struct YASL_State *S) {
 		return YASL_TYPE_ERROR;
 	}
 	yasl_float val = YASL_popfloat(S);
-	YASL_pushinteger(S, (yasl_int)val);
+	YASL_pushint(S, (yasl_int)val);
 	return YASL_SUCCESS;
 }
 
@@ -24,7 +24,7 @@ int float_tobool(struct YASL_State *S) {
 		return YASL_TYPE_ERROR;
 	}
 	yasl_float a = YASL_popfloat(S);
-	YASL_pushboolean(S, a == a);
+	YASL_pushbool(S, a == a);
 	return YASL_SUCCESS;
 }
 

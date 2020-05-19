@@ -205,14 +205,22 @@ int YASL_pushfloat(struct YASL_State *S, yasl_float value) {
 	return YASL_SUCCESS;
 }
 
-int YASL_pushinteger(struct YASL_State *S, int64_t value) {
-	vm_push((struct VM *) S, YASL_INT(value));
+int YASL_pushint(struct YASL_State *S, yasl_int value) {
+	vm_pushint(&S->vm, value);
 	return YASL_SUCCESS;
 }
 
-int YASL_pushboolean(struct YASL_State *S, int value) {
-	vm_push((struct VM *) S, YASL_BOOL(value));
+int YASL_pushinteger(struct YASL_State *S, yasl_int value) {
+	return YASL_pushint(S, value);
+}
+
+int YASL_pushbool(struct YASL_State *S, bool value) {
+	vm_pushbool(&S->vm, value);
 	return YASL_SUCCESS;
+}
+
+int YASL_pushboolean(struct YASL_State *S, bool value) {
+	return YASL_pushbool(S, value);
 }
 
 int YASL_pushliteralstring(struct YASL_State *S, char *value) {
