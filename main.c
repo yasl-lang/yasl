@@ -48,12 +48,7 @@ static int main_version(int argc, char **argv) {
 }
 
 static int main_file(int argc, char **argv) {
-	if (!strcmp(argv[1], "-h")) {
-		return main_help(argc, argv);
-	} else if (!strcmp(argv[1], "-V")) {
-		return main_version(argc, argv);
-	}
-
+	(void) argc;
 	struct YASL_State *S = YASL_newstate(argv[1]);
 
 	if (!S) {
@@ -63,6 +58,10 @@ static int main_file(int argc, char **argv) {
 
 	// Load Standard Libraries
 	load_libs(S);
+
+	YASL_declglobal(S, "__VERSION__");
+	YASL_pushlitszstring(S, VERSION);
+	YASL_setglobal(S, "__VERSION__");
 
 	int status = YASL_execute(S);
 
@@ -84,6 +83,9 @@ static int main_compile(int argc, char **argv) {
 	load_libs(S);
 
 	int status = YASL_compile(S);
+	YASL_declglobal(S, "__VERSION__");
+	YASL_pushlitszstring(S, VERSION);
+	YASL_setglobal(S, "__VERSION__");
 
 	YASL_delstate(S);
 
@@ -95,6 +97,9 @@ static int main_command_REPL(int argc, char **argv) {
 	const size_t size = strlen(argv[2]);
 	struct YASL_State *S = YASL_newstate_bb(argv[2], size);
 	load_libs(S);
+	YASL_declglobal(S, "__VERSION__");
+	YASL_pushlitszstring(S, VERSION);
+	YASL_setglobal(S, "__VERSION__");
 	int status = YASL_execute_REPL(S);
 	YASL_delstate(S);
 	return status;
@@ -110,6 +115,9 @@ static int main_command(int argc, char **argv) {
 	const size_t size = strlen(argv[2]);
 	struct YASL_State *S = YASL_newstate_bb(argv[2], size);
 	load_libs(S);
+	YASL_declglobal(S, "__VERSION__");
+	YASL_pushlitszstring(S, VERSION);
+	YASL_setglobal(S, "__VERSION__");
 	int status = YASL_execute(S);
 	YASL_delstate(S);
 	return status;
@@ -126,6 +134,9 @@ static int main_REPL(int argc, char **argv) {
 	YASL_declglobal(S, "quit");
 	YASL_pushcfunction(S, YASL_quit, 0);
 	YASL_setglobal(S, "quit");
+	YASL_declglobal(S, "__VERSION__");
+	YASL_pushlitszstring(S, VERSION);
+	YASL_setglobal(S, "__VERSION__");
 	puts(YASL_LOGO);
 	puts(VERSION_PRINTOUT);
 	while (true) {
@@ -170,18 +181,20 @@ int main(int argc, char **argv) {
 	// Initialize prng seed
 	srand((unsigned)time(NULL));
 
-	if (argc == 2) {
-		return main_file(argc, argv);
+	if (argc == 1) {
+		return main_REPL(argc, argv);
+	} else if (argc == 2 && !strcmp(argv[1], "-h")) {
+		return main_help(argc, argv);
+	} else if (argc == 2 && !strcmp(argv[1], "-V")) {
+		return main_version(argc, argv);
 	} else if (argc == 3 && !strcmp(argv[1], "-e")) {
 		return main_command_REPL(argc, argv);
 	} else if (argc == 3 && !strcmp(argv[1], "-E")) {
 		return main_command(argc, argv);
 	} else if (argc == 3 && !strcmp(argv[1], "-C")) {
 		return main_compile(argc, argv);
-	} else if (argc > 2) {
-		return main_error(argc, argv);
 	} else {
-		return main_REPL(argc, argv);
+		return main_file(argc, argv);
 	}
 }
 #endif
