@@ -74,5 +74,7 @@ int syntaxerrortest(void) {
 	ASSERT_SYNTAX_ERR("/*..a.sd", "Unclosed block comment in line 1");
 	ASSERT_SYNTAX_ERR("@", "Unknown character in line 1: `@` (0x40)");
 
+	ASSERT_SYNTAX_ERR("assert false", "Expected ;, got END OF FILE (line 1)");
+
 	return __YASL_TESTS_FAILED__;
 }

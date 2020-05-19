@@ -349,6 +349,10 @@ unsigned char *compile(struct Compiler *const compiler) {
 			return NULL;
 		}
 		eattok(&compiler->parser, T_SEMI);
+		if (compiler->parser.status) {
+			compiler->status |= compiler->parser.status;
+			return NULL;
+		}
 		visit(compiler, node);
 		YASL_ByteBuffer_extend(compiler->code, compiler->buffer->bytes, compiler->buffer->count);
 		compiler->buffer->count = 0;
@@ -1105,6 +1109,11 @@ static void visit_String(struct Compiler *const compiler, const struct Node *con
 	}
 }
 
+static void visit_Assert(struct Compiler *const compiler, const struct Node *const node) {
+	visit(compiler, Assert_get_expr(node));
+	YASL_ByteBuffer_add_byte(compiler->buffer, O_ASS);
+}
+
 static void make_new_collection(struct Compiler *const compiler, const struct Node *const node, enum Opcode type) {
 	YASL_ByteBuffer_add_byte(compiler->buffer, O_END);
 	visit_Body(compiler, node);
@@ -1225,6 +1234,9 @@ static void visit(struct Compiler *const compiler, const struct Node *const node
 		break;
 	case N_STR:
 		visit_String(compiler, node);
+		break;
+	case N_ASS:
+		visit_Assert(compiler, node);
 		break;
 	}
 	//jumptable[node->nodetype](compiler, node);

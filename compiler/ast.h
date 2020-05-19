@@ -43,7 +43,8 @@ enum NodeType {
 	N_BOOL,
 	N_STR,
 	N_LIST,
-	N_TABLE
+	N_TABLE,
+	N_ASS
 };
 
 struct BinOpNode {
@@ -118,6 +119,7 @@ struct Node *node_clone(const struct Node *const node);
 #define FOR_CHILDREN(i, child, node) struct Node *child;\
 for (size_t i = 0; i < (node)->children_len; i++ ) if (child = (node)->children[i], child != NULL)
 
+struct Node *Assert_get_expr(const struct Node *const node);
 struct Node *Const_get_expr(const struct Node *const node);
 struct Node *If_get_cond(const struct Node *const node);
 struct Node *If_get_then(const struct Node *const node);
@@ -193,6 +195,7 @@ struct Node *new_Break(size_t line);
 struct Node *new_Continue(size_t line);
 struct Node *new_If(struct Node *cond, struct Node *then_node, struct Node *else_node, const size_t line);
 struct Node *new_Print(struct Node *expr, const size_t line);
+struct Node *new_Assert(struct Node *expr, const size_t line);
 struct Node *new_Let(char *const name, struct Node *expr, const size_t line);
 struct Node *new_Const(char *const name, struct Node *expr, const size_t line);
 struct Node *new_TriOp(enum Token op, struct Node *left, struct Node *middle, struct Node *right, const size_t line);

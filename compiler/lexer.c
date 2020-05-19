@@ -633,6 +633,7 @@ static void YASLKeywords(struct Lexer *const lex) {
 	 *  undef
 	 *  fn
 	 *  return
+	 *  assert
 	 */
 
 	if (matches_keyword(lex, "header")) {
@@ -713,6 +714,7 @@ static void YASLKeywords(struct Lexer *const lex) {
 	else if (matches_keyword(lex, "undef")) set_keyword(lex, T_UNDEF);
 	else if (matches_keyword(lex, "while")) set_keyword(lex, T_WHILE);
 	else if (matches_keyword(lex, "len")) set_keyword(lex, T_LEN);
+	else if (matches_keyword(lex, "assert")) set_keyword(lex, T_ASS);
 	// NOTE: special case for bools
 	else if (matches_keyword(lex, "true") || matches_keyword(lex, "false")) lex->type = T_BOOL;
 }
@@ -741,6 +743,7 @@ const char *YASL_TOKEN_NAMES[] = {
 	"export",       // T_EXPORT,
 	"echo",         // T_PRINT,
 	"len",          // T_LEN,
+	"assert",       // T_ASS,
 	"(",            // LPAR,
 	")",            // RPAR,
 	"[",            // LSQB,

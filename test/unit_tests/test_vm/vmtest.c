@@ -45,7 +45,7 @@ SETUP_YATS();
 	S->vm.out.print = io_print_string;\
 	ASSERT_SUCCESS(YASL_compile(S));\
 	int result = YASL_execute(S);\
-	ASSERT_EQ(result, 5);\
+	ASSERT_EQ(result, YASL_TYPE_ERROR);\
 	const char *exp_err = "TypeError: " expected ".\n";\
 	ASSERT_EQ(S->vm.out.len, 0);\
 	ASSERT_EQ(strlen(exp_err), S->vm.err.len);\
@@ -60,9 +60,28 @@ SETUP_YATS();
 	ASSERT_TYPE_ERR(code, method " expected arg in position " STR(arg) \
 	" to be of type " exp ", got arg of type " actual)
 
+#define ASSERT_ASSERT_ERR(code, expected) {\
+	struct YASL_State *S = YASL_newstate_bb(code, strlen(code));\
+	load_libs(S);\
+	S->vm.err.print = io_print_string;\
+	S->vm.out.print = io_print_string;\
+	ASSERT_SUCCESS(YASL_compile(S));\
+	int result = YASL_execute(S);\
+	ASSERT_EQ(result, YASL_ASSERT_ERROR);\
+	ASSERT_EQ(S->vm.out.len, 0);\
+	const char *exp_err = "AssertError: " expected ".\n";\
+	ASSERT_EQ(strlen(exp_err), S->vm.err.len);\
+	ASSERT_STR_EQ(exp_err, S->vm.err.string, S->vm.err.len);\
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 int vmtest(void) {
+	// assert errors
+	ASSERT_ASSERT_ERR("assert false;", "false");
+	ASSERT_ASSERT_ERR("assert fn(a, b) { return a + b; }(1.0, 2.0) === 3;", "false");
+	ASSERT_ASSERT_ERR("assert undef;", "undef");
+
 	// binary operator type errors
 	ASSERT_BINOP_TYPE_ERR(".true | false;", "|", "str", "bool");
 	ASSERT_BINOP_TYPE_ERR(".true ^ false;", "^", "str", "bool");
