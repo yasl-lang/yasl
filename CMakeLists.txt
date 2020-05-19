@@ -157,7 +157,7 @@ if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
             interpreter/int_methods.c
             interpreter/bool_methods.c
             util/IO.c
-            )
+            test/unit_tests/test_api/deltest.c test/unit_tests/test_api/deltest.h)
 endif()
 
 add_library(yaslapi
