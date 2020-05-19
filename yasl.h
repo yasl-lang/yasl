@@ -378,19 +378,58 @@ bool YASL_isuserptr(struct YASL_State *S);
  */
 YASL_DEPRECATE bool YASL_top_isuserpointer(struct YASL_State *S);
 
+/**
+ * Returns the bool value of the top of the stack, if the top of the stack is a boolean.
+ * Otherwise returns false. Does not modify the stack.
+ * @param S
+ * @return
+ */
 bool YASL_peekbool(struct YASL_State *S);
+
+/**
+ * Returns the bool value of the top of the stack, if the top of the stack is a boolean.
+ * Otherwise returns false. Removes the top element of the stack.
+ * @param S
+ * @return
+ */
 bool YASL_popbool(struct YASL_State *S);
 
 YASL_DEPRECATE bool YASL_top_peekboolean(struct YASL_State *S);
 YASL_DEPRECATE bool YASL_top_popboolean(struct YASL_State *S);
 
+/**
+ * Returns the float value of the top of the stack, if the top of the stack is a float.
+ * Otherwise returns 0.0. Does not modify the stack.
+ * @param S
+ * @return
+ */
 yasl_float YASL_peekfloat(struct YASL_State *S);
+
+/**
+ * Returns the float value of the top of the stack, if the top of the stack is a float.
+ * Otherwise returns 0.0. Removes the top of the stack.
+ * @param S
+ * @return
+ */
 yasl_float YASL_popfloat(struct YASL_State *S);
 
 YASL_DEPRECATE yasl_float YASL_top_peekfloat(struct YASL_State *S);
 YASL_DEPRECATE yasl_float YASL_top_popfloat(struct YASL_State *S);
 
+/**
+ * Returns the int value of the top of the stack, if the top of the stack is an int.
+ * Otherwise returns 0. Does not modify the stack.
+ * @param S
+ * @return
+ */
 yasl_int YASL_peekint(struct YASL_State *S);
+
+/**
+ * Returns the int value of the top of the stack, if the top of the stack is an int.
+ * Otherwise returns 0. Removes the top of the stack.
+ * @param S
+ * @return
+ */
 yasl_int YASL_popint(struct YASL_State *S);
 
 YASL_DEPRECATE yasl_int YASL_top_peekinteger(struct YASL_State *S);
