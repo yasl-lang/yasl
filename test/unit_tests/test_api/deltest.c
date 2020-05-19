@@ -5,7 +5,7 @@
 SETUP_YATS();
 
 static void testnull(void) {
-	YASL_delstate(NULL);
+	ASSERT_SUCCESS(YASL_delstate(NULL));
 }
 
 int deltest(void) {

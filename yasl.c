@@ -95,6 +95,8 @@ int YASL_resetstate_bb(struct YASL_State *S, const char *buf, size_t len) {
 }
 
 int YASL_delstate(struct YASL_State *S) {
+	if (!S) return YASL_SUCCESS;
+
 	compiler_cleanup(&S->compiler);
 	vm_cleanup((struct VM *) S);
 	free(S);
