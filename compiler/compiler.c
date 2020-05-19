@@ -275,13 +275,13 @@ static void decl_var(struct Compiler *const compiler, const char *const name, co
 	if (in_function(compiler)) {
 		int64_t index = scope_decl_var(compiler->params->scope, name);
 		if (index > 255) {
-			YASL_PRINT_ERROR_TOO_MANY_VAR(line);
+			compiler_print_err_syntax(compiler, "Too many variables in current scope (line %" PRI_SIZET ").\n",  line);
 			handle_error(compiler);
 		}
 	} else if (compiler->stack) {
 		int64_t index = scope_decl_var(compiler->stack, name);
 		if (index > 255) {
-			YASL_PRINT_ERROR_TOO_MANY_VAR(line);
+			compiler_print_err_syntax(compiler, "Too many variables in current scope (line %" PRI_SIZET ").\n",  line);
 			handle_error(compiler);
 		}
 	} else {
@@ -294,7 +294,7 @@ static void decl_var(struct Compiler *const compiler, const char *const name, co
 		}
 		scope_decl_var(compiler->globals, name);
 		//if (index > 255) {
-		//	YASL_PRINT_ERROR_TOO_MANY_VAR(line);
+		//	compiler_print_err_syntax(compiler, "Too many variables in current scope (line %" PRI_SIZET ").\n",  line);
 		//	handle_error(compiler);
 		//}
 	}
@@ -411,14 +411,7 @@ static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *c
 }
 
 static void visit_FunctionDecl(struct Compiler *const compiler, const struct Node *const node) {
-	/*if (in_function(compiler)) {
-		YASL_PRINT_ERROR_SYNTAX("Illegal function declaration outside global scope, in line %" PRI_SIZET ".\n",
-					node->line);
-		handle_error(compiler);
-		return;
-	}*/
-
-	// start logic for function, now that we are sure it's legal to do so, and have set up.
+	// start logic for function.
 	compiler->params = env_new(compiler->params);
 
 	enter_scope(compiler);
@@ -517,7 +510,7 @@ static void visit_Return(struct Compiler *const compiler, const struct Node *con
 
 static void visit_Export(struct Compiler *const compiler, const struct Node *const node) {
 	if (compiler->stack != NULL || compiler->params != NULL) {
-		YASL_PRINT_ERROR("export statement must be at top level of module. (line %" PRI_SIZET ")\n", node->line);
+		compiler_print_err_syntax(compiler, "`export` statement must be at top level of module (line %" PRI_SIZET ").\n", node->line);
 		handle_error(compiler);
 		return;
 	}
@@ -754,7 +747,7 @@ static void visit_While(struct Compiler *const compiler, const struct Node *cons
 
 static void visit_Break(struct Compiler *const compiler, const struct Node *const node) {
 	if (compiler->checkpoints.count == 0) {
-		YASL_PRINT_ERROR_SYNTAX("break outside of loop (line %" PRI_SIZET ").\n", node->line);
+		compiler_print_err_syntax(compiler, "`break` outside of loop (line %" PRI_SIZET ").\n", node->line);
 		handle_error(compiler);
 		return;
 	}
@@ -764,7 +757,7 @@ static void visit_Break(struct Compiler *const compiler, const struct Node *cons
 
 static void visit_Continue(struct Compiler *const compiler, const struct Node *const node) {
 	if (compiler->checkpoints.count == 0) {
-		YASL_PRINT_ERROR_SYNTAX("continue outside of loop (line %" PRI_SIZET ").\n", node->line);
+		compiler_print_err_syntax(compiler, "`continue` outside of loop (line %" PRI_SIZET ").\n", node->line);
 		handle_error(compiler);
 		return;
 	}

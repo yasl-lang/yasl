@@ -48,17 +48,4 @@
 #define MSG_TYPE_ERROR "TypeError: "
 #define MSG_VALUE_ERROR "ValueError: "
 
-#define YASL_PRINT_ERROR(fmt, ...) fprintf(stderr, K_RED fmt K_END, __VA_ARGS__)
-#define YASL_PRINT_ERROR_SYNTAX(fmt, ...) YASL_PRINT_ERROR(MSG_SYNTAX_ERROR fmt, __VA_ARGS__)
-#define YASL_PRINT_ERROR_TYPE(fmt, ...) YASL_PRINT_ERROR(MSG_TYPE_ERROR fmt, __VA_ARGS__)
-
-#define YASL_PRINT_ERROR_BAD_ARG_TYPE(name, position, expected, actual) \
-YASL_PRINT_ERROR_TYPE("%s expected arg in position %d to be of type %s, got arg of type %s.\n",\
-                      name,\
-                      position,\
-                      YASL_TYPE_NAMES[expected],\
-                      YASL_TYPE_NAMES[actual]);
-
-#define YASL_PRINT_ERROR_TOO_MANY_VAR(line) YASL_PRINT_ERROR("Too many variables in current scope (line %" PRI_SIZET ").\n", line)
-
 #endif

@@ -383,7 +383,7 @@ static struct Node *parse_if(struct Parser *const parser) {
 	if (matcheattok(parser, T_IF)) ;
 	else if (matcheattok(parser, T_ELSEIF)) ;
 	else {
-		YASL_PRINT_ERROR_SYNTAX("Expected if or elseif, got %s\n", YASL_TOKEN_NAMES[curtok(parser)]);
+		parser_print_err_syntax(parser, "Expected `if` or `elseif`, got `%s` (line %" PRI_SIZET "\n", YASL_TOKEN_NAMES[curtok(parser)], parser->lex.line);
 		return handle_error(parser);
 	}
 	struct Node *cond = parse_expr(parser);
@@ -401,7 +401,7 @@ static struct Node *parse_if(struct Parser *const parser) {
 		struct Node *else_block = parse_body(parser);
 		return new_If(cond, new_Block(then_block, parser->lex.line), new_Block(else_block, parser->lex.line), parser->lex.line);
 	}
-	YASL_PRINT_ERROR_SYNTAX("Expected newline, got `%s`.\n", YASL_TOKEN_NAMES[curtok(parser)]);
+	parser_print_err_syntax(parser, "Expected newline, got `%s`.\n", YASL_TOKEN_NAMES[curtok(parser)]);
 	return handle_error(parser);
 }
 
@@ -629,7 +629,7 @@ static struct Node *parse_constant(struct Parser *const parser) {
 		parser->status = parser->lex.status;
 		return NULL;
 	default:
-		YASL_PRINT_ERROR_SYNTAX("Invalid expression in line %" PRI_SIZET " (%s).\n", parser->lex.line, YASL_TOKEN_NAMES[curtok(parser)]);
+		parser_print_err_syntax(parser, "Invalid expression `%s` (line %" PRI_SIZET ".\n", YASL_TOKEN_NAMES[curtok(parser)], parser->lex.line);
 		return handle_error(parser);
 	}
 }
