@@ -806,7 +806,7 @@ static void vm_exitframe(struct VM *const vm) {
 
 static int vm_INIT_CALL(struct VM *const vm) {
 	if (!YASL_ISFN(vm_peek(vm)) && !YASL_ISCFN(vm_peek(vm)) && !YASL_ISCLOSURE(vm_peek(vm))) {
-		vm_print_err_type(vm,  "%s is not callable.", YASL_TYPE_NAMES[vm_peek(vm).type]);
+		vm_print_err_type(vm,  "%s is not callable.\n", YASL_TYPE_NAMES[vm_peek(vm).type]);
 		return YASL_TYPE_ERROR;
 	}
 
@@ -901,10 +901,9 @@ static int vm_CALL(struct VM *const vm) {
 		return vm_CALL_cfn(vm);
 	} else if (YASL_ISCLOSURE(vm_peek(vm, vm->fp))) {
 		return vm_CALL_closure(vm);
-	} else {
-		printf("ERROR: %s is not callable", YASL_TYPE_NAMES[vm_peek(vm).type]);
-		return YASL_TYPE_ERROR;
 	}
+	YASL_ASSERT(false, "We never reach this point");
+	return 0;
 }
 
 static int vm_RET(struct VM *const vm) {
@@ -1087,7 +1086,7 @@ int vm_run(struct VM *const vm) {
 				break;
 			}
 			if (!YASL_ISNUM(a) || !YASL_ISNUM(b)) {
-				vm_print_err_type(vm,  "< and > not supported for operand of types %s and %s.\n",
+				vm_print_err_type(vm,  "< and > not supported for operands of types %s and %s.\n",
 				       YASL_TYPE_NAMES[a.type],
 				       YASL_TYPE_NAMES[b.type]);
 				return YASL_TYPE_ERROR;
@@ -1102,7 +1101,7 @@ int vm_run(struct VM *const vm) {
 				break;
 			}
 			if (!YASL_ISNUM(a) || !YASL_ISNUM(b)) {
-				vm_print_err_type(vm,  "<= and >= not supported for operand of types %s and %s.\n",
+				vm_print_err_type(vm,  "<= and >= not supported for operands of types %s and %s.\n",
 				       YASL_TYPE_NAMES[a.type],
 				       YASL_TYPE_NAMES[b.type]);
 				return YASL_TYPE_ERROR;
@@ -1231,7 +1230,6 @@ int vm_run(struct VM *const vm) {
 			break;
 		case O_ULOAD_1:
 			offset = NCODE(vm);
-			//printf("offset: %d\n", offset);
 			vm_push(vm, upval_get(vm_peek(vm, vm->fp).value.lval->upvalues[offset]));
 			break;
 		case O_USTORE_1:

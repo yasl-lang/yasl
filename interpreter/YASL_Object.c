@@ -168,7 +168,6 @@ struct YASL_Object isequal(struct YASL_Object a, struct YASL_Object b) {
 		} else if (YASL_ISFLOAT(a) && YASL_ISFLOAT(b)) {
 			c = YASL_GETFLOAT(a) == YASL_GETFLOAT(b);
 		} else {
-			// printf("== and != not supported for operands of types %x and %x.\n", a.type, b.type);
 			return undef_c;
 		}
 		return YASL_BOOL(c);

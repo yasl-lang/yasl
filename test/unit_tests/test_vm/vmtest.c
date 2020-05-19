@@ -97,6 +97,15 @@ int vmtest(void) {
 	ASSERT_BINOP_TYPE_ERR(".true % false;", "%", "str", "bool");
 	ASSERT_BINOP_TYPE_ERR(".true ** false;", "**", "str", "bool");
 
+	// comparison operator type errors
+	ASSERT_BINOP_TYPE_ERR("true < 1;", "<= and >=", "bool", "int");
+	ASSERT_BINOP_TYPE_ERR("true <= 1;", "< and >", "bool", "int");
+	ASSERT_BINOP_TYPE_ERR("true >= 1;", "<= and >=", "bool", "int");
+	ASSERT_BINOP_TYPE_ERR("true > 1;", "< and >", "bool", "int");
+
+	// Not callable
+	ASSERT_TYPE_ERR("undef();", "undef is not callable");
+
 	// unary operator type errors
 	ASSERT_UNOP_TYPE_ERR("+true;", "+", "bool");
 	ASSERT_UNOP_TYPE_ERR("-true;", "-", "bool");

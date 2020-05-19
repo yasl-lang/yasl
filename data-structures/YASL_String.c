@@ -442,7 +442,6 @@ struct RC_UserData *string_split_default(struct YASL_String *haystack) {
 	size_t end = 0, start = 0;
 	struct RC_UserData *result = rcls_new();
 	while (true) {
-		// printf("end: %d\n", (int)end);
 		while (iswhitespace(*(haystack->str + haystack->start + end)) && end < YASL_String_len(haystack)) {
 			end++;
 		}

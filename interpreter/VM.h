@@ -57,13 +57,8 @@
                             else if (a.type == Y_INT && b.type == Y_FLOAT) {\
                                 c = f((yasl_float)a.value.ival, (b).value.dval);\
                             }\
-                            else if (a.type == Y_FLOAT && b.type == Y_FLOAT) {\
-                                c = f(a.value.dval, (b).value.dval);\
-                            }\
                             else {\
-                                printf("TypeError: %s not supported for operands of types %s and %s.\n", str,\
-                                        YASL_TYPE_NAMES[a.type], YASL_TYPE_NAMES[b.type]);\
-                                return YASL_TYPE_ERROR;\
+                                c = f(a.value.dval, (b).value.dval);\
                             }\
                             vm_pushbool(vm, c);} while(0);
 
