@@ -7,7 +7,7 @@
 #include "std/yasl-std.h"
 #include "yasl_state.h"
 
-#define VERSION "v0.8.1"
+#define VERSION "v0.8.2"
 #define VERSION_PRINTOUT "YASL " VERSION
 
 #define YASL_LOGO " __ __  _____   ____   __   \n" \
