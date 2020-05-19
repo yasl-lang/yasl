@@ -256,7 +256,12 @@ YASL_DEPRECATE int YASL_top_dup(struct YASL_State *S);
  * @param S the YASL_State which has the 3 items on top of the stack.
  * @return 0 on success, else error code
  */
+int YASL_tableset(struct YASL_State *S);
+
+YASL_DEPRECATE
 int YASL_settable(struct YASL_State *S);
+
+int YASL_listpush(struct YASL_State *S);
 
 /**
  * returns the type of the top of the stack.

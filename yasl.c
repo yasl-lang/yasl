@@ -300,7 +300,7 @@ int YASL_top_dup(struct YASL_State *S) {
 	return YASL_duptop(S);
 }
 
-int YASL_settable(struct YASL_State *S) {
+int YASL_tableset(struct YASL_State *S) {
 	struct YASL_Object value = vm_pop(&S->vm);
 	struct YASL_Object key = vm_pop(&S->vm);
 	struct YASL_Object table = vm_pop(&S->vm);
@@ -314,15 +314,15 @@ int YASL_settable(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
-int YASL_appendlist(struct YASL_State *S) {
+int YASL_listpush(struct YASL_State *S) {
 	struct YASL_Object value = vm_pop(&S->vm);
-	struct YASL_Object list = vm_pop(&S->vm);
-
-	// TODO change to TYPE_ERROR
-	if (!YASL_ISLIST(list)) {
-		return YASL_ERROR;
+	if (!YASL_islist(S)) {
+		return YASL_TYPE_ERROR;
 	}
-	YASL_List_append(YASL_GETLIST(list), value);
+
+	struct YASL_List *list = vm_peeklist(&S->vm);
+
+	YASL_List_append(list, value);
 
 	return YASL_SUCCESS;
 }

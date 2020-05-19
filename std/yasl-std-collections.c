@@ -261,17 +261,17 @@ int YASL_load_collections(struct YASL_State *S) {
 	YASL_loadglobal(S, "collections");
 	YASL_pushlitszstring(S, "set");
 	YASL_pushcfunction(S, YASL_collections_set_new, -1);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	YASL_loadglobal(S, "collections");
 	YASL_pushlitszstring(S, "list");
 	YASL_pushcfunction(S, YASL_collections_list_new, -1);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	YASL_loadglobal(S, "collections");
 	YASL_pushlitszstring(S, "table");
 	YASL_pushcfunction(S, YASL_collections_table_new, -1);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	return YASL_SUCCESS;
 }

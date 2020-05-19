@@ -209,37 +209,37 @@ int YASL_load_io(struct YASL_State *S) {
 	YASL_loadglobal(S, "io");
 	YASL_pushlitszstring(S, "open");
 	YASL_pushcfunction(S, YASL_io_open, 2);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	YASL_loadglobal(S, "io");
 	YASL_pushlitszstring(S, "read");
 	YASL_pushcfunction(S, YASL_io_read, 2);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	YASL_loadglobal(S, "io");
 	YASL_pushlitszstring(S, "write");
 	YASL_pushcfunction(S, YASL_io_write, 2);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	YASL_loadglobal(S, "io");
 	YASL_pushlitszstring(S, "flush");
 	YASL_pushcfunction(S, YASL_io_flush, 1);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	YASL_loadglobal(S, "io");
 	YASL_pushlitszstring(S, "stdin");
 	YASL_pushuserdata(S, stdin, T_FILE, mt, NULL);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	YASL_loadglobal(S, "io");
 	YASL_pushlitszstring(S, "stdout");
 	YASL_pushuserdata(S, stdout, T_FILE, mt, NULL);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	YASL_loadglobal(S, "io");
 	YASL_pushlitszstring(S, "stderr");
 	YASL_pushuserdata(S, stderr, T_FILE, mt, NULL);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	return YASL_SUCCESS;
 }
