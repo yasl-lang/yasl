@@ -152,6 +152,10 @@ struct Node *new_Print(struct Node *expr, const size_t line) {
 	return new_Node_1(N_PRINT, expr, NULL, 0, line);
 }
 
+struct Node *new_Assert(struct Node *expr, const size_t line) {
+	return new_Node_1(N_ASS, expr, NULL, 0, line);
+}
+
 struct Node *new_Let(char *const name, struct Node *expr, const size_t line) {
 	return new_Node_1(N_LET, expr, name, strlen(name), line);
 }
@@ -282,6 +286,11 @@ struct Node *If_get_then(const struct Node *const node) {
 struct Node *If_get_else(const struct Node *const node) {
 	YASL_ASSERT(node->nodetype == N_IF, "Expected If");
 	return node->children[2];
+}
+
+struct Node *Assert_get_expr(const struct Node *const node) {
+	YASL_ASSERT(node->nodetype == N_ASS, "Expected Assert");
+	return node->children[0];
 }
 
 struct Node *Const_get_expr(const struct Node *const node) {

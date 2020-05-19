@@ -47,6 +47,7 @@ static struct Node *parse_string(struct Parser *const parser);
 static struct Node *parse_table(struct Parser *const parser);
 static struct Node *parse_lambda(struct Parser *const parser);
 static struct Node *parse_collection(struct Parser *const parser);
+static struct Node *parse_assert(struct Parser *const parser);
 
 YASL_FORMAT_CHECK static void parser_print_err(struct Parser *parser, const char *const fmt, ...) {
 	va_list args;
@@ -98,7 +99,7 @@ enum Token eattok(struct Parser *const parser, const enum Token token) {
 		if (curtok(parser) == T_UNKNOWN) {
 			parser->status = parser->lex.status;
 		} else {
-			YASL_PRINT_ERROR_SYNTAX("Expected %s, got %s, in line %" PRI_SIZET "\n", YASL_TOKEN_NAMES[token],
+			parser_print_err_syntax(parser, "Expected %s, got %s (line %" PRI_SIZET ").\n", YASL_TOKEN_NAMES[token],
 						YASL_TOKEN_NAMES[curtok(parser)], parser->lex.line);
 			parser->status = YASL_SYNTAX_ERROR;
 		}
@@ -106,6 +107,7 @@ enum Token eattok(struct Parser *const parser, const enum Token token) {
 			free(parser->lex.value);
 			gettok(&parser->lex);
 		}
+		return T_UNKNOWN;
 	} else {
 		gettok(&parser->lex);
 	}
@@ -197,6 +199,8 @@ static struct Node *parse_program(struct Parser *const parser) {
 			YASL_TOKEN_NAMES[curtok(parser)],
 			parser->lex.line);
 		return handle_error(parser);
+	case T_ASS:
+		return parse_assert(parser);
 	case T_UNKNOWN:
 		parser->status = parser->lex.status;
 		return NULL;
@@ -401,11 +405,16 @@ static struct Node *parse_if(struct Parser *const parser) {
 	return handle_error(parser);
 }
 
+static struct Node *parse_assert(struct Parser *const parser) {
+	size_t line = parser->lex.line;
+	eattok(parser, T_ASS);
+	return new_Assert(parse_expr(parser), line);
+}
+
 static struct Node *parse_expr(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("%s\n", "parsing expression.");
 	struct Node *node = parse_ternary(parser);
-	if (node)
-		fold(node);
+	if (node) fold(node);
 	return node;
 }
 

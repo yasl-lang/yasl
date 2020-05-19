@@ -138,14 +138,14 @@ void vm_cleanup(struct VM *const vm) {
 	// TODO: free upvalues
 }
 
-void vm_print_err(struct VM *vm, const char *const fmt, ...) {
+YASL_FORMAT_CHECK void vm_print_err(struct VM *vm, const char *const fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
 	vm->err.print(&vm->err, fmt, args);
 	va_end(args);
 }
 
-static void vm_print_out(struct VM *vm, const char *const fmt, ...) {
+YASL_FORMAT_CHECK static void vm_print_out(struct VM *vm, const char *const fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
 	vm->out.print(&vm->out, fmt, args);
@@ -936,7 +936,7 @@ static int vm_CRET(struct VM *const vm) {
 static void vm_PRINT(struct VM *const vm) {
 	vm_stringify_top(vm);
 	struct YASL_String *v = vm_popstr(vm);
-	vm_print_out(vm, "%.*s\n", YASL_String_len(v), v->start + v->str);
+	vm_print_out(vm, "%.*s\n", (int)YASL_String_len(v), v->start + v->str);
 }
 
 int vm_run(struct VM *const vm) {
@@ -1271,6 +1271,15 @@ int vm_run(struct VM *const vm) {
 			break;
 		case O_PRINT:
 			vm_PRINT(vm);
+			break;
+		case O_ASS:
+			if (isfalsey(vm_peek(vm))) {
+				vm_stringify_top(vm);
+				vm_print_err(vm, "AssertError: %.*s.\n", (int)YASL_String_len(vm_peekstr(vm)), vm_peekstr(vm)->str + vm_peekstr(vm)->start);
+				vm_pop(vm);
+				return YASL_ASSERT_ERROR;
+			}
+			vm_pop(vm);
 			break;
 		default:
 			vm_print_err(vm, "ERROR UNKNOWN OPCODE: %x\n", opcode);
