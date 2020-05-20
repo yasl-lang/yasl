@@ -64,7 +64,7 @@ static int main_file(int argc, char **argv) {
 	YASL_setglobal(S, "__VERSION__");
 	YASL_declglobal(S, "args");
 	YASL_pushlist(S);
-	for (int i = 0; i < argc; i++) {
+	for (int i = 1; i < argc; i++) {
 		YASL_pushlitszstring(S, argv[i]);
 		YASL_listpush(S);
 	}
@@ -95,7 +95,7 @@ static int main_compile(int argc, char **argv) {
 	YASL_setglobal(S, "__VERSION__");
 	YASL_declglobal(S, "args");
 	YASL_pushlist(S);
-	for (int i = 0; i < argc; i++) {
+	for (int i = 1; i < argc; i++) {
 		YASL_pushlitszstring(S, argv[i]);
 		YASL_listpush(S);
 	}
