@@ -2,7 +2,7 @@
 
 int vint_encode(const size_t val, unsigned char *const buff) {
 	if (val <= 0x7F) {
-		*buff = val;
+		*buff = (unsigned char)val;
 		return 1;
 	}
 	unsigned char tmp = (val & 0x7F) | (1 << 7);
