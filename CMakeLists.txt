@@ -18,10 +18,10 @@ if(MSVC)
     set(CMAKE_C_FLAGS "/WX /W3 /wd4244")
 endif()
 
-if (NOT WIN)
-    set(CMAKE_C_FLAGS "-fPIC -Wall -Wextra -Wno-unused-function -Wno-vla -Werror")
+if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
+    set(CMAKE_C_FLAGS "-fPIC -Wall -Wextra -Wno-unused-function -Wno-vla -Werror -Wno-cast-function-type")
 endif()
-if (NOT WIN)
+if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
     set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-function -Wno-unused-variable -Wno-vla -Wno-deprecated -Werror")
 endif()
 
