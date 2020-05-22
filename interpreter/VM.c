@@ -10,6 +10,7 @@
 #include "data-structures/YASL_Table.h"
 #include "interpreter/refcount.h"
 
+#include "util/varint.h"
 #include "interpreter/table_methods.h"
 #include "interpreter/list_methods.h"
 #include "interpreter/str_methods.h"
@@ -150,12 +151,14 @@ void vvm_print_err(struct VM *vm, const char *const fmt, va_list args) {
 
 	size_t start = ((int64_t *)vm->code)[0];
 	size_t line_start = ((int64_t *)vm->code)[1];
-	unsigned char *tmp = vm->code + line_start;
-	while (*tmp < vm->pc - vm->code - start) {
-		tmp++;
+	const unsigned char *tmp = vm->code + line_start;
+	long unsigned i = 0;
+	while (vint_decode(tmp) < vm->pc - vm->code - start) {
+		tmp = vint_next(tmp);
+		i++;
 	}
 
-	vm_print_err_wrapper(vm, " (line %lu)\n", (long unsigned)(tmp - vm->code - line_start));
+	vm_print_err_wrapper(vm, " (line %lu)\n", i);
 }
 
 YASL_FORMAT_CHECK void vm_print_err(struct VM *vm, const char *const fmt, ...) {

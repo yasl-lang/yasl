@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "util/varint.h"
 #include "debug.h"
 
 struct YASL_ByteBuffer *YASL_ByteBuffer_new(const size_t size) {
@@ -27,6 +28,17 @@ void YASL_ByteBuffer_extend(struct YASL_ByteBuffer *const bb, const unsigned cha
 void YASL_ByteBuffer_add_byte(struct YASL_ByteBuffer *const bb, const unsigned char byte) {
 	if (bb->size <= bb->count) bb->bytes = (unsigned char *)realloc(bb->bytes, bb->size = bb->count * 2);
 	bb->bytes[bb->count++] = byte;
+}
+
+void YASL_ByteBuffer_add_vint(struct YASL_ByteBuffer *const bb, size_t val) {
+	unsigned char buff[12];
+	int len = vint_encode(val, buff);
+	if (bb->size < bb->count + len) {
+		bb->size = (bb->count + len) * 2;
+		bb->bytes = (unsigned char *)realloc(bb->bytes, bb->size);
+	}
+	memcpy(bb->bytes + bb->count, buff, (size_t)len);
+	bb->count += len;
 }
 
 void YASL_ByteBuffer_add_float(struct YASL_ByteBuffer *const bb, const yasl_float value) {

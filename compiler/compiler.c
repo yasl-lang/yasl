@@ -314,8 +314,7 @@ static unsigned char *return_bytes(const struct Compiler *const compiler) {
 	YASL_ByteBuffer_rewrite_int_fast(compiler->header, 8, compiler->code->count + compiler->header->count +
 							      1);   // TODO: put num globals here eventually.
 
-	YASL_ByteBuffer_add_byte(compiler->lines, compiler->code->count);
-
+	YASL_ByteBuffer_add_vint(compiler->lines, compiler->code->count);
 	YASL_BYTECODE_DEBUG_LOG("%s\n", "header");
 	for (size_t i = 0; i < compiler->header->count; i++) {
 		if (i % 16 == 15)
@@ -1134,8 +1133,9 @@ static void visit_Table(struct Compiler *const compiler, const struct Node *cons
 }
 
 static void visit(struct Compiler *const compiler, const struct Node *const node) {
-	while (node->line > compiler->lines->count) {
-		YASL_ByteBuffer_add_byte(compiler->lines, (char)compiler->code->count);
+	while (node->line > compiler->line) {
+		YASL_ByteBuffer_add_vint(compiler->lines, compiler->code->count);
+		compiler->line++;
 	}
 
 	switch (node->nodetype) {
