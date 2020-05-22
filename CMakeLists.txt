@@ -195,13 +195,27 @@ add_library(yaslapi
         interpreter/userdata.c
         interpreter/undef_methods.c
         util/prime.c
-        util/IO.c)
+        util/IO.c
+        util/varint.c
+        std/yasl-std-collections.c
+        std/yasl-std-io.c
+        std/yasl-std-math.c
+        std/yasl-std-require.c
+        data-structures/YASL_Set.c
+        )
+
+add_executable(tests2
+        test2/test2.c
+        )
 
 if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
     target_link_libraries(yasl m)
     target_link_libraries(yaslapi m)
     target_link_libraries(tests m)
+    target_link_libraries(tests2 m)
 endif()
+
+target_link_libraries(tests2 yaslapi)
 
 if (UNIX)
     target_link_libraries(yasl dl)

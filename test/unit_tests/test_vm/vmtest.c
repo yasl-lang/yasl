@@ -1,8 +1,8 @@
 #include "test/yats.h"
 #include "yasl.h"
+#include "yasl_aux.h"
 #include "IO.h"
 #include "yasl_state.h"
-#include "yasl-std.h"
 
 SETUP_YATS();
 
@@ -10,7 +10,7 @@ SETUP_YATS();
 
 #define ASSERT_VALUE_ERR(code, expected, line) {\
 	struct YASL_State *S = YASL_newstate_bb(code, strlen(code));\
-	load_libs(S);\
+	YASLX_decllibs(S);\
 	S->vm.err.print = io_print_string;\
 	S->vm.out.print = io_print_string;\
 	ASSERT_SUCCESS(YASL_compile(S));\
@@ -25,7 +25,7 @@ SETUP_YATS();
 
 #define ASSERT_DIV_BY_ZERO_ERR(code, line) {\
 	struct YASL_State *S = YASL_newstate_bb(code, strlen(code));\
-	load_libs(S);\
+	YASLX_decllibs(S);\
 	S->vm.err.print = io_print_string;\
 	S->vm.out.print = io_print_string;\
 	ASSERT_SUCCESS(YASL_compile(S));\
@@ -40,7 +40,7 @@ SETUP_YATS();
 
 #define ASSERT_TYPE_ERR(code, expected, line) {\
 	struct YASL_State *S = YASL_newstate_bb(code, strlen(code));\
-	load_libs(S);\
+	YASLX_decllibs(S);\
 	S->vm.err.print = io_print_string;\
 	S->vm.out.print = io_print_string;\
 	ASSERT_SUCCESS(YASL_compile(S));\
@@ -62,7 +62,7 @@ SETUP_YATS();
 
 #define ASSERT_ASSERT_ERR(code, expected, line) {\
 	struct YASL_State *S = YASL_newstate_bb(code, strlen(code));\
-	load_libs(S);\
+	YASLX_decllibs(S);\
 	S->vm.err.print = io_print_string;\
 	S->vm.out.print = io_print_string;\
 	ASSERT_SUCCESS(YASL_compile(S));\

@@ -3,6 +3,6 @@
 
 #include "yasl.h"
 
-int YASL_load_collections(struct YASL_State *S);
+int YASL_decllib_collections(struct YASL_State *S);
 
 #endif

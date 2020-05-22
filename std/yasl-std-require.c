@@ -4,6 +4,7 @@
 #include "yasl-std-math.h"
 #include "yasl-std-io.h"
 #include "yasl_plat.h"
+#include "yasl_aux.h"
 
 #define LOAD_LIB_FUN_NAME "YASL_load_dyn_lib"
 
@@ -28,9 +29,7 @@ int YASL_require(struct YASL_State *S) {
 	}
 
 	// Load Standard Libraries
-	YASL_load_math(Ss);
-	YASL_load_io(Ss);
-	YASL_load_require(Ss);
+	YASLX_decllibs(Ss);
 
 	Ss->vm.globals[Ss->vm.headers_size - 1] = Ss->vm.globals[0];
 	Ss->vm.globals[0] = NULL;
@@ -108,14 +107,18 @@ int YASL_require_c(struct YASL_State *S) {
 #endif
 }
 
-int YASL_load_require(struct YASL_State *S) {
+int YASL_decllib_require(struct YASL_State *S) {
 	YASL_declglobal(S, "require");
 	YASL_pushcfunction(S, YASL_require, 1);
 	YASL_setglobal(S, "require");
 
+	return YASL_SUCCESS;
+}
+
+int YASL_decllib_require_c(struct YASL_State *S) {
 	YASL_declglobal(S, "require_c");
 	YASL_pushcfunction(S, YASL_require_c, 1);
 	YASL_setglobal(S, "require_c");
 
-	return YASL_SUCCESS;
+	return YASL_SUCCESS;	
 }

@@ -46,8 +46,28 @@ struct YASL_State *YASL_newstate(const char *filename) {
 	S->compiler.num = 0;
 
 	vm_init((struct VM *) S, NULL, -1, 1);
+
+	YASL_declglobal(S, "__VERSION__");
+	YASL_pushlitszstring(S, YASL_VERSION);
+	YASL_setglobal(S, "__VERSION__");
+
 	return S;
 }
+
+void YASL_setprintout_tostr(struct YASL_State *S) {
+	S->vm.out.print = &io_print_string;
+}
+
+void YASL_setprinterr_tostr(struct YASL_State *S) {
+	S->compiler.parser.lex.err.print = &io_print_string;
+	S->vm.err.print = &io_print_string;
+}
+
+void YASL_loadprintout(struct YASL_State *S) {
+	YASL_pushlitstring(S, S->vm.out.string, S->vm.out.len);
+}
+
+void YASL_loadprinterr(struct YASL_State *S);
 
 int YASL_resetstate(struct YASL_State *S, const char *filename) {
 	FILE *fp = fopen(filename, "r");

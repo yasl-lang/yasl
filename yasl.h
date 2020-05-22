@@ -7,6 +7,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#define YASL_VERSION "v0.8.2"
+
 struct YASL_State;
 struct YASL_Object;
 struct YASL_Table;
@@ -31,6 +33,18 @@ struct YASL_State *YASL_newstate(const char *filename);
  * @return YASL_SUCCESS if successful, otherwise an error.
  */
 int YASL_resetstate(struct YASL_State *S, const char *filename);
+
+void YASL_setprintout_tostr(struct YASL_State *S);
+void YASL_setprinterr_tostr(struct YASL_State *S);
+
+void YASL_loadprintout(struct YASL_State *S);
+void YASL_loadprinterr(struct YASL_State *S);
+
+int YASL_decllib_collections(struct YASL_State *S);
+int YASL_decllib_io(struct YASL_State *S);
+int YASL_decllib_math(struct YASL_State *S);
+int YASL_decllib_require(struct YASL_State *S);
+int YASL_decllib_require_c(struct YASL_State *S);
 
 struct YASL_Object *YASL_DEPRECATE YASL_Table(void);
 

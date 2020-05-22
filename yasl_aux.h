@@ -30,4 +30,12 @@ void YASL_print_err_bad_arg_type(struct YASL_State *S,
 				 int position,
 				 const char *const exp,
 				 const char *const act);
+
+/**
+ * Loads all standard libraries into the appropriate state and declares them all with their default names.
+ * @param S The state onto which to load the libraries.
+ * @return YASL_SUCESS on success, else error code.
+ */
+int YASLX_decllibs(struct YASL_State *S);
+
 #endif

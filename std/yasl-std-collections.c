@@ -237,7 +237,7 @@ static int YASL_collections_set_contains(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
-int YASL_load_collections(struct YASL_State *S) {
+int YASL_decllib_collections(struct YASL_State *S) {
 	if (!set_mt) {
 		set_mt = YASL_Table_new();
 		YASL_Table_insert_literalcstring_cfunction(set_mt, "tostr", YASL_collections_set_tostr, 1);

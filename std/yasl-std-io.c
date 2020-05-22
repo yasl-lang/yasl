@@ -191,7 +191,7 @@ static int YASL_io_flush(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
-int YASL_load_io(struct YASL_State *S) {
+int YASL_decllib_io(struct YASL_State *S) {
 	if (!mt) {
 		mt = YASL_Table_new();
 		YASL_Table_insert_fast(mt, YASL_STR(YASL_String_new_sized(strlen("read"), "read")),
