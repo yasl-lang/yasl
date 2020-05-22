@@ -77,6 +77,8 @@ int YASL_require_c(struct YASL_State *S) {
 	YASL_pop(S);
 
 #if defined(YASL_USE_WIN)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
 	void *lib = LoadLibrary(TEXT(mode_str));
 	if (!lib) {
 	    vm_print_err_value((struct VM *)S, "couldn't open shared library: %s.\n", mode_str);
@@ -88,6 +90,7 @@ int YASL_require_c(struct YASL_State *S) {
 	    vm_print_err_value((struct VM *)S, "couldn't load function: %s.\n", LOAD_LIB_FUN_NAME);
 	    return YASL_VALUE_ERROR;
 	}
+#pragma GCC diagnostic pop
 	return fun(S);
 #elif defined(YASL_USE_UNIX) || defined(YASL_USE_APPLE)
 	void *lib = dlopen(mode_str, RTLD_NOW);
@@ -120,5 +123,5 @@ int YASL_decllib_require_c(struct YASL_State *S) {
 	YASL_pushcfunction(S, YASL_require_c, 1);
 	YASL_setglobal(S, "require_c");
 
-	return YASL_SUCCESS;	
+	return YASL_SUCCESS;
 }
