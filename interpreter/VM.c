@@ -155,7 +155,7 @@ void vvm_print_err(struct VM *vm, const char *const fmt, va_list args) {
 		tmp++;
 	}
 
-	vm_print_err_wrapper(vm, " (line %lu)\n", tmp - vm->code - line_start);
+	vm_print_err_wrapper(vm, " (line %lu)\n", (long unsigned)(tmp - vm->code - line_start));
 }
 
 YASL_FORMAT_CHECK void vm_print_err(struct VM *vm, const char *const fmt, ...) {
