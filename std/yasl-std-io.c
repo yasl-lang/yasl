@@ -36,7 +36,7 @@ static int YASL_io_open(struct YASL_State *S) {
 	size_t mode_len = strlen(mode_str);
 
 	if (mode_len > 2 || mode_len < 1 || (mode_len == 2 && mode_str[1] != '+')) {
-		vm_print_err_value((struct VM *)S, "io.open was passed invalid mode: %*s.\n", (int)mode_len, mode_str);
+		vm_print_err_value((struct VM *)S, "io.open was passed invalid mode: %*s.", (int)mode_len, mode_str);
 		return YASL_VALUE_ERROR;
 	}
 
@@ -57,7 +57,7 @@ static int YASL_io_open(struct YASL_State *S) {
 		default:
 			// invalid mode;
 			free(filename_str);
-			vm_print_err_value((struct VM *)S, "io.open was passed invalid mode: %c.\n", mode_char);
+			vm_print_err_value((struct VM *)S, "io.open was passed invalid mode: %c.", mode_char);
 			return YASL_VALUE_ERROR;
 		}
 	}
@@ -75,7 +75,7 @@ static int YASL_io_open(struct YASL_State *S) {
 		default:
 			// invalid mode;
 			free(filename_str);
-			vm_print_err_value((struct VM *)S, "io.open was passed invalid mode: %c+.\n", mode_char);
+			vm_print_err_value((struct VM *)S, "io.open was passed invalid mode: %c+.", mode_char);
 			return YASL_VALUE_ERROR;
 		}
 	}
@@ -104,7 +104,7 @@ static int YASL_io_read(struct YASL_State *S) {
 	YASL_pop(S);
 
 	if (!YASL_isuserdata(S, T_FILE)) {
-		vm_print_err_type((struct VM *)S, "%s expected arg in position %d to be of type file, got arg of type %s.\n",
+		vm_print_err_type((struct VM *)S, "%s expected arg in position %d to be of type file, got arg of type %s.",
 				  FILE_PRE ".read", 0, YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
@@ -113,7 +113,7 @@ static int YASL_io_read(struct YASL_State *S) {
 	size_t mode_len = strlen(mode_str);
 
 	if (mode_len != 1) {
-		vm_print_err_value((struct VM *)S, FILE_PRE ".read was passed invalid mode: %*s.\n", (int)mode_len, mode_str);
+		vm_print_err_value((struct VM *)S, FILE_PRE ".read was passed invalid mode: %*s.", (int)mode_len, mode_str);
 		free(mode_str);
 		return YASL_VALUE_ERROR;
 	}
@@ -147,7 +147,7 @@ static int YASL_io_read(struct YASL_State *S) {
 		return YASL_SUCCESS;
 	}
 	default:
-		vm_print_err_value((struct VM *)S, FILE_PRE ".read was passed invalid mode: %c.\n", mode_str[0]);
+		vm_print_err_value((struct VM *)S, FILE_PRE ".read was passed invalid mode: %c.", mode_str[0]);
 		free(mode_str);
 		return YASL_VALUE_ERROR;
 	}
@@ -162,7 +162,7 @@ static int YASL_io_write(struct YASL_State *S) {
 	YASL_pop(S);
 
 	if (!YASL_isuserdata(S, T_FILE)) {
-		vm_print_err_type((struct VM *)S, "%s expected arg in position %d to be of type file, got arg of type %s.\n",
+		vm_print_err_type((struct VM *)S, "%s expected arg in position %d to be of type file, got arg of type %s.",
 				  FILE_PRE ".write", 0, YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
@@ -179,7 +179,7 @@ static int YASL_io_write(struct YASL_State *S) {
 
 static int YASL_io_flush(struct YASL_State *S) {
 	if (!YASL_isuserdata(S, T_FILE)) {
-		vm_print_err_type((struct VM *)S, "%s expected arg in position %d to be of type file, got arg of type %s.\n",
+		vm_print_err_type((struct VM *)S, "%s expected arg in position %d to be of type file, got arg of type %s.",
 				  FILE_PRE ".flush", 0, YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}

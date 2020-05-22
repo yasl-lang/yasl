@@ -183,7 +183,7 @@ int YASL_loadglobal(struct YASL_State *S, const char *name) {
 void YASL_print_err(struct YASL_State *S, const char *const fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
-	S->vm.err.print(&S->vm.err, fmt, args);
+	vvm_print_err(&S->vm, fmt, args);
 	va_end(args);
 }
 

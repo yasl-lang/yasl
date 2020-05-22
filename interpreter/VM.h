@@ -64,10 +64,10 @@
 
 #define vm_print_err_type(vm, format, ...) vm_print_err((vm), MSG_TYPE_ERROR format, __VA_ARGS__)
 #define vm_print_err_value(vm, format, ...) vm_print_err((vm), MSG_VALUE_ERROR format, __VA_ARGS__)
-#define vm_print_err_divide_by_zero(vm) vm_print_err((vm), "DivisionByZeroError\n")
+#define vm_print_err_divide_by_zero(vm) vm_print_err((vm), "DivisionByZeroError")
 #define vm_print_err_bad_arg_type(vm, name, position, expected, actual) \
 vm_print_err_type((vm),\
- "%s expected arg in position %d to be of type %s, got arg of type %s.\n",\
+ "%s expected arg in position %d to be of type %s, got arg of type %s.",\
  name,\
  position,\
  YASL_TYPE_NAMES[expected],\
@@ -112,6 +112,7 @@ void vm_init(struct VM *const vm, unsigned char *const code, const size_t pc, co
 
 void vm_cleanup(struct VM *const vm);
 
+void vvm_print_err(struct VM *vm, const char *const fmt, va_list args);
 void vm_print_err(struct VM *vm, const char *const fmt, ...);
 
 int vm_stringify_top(struct VM *const vm);
