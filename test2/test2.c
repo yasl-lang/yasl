@@ -23,7 +23,7 @@ int main(void) {
 		fseek(f, 0, SEEK_END);
 		size_t size = ftell(f);
 		fseek(f, 0, SEEK_SET);
-		char *expected_output = malloc(size + 1);
+		char *expected_output = (char *)malloc(size + 1);
 		fread(expected_output, 1, size, f);
 		expected_output[size] = '\0';
 
@@ -40,6 +40,8 @@ int main(void) {
 			// printf("test for %s passed!\n", outputs[i]);
 		}
 
+		free(expected_output);
 		YASL_delstate(S);
 	}
+	return failed;
 }
