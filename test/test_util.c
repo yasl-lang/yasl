@@ -110,11 +110,13 @@ int qx(const char *prog, const char *const *args,
 	} else {
 		opipe_fd[1] = open("/dev/null", O_WRONLY | O_CLOEXEC);
 	}
+
 	if (eopen) {
 		pipey(epipe_fd);
 	} else {
 		epipe_fd[1] = open("/dev/null", O_WRONLY | O_CLOEXEC);
 	}
+
 	if (!(child = fork())) {
 		int argc;
 		for (argc = 0; args[argc]; argc++);
@@ -170,9 +172,8 @@ bool assert_output(const char *prog, const char *const *args,
 		   const char *file, int line) {
 	char *actual_output, *actual_error;
 	size_t aolen, aelen;
-	int actual_status;
 	bool differences = false;
-	actual_status = qx(prog, args,
+	int actual_status = qx(prog, args,
 			   &aolen,
 			   expected_output == NULL ? NULL : &actual_output,
 			   &aelen,

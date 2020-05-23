@@ -1,2 +1,2 @@
 #define MEM 0
-#include "test/misctest.c"
+#include "test/scripttest.inl"

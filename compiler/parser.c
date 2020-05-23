@@ -160,20 +160,20 @@ static bool isfndecl(struct Parser *const parser) {
 
 static struct Node *parse_program(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("parsing statement in line %" PRI_SIZET "\n", parser->lex.line);
-	size_t line;
+	size_t line = parser->lex.line;
 	switch (curtok(parser)) {
 	case T_ECHO:
 		eattok(parser, T_ECHO);
-		return new_Print(parse_expr(parser), parser->lex.line);
+		return new_Print(parse_expr(parser), line);
 	case T_FN:
 		if (isfndecl(parser)) return parse_fn(parser);
 		else return parse_expr(parser);
 	case T_RET:
 		eattok(parser, T_RET);
-		return new_Return(parse_expr(parser), parser->lex.line);
+		return new_Return(parse_expr(parser), line);
 	case T_EXPORT:
 		eattok(parser, T_EXPORT);
-		return new_Export(parse_expr(parser), parser->lex.line);
+		return new_Export(parse_expr(parser), line);
 	case T_CONST:
 		return parse_const(parser);
 	case T_LET:
@@ -183,11 +183,9 @@ static struct Node *parse_program(struct Parser *const parser) {
 	case T_WHILE:
 		return parse_while(parser);
 	case T_BREAK:
-		line = parser->lex.line;
 		eattok(parser, T_BREAK);
 		return new_Break(line);
 	case T_CONT:
-		line = parser->lex.line;
 		eattok(parser, T_CONT);
 		return new_Continue(line);
 	case T_IF:
@@ -197,7 +195,7 @@ static struct Node *parse_program(struct Parser *const parser) {
 		parser_print_err_syntax(parser,
 			"`%s` without previous `if` (line %" PRI_SIZET ").\n",
 			YASL_TOKEN_NAMES[curtok(parser)],
-			parser->lex.line);
+			line);
 		return handle_error(parser);
 	case T_ASS:
 		return parse_assert(parser);
@@ -258,7 +256,7 @@ static struct Node *parse_fn(struct Parser *const parser) {
 
 		struct Node *body = parse_body(parser);
 
-		return new_Set(collection, index, new_FnDecl(block, body, NULL, 0, parser->lex.line), line);
+		return new_Set(collection, index, new_FnDecl(block, body, NULL, 0, line), line);
 	}
 	eattok(parser, T_LPAR);
 	struct Node *block = parse_function_params(parser);
@@ -268,7 +266,7 @@ static struct Node *parse_fn(struct Parser *const parser) {
 
 	char *name2 = (char *)malloc(name_len + 1);
 	strcpy(name2, name);
-	return new_Let(name, new_FnDecl(block, body, name2, strlen(name2), parser->lex.line), line);
+	return new_Let(name, new_FnDecl(block, body, name2, strlen(name2), line), line);
 	// TODO Fix this ^
 }
 
@@ -288,7 +286,7 @@ static struct Node *parse_const(struct Parser *const parser) {
 		// TODO: clean this up
 		char *name2 = (char *)malloc(name_len + 1);
 		strcpy(name2, name);
-		return new_Const(name, new_FnDecl(block, body, name2, strlen(name2), parser->lex.line), line);
+		return new_Const(name, new_FnDecl(block, body, name2, strlen(name2), line), line);
 	}
 	size_t line = parser->lex.line;
 	char *name = eatname(parser);

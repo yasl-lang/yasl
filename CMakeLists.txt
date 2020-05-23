@@ -82,6 +82,7 @@ add_executable(yasl
         data-structures/YASL_Set.c
         std/yasl-std-collections.c
         util/IO.c
+        util/varint.c
         yasl_conf.h
         yasl_error.h
         yasl_plat.h
@@ -121,6 +122,8 @@ if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
             test/unit_tests/test_methods/listtest.c
             test/unit_tests/test_methods/strtest.c
             test/unit_tests/test_vm/vmtest.c
+            test/unit_tests/test_util/utiltest.c
+            test/unit_tests/test_api/deltest.c
             std/yasl-std-collections.c
             std/yasl-std-require.c
             std/yasl-std-io.c
@@ -157,7 +160,7 @@ if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
             interpreter/int_methods.c
             interpreter/bool_methods.c
             util/IO.c
-            test/unit_tests/test_api/deltest.c test/unit_tests/test_api/deltest.h)
+            util/varint.c)
 endif()
 
 add_library(yaslapi
@@ -192,13 +195,27 @@ add_library(yaslapi
         interpreter/userdata.c
         interpreter/undef_methods.c
         util/prime.c
-        util/IO.c)
+        util/IO.c
+        util/varint.c
+        std/yasl-std-collections.c
+        std/yasl-std-io.c
+        std/yasl-std-math.c
+        std/yasl-std-require.c
+        data-structures/YASL_Set.c
+        )
+
+add_executable(tests2
+        test2/test2.c
+        )
 
 if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
     target_link_libraries(yasl m)
     target_link_libraries(yaslapi m)
     target_link_libraries(tests m)
+    target_link_libraries(tests2 m)
 endif()
+
+target_link_libraries(tests2 yaslapi)
 
 if (UNIX)
     target_link_libraries(yasl dl)

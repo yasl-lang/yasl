@@ -4,6 +4,7 @@
 #include "yasl-std-math.h"
 #include "yasl-std-io.h"
 #include "yasl_plat.h"
+#include "yasl_aux.h"
 
 #define LOAD_LIB_FUN_NAME "YASL_load_dyn_lib"
 
@@ -28,9 +29,7 @@ int YASL_require(struct YASL_State *S) {
 	}
 
 	// Load Standard Libraries
-	YASL_load_math(Ss);
-	YASL_load_io(Ss);
-	YASL_load_require(Ss);
+	YASLX_decllibs(Ss);
 
 	Ss->vm.globals[Ss->vm.headers_size - 1] = Ss->vm.globals[0];
 	Ss->vm.globals[0] = NULL;
@@ -78,6 +77,10 @@ int YASL_require_c(struct YASL_State *S) {
 	YASL_pop(S);
 
 #if defined(YASL_USE_WIN)
+#ifndef _MSC_VER
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
 	void *lib = LoadLibrary(TEXT(mode_str));
 	if (!lib) {
 	    vm_print_err_value((struct VM *)S, "couldn't open shared library: %s.\n", mode_str);
@@ -89,6 +92,9 @@ int YASL_require_c(struct YASL_State *S) {
 	    vm_print_err_value((struct VM *)S, "couldn't load function: %s.\n", LOAD_LIB_FUN_NAME);
 	    return YASL_VALUE_ERROR;
 	}
+#ifndef _MSC_VER
+#pragma GCC diagnostic pop
+#endif
 	return fun(S);
 #elif defined(YASL_USE_UNIX) || defined(YASL_USE_APPLE)
 	void *lib = dlopen(mode_str, RTLD_NOW);
@@ -108,11 +114,15 @@ int YASL_require_c(struct YASL_State *S) {
 #endif
 }
 
-int YASL_load_require(struct YASL_State *S) {
+int YASL_decllib_require(struct YASL_State *S) {
 	YASL_declglobal(S, "require");
 	YASL_pushcfunction(S, YASL_require, 1);
 	YASL_setglobal(S, "require");
 
+	return YASL_SUCCESS;
+}
+
+int YASL_decllib_require_c(struct YASL_State *S) {
 	YASL_declglobal(S, "require_c");
 	YASL_pushcfunction(S, YASL_require_c, 1);
 	YASL_setglobal(S, "require_c");

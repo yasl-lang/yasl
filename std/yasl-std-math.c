@@ -351,7 +351,7 @@ static int YASL_math_rand(struct YASL_State *S) {
 	return YASL_pushint(S, r);
 }
 
-int YASL_load_math(struct YASL_State *S) {
+int YASL_decllib_math(struct YASL_State *S) {
 	YASL_declglobal(S, "math");
 	YASL_pushtable(S);
 	YASL_setglobal(S, "math");

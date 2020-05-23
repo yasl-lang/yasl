@@ -25,6 +25,8 @@
     .buffer = YASL_ByteBuffer_new(16),\
     .header = YASL_ByteBuffer_new(16),\
     .code = YASL_ByteBuffer_new(16),\
+    .lines = YASL_ByteBuffer_new(16),\
+    .line = 0,\
     .checkpoints = NEW_SIZEBUFFER(4),\
     .locals = (struct Frame *)malloc(sizeof(struct Frame) * 4),\
     .locals_count = 0,\
@@ -50,9 +52,11 @@ struct Compiler {
 	struct Scope *stack;
 	struct Env *params;
 	struct YASL_Table *strings;
-	struct YASL_ByteBuffer *buffer;
-	struct YASL_ByteBuffer *header;
-	struct YASL_ByteBuffer *code;
+	struct YASL_ByteBuffer *buffer;    // temporary buffer during code-gen
+	struct YASL_ByteBuffer *header;    // header includes things like string constants
+	struct YASL_ByteBuffer *code;      // bytecode generated
+	struct YASL_ByteBuffer *lines;     // keeps track of current line number
+	size_t line;
 	struct SizeBuffer checkpoints;
 	struct Frame *locals;
 	size_t locals_count;

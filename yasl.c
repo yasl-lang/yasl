@@ -46,7 +46,33 @@ struct YASL_State *YASL_newstate(const char *filename) {
 	S->compiler.num = 0;
 
 	vm_init((struct VM *) S, NULL, -1, 1);
+
+	YASL_declglobal(S, "__VERSION__");
+	YASL_pushlitszstring(S, YASL_VERSION);
+	YASL_setglobal(S, "__VERSION__");
+
 	return S;
+}
+
+void YASL_setprintout_tostr(struct YASL_State *S) {
+	S->vm.out.print = &io_print_string;
+}
+
+void YASL_setprinterr_tostr(struct YASL_State *S) {
+	S->compiler.parser.lex.err.print = &io_print_string;
+	S->vm.err.print = &io_print_string;
+}
+
+void YASL_loadprintout(struct YASL_State *S) {
+	YASL_pushlitstring(S, S->vm.out.string, S->vm.out.len);
+}
+
+void YASL_loadprinterr(struct YASL_State *S) {
+	if (S->compiler.status != YASL_SUCCESS) {
+		YASL_pushlitstring(S, S->compiler.parser.lex.err.string, S->compiler.parser.lex.err.len);
+	} else {
+		YASL_pushlitstring(S, S->vm.err.string, S->vm.err.len);
+	}
 }
 
 int YASL_resetstate(struct YASL_State *S, const char *filename) {
@@ -183,7 +209,7 @@ int YASL_loadglobal(struct YASL_State *S, const char *name) {
 void YASL_print_err(struct YASL_State *S, const char *const fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
-	S->vm.err.print(&S->vm.err, fmt, args);
+	vvm_print_err(&S->vm, fmt, args);
 	va_end(args);
 }
 

@@ -16,6 +16,7 @@ void YASL_ByteBuffer_del(struct YASL_ByteBuffer *const bb);
 
 void YASL_ByteBuffer_extend(struct YASL_ByteBuffer *const bb, const unsigned char *const bytes, const size_t bytes_len);
 void YASL_ByteBuffer_add_byte(struct YASL_ByteBuffer *const bb, const unsigned char byte);
+void YASL_ByteBuffer_add_vint(struct YASL_ByteBuffer *const bb, size_t val);
 void YASL_ByteBuffer_add_float(struct YASL_ByteBuffer *const bb, const yasl_float value);
 void YASL_ByteBuffer_add_int(struct YASL_ByteBuffer *const bb, const yasl_int value);
 /* Caller must check that index is within range */

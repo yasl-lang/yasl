@@ -78,6 +78,7 @@ static void compiler_buffers_del(const struct Compiler *const compiler) {
 	YASL_ByteBuffer_del(compiler->buffer);
 	YASL_ByteBuffer_del(compiler->header);
 	YASL_ByteBuffer_del(compiler->code);
+	YASL_ByteBuffer_del(compiler->lines);
 }
 
 void compiler_cleanup(struct Compiler *const compiler) {
@@ -313,6 +314,7 @@ static unsigned char *return_bytes(const struct Compiler *const compiler) {
 	YASL_ByteBuffer_rewrite_int_fast(compiler->header, 8, compiler->code->count + compiler->header->count +
 							      1);   // TODO: put num globals here eventually.
 
+	YASL_ByteBuffer_add_vint(compiler->lines, compiler->code->count);
 	YASL_BYTECODE_DEBUG_LOG("%s\n", "header");
 	for (size_t i = 0; i < compiler->header->count; i++) {
 		if (i % 16 == 15)
@@ -320,7 +322,7 @@ static unsigned char *return_bytes(const struct Compiler *const compiler) {
 		else
 			YASL_BYTECODE_DEBUG_LOG("%02x ", compiler->header->bytes[i]);
 	}
-	YASL_BYTECODE_DEBUG_LOG("%s\n", "entry point");
+	YASL_BYTECODE_DEBUG_LOG("\n%s\n", "entry point");
 	for (size_t i = 0; i < compiler->code->count; i++) {
 		if (i % 16 == 15)
 			YASL_BYTECODE_DEBUG_LOG("%02x\n", compiler->code->bytes[i]);
@@ -328,13 +330,22 @@ static unsigned char *return_bytes(const struct Compiler *const compiler) {
 			YASL_BYTECODE_DEBUG_LOG("%02x ", compiler->code->bytes[i]);
 	}
 	YASL_BYTECODE_DEBUG_LOG("%02x\n", O_HALT);
+	YASL_BYTECODE_DEBUG_LOG("%s\n", "lines");
+	for (size_t i = 0; i < compiler->lines->count; i++) {
+		if (i % 16 == 15)
+			YASL_BYTECODE_DEBUG_LOG("%02x\n", compiler->lines->bytes[i]);
+		else
+			YASL_BYTECODE_DEBUG_LOG("%02x ", compiler->lines->bytes[i]);
+	}
+	YASL_BYTECODE_DEBUG_LOG("%s", "\n");
 
 	fflush(stdout);
 	unsigned char *bytecode = (unsigned char *) malloc(
-		compiler->code->count + compiler->header->count + 1);    // NOT OWN
+		compiler->code->count + compiler->header->count + 1 + compiler->lines->count);    // NOT OWN
 	memcpy(bytecode, compiler->header->bytes, compiler->header->count);
 	memcpy(bytecode + compiler->header->count, compiler->code->bytes, compiler->code->count);
 	bytecode[compiler->code->count + compiler->header->count] = O_HALT;
+	memcpy(bytecode + compiler->code->count + 1 + compiler->header->count, compiler->lines->bytes, compiler->lines->count);
 	return bytecode;
 }
 
@@ -423,29 +434,25 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 		}
 	}
 
-	size_t old_size = compiler->buffer->count;
-	// TODO: verfiy that number of params is small enough. (same for the other casts below.)
+	YASL_ByteBuffer_add_byte(compiler->buffer, O_FCONST);
+	YASL_ByteBuffer_add_int(compiler->buffer, 0);
 
+	size_t old_size = compiler->buffer->count;
+
+	// TODO: verfiy that number of params is small enough. (same for the other casts below.)
 	YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) Body_get_len(FnDecl_get_params(node)));
 	YASL_ByteBuffer_add_byte(compiler->buffer, 0);  // TODO: remove this
 	visit_Body(compiler, FnDecl_get_body(node));
+	// TODO: remove this when it's not required.
+	YASL_ByteBuffer_add_byte(compiler->buffer, O_NCONST);
+	YASL_ByteBuffer_add_byte(compiler->buffer, compiler->params->usedinclosure ? O_CRET : O_RET);
 	exit_scope(compiler);
 
-	int64_t fn_val = compiler->header->count;
-	YASL_ByteBuffer_extend(compiler->header, compiler->buffer->bytes + old_size, compiler->buffer->count - old_size);
-	compiler->buffer->count = old_size;
-	YASL_ByteBuffer_add_byte(compiler->header, O_NCONST);
-	YASL_ByteBuffer_add_byte(compiler->header, compiler->params->usedinclosure ? O_CRET : O_RET);
+	size_t new_size = compiler->buffer->count;
+	YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, old_size - sizeof(yasl_int), new_size - old_size);
 
-	// zero buffer length
-	compiler->buffer->count = old_size;
-
-	if (!compiler->params->isclosure) {
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_FCONST);
-		YASL_ByteBuffer_add_int(compiler->buffer, fn_val);
-	} else {
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_CCONST);
-		YASL_ByteBuffer_add_int(compiler->buffer, fn_val);
+	if (compiler->params->isclosure) {
+		compiler->buffer->bytes[old_size - sizeof(yasl_int) - 1] = O_CCONST;
 		const size_t count = compiler->params->upval_indices.count;
 		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) count);
 		const size_t start = compiler->buffer->count;
@@ -458,8 +465,6 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 			int64_t value = YASL_Table_search(&compiler->params->upval_values, item->key).value.ival;
 			compiler->buffer->bytes[start + index] = value;
 		}
-
-
 	}
 
 	struct Env *tmp = compiler->params->parent;
@@ -1000,8 +1005,8 @@ static void visit_UnOp(struct Compiler *const compiler, const struct Node *const
 	case T_LEN: YASL_ByteBuffer_add_byte(compiler->buffer, O_LEN);
 		break;
 	default:
-		puts("error in visit_UnOp");
-		exit(EXIT_FAILURE);
+		YASL_ASSERT(false, "Error in visit_UnOp");
+		break;
 	}
 }
 
@@ -1122,6 +1127,11 @@ static void visit_Table(struct Compiler *const compiler, const struct Node *cons
 }
 
 static void visit(struct Compiler *const compiler, const struct Node *const node) {
+	while (node->line > compiler->line) {
+		YASL_ByteBuffer_add_vint(compiler->lines, compiler->code->count + compiler->buffer->count);
+		compiler->line++;
+	}
+
 	switch (node->nodetype) {
 	case N_EXPRSTMT:
 		visit_ExprStmt(compiler, node);
@@ -1232,5 +1242,4 @@ static void visit(struct Compiler *const compiler, const struct Node *const node
 		visit_Assert(compiler, node);
 		break;
 	}
-	//jumptable[node->nodetype](compiler, node);
 }

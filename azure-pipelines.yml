@@ -21,8 +21,8 @@ jobs:
       set -e
       cmake  -G "MinGW Makefiles" -DCMAKE_SH="CMAKE_SH-NOTFOUND" .
       make yasl
-      make tests
       make yaslapi
+      make tests2
     displayName: "Compile"
 - job:
   displayName: "C MSVC Windows"
@@ -57,12 +57,16 @@ jobs:
       set -e
       cmake -DCMAKE_C_COMPILER=tcc .
       make yasl
-      make tests
       make yaslapi
+      make tests
+      make tests2
     displayName: "Compile"
   - script:
+      ./tests2
+    displayName: "Run API Tests"
+  - script:
       ./tests
-    displayName: "Run Tests"
+    displayName: "Run Interpreter Tests"
 - job: 
   displayName: "C GCC Ubuntu"
   pool:
@@ -75,12 +79,16 @@ jobs:
       set -e
       cmake .
       make yasl
-      make tests
       make yaslapi
+      make tests
+      make tests2
     displayName: "Compile"
   - script:
+      ./tests2
+    displayName: "Run API Tests"
+  - script:
       ./tests
-    displayName: "Run Tests"
+    displayName: "Run Interpreter Tests"
 - job: 
   displayName: "C Clang Ubuntu"
   pool:
@@ -95,12 +103,16 @@ jobs:
       export CXX=clang++
       cmake .
       make yasl
-      make tests
       make yaslapi
+      make tests
+      make tests2
     displayName: "Compile"
   - script:
+      ./tests2
+    displayName: "Run API Tests"
+  - script:
       ./tests
-    displayName: "Run Tests"
+    displayName: "Run Interpreter Tests"
 - job: 
   displayName: "C++ GCC Ubuntu"
   pool:
@@ -114,12 +126,16 @@ jobs:
       cmake -Dcpp=true
       cmake .
       make yasl
-      make tests
       make yaslapi
+      make tests
+      make tests2
     displayName: "Compile"
   - script:
+      ./tests2
+    displayName: "Run API Tests"
+  - script:
       ./tests
-    displayName: "Run Tests"  
+    displayName: "Run Interpreter Tests"
 - job: 
   displayName: "C++ Clang Ubuntu"
   pool:
@@ -135,12 +151,16 @@ jobs:
       cmake -Dcpp=true
       cmake .
       make yasl
-      make tests
       make yaslapi
+      make tests
+      make tests2
     displayName: "Compile"
   - script:
+      ./tests2
+    displayName: "Run API Tests"
+  - script:
       ./tests
-    displayName: "Run Tests"
+    displayName: "Run Interpreter Tests"
 - job: 
   displayName: "C Clang MacOS"
   pool:
@@ -152,12 +172,16 @@ jobs:
       export CXX=clang++
       cmake .
       make yasl
-      make tests
       make yaslapi
+      make tests
+      make tests2
     displayName: "Compile"
   - script:
+      ./tests2
+    displayName: "Run API Tests"
+  - script:
       ./tests -m
-    displayName: "Run Tests"  
+    displayName: "Run Interpreter Tests"
 - job: 
   displayName: "C++ Clang MacOS"
   pool:
@@ -170,9 +194,13 @@ jobs:
       cmake -Dcpp=true
       cmake .
       make yasl
-      make tests
       make yaslapi
+      make tests
+      make tests2
     displayName: "Compile"
   - script:
+      ./tests2
+    displayName: "Run API Tests"
+  - script:
       ./tests -m
-    displayName: "Run Tests"  
+    displayName: "Run Interpreter Tests"
