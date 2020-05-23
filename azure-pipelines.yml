@@ -23,7 +23,6 @@ jobs:
       make yasl
       make yaslapi
       make tests2
-      make tests
     displayName: "Compile"
   - script:
       ./tests2
