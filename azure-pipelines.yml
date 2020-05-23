@@ -25,7 +25,7 @@ jobs:
       make tests2
     displayName: "Compile"
   - script:
-      ./tests2
+      tests2
     displayName: "Run API Tests"
 
 - job:
