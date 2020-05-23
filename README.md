@@ -46,4 +46,4 @@ Tests should execute with exitcode 0. If they do not, either there's a bug or yo
 ## Feature Requests
 If you find yourself desiring a feature that YASL is missing, please open an issue on this repo with the `feature-request` tag, and outline what feature you want. There's no need to provide an implementation at this stage, just explain on the issue what you want added. This doesn't guarantee that I will add it. If I do, I'll open another isssue asking for an implementation of the feature, which can then be added to YASL once it's complete.
 
-Keep in mind that YASL is meant to be small, to facilitate easy embedding. As such, I'm fairly picky about new features.
+Keep in mind that YASL is meant to be small, to facilitate easy embedding. As such, I'm fairly picky about new features, especially if they involve changes to the syntax. If a feature can be implemented as a library, I'm much more receptive, since libraries can be excluded from YASL fairly easily if they're not needed, whereas syntax cannot.
