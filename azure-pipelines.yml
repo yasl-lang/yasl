@@ -30,8 +30,9 @@ jobs:
     vmImage: 'vs2017-win2016'
   steps:
   - script: |
-      wget https://cygwin.com/setup-x86_64.exe
+      curl https://cygwin.com/setup-x86_64.exe -o cygwin-setup.exe
       setup-x86_64.exe --no-admin
+    displayName: "Install Cygwin"  
   - script: |
       set -e
       cmake .
