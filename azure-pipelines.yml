@@ -107,8 +107,11 @@ jobs:
       make yaslapi
     displayName: "Compile"
   - script:
+      ./tests2
+    displayName: "Run API Tests"
+  - script:
       ./tests
-    displayName: "Run Tests"
+    displayName: "Run Interpreter Tests"
 - job: 
   displayName: "C++ GCC Ubuntu"
   pool:
@@ -126,8 +129,11 @@ jobs:
       make yaslapi
     displayName: "Compile"
   - script:
+      ./tests2
+    displayName: "Run API Tests"
+  - script:
       ./tests
-    displayName: "Run Tests"  
+    displayName: "Run Interpreter Tests"
 - job: 
   displayName: "C++ Clang Ubuntu"
   pool:
@@ -147,8 +153,11 @@ jobs:
       make yaslapi
     displayName: "Compile"
   - script:
+      ./tests2
+    displayName: "Run API Tests"
+  - script:
       ./tests
-    displayName: "Run Tests"
+    displayName: "Run Interpreter Tests"
 - job: 
   displayName: "C Clang MacOS"
   pool:
@@ -164,8 +173,11 @@ jobs:
       make yaslapi
     displayName: "Compile"
   - script:
-      ./tests -m
-    displayName: "Run Tests"  
+      ./tests2
+    displayName: "Run API Tests"
+  - script:
+      ./tests
+    displayName: "Run Interpreter Tests"
 - job: 
   displayName: "C++ Clang MacOS"
   pool:
@@ -182,5 +194,8 @@ jobs:
       make yaslapi
     displayName: "Compile"
   - script:
-      ./tests -m
-    displayName: "Run Tests"  
+      ./tests2
+    displayName: "Run API Tests"
+  - script:
+      ./tests
+    displayName: "Run Interpreter Tests"
