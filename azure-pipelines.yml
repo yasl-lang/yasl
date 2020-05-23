@@ -24,7 +24,8 @@ jobs:
       make yaslapi
       make tests2
     displayName: "Compile"
-  - script:
+  - script: |
+      dir
       tests2.exe
     displayName: "Run API Tests"
 
