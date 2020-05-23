@@ -31,7 +31,7 @@ jobs:
   steps:
   - script: |
       curl https://cygwin.com/setup-x86_64.exe -o cygwin-setup.exe
-      setup-x86_64.exe --no-admin
+      cygwin-setup.exe --no-admin
     displayName: "Install Cygwin"  
   - script: |
       set -e
