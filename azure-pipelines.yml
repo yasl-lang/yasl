@@ -21,9 +21,14 @@ jobs:
       set -e
       cmake  -G "MinGW Makefiles" -DCMAKE_SH="CMAKE_SH-NOTFOUND" .
       make yasl
-      make tests
       make yaslapi
+      make tests2
+      make tests
     displayName: "Compile"
+  - script:
+      ./tests2
+    displayName: "Run API Tests"
+
 - job:
   displayName: "C MSVC Windows"
   pool:
@@ -103,8 +108,9 @@ jobs:
       export CXX=clang++
       cmake .
       make yasl
-      make tests
       make yaslapi
+      make tests
+      make tests2
     displayName: "Compile"
   - script:
       ./tests2
@@ -125,8 +131,9 @@ jobs:
       cmake -Dcpp=true
       cmake .
       make yasl
-      make tests
       make yaslapi
+      make tests
+      make tests2
     displayName: "Compile"
   - script:
       ./tests2
@@ -149,8 +156,9 @@ jobs:
       cmake -Dcpp=true
       cmake .
       make yasl
-      make tests
       make yaslapi
+      make tests
+      make tests2
     displayName: "Compile"
   - script:
       ./tests2
@@ -169,8 +177,9 @@ jobs:
       export CXX=clang++
       cmake .
       make yasl
-      make tests
       make yaslapi
+      make tests
+      make tests2
     displayName: "Compile"
   - script:
       ./tests2
@@ -190,8 +199,9 @@ jobs:
       cmake -Dcpp=true
       cmake .
       make yasl
-      make tests
       make yaslapi
+      make tests
+      make tests2
     displayName: "Compile"
   - script:
       ./tests2
