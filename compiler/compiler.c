@@ -1128,7 +1128,7 @@ static void visit_Table(struct Compiler *const compiler, const struct Node *cons
 
 static void visit(struct Compiler *const compiler, const struct Node *const node) {
 	while (node->line > compiler->line) {
-		YASL_ByteBuffer_add_vint(compiler->lines, compiler->code->count);
+		YASL_ByteBuffer_add_vint(compiler->lines, compiler->code->count + compiler->buffer->count);
 		compiler->line++;
 	}
 

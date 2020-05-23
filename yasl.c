@@ -67,7 +67,13 @@ void YASL_loadprintout(struct YASL_State *S) {
 	YASL_pushlitstring(S, S->vm.out.string, S->vm.out.len);
 }
 
-void YASL_loadprinterr(struct YASL_State *S);
+void YASL_loadprinterr(struct YASL_State *S) {
+	if (S->compiler.status != YASL_SUCCESS) {
+		YASL_pushlitstring(S, S->compiler.parser.lex.err.string, S->compiler.parser.lex.err.len);
+	} else {
+		YASL_pushlitstring(S, S->vm.err.string, S->vm.err.len);
+	}
+}
 
 int YASL_resetstate(struct YASL_State *S, const char *filename) {
 	FILE *fp = fopen(filename, "r");

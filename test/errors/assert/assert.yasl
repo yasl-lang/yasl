@@ -1,0 +1,3 @@
+# check that assert fails properly and with the correct line number
+
+assert false
