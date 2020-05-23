@@ -19,11 +19,23 @@ jobs:
   steps:
   - script: |
       set -e
-      cmake  -G "MinGW Makefiles" -DCMAKE_SH="CMAKE_SH-NOTFOUND" .
+      cmake -G "MinGW Makefiles" -DCMAKE_SH="CMAKE_SH-NOTFOUND" .
       make yasl
       make yaslapi
       make tests2
     displayName: "Compile"
+- job:
+  displayName: "C Cygwin Windows"
+  pool:
+    vmImage: 'vs2017-win2016'
+  steps:
+  - script: |
+      set -e
+      cmake .
+      make yasl
+      make yaslapi
+      make tests2
+    displayName: "Compile"    
 - job:
   displayName: "C MSVC Windows"
   pool:
