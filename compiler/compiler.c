@@ -434,29 +434,25 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 		}
 	}
 
-	size_t old_size = compiler->buffer->count;
-	// TODO: verfiy that number of params is small enough. (same for the other casts below.)
+	YASL_ByteBuffer_add_byte(compiler->buffer, O_FCONST);
+	YASL_ByteBuffer_add_int(compiler->buffer, 0);
 
+	size_t old_size = compiler->buffer->count;
+
+	// TODO: verfiy that number of params is small enough. (same for the other casts below.)
 	YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) Body_get_len(FnDecl_get_params(node)));
 	YASL_ByteBuffer_add_byte(compiler->buffer, 0);  // TODO: remove this
 	visit_Body(compiler, FnDecl_get_body(node));
+	// TODO: remove this when it's not required.
+	YASL_ByteBuffer_add_byte(compiler->buffer, O_NCONST);
+	YASL_ByteBuffer_add_byte(compiler->buffer, compiler->params->usedinclosure ? O_CRET : O_RET);
 	exit_scope(compiler);
 
-	int64_t fn_val = compiler->header->count;
-	YASL_ByteBuffer_extend(compiler->header, compiler->buffer->bytes + old_size, compiler->buffer->count - old_size);
-	compiler->buffer->count = old_size;
-	YASL_ByteBuffer_add_byte(compiler->header, O_NCONST);
-	YASL_ByteBuffer_add_byte(compiler->header, compiler->params->usedinclosure ? O_CRET : O_RET);
+	size_t new_size = compiler->buffer->count;
+	YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, old_size - sizeof(yasl_int), new_size - old_size);
 
-	// zero buffer length
-	compiler->buffer->count = old_size;
-
-	if (!compiler->params->isclosure) {
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_FCONST);
-		YASL_ByteBuffer_add_int(compiler->buffer, fn_val);
-	} else {
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_CCONST);
-		YASL_ByteBuffer_add_int(compiler->buffer, fn_val);
+	if (compiler->params->isclosure) {
+		compiler->buffer->bytes[old_size - sizeof(yasl_int) - 1] = O_CCONST;
 		const size_t count = compiler->params->upval_indices.count;
 		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) count);
 		const size_t start = compiler->buffer->count;
@@ -469,8 +465,6 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 			int64_t value = YASL_Table_search(&compiler->params->upval_values, item->key).value.ival;
 			compiler->buffer->bytes[start + index] = value;
 		}
-
-
 	}
 
 	struct Env *tmp = compiler->params->parent;

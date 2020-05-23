@@ -566,10 +566,13 @@ static struct Upvalue *add_upvalue(struct VM *const vm, struct YASL_Object *cons
 }
 
 static int vm_CCONST(struct VM *const vm) {
-	yasl_int c = vm_read_int(vm);
+	yasl_int len = vm_read_int(vm);
+	unsigned char *start = vm->pc;
+	vm->pc += len;
+
 	const size_t num_upvalues = NCODE(vm);
 	struct Closure *closure = (struct Closure *)malloc(sizeof(struct Closure) + num_upvalues*sizeof(struct Upvalue *));
-	closure->f = vm->code + c;
+	closure->f = start;
 	closure->num_upvalues = num_upvalues;
 	closure->rc = rc_new();
 
@@ -1027,7 +1030,8 @@ int vm_run(struct VM *const vm) {
 			break;
 		case O_FCONST:
 			c = vm_read_int(vm);
-			vm_pushfn(vm, vm->code + c);
+			vm_pushfn(vm, vm->pc);
+			vm->pc += c;
 			break;
 		case O_CCONST:
 			vm_CCONST(vm);
