@@ -30,6 +30,9 @@ jobs:
     vmImage: 'vs2017-win2016'
   steps:
   - script: |
+      wget https://cygwin.com/setup-x86_64.exe
+      setup-x86_64.exe --no-admin
+  - script: |
       set -e
       cmake .
       make yasl
