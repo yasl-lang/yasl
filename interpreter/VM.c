@@ -251,6 +251,7 @@ static yasl_float vm_read_float(struct VM *const vm) {
     return val;
 }
 
+static int vm_GET_noprint(struct VM *const vm);
 static int vm_GET(struct VM *const vm);
 static int vm_INIT_CALL(struct VM *const vm);
 static int vm_CALL(struct VM *const vm);
@@ -278,8 +279,7 @@ static int vm_int_binop(struct VM *const vm, yasl_int (*op)(yasl_int, yasl_int),
 		struct YASL_Object op_name = YASL_STR(YASL_String_new_sized(strlen(overload_name), overload_name));
 		vm_push(vm, left);
 		vm_push(vm, op_name);
-		vm_GET(vm);
-		if (vm_isundef(vm)) {
+		if (vm_GET_noprint(vm)) {
 			vm_print_err_type(vm, "%s not supported for operands of types %s and %s.",
 					      opstr,
 					      YASL_TYPE_NAMES[left.type],
@@ -333,8 +333,7 @@ static int vm_num_binop(
 		struct YASL_Object op_name = YASL_STR(YASL_String_new_sized(strlen(overload_name), overload_name));
 		vm_push(vm, left);
 		vm_push(vm, op_name);
-		vm_GET(vm);
-		if (vm_isundef(vm)) {
+		if (vm_GET_noprint(vm)) {
 			vm_print_err_type(vm, "%s not supported for operands of types %s and %s.",
 					      opstr,
 					      YASL_TYPE_NAMES[left.type],
@@ -374,8 +373,7 @@ static int vm_fdiv(struct VM *const vm) {
 		struct YASL_Object op_name = YASL_STR(YASL_String_new_sized(strlen(overload_name), overload_name));
 		vm_push(vm, left);
 		vm_push(vm, op_name);
-		vm_GET(vm);
-		if (vm_isundef(vm)) {
+		if (vm_GET_noprint(vm)) {
 			vm_print_err_type(vm, "/ not supported for operands of types %s and %s.",
 					      YASL_TYPE_NAMES[left.type],
 					      YASL_TYPE_NAMES[right.type]);
@@ -427,8 +425,7 @@ static int vm_int_unop(struct VM *const vm, yasl_int (*op)(yasl_int), const char
 		struct YASL_Object op_name = YASL_STR(YASL_String_new_sized(strlen(overload_name), overload_name));
 		vm_push(vm, a);
 		vm_push(vm, op_name);
-		vm_GET(vm);
-		if (vm_isundef(vm)) {
+		if (vm_GET_noprint(vm)) {
 			vm_print_err_type(vm, "%s not supported for operand of type %s.",
 					      opstr,
 					      YASL_TYPE_NAMES[a.type]);
@@ -452,8 +449,7 @@ static int vm_num_unop(struct VM *const vm, yasl_int (*int_op)(yasl_int), yasl_f
 		struct YASL_Object op_name = YASL_STR(YASL_String_new_sized(strlen(overload_name), overload_name));
 		vm_push(vm, expr);
 		vm_push(vm, op_name);
-		vm_GET(vm);
-		if (vm_isundef(vm)) {
+		if (vm_GET_noprint(vm)) {
 			vm_print_err_type(vm,  "%s not supported for operand of type %s.",
 					      opstr,
 					      YASL_TYPE_NAMES[expr.type]);
@@ -479,8 +475,7 @@ static int vm_len_unop(struct VM *const vm) {
 		struct YASL_Object op_name = YASL_STR(YASL_String_new_sized(strlen("__len"), "__len"));
 		vm_push(vm, v);
 		vm_push(vm, op_name);
-		vm_GET(vm);
-		if (vm_isundef(vm)) {
+		if (vm_GET_noprint(vm)) {
 			vm_print_err_type(vm,  "len not supported for operand of type %s.",
 					      YASL_TYPE_NAMES[v.type]);
 			return YASL_TYPE_ERROR;
@@ -651,6 +646,85 @@ static int vm_SLICE(struct VM *const vm) {
 
 }
 
+static void nop_del_data(void *data) {
+	(void) data;
+}
+
+static void vm_get_metatable(struct VM *const vm) {
+	struct YASL_Object v = vm_pop(vm);
+	switch (v.type) {
+	case Y_USERDATA:
+	case Y_USERDATA_W:
+		vm_push(vm, YASL_TABLE(ud_new(YASL_GETUSERDATA(v)->mt, T_TABLE, NULL, nop_del_data)));
+		break;
+	default:
+		vm_push(vm, YASL_TABLE(ud_new(vm->builtins_htable[v.type], T_TABLE, NULL, nop_del_data)));
+		break;
+	}
+}
+
+static int lookup(struct VM *vm, struct YASL_Object obj, struct YASL_Table *mt, struct YASL_Object index) {
+	struct YASL_Object search = YASL_Table_search(mt, index);
+	if (search.type != Y_END) {
+		vm_push(vm,search);
+		return YASL_SUCCESS;
+	}
+
+	struct YASL_String *get = YASL_String_new_sized(strlen("__get"), "__get");
+	search = YASL_Table_search(mt, YASL_STR(get));
+	str_del(get);
+	int result;
+	if (search.type != Y_END) {
+		vm_push(vm, search);
+		if ((result = vm_INIT_CALL(vm))) return result;
+		vm_push(vm, obj);
+		vm_push(vm, index);
+		if ((result = vm_CALL(vm))) return result;
+		return YASL_SUCCESS;
+	}
+	return YASL_VALUE_ERROR;
+}
+
+static int vm_GET_noprint(struct VM *const vm) {
+	void (*old_print)(struct IO *const, const char *const, va_list) = vm->err.print;
+	vm->err.print = io_print_none;
+	int result = vm_GET(vm);
+	vm->err.print = old_print;
+	return result;
+}
+
+static int vm_GET(struct VM *const vm) {
+	inc_ref(&vm_peek(vm));
+	struct YASL_Object index = vm_pop(vm);
+	inc_ref(&vm_peek(vm));
+	struct YASL_Object val = vm_pop(vm);
+
+	if (YASL_ISTABLE(val)) {
+		struct YASL_Object search = YASL_Table_search(YASL_GETTABLE(val), index);
+		if (search.type != Y_END) {
+			vm_push(vm, search);
+			dec_ref(&index);
+			dec_ref(&val);
+			return YASL_SUCCESS;
+		}
+	}
+
+	vm_push(vm, val);
+	vm_get_metatable(vm);
+	struct YASL_Table *mt = YASL_GETTABLE(vm_pop(vm));
+	void (*old_print)(struct IO *const, const char *const, va_list) = vm->err.print;
+	vm->err.print = io_print_none;
+	int result = lookup(vm, val, mt, index);
+	vm->err.print = old_print;
+	if (result) {
+		vm_print_err_value(vm, "Could not find value in object of type %s", YASL_TYPE_NAMES[val.type]);
+	}
+	dec_ref(&index);
+	dec_ref(&val);
+	return result;
+}
+
+/*
 static int vm_GET(struct VM *const vm) {
 	vm->sp--;
 	int index = vm_peek(vm).type;
@@ -694,6 +768,7 @@ static int vm_GET(struct VM *const vm) {
 	}
 	return YASL_SUCCESS;
 }
+*/
 
 static int vm_SET(struct VM *const vm) {
 	vm->sp -= 2;

@@ -12,14 +12,11 @@ int table___get(struct YASL_State *S) {
 		YASLX_print_err_bad_arg_type(S, "table.__get", 0, "table", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
-	struct YASL_Table *ht = YASL_GETTABLE(vm_peek((struct VM *) S));
+	struct YASL_Table *ht = YASL_GETTABLE(vm_pop((struct VM *) S));
 	struct YASL_Object result = YASL_Table_search(ht, key);
 	if (result.type == Y_END) {
-		S->vm.sp++;  // TODO: fix this
-		//vm_push((struct VM *)S, key);
-		return -1;
+		vm_pushundef(&S->vm);
 	} else {
-		vm_pop((struct VM *) S);
 		vm_push((struct VM *) S, result);
 	}
 	return YASL_SUCCESS;

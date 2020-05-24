@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "debug.h"
 #include "data-structures/YASL_Table.h"
 #include "interpreter/userdata.h"
 #include "interpreter/refcount.h"
@@ -177,6 +178,9 @@ struct YASL_Object isequal(struct YASL_Object a, struct YASL_Object b) {
 int print(struct YASL_Object v) {
 	int64_t i;
 	switch (v.type) {
+	case Y_END:
+		YASL_ASSERT(false, "should not have called print with Y_END");
+		break;
 	case Y_INT:
 		printf("%" PRId64 "", YASL_GETINT(v));
 		break;
@@ -190,28 +194,35 @@ int print(struct YASL_Object v) {
 		if (YASL_GETBOOL(v) == 0) printf("false");
 		else printf("true");
 		break;
-	case Y_UNDEF:printf("undef");
+	case Y_UNDEF:
+		printf("undef");
 		break;
 	case Y_STR:
+	case Y_STR_W:
 		for (i = 0; i < (yasl_int) YASL_String_len(YASL_GETSTR(v)); i++) {
 			printf("%c", YASL_GETSTR(v)->str[i + YASL_GETSTR(v)->start]);
 		}
 		break;
 	case Y_TABLE:
+	case Y_TABLE_W:
 		printf("<table>");
 		break;
 	case Y_LIST:
+	case Y_LIST_W:
 		printf("<list>");
 		break;
-	case Y_FN:printf("<fn>");
+	case Y_FN:
+	case Y_CLOSURE:
+	case Y_CFN:
+		printf("<fn>");
 		break;
-	case Y_CFN:printf("<fn>");
+	case Y_USERPTR:
+		printf("0x%p", YASL_GETUSERPTR(v));
 		break;
-	case Y_USERPTR:printf("0x%p", YASL_GETUSERPTR(v));
+	case Y_USERDATA:
+	case Y_USERDATA_W:
+		printf("<userdata>");
 		break;
-	default:
-		printf("Error, unknown type: %x", v.type);
-		return -1;
 	}
 	return 0;
 }
