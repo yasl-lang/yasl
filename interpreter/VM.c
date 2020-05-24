@@ -717,11 +717,14 @@ static int vm_GET(struct VM *const vm) {
 	int result = lookup(vm, val, mt, index);
 	vm->err.print = old_print;
 	if (result) {
-		vm_print_err_value(vm, "Could not find value in object of type %s", YASL_TYPE_NAMES[val.type]);
+		vm_print_err_value(vm, "unable to index %s with value of type %s.", YASL_TYPE_NAMES[val.type], YASL_TYPE_NAMES[index.type]);
+		dec_ref(&index);
+		dec_ref(&val);
+		return YASL_VALUE_ERROR;
 	}
 	dec_ref(&index);
 	dec_ref(&val);
-	return result;
+	return YASL_SUCCESS;
 }
 
 /*

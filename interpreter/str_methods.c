@@ -19,8 +19,7 @@ int str___get(struct YASL_State *S) {
 	if (index < -(yasl_int) YASL_String_len(str) ||
 		   index >= (yasl_int) YASL_String_len(
 			   str)) {
-		printf("IndexError\n");
-		return -1;
+		return YASL_VALUE_ERROR;
 	} else {
 		if (index >= 0)
 			vm_push((struct VM *) S, YASL_STR(

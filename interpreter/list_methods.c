@@ -14,11 +14,9 @@ int list___get(struct YASL_State *S) {
 	}
 	struct YASL_List *ls = YASL_GETLIST(vm_peek((struct VM *) S));
 	if (!YASL_ISINT(index)) {
-		S->vm.sp++;
-		return -1;
+		return YASL_TYPE_ERROR;
 	} else if (YASL_GETINT(index) < -(int64_t) ls->count || YASL_GETINT(index) >= (int64_t) ls->count) {
-		printf("IndexError\n");
-		return -1;
+		return YASL_VALUE_ERROR;
 	} else {
 		if (index.value.ival >= 0) {
 			vm_pop((struct VM *) S);

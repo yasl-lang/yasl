@@ -140,6 +140,7 @@ int vmtest(void) {
 	ASSERT_ARG_TYPE_ERR("[].extend([], 1);", "list.extend", "list", "int", 1, 1);
 	ASSERT_ARG_TYPE_ERR("[].extend(1, true);", "list.extend", "list", "bool", 1, 1);
 	// TODO: __get, __set
+	ASSERT_VALUE_ERR("[][2];", "unable to index list with value of type int", 1);
 	ASSERT_ARG_TYPE_ERR("[].tostr(1);", "list.tostr", "list", "int", 0, 1);
 	ASSERT_ARG_TYPE_ERR("[].search(1);", "list.search", "list", "int", 0, 1);
 	ASSERT_ARG_TYPE_ERR("[].reverse(1);", "list.reverse", "list", "int", 0, 1);
@@ -150,6 +151,7 @@ int vmtest(void) {
 	ASSERT_ARG_TYPE_ERR("[].sort(1);", "list.sort", "list", "int", 0, 1);
 
 	// str method type errors
+	ASSERT_VALUE_ERR("''[2];", "unable to index str with value of type int", 1);
 	ASSERT_ARG_TYPE_ERR("''.tofloat(1);", "str.tofloat", "str", "int", 0, 1);
 	ASSERT_ARG_TYPE_ERR("''.toint(1);", "str.toint", "str", "int", 0, 1);
 	ASSERT_ARG_TYPE_ERR("''.isalnum(1);", "str.isalnum", "str", "int", 0, 1);
