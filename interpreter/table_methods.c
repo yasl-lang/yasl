@@ -9,17 +9,14 @@
 int table___get(struct YASL_State *S) {
 	struct YASL_Object key = vm_pop((struct VM *) S);
 	if (!YASL_istable(S)) {
-		YASL_print_err_bad_arg_type(S, "table.__get", 0, "table", YASL_TYPE_NAMES[YASL_peektype(S)]);
+		YASLX_print_err_bad_arg_type(S, "table.__get", 0, "table", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
-	struct YASL_Table *ht = YASL_GETTABLE(vm_peek((struct VM *) S));
+	struct YASL_Table *ht = YASL_GETTABLE(vm_pop((struct VM *) S));
 	struct YASL_Object result = YASL_Table_search(ht, key);
 	if (result.type == Y_END) {
-		S->vm.sp++;  // TODO: fix this
-		//vm_push((struct VM *)S, key);
-		return -1;
+		vm_pushundef(&S->vm);
 	} else {
-		vm_pop((struct VM *) S);
 		vm_push((struct VM *) S, result);
 	}
 	return YASL_SUCCESS;
@@ -29,7 +26,7 @@ int table___set(struct YASL_State *S) {
 	struct YASL_Object val = vm_pop((struct VM *) S);
 	struct YASL_Object key = vm_pop((struct VM *) S);
 	if (!YASL_istable(S)) {
-		YASL_print_err_bad_arg_type(S, "table.__set", 0, "table", YASL_TYPE_NAMES[YASL_peektype(S)]);
+		YASLX_print_err_bad_arg_type(S, "table.__set", 0, "table", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_Table *ht = YASL_GETTABLE(vm_pop((struct VM *) S));
@@ -39,7 +36,7 @@ int table___set(struct YASL_State *S) {
 	}
 
 	if (!YASL_Table_insert(ht, key, val)) {
-		vm_print_err_type(&S->vm, "unable to use mutable object of type %s as key.\n", YASL_TYPE_NAMES[key.type]);
+		vm_print_err_type(&S->vm, "unable to use mutable object of type %s as key.", YASL_TYPE_NAMES[key.type]);
 		return YASL_TYPE_ERROR;
 	}
 	return YASL_SUCCESS;
@@ -185,7 +182,7 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 
 int table_tostr(struct YASL_State *S) {
 	if (!YASL_istable(S)) {
-		YASL_print_err_bad_arg_type(S, "table.tostr", 0, "table", YASL_TYPE_NAMES[YASL_peektype(S)]);
+		YASLX_print_err_bad_arg_type(S, "table.tostr", 0, "table", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 
@@ -199,7 +196,7 @@ int table_tostr(struct YASL_State *S) {
 
 int table_keys(struct YASL_State *S) {
 	if (!YASL_istable(S)) {
-		YASL_print_err_bad_arg_type(S, "table.keys", 0, "table", YASL_TYPE_NAMES[YASL_peektype(S)]);
+		YASLX_print_err_bad_arg_type(S, "table.keys", 0, "table", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_Table *ht = YASL_GETTABLE(vm_pop((struct VM *) S));
@@ -214,7 +211,7 @@ int table_keys(struct YASL_State *S) {
 
 int table_values(struct YASL_State *S) {
 	if (!YASL_istable(S)) {
-		YASL_print_err_bad_arg_type(S, "table.values", 0, "table", YASL_TYPE_NAMES[YASL_peektype(S)]);
+		YASLX_print_err_bad_arg_type(S, "table.values", 0, "table", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_Table *ht = YASL_GETTABLE(vm_pop((struct VM *) S));
@@ -229,7 +226,7 @@ int table_values(struct YASL_State *S) {
 int table_remove(struct YASL_State *S) {
 	struct YASL_Object key = vm_pop((struct VM *) S);
 	if (!YASL_istable(S)) {
-		YASL_print_err_bad_arg_type(S, "table.remove", 0, "table", YASL_TYPE_NAMES[YASL_peektype(S)]);
+		YASLX_print_err_bad_arg_type(S, "table.remove", 0, "table", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_Table *ht = YASL_GETTABLE(vm_peek((struct VM *) S));
@@ -240,7 +237,7 @@ int table_remove(struct YASL_State *S) {
 
 int table_clone(struct YASL_State *S) {
 	if (!YASL_istable(S)) {
-		YASL_print_err_bad_arg_type(S, "table.copy", 0, "table", YASL_TYPE_NAMES[YASL_peektype(S)]);
+		YASLX_print_err_bad_arg_type(S, "table.copy", 0, "table", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_Table *ht = YASL_GETTABLE(vm_pop((struct VM *) S));
@@ -256,7 +253,7 @@ int table_clone(struct YASL_State *S) {
 
 int table_clear(struct YASL_State *S) {
 	if (!YASL_istable(S)) {
-		YASL_print_err_bad_arg_type(S, "table.clear", 0, "table", YASL_TYPE_NAMES[YASL_peektype(S)]);
+		YASLX_print_err_bad_arg_type(S, "table.clear", 0, "table", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_Table *ht = YASL_GETTABLE(vm_peek((struct VM *) S));

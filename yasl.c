@@ -30,12 +30,12 @@ struct YASL_State *YASL_newstate_num(char *filename, size_t num) {
 }
 
 struct YASL_State *YASL_newstate(const char *filename) {
-	struct YASL_State *S = (struct YASL_State *) malloc(sizeof(struct YASL_State));
-
 	FILE *fp = fopen(filename, "r");
 	if (!fp) {
 		return NULL;  // Can't open file.
 	}
+
+	struct YASL_State *S = (struct YASL_State *) malloc(sizeof(struct YASL_State));
 
 	fseek(fp, 0, SEEK_SET);
 
@@ -46,7 +46,33 @@ struct YASL_State *YASL_newstate(const char *filename) {
 	S->compiler.num = 0;
 
 	vm_init((struct VM *) S, NULL, -1, 1);
+
+	YASL_declglobal(S, "__VERSION__");
+	YASL_pushlitszstring(S, YASL_VERSION);
+	YASL_setglobal(S, "__VERSION__");
+
 	return S;
+}
+
+void YASL_setprintout_tostr(struct YASL_State *S) {
+	S->vm.out.print = &io_print_string;
+}
+
+void YASL_setprinterr_tostr(struct YASL_State *S) {
+	S->compiler.parser.lex.err.print = &io_print_string;
+	S->vm.err.print = &io_print_string;
+}
+
+void YASL_loadprintout(struct YASL_State *S) {
+	YASL_pushlitstring(S, S->vm.out.string, S->vm.out.len);
+}
+
+void YASL_loadprinterr(struct YASL_State *S) {
+	if (S->compiler.status != YASL_SUCCESS) {
+		YASL_pushlitstring(S, S->compiler.parser.lex.err.string, S->compiler.parser.lex.err.len);
+	} else {
+		YASL_pushlitstring(S, S->vm.err.string, S->vm.err.len);
+	}
 }
 
 int YASL_resetstate(struct YASL_State *S, const char *filename) {
@@ -95,6 +121,8 @@ int YASL_resetstate_bb(struct YASL_State *S, const char *buf, size_t len) {
 }
 
 int YASL_delstate(struct YASL_State *S) {
+	if (!S) return YASL_SUCCESS;
+
 	compiler_cleanup(&S->compiler);
 	vm_cleanup((struct VM *) S);
 	free(S);
@@ -181,7 +209,7 @@ int YASL_loadglobal(struct YASL_State *S, const char *name) {
 void YASL_print_err(struct YASL_State *S, const char *const fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
-	S->vm.err.print(&S->vm.err, fmt, args);
+	vvm_print_err(&S->vm, fmt, args);
 	va_end(args);
 }
 
@@ -203,14 +231,22 @@ int YASL_pushfloat(struct YASL_State *S, yasl_float value) {
 	return YASL_SUCCESS;
 }
 
-int YASL_pushinteger(struct YASL_State *S, int64_t value) {
-	vm_push((struct VM *) S, YASL_INT(value));
+int YASL_pushint(struct YASL_State *S, yasl_int value) {
+	vm_pushint(&S->vm, value);
 	return YASL_SUCCESS;
 }
 
-int YASL_pushboolean(struct YASL_State *S, int value) {
-	vm_push((struct VM *) S, YASL_BOOL(value));
+int YASL_pushinteger(struct YASL_State *S, yasl_int value) {
+	return YASL_pushint(S, value);
+}
+
+int YASL_pushbool(struct YASL_State *S, bool value) {
+	vm_pushbool(&S->vm, value);
 	return YASL_SUCCESS;
+}
+
+int YASL_pushboolean(struct YASL_State *S, bool value) {
+	return YASL_pushbool(S, value);
 }
 
 int YASL_pushliteralstring(struct YASL_State *S, char *value) {
@@ -290,7 +326,7 @@ int YASL_top_dup(struct YASL_State *S) {
 	return YASL_duptop(S);
 }
 
-int YASL_settable(struct YASL_State *S) {
+int YASL_tableset(struct YASL_State *S) {
 	struct YASL_Object value = vm_pop(&S->vm);
 	struct YASL_Object key = vm_pop(&S->vm);
 	struct YASL_Object table = vm_pop(&S->vm);
@@ -304,15 +340,15 @@ int YASL_settable(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
-int YASL_appendlist(struct YASL_State *S) {
+int YASL_listpush(struct YASL_State *S) {
 	struct YASL_Object value = vm_pop(&S->vm);
-	struct YASL_Object list = vm_pop(&S->vm);
-
-	// TODO change to TYPE_ERROR
-	if (!YASL_ISLIST(list)) {
-		return YASL_ERROR;
+	if (!YASL_islist(S)) {
+		return YASL_TYPE_ERROR;
 	}
-	YASL_List_append(YASL_GETLIST(list), value);
+
+	struct YASL_List *list = vm_peeklist(&S->vm);
+
+	YASL_List_append(list, value);
 
 	return YASL_SUCCESS;
 }

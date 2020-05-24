@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <fcntl.h>
 
+#include "yasl_error.h"
+
 #if MEM
 const char *prog_w_args[] = {"valgrind",
 			     "--error-exitcode=1",
@@ -35,7 +37,7 @@ static void proc_file(void *args, const char *path, size_t plen) {
 #if MEM
 	if (qx(PROG, ARGS, NULL, NULL, NULL, NULL)) {
 		a[1]++;
-		printf("\x1B[31mMemory leak in %s.\x1B[0m\n", path);
+		printf("\x1B[31mMemory Error in %s.\x1B[0m\n", path);
 	}
 #else
 	char *ofname = (char *)malloc(plen + 5);
@@ -58,5 +60,6 @@ int MAIN(void) {
 	int a[] = {0, 0};
 	walk_dir(a, proc_file, "test/inputs");
 	REPORT(a[0], a[1]);
+
 	return !!a[1];
 }

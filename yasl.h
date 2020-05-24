@@ -7,6 +7,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#define YASL_VERSION "v0.8.2"
+
 struct YASL_State;
 struct YASL_Object;
 struct YASL_Table;
@@ -31,6 +33,18 @@ struct YASL_State *YASL_newstate(const char *filename);
  * @return YASL_SUCCESS if successful, otherwise an error.
  */
 int YASL_resetstate(struct YASL_State *S, const char *filename);
+
+void YASL_setprintout_tostr(struct YASL_State *S);
+void YASL_setprinterr_tostr(struct YASL_State *S);
+
+void YASL_loadprintout(struct YASL_State *S);
+void YASL_loadprinterr(struct YASL_State *S);
+
+int YASL_decllib_collections(struct YASL_State *S);
+int YASL_decllib_io(struct YASL_State *S);
+int YASL_decllib_math(struct YASL_State *S);
+int YASL_decllib_require(struct YASL_State *S);
+int YASL_decllib_require_c(struct YASL_State *S);
 
 struct YASL_Object *YASL_DEPRECATE YASL_Table(void);
 
@@ -130,6 +144,12 @@ int YASL_pushfloat(struct YASL_State *S, yasl_float value);
  * @param integer to be pushed onto the stack.
  * @return YASL_SUCCESS on success, otherwise an error code.
  */
+int YASL_pushint(struct YASL_State *S, yasl_int value);
+
+/**
+ * Use YASL_pushint instead.
+ */
+YASL_DEPRECATE
 int YASL_pushinteger(struct YASL_State *S, yasl_int value);
 
 /**
@@ -138,7 +158,13 @@ int YASL_pushinteger(struct YASL_State *S, yasl_int value);
  * @param value boolean to be pushed onto the stack.
  * @return YASL_SUCCESS on success, otherwise an error code.
  */
-int YASL_pushboolean(struct YASL_State *S, int value);
+int YASL_pushbool(struct YASL_State *S, bool value);
+
+/**
+ * Use YASL_pushbool instead.
+ */
+YASL_DEPRECATE
+int YASL_pushboolean(struct YASL_State *S, bool value);
 
 /**
  * Pushes a null-terminated string onto the stack.
@@ -244,7 +270,12 @@ YASL_DEPRECATE int YASL_top_dup(struct YASL_State *S);
  * @param S the YASL_State which has the 3 items on top of the stack.
  * @return 0 on success, else error code
  */
+int YASL_tableset(struct YASL_State *S);
+
+YASL_DEPRECATE
 int YASL_settable(struct YASL_State *S);
+
+int YASL_listpush(struct YASL_State *S);
 
 /**
  * returns the type of the top of the stack.
@@ -366,19 +397,58 @@ bool YASL_isuserptr(struct YASL_State *S);
  */
 YASL_DEPRECATE bool YASL_top_isuserpointer(struct YASL_State *S);
 
+/**
+ * Returns the bool value of the top of the stack, if the top of the stack is a boolean.
+ * Otherwise returns false. Does not modify the stack.
+ * @param S
+ * @return
+ */
 bool YASL_peekbool(struct YASL_State *S);
+
+/**
+ * Returns the bool value of the top of the stack, if the top of the stack is a boolean.
+ * Otherwise returns false. Removes the top element of the stack.
+ * @param S
+ * @return
+ */
 bool YASL_popbool(struct YASL_State *S);
 
 YASL_DEPRECATE bool YASL_top_peekboolean(struct YASL_State *S);
 YASL_DEPRECATE bool YASL_top_popboolean(struct YASL_State *S);
 
+/**
+ * Returns the float value of the top of the stack, if the top of the stack is a float.
+ * Otherwise returns 0.0. Does not modify the stack.
+ * @param S
+ * @return
+ */
 yasl_float YASL_peekfloat(struct YASL_State *S);
+
+/**
+ * Returns the float value of the top of the stack, if the top of the stack is a float.
+ * Otherwise returns 0.0. Removes the top of the stack.
+ * @param S
+ * @return
+ */
 yasl_float YASL_popfloat(struct YASL_State *S);
 
 YASL_DEPRECATE yasl_float YASL_top_peekfloat(struct YASL_State *S);
 YASL_DEPRECATE yasl_float YASL_top_popfloat(struct YASL_State *S);
 
+/**
+ * Returns the int value of the top of the stack, if the top of the stack is an int.
+ * Otherwise returns 0. Does not modify the stack.
+ * @param S
+ * @return
+ */
 yasl_int YASL_peekint(struct YASL_State *S);
+
+/**
+ * Returns the int value of the top of the stack, if the top of the stack is an int.
+ * Otherwise returns 0. Removes the top of the stack.
+ * @param S
+ * @return
+ */
 yasl_int YASL_popint(struct YASL_State *S);
 
 YASL_DEPRECATE yasl_int YASL_top_peekinteger(struct YASL_State *S);

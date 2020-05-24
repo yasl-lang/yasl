@@ -5,6 +5,7 @@
 #include "test/unit_tests/test_api/apitest.h"
 #include "test/unit_tests/test_vm/vmtest.h"
 #include "test/unit_tests/test_env/envtest.h"
+#include "test/unit_tests/test_util/utiltest.h"
 
 int yasl_test(void) {
 	int failed = 0;
@@ -15,5 +16,6 @@ int yasl_test(void) {
 	failed += methodtest();
 	failed += vmtest();
 	failed += envtest();
+	failed += utiltest();
 	return failed;
 }

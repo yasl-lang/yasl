@@ -78,6 +78,7 @@ static void compiler_buffers_del(const struct Compiler *const compiler) {
 	YASL_ByteBuffer_del(compiler->buffer);
 	YASL_ByteBuffer_del(compiler->header);
 	YASL_ByteBuffer_del(compiler->code);
+	YASL_ByteBuffer_del(compiler->lines);
 }
 
 void compiler_cleanup(struct Compiler *const compiler) {
@@ -275,13 +276,13 @@ static void decl_var(struct Compiler *const compiler, const char *const name, co
 	if (in_function(compiler)) {
 		int64_t index = scope_decl_var(compiler->params->scope, name);
 		if (index > 255) {
-			YASL_PRINT_ERROR_TOO_MANY_VAR(line);
+			compiler_print_err_syntax(compiler, "Too many variables in current scope (line %" PRI_SIZET ").\n",  line);
 			handle_error(compiler);
 		}
 	} else if (compiler->stack) {
 		int64_t index = scope_decl_var(compiler->stack, name);
 		if (index > 255) {
-			YASL_PRINT_ERROR_TOO_MANY_VAR(line);
+			compiler_print_err_syntax(compiler, "Too many variables in current scope (line %" PRI_SIZET ").\n",  line);
 			handle_error(compiler);
 		}
 	} else {
@@ -294,7 +295,7 @@ static void decl_var(struct Compiler *const compiler, const char *const name, co
 		}
 		scope_decl_var(compiler->globals, name);
 		//if (index > 255) {
-		//	YASL_PRINT_ERROR_TOO_MANY_VAR(line);
+		//	compiler_print_err_syntax(compiler, "Too many variables in current scope (line %" PRI_SIZET ").\n",  line);
 		//	handle_error(compiler);
 		//}
 	}
@@ -313,6 +314,7 @@ static unsigned char *return_bytes(const struct Compiler *const compiler) {
 	YASL_ByteBuffer_rewrite_int_fast(compiler->header, 8, compiler->code->count + compiler->header->count +
 							      1);   // TODO: put num globals here eventually.
 
+	YASL_ByteBuffer_add_vint(compiler->lines, compiler->code->count);
 	YASL_BYTECODE_DEBUG_LOG("%s\n", "header");
 	for (size_t i = 0; i < compiler->header->count; i++) {
 		if (i % 16 == 15)
@@ -320,7 +322,7 @@ static unsigned char *return_bytes(const struct Compiler *const compiler) {
 		else
 			YASL_BYTECODE_DEBUG_LOG("%02x ", compiler->header->bytes[i]);
 	}
-	YASL_BYTECODE_DEBUG_LOG("%s\n", "entry point");
+	YASL_BYTECODE_DEBUG_LOG("\n%s\n", "entry point");
 	for (size_t i = 0; i < compiler->code->count; i++) {
 		if (i % 16 == 15)
 			YASL_BYTECODE_DEBUG_LOG("%02x\n", compiler->code->bytes[i]);
@@ -328,13 +330,22 @@ static unsigned char *return_bytes(const struct Compiler *const compiler) {
 			YASL_BYTECODE_DEBUG_LOG("%02x ", compiler->code->bytes[i]);
 	}
 	YASL_BYTECODE_DEBUG_LOG("%02x\n", O_HALT);
+	YASL_BYTECODE_DEBUG_LOG("%s\n", "lines");
+	for (size_t i = 0; i < compiler->lines->count; i++) {
+		if (i % 16 == 15)
+			YASL_BYTECODE_DEBUG_LOG("%02x\n", compiler->lines->bytes[i]);
+		else
+			YASL_BYTECODE_DEBUG_LOG("%02x ", compiler->lines->bytes[i]);
+	}
+	YASL_BYTECODE_DEBUG_LOG("%s", "\n");
 
 	fflush(stdout);
 	unsigned char *bytecode = (unsigned char *) malloc(
-		compiler->code->count + compiler->header->count + 1);    // NOT OWN
+		compiler->code->count + compiler->header->count + 1 + compiler->lines->count);    // NOT OWN
 	memcpy(bytecode, compiler->header->bytes, compiler->header->count);
 	memcpy(bytecode + compiler->header->count, compiler->code->bytes, compiler->code->count);
 	bytecode[compiler->code->count + compiler->header->count] = O_HALT;
+	memcpy(bytecode + compiler->code->count + 1 + compiler->header->count, compiler->lines->bytes, compiler->lines->count);
 	return bytecode;
 }
 
@@ -349,6 +360,10 @@ unsigned char *compile(struct Compiler *const compiler) {
 			return NULL;
 		}
 		eattok(&compiler->parser, T_SEMI);
+		if (compiler->parser.status) {
+			compiler->status |= compiler->parser.status;
+			return NULL;
+		}
 		visit(compiler, node);
 		YASL_ByteBuffer_extend(compiler->code, compiler->buffer->bytes, compiler->buffer->count);
 		compiler->buffer->count = 0;
@@ -407,14 +422,7 @@ static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *c
 }
 
 static void visit_FunctionDecl(struct Compiler *const compiler, const struct Node *const node) {
-	/*if (in_function(compiler)) {
-		YASL_PRINT_ERROR_SYNTAX("Illegal function declaration outside global scope, in line %" PRI_SIZET ".\n",
-					node->line);
-		handle_error(compiler);
-		return;
-	}*/
-
-	// start logic for function, now that we are sure it's legal to do so, and have set up.
+	// start logic for function.
 	compiler->params = env_new(compiler->params);
 
 	enter_scope(compiler);
@@ -426,29 +434,25 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 		}
 	}
 
-	size_t old_size = compiler->buffer->count;
-	// TODO: verfiy that number of params is small enough. (same for the other casts below.)
+	YASL_ByteBuffer_add_byte(compiler->buffer, O_FCONST);
+	YASL_ByteBuffer_add_int(compiler->buffer, 0);
 
+	size_t old_size = compiler->buffer->count;
+
+	// TODO: verfiy that number of params is small enough. (same for the other casts below.)
 	YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) Body_get_len(FnDecl_get_params(node)));
 	YASL_ByteBuffer_add_byte(compiler->buffer, 0);  // TODO: remove this
 	visit_Body(compiler, FnDecl_get_body(node));
+	// TODO: remove this when it's not required.
+	YASL_ByteBuffer_add_byte(compiler->buffer, O_NCONST);
+	YASL_ByteBuffer_add_byte(compiler->buffer, compiler->params->usedinclosure ? O_CRET : O_RET);
 	exit_scope(compiler);
 
-	int64_t fn_val = compiler->header->count;
-	YASL_ByteBuffer_extend(compiler->header, compiler->buffer->bytes + old_size, compiler->buffer->count - old_size);
-	compiler->buffer->count = old_size;
-	YASL_ByteBuffer_add_byte(compiler->header, O_NCONST);
-	YASL_ByteBuffer_add_byte(compiler->header, compiler->params->usedinclosure ? O_CRET : O_RET);
+	size_t new_size = compiler->buffer->count;
+	YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, old_size - sizeof(yasl_int), new_size - old_size);
 
-	// zero buffer length
-	compiler->buffer->count = old_size;
-
-	if (!compiler->params->isclosure) {
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_FCONST);
-		YASL_ByteBuffer_add_int(compiler->buffer, fn_val);
-	} else {
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_CCONST);
-		YASL_ByteBuffer_add_int(compiler->buffer, fn_val);
+	if (compiler->params->isclosure) {
+		compiler->buffer->bytes[old_size - sizeof(yasl_int) - 1] = O_CCONST;
 		const size_t count = compiler->params->upval_indices.count;
 		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) count);
 		const size_t start = compiler->buffer->count;
@@ -461,8 +465,6 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 			int64_t value = YASL_Table_search(&compiler->params->upval_values, item->key).value.ival;
 			compiler->buffer->bytes[start + index] = value;
 		}
-
-
 	}
 
 	struct Env *tmp = compiler->params->parent;
@@ -513,7 +515,7 @@ static void visit_Return(struct Compiler *const compiler, const struct Node *con
 
 static void visit_Export(struct Compiler *const compiler, const struct Node *const node) {
 	if (compiler->stack != NULL || compiler->params != NULL) {
-		YASL_PRINT_ERROR("export statement must be at top level of module. (line %" PRI_SIZET ")\n", node->line);
+		compiler_print_err_syntax(compiler, "`export` statement must be at top level of module (line %" PRI_SIZET ").\n", node->line);
 		handle_error(compiler);
 		return;
 	}
@@ -750,7 +752,7 @@ static void visit_While(struct Compiler *const compiler, const struct Node *cons
 
 static void visit_Break(struct Compiler *const compiler, const struct Node *const node) {
 	if (compiler->checkpoints.count == 0) {
-		YASL_PRINT_ERROR_SYNTAX("break outside of loop (line %" PRI_SIZET ").\n", node->line);
+		compiler_print_err_syntax(compiler, "`break` outside of loop (line %" PRI_SIZET ").\n", node->line);
 		handle_error(compiler);
 		return;
 	}
@@ -760,7 +762,7 @@ static void visit_Break(struct Compiler *const compiler, const struct Node *cons
 
 static void visit_Continue(struct Compiler *const compiler, const struct Node *const node) {
 	if (compiler->checkpoints.count == 0) {
-		YASL_PRINT_ERROR_SYNTAX("continue outside of loop (line %" PRI_SIZET ").\n", node->line);
+		compiler_print_err_syntax(compiler, "`continue` outside of loop (line %" PRI_SIZET ").\n", node->line);
 		handle_error(compiler);
 		return;
 	}
@@ -1003,8 +1005,8 @@ static void visit_UnOp(struct Compiler *const compiler, const struct Node *const
 	case T_LEN: YASL_ByteBuffer_add_byte(compiler->buffer, O_LEN);
 		break;
 	default:
-		puts("error in visit_UnOp");
-		exit(EXIT_FAILURE);
+		YASL_ASSERT(false, "Error in visit_UnOp");
+		break;
 	}
 }
 
@@ -1105,6 +1107,11 @@ static void visit_String(struct Compiler *const compiler, const struct Node *con
 	}
 }
 
+static void visit_Assert(struct Compiler *const compiler, const struct Node *const node) {
+	visit(compiler, Assert_get_expr(node));
+	YASL_ByteBuffer_add_byte(compiler->buffer, O_ASS);
+}
+
 static void make_new_collection(struct Compiler *const compiler, const struct Node *const node, enum Opcode type) {
 	YASL_ByteBuffer_add_byte(compiler->buffer, O_END);
 	visit_Body(compiler, node);
@@ -1120,6 +1127,11 @@ static void visit_Table(struct Compiler *const compiler, const struct Node *cons
 }
 
 static void visit(struct Compiler *const compiler, const struct Node *const node) {
+	while (node->line > compiler->line) {
+		YASL_ByteBuffer_add_vint(compiler->lines, compiler->code->count + compiler->buffer->count);
+		compiler->line++;
+	}
+
 	switch (node->nodetype) {
 	case N_EXPRSTMT:
 		visit_ExprStmt(compiler, node);
@@ -1226,6 +1238,8 @@ static void visit(struct Compiler *const compiler, const struct Node *const node
 	case N_STR:
 		visit_String(compiler, node);
 		break;
+	case N_ASS:
+		visit_Assert(compiler, node);
+		break;
 	}
-	//jumptable[node->nodetype](compiler, node);
 }

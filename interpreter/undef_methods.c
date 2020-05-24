@@ -7,7 +7,7 @@
 
 int undef_tostr(struct YASL_State *S) {
 	if (!YASL_isundef(S)) {
-		YASL_print_err_bad_arg_type(S, "undef.tostr", 0, "undef", YASL_TYPE_NAMES[YASL_peektype(S)]);
+		YASLX_print_err_bad_arg_type(S, "undef.tostr", 0, "undef", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	YASL_pop(S);

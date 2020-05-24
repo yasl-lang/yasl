@@ -4,6 +4,12 @@
 #include <string.h>
 #include <stdarg.h>
 
+void io_print_none(struct IO *const io, const char *const format, va_list args) {
+	(void) io;
+	(void) format;
+	(void) args;
+}
+
 void io_print_file(struct IO *const io, const char *const format, va_list args) {
 	vfprintf(io->file, format, args);
 }

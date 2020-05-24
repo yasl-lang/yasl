@@ -1,0 +1,7 @@
+
+fn f(x) {
+    assert x
+}
+
+f(true)
+f(false)

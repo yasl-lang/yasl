@@ -41,7 +41,7 @@ static int YASL_math_abs(struct YASL_State *S) {
 	if (YASL_isint(S)) {
 		yasl_int i = YASL_popint(S);
 		if (i < 0) i = -i;
-		return YASL_pushinteger(S, i);
+		return YASL_pushint(S, i);
 	}
 
 	if (YASL_isfloat(S)) {
@@ -263,7 +263,7 @@ static int YASL_math_isprime(struct YASL_State *S) {
 
 	int p = is_prime(n);
 	if (p < 0) return YASL_pushundef(S);
-	return YASL_pushboolean(S, p);
+	return YASL_pushbool(S, p);
 }
 yasl_int gcd_helper(yasl_int a, yasl_int b) {
 	if (a < b) {
@@ -310,7 +310,7 @@ static int YASL_math_gcd(struct YASL_State *S) {
 		return YASL_pushundef(S);
 	}
 
-	return YASL_pushinteger(S, gcd_helper(a, b));
+	return YASL_pushint(S, gcd_helper(a, b));
 }
 static int YASL_math_lcm(struct YASL_State *S) {
 	if (!YASL_isnum(S)) {
@@ -342,16 +342,16 @@ static int YASL_math_lcm(struct YASL_State *S) {
 	}
 
 	yasl_int gcd = gcd_helper(a, b);
-	return YASL_pushinteger(S, b*a/gcd);
+	return YASL_pushint(S, b*a/gcd);
 }
 
 static int YASL_math_rand(struct YASL_State *S) {
 	// rand() is only guarenteed to return a maximum of ~32000. Ensure all 64 bits are used
 	yasl_int r = (yasl_int) rand() ^((yasl_int) rand() << 16) ^((yasl_int) rand() << 32) ^((yasl_int) rand() << 48);
-	return YASL_pushinteger(S, r);
+	return YASL_pushint(S, r);
 }
 
-int YASL_load_math(struct YASL_State *S) {
+int YASL_decllib_math(struct YASL_State *S) {
 	YASL_declglobal(S, "math");
 	YASL_pushtable(S);
 	YASL_setglobal(S, "math");
@@ -359,117 +359,117 @@ int YASL_load_math(struct YASL_State *S) {
 	YASL_loadglobal(S, "math");
 	YASL_pushlitszstring(S, "abs");
 	YASL_pushcfunction(S, YASL_math_abs, 1);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
 	YASL_pushlitszstring(S, "exp");
 	YASL_pushcfunction(S, YASL_math_exp, 1);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
 	YASL_pushlitszstring(S, "log");
 	YASL_pushcfunction(S, YASL_math_log, 1);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
 	YASL_pushlitszstring(S, "pi");
 	YASL_pushfloat(S, YASL_PI);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
 	YASL_pushlitszstring(S, "nan");
 	YASL_pushfloat(S, YASL_NAN);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
 	YASL_pushlitszstring(S, "inf");
 	YASL_pushfloat(S, YASL_INF);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
 	YASL_pushlitszstring(S, "sqrt");
 	YASL_pushcfunction(S, YASL_math_sqrt, 1);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
 	YASL_pushlitszstring(S, "cos");
 	YASL_pushcfunction(S, YASL_math_cos, 1);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
 	YASL_pushlitszstring(S, "sin");
 	YASL_pushcfunction(S, YASL_math_sin, 1);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
 	YASL_pushlitszstring(S, "tan");
 	YASL_pushcfunction(S, YASL_math_tan, 1);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
 	YASL_pushlitszstring(S, "acos");
 	YASL_pushcfunction(S, YASL_math_acos, 1);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
 	YASL_pushlitszstring(S, "asin");
 	YASL_pushcfunction(S, YASL_math_asin, 1);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
 	YASL_pushlitszstring(S, "atan");
 	YASL_pushcfunction(S, YASL_math_atan, 1);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
 	YASL_pushlitszstring(S, "ceil");
 	YASL_pushcfunction(S, YASL_math_ceil, 1);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
 	YASL_pushlitszstring(S, "floor");
 	YASL_pushcfunction(S, YASL_math_floor, 1);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
 	YASL_pushlitszstring(S, "max");
 	YASL_pushcfunction(S, YASL_math_max, -1);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
 	YASL_pushlitszstring(S, "min");
 	YASL_pushcfunction(S, YASL_math_min, -1);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
 	YASL_pushlitszstring(S, "deg");
 	YASL_pushcfunction(S, YASL_math_deg, 1);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
 	YASL_pushlitszstring(S, "rad");
 	YASL_pushcfunction(S, YASL_math_rad, 1);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
 	YASL_pushlitszstring(S, "isprime");
 	YASL_pushcfunction(S, YASL_math_isprime, 1);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
 	YASL_pushlitszstring(S, "gcd");
 	YASL_pushcfunction(S, YASL_math_gcd, 2);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
 	YASL_pushlitszstring(S, "lcm");
 	YASL_pushcfunction(S, YASL_math_lcm, 2);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
 	YASL_pushlitszstring(S, "rand");
 	YASL_pushcfunction(S, YASL_math_rand, 1);
-	YASL_settable(S);
+	YASL_tableset(S);
 
 	return YASL_SUCCESS;
 }

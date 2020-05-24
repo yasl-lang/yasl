@@ -26,10 +26,10 @@
 #define vm_peekbool(...) EXPAND(YASL_GETBOOL(vm_peek(__VA_ARGS__)))
 #define vm_peekfloat(...) EXPAND(YASL_GETFLOAT(vm_peek(__VA_ARGS__)))
 #define vm_peekint(...) EXPAND(YASL_GETINT(vm_peek(__VA_ARGS__)))
-#define vm_peekstr(vm, offset) (YASL_GETSTR(vm_peek(vm, offset)))
-#define vm_peeklist(vm, offset) (YASL_GETLIST(vm_peek(vm, offset)))
-#define vm_peektable(vm, offset) (YASL_GETTABLE(vm_peek(vm, offset)))
-#define vm_peekcfn(vm, offset) (YASL_GETCFN(vm_peek(vm, offset)))
+#define vm_peekstr(...) EXPAND(YASL_GETSTR(vm_peek(__VA_ARGS__)))
+#define vm_peeklist(...) (YASL_GETLIST(vm_peek(__VA_ARGS__)))
+#define vm_peektable(...) (YASL_GETTABLE(vm_peek(__VA_ARGS__)))
+#define vm_peekcfn(...) (YASL_GETCFN(vm_peek(__VA_ARGS__)))
 
 #define vm_isend(vm) (YASL_ISEND(vm_peek(vm)))
 #define vm_isundef(vm) (YASL_ISUNDEF(vm_peek(vm)))
@@ -57,22 +57,17 @@
                             else if (a.type == Y_INT && b.type == Y_FLOAT) {\
                                 c = f((yasl_float)a.value.ival, (b).value.dval);\
                             }\
-                            else if (a.type == Y_FLOAT && b.type == Y_FLOAT) {\
-                                c = f(a.value.dval, (b).value.dval);\
-                            }\
                             else {\
-                                printf("TypeError: %s not supported for operands of types %s and %s.\n", str,\
-                                        YASL_TYPE_NAMES[a.type], YASL_TYPE_NAMES[b.type]);\
-                                return YASL_TYPE_ERROR;\
+                                c = f(a.value.dval, (b).value.dval);\
                             }\
                             vm_pushbool(vm, c);} while(0);
 
 #define vm_print_err_type(vm, format, ...) vm_print_err((vm), MSG_TYPE_ERROR format, __VA_ARGS__)
 #define vm_print_err_value(vm, format, ...) vm_print_err((vm), MSG_VALUE_ERROR format, __VA_ARGS__)
-#define vm_print_err_divide_by_zero(vm) vm_print_err((vm), "DivisionByZeroError\n")
+#define vm_print_err_divide_by_zero(vm) vm_print_err((vm), "DivisionByZeroError")
 #define vm_print_err_bad_arg_type(vm, name, position, expected, actual) \
 vm_print_err_type((vm),\
- "%s expected arg in position %d to be of type %s, got arg of type %s.\n",\
+ "%s expected arg in position %d to be of type %s, got arg of type %s.",\
  name,\
  position,\
  YASL_TYPE_NAMES[expected],\
@@ -117,6 +112,7 @@ void vm_init(struct VM *const vm, unsigned char *const code, const size_t pc, co
 
 void vm_cleanup(struct VM *const vm);
 
+void vvm_print_err(struct VM *vm, const char *const fmt, va_list args);
 void vm_print_err(struct VM *vm, const char *const fmt, ...);
 
 int vm_stringify_top(struct VM *const vm);
