@@ -1,0 +1,12 @@
+
+
+if false {
+    echo 0
+    assert false
+    echo 1
+} elseif true {
+    assert undef
+} else {
+    assert true
+    echo 1
+}

@@ -793,16 +793,24 @@ static void visit_If_true(struct Compiler *const compiler, const struct Node *co
 	visit(compiler, then_br);
 
 	if (else_br) {
-		size_t curr = compiler->buffer->count;
+		size_t curr_op = compiler->buffer->count;
+		size_t curr_line = compiler->lines->count;
+		size_t line = compiler->line;
 		visit(compiler, else_br);
-		compiler->buffer->count = curr;
+		compiler->buffer->count = curr_op;
+		compiler->lines->count = curr_line;
+		compiler->line = line;
 	}
 }
 
 static void visit_If_false(struct Compiler *const compiler, const struct Node *const then_br, const struct Node *const else_br) {
-	size_t curr = compiler->buffer->count;
+	size_t curr_op = compiler->buffer->count;
+	size_t curr_line = compiler->lines->count;
+	size_t line = compiler->line;
 	visit(compiler, then_br);
-	compiler->buffer->count = curr;
+	compiler->buffer->count = curr_op;
+	compiler->lines->count = curr_line;
+	compiler->line = line;
 
 	if (else_br) {
 		visit(compiler, else_br);
