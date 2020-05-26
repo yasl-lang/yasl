@@ -33,6 +33,7 @@ jobs:
       curl http://cygwin.com/setup-x86_64.exe -o setup-x86_64.exe
       SET LOCALDIR=%CD%
       setup-x86_64.exe --quiet-mode --no-desktop --download --local-install --no-verify -s http://cygwin.mirrors.pair.com/ -l "%LOCALDIR%" -R C:/cygwin
+      gcc --version
     displayName: "Compile"
 - job:
   displayName: "C MSVC Windows"
