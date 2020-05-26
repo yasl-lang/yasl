@@ -1,0 +1,7 @@
+
+
+for let i = 0; i < 10; i += 1 {
+    assert i != 5
+
+    assert true
+}

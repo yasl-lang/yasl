@@ -347,23 +347,24 @@ static struct Node *parse_let_iterate_or_let(struct Parser *const parser) {
 }
 
 static struct Node *parse_for(struct Parser *const parser) {
+	size_t line = parser->lex.line;
 	eattok(parser, T_FOR);
 
 	struct Node *iter = parse_let_iterate_or_let(parser);
 
 	if (iter->nodetype == N_LETITER) {
 		struct Node *body = parse_body(parser);
-		return new_ForIter(iter, body, parser->lex.line);
+		return new_ForIter(iter, body, line);
 	} else {
 		eattok(parser, T_SEMI);
 		struct Node *cond = parse_expr(parser);
 		eattok(parser, T_SEMI);
 		struct Node *post = parse_assign_or_exprstmt(parser);
 		struct Node *body = parse_body(parser);
-		struct Node *outer_body = new_Body(parser->lex.line);
+		struct Node *outer_body = new_Body(line);
 		body_append(&outer_body, iter);
-		body_append(&outer_body, new_While(cond, body, new_ExprStmt(post, parser->lex.line), parser->lex.line));
-		struct Node *block = new_Block(outer_body, parser->lex.line);
+		body_append(&outer_body, new_While(cond, body, new_ExprStmt(post, line), line));
+		struct Node *block = new_Block(outer_body, line);
 		return block;
 	}
 }
