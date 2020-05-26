@@ -9,3 +9,9 @@ for f in $(find test/errors/assert -name '*.yasl'); do
     echo "  \"$f\"," >> test2/assert_errors.inl;
 done;
 echo '};' >> test2/assert_errors.inl
+
+echo 'static const char *type_errors[] = {' > test2/type_errors.inl
+for f in $(find test/errors/type -name '*.yasl'); do
+    echo "  \"$f\"," >> test2/type_errors.inl;
+done;
+echo '};' >> test2/type_errors.inl
