@@ -492,11 +492,12 @@ static struct Node *parse_##name(struct Parser *const parser) {\
 
 #define BINOP_L(name, next, msg, ...) \
 static struct Node *parse_##name(struct Parser *const parser) {\
-        YASL_PARSE_DEBUG_LOG("parsing " msg " in line %" PRI_SIZET "\n", parser->lex.line);\
+	size_t line = parser->lex.line;\
+	YASL_PARSE_DEBUG_LOG("parsing " msg " in line %" PRI_SIZET "\n", line);\
         struct Node *cur_node = parse_##next(parser);\
         while (TOKEN_MATCHES(parser, __VA_ARGS__)) {\
                 enum Token op = eattok(parser, curtok(parser));\
-                cur_node = new_BinOp(op, cur_node, parse_##next(parser), parser->lex.line);\
+                cur_node = new_BinOp(op, cur_node, parse_##next(parser), line);\
         }\
         return cur_node;\
 }
