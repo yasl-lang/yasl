@@ -25,6 +25,14 @@ jobs:
       make tests2
     displayName: "Compile"
 - job:
+  displayName: "C Cynwin Windows"
+  pool:
+    vmImage: 'vs2017-win2016'
+  steps:
+  - script: |
+      curl http://cygwin.com/setup-x86_64.exe
+    displayName: "Compile"
+- job:
   displayName: "C MSVC Windows"
   pool:
     vmImage: 'vs2017-win2016'
