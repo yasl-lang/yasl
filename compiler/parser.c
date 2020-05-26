@@ -208,8 +208,9 @@ static struct Node *parse_program(struct Parser *const parser) {
 }
 
 static struct Node *parse_body(struct Parser *const parser) {
+	size_t line = parser->lex.line;
 	eattok(parser, T_LBRC);
-	struct Node *body = new_Body(parser->lex.line);
+	struct Node *body = new_Body(line);
 	while (curtok(parser) != T_RBRC && curtok(parser) != T_EOF) {
 		body_append(&body, parse_program(parser));
 		eattok(parser, T_SEMI);

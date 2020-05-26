@@ -63,13 +63,10 @@ int main(void) {
 		YASL_execute(S);
 		YASL_loadprintout(S);
 		char *actual_output = YASL_peekcstr(S);
-		if (strcmp(expected_output, actual_output)) {
+		if (!!strcmp(expected_output, actual_output)) {
 			fprintf(stderr, "test for %s failed.\n", outputs[i]);
 			failed++;
-		} else {
-			// printf("test for %s passed!\n", outputs[i]);
 		}
-
 		free(expected_output);
 		YASL_delstate(S);
 	}
