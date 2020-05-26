@@ -31,7 +31,7 @@ jobs:
   steps:
   - script: |
       curl http://cygwin.com/setup-x86_64.exe -o setup-x86_64.exe
-      setup-x86_64.exe
+      setup-x86_64.exe --quiet-mode --no-desktop --download --local-install --no-verify -s http://cygwin.mirrors.pair.com/ -l . -R C:/cygwin
     displayName: "Compile"
 - job:
   displayName: "C MSVC Windows"
