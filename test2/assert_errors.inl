@@ -7,6 +7,8 @@ static const char *assert_errors[] = {
   "test/errors/assert/if.yasl",
   "test/errors/assert/foreach.yasl",
   "test/errors/assert/while.yasl",
+  "test/errors/assert/nested_fn_call.yasl",
   "test/errors/assert/assert_in_fn.yasl",
+  "test/errors/assert/fn_call.yasl",
   "test/errors/assert/assert.yasl",
 };

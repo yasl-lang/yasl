@@ -146,9 +146,9 @@ YASL_FORMAT_CHECK static void vm_print_err_wrapper(struct VM *vm, const char *co
 	va_end(args);
 }
 
-void vvm_print_err(struct VM *vm, const char *const fmt, va_list args) {
-	vm->err.print(&vm->err, fmt, args);
+static void vm_exitframe(struct VM *const vm);
 
+static size_t vm_getcurrline(struct VM *vm) {
 	size_t start = ((int64_t *)vm->code)[0];
 	size_t line_start = ((int64_t *)vm->code)[1];
 	const unsigned char *tmp = vm->code + line_start;
@@ -157,8 +157,24 @@ void vvm_print_err(struct VM *vm, const char *const fmt, va_list args) {
 		tmp = vint_next(tmp);
 		i++;
 	}
+	return i;
+}
 
-	vm_print_err_wrapper(vm, " (line %lu)\n", i);
+static void printline(struct VM *vm) {
+	size_t line =  vm_getcurrline(vm);
+
+	vm_print_err_wrapper(vm, " (line %" PRI_SIZET ")\n", line);
+
+	while (vm->fp >= 0) {
+		vm_exitframe(vm);
+		size_t line = vm_getcurrline(vm);
+		vm_print_err_wrapper(vm, "In function call on line %" PRI_SIZET "\n", line);
+	}
+}
+
+void vvm_print_err(struct VM *vm, const char *const fmt, va_list args) {
+	vm->err.print(&vm->err, fmt, args);
+	printline(vm);
 }
 
 YASL_FORMAT_CHECK void vm_print_err(struct VM *vm, const char *const fmt, ...) {
@@ -726,52 +742,6 @@ static int vm_GET(struct VM *const vm) {
 	dec_ref(&val);
 	return YASL_SUCCESS;
 }
-
-/*
-static int vm_GET(struct VM *const vm) {
-	vm->sp--;
-	int index = vm_peek(vm).type;
-	if (vm_islist(vm)) {
-		vm->sp++;
-		if (!list___get((struct YASL_State *) vm)) {
-			return YASL_SUCCESS;
-		}
-	} else if (vm_istable(vm)) {
-		vm->sp++;
-		if (!table___get((struct YASL_State *) vm)) {
-			return YASL_SUCCESS;
-		}
-	} else if (vm_isstr(vm) && YASL_ISINT(vm_peek(vm, vm->sp + 1))) {
-		vm->sp++;
-		if (!str___get((struct YASL_State *) vm)) {
-			return YASL_SUCCESS;
-		}
-	} else if (vm_isuserdata(vm)) {
-		vm->sp++;
-		struct YASL_Object key = vm_pop(vm);
-		struct YASL_Object result = YASL_Table_search(vm_peek(vm).value.uval->mt, key);
-		vm_pop(vm);
-		if (result.type == Y_END) {
-			vm_pushundef(vm);
-		} else {
-			vm_push(vm, result);
-		}
-		return YASL_SUCCESS;
-	} else {
-		vm->sp++;
-	}
-
-	struct YASL_Object key = vm_pop(vm);
-	struct YASL_Object result = YASL_Table_search(vm->builtins_htable[index], key);
-	vm_pop(vm);
-	if (result.type == Y_END) {
-		vm_pushundef(vm);
-	} else {
-		vm_push(vm, result);
-	}
-	return YASL_SUCCESS;
-}
-*/
 
 static int vm_SET(struct VM *const vm) {
 	vm->sp -= 2;

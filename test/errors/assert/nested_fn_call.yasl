@@ -1,0 +1,14 @@
+
+
+fn f() {
+    assert false
+}
+
+fn g(x) {
+    assert x
+    f()
+}
+
+
+g(true)
+

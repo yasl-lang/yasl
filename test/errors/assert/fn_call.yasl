@@ -1,0 +1,8 @@
+
+
+fn f() {
+    assert false
+}
+
+f()
+
