@@ -165,6 +165,8 @@ static void printline(struct VM *vm) {
 
 	vm_print_err_wrapper(vm, " (line %" PRI_SIZET ")\n", line);
 
+	if (vm->fp >= 0 && vm->stack[vm->fp].type == Y_CFN) vm_exitframe(vm);
+
 	while (vm->fp >= 0) {
 		vm_exitframe(vm);
 		size_t line = vm_getcurrline(vm);
