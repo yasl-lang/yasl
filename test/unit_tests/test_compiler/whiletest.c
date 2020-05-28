@@ -19,6 +19,15 @@ static void test_while() {
 	ASSERT_GEN_BC_EQ(expected, "while true { echo true; };");
 }
 
+static void test_while_fold_false() {
+	unsigned char expected[] = {
+		0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x11, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		O_HALT
+	};
+	ASSERT_GEN_BC_EQ(expected, "while false { echo true; };");
+}
+
 static void test_continue() {
 	unsigned char expected[] = {
 		0x19, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -80,6 +89,7 @@ static void test_break() {
 
 int whiletest(void) {
 	test_while();
+	test_while_fold_false();
 	test_continue();
 	test_break();
 	return __YASL_TESTS_FAILED__;

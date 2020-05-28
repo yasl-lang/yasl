@@ -11,6 +11,8 @@
 #include "yasl_error.h"
 #include "yasl_include.h"
 
+static void validate(struct Compiler *compiler, const struct Node *const node);
+
 YASL_FORMAT_CHECK static void compiler_print_err(struct Compiler *compiler, const char *const fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
@@ -294,10 +296,6 @@ static void decl_var(struct Compiler *const compiler, const char *const name, co
 			YASL_ByteBuffer_extend(compiler->header, (unsigned char *) name, name_len);
 		}
 		scope_decl_var(compiler->globals, name);
-		//if (index > 255) {
-		//	compiler_print_err_syntax(compiler, "Too many variables in current scope (line %" PRI_SIZET ").\n",  line);
-		//	handle_error(compiler);
-		//}
 	}
 }
 
@@ -311,8 +309,7 @@ static unsigned char *return_bytes(const struct Compiler *const compiler) {
 	if (compiler->status) return NULL;
 
 	YASL_ByteBuffer_rewrite_int_fast(compiler->header, 0, compiler->header->count);
-	YASL_ByteBuffer_rewrite_int_fast(compiler->header, 8, compiler->code->count + compiler->header->count +
-							      1);   // TODO: put num globals here eventually.
+	YASL_ByteBuffer_rewrite_int_fast(compiler->header, 8, compiler->code->count + compiler->header->count + 1);
 
 	YASL_ByteBuffer_add_vint(compiler->lines, compiler->code->count);
 	YASL_BYTECODE_DEBUG_LOG("%s\n", "header");
@@ -399,7 +396,6 @@ unsigned char *compile_REPL(struct Compiler *const compiler) {
 
 static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *const node) {
 	const struct Node *const expr = ExprStmt_get_expr(node);
-	size_t curr = compiler->buffer->count;
 	switch (expr->nodetype) {
 	case N_STR:
 	case N_INT:
@@ -408,8 +404,7 @@ static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *c
 	case N_UNDEF:
 		return;
 	case N_VAR:
-		visit(compiler, expr);
-		compiler->buffer->count = curr;
+		validate(compiler, expr);
 		return;
 	default:
 		visit(compiler, expr);
@@ -716,12 +711,44 @@ static void exit_jump(struct Compiler *const compiler, const size_t *const index
 	YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, *index, compiler->buffer->count - *index - 8);
 }
 
+static bool Node_istruthy(const struct Node *const node) {
+	switch (node->nodetype)	{
+	case N_INT:
+		return true;
+	case N_BOOL:
+		return Boolean_get_bool(node);
+	default:
+		return false;
+	}
+}
+
+static bool Node_isfalsey(const struct Node *const node) {
+	switch (node->nodetype)	{
+	case N_BOOL:
+		return !Boolean_get_bool(node);
+	case N_UNDEF:
+		return true;
+	default:
+		return false;
+	}
+}
+
+static void visit_While_false(struct Compiler *const compiler, const struct Node *const body, const struct Node *const post) {
+	validate(compiler, body);
+	if (post) validate(compiler, post);
+}
+
 static void visit_While(struct Compiler *const compiler, const struct Node *const node) {
 	size_t index_start = compiler->buffer->count;
 
 	struct Node *cond = While_get_cond(node);
 	struct Node *body = While_get_body(node);
 	struct Node *post = While_get_post(node);
+
+	if (Node_isfalsey(cond)) {
+		visit_While_false(compiler, body, post);
+		return;
+	}
 
 	if (post) {
 		size_t index;
@@ -769,52 +796,14 @@ static void visit_Continue(struct Compiler *const compiler, const struct Node *c
 	branch_back(compiler, continue_checkpoint(compiler));
 }
 
-static bool Node_istruthy(const struct Node *const node) {
-	switch (node->nodetype)	{
-	case N_BOOL:
-		return Boolean_get_bool(node);
-	default:
-		return false;
-	}
-}
-
-static bool Node_isfalsey(const struct Node *const node) {
-	switch (node->nodetype)	{
-	case N_BOOL:
-		return !Boolean_get_bool(node);
-	case N_UNDEF:
-		return true;
-	default:
-		return false;
-	}
-}
-
 static void visit_If_true(struct Compiler *const compiler, const struct Node *const then_br, const struct Node *const else_br) {
 	visit(compiler, then_br);
-
-	if (else_br) {
-		size_t curr_op = compiler->buffer->count;
-		size_t curr_line = compiler->lines->count;
-		size_t line = compiler->line;
-		visit(compiler, else_br);
-		compiler->buffer->count = curr_op;
-		compiler->lines->count = curr_line;
-		compiler->line = line;
-	}
+	if (else_br) validate(compiler, else_br);
 }
 
 static void visit_If_false(struct Compiler *const compiler, const struct Node *const then_br, const struct Node *const else_br) {
-	size_t curr_op = compiler->buffer->count;
-	size_t curr_line = compiler->lines->count;
-	size_t line = compiler->line;
-	visit(compiler, then_br);
-	compiler->buffer->count = curr_op;
-	compiler->lines->count = curr_line;
-	compiler->line = line;
-
-	if (else_br) {
-		visit(compiler, else_br);
-	}
+	validate(compiler, then_br);
+	if (else_br) visit(compiler, else_br);
 }
 
 static void visit_If(struct Compiler *const compiler, const struct Node *const node) {
@@ -877,7 +866,11 @@ static void declare_with_let_or_const(struct Compiler *const compiler, const str
 		decl_var(compiler, Decl_get_name(node), node->line);
 	}
 
-	if (!compiler->params || !(scope_contains(compiler->params->scope, Decl_get_name(node)))) {
+	struct Scope *scope = compiler->params ? compiler->params->scope : NULL;
+	// while (scope && scope->parent) scope = scope->parent;
+
+
+	if (!compiler->params || !(scope_contains(scope, Decl_get_name(node)))) {
 		store_var(compiler, Decl_get_name(node), node->line);
 	}
 }
@@ -1132,6 +1125,19 @@ static void visit_List(struct Compiler *const compiler, const struct Node *const
 
 static void visit_Table(struct Compiler *const compiler, const struct Node *const node) {
 	make_new_collection(compiler, Table_get_values(node), O_NEWTABLE);
+}
+
+/*
+ * Like visit, but doesn't save the results. Will validate things like variables having been declared before use.
+ */
+static void validate(struct Compiler *compiler, const struct Node *const node) {
+	size_t buffer_count = compiler->buffer->count;
+	size_t header_count = compiler->header->count;
+	size_t code_count = compiler->code->count;
+	visit(compiler, node);
+	compiler->buffer->count = buffer_count;
+	compiler->header->count = header_count;
+	compiler->code->count = code_count;
 }
 
 static void visit(struct Compiler *const compiler, const struct Node *const node) {

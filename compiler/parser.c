@@ -364,7 +364,7 @@ static struct Node *parse_for(struct Parser *const parser) {
 		struct Node *body = parse_body(parser);
 		struct Node *outer_body = new_Body(line);
 		body_append(&outer_body, iter);
-		body_append(&outer_body, new_While(cond, body, new_ExprStmt(post, line), line));
+		body_append(&outer_body, new_While(cond, new_Block(body, line), new_ExprStmt(post, line), line));
 		struct Node *block = new_Block(outer_body, line);
 		return block;
 	}
