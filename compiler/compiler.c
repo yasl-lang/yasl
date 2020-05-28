@@ -1134,10 +1134,14 @@ static void validate(struct Compiler *compiler, const struct Node *const node) {
 	size_t buffer_count = compiler->buffer->count;
 	size_t header_count = compiler->header->count;
 	size_t code_count = compiler->code->count;
+	size_t line_count = compiler->lines->count;
+	size_t line = compiler->line;
 	visit(compiler, node);
 	compiler->buffer->count = buffer_count;
 	compiler->header->count = header_count;
 	compiler->code->count = code_count;
+	compiler->lines->count = line_count;
+	compiler->line = line;
 }
 
 static void visit(struct Compiler *const compiler, const struct Node *const node) {
