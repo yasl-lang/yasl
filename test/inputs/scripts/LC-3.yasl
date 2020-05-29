@@ -1,0 +1,34 @@
+
+/*
+ * Taken from: https://leetcode.com/problems/uncommon-words-from-two-sentences/
+ *
+ * We are given two sentences A and B.  (A sentence is a string of space separated words.  Each word consists only of lowercase letters.)
+ *
+ * A word is uncommon if it appears exactly once in one of the sentences, and does not appear in the other sentence.
+ *
+ * Return a list of all uncommon words.
+ *
+ * You may return the list in any order.
+ */
+
+fn count(const s1, const s2) {
+    const tmp = {}
+    for word <- s1->split() {
+        if !tmp[word] {
+            tmp[word] = 0
+        }
+        tmp[word] += 1
+    }
+
+    for word <- s2->split() {
+        if !tmp[word] {
+            tmp[word] = 0
+        }
+        tmp[word] += 1
+    }
+
+    return [ word for word <- tmp if tmp[word] == 1]
+}
+
+echo count('this apple is sweet', 'this apple is sour')
+echo count('apple apple', 'banana')
