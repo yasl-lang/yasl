@@ -187,7 +187,12 @@ static void load_var(struct Compiler *const compiler, const char *const name, co
 		}
 		curr->usedinclosure = true;
 		YASL_ByteBuffer_add_byte(compiler->buffer, O_ULOAD_1);
-		yasl_int tmp = env_resolve_upval_index(compiler->params, name);
+		yasl_int tmp = env_resolve_upval_index(compiler->params, compiler->stack, name);
+		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) tmp);
+	} else if (compiler->params && scope_contains(compiler->stack, name)) {
+		compiler->params->isclosure = true;
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_ULOAD_1);
+		yasl_int tmp = env_resolve_upval_index(compiler->params, compiler->stack, name);
 		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) tmp);
 	} else if (scope_contains(compiler->stack, name)) {
 		int64_t index = get_index(scope_get(compiler->stack, name));
@@ -230,7 +235,18 @@ static void store_var(struct Compiler *const compiler, const char *const name, c
 			return;
 		}
 		YASL_ByteBuffer_add_byte(compiler->buffer, O_USTORE_1);
-		yasl_int tmp = env_resolve_upval_index(compiler->params, name);
+		yasl_int tmp = env_resolve_upval_index(compiler->params, compiler->stack, name);
+		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) tmp);
+	} else if (compiler->params && scope_contains(compiler->stack, name)) {
+		int64_t index = scope_get(compiler->stack, name);
+		if (is_const(index)) {
+			compiler_print_err_const(compiler, name, line);
+			handle_error(compiler);
+			return;
+		}
+		compiler->params->isclosure = true;
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_USTORE_1);
+		yasl_int tmp = env_resolve_upval_index(compiler->params, compiler->stack, name);
 		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) tmp);
 	} else if (scope_contains(compiler->stack, name)) {
 		int64_t index = scope_get(compiler->stack, name);
@@ -349,6 +365,7 @@ static unsigned char *return_bytes(const struct Compiler *const compiler) {
 unsigned char *compile(struct Compiler *const compiler) {
 	struct Node *node;
 	gettok(&compiler->parser.lex);
+	enter_scope(compiler);
 	while (!peof(&compiler->parser)) {
 		if (peof(&compiler->parser)) break;
 		node = parse(&compiler->parser);
@@ -367,6 +384,7 @@ unsigned char *compile(struct Compiler *const compiler) {
 
 		node_del(node);
 	}
+	exit_scope(compiler);
 
 	return return_bytes(compiler);
 }
@@ -509,7 +527,7 @@ static void visit_Return(struct Compiler *const compiler, const struct Node *con
 }
 
 static void visit_Export(struct Compiler *const compiler, const struct Node *const node) {
-	if (compiler->stack != NULL || compiler->params != NULL) {
+	if (compiler->params || compiler->stack && compiler->stack->parent) {
 		compiler_print_err_syntax(compiler, "`export` statement must be at top level of module (line %" PRI_SIZET ").\n", node->line);
 		handle_error(compiler);
 		return;
@@ -866,11 +884,11 @@ static void declare_with_let_or_const(struct Compiler *const compiler, const str
 		decl_var(compiler, Decl_get_name(node), node->line);
 	}
 
-	struct Scope *scope = compiler->params ? compiler->params->scope : NULL;
+	struct Scope *scope = compiler->params ? compiler->params->scope : compiler->stack;
 	// while (scope && scope->parent) scope = scope->parent;
 
 
-	if (!compiler->params || !(scope_contains(scope, Decl_get_name(node)))) {
+	if (!(scope_contains(scope, Decl_get_name(node)))) {
 		store_var(compiler, Decl_get_name(node), node->line);
 	}
 }

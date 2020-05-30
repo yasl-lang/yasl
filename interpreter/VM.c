@@ -58,7 +58,6 @@ void vm_init(struct VM *const vm,
 	vm->pc = code + pc;
 	vm->fp = -1;
 	vm->sp = -1;
-	vm->global_vars = (struct YASL_Object *)calloc(sizeof(struct YASL_Object), NUM_GLOBALS);
 
 	vm->stack = (struct YASL_Object *)calloc(sizeof(struct YASL_Object), STACK_SIZE);
 
@@ -108,14 +107,10 @@ void vm_init(struct VM *const vm,
 
 void vm_cleanup(struct VM *const vm) {
 	// YASL_ASSERT(vm->sp == -1, "VM stack pointer should have been -1.");
-	// YASL_ASSERT(vm->fp == -1, "VM frame pointer should have been -1.");
+	// YASL_ASSERT(vm->prev_fp == -1, "VM frame pointer should have been -1.");
 	// YASL_ASSERT(vm->frame_num == (size_t)-1, "frame num should be 0.");
 	for (size_t i = 0; i < STACK_SIZE; i++) dec_ref(&vm->stack[i]);
-	for (size_t i = 0; i < NUM_GLOBALS; i++) {
-		dec_ref(&vm->global_vars[i]);
-	}
 
-	free(vm->global_vars);
 	free(vm->stack);
 
 	for (size_t i = 0; i < vm->headers_size; i++) {
@@ -592,7 +587,7 @@ static int vm_CCONST(struct VM *const vm) {
 	for (size_t i = 0; i < num_upvalues; i++) {
 		unsigned char u = NCODE(vm);
 		if ((signed char)u >= 0) {
-			closure->upvalues[i] = add_upvalue(vm, &vm_peek(vm, vm->frames[vm->frame_num].fp + 2 + u));
+			closure->upvalues[i] = add_upvalue(vm, &vm_peek(vm, vm->fp + 1 + u));
 		} else {
 			closure->upvalues[i] = vm->stack[vm->fp].value.lval->upvalues[~(signed char)u];
 		}
@@ -869,8 +864,8 @@ static void vm_exitframe(struct VM *const vm) {
 	vm_pop(vm);
 
 	vm->pc = vm->frames[vm->frame_num].pc;
-	vm->fp = vm->frames[vm->frame_num].fp;
-	vm->next_fp = vm->frames[vm->frame_num].next_fp;
+	vm->fp = vm->frames[vm->frame_num].prev_fp;
+	vm->next_fp = vm->frames[vm->frame_num].curr_fp;
 	while (vm->loopframe_num > vm->frames[vm->frame_num].lp) {
 		dec_ref(&vm->loopframes[vm->loopframe_num--].iterable);
 	}
@@ -949,7 +944,7 @@ static int vm_CALL_fn(struct VM *const vm) {
 static int vm_CALL_cfn(struct VM *const vm) {
 	vm->frames[vm->frame_num].pc = vm->pc;
 	if (vm_peekcfn(vm, vm->fp)->num_args == -1) {
-		YASL_VM_DEBUG_LOG("vm->sp - vm->fp: %d\n", vm->sp - (vm->fp));
+		YASL_VM_DEBUG_LOG("vm->sp - vm->prev_fp: %d\n", vm->sp - (vm->fp));
 		vm_pushint(vm, vm->sp - (vm->fp));
 	} else {
 		while (vm->sp - (vm->fp) < vm_peekcfn(vm, vm->fp)->num_args) {
@@ -1018,17 +1013,16 @@ int vm_run(struct VM *const vm) {
 	while (1) {
 		unsigned char opcode = NCODE(vm);        // fetch
 		signed char offset;
-		// size_t size;
-		yasl_int addr;
 		struct YASL_Object a, b, v;
 		yasl_int c;
 		yasl_float d;
 		int res;
 		YASL_VM_DEBUG_LOG("----------------"
 				  "opcode: %x\n"
-				  "vm->sp, vm->fp, vm->next_fp: %d, %d, %d\n\n", opcode, vm->sp, vm->fp, vm->next_fp);
+				  "vm->sp, vm->prev_fp, vm->curr_fp: %d, %d, %d\n\n", opcode, vm->sp, vm->fp, vm->next_fp);
 		switch (opcode) {
 		case O_EXPORT:
+			vm_close_all(vm);
 			return YASL_MODULE_SUCCESS;
 		case O_HALT:
 			return YASL_SUCCESS;
@@ -1286,14 +1280,14 @@ int vm_run(struct VM *const vm) {
 			if ((res = vm_GSTORE_8(vm))) return res;
 			break;
 		case O_GLOAD_1:
-			addr = vm->code[vm->pc++ - vm->code];
-			vm_push(vm, vm->global_vars[addr]);
+			offset = NCODE(vm);
+			vm_push(vm, vm_peek(vm, offset));
 			break;
 		case O_GSTORE_1:
-			addr = vm->code[vm->pc++ - vm->code];
-			dec_ref(&vm->global_vars[addr]);
-			vm->global_vars[addr] = vm_pop(vm);
-			inc_ref(&vm->global_vars[addr]);
+			offset = NCODE(vm);
+			dec_ref(&vm_peek(vm, offset));
+			vm_peek(vm, offset) = vm_pop(vm);
+			inc_ref(&vm_peek(vm, offset));
 			break;
 		case O_LLOAD_1:
 			offset = NCODE(vm);
