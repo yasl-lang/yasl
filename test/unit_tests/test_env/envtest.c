@@ -31,7 +31,7 @@ static void test_two(void) {
 	scope_decl_var(outer->scope, "g");
 	scope_decl_var(inner->scope, "b");
 
-	int64_t a = env_resolve_upval_index(inner, "a");
+	int64_t a = env_resolve_upval_index(inner, NULL, "a");
 	ASSERT_EQ(a, 0);
 	env_del(inner);
 }
@@ -64,8 +64,8 @@ static void test_multi(void) {
 	scope_decl_var(outer->scope, "g");
 	scope_decl_var(inner->scope, "y");
 
-	int64_t a = env_resolve_upval_index(inner, "a");
-	int64_t b = env_resolve_upval_index(inner, "b");
+	int64_t a = env_resolve_upval_index(inner, NULL, "a");
+	int64_t b = env_resolve_upval_index(inner, NULL, "b");
 
 	ASSERT_EQ(a, 0);
 	ASSERT_EQ(b, 1);
@@ -99,9 +99,9 @@ static void test_multi_reversed(void) {
 	scope_decl_var(outer->scope, "g");
 	scope_decl_var(inner->scope, "y");
 
-	int64_t b = env_resolve_upval_index(inner, "b");
-	int64_t a = env_resolve_upval_index(inner, "a");
-	int64_t a_again = env_resolve_upval_index(inner, "a");
+	int64_t b = env_resolve_upval_index(inner, NULL, "b");
+	int64_t a = env_resolve_upval_index(inner, NULL, "a");
+	int64_t a_again = env_resolve_upval_index(inner, NULL, "a");
 
 	ASSERT_EQ(a, 1);
 	ASSERT_EQ(a_again, 1);
@@ -143,10 +143,10 @@ static void test_deep(void) {
 	scope_decl_var(middle->scope, "inner");
 	scope_decl_var(outer->scope, "i");
 
-	ASSERT_EQ(env_resolve_upval_index(inner, "x"), 0);
+	ASSERT_EQ(env_resolve_upval_index(inner, NULL, "x"), 0);
 	ASSERT_EQ(env_resolve_upval_value(inner, "x"), ~0);
 
-	ASSERT_EQ(env_resolve_upval_index(middle, "x"), 0);
+	ASSERT_EQ(env_resolve_upval_index(middle, NULL, "x"), 0);
 	ASSERT_EQ(env_resolve_upval_value(middle, "x"), 0);
 }
 
@@ -166,13 +166,13 @@ static void test_deep_many_vars(void) {
 	scope_decl_var(middle->scope, "inner");
 	scope_decl_var(outer->scope, "i");
 
-	ASSERT_EQ(env_resolve_upval_index(middle, "y"), 0);
+	ASSERT_EQ(env_resolve_upval_index(middle, NULL, "y"), 0);
 	ASSERT_EQ(env_resolve_upval_value(middle, "y"), 1);
 
-	ASSERT_EQ(env_resolve_upval_index(inner, "z"), 0);
+	ASSERT_EQ(env_resolve_upval_index(inner, NULL, "z"), 0);
 	ASSERT_EQ(env_resolve_upval_value(inner, "z"), ~1);
 
-	ASSERT_EQ(env_resolve_upval_index(middle, "z"), 1);
+	ASSERT_EQ(env_resolve_upval_index(middle, NULL, "z"), 1);
 	ASSERT_EQ(env_resolve_upval_value(middle, "z"), 2);
 }
 
