@@ -1,0 +1,14 @@
+
+/*
+ * Taken from: https://leetcode.com/problems/defanging-an-ip-address/
+ *
+ * Given a valid (IPv4) IP address, return a defanged version of that IP address.
+ * A defanged IP address replaces every period "." with "[.]".
+ */
+
+fn f(const ip) {
+    return ip->replace('.', '[.]')
+}
+
+echo f('255.100.50.0')
+echo f('1.1.1.1')

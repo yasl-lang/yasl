@@ -1,0 +1,11 @@
+
+let x = {
+    .f: fn() {
+        assert false
+    },
+    .g: fn() {
+        echo false
+    } }
+
+
+x->f()

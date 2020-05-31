@@ -23,7 +23,7 @@ struct Parser {
 };
 
 int peof(const struct Parser *const parser);
-// struct Parser *parser_new(FILE *fp);
+// struct Parser *parser_new(FILE *prev_fp);
 void parser_cleanup(struct Parser *const parser);
 enum Token eattok(struct Parser *const parser, const enum Token token);
 struct Node *parse(struct Parser *const parser);

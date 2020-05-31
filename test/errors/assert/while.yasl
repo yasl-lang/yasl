@@ -1,0 +1,6 @@
+
+while true {
+
+    assert false
+    echo 2
+}

@@ -74,9 +74,9 @@ vm_print_err_type((vm),\
  YASL_TYPE_NAMES[actual])
 
 struct CallFrame {
-	unsigned char *pc;
-	int fp;
-	int next_fp;
+	unsigned char *pc;          // Where to reset the pc to after returning
+	int prev_fp;                // Where to reset the fp to after returning
+	int curr_fp;
 	int lp;
 };
 
@@ -88,8 +88,7 @@ struct LoopFrame {
 struct VM {
 	struct IO out;
 	struct IO err;
-	struct YASL_Object *global_vars;
-	struct YASL_Table **globals;         // variables, see "constant.c" for details on YASL_Object.
+	struct YASL_Table **globals;          // variables, see "constant.c" for details on YASL_Object.
 	size_t num_globals;
 	struct YASL_Object *stack;            // stack
 	struct CallFrame frames[1000];

@@ -1,0 +1,9 @@
+
+fn f(const s) {
+    for let i = 0; i < len s; i += 1 {
+        const char = s[i]
+        echo char
+    }
+}
+
+f('eleetminicoworoep')
