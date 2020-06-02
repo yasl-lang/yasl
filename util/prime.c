@@ -9,7 +9,7 @@ const unsigned PRIMES_UNDER_200[] = {2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53
 bool is_prime(const size_t x) {
 	if (x < 2) return false;
 	if (x < 4) return true;
-	for (int64_t i = 0; i < (int64_t) (sizeof(PRIMES_UNDER_200) / sizeof(int64_t)); i++) {
+	for (int64_t i = 0; i < (int64_t) (sizeof(PRIMES_UNDER_200) / sizeof(unsigned)); i++) {
 		if ((x % PRIMES_UNDER_200[i]) == 0) return (x == PRIMES_UNDER_200[i]);
 	}
 	for (int64_t i = 201; i <= floor(sqrt((double) x)); i += 2) {
