@@ -574,12 +574,18 @@ static struct Node *parse_call(struct Parser *const parser) {
 			}
 		} else if (matcheattok(parser, T_LSQB)) {
 			size_t line = parser->lex.line;
-			struct Node *expr = parse_expr(parser);
 			if (matcheattok(parser, T_COLON)) {
-				struct Node *end = parse_expr(parser);
-				cur_node = new_Slice(cur_node, expr, end, line);
+				struct Node *start = new_Undef(line);
+				struct Node *end = TOKEN_MATCHES(parser, T_RSQB) ? new_Undef(line) : parse_expr(parser);
+				cur_node = new_Slice(cur_node, start, end, line);
 			} else {
-				cur_node = new_Get(cur_node, expr, line);
+				struct Node *expr = parse_expr(parser);
+				if (matcheattok(parser, T_COLON)) {
+					struct Node *end = TOKEN_MATCHES(parser, T_RSQB) ? new_Undef(line) : parse_expr(parser);
+					cur_node = new_Slice(cur_node, expr, end, line);
+				} else {
+					cur_node = new_Get(cur_node, expr, line);
+				}
 			}
 			eattok(parser, T_RSQB);
 		} else if (matcheattok(parser, T_LPAR)) {
