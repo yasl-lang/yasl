@@ -600,32 +600,44 @@ static int vm_CCONST(struct VM *const vm) {
 }
 
 static int vm_SLICE(struct VM *const vm) {
-	if (!vm_isint(vm) || !YASL_ISINT(vm_peek(vm, vm->sp - 1))) {
-		vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
-				      YASL_TYPE_NAMES[vm_peek(vm, vm->sp - 1).type],
-				      YASL_TYPE_NAMES[vm_peek(vm, vm->sp).type]
-		);
-		return YASL_TYPE_ERROR;
-	}
+	if (vm_islist(vm, vm->sp - 2)) {
+		yasl_int len = vm_peeklist(vm, vm->sp - 2)->count;
+		yasl_int end;
+		yasl_int start;
 
-	yasl_int end = vm_popint(vm);
-	yasl_int start = vm_popint(vm);
-
-	if (vm_islist(vm)) {
-		struct YASL_List *list = vm_poplist(vm);
-		yasl_int len = list->count;
-		if (end < 0)
-			end += len;
-
-		if (start < 0)
-			start += len;
-
-		if (end > len)
+		if (vm_isundef(vm)) {
 			end = len;
+		} else if (vm_isint(vm)) {
+			end = vm_peekint(vm);
+			if (end < 0) end += len;
+			if (end > len) end = len;
+		} else {
+			vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
+					  YASL_TYPE_NAMES[vm_peek(vm, vm->sp - 1).type],
+					  YASL_TYPE_NAMES[vm_peek(vm, vm->sp).type]
+			);
+			return YASL_TYPE_ERROR;
+		}
 
-		if (start < 0)
+		if (vm_isundef(vm, vm->sp - 1)) {
 			start = 0;
+		} else if (vm_isint(vm, vm->sp - 1)) {
+			start = vm_peekint(vm, vm->sp -1);
+			if (start < 0) start += len;
 
+			if (start < 0) start = 0;
+		} else {
+			vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
+					  YASL_TYPE_NAMES[vm_peek(vm, vm->sp - 1).type],
+					  YASL_TYPE_NAMES[vm_peek(vm, vm->sp).type]
+			);
+			return YASL_TYPE_ERROR;
+		}
+
+		vm_pop(vm);
+		vm_pop(vm);
+
+		struct YASL_List *list = vm_poplist(vm);
 		struct RC_UserData *new_ls = rcls_new();
 
 		for (yasl_int i = start; i <end; ++i) {
@@ -635,25 +647,51 @@ static int vm_SLICE(struct VM *const vm) {
 		return YASL_SUCCESS;
 	}
 
-	if (vm_isstr(vm)) {
-		struct YASL_String *str = vm_popstr(vm);
-		yasl_int len = YASL_String_len(str);
-		if (end < 0)
-			end += len;
+	if (vm_isstr(vm, vm->sp - 2)) {
+		yasl_int len = YASL_String_len(vm_peekstr(vm, vm->sp - 2));
+		yasl_int end;
+		yasl_int start;
 
-		if (start < 0)
-			start += len;
-
-		if (end > len)
+		if (vm_isundef(vm)) {
 			end = len;
+		} else if (vm_isint(vm)) {
+			end = vm_peekint(vm);
+			if (end < 0) end += len;
+			if (end > len) end = len;
+		} else {
+			vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
+					  YASL_TYPE_NAMES[vm_peek(vm, vm->sp - 1).type],
+					  YASL_TYPE_NAMES[vm_peek(vm, vm->sp).type]
+			);
+			return YASL_TYPE_ERROR;
+		}
 
-		if (start < 0)
+		if (vm_isundef(vm, vm->sp - 1)) {
 			start = 0;
+		} else if (vm_isint(vm, vm->sp - 1)) {
+			start = vm_peekint(vm, vm->sp -1);
+			if (start < 0) start += len;
+
+			if (start < 0) start = 0;
+		} else {
+			vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
+					  YASL_TYPE_NAMES[vm_peek(vm, vm->sp - 1).type],
+					  YASL_TYPE_NAMES[vm_peek(vm, vm->sp).type]
+			);
+			return YASL_TYPE_ERROR;
+		}
+
+		vm_pop(vm);
+		vm_pop(vm);
+
+		struct YASL_String *str = vm_popstr(vm);
 
 		vm_push(vm, YASL_STR(YASL_String_new_substring((size_t)start, (size_t)end, str)));
 		return YASL_SUCCESS;
 	}
 
+	vm_pop(vm);
+	vm_pop(vm);
 	vm_print_err_type(vm,  "slice is not defined for objects of type %s.", YASL_TYPE_NAMES[vm_pop(vm).type]);
 	return YASL_TYPE_ERROR;
 
