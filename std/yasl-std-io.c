@@ -192,35 +192,40 @@ static int YASL_io_flush(struct YASL_State *S) {
 }
 
 static int YASL_io_seek(struct YASL_State *S) {
-	yasl_int whence;
+	yasl_int offset;
 	if (YASL_isundef(S)) {
-		whence = SEEK_SET;
+		offset = 0;
 		YASL_pop(S);
-	} else if (!(YASL_isint(S))) {
-		whence = YASL_popint(S);
-		switch (whence) {
-		case SEEK_SET:
-		case SEEK_CUR:
-		case SEEK_END:
-			break;
-		default:
-			vm_print_err_value((struct VM *)S, "%s expected arg in position 2 to be one of SEEK_SET, SEEK_CUR, or SEEK_END, got %" PRId64, FILE_PRE ".seek", whence);
-			return YASL_VALUE_ERROR;
-		}
+	} else if ((YASL_isint(S))) {
+		offset = YASL_popint(S);
 	} else {
 		vm_print_err_type((struct VM *)S,"%s expected arg in position %d to be of type int, got arg of type %s.", FILE_PRE ".seek", 2, YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 
-	if (!YASL_isint(S)) {
-		vm_print_err_type((struct VM *)S,"%s expected arg in position %d to be of type int, got arg of type %s.", FILE_PRE ".seek", 1, YASL_TYPE_NAMES[YASL_peektype(S)]);
+	int whence;
+	if (YASL_isundef(S)) {
+		whence = SEEK_SET;
+		YASL_pop(S);
+	} else if (YASL_isstr(S)) {
+		char *tmp = YASL_popcstr(S);
+		if (!strcmp(tmp, "set")) whence = SEEK_SET;
+		else if (!strcmp(tmp, "cur")) whence = SEEK_CUR;
+		else if (!strcmp(tmp, "end")) whence = SEEK_END;
+		else {
+			vm_print_err_value((struct VM *)S, "%s expected arg in position 1 to be one of 'set', 'cur', or 'end', got '%s'.", FILE_PRE ".seek", tmp);
+			free(tmp);
+			return YASL_VALUE_ERROR;
+		}
+		free(tmp);
+	} else {
+		vm_print_err_bad_arg_type((struct VM *)S, FILE_PRE ".seek", 1, Y_STR, YASL_peektype(S));
 		return YASL_TYPE_ERROR;
 	}
-	yasl_int offset = YASL_popint(S);
 
 	if (!YASL_isuserdata(S, T_FILE)) {
 		vm_print_err_type((struct VM *)S, "%s expected arg in position %d to be of type file, got arg of type %s.",
-				  FILE_PRE ".flush", 0, YASL_TYPE_NAMES[YASL_peektype(S)]);
+				  FILE_PRE ".seek", 0, YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
 	FILE *f = (FILE *)YASL_popuserdata(S);
@@ -290,21 +295,6 @@ int YASL_decllib_io(struct YASL_State *S) {
 	YASL_loadglobal(S, "io");
 	YASL_pushlitszstring(S, "close");
 	YASL_pushcfunction(S, YASL_io_close, 1);
-	YASL_tableset(S);
-
-	YASL_loadglobal(S, "io");
-	YASL_pushlitszstring(S, "SEEK_CUR");
-	YASL_pushint(S, SEEK_CUR);
-	YASL_tableset(S);
-
-	YASL_loadglobal(S, "io");
-	YASL_pushlitszstring(S, "SEEK_END");
-	YASL_pushint(S, SEEK_END);
-	YASL_tableset(S);
-
-	YASL_loadglobal(S, "io");
-	YASL_pushlitszstring(S, "SEEK_SET");
-	YASL_pushint(S, SEEK_SET);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "io");

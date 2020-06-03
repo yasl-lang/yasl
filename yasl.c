@@ -500,14 +500,18 @@ char *YASL_peekcstr(struct YASL_State *S) {
 	return tmp;
 }
 
+char *YASL_popcstr(struct YASL_State *S) {
+	char *tmp = YASL_peekcstr(S);
+	YASL_pop(S);
+	return tmp;
+}
+
 char *YASL_top_peekcstring(struct YASL_State *S) {
 	return YASL_peekcstr(S);
 }
 
 char *YASL_top_popcstring(struct YASL_State *S) {
-	char *tmp = YASL_peekcstr(S);
-	YASL_pop(S);
-	return tmp;
+	return YASL_popcstr(S);
 }
 
 void *YASL_top_peekuserdata(struct YASL_State *S) {
