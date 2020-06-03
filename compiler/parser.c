@@ -654,7 +654,7 @@ static struct Node *parse_constant(struct Parser *const parser) {
 	default:
 		parser_print_err_syntax(parser, "Invalid expression `%s` (line %"
 			PRI_SIZET
-			".\n", YASL_TOKEN_NAMES[curtok(parser)], parser->lex.line);
+			").\n", YASL_TOKEN_NAMES[curtok(parser)], parser->lex.line);
 		return handle_error(parser);
 	}
 }
