@@ -121,6 +121,12 @@ int YASL_setglobal(struct YASL_State *S, const char *name);
  */
 int YASL_loadglobal(struct YASL_State *S, const char *name);
 
+/**
+ * Prints a runtime error.
+ * @param S the YASL_State in which the error occurred.
+ * @param fmt a format string, taking the same parameters as printf.
+ * @param ... var args for the above format strings.
+ */
 void YASL_print_err(struct YASL_State *S, const char *const fmt, ...) YASL_FORMAT_CHECK;
 
 /**

@@ -56,6 +56,7 @@ static const char *outputs[] = {
   "test/inputs/str/isalnum.yasl",
   "test/inputs/str/endswith.yasl",
   "test/inputs/syntax/augmented_assign.yasl",
+  "test/inputs/syntax/multi_assign.yasl",
   "test/inputs/syntax/foreach_str.yasl",
   "test/inputs/syntax/while_break.yasl",
   "test/inputs/syntax/for_continue.yasl",

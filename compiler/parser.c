@@ -142,20 +142,47 @@ struct Node *parse_assign_or_exprstmt(struct Parser *const parser) {
 
 	return new_ExprStmt(expr, line);
 }
+
+/*
+ * Checks for function statement `fn <id> ...` vs function expr `fn ( ...`.
+ */
 static bool isfndecl(struct Parser *const parser) {
-	(void) parser;
 	long curr = lxtell(parser->lex.file);
 	eattok(parser, T_FN);
 	free(parser->lex.value);
-	if (matcheattok(parser, T_ID)) {
-		lxseek(parser->lex.file, curr, SEEK_SET);
-		parser->lex.type = T_FN;
-		return true;
-	} else {
-		lxseek(parser->lex.file, curr, SEEK_SET);
-		parser->lex.type = T_FN;
-		return false;
-	}
+	bool result = TOKEN_MATCHES(parser, T_ID);
+	lxseek(parser->lex.file, curr, SEEK_SET);
+	parser->lex.type = T_FN;
+	return result;
+}
+
+/*
+ * Checks for const function statement `const fn ...` vs const decl `const <id> ...`.
+ */
+static bool isconstfndecl(struct Parser *const parser) {
+	long curr = lxtell(parser->lex.file);
+	eattok(parser, T_CONST);
+	free(parser->lex.value);
+	bool result = TOKEN_MATCHES(parser, T_FN);
+	lxseek(parser->lex.file, curr, SEEK_SET);
+	parser->lex.type = T_CONST;
+	return result;
+}
+
+/*
+ * Checks for multiple assignment `<id>, ...` vs other uses of identifiers.
+ */
+static bool ismultiassign(struct Parser *const parser) {
+	long curr = lxtell(parser->lex.file);
+	char *name = parser->lex.value;
+	parser->lex.value = NULL;
+	eattok(parser, T_ID);
+	bool result = TOKEN_MATCHES(parser, T_COMMA);
+	lxseek(parser->lex.file, curr, SEEK_SET);
+	free(parser->lex.value);
+	parser->lex.type = T_ID;
+	parser->lex.value = name;
+	return result;
 }
 
 static struct Node *parse_program(struct Parser *const parser) {
@@ -175,9 +202,13 @@ static struct Node *parse_program(struct Parser *const parser) {
 		eattok(parser, T_EXPORT);
 		return new_Export(parse_expr(parser), line);
 	case T_CONST:
-		return parse_const(parser);
+		if (isconstfndecl(parser)) return parse_const(parser);
+		else return parse_decl(parser);
 	case T_LET:
 		return parse_decl(parser);
+	case T_ID:
+		if (ismultiassign(parser)) return parse_decl(parser);
+		else return parse_assign_or_exprstmt(parser);
 	case T_FOR:
 		return parse_for(parser);
 	case T_WHILE:
@@ -296,16 +327,31 @@ static struct Node *parse_const(struct Parser *const parser) {
 	return new_Const(name, expr, line);
 }
 
+static struct Node *parse_let_const_or_var(struct Parser *const parser) {
+	size_t line = parser->lex.line;
+	if (matcheattok(parser, T_LET)) {
+		char *name = eatname(parser);
+		return new_Let(name, NULL, line);
+	} else if (matcheattok(parser, T_CONST)) {
+		char *name = eatname(parser);
+		return new_Const(name, NULL, line);
+	} else if (TOKEN_MATCHES(parser, T_ID)) {
+		char *name = eatname(parser);
+		return new_Assign(name, NULL, line);
+	} else {
+		parser_print_err_syntax(parser, "Expected `let`, `const`, or id, got %s", YASL_TOKEN_NAMES[curtok(parser)]);
+		return handle_error(parser);
+	}
+}
+
 static struct Node *parse_decl(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("parsing let in line %" PRI_SIZET "\n", parser->lex.line);
 	size_t i = 0;
 	struct Node *buffer = new_Body(parser->lex.line);
 
 	do {
-		eattok(parser, T_LET);
-		size_t line = parser->lex.line;
-		char *name = eatname(parser);
-		body_append(&buffer, new_Let(name, NULL, line));
+		struct Node *lval = parse_let_const_or_var(parser);
+		body_append(&buffer, lval);
 		i++;
 	} while (matcheattok(parser, T_COMMA));
 
