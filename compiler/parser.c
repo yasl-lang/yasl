@@ -417,7 +417,7 @@ static struct Node *parse_assert(struct Parser *const parser) {
 static struct Node *parse_expr(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("%s\n", "parsing expression.");
 	struct Node *node = parse_ternary(parser);
-	if (node) fold(node);
+	fold(node);
 	return node;
 }
 
