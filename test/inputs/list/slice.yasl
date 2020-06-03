@@ -5,8 +5,8 @@ echo x[1:3]
 echo x[0:-1]
 echo x[-10:20]
 
-/*
-echo x->slice(0, 5)
-echo x->slice(1, 3)
-echo x->slice(0, -1)
-*/
+let letters = [.a, .b, .c, .d, .e, .f]
+
+echo letters[:3]
+echo letters[3:]
+echo letters[:]

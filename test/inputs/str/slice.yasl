@@ -5,3 +5,9 @@ const y = "12345"
 echo y[1:3]
 echo y[0:-1]
 echo y[-10:20]
+
+let letters = "abcdef"
+
+echo letters[:3]
+echo letters[3:]
+echo letters[:]

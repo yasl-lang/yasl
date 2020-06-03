@@ -32,13 +32,13 @@
 #define vm_peekcfn(...) (YASL_GETCFN(vm_peek(__VA_ARGS__)))
 
 #define vm_isend(vm) (YASL_ISEND(vm_peek(vm)))
-#define vm_isundef(vm) (YASL_ISUNDEF(vm_peek(vm)))
+#define vm_isundef(...) (YASL_ISUNDEF(vm_peek(__VA_ARGS__)))
 #define vm_isfloat(vm) (YASL_ISFLOAT(vm_peek(vm)))
-#define vm_isint(vm) (YASL_ISINT(vm_peek(vm)))
+#define vm_isint(...) (YASL_ISINT(vm_peek(__VA_ARGS__)))
 #define vm_isbool(vm) (YASL_ISBOOL(vm_peek(vm)))
-#define vm_isstr(vm) (YASL_ISSTR(vm_peek(vm)))
+#define vm_isstr(...) (YASL_ISSTR(vm_peek(__VA_ARGS__)))
 #define vm_istable(vm) (YASL_ISTABLE(vm_peek(vm)))
-#define vm_islist(vm) (YASL_ISLIST(vm_peek(vm)))
+#define vm_islist(...) (YASL_ISLIST(vm_peek(__VA_ARGS__)))
 #define vm_isuserdata(vm) (YASL_ISUSERDATA(vm_peek(vm)))
 #define vm_isuserptr(vm) (YASL_ISUSERPTR(vm_peek(vm)))
 
