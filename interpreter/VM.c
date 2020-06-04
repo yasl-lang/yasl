@@ -1320,31 +1320,21 @@ int vm_run(struct VM *const vm) {
 		case O_GSTORE_8:
 			if ((res = vm_GSTORE_8(vm))) return res;
 			break;
-		case O_GLOAD_1:
-			offset = NCODE(vm);
-			vm_push(vm, vm_peek(vm, offset));
-			break;
-		case O_GSTORE_1:
-			offset = NCODE(vm);
-			dec_ref(&vm_peek(vm, offset));
-			vm_peek(vm, offset) = vm_pop(vm);
-			inc_ref(&vm_peek(vm, offset));
-			break;
-		case O_LLOAD_1:
+		case O_LLOAD:
 			offset = NCODE(vm);
 			vm_push(vm, vm_peek(vm, vm->fp + offset + 1));
 			break;
-		case O_LSTORE_1:
+		case O_LSTORE:
 			offset = NCODE(vm);
 			dec_ref(&vm_peek(vm, vm->fp + offset + 1));
 			vm_peek(vm, vm->fp + offset + 1) = vm_pop(vm);
 			inc_ref(&vm_peek(vm, vm->fp + offset + 1));
 			break;
-		case O_ULOAD_1:
+		case O_ULOAD:
 			offset = NCODE(vm);
 			vm_push(vm, upval_get(vm_peek(vm, vm->fp).value.lval->upvalues[offset]));
 			break;
-		case O_USTORE_1:
+		case O_USTORE:
 			offset = NCODE(vm);
 			inc_ref(&vm_peek(vm));
 			upval_set(vm_peek(vm, vm->fp).value.lval->upvalues[offset], vm_pop(vm));

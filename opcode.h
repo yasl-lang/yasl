@@ -91,12 +91,10 @@ enum Opcode {
 
 	O_GSTORE_8 = 0xF0, // from string
 	O_GLOAD_8 = 0xF1, // from string
-	O_USTORE_1 = 0xF2, // load upvalue
-	O_ULOAD_1 = 0xF3, // store upvalue
-	O_GSTORE_1 = 0xF4, // store top of stack at addr provided
-	O_GLOAD_1 = 0xF5, // load global from addr
-	O_LSTORE_1 = 0xF6, // store top of stack as local at addr
-	O_LLOAD_1 = 0xF7, // load local from addr
+	O_USTORE = 0xF2, // load upvalue
+	O_ULOAD = 0xF3, // store upvalue
+	O_LSTORE = 0xF4, // store top of stack as local at addr
+	O_LLOAD = 0xF5, // load local from addr
 	O_PRINT = 0xFF  // print
 };
 

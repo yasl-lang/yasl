@@ -175,30 +175,30 @@ static inline int64_t get_index(const int64_t value) {
 
 static void load_var(struct Compiler *const compiler, const char *const name, const size_t line) {
 	const size_t name_len = strlen(name);
-	if (compiler->params && scope_contains(compiler->params->scope, name)) {
+	if (compiler->params && scope_contains(compiler->params->scope, name)) {   // function-local var
 		int64_t index = get_index(scope_get(compiler->params->scope, name));
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_LLOAD_1);
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_LLOAD);
 		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) index);
-	} else if (env_contains(compiler->params, name)) {
+	} else if (env_contains(compiler->params, name)) {                         // closure over function-local variable
 		compiler->params->isclosure = true;
 		struct Env *curr = compiler->params;
 		while (!env_contains_cur_only(curr, name)) {
 			curr = curr->parent;
 		}
 		curr->usedinclosure = true;
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_ULOAD_1);
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_ULOAD);
 		yasl_int tmp = env_resolve_upval_index(compiler->params, compiler->stack, name);
 		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) tmp);
-	} else if (compiler->params && scope_contains(compiler->stack, name)) {
+	} else if (compiler->params && scope_contains(compiler->stack, name)) {    // closure over file-local var
 		compiler->params->isclosure = true;
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_ULOAD_1);
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_ULOAD);
 		yasl_int tmp = env_resolve_upval_index(compiler->params, compiler->stack, name);
 		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) tmp);
-	} else if (scope_contains(compiler->stack, name)) {
+	} else if (scope_contains(compiler->stack, name)) {                        // file-local vars
 		int64_t index = get_index(scope_get(compiler->stack, name));
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_GLOAD_1);
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_LLOAD);
 		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) index);
-	} else if (scope_contains(compiler->globals, name)) {
+	} else if (scope_contains(compiler->globals, name)) {                      // global vars
 		YASL_ByteBuffer_add_byte(compiler->buffer, O_GLOAD_8);
 		YASL_ByteBuffer_add_int(compiler->buffer, compiler->num);
 		YASL_ByteBuffer_add_int(compiler->buffer,
@@ -212,16 +212,16 @@ static void load_var(struct Compiler *const compiler, const char *const name, co
 
 static void store_var(struct Compiler *const compiler, const char *const name, const size_t line) {
 	const size_t name_len = strlen(name);
-	if (compiler->params && scope_contains(compiler->params->scope, name)) {
+	if (compiler->params && scope_contains(compiler->params->scope, name)) {  // function-local variable
 		int64_t index = scope_get(compiler->params->scope, name);
 		if (is_const(index)) {
 			compiler_print_err_const(compiler, name, line);
 			handle_error(compiler);
 			return;
 		}
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_LSTORE_1);
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_LSTORE);
 		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) index);
-	} else if (env_contains(compiler->params, name)) {
+	} else if (env_contains(compiler->params, name)) {                        // closure over function-local variable
 		compiler->params->isclosure = true;
 		struct Env *curr = compiler->params;
 		while (!env_contains_cur_only(curr, name)) {
@@ -234,10 +234,10 @@ static void store_var(struct Compiler *const compiler, const char *const name, c
 			handle_error(compiler);
 			return;
 		}
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_USTORE_1);
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_USTORE);
 		yasl_int tmp = env_resolve_upval_index(compiler->params, compiler->stack, name);
 		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) tmp);
-	} else if (compiler->params && scope_contains(compiler->stack, name)) {
+	} else if (compiler->params && scope_contains(compiler->stack, name)) {   // closure over file-local var
 		int64_t index = scope_get(compiler->stack, name);
 		if (is_const(index)) {
 			compiler_print_err_const(compiler, name, line);
@@ -245,19 +245,19 @@ static void store_var(struct Compiler *const compiler, const char *const name, c
 			return;
 		}
 		compiler->params->isclosure = true;
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_USTORE_1);
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_USTORE);
 		yasl_int tmp = env_resolve_upval_index(compiler->params, compiler->stack, name);
 		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) tmp);
-	} else if (scope_contains(compiler->stack, name)) {
+	} else if (scope_contains(compiler->stack, name)) {                       // file-local vars
 		int64_t index = scope_get(compiler->stack, name);
 		if (is_const(index)) {
 			compiler_print_err_const(compiler, name, line);
 			handle_error(compiler);
 			return;
 		}
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_GSTORE_1);
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_LSTORE);
 		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) index);
-	} else if (scope_contains(compiler->globals, name)) {
+	} else if (scope_contains(compiler->globals, name)) {                     // global vars
 		int64_t index = scope_get(compiler->globals, name);
 		if (is_const(index)) {
 			compiler_print_err_const(compiler, name, line);
@@ -1086,7 +1086,7 @@ static void visit_Integer(struct Compiler *const compiler, const struct Node *co
 			YASL_ByteBuffer_add_byte(compiler->buffer, O_ICONST_B1);
 			YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) val);
 		} else {
-			YASL_ByteBuffer_add_byte(compiler->buffer, O_ICONST);
+			YASL_ByteBuffer_add_byte(compiler->buffer, O_ICONST_B8);
 			YASL_ByteBuffer_add_int(compiler->buffer, val);
 		}
 		break;
