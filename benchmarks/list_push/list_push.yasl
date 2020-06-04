@@ -1,0 +1,11 @@
+
+
+
+
+const ls = []
+
+for let i = 0; i < 10_000_000; i += 1 {
+    ls->push(i)
+}
+
+

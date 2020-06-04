@@ -37,14 +37,14 @@ enum Opcode {
 
 	O_ASS = 0x50, // assert
 
-	O_ADD = 0x60, // add two integers
-	O_SUB = 0x61, // subtract two integers
+	O_ADD = 0x60, // add two numbers
+	O_SUB = 0x61, // subtract two numbers
 	O_MUL = 0x62, // multiply two integers
 	O_EXP = 0x63, // exponentiation
-	O_FDIV = 0x64, // divide two integers
+	O_FDIV = 0x64, // divide two numbers (return float)
 	O_IDIV = 0x65, // divide two ints (return int)
-	O_MOD = 0x66, // modulo two numbers
-	O_NEG = 0x67, // negate an integer
+	O_MOD = 0x66, // modulo two integers
+	O_NEG = 0x67, // negate a number
 	O_POS = 0x68, // positive of a number
 	O_NOT = 0x69, // negate a boolean
 	O_LEN = 0x6A, // get length

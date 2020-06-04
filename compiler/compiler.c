@@ -952,6 +952,7 @@ static void visit_BinOp(struct Compiler *const compiler, const struct Node *cons
 		visit_BinOp_shortcircuit(compiler, node, O_BRF_8);
 		return;
 	}
+
 	// all other operators follow the same pattern of visiting one child then the other.
 	visit(compiler, BinOp_get_left(node));
 	visit(compiler, BinOp_get_right(node));
