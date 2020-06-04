@@ -1087,12 +1087,6 @@ int vm_run(struct VM *const vm) {
 		case O_DCONST_2:
 			vm_pushfloat(vm, (yasl_float)(opcode - O_DCONST_0)); // make sure no changes to opcodes ruin this
 			break;
-		case O_DCONST_N:
-			vm_pushfloat(vm, NAN);
-			break;
-		case O_DCONST_I:
-			vm_pushfloat(vm, INFINITY);
-			break;
 		case O_DCONST:        // constants have native endianness
 			d = vm_read_float(vm);
 			vm_pushfloat(vm, d);

@@ -21,8 +21,6 @@ enum Opcode {
 	O_DCONST_0 = 0x1B, // push 0.0 onto stack
 	O_DCONST_1 = 0x1C, // push 1.0 onto stack
 	O_DCONST_2 = 0x1D, // push 2.0 onto stack
-	O_DCONST_N = 0x1E, // push nan onto stack
-	O_DCONST_I = 0x1F, // push inf onto stack
 
 	O_ICONST_B1 = 0x20, // push literal integer that only requires 1 byte onto stack.
 	O_ICONST_B2 = 0x21, // TODO

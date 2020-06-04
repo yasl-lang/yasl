@@ -1057,10 +1057,6 @@ static void visit_Float(struct Compiler *const compiler, const struct Node *cons
 		YASL_ByteBuffer_add_byte(compiler->buffer, O_DCONST_1);
 	} else if (val == 2.0) {
 		YASL_ByteBuffer_add_byte(compiler->buffer, O_DCONST_2);
-	} else if (val != val) {
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_DCONST_N);
-	} else if (isinf(val)) {
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_DCONST_I);
 	} else {
 		YASL_ByteBuffer_add_byte(compiler->buffer, O_DCONST);
 		YASL_ByteBuffer_add_float(compiler->buffer, val);
