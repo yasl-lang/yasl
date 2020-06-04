@@ -189,10 +189,16 @@ YASL_FORMAT_CHECK static void vm_print_out(struct VM *vm, const char *const fmt,
 }
 
 void vm_push(struct VM *const vm, const struct YASL_Object val) {
-    vm->sp++;
-    dec_ref(vm->stack + vm->sp);
-    vm->stack[vm->sp] = val;
-    inc_ref(vm->stack + vm->sp);
+	vm->sp++;
+	if (vm->sp >= STACK_SIZE) {
+		vm->status = YASL_STACK_OVERFLOW_ERROR;
+		vm_print_err(vm, "StackOverflow.");
+		longjmp(vm->buf, 1);
+	}
+
+	dec_ref(vm->stack + vm->sp);
+	vm->stack[vm->sp] = val;
+	inc_ref(vm->stack + vm->sp);
 }
 
 void vm_pushend(struct VM *const vm) {
@@ -1048,6 +1054,9 @@ static void vm_PRINT(struct VM *const vm) {
 }
 
 int vm_run(struct VM *const vm) {
+	if (setjmp(vm->buf)) {
+		return vm->status;
+	}
 	while (1) {
 		unsigned char opcode = NCODE(vm);        // fetch
 		signed char offset;

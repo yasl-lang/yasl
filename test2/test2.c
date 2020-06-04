@@ -40,6 +40,7 @@ int main(void) {
 	int failed = 0;
 #include "outputs.inl"
 #include "assert_errors.inl"
+#include "stackoverflow_errors.inl"
 	char buffer[MAX_FILE_NAME_LEN];
 	struct YASL_State *S;
 	for (size_t i = 0; i < sizeof(outputs) / sizeof(char *); i++) {
@@ -72,6 +73,7 @@ int main(void) {
 	}
 
 	ERROR_TEST(assert_errors);
+	ERROR_TEST(stackoverflow_errors);
 
 	return failed;
 }

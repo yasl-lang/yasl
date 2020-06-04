@@ -5,13 +5,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <setjmp.h>
 
 #include "IO.h"
 #include "data-structures/YASL_Table.h"
 #include "data-structures/YASL_List.h"
 #include "yasl_conf.h"
 #include "opcode.h"
-// #include "closure.h"
+
 
 #define NUM_GLOBALS 256
 #define NUM_TYPES 13                                     // number of builtin types, each needs a vtable
@@ -105,6 +106,8 @@ struct VM {
 	struct YASL_String *special_strings[NUM_SPECIAL_STRINGS];
 	struct YASL_Table **builtins_htable;   // htable of builtin methods
 	struct Upvalue *pending;
+	jmp_buf buf;
+	int status;
 };
 
 void vm_init(struct VM *const vm, unsigned char *const code, const size_t pc, const size_t datasize);

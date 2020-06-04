@@ -15,5 +15,6 @@ enum YASL_Error {
 	YASL_VALUE_ERROR,          // Invalid value (at runtime).
 	YASL_TOO_MANY_VAR_ERROR,   // Too many variables in current scope.
 	YASL_PLATFORM_NOT_SUPP,    // Platform specific code not supported for this platform.
-	YASL_ASSERT_ERROR          // Assertion failed.
+	YASL_ASSERT_ERROR,         // Assertion failed.
+	YASL_STACK_OVERFLOW_ERROR  // Stack overflow happened.
 };
