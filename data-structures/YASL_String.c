@@ -442,12 +442,12 @@ struct RC_UserData *string_split_default(struct YASL_String *haystack) {
 	size_t end = 0, start = 0;
 	struct RC_UserData *result = rcls_new();
 	while (true) {
-		while (iswhitespace(*(haystack->str + haystack->start + end)) && end < YASL_String_len(haystack)) {
+		while (end < YASL_String_len(haystack) && iswhitespace(*(haystack->str + haystack->start + end))) {
 			end++;
 		}
 		if (end >= YASL_String_len(haystack)) break;
 		start = end;
-		while (!iswhitespace(*(haystack->str + haystack->start + end)) && end < YASL_String_len(haystack)) {
+		while (end < YASL_String_len(haystack) && !iswhitespace(*(haystack->str + haystack->start + end))) {
 			end++;
 		}
 		struct YASL_Object to = YASL_STR(

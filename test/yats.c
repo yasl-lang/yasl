@@ -24,7 +24,7 @@ unsigned char *setup_compiler(const char *file_contents) {
 	fclose(fptr);
 	fptr = fopen("dump.ysl", "r");
 	struct Compiler compiler = NEW_COMPILER(lexinput_new_file(fptr));
-	compiler.header->count = 16;
+	compiler.header->count = 24;
 	unsigned char *bytecode = compile(&compiler);
 	FILE *f = fopen("dump.yb", "wb");
 	if (bytecode == NULL) {

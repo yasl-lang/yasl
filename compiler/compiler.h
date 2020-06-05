@@ -23,7 +23,7 @@
     .params = NULL,\
     .strings = YASL_Table_new(),\
     .buffer = YASL_ByteBuffer_new(16),\
-    .header = YASL_ByteBuffer_new(16),\
+    .header = YASL_ByteBuffer_new(24),\
     .code = YASL_ByteBuffer_new(16),\
     .lines = YASL_ByteBuffer_new(16),\
     .line = 0,\

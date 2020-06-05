@@ -58,7 +58,7 @@ void vm_init(struct VM *const vm,
 	vm->pc = code + pc;
 	vm->fp = -1;
 	vm->sp = -1;
-
+	vm->constants = NULL;
 	vm->stack = (struct YASL_Object *)calloc(sizeof(struct YASL_Object), STACK_SIZE);
 
 #define DEF_SPECIAL_STR(enum_val, str) vm->special_strings[enum_val] = YASL_String_new_sized(strlen(str), str)
@@ -109,9 +109,13 @@ void vm_cleanup(struct VM *const vm) {
 	// YASL_ASSERT(vm->sp == -1, "VM stack pointer should have been -1.");
 	// YASL_ASSERT(vm->prev_fp == -1, "VM frame pointer should have been -1.");
 	// YASL_ASSERT(vm->frame_num == (size_t)-1, "frame num should be 0.");
-	for (size_t i = 0; i < STACK_SIZE; i++) dec_ref(&vm->stack[i]);
-
+	for (size_t i = 0; i < STACK_SIZE; i++) dec_ref(vm->stack + i);
 	free(vm->stack);
+
+	for (int64_t i = 0; i < vm->num_constants; i++) {
+		dec_ref(vm->constants + i);
+	}
+	free(vm->constants);
 
 	for (size_t i = 0; i < vm->headers_size; i++) {
 		free(vm->headers[i]);
@@ -526,7 +530,7 @@ static int vm_CNCT(struct VM *const vm) {
 
 int vm_stringify_top(struct VM *const vm) {
 	enum YASL_Types index = vm_peek(vm, vm->sp).type;
-	if (YASL_ISFN(vm_peek(vm, vm->sp)) || YASL_ISCFN(vm_peek(vm, vm->sp))) {
+	if (YASL_ISFN(vm_peek(vm)) || YASL_ISCFN(vm_peek(vm)) || YASL_ISCLOSURE(vm_peek(vm))) {
 		size_t n = (size_t)snprintf(NULL, 0, "<fn: %d>", (int)YASL_GETINT(vm_peek(vm))) + 1;
 		char *buffer = (char *)malloc(n);
 		snprintf(buffer, n, "<fn: %d>", (int)vm_pop(vm).value.ival);
@@ -798,21 +802,11 @@ static int vm_SET(struct VM *const vm) {
 	return YASL_TYPE_ERROR;
 }
 
-static int vm_NEWSPECIALSTR(struct VM *const vm) {
-	vm_pushstr(vm, vm->special_strings[NCODE(vm)]);
-	return YASL_SUCCESS;
-}
-
 static int vm_NEWSTR(struct VM *const vm) {
-	yasl_int table = vm_read_int(vm);
+	// yasl_int table = vm_read_int(vm);
 	yasl_int addr = vm_read_int(vm);
 
-	yasl_int size;
-	memcpy(&size, vm->headers[table] + addr, sizeof(yasl_int));
-
-	addr += sizeof(yasl_int);
-	struct YASL_String *string = YASL_String_new_sized((size_t)size, ((char *) vm->headers[table]) + addr);
-	vm_pushstr(vm, string);
+	vm_push(vm, vm->constants[addr]);
 	return YASL_SUCCESS;
 }
 
@@ -860,34 +854,21 @@ static int vm_ITER_1(struct VM *const vm) {
 }
 
 static int vm_GSTORE_8(struct VM *const vm) {
-	yasl_int table = vm_read_int(vm);
+	// yasl_int table = vm_read_int(vm);
 	yasl_int addr = vm_read_int(vm);
 
-	yasl_int size;
-	memcpy(&size, vm->headers[table] + addr, sizeof(yasl_int));
+	YASL_Table_insert_fast(vm->globals[0], vm->constants[addr], vm_pop(vm));
 
-	addr += sizeof(yasl_int);
-	struct YASL_String *string = YASL_String_new_sized((size_t)size, ((char *) vm->headers[table]) + addr);
-
-	YASL_Table_insert_fast(vm->globals[table], YASL_STR(string), vm_pop(vm));
 	return YASL_SUCCESS;
 }
 
 static int vm_GLOAD_8(struct VM *const vm) {
-	yasl_int table = vm_read_int(vm);
 	yasl_int addr = vm_read_int(vm);
 
-	yasl_int size;
-	memcpy(&size, vm->headers[table] + addr, sizeof(yasl_int));
-
-	addr += sizeof(yasl_int);
-	struct YASL_String *string = YASL_String_new_sized((size_t) size, ((char *) vm->headers[table]) + addr);
-
-	vm_push(vm, YASL_Table_search(vm->globals[table], YASL_STR(string)));
+	vm_push(vm, YASL_Table_search(vm->globals[0], vm->constants[addr]));
 
 	YASL_ASSERT(vm_peek(vm).type != Y_END, "global not found");
 
-	str_del(string);
 	return YASL_SUCCESS;
 }
 
@@ -940,18 +921,6 @@ static int vm_INIT_MC(struct VM *const vm) {
 	dec_ref(&top);
 	return YASL_SUCCESS;
 }
-
-static int vm_INIT_MC_SPECIAL(struct VM *const vm) {
-	struct YASL_Object top = vm_peek(vm);
-	inc_ref(&top);
-	vm_NEWSPECIALSTR(vm);
-	vm_GET(vm);
-	vm_INIT_CALL(vm);
-	vm_push(vm, top);
-	dec_ref(&top);
-	return YASL_SUCCESS;
-}
-
 
 static int vm_CALL_closure(struct VM *const vm) {
 	vm->frames[vm->frame_num].pc = vm->pc;
@@ -1057,6 +1026,21 @@ int vm_run(struct VM *const vm) {
 	if (setjmp(vm->buf)) {
 		return vm->status;
 	}
+
+	vm->num_constants = ((int64_t *)vm->code)[2];
+	vm->constants = (struct YASL_Object *)malloc(sizeof(struct YASL_Object) * vm->num_constants);
+	unsigned char *tmp = vm->code + 24;
+	for (int64_t i = 0; i < vm->num_constants; i++) {
+		int64_t len = *((int64_t *)tmp);
+		tmp += sizeof(int64_t);
+		// printf("%.*s\n", (int)len, tmp);
+		char *str = (char *)malloc((size_t)len);
+		memcpy(str, tmp, (size_t)len);
+		vm->constants[i] = YASL_STR(YASL_String_new_sized_heap(0, (size_t)len, str));
+		inc_ref(vm->constants + i);
+		tmp += len;
+	}
+
 	while (1) {
 		unsigned char opcode = NCODE(vm);        // fetch
 		signed char offset;
@@ -1231,9 +1215,6 @@ int vm_run(struct VM *const vm) {
 			a = vm_pop(vm);
 			vm_push(vm, YASL_BOOL(a.type == b.type && YASL_GETINT(a) == YASL_GETINT(b)));
 			break;
-		case O_NEWSPECIALSTR:
-			if ((res = vm_NEWSPECIALSTR(vm))) return res;
-			break;
 		case O_NEWSTR:
 			if ((res = vm_NEWSTR(vm))) return res;
 			break;
@@ -1341,9 +1322,6 @@ int vm_run(struct VM *const vm) {
 			break;
 		case O_INIT_MC:
 			if ((res = vm_INIT_MC(vm))) return res;
-			break;
-		case O_INIT_MC_SPECIAL:
-			if ((res = vm_INIT_MC_SPECIAL(vm))) return res;
 			break;
 		case O_INIT_CALL:
 			if ((res = vm_INIT_CALL(vm))) return res;

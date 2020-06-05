@@ -89,13 +89,15 @@ struct LoopFrame {
 struct VM {
 	struct IO out;
 	struct IO err;
-	struct YASL_Table **globals;          // variables, see "constant.c" for details on YASL_Object.
+	struct YASL_Table **globals;   // variables, see "constant.c" for details on YASL_Object.
 	size_t num_globals;
-	struct YASL_Object *stack;            // stack
+	struct YASL_Object *stack;     // stack
 	struct CallFrame frames[1000];
 	int frame_num;
 	struct LoopFrame loopframes[16];
 	int loopframe_num;
+	struct YASL_Object *constants;
+	int64_t num_constants;
 	unsigned char *code;           // bytecode
 	unsigned char **headers;
 	size_t headers_size;

@@ -61,10 +61,12 @@ enum Opcode {
 
 	O_EXPORT = 0x90, // export
 
-	O_NEWSPECIALSTR = 0x9A, // new special string.
 	O_NEWSTR = 0x9B, // make new String and push it onto stack (length (8 bytes), string (length bytes))
 	O_NEWTABLE = 0x9C, // make new HashTable and push it onto stack
 	O_NEWLIST = 0x9D, // make new List and push it onto stack
+
+	O_SCONST = 0x9E, // load a string literal from constant table.
+	O_SCONST_INIT = 0x9F, // initialize the constant table with a string literal.
 
 	O_CRET = 0xA0, // return from closure.
 
@@ -83,7 +85,6 @@ enum Opcode {
 	O_ITER_1 = 0xD3, // iterate to next, 1 var
 	O_ITER_2 = 0xD5, // iterate to next, 2 var
 
-	O_INIT_MC_SPECIAL = 0xE6,
 	O_INIT_MC = 0xE7,
 	O_INIT_CALL = 0xE8, // set up function call
 	O_CALL = 0xE9, // function call

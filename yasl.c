@@ -23,7 +23,7 @@ struct YASL_State *YASL_newstate_num(char *filename, size_t num) {
 	struct Compiler tcomp = NEW_COMPILER(lp);
 	S->compiler = tcomp;
 	S->compiler.num = num;
-	S->compiler.header->count = 16;
+	S->compiler.header->count = 24;
 
 	vm_init((struct VM *)S, NULL, -1, num + 1);
 	return S;
@@ -42,7 +42,7 @@ struct YASL_State *YASL_newstate(const char *filename) {
 	struct LEXINPUT *lp = lexinput_new_file(fp);
 	struct Compiler tcomp = NEW_COMPILER(lp);
 	S->compiler = tcomp;
-	S->compiler.header->count = 16;
+	S->compiler.header->count = 24;
 	S->compiler.num = 0;
 
 	vm_init((struct VM *) S, NULL, -1, 1);
@@ -100,7 +100,7 @@ struct YASL_State *YASL_newstate_bb(const char *buf, size_t len) {
 	struct LEXINPUT *lp = lexinput_new_bb(buf, len);
 	struct Compiler tcomp = NEW_COMPILER(lp);
 	S->compiler = tcomp;
-	S->compiler.header->count = 16;
+	S->compiler.header->count = 24;
 	S->compiler.num = 0;
 
 	vm_init((struct VM *) S, NULL, -1, 1);
@@ -168,7 +168,7 @@ int YASL_declglobal(struct YASL_State *S, const char *name) {
 	struct YASL_Object value = YASL_Table_search_string_int(S->compiler.strings, name, strlen(name));
 	if (value.type == Y_END) {
 		YASL_COMPILE_DEBUG_LOG("%s\n", "caching string");
-		YASL_Table_insert_string_int(S->compiler.strings, name, strlen(name), S->compiler.header->count);
+		YASL_Table_insert_string_int(S->compiler.strings, name, strlen(name), S->compiler.strings->count);
 		YASL_ByteBuffer_add_int(S->compiler.header, strlen(name));
 		YASL_ByteBuffer_extend(S->compiler.header, (unsigned char *) name, strlen(name));
 	}

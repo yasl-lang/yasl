@@ -27,6 +27,12 @@ int YASL_require(struct YASL_State *S) {
 		return -1;
 	}
 
+	YASL_Table_del(Ss->compiler.strings);
+	Ss->compiler.strings = S->compiler.strings;
+	YASL_ByteBuffer_del(Ss->compiler.header);
+	Ss->compiler.header = S->compiler.header;
+	// Ss->vm.constants = S->vm.constants;
+
 	// Load Standard Libraries
 	YASLX_decllibs(Ss);
 
@@ -56,6 +62,17 @@ int YASL_require(struct YASL_State *S) {
 	}
 	Ss->vm.code = NULL;
 	S->vm.headers_size = S->vm.num_globals = new_headers_size;
+	Ss->compiler.strings = NULL;
+	Ss->compiler.header = YASL_ByteBuffer_new(0);
+	for (int i = 0; i < S->vm.num_constants; i++) {
+		dec_ref(S->vm.constants + i);
+	}
+	free(S->vm.constants);
+	S->vm.constants = Ss->vm.constants;
+	S->vm.num_constants = Ss->vm.num_constants;
+	Ss->vm.constants = NULL;
+	Ss->vm.num_constants = 0;
+
 	YASL_delstate(Ss);
 
 	vm_push(&S->vm, exported);
