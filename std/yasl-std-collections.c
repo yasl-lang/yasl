@@ -237,6 +237,19 @@ static int YASL_collections_set_contains(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
+static int YASL_collections_set___get(struct YASL_State *S) {
+	struct YASL_Object object = vm_pop(&S->vm);
+	if (!YASL_isuserdata(S, T_SET)) {
+		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type set, got arg of type %s.",
+				  SET_PRE ".__get", 0, YASL_TYPE_NAMES[vm_peek(&S->vm).type]);
+		return YASL_TYPE_ERROR;
+	}
+	struct YASL_Set *set = (struct YASL_Set *)YASL_popuserdata(S);
+
+	vm_push((struct VM *)S, YASL_Set_search(set, object));
+	return YASL_SUCCESS;
+}
+
 int YASL_decllib_collections(struct YASL_State *S) {
 	if (!set_mt) {
 		set_mt = YASL_Table_new();
@@ -252,6 +265,7 @@ int YASL_decllib_collections(struct YASL_State *S) {
 		YASL_Table_insert_literalcstring_cfunction(set_mt, "copy", YASL_collections_set_copy, 1);
 		YASL_Table_insert_literalcstring_cfunction(set_mt, "clear", YASL_collections_set_clear, 1);
 		YASL_Table_insert_literalcstring_cfunction(set_mt, "contains", YASL_collections_set_contains, 2);
+		YASL_Table_insert_literalcstring_cfunction(set_mt, "__get", YASL_collections_set___get, 2);
 	}
 
 	YASL_declglobal(S, "collections");
