@@ -266,7 +266,7 @@ int list_search(struct YASL_State *S) {
 	struct YASL_Object index = YASL_UNDEF();
 
 	FOR_LIST(i, obj, haystack) {
-		if (!isfalsey(isequal(obj, needle)))
+		if (!isfalsey(isequal(&obj, &needle)))
 			index = YASL_INT((yasl_int) i);
 	}
 

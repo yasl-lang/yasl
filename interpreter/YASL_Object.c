@@ -108,17 +108,17 @@ bool isfalsey(struct YASL_Object v) {
 	);
 }
 
-struct YASL_Object isequal(struct YASL_Object a, struct YASL_Object b) {
+struct YASL_Object isequal(const struct YASL_Object *const a, const struct YASL_Object *const b) {
 	const struct YASL_Object false_c = FALSE_C;
 	const struct YASL_Object true_c = TRUE_C;
 	const struct YASL_Object undef_c = UNDEF_C;
-	if (obj_isundef(&a) && obj_isundef(&b)) {
+	if (obj_isundef(a) && obj_isundef(b)) {
 		return true_c;
 	}
-	switch (a.type) {
+	switch (a->type) {
 	case Y_BOOL:
-		if (obj_isbool(&b)) {
-			if (YASL_GETBOOL(a) == YASL_GETBOOL(b)) {
+		if (obj_isbool(b)) {
+			if (YASL_GETBOOL(*a) == YASL_GETBOOL(*b)) {
 				return true_c;
 			} else {
 				return false_c;
@@ -128,46 +128,46 @@ struct YASL_Object isequal(struct YASL_Object a, struct YASL_Object b) {
 		}
 	case Y_TABLE:
 	case Y_TABLE_W:
-		if (YASL_ISTABLE(b)) {
+		if (YASL_ISTABLE(*b)) {
 			puts("Warning: comparison of hashes currently is not implemented.");
 			return undef_c;
 		}
 		return false_c;
 	case Y_LIST:
 	case Y_LIST_W:
-		if (obj_islist(&b)) {
+		if (obj_islist(b)) {
 			puts("Warning: comparison of lists currently is not implemented.");
 			return undef_c;
 		}
 		return false_c;
 	case Y_STR:
 	case Y_STR_W:
-		if (obj_isstr(&b)) {
-			if (YASL_GETSTR(a) == YASL_GETSTR(b)) {
+		if (obj_isstr(b)) {
+			if (YASL_GETSTR(*a) == YASL_GETSTR(*b)) {
 				return true_c;
 			}
-			if (YASL_String_len(YASL_GETSTR(a)) != YASL_String_len(YASL_GETSTR(b))) {
+			if (YASL_String_len(YASL_GETSTR(*a)) != YASL_String_len(YASL_GETSTR(*b))) {
 				return false_c;
 			} else {
-				return memcmp(YASL_GETSTR(a)->str + YASL_GETSTR(a)->start,
-					      YASL_GETSTR(b)->str + YASL_GETSTR(b)->start,
-					      YASL_String_len(YASL_GETSTR(a))) ? false_c : true_c;
+				return memcmp(YASL_GETSTR(*a)->str + YASL_GETSTR(*a)->start,
+					      YASL_GETSTR(*b)->str + YASL_GETSTR(*b)->start,
+					      YASL_String_len(YASL_GETSTR(*a))) ? false_c : true_c;
 			}
 		}
 		return false_c;
 	default:
-		if (obj_isbool(&b) || YASL_ISTABLE(b)) {
+		if (obj_isbool(b) || YASL_ISTABLE(*b)) {
 			return false_c;
 		}
 		bool c;
-		if (obj_isint(&a) && obj_isint(&b)) {
-			c = YASL_GETINT(a) == YASL_GETINT(b);
-		} else if (obj_isfloat(&a) && obj_isint(&b)) {
-			c = YASL_GETFLOAT(a) == (yasl_float) YASL_GETINT(b);
-		} else if (obj_isint(&a) && obj_isfloat(&b)) {
-			c = (yasl_float) YASL_GETINT(a) == YASL_GETFLOAT(b);
-		} else if (obj_isfloat(&a) && obj_isfloat(&b)) {
-			c = YASL_GETFLOAT(a) == YASL_GETFLOAT(b);
+		if (obj_isint(a) && obj_isint(b)) {
+			c = YASL_GETINT(*a) == YASL_GETINT(*b);
+		} else if (obj_isfloat(a) && obj_isint(b)) {
+			c = YASL_GETFLOAT(*a) == (yasl_float) YASL_GETINT(*b);
+		} else if (obj_isint(a) && obj_isfloat(b)) {
+			c = (yasl_float) YASL_GETINT(*a) == YASL_GETFLOAT(*b);
+		} else if (obj_isfloat(a) && obj_isfloat(b)) {
+			c = YASL_GETFLOAT(*a) == YASL_GETFLOAT(*b);
 		} else {
 			return undef_c;
 		}

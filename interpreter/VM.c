@@ -1207,7 +1207,7 @@ int vm_run(struct VM *const vm) {
 		case O_EQ:
 			b = vm_pop(vm);
 			a = vm_pop(vm);
-			v = isequal(a, b);
+			v = isequal(&a, &b);
 			vm_push(vm, v);
 			break;
 		case O_ID: // TODO: clean-up

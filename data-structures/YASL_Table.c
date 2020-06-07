@@ -113,7 +113,7 @@ void YASL_Table_insert_fast(struct YASL_Table *const table, const struct YASL_Ob
 	size_t i = 1;
 	while (curr_item.value.type != Y_UNDEF) {
 		if (curr_item.key.type != Y_END) {
-			if (!isfalsey(isequal(curr_item.key, item.key))) {
+			if (!isfalsey(isequal(&curr_item.key, &item.key))) {
 				del_item(&curr_item);
 				table->items[index] = item;
 				return;
@@ -157,7 +157,7 @@ struct YASL_Object YASL_Table_search(const struct YASL_Table *const table, const
 	struct YASL_Table_Item item = table->items[index];
 	int i = 1;
 	while (!obj_isundef(&item.key)) {
-		if (!isfalsey(isequal(item.key, key))) {
+		if (!isfalsey(isequal(&item.key, &key))) {
 			return item.value;
 		}
 		index = get_hash(key, table->size, i++);
@@ -185,7 +185,7 @@ void YASL_Table_rm(struct YASL_Table *const table, const struct YASL_Object key)
 	size_t i = 1;
 	while (!obj_isundef(&item.key)) {
 		if (item.key.type != Y_END) {
-			if (!isfalsey(isequal(item.key, key))) {
+			if (!isfalsey(isequal(&item.key, &key))) {
 				del_item(&item);
 				table->items[index] = TOMBSTONE;
 			}
