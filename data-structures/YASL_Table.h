@@ -8,7 +8,7 @@
 #define TABLE_BASESIZE 30
 
 #define FOR_TABLE(i, item, table) struct YASL_Table_Item *item; for (size_t i = 0; i < (table)->size; i++) \
-                                                  if (item = &(table)->items[i], item->key.type != Y_END && !YASL_ISUNDEF(item->value))
+                                                  if (item = &(table)->items[i], item->key.type != Y_END && !obj_isundef(&item->value))
 
 
 #define NEW_TABLE() ((struct YASL_Table){\

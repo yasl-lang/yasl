@@ -21,8 +21,6 @@ enum Opcode {
 	O_DCONST_0 = 0x1B, // push 0.0 onto stack
 	O_DCONST_1 = 0x1C, // push 1.0 onto stack
 	O_DCONST_2 = 0x1D, // push 2.0 onto stack
-	O_DCONST_N = 0x1E, // push nan onto stack
-	O_DCONST_I = 0x1F, // push inf onto stack
 
 	O_ICONST_B1 = 0x20, // push literal integer that only requires 1 byte onto stack.
 	O_ICONST_B2 = 0x21, // TODO
@@ -39,14 +37,14 @@ enum Opcode {
 
 	O_ASS = 0x50, // assert
 
-	O_ADD = 0x60, // add two integers
-	O_SUB = 0x61, // subtract two integers
+	O_ADD = 0x60, // add two numbers
+	O_SUB = 0x61, // subtract two numbers
 	O_MUL = 0x62, // multiply two integers
 	O_EXP = 0x63, // exponentiation
-	O_FDIV = 0x64, // divide two integers
+	O_FDIV = 0x64, // divide two numbers (return float)
 	O_IDIV = 0x65, // divide two ints (return int)
-	O_MOD = 0x66, // modulo two numbers
-	O_NEG = 0x67, // negate an integer
+	O_MOD = 0x66, // modulo two integers
+	O_NEG = 0x67, // negate a number
 	O_POS = 0x68, // positive of a number
 	O_NOT = 0x69, // negate a boolean
 	O_LEN = 0x6A, // get length
@@ -63,10 +61,12 @@ enum Opcode {
 
 	O_EXPORT = 0x90, // export
 
-	O_NEWSPECIALSTR = 0x9A, // new special string.
 	O_NEWSTR = 0x9B, // make new String and push it onto stack (length (8 bytes), string (length bytes))
 	O_NEWTABLE = 0x9C, // make new HashTable and push it onto stack
 	O_NEWLIST = 0x9D, // make new List and push it onto stack
+
+	O_SCONST = 0x9E, // load a string literal from constant table.
+	O_SCONST_INIT = 0x9F, // initialize the constant table with a string literal.
 
 	O_CRET = 0xA0, // return from closure.
 
@@ -85,7 +85,6 @@ enum Opcode {
 	O_ITER_1 = 0xD3, // iterate to next, 1 var
 	O_ITER_2 = 0xD5, // iterate to next, 2 var
 
-	O_INIT_MC_SPECIAL = 0xE6,
 	O_INIT_MC = 0xE7,
 	O_INIT_CALL = 0xE8, // set up function call
 	O_CALL = 0xE9, // function call
@@ -93,12 +92,10 @@ enum Opcode {
 
 	O_GSTORE_8 = 0xF0, // from string
 	O_GLOAD_8 = 0xF1, // from string
-	O_USTORE_1 = 0xF2, // load upvalue
-	O_ULOAD_1 = 0xF3, // store upvalue
-	O_GSTORE_1 = 0xF4, // store top of stack at addr provided
-	O_GLOAD_1 = 0xF5, // load global from addr
-	O_LSTORE_1 = 0xF6, // store top of stack as local at addr
-	O_LLOAD_1 = 0xF7, // load local from addr
+	O_USTORE = 0xF2, // load upvalue
+	O_ULOAD = 0xF3, // store upvalue
+	O_LSTORE = 0xF4, // store top of stack as local at addr
+	O_LLOAD = 0xF5, // load local from addr
 	O_PRINT = 0xFF  // print
 };
 

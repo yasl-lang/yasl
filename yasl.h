@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define YASL_VERSION "v0.8.3"
+#define YASL_VERSION "v0.8.4"
 
 struct YASL_State;
 struct YASL_Object;
@@ -121,6 +121,16 @@ int YASL_setglobal(struct YASL_State *S, const char *name);
  */
 int YASL_loadglobal(struct YASL_State *S, const char *name);
 
+int YASL_registermt(struct YASL_State *S, const char *name);
+int YASL_loadmt(struct YASL_State *S, const char *name);
+int YASL_setmt(struct YASL_State *S);
+
+/**
+ * Prints a runtime error.
+ * @param S the YASL_State in which the error occurred.
+ * @param fmt a format string, taking the same parameters as printf.
+ * @param ... var args for the above format strings.
+ */
 void YASL_print_err(struct YASL_State *S, const char *const fmt, ...) YASL_FORMAT_CHECK;
 
 /**

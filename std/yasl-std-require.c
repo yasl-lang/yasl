@@ -1,5 +1,4 @@
 #include <yasl_state.h>
-#include <data-structures/YASL_ByteBuffer.h>
 #include "yasl-std-require.h"
 #include "yasl-std-math.h"
 #include "yasl-std-io.h"
@@ -28,6 +27,12 @@ int YASL_require(struct YASL_State *S) {
 		return -1;
 	}
 
+	YASL_Table_del(Ss->compiler.strings);
+	Ss->compiler.strings = S->compiler.strings;
+	YASL_ByteBuffer_del(Ss->compiler.header);
+	Ss->compiler.header = S->compiler.header;
+	// Ss->vm.constants = S->vm.constants;
+
 	// Load Standard Libraries
 	YASLX_decllibs(Ss);
 
@@ -39,6 +44,7 @@ int YASL_require(struct YASL_State *S) {
 		puts("Not a valid module");
 		return YASL_ERROR;
 	}
+
 	inc_ref(&vm_peek(&Ss->vm));
 	struct YASL_Object exported = vm_pop(&Ss->vm);
 
@@ -46,8 +52,8 @@ int YASL_require(struct YASL_State *S) {
 
 	size_t old_headers_size = S->vm.headers_size;
 	size_t new_headers_size = Ss->vm.headers_size;
-	S->vm.headers = (unsigned char **)realloc(S->vm.headers, new_headers_size * sizeof(unsigned char *));
-	S->vm.globals = (struct YASL_Table **)realloc(S->vm.globals, new_headers_size * sizeof(struct YASL_Table *));
+	S->vm.headers = (unsigned char **) realloc(S->vm.headers, new_headers_size * sizeof(unsigned char *));
+	S->vm.globals = (struct YASL_Table **) realloc(S->vm.globals, new_headers_size * sizeof(struct YASL_Table *));
 	for (size_t i = old_headers_size; i < new_headers_size; i++) {
 		S->vm.headers[i] = Ss->vm.headers[i];
 		Ss->vm.headers[i] = NULL;
@@ -56,6 +62,17 @@ int YASL_require(struct YASL_State *S) {
 	}
 	Ss->vm.code = NULL;
 	S->vm.headers_size = S->vm.num_globals = new_headers_size;
+	Ss->compiler.strings = NULL;
+	Ss->compiler.header = YASL_ByteBuffer_new(0);
+	for (int i = 0; i < S->vm.num_constants; i++) {
+		dec_ref(S->vm.constants + i);
+	}
+	free(S->vm.constants);
+	S->vm.constants = Ss->vm.constants;
+	S->vm.num_constants = Ss->vm.num_constants;
+	Ss->vm.constants = NULL;
+	Ss->vm.num_constants = 0;
+
 	YASL_delstate(Ss);
 
 	vm_push(&S->vm, exported);
@@ -67,9 +84,9 @@ int YASL_require(struct YASL_State *S) {
 }
 
 int YASL_require_c(struct YASL_State *S) {
-    // TODO: Do I need anything else here?
+	// TODO: Do I need anything else here?
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "require_c", 0, Y_STR, YASL_peektype(S));
+		vm_print_err_bad_arg_type((struct VM *) S, "require_c", 0, Y_STR, YASL_peektype(S));
 		return YASL_TYPE_ERROR;
 	}
 
@@ -87,7 +104,7 @@ int YASL_require_c(struct YASL_State *S) {
 	    return YASL_VALUE_ERROR;
 	}
 	int (*fun)(struct YASL_State *) =
-	        (int (*)(struct YASL_State *))GetProcAddress(lib, LOAD_LIB_FUN_NAME);
+		(int (*)(struct YASL_State *))GetProcAddress(lib, LOAD_LIB_FUN_NAME);
 	if (!fun) {
 	    vm_print_err_value((struct VM *)S, "couldn't load function: %s.\n", LOAD_LIB_FUN_NAME);
 	    return YASL_VALUE_ERROR;
@@ -99,13 +116,13 @@ int YASL_require_c(struct YASL_State *S) {
 #elif defined(YASL_USE_UNIX) || defined(YASL_USE_APPLE)
 	void *lib = dlopen(mode_str, RTLD_NOW);
 	if (!lib) {
-	    vm_print_err_value((struct VM *)S, "couldn't open shared library: %s.\n", mode_str);
-	    return YASL_VALUE_ERROR;
+		vm_print_err_value((struct VM *) S, "couldn't open shared library: %s.\n", mode_str);
+		return YASL_VALUE_ERROR;
 	}
-	int (*fun)(struct YASL_State *) = (int (*)(struct YASL_State *))dlsym(lib, LOAD_LIB_FUN_NAME);
+	int (*fun)(struct YASL_State *) = (int (*)(struct YASL_State *)) dlsym(lib, LOAD_LIB_FUN_NAME);
 	if (!fun) {
-	    vm_print_err_value((struct VM *)S, "couldn't load function: %s.\n", LOAD_LIB_FUN_NAME);
-	    return YASL_VALUE_ERROR;
+		vm_print_err_value((struct VM *) S, "couldn't load function: %s.\n", LOAD_LIB_FUN_NAME);
+		return YASL_VALUE_ERROR;
 	}
 	return fun(S);
 #else

@@ -10,8 +10,6 @@
 // what to prepend to method names in messages to user
 #define FILE_PRE "io.file"
 
-static struct YASL_Table *mt;
-
 // TODO: fix mem leak in here.
 static int YASL_io_open(struct YASL_State *S) {
 	const char *mode_str;
@@ -80,7 +78,9 @@ static int YASL_io_open(struct YASL_State *S) {
 		}
 	}
 	if (f) {
-		YASL_pushuserdata(S, f, T_FILE, mt, NULL);
+		YASL_pushuserdata(S, f, T_FILE, NULL, NULL);
+		YASL_loadmt(S, FILE_PRE);
+		YASL_setmt(S);
 	} else {
 		YASL_pushundef(S);
 	}
@@ -125,7 +125,9 @@ static int YASL_io_read(struct YASL_State *S) {
 		fseek(f, 0, SEEK_SET);
 
 		char *string = (char *)malloc(fsize);
-		fread(string, fsize, 1, f);
+		int result = fread(string, fsize, 1, f);
+		(void) result;
+		// TODO clean this up.
 		YASL_pushstring(S, string, fsize); }
 		free(mode_str);
 		return YASL_SUCCESS;
@@ -191,16 +193,92 @@ static int YASL_io_flush(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
-int YASL_decllib_io(struct YASL_State *S) {
-	if (!mt) {
-		mt = YASL_Table_new();
-		YASL_Table_insert_fast(mt, YASL_STR(YASL_String_new_sized(strlen("read"), "read")),
-				       YASL_CFN(YASL_io_read, 2));
-		YASL_Table_insert_fast(mt, YASL_STR(YASL_String_new_sized(strlen("write"), "write")),
-				       YASL_CFN(YASL_io_write, 2));
-		YASL_Table_insert_fast(mt, YASL_STR(YASL_String_new_sized(strlen("flush"), "flush")),
-				       YASL_CFN(YASL_io_flush, 1));
+static int YASL_io_seek(struct YASL_State *S) {
+	yasl_int offset;
+	if (YASL_isundef(S)) {
+		offset = 0;
+		YASL_pop(S);
+	} else if ((YASL_isint(S))) {
+		offset = YASL_popint(S);
+	} else {
+		vm_print_err_type((struct VM *)S,"%s expected arg in position %d to be of type int, got arg of type %s.", FILE_PRE ".seek", 2, YASL_TYPE_NAMES[YASL_peektype(S)]);
+		return YASL_TYPE_ERROR;
 	}
+
+	int whence;
+	if (YASL_isundef(S)) {
+		whence = SEEK_SET;
+		YASL_pop(S);
+	} else if (YASL_isstr(S)) {
+		char *tmp = YASL_popcstr(S);
+		if (!strcmp(tmp, "set")) whence = SEEK_SET;
+		else if (!strcmp(tmp, "cur")) whence = SEEK_CUR;
+		else if (!strcmp(tmp, "end")) whence = SEEK_END;
+		else {
+			vm_print_err_value((struct VM *)S, "%s expected arg in position 1 to be one of 'set', 'cur', or 'end', got '%s'.", FILE_PRE ".seek", tmp);
+			free(tmp);
+			return YASL_VALUE_ERROR;
+		}
+		free(tmp);
+	} else {
+		vm_print_err_bad_arg_type((struct VM *)S, FILE_PRE ".seek", 1, Y_STR, YASL_peektype(S));
+		return YASL_TYPE_ERROR;
+	}
+
+	if (!YASL_isuserdata(S, T_FILE)) {
+		vm_print_err_type((struct VM *)S, "%s expected arg in position %d to be of type file, got arg of type %s.",
+				  FILE_PRE ".seek", 0, YASL_TYPE_NAMES[YASL_peektype(S)]);
+		return YASL_TYPE_ERROR;
+	}
+	FILE *f = (FILE *)YASL_popuserdata(S);
+
+	int success = fseek(f, offset, whence);
+	YASL_pushbool(S, success == 0);
+	return YASL_SUCCESS;
+}
+
+static int YASL_io_close(struct YASL_State *S) {
+	if (!YASL_isuserdata(S, T_FILE)) {
+		vm_print_err_type((struct VM *)S, "%s expected arg in position %d to be of type file, got arg of type %s.",
+				  FILE_PRE ".flush", 0, YASL_TYPE_NAMES[YASL_peektype(S)]);
+		return YASL_TYPE_ERROR;
+	}
+	FILE *f = (FILE *)YASL_popuserdata(S);
+
+	int success = fclose(f);
+	YASL_pushbool(S, success == 0);
+	return YASL_SUCCESS;
+}
+
+int YASL_decllib_io(struct YASL_State *S) {
+	YASL_pushtable(S);
+	YASL_registermt(S, FILE_PRE);
+
+	YASL_loadmt(S, FILE_PRE);
+	YASL_pushlitszstring(S, "read");
+	YASL_pushcfunction(S, YASL_io_read, 2);
+	YASL_tableset(S);
+
+	YASL_loadmt(S, FILE_PRE);
+	YASL_pushlitszstring(S, "write");
+	YASL_pushcfunction(S, YASL_io_write, 2);
+	YASL_tableset(S);
+
+	YASL_loadmt(S, FILE_PRE);
+	YASL_pushlitszstring(S, "seek");
+	YASL_pushcfunction(S, YASL_io_seek, 3);
+	YASL_tableset(S);
+
+	YASL_loadmt(S, FILE_PRE);
+	YASL_pushlitszstring(S, "flush");
+	YASL_pushcfunction(S, YASL_io_flush, 1);
+	YASL_tableset(S);
+
+	YASL_loadmt(S, FILE_PRE);
+	YASL_pushlitszstring(S, "close");
+	YASL_pushcfunction(S, YASL_io_close, 1);
+	YASL_tableset(S);
+
 
 	YASL_declglobal(S, "io");
 	YASL_pushtable(S);
@@ -222,23 +300,39 @@ int YASL_decllib_io(struct YASL_State *S) {
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "io");
+	YASL_pushlitszstring(S, "seek");
+	YASL_pushcfunction(S, YASL_io_seek, 3);
+	YASL_tableset(S);
+
+	YASL_loadglobal(S, "io");
 	YASL_pushlitszstring(S, "flush");
 	YASL_pushcfunction(S, YASL_io_flush, 1);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "io");
+	YASL_pushlitszstring(S, "close");
+	YASL_pushcfunction(S, YASL_io_close, 1);
+	YASL_tableset(S);
+
+	YASL_loadglobal(S, "io");
 	YASL_pushlitszstring(S, "stdin");
-	YASL_pushuserdata(S, stdin, T_FILE, mt, NULL);
+	YASL_pushuserdata(S, stdin, T_FILE, NULL, NULL);
+	YASL_loadmt(S, FILE_PRE);
+	YASL_setmt(S);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "io");
 	YASL_pushlitszstring(S, "stdout");
-	YASL_pushuserdata(S, stdout, T_FILE, mt, NULL);
+	YASL_pushuserdata(S, stdout, T_FILE, NULL, NULL);
+	YASL_loadmt(S, FILE_PRE);
+	YASL_setmt(S);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "io");
 	YASL_pushlitszstring(S, "stderr");
-	YASL_pushuserdata(S, stderr, T_FILE, mt, NULL);
+	YASL_pushuserdata(S, stderr, T_FILE, NULL, NULL);
+	YASL_loadmt(S, FILE_PRE);
+	YASL_setmt(S);
 	YASL_tableset(S);
 
 	return YASL_SUCCESS;

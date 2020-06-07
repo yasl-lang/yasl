@@ -79,6 +79,7 @@ int syntaxerrortest(void) {
 
 	ASSERT_SYNTAX_ERR("echo if;", "Expected expression, got `if` (line 1)");
 	ASSERT_SYNTAX_ERR("assert false", "Expected ;, got END OF FILE (line 1)");
+	ASSERT_SYNTAX_ERR("echo ''[];", "Invalid expression `]` (line 1)");
 
 	return __YASL_TESTS_FAILED__;
 }

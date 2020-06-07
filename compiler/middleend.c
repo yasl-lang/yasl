@@ -384,6 +384,7 @@ void fold_Table(struct Node *const node) {
 }
 
 void fold(struct Node *const node) {
+	if (!node) return;
 	switch (node->nodetype) {
 	case N_EXPRSTMT:
 		fold_ExprStmt(node);

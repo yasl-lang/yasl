@@ -114,6 +114,17 @@ static int YASL_quit(struct YASL_State *S) {
 	exit(0);
 }
 
+
+#ifdef __EMSCRIPTEN__
+int execute_string(char *str) {
+	struct YASL_State *S = YASL_newstate_bb(str, strlen(str));
+	YASLX_decllibs(S);
+	int status = YASL_execute(S);
+	YASL_delstate(S);
+	return status;
+}
+#endif
+
 static int main_command(int argc, char **argv) {
 	(void) argc;
 	const size_t size = strlen(argv[2]);

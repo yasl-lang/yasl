@@ -168,12 +168,12 @@ static int YASL_math_max(struct YASL_State *S) {
 	}
 
 	for (yasl_int i = 0; i < num_va_args; i++) {
-		if (YASL_ISINT(vm_peek((struct VM *)S))) {
+		if (vm_isint((struct VM *)S)) {
 			yasl_int top = vm_popint((struct VM *)S);
 			if ((top >= YASL_GETNUM(max))) {
 				max = YASL_INT(top);
 			}
-		} else if (YASL_ISFLOAT(vm_peek((struct VM *)S))) {
+		} else if (vm_isfloat((struct VM *)S)) {
 			yasl_float top = vm_popfloat((struct VM *)S);
 			if (top != top) {
 				YASL_pushfloat(S, YASL_NAN);
@@ -201,12 +201,12 @@ static int YASL_math_min(struct YASL_State *S) {
 	}
 
 	for (yasl_int i = 0; i < num_va_args; i++) {
-		if (YASL_ISINT(vm_peek((struct VM *)S))) {
+		if (vm_isint((struct VM *)S)) {
 			yasl_int top = vm_popint((struct VM *)S);
 			if ((top <= YASL_GETNUM(max))) {
 				max = YASL_INT(top);
 			}
-		} else if (YASL_ISFLOAT(vm_peek((struct VM *)S))) {
+		} else if (vm_isfloat((struct VM *)S)) {
 			yasl_float top = vm_popfloat((struct VM *)S);
 			if (top != top) {
 				YASL_pushfloat(S, YASL_NAN);

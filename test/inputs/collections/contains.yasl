@@ -6,3 +6,11 @@ s->add(1)
 echo s->contains(1)
 echo s->contains(2)
 echo s->contains(.abc)
+
+s->add(.a)
+
+echo s[1]
+echo s[2]
+echo s.a
+echo s['a']
+echo s.abc

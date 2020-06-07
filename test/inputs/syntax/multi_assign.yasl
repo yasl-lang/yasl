@@ -1,0 +1,20 @@
+
+let tmp = 10
+
+let x, const y, tmp = 1, 2, 3
+
+echo x
+echo y
+echo tmp
+
+const a, tmp, let b =  4, 5, 6
+
+echo a
+echo tmp
+echo b
+
+tmp, let c, const d = 7, 8, 9
+
+echo tmp
+echo c
+echo d

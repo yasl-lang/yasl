@@ -5,13 +5,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <setjmp.h>
 
 #include "IO.h"
 #include "data-structures/YASL_Table.h"
 #include "data-structures/YASL_List.h"
 #include "yasl_conf.h"
 #include "opcode.h"
-// #include "closure.h"
+
 
 #define NUM_GLOBALS 256
 #define NUM_TYPES 13                                     // number of builtin types, each needs a vtable
@@ -32,13 +33,13 @@
 #define vm_peekcfn(...) (YASL_GETCFN(vm_peek(__VA_ARGS__)))
 
 #define vm_isend(vm) (YASL_ISEND(vm_peek(vm)))
-#define vm_isundef(vm) (YASL_ISUNDEF(vm_peek(vm)))
+#define vm_isundef(...) (YASL_ISUNDEF(vm_peek(__VA_ARGS__)))
 #define vm_isfloat(vm) (YASL_ISFLOAT(vm_peek(vm)))
-#define vm_isint(vm) (YASL_ISINT(vm_peek(vm)))
+#define vm_isint(...) (YASL_ISINT(vm_peek(__VA_ARGS__)))
 #define vm_isbool(vm) (YASL_ISBOOL(vm_peek(vm)))
-#define vm_isstr(vm) (YASL_ISSTR(vm_peek(vm)))
+#define vm_isstr(...) (YASL_ISSTR(vm_peek(__VA_ARGS__)))
 #define vm_istable(vm) (YASL_ISTABLE(vm_peek(vm)))
-#define vm_islist(vm) (YASL_ISLIST(vm_peek(vm)))
+#define vm_islist(...) (YASL_ISLIST(vm_peek(__VA_ARGS__)))
 #define vm_isuserdata(vm) (YASL_ISUSERDATA(vm_peek(vm)))
 #define vm_isuserptr(vm) (YASL_ISUSERPTR(vm_peek(vm)))
 
@@ -88,13 +89,16 @@ struct LoopFrame {
 struct VM {
 	struct IO out;
 	struct IO err;
-	struct YASL_Table **globals;          // variables, see "constant.c" for details on YASL_Object.
+	struct YASL_Table *metatables;
+	struct YASL_Table **globals;   // variables, see "constant.c" for details on YASL_Object.
 	size_t num_globals;
-	struct YASL_Object *stack;            // stack
+	struct YASL_Object *stack;     // stack
 	struct CallFrame frames[1000];
 	int frame_num;
 	struct LoopFrame loopframes[16];
 	int loopframe_num;
+	struct YASL_Object *constants;
+	int64_t num_constants;
 	unsigned char *code;           // bytecode
 	unsigned char **headers;
 	size_t headers_size;
@@ -105,6 +109,8 @@ struct VM {
 	struct YASL_String *special_strings[NUM_SPECIAL_STRINGS];
 	struct YASL_Table **builtins_htable;   // htable of builtin methods
 	struct Upvalue *pending;
+	jmp_buf buf;
+	int status;
 };
 
 void vm_init(struct VM *const vm, unsigned char *const code, const size_t pc, const size_t datasize);
