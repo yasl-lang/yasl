@@ -53,6 +53,7 @@ void vm_init(struct VM *const vm,
 		vm->headers[i] = NULL;
 		vm->globals[i] = NULL;
 	}
+	vm->metatables = YASL_Table_new();
 	vm->headers[datasize - 1] = code;
 	vm->globals[0] = YASL_Table_new();
 	vm->pc = code + pc;
@@ -126,6 +127,8 @@ void vm_cleanup(struct VM *const vm) {
 		YASL_Table_del(vm->globals[i]);
 	}
 	free(vm->globals);
+
+	YASL_Table_del(vm->metatables);
 
 	YASL_Table_del(vm->builtins_htable[Y_UNDEF]);
 	YASL_Table_del(vm->builtins_htable[Y_FLOAT]);

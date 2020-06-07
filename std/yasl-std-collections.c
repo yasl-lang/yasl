@@ -6,8 +6,6 @@
 // what to prepend to method names in messages to user
 #define SET_PRE "collections.set"
 
-static struct YASL_Table *set_mt = NULL;
-
 static int YASL_collections_set_new(struct YASL_State *S) {
 	struct YASL_Set *set = YASL_Set_new();
 	yasl_int i = YASL_popint(S);
@@ -19,7 +17,10 @@ static int YASL_collections_set_new(struct YASL_State *S) {
 		}
 		YASL_pop(S);
 	}
-	YASL_pushuserdata(S, set, T_SET, set_mt, YASL_Set_del);
+
+	YASL_pushuserdata(S, set, T_SET, NULL, YASL_Set_del);
+	YASL_loadmt(S, SET_PRE);
+	YASL_setmt(S);
 	return YASL_SUCCESS;
 }
 
@@ -136,7 +137,9 @@ static int YASL_collections_set_##name(struct YASL_State *S) {\
 \
 	struct YASL_Set *tmp = fn(left, right);\
 \
-	YASL_pushuserdata(S, tmp, T_SET, set_mt, YASL_Set_del);\
+	YASL_pushuserdata(S, tmp, T_SET, NULL, YASL_Set_del);\
+	YASL_loadmt(S, SET_PRE);\
+	YASL_setmt(S);\
 	return YASL_SUCCESS;\
 }
 
@@ -205,7 +208,9 @@ static int YASL_collections_set_copy(struct YASL_State *S) {
 			YASL_Set_insert(tmp, *item);
 	}
 
-	YASL_pushuserdata(S, tmp, T_SET, set_mt, YASL_Set_del);
+	YASL_pushuserdata(S, tmp, T_SET, NULL, YASL_Set_del);
+	YASL_loadmt(S, SET_PRE);
+	YASL_setmt(S);
 	return YASL_SUCCESS;
 }
 
@@ -251,22 +256,74 @@ static int YASL_collections_set___get(struct YASL_State *S) {
 }
 
 int YASL_decllib_collections(struct YASL_State *S) {
-	if (!set_mt) {
-		set_mt = YASL_Table_new();
-		YASL_Table_insert_literalcstring_cfunction(set_mt, "tostr", YASL_collections_set_tostr, 1);
-		YASL_Table_insert_literalcstring_cfunction(set_mt, "tolist", YASL_collections_set_tolist, 1);
-		YASL_Table_insert_literalcstring_cfunction(set_mt, "__band", YASL_collections_set___band, 2);
-		YASL_Table_insert_literalcstring_cfunction(set_mt, "__bor", YASL_collections_set___bor, 2);
-		YASL_Table_insert_literalcstring_cfunction(set_mt, "__bxor", YASL_collections_set___bxor, 2);
-		YASL_Table_insert_literalcstring_cfunction(set_mt, "__bandnot", YASL_collections_set___bandnot, 2);
-		YASL_Table_insert_literalcstring_cfunction(set_mt, "__len", YASL_collections_set___len, 1);
-		YASL_Table_insert_literalcstring_cfunction(set_mt, "add", YASL_collections_set_add, 2);
-		YASL_Table_insert_literalcstring_cfunction(set_mt, "remove", YASL_collections_set_remove, 2);
-		YASL_Table_insert_literalcstring_cfunction(set_mt, "copy", YASL_collections_set_copy, 1);
-		YASL_Table_insert_literalcstring_cfunction(set_mt, "clear", YASL_collections_set_clear, 1);
-		YASL_Table_insert_literalcstring_cfunction(set_mt, "contains", YASL_collections_set_contains, 2);
-		YASL_Table_insert_literalcstring_cfunction(set_mt, "__get", YASL_collections_set___get, 2);
-	}
+	YASL_pushtable(S);
+	YASL_registermt(S, SET_PRE);
+
+	YASL_loadmt(S, SET_PRE);
+	YASL_pushlitszstring(S, "tostr");
+	YASL_pushcfunction(S, YASL_collections_set_tostr, 1);
+	YASL_tableset(S);
+
+	YASL_loadmt(S, SET_PRE);
+	YASL_pushlitszstring(S, "tolist");
+	YASL_pushcfunction(S, YASL_collections_set_tolist, 1);
+	YASL_tableset(S);
+
+	YASL_loadmt(S, SET_PRE);
+	YASL_pushlitszstring(S, "__band");
+	YASL_pushcfunction(S, YASL_collections_set___band, 2);
+	YASL_tableset(S);
+
+	YASL_loadmt(S, SET_PRE);
+	YASL_pushlitszstring(S, "__bor");
+	YASL_pushcfunction(S, YASL_collections_set___bor, 2);
+	YASL_tableset(S);
+
+	YASL_loadmt(S, SET_PRE);
+	YASL_pushlitszstring(S, "__bxor");
+	YASL_pushcfunction(S, YASL_collections_set___bxor, 2);
+	YASL_tableset(S);
+
+	YASL_loadmt(S, SET_PRE);
+	YASL_pushlitszstring(S, "__bandnot");
+	YASL_pushcfunction(S, YASL_collections_set___bandnot, 2);
+	YASL_tableset(S);
+
+	YASL_loadmt(S, SET_PRE);
+	YASL_pushlitszstring(S, "__len");
+	YASL_pushcfunction(S, YASL_collections_set___len, 1);
+	YASL_tableset(S);
+
+	YASL_loadmt(S, SET_PRE);
+	YASL_pushlitszstring(S, "add");
+	YASL_pushcfunction(S, YASL_collections_set_add, 2);
+	YASL_tableset(S);
+
+	YASL_loadmt(S, SET_PRE);
+	YASL_pushlitszstring(S, "remove");
+	YASL_pushcfunction(S, YASL_collections_set_remove, 2);
+	YASL_tableset(S);
+
+	YASL_loadmt(S, SET_PRE);
+	YASL_pushlitszstring(S, "copy");
+	YASL_pushcfunction(S, YASL_collections_set_copy, 1);
+	YASL_tableset(S);
+
+	YASL_loadmt(S, SET_PRE);
+	YASL_pushlitszstring(S, "clear");
+	YASL_pushcfunction(S, YASL_collections_set_clear, 1);
+	YASL_tableset(S);
+
+	YASL_loadmt(S, SET_PRE);
+	YASL_pushlitszstring(S, "contains");
+	YASL_pushcfunction(S, YASL_collections_set_contains, 2);
+	YASL_tableset(S);
+
+	YASL_loadmt(S, SET_PRE);
+	YASL_pushlitszstring(S, "__get");
+	YASL_pushcfunction(S, YASL_collections_set___get, 2);
+	YASL_tableset(S);
+
 
 	YASL_declglobal(S, "collections");
 	YASL_pushtable(S);

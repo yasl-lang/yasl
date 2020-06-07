@@ -89,6 +89,7 @@ struct LoopFrame {
 struct VM {
 	struct IO out;
 	struct IO err;
+	struct YASL_Table *metatables;
 	struct YASL_Table **globals;   // variables, see "constant.c" for details on YASL_Object.
 	size_t num_globals;
 	struct YASL_Object *stack;     // stack

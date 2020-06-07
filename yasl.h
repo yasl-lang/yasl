@@ -121,6 +121,10 @@ int YASL_setglobal(struct YASL_State *S, const char *name);
  */
 int YASL_loadglobal(struct YASL_State *S, const char *name);
 
+int YASL_registermt(struct YASL_State *S, const char *name);
+int YASL_loadmt(struct YASL_State *S, const char *name);
+int YASL_setmt(struct YASL_State *S);
+
 /**
  * Prints a runtime error.
  * @param S the YASL_State in which the error occurred.

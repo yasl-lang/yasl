@@ -1,6 +1,7 @@
 #include "yasl.h"
 
 #include <stdarg.h>
+#include <interpreter/YASL_Object.h>
 
 #include "interpreter/table_methods.h"
 #include "interpreter/userdata.h"
@@ -203,6 +204,40 @@ int YASL_loadglobal(struct YASL_State *S, const char *name) {
 		return YASL_ERROR;
 	}
 	vm_push(&S->vm, global);
+	return YASL_SUCCESS;
+}
+
+int YASL_registermt(struct YASL_State *S, const char *name) {
+	struct YASL_String *string = YASL_String_new_sized(strlen(name), name);
+	YASL_Table_insert_fast(S->vm.metatables, YASL_STR(string), vm_peek((struct VM *) S));
+	YASL_pop(S);
+
+	return YASL_SUCCESS;
+}
+
+int YASL_loadmt(struct YASL_State *S, const char *name) {
+	struct YASL_String *string = YASL_String_new_sized(strlen(name), name);
+	struct YASL_Object mt = YASL_Table_search(S->vm.metatables, YASL_STR(string));
+	str_del(string);
+	if (mt.type == Y_END) {
+		return YASL_ERROR;
+	}
+	vm_push(&S->vm, mt);
+	return YASL_SUCCESS;
+}
+
+int YASL_setmt(struct YASL_State *S) {
+	if (!YASL_istable(S) && !YASL_isundef(S)) {
+		return YASL_TYPE_ERROR;
+	}
+
+	struct YASL_Table *mt = YASL_istable(S) ? YASL_GETTABLE(vm_pop(&S->vm)) : NULL;
+
+	if (!vm_isuserdata(&S->vm)) {
+		return YASL_TYPE_ERROR;
+	}
+
+	vm_peek(&S->vm).value.uval->mt = mt;
 	return YASL_SUCCESS;
 }
 

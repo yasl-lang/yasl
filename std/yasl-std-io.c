@@ -10,8 +10,6 @@
 // what to prepend to method names in messages to user
 #define FILE_PRE "io.file"
 
-static struct YASL_Table *mt;
-
 // TODO: fix mem leak in here.
 static int YASL_io_open(struct YASL_State *S) {
 	const char *mode_str;
@@ -80,7 +78,9 @@ static int YASL_io_open(struct YASL_State *S) {
 		}
 	}
 	if (f) {
-		YASL_pushuserdata(S, f, T_FILE, mt, NULL);
+		YASL_pushuserdata(S, f, T_FILE, NULL, NULL);
+		YASL_loadmt(S, FILE_PRE);
+		YASL_setmt(S);
 	} else {
 		YASL_pushundef(S);
 	}
@@ -251,19 +251,34 @@ static int YASL_io_close(struct YASL_State *S) {
 }
 
 int YASL_decllib_io(struct YASL_State *S) {
-	if (!mt) {
-		mt = YASL_Table_new();
-		YASL_Table_insert_fast(mt, YASL_STR(YASL_String_new_sized(strlen("read"), "read")),
-				       YASL_CFN(YASL_io_read, 2));
-		YASL_Table_insert_fast(mt, YASL_STR(YASL_String_new_sized(strlen("write"), "write")),
-				       YASL_CFN(YASL_io_write, 2));
-		YASL_Table_insert_fast(mt, YASL_STR(YASL_String_new_sized(strlen("flush"), "flush")),
-				       YASL_CFN(YASL_io_flush, 1));
-		YASL_Table_insert_fast(mt, YASL_STR(YASL_String_new_sized(strlen("seek"), "seek")),
-				       YASL_CFN(YASL_io_seek, 3));
-		YASL_Table_insert_fast(mt, YASL_STR(YASL_String_new_sized(strlen("close"), "close")),
-				       YASL_CFN(YASL_io_close, 1));
-	}
+	YASL_pushtable(S);
+	YASL_registermt(S, FILE_PRE);
+
+	YASL_loadmt(S, FILE_PRE);
+	YASL_pushlitszstring(S, "read");
+	YASL_pushcfunction(S, YASL_io_read, 2);
+	YASL_tableset(S);
+
+	YASL_loadmt(S, FILE_PRE);
+	YASL_pushlitszstring(S, "write");
+	YASL_pushcfunction(S, YASL_io_write, 2);
+	YASL_tableset(S);
+
+	YASL_loadmt(S, FILE_PRE);
+	YASL_pushlitszstring(S, "seek");
+	YASL_pushcfunction(S, YASL_io_seek, 3);
+	YASL_tableset(S);
+
+	YASL_loadmt(S, FILE_PRE);
+	YASL_pushlitszstring(S, "flush");
+	YASL_pushcfunction(S, YASL_io_flush, 1);
+	YASL_tableset(S);
+
+	YASL_loadmt(S, FILE_PRE);
+	YASL_pushlitszstring(S, "close");
+	YASL_pushcfunction(S, YASL_io_close, 1);
+	YASL_tableset(S);
+
 
 	YASL_declglobal(S, "io");
 	YASL_pushtable(S);
@@ -301,17 +316,23 @@ int YASL_decllib_io(struct YASL_State *S) {
 
 	YASL_loadglobal(S, "io");
 	YASL_pushlitszstring(S, "stdin");
-	YASL_pushuserdata(S, stdin, T_FILE, mt, NULL);
+	YASL_pushuserdata(S, stdin, T_FILE, NULL, NULL);
+	YASL_loadmt(S, FILE_PRE);
+	YASL_setmt(S);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "io");
 	YASL_pushlitszstring(S, "stdout");
-	YASL_pushuserdata(S, stdout, T_FILE, mt, NULL);
+	YASL_pushuserdata(S, stdout, T_FILE, NULL, NULL);
+	YASL_loadmt(S, FILE_PRE);
+	YASL_setmt(S);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "io");
 	YASL_pushlitszstring(S, "stderr");
-	YASL_pushuserdata(S, stderr, T_FILE, mt, NULL);
+	YASL_pushuserdata(S, stderr, T_FILE, NULL, NULL);
+	YASL_loadmt(S, FILE_PRE);
+	YASL_setmt(S);
 	YASL_tableset(S);
 
 	return YASL_SUCCESS;
