@@ -13,7 +13,7 @@ int list___get(struct YASL_State *S) {
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_List *ls = YASL_GETLIST(vm_peek((struct VM *) S));
-	if (!YASL_ISINT(index)) {
+	if (!obj_isint(&index)) {
 		return YASL_TYPE_ERROR;
 	} else if (YASL_GETINT(index) < -(int64_t) ls->count || YASL_GETINT(index) >= (int64_t) ls->count) {
 		return YASL_VALUE_ERROR;
@@ -73,7 +73,7 @@ int list_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, s
 	FOR_LIST(i, obj, list) {
 		vm_push((struct VM *) S, obj);
 
-		if (YASL_ISLIST(vm_peek((struct VM *) S, S->vm.sp))) {
+		if (vm_islist((struct VM *) S, S->vm.sp)) {
 			int found = 0;
 			for (size_t j = 0; j < buffer_count; j++) {
 				if (buffer[j] == vm_peeklist((struct VM *) S, S->vm.sp)) {
@@ -300,7 +300,7 @@ int list_clear(struct YASL_State *S) {
 }
 
 int list_join(struct YASL_State *S) {
-	if (!YASL_ISSTR(vm_peek((struct VM *) S))) {
+	if (!vm_isstr((struct VM *) S)) {
 		YASLX_print_err_bad_arg_type(S, "list.join", 1, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}

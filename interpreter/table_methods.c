@@ -30,7 +30,7 @@ int table___set(struct YASL_State *S) {
 		return YASL_TYPE_ERROR;
 	}
 	struct YASL_Table *ht = YASL_GETTABLE(vm_pop((struct VM *) S));
-	if (YASL_ISUNDEF(val)) {
+	if (obj_isundef(&val)) {
 		YASL_Table_rm(ht, key);
 		return YASL_SUCCESS;
 	}
@@ -91,7 +91,7 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 
 		vm_push((struct VM *) S, item->value);
 
-		if (YASL_ISLIST(vm_peek((struct VM *) S, S->vm.sp))) {
+		if (vm_islist((struct VM *) S, S->vm.sp)) {
 			int found = 0;
 			for (size_t j = 0; j < buffer_count; j++) {
 				if (buffer[j] == vm_peeklist((struct VM *) S, S->vm.sp)) {

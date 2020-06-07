@@ -419,7 +419,7 @@ int str_trim(struct YASL_State *S) {
 }
 
 int str_repeat(struct YASL_State *S) {
-	if (!YASL_ISINT(vm_peek((struct VM *) S))) {
+	if (!vm_isint((struct VM *) S)) {
 		YASLX_print_err_bad_arg_type(S, "str.rep", 1, "int", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}

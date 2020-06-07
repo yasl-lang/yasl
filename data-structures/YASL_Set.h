@@ -4,7 +4,7 @@
 #include "interpreter/YASL_Object.h"
 
 #define FOR_SET(i, item, table) struct YASL_Object *item; for (size_t i = 0; i < (table)->size; i++) \
-                                                  if (item = &table->items[i], item->type != Y_END && !YASL_ISUNDEF(*item))
+                                                  if (item = &table->items[i], item->type != Y_END && !obj_isundef(item))
 
 struct YASL_Set {
 	size_t size;
