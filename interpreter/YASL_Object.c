@@ -61,14 +61,14 @@ int yasl_object_cmp(struct YASL_Object a, struct YASL_Object b) {
 	} else if (obj_isnum(&a) && obj_isnum(&b)) {
 		yasl_float aVal, bVal;
 		if(obj_isint(&a)) {
-			aVal = (yasl_float)YASL_GETINT(a);
+			aVal = (yasl_float)obj_getint(&a);
 		} else {
-			aVal = YASL_GETFLOAT(a);
+			aVal = obj_getfloat(&a);
 		}
 		if(obj_isint(&b)) {
-			bVal = (yasl_float)YASL_GETINT(b);
+			bVal = (yasl_float)obj_getint(&b);
 		} else {
-			bVal = YASL_GETFLOAT(b);
+			bVal = obj_getfloat(&b);
 		}
 
 		if (aVal < bVal) return -1;
@@ -102,9 +102,9 @@ bool isfalsey(struct YASL_Object v) {
 	 */
 	return (
 		obj_isundef(&v) ||
-		(obj_isbool(&v) && YASL_GETBOOL(v) == 0) ||
+		(obj_isbool(&v) && obj_getbool(&v) == 0) ||
 		(obj_isstr(&v) && YASL_String_len(YASL_GETSTR(v)) == 0) ||
-		(obj_isfloat(&v) && YASL_GETFLOAT(v) != YASL_GETFLOAT(v))
+		(obj_isfloat(&v) && obj_getfloat(&v) != obj_getfloat(&v))
 	);
 }
 
@@ -118,7 +118,7 @@ struct YASL_Object isequal(const struct YASL_Object *const a, const struct YASL_
 	switch (a->type) {
 	case Y_BOOL:
 		if (obj_isbool(b)) {
-			if (YASL_GETBOOL(*a) == YASL_GETBOOL(*b)) {
+			if (obj_getbool(a) == obj_getbool(b)) {
 				return true_c;
 			} else {
 				return false_c;
@@ -161,13 +161,13 @@ struct YASL_Object isequal(const struct YASL_Object *const a, const struct YASL_
 		}
 		bool c;
 		if (obj_isint(a) && obj_isint(b)) {
-			c = YASL_GETINT(*a) == YASL_GETINT(*b);
+			c = obj_getint(a) == obj_getint(b);
 		} else if (obj_isfloat(a) && obj_isint(b)) {
-			c = YASL_GETFLOAT(*a) == (yasl_float) YASL_GETINT(*b);
+			c = obj_getfloat(a) == (yasl_float) obj_getint(b);
 		} else if (obj_isint(a) && obj_isfloat(b)) {
-			c = (yasl_float) YASL_GETINT(*a) == YASL_GETFLOAT(*b);
+			c = (yasl_float) obj_getint(a) == obj_getfloat(b);
 		} else if (obj_isfloat(a) && obj_isfloat(b)) {
-			c = YASL_GETFLOAT(*a) == YASL_GETFLOAT(*b);
+			c = obj_getfloat(a) == obj_getfloat(b);
 		} else {
 			return undef_c;
 		}
@@ -182,16 +182,16 @@ int print(struct YASL_Object v) {
 		YASL_ASSERT(false, "should not have called print with Y_END");
 		break;
 	case Y_INT:
-		printf("%" PRId64 "", YASL_GETINT(v));
+		printf("%" PRId64 "", obj_getint(&v));
 		break;
 	case Y_FLOAT: {
-		char *tmp = float64_to_str(YASL_GETFLOAT(v));
+		char *tmp = float64_to_str(obj_getfloat(&v));
 		printf("%s", tmp);
 		free(tmp);
 		break;
 	}
 	case Y_BOOL:
-		if (YASL_GETBOOL(v) == 0) printf("false");
+		if (obj_getbool(&v) == 0) printf("false");
 		else printf("true");
 		break;
 	case Y_UNDEF:
@@ -240,3 +240,8 @@ extern inline bool obj_isuserptr(const struct YASL_Object *const v);
 extern inline bool obj_isfn(const struct YASL_Object *const v);
 extern inline bool obj_isclosure(const struct YASL_Object *const v);
 extern inline bool obj_iscfn(const struct YASL_Object *const v);
+
+extern inline bool obj_getbool(const struct YASL_Object *const v);
+extern inline yasl_float obj_getfloat(const struct YASL_Object *const v);
+extern inline yasl_int obj_getint(const struct YASL_Object *const v);
+extern inline yasl_float obj_getnum(const struct YASL_Object *const v);

@@ -238,7 +238,7 @@ static int YASL_collections_set_contains(struct YASL_State *S) {
 	}
 	struct YASL_Set *set = (struct YASL_Set *)YASL_popuserdata(S);
 
-	vm_push((struct VM *)S, YASL_Set_search(set, object));
+	YASL_pushbool(S, YASL_Set_search(set, object));
 	return YASL_SUCCESS;
 }
 
@@ -251,7 +251,7 @@ static int YASL_collections_set___get(struct YASL_State *S) {
 	}
 	struct YASL_Set *set = (struct YASL_Set *)YASL_popuserdata(S);
 
-	vm_push((struct VM *)S, YASL_Set_search(set, object));
+	YASL_pushbool(S, YASL_Set_search(set, object));
 	return YASL_SUCCESS;
 }
 

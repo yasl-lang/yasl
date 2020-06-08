@@ -423,7 +423,7 @@ int str_repeat(struct YASL_State *S) {
 		YASLX_print_err_bad_arg_type(S, "str.rep", 1, "int", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
-	yasl_int num = YASL_GETINT(vm_pop((struct VM *) S));
+	yasl_int num = vm_popint((struct VM *) S);
 	if (!YASL_isstr(S)) {
 		YASLX_print_err_bad_arg_type(S, "str.rep", 0, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;

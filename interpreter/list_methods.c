@@ -7,23 +7,28 @@
 #include "yasl_state.h"
 
 int list___get(struct YASL_State *S) {
-	struct YASL_Object index = vm_pop((struct VM *) S);
+	if (!YASL_isint(S)) {
+		YASLX_print_err_bad_arg_type(S, "list.__get", 1, "int", YASL_TYPE_NAMES[YASL_peektype(S)]);
+		return YASL_TYPE_ERROR;
+	}
+	yasl_int index = YASL_popint(S);
+
 	if (!YASL_islist(S)) {
 		YASLX_print_err_bad_arg_type(S, "list.__get", 0, "list", YASL_TYPE_NAMES[YASL_peektype(S)]);
 		return YASL_TYPE_ERROR;
 	}
-	struct YASL_List *ls = YASL_GETLIST(vm_peek((struct VM *) S));
-	if (!obj_isint(&index)) {
-		return YASL_TYPE_ERROR;
-	} else if (YASL_GETINT(index) < -(int64_t) ls->count || YASL_GETINT(index) >= (int64_t) ls->count) {
+	struct YASL_List *ls = vm_peeklist((struct VM *) S);
+
+	if (index < -(int64_t) ls->count || index >= (int64_t) ls->count) {
+		// TODO: error here.
 		return YASL_VALUE_ERROR;
 	} else {
-		if (index.value.ival >= 0) {
+		if (index >= 0) {
 			vm_pop((struct VM *) S);
-			vm_push((struct VM *) S, ls->items[YASL_GETINT(index)]);
+			vm_push((struct VM *) S, ls->items[index]);
 		} else {
 			vm_pop((struct VM *) S);
-			vm_push((struct VM *) S, ls->items[YASL_GETINT(index) + ls->count]);
+			vm_push((struct VM *) S, ls->items[index + ls->count]);
 		}
 	}
 	return YASL_SUCCESS;

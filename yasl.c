@@ -459,7 +459,7 @@ bool YASL_top_isuserpointer(struct YASL_State *S) {
 
 bool YASL_peekbool(struct YASL_State *S) {
 	if (YASL_isbool(S)) {
-		return vm_popbool(&S->vm);
+		return vm_peekbool(&S->vm);
 	}
 	return false;
 }
@@ -470,7 +470,7 @@ bool YASL_top_peekboolean(struct YASL_State *S) {
 
 bool YASL_popbool(struct YASL_State *S) {
 	if (YASL_isbool(S)) {
-		return (bool)YASL_GETBOOL(vm_pop(&S->vm));
+		return vm_popbool(&S->vm);
 	}
 	return false;
 }

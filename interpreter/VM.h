@@ -27,9 +27,9 @@
 #define vm_peek(...) EXPAND(GET_MACRO(__VA_ARGS__, vm_peek_offset, vm_peek_default,)(__VA_ARGS__))
 #define vm_peek_p(...) EXPAND(GET_MACRO(__VA_ARGS__, vm_peek_offset_p, vm_peek_default_p,)(__VA_ARGS__))
 
-#define vm_peekbool(...) EXPAND(YASL_GETBOOL(vm_peek(__VA_ARGS__)))
-#define vm_peekfloat(...) EXPAND(YASL_GETFLOAT(vm_peek(__VA_ARGS__)))
-#define vm_peekint(...) EXPAND(YASL_GETINT(vm_peek(__VA_ARGS__)))
+#define vm_peekbool(...) EXPAND(obj_getbool(vm_peek_p(__VA_ARGS__)))
+#define vm_peekfloat(...) EXPAND(obj_getfloat(vm_peek_p(__VA_ARGS__)))
+#define vm_peekint(...) EXPAND(obj_getint(vm_peek_p(__VA_ARGS__)))
 #define vm_peekstr(...) EXPAND(YASL_GETSTR(vm_peek(__VA_ARGS__)))
 #define vm_peeklist(...) (YASL_GETLIST(vm_peek(__VA_ARGS__)))
 #define vm_peektable(...) (YASL_GETTABLE(vm_peek(__VA_ARGS__)))
