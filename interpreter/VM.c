@@ -493,7 +493,7 @@ static int vm_len_unop(struct VM *const vm) {
 	struct YASL_Object v = vm_pop(vm);
 	if (obj_isstr(&v)) {
 		vm_pushint(vm, (yasl_int) YASL_String_len(YASL_GETSTR(v)));
-	} else if (YASL_ISTABLE(v)) {
+	} else if (obj_istable(&v)) {
 		vm_pushint(vm, (yasl_int)YASL_GETTABLE(v)->count);
 	} else if (obj_islist(&v)) {
 		vm_pushint(vm, (yasl_int)YASL_GETLIST(v)->count);
@@ -533,12 +533,12 @@ static int vm_CNCT(struct VM *const vm) {
 
 int vm_stringify_top(struct VM *const vm) {
 	enum YASL_Types index = vm_peek(vm, vm->sp).type;
-	if (YASL_ISFN(vm_peek(vm)) || YASL_ISCFN(vm_peek(vm)) || YASL_ISCLOSURE(vm_peek(vm))) {
+	if (vm_isfn(vm) || vm_iscfn(vm) || vm_isclosure(vm)) {
 		size_t n = (size_t)snprintf(NULL, 0, "<fn: %d>", (int)YASL_GETINT(vm_peek(vm))) + 1;
 		char *buffer = (char *)malloc(n);
 		snprintf(buffer, n, "<fn: %d>", (int)vm_pop(vm).value.ival);
 		vm_pushstr(vm, YASL_String_new_sized_heap(0, strlen(buffer), buffer));
-	} else if (YASL_ISUSERDATA(vm_peek(vm, vm->sp))) {
+	} else if (vm_isuserdata(vm)) {
 		struct YASL_Object key = YASL_STR(YASL_String_new_sized(strlen("tostr"), "tostr"));
 		struct YASL_Object result = YASL_Table_search(vm_peek(vm).value.uval->mt, key);
 		str_del(YASL_GETSTR(key));
@@ -546,7 +546,7 @@ int vm_stringify_top(struct VM *const vm) {
 			exit(EXIT_FAILURE);
 		}
 		YASL_GETCFN(result)->value((struct YASL_State *)vm);
-	} else if (YASL_ISUSERPTR(vm_peek(vm))) {
+	} else if (vm_isuserptr(vm)) {
 		// TODO clean up
 		size_t n = (size_t)snprintf(NULL, 0, "<userptr: %p>", (void *)vm_peekint(vm)) + 1;
 		char *buffer = (char *)malloc(n);
@@ -763,7 +763,7 @@ static int vm_GET(struct VM *const vm) {
 	inc_ref(&vm_peek(vm));
 	struct YASL_Object val = vm_pop(vm);
 
-	if (YASL_ISTABLE(val)) {
+	if (obj_istable(&val)) {
 		struct YASL_Object search = YASL_Table_search(YASL_GETTABLE(val), index);
 		if (search.type != Y_END) {
 			vm_push(vm, search);
@@ -904,7 +904,7 @@ static void vm_exitframe(struct VM *const vm) {
 }
 
 static int vm_INIT_CALL(struct VM *const vm) {
-	if (!YASL_ISFN(vm_peek(vm)) && !YASL_ISCFN(vm_peek(vm)) && !YASL_ISCLOSURE(vm_peek(vm))) {
+	if (!vm_isfn(vm) && !vm_iscfn(vm) && !vm_isclosure(vm)) {
 		vm_print_err_type(vm,  "%s is not callable.", YASL_TYPE_NAMES[vm_peek(vm).type]);
 		return YASL_TYPE_ERROR;
 	}
@@ -982,11 +982,11 @@ static int vm_CALL_cfn(struct VM *const vm) {
 
 static int vm_CALL(struct VM *const vm) {
 	vm->fp = vm->next_fp;
-	if (YASL_ISFN(vm_peek(vm, vm->fp))) {
+	if (vm_isfn(vm, vm->fp)) {
 		return vm_CALL_fn(vm);
-	} else if (YASL_ISCFN(vm_peek(vm, vm->fp))) {
+	} else if (vm_iscfn(vm, vm->fp)) {
 		return vm_CALL_cfn(vm);
-	} else if (YASL_ISCLOSURE(vm_peek(vm, vm->fp))) {
+	} else if (vm_isclosure(vm, vm->fp)) {
 		return vm_CALL_closure(vm);
 	}
 	YASL_ASSERT(false, "We never reach this point");
@@ -1184,7 +1184,7 @@ int vm_run(struct VM *const vm) {
 				vm_pushbool(vm, YASL_String_cmp(YASL_GETSTR(a), YASL_GETSTR(b)) > 0);
 				break;
 			}
-			if (!YASL_ISNUM(a) || !YASL_ISNUM(b)) {
+			if (!obj_isnum(&a) || !obj_isnum(&b)) {
 				vm_print_err_type(vm,  "< and > not supported for operands of types %s and %s.",
 				       YASL_TYPE_NAMES[a.type],
 				       YASL_TYPE_NAMES[b.type]);
@@ -1199,7 +1199,7 @@ int vm_run(struct VM *const vm) {
 				vm_push(vm, YASL_BOOL(YASL_String_cmp(YASL_GETSTR(a), YASL_GETSTR(b)) >= 0));
 				break;
 			}
-			if (!YASL_ISNUM(a) || !YASL_ISNUM(b)) {
+			if (!obj_isnum(&a) || !obj_isnum(&b)) {
 				vm_print_err_type(vm,  "<= and >= not supported for operands of types %s and %s.",
 				       YASL_TYPE_NAMES[a.type],
 				       YASL_TYPE_NAMES[b.type]);

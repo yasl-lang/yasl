@@ -58,7 +58,7 @@ struct YASL_Object *YASL_Table(void) {
 int yasl_object_cmp(struct YASL_Object a, struct YASL_Object b) {
 	if (obj_isstr(&a) && obj_isstr(&b)) {
 		return YASL_String_cmp(YASL_GETSTR(a), YASL_GETSTR(b));
-	} else if (YASL_ISNUM(a) && YASL_ISNUM(b)) {
+	} else if (obj_isnum(&a) && obj_isnum(&b)) {
 		yasl_float aVal, bVal;
 		if(obj_isint(&a)) {
 			aVal = (yasl_float)YASL_GETINT(a);
@@ -128,7 +128,7 @@ struct YASL_Object isequal(const struct YASL_Object *const a, const struct YASL_
 		}
 	case Y_TABLE:
 	case Y_TABLE_W:
-		if (YASL_ISTABLE(*b)) {
+		if (obj_istable(b)) {
 			puts("Warning: comparison of hashes currently is not implemented.");
 			return undef_c;
 		}
@@ -156,7 +156,7 @@ struct YASL_Object isequal(const struct YASL_Object *const a, const struct YASL_
 		}
 		return false_c;
 	default:
-		if (obj_isbool(b) || YASL_ISTABLE(*b)) {
+		if (obj_isbool(b) || obj_istable(b)) {
 			return false_c;
 		}
 		bool c;

@@ -98,7 +98,7 @@ int list_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, s
 				list_tostr_helper(S, tmp_buffer, tmp_buffer_size, buffer_count + 1);
 				free(tmp_buffer);
 			}
-		} else if (YASL_ISTABLE(vm_peek((struct VM *) S, S->vm.sp))) {
+		} else if (vm_istable((struct VM *) S, S->vm.sp)) {
 			int found = 0;
 			for (size_t j = 0; j < buffer_count; j++) {
 				if (buffer[j] == vm_peeklist((struct VM *) S, S->vm.sp)) {

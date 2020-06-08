@@ -21,8 +21,11 @@
 #define GET_MACRO(_1, _2, NAME, ...) NAME
 #define EXPAND(x) x
 #define vm_peek_offset(vm, offset) ((vm)->stack[offset])
+#define vm_peek_offset_p(vm, offset) ((vm)->stack + (offset))
 #define vm_peek_default(vm) ((vm)->stack[(vm)->sp])
+#define vm_peek_default_p(vm) ((vm)->stack + (vm)->sp)
 #define vm_peek(...) EXPAND(GET_MACRO(__VA_ARGS__, vm_peek_offset, vm_peek_default,)(__VA_ARGS__))
+#define vm_peek_p(...) EXPAND(GET_MACRO(__VA_ARGS__, vm_peek_offset_p, vm_peek_default_p,)(__VA_ARGS__))
 
 #define vm_peekbool(...) EXPAND(YASL_GETBOOL(vm_peek(__VA_ARGS__)))
 #define vm_peekfloat(...) EXPAND(YASL_GETFLOAT(vm_peek(__VA_ARGS__)))
@@ -33,15 +36,19 @@
 #define vm_peekcfn(...) (YASL_GETCFN(vm_peek(__VA_ARGS__)))
 
 #define vm_isend(vm) (YASL_ISEND(vm_peek(vm)))
-#define vm_isundef(...) (YASL_ISUNDEF(vm_peek(__VA_ARGS__)))
-#define vm_isfloat(vm) (YASL_ISFLOAT(vm_peek(vm)))
-#define vm_isint(...) (YASL_ISINT(vm_peek(__VA_ARGS__)))
-#define vm_isbool(vm) (YASL_ISBOOL(vm_peek(vm)))
-#define vm_isstr(...) (YASL_ISSTR(vm_peek(__VA_ARGS__)))
-#define vm_istable(vm) (YASL_ISTABLE(vm_peek(vm)))
-#define vm_islist(...) (YASL_ISLIST(vm_peek(__VA_ARGS__)))
-#define vm_isuserdata(vm) (YASL_ISUSERDATA(vm_peek(vm)))
-#define vm_isuserptr(vm) (YASL_ISUSERPTR(vm_peek(vm)))
+#define vm_isundef(...) (obj_isundef(vm_peek_p(__VA_ARGS__)))
+#define vm_isfloat(...) (obj_isfloat(vm_peek_p(__VA_ARGS__)))
+#define vm_isint(...) (obj_isint(vm_peek_p(__VA_ARGS__)))
+#define vm_isnum(...) (obj_isnum(vm_peek_p(__VA_ARGS__)))
+#define vm_isbool(...) (obj_isbool(vm_peek_p(__VA_ARGS__)))
+#define vm_isstr(...) (obj_isstr(vm_peek_p(__VA_ARGS__)))
+#define vm_istable(...) (obj_istable(vm_peek_p(__VA_ARGS__)))
+#define vm_islist(...) (obj_islist(vm_peek_p(__VA_ARGS__)))
+#define vm_isuserdata(...) (obj_isuserdata(vm_peek_p(__VA_ARGS__)))
+#define vm_isuserptr(...) (obj_isuserptr(vm_peek_p(__VA_ARGS__)))
+#define vm_isfn(...) (obj_isfn(vm_peek_p(__VA_ARGS__)))
+#define vm_iscfn(...) (obj_iscfn(vm_peek_p(__VA_ARGS__)))
+#define vm_isclosure(...) (obj_isclosure(vm_peek_p(__VA_ARGS__)))
 
 #define BUFFER_SIZE 256
 #define NCODE(vm)    (*((vm)->pc++))     // get next bytecode

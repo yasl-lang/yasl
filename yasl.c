@@ -367,7 +367,7 @@ int YASL_tableset(struct YASL_State *S) {
 	struct YASL_Object table = vm_pop(&S->vm);
 
 	// TODO change to TYPE_ERROR
-	if (!YASL_ISTABLE(table))
+	if (!obj_istable(&table))
 		return YASL_TYPE_ERROR;
 	if (!YASL_Table_insert(YASL_GETTABLE(table), key, value)) {
 		return YASL_TYPE_ERROR;
