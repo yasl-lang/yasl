@@ -758,23 +758,20 @@ static int vm_GET_noprint(struct VM *const vm) {
 	return result;
 }
 
-static int vm_GET(struct VM *const vm) {
-	inc_ref(&vm_peek(vm));
-	struct YASL_Object index = vm_pop(vm);
-	inc_ref(&vm_peek(vm));
-	struct YASL_Object val = vm_pop(vm);
+static int vm_GET_helper(struct VM *const vm, struct YASL_Object index) {
+	struct YASL_Object val = vm_peek(vm);
+	inc_ref(&val);
 
 	if (obj_istable(&val)) {
 		struct YASL_Object search = YASL_Table_search(YASL_GETTABLE(val), index);
 		if (search.type != Y_END) {
+			vm_pop(vm);
 			vm_push(vm, search);
-			dec_ref(&index);
 			dec_ref(&val);
 			return YASL_SUCCESS;
 		}
 	}
 
-	vm_push(vm, val);
 	vm_get_metatable(vm);
 	struct YASL_Table *mt = YASL_GETTABLE(vm_pop(vm));
 	void (*old_print)(struct IO *const, const char *const, va_list) = vm->err.print;
@@ -783,13 +780,19 @@ static int vm_GET(struct VM *const vm) {
 	vm->err.print = old_print;
 	if (result) {
 		vm_print_err_value(vm, "unable to index %s with value of type %s.", YASL_TYPE_NAMES[val.type], YASL_TYPE_NAMES[index.type]);
-		dec_ref(&index);
 		dec_ref(&val);
 		return YASL_VALUE_ERROR;
 	}
-	dec_ref(&index);
 	dec_ref(&val);
 	return YASL_SUCCESS;
+}
+
+static int vm_GET(struct VM *const vm) {
+	struct YASL_Object index = vm_pop(vm);
+	inc_ref(&index);
+	int res = vm_GET_helper(vm, index);
+	dec_ref(&index);
+	return res;
 }
 
 static int vm_SET(struct VM *const vm) {
@@ -918,8 +921,8 @@ static int vm_INIT_CALL(struct VM *const vm) {
 static int vm_INIT_MC(struct VM *const vm) {
 	struct YASL_Object top = vm_peek(vm);
 	inc_ref(&top);
-	vm_NEWSTR(vm);
-	vm_GET(vm);
+	yasl_int addr = vm_read_int(vm);
+	vm_GET_helper(vm, vm->constants[addr]);
 	vm_INIT_CALL(vm);
 	vm_push(vm, top);
 	dec_ref(&top);

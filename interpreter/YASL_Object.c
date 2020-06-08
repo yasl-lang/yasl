@@ -124,7 +124,7 @@ bool isequal(const struct YASL_Object *const a, const struct YASL_Object *const 
 	if (obj_isstr(a) && obj_isstr(b)) {
 		struct YASL_String *left = YASL_GETSTR(*a);
 		struct YASL_String *right = YASL_GETSTR(*b);
-		return YASL_String_cmp(left, right) == 0;
+		return left == right || YASL_String_cmp(left, right) == 0;
 	}
 
 	if (obj_isuserptr(a) && obj_isuserptr(b)) {
