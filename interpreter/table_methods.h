@@ -7,6 +7,8 @@ int table___get(struct YASL_State *S);
 
 int table___set(struct YASL_State *S);
 
+int table___bor(struct YASL_State *S);
+
 int table_tostr(struct YASL_State *S);
 
 int table_keys(struct YASL_State *S);

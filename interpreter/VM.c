@@ -65,6 +65,7 @@ void vm_init(struct VM *const vm,
 #define DEF_SPECIAL_STR(enum_val, str) vm->special_strings[enum_val] = YASL_String_new_sized(strlen(str), str)
 
 	DEF_SPECIAL_STR(S___ADD, "__add");
+	DEF_SPECIAL_STR(S___BOR, "__bor");
 	DEF_SPECIAL_STR(S___GET, "__get");
 	DEF_SPECIAL_STR(S___SET, "__set");
 	DEF_SPECIAL_STR(S_CLEAR, "clear");

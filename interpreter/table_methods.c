@@ -42,6 +42,35 @@ int table___set(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
+int table___bor(struct YASL_State *S) {
+	if (!YASL_istable(S)) {
+		YASLX_print_err_bad_arg_type(S, "table.__bor", 1, "table", YASL_TYPE_NAMES[YASL_peektype(S)]);
+		return YASL_TYPE_ERROR;
+	}
+	struct YASL_Table *right = (struct YASL_Table *)YASL_popuserdata(S);
+
+	if (!YASL_istable(S)) {
+		YASLX_print_err_bad_arg_type(S, "table.__bor", 0, "table", YASL_TYPE_NAMES[YASL_peektype(S)]);
+		return YASL_TYPE_ERROR;
+	}
+	struct YASL_Table *left = (struct YASL_Table *)YASL_popuserdata(S);
+
+	YASL_pushtable(S);
+
+	struct RC_UserData *new_ht = rcht_new_sized(left->base_size);
+
+	FOR_TABLE(i, litem, left) {
+		YASL_Table_insert_fast((struct YASL_Table *) new_ht->data, litem->key, litem->value);
+	}
+
+	FOR_TABLE(i, ritem, right) {
+		YASL_Table_insert_fast((struct YASL_Table *) new_ht->data, ritem->key, ritem->value);
+	}
+
+	vm_push((struct VM *) S, YASL_TABLE(new_ht));
+	return YASL_SUCCESS;
+}
+
 int object_tostr(struct YASL_State *S) {
 	enum YASL_Types index = vm_peek((struct VM *) S, S->vm.sp).type;
 	struct YASL_Object key = YASL_STR(YASL_String_new_sized(strlen("tostr"), "tostr"));
