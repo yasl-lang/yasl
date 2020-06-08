@@ -64,7 +64,7 @@ int yasl_object_cmp(struct YASL_Object a, struct YASL_Object b);
 
 bool ishashable(const struct YASL_Object *const v);
 bool isfalsey(struct YASL_Object v);
-struct YASL_Object isequal(const struct YASL_Object *const a, const struct YASL_Object *const b);
+bool isequal(const struct YASL_Object *const a, const struct YASL_Object *const b);
 int print(struct YASL_Object a);
 
 inline bool obj_isundef(const struct YASL_Object *const v) {

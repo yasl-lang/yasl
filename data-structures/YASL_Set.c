@@ -71,7 +71,7 @@ bool YASL_Set_insert(struct YASL_Set *const set, struct YASL_Object value) {
 	size_t i = 1;
 	while (!obj_isundef(&curr_item)) {
 		if (curr_item.type != Y_END) {
-			if (!isfalsey(isequal(&curr_item, &value))) {
+			if ((isequal(&curr_item, &value))) {
 				dec_ref(&curr_item);
 				set->items[index] = value;
 				return true;
@@ -90,7 +90,7 @@ bool YASL_Set_search(const struct YASL_Set *const table, const struct YASL_Objec
 	struct YASL_Object item = table->items[index];
 	size_t i = 1;
 	while (!obj_isundef(&item)) {
-		if (!isfalsey(isequal(&item, &key))) {
+		if ((isequal(&item, &key))) {
 			return true;
 		}
 		index = get_hash(key, table->size, i++);
@@ -110,7 +110,7 @@ void YASL_Set_rm(struct YASL_Set *const table, struct YASL_Object key) {
 	size_t i = 1;
 	while (!obj_isundef(&item)) {
 		if (item.type != Y_END) {
-			if (!isfalsey(isequal(&item, &key))) {
+			if ((isequal(&item, &key))) {
 				dec_ref(&item);
 				table->items[index] = YASL_END();
 			}

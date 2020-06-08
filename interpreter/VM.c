@@ -511,8 +511,7 @@ static int vm_len_unop(struct VM *const vm) {
 static int vm_EQ(struct VM *const vm) {
 	struct YASL_Object b = vm_pop(vm);
 	struct YASL_Object a = vm_pop(vm);
-	struct YASL_Object v = isequal(&a, &b);
-	vm_push(vm, v);
+	vm_pushbool(vm, isequal(&a, &b));
 	return YASL_SUCCESS;
 }
 

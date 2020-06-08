@@ -108,71 +108,30 @@ bool isfalsey(struct YASL_Object v) {
 	);
 }
 
-struct YASL_Object isequal(const struct YASL_Object *const a, const struct YASL_Object *const b) {
-	const struct YASL_Object false_c = YASL_BOOL(false);
-	const struct YASL_Object true_c = YASL_BOOL(true);
-	const struct YASL_Object undef_c = YASL_UNDEF();
-	if (obj_isundef(a) && obj_isundef(b)) {
-		return true_c;
+bool isequal(const struct YASL_Object *const a, const struct YASL_Object *const b) {
+	if (obj_isbool(a) && obj_isbool(b)) {
+		return obj_getbool(a) == obj_getbool(b);
 	}
-	switch (a->type) {
-	case Y_BOOL:
-		if (obj_isbool(b)) {
-			if (obj_getbool(a) == obj_getbool(b)) {
-				return true_c;
-			} else {
-				return false_c;
-			}
-		} else {
-			return false_c;
-		}
-	case Y_TABLE:
-	case Y_TABLE_W:
-		if (obj_istable(b)) {
-			puts("Warning: comparison of hashes currently is not implemented.");
-			return undef_c;
-		}
-		return false_c;
-	case Y_LIST:
-	case Y_LIST_W:
-		if (obj_islist(b)) {
-			puts("Warning: comparison of lists currently is not implemented.");
-			return undef_c;
-		}
-		return false_c;
-	case Y_STR:
-	case Y_STR_W:
-		if (obj_isstr(b)) {
-			if (YASL_GETSTR(*a) == YASL_GETSTR(*b)) {
-				return true_c;
-			}
-			if (YASL_String_len(YASL_GETSTR(*a)) != YASL_String_len(YASL_GETSTR(*b))) {
-				return false_c;
-			} else {
-				return memcmp(YASL_GETSTR(*a)->str + YASL_GETSTR(*a)->start,
-					      YASL_GETSTR(*b)->str + YASL_GETSTR(*b)->start,
-					      YASL_String_len(YASL_GETSTR(*a))) ? false_c : true_c;
-			}
-		}
-		return false_c;
-	default:
-		if (obj_isbool(b) || obj_istable(b)) {
-			return false_c;
-		}
-		bool c;
-		if (obj_isint(a) && obj_isint(b)) {
-			c = obj_getint(a) == obj_getint(b);
-		} else if (obj_isfloat(a) && obj_isint(b)) {
-			c = obj_getfloat(a) == (yasl_float) obj_getint(b);
-		} else if (obj_isint(a) && obj_isfloat(b)) {
-			c = (yasl_float) obj_getint(a) == obj_getfloat(b);
-		} else if (obj_isfloat(a) && obj_isfloat(b)) {
-			c = obj_getfloat(a) == obj_getfloat(b);
-		} else {
-			return undef_c;
-		}
-		return YASL_BOOL(c);
+
+	if (obj_isint(a) && obj_isint(b)) {
+		return obj_getint(a) == obj_getint(b);
 	}
+
+	if (obj_isnum(a) && obj_isnum(b)) {
+		return obj_getnum(a) == obj_getnum(b);
+	}
+
+	if (obj_isstr(a) && obj_isstr(b)) {
+		struct YASL_String *left = YASL_GETSTR(*a);
+		struct YASL_String *right = YASL_GETSTR(*b);
+		return YASL_String_cmp(left, right) == 0;
+	}
+
+	if (obj_isuserptr(a) && obj_isuserptr(b)) {
+		return YASL_GETUSERPTR(*a) == YASL_GETUSERPTR(*b);
+	}
+
+	return false;
 }
 
 int print(struct YASL_Object v) {
