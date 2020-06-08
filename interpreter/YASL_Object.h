@@ -4,11 +4,6 @@
 #include "data-structures/YASL_String.h"
 #include "yasl_conf.h"
 #include "yasl_types.h"
-// #include "interpreter/closure.h"
-
-#define UNDEF_C ((struct YASL_Object){ .type = Y_UNDEF, .value = { .ival = 0 }  })
-#define FALSE_C ((struct YASL_Object){ .type = Y_BOOL, .value = {.ival = 0 }})
-#define TRUE_C ((struct YASL_Object){ .type = Y_BOOL, .value = {.ival = 1 }})
 
 #define YASL_END() ((struct YASL_Object){ .type = Y_END, .value = {.ival = 0}})
 #define YASL_UNDEF() ((struct YASL_Object){ .type = Y_UNDEF, .value = {.ival = 0 }})

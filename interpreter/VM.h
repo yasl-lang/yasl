@@ -55,20 +55,13 @@
 
 #define GT(a, b) ((a) > (b))
 #define GE(a, b) ((a) >= (b))
-#define COMP(vm, a, b, f, str)  do {\
-                            if (a.type == Y_INT && b.type == Y_INT) {\
-                                c = f(a.value.ival, b.value.ival);\
-                            }\
-                            else if (a.type == Y_FLOAT && b.type == Y_INT) {\
-                                c = f(a.value.dval, (yasl_float)b.value.ival);\
-                            }\
-                            else if (a.type == Y_INT && b.type == Y_FLOAT) {\
-                                c = f((yasl_float)a.value.ival, (b).value.dval);\
-                            }\
-                            else {\
-                                c = f(a.value.dval, (b).value.dval);\
-                            }\
-                            vm_pushbool(vm, c);} while(0);
+#define COMP(vm, a, b, f)  do {\
+	if (obj_isint(&a) && obj_isint(&b)) {\
+		c = f(obj_getint(&a), obj_getint(&b));\
+	} else {\
+		c = f(obj_getnum(&a), obj_getnum(&b));\
+	}\
+	vm_pushbool(vm, c);} while(0);
 
 #define vm_print_err_type(vm, format, ...) vm_print_err((vm), MSG_TYPE_ERROR format, __VA_ARGS__)
 #define vm_print_err_value(vm, format, ...) vm_print_err((vm), MSG_VALUE_ERROR format, __VA_ARGS__)

@@ -109,9 +109,9 @@ bool isfalsey(struct YASL_Object v) {
 }
 
 struct YASL_Object isequal(const struct YASL_Object *const a, const struct YASL_Object *const b) {
-	const struct YASL_Object false_c = FALSE_C;
-	const struct YASL_Object true_c = TRUE_C;
-	const struct YASL_Object undef_c = UNDEF_C;
+	const struct YASL_Object false_c = YASL_BOOL(false);
+	const struct YASL_Object true_c = YASL_BOOL(true);
+	const struct YASL_Object undef_c = YASL_UNDEF();
 	if (obj_isundef(a) && obj_isundef(b)) {
 		return true_c;
 	}

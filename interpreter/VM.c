@@ -350,13 +350,9 @@ static int vm_num_binop(
 	struct YASL_Object right = vm_pop(vm);
 	struct YASL_Object left = vm_pop(vm);
 	if (obj_isint(&left) && obj_isint(&right)) {
-		vm_push(vm, YASL_INT(int_op(obj_getint(&left), obj_getint(&right))));
-	} else if (obj_isfloat(&left) && obj_isfloat(&right)) {
-		vm_pushfloat(vm, float_op(obj_getfloat(&left), obj_getfloat(&right)));
-	} else if (obj_isfloat(&left) && obj_isint(&right)) {
-		vm_pushfloat(vm, float_op(obj_getfloat(&left), (yasl_float)obj_getint(&right)));
-	} else if (obj_isint(&left) && obj_isfloat(&right)) {
-		vm_pushfloat(vm, float_op((yasl_float)obj_getint(&left), obj_getfloat(&right)));
+		vm_pushint(vm, int_op(obj_getint(&left), obj_getint(&right)));
+	} else if (obj_isnum(&left) && obj_isnum(&right)) {
+		vm_pushfloat(vm, float_op(obj_getnum(&left), obj_getnum(&right)));
 	} else {
 		inc_ref(&left);
 		inc_ref(&right);
@@ -389,14 +385,8 @@ static int vm_fdiv(struct VM *const vm) {
 	const char *overload_name = OP_BIN_FDIV;
 	struct YASL_Object right = vm_pop(vm);
 	struct YASL_Object left = vm_pop(vm);
-	if (obj_isint(&left) && obj_isint(&right)) {
-		vm_pushfloat(vm, (yasl_float) obj_getint(&left) / (yasl_float) obj_getint(&right));
-	} else if (obj_isfloat(&left) && obj_isfloat(&right)) {
-		vm_pushfloat(vm, obj_getfloat(&left) / obj_getfloat(&right));
-	} else if (obj_isint(&left) && obj_isfloat(&right)) {
-		vm_pushfloat(vm, (yasl_float) obj_getint(&left) / obj_getfloat(&right));
-	} else if (obj_isfloat(&left) && obj_isint(&right)) {
-		vm_pushfloat(vm, obj_getfloat(&left) / (yasl_float) obj_getint(&right));
+	if (obj_isnum(&left) && obj_isnum(&right)) {
+		vm_pushfloat(vm, obj_getnum(&left) / obj_getnum(&right));
 	} else {
 		inc_ref(&left);
 		inc_ref(&right);
@@ -472,7 +462,7 @@ static int vm_int_unop(struct VM *const vm, yasl_int (*op)(yasl_int), const char
 static int vm_num_unop(struct VM *const vm, yasl_int (*int_op)(yasl_int), yasl_float (*float_op)(yasl_float), const char *opstr, const char *overload_name) {
 	struct YASL_Object expr = vm_pop(vm);
 	if (obj_isint(&expr)) {
-		vm_push(vm, YASL_INT(int_op(obj_getint(&expr))));
+		vm_pushint(vm, int_op(obj_getint(&expr)));
 	} else if (obj_isfloat(&expr)) {
 		vm_pushfloat(vm, float_op(obj_getfloat(&expr)));
 	} else {
@@ -515,6 +505,14 @@ static int vm_len_unop(struct VM *const vm) {
 			vm_CALL(vm);
 		}
 	}
+	return YASL_SUCCESS;
+}
+
+static int vm_EQ(struct VM *const vm) {
+	struct YASL_Object b = vm_pop(vm);
+	struct YASL_Object a = vm_pop(vm);
+	struct YASL_Object v = isequal(&a, &b);
+	vm_push(vm, v);
 	return YASL_SUCCESS;
 }
 
@@ -1188,13 +1186,16 @@ int vm_run(struct VM *const vm) {
 				vm_pushbool(vm, YASL_String_cmp(YASL_GETSTR(a), YASL_GETSTR(b)) > 0);
 				break;
 			}
+			if (obj_isnum(&a) && obj_isnum(&b)) {
+				COMP(vm, a, b, GT);
+				break;
+			}
 			if (!obj_isnum(&a) || !obj_isnum(&b)) {
 				vm_print_err_type(vm,  "< and > not supported for operands of types %s and %s.",
 				       YASL_TYPE_NAMES[a.type],
 				       YASL_TYPE_NAMES[b.type]);
 				return YASL_TYPE_ERROR;
 			}
-			COMP(vm, a, b, GT, ">");
 			break;
 		case O_GE:
 			b = vm_pop(vm);
@@ -1203,19 +1204,19 @@ int vm_run(struct VM *const vm) {
 				vm_push(vm, YASL_BOOL(YASL_String_cmp(YASL_GETSTR(a), YASL_GETSTR(b)) >= 0));
 				break;
 			}
+			if (obj_isnum(&a) && obj_isnum(&b)) {
+				COMP(vm, a, b, GE);
+				break;
+			}
 			if (!obj_isnum(&a) || !obj_isnum(&b)) {
 				vm_print_err_type(vm,  "<= and >= not supported for operands of types %s and %s.",
 				       YASL_TYPE_NAMES[a.type],
 				       YASL_TYPE_NAMES[b.type]);
 				return YASL_TYPE_ERROR;
 			}
-			COMP(vm, a, b, GE, ">=");
 			break;
 		case O_EQ:
-			b = vm_pop(vm);
-			a = vm_pop(vm);
-			v = isequal(&a, &b);
-			vm_push(vm, v);
+			if ((res = vm_EQ(vm))) return res;
 			break;
 		case O_ID:     // TODO: clean-up
 			b = vm_pop(vm);

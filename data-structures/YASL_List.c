@@ -71,7 +71,7 @@ void YASL_List_append(struct YASL_List *const ls, struct YASL_Object value) {
 }
 
 struct YASL_Object YASL_List_search(const struct YASL_List *const ls, const int64_t index) {
-	struct YASL_Object undobj = UNDEF_C;
+	struct YASL_Object undobj = YASL_UNDEF();
 	if (index < -(int64_t) ls->count || index >= (int64_t) ls->count) return undobj;
 	else if (0 <= index) return ls->items[index];
 	else return ls->items[ls->count + index];
