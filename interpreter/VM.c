@@ -89,7 +89,6 @@ void vm_init(struct VM *const vm,
 	DEF_SPECIAL_STR(S_REVERSE, "reverse");
 	DEF_SPECIAL_STR(S_RTRIM, "rtrim");
 	DEF_SPECIAL_STR(S_SEARCH, "search");
-	// DEF_SPECIAL_STR(S_SLICE, "slice");
 	DEF_SPECIAL_STR(S_SPLIT, "split");
 	DEF_SPECIAL_STR(S_STARTSWITH, "startswith");
 	DEF_SPECIAL_STR(S_TOBOOL, "tobool");
@@ -248,7 +247,7 @@ yasl_int vm_popint(struct VM *const vm) {
 }
 
 struct YASL_String *vm_popstr(struct VM *const vm) {
-	return YASL_GETSTR(vm_pop(vm));
+	return obj_getstr(vm_pop_p(vm));
 }
 
 struct YASL_List *vm_poplist(struct VM *const vm) {
@@ -486,7 +485,7 @@ static int vm_num_unop(struct VM *const vm, yasl_int (*int_op)(yasl_int), yasl_f
 static int vm_len_unop(struct VM *const vm) {
 	struct YASL_Object v = vm_pop(vm);
 	if (obj_isstr(&v)) {
-		vm_pushint(vm, (yasl_int) YASL_String_len(YASL_GETSTR(v)));
+		vm_pushint(vm, (yasl_int) YASL_String_len(obj_getstr(&v)));
 	} else if (obj_istable(&v)) {
 		vm_pushint(vm, (yasl_int)YASL_GETTABLE(v)->count);
 	} else if (obj_islist(&v)) {
@@ -542,7 +541,7 @@ int vm_stringify_top(struct VM *const vm) {
 	} else if (vm_isuserdata(vm)) {
 		struct YASL_Object key = YASL_STR(YASL_String_new_sized(strlen("tostr"), "tostr"));
 		struct YASL_Object result = YASL_Table_search(vm_peek(vm).value.uval->mt, key);
-		str_del(YASL_GETSTR(key));
+		str_del(obj_getstr(&key));
 		if (result.type == Y_END) {
 			exit(EXIT_FAILURE);
 		}
@@ -556,7 +555,7 @@ int vm_stringify_top(struct VM *const vm) {
 	} else {
 		struct YASL_Object key = YASL_STR(YASL_String_new_sized(strlen("tostr"), "tostr"));
 		struct YASL_Object result = YASL_Table_search(vm->builtins_htable[index], key);
-		str_del(YASL_GETSTR(key));
+		str_del(obj_getstr(&key));
 		YASL_GETCFN(result)->value((struct YASL_State *)vm);
 	}
 	return YASL_SUCCESS;
@@ -845,11 +844,11 @@ static int vm_ITER_1(struct VM *const vm) {
 		vm_pushbool(vm, 1);
 		return YASL_SUCCESS;
 	case Y_STR:
-		if ((yasl_int) YASL_String_len(YASL_GETSTR(frame->iterable)) <= frame->iter) {
+		if ((yasl_int) YASL_String_len(obj_getstr(&frame->iterable)) <= frame->iter) {
 			vm_push(vm, YASL_BOOL(0));
 		} else {
 			size_t i = (size_t)frame->iter;
-			vm_push(vm, YASL_STR(YASL_String_new_substring(i, i + 1, YASL_GETSTR(frame->iterable))));
+			vm_push(vm, YASL_STR(YASL_String_new_substring(i, i + 1, obj_getstr(&frame->iterable))));
 			frame->iter++;
 			vm_pushbool(vm, 1);
 		}
@@ -1051,7 +1050,7 @@ int vm_run(struct VM *const vm) {
 	while (1) {
 		unsigned char opcode = NCODE(vm);        // fetch
 		signed char offset;
-		struct YASL_Object a, b, v;
+		struct YASL_Object a, b;
 		yasl_int c;
 		yasl_float d;
 		int res;
@@ -1172,8 +1171,7 @@ int vm_run(struct VM *const vm) {
 			if ((res = vm_num_unop(vm, &int_pos, &float_pos, "+", OP_UN_PLUS))) return res;
 			break;
 		case O_NOT:
-			c = isfalsey(vm_pop(vm));
-			vm_pushbool(vm, c);
+			vm_pushbool(vm, isfalsey(vm_pop_p(vm)));
 			break;
 		case O_LEN:
 			if ((res = vm_len_unop(vm))) return res;
@@ -1185,7 +1183,7 @@ int vm_run(struct VM *const vm) {
 			b = vm_pop(vm);
 			a = vm_pop(vm);
 			if (obj_isstr(&a) && obj_isstr(&b)) {
-				vm_pushbool(vm, YASL_String_cmp(YASL_GETSTR(a), YASL_GETSTR(b)) > 0);
+				vm_pushbool(vm, YASL_String_cmp(obj_getstr(&a), obj_getstr(&b)) > 0);
 				break;
 			}
 			if (obj_isnum(&a) && obj_isnum(&b)) {
@@ -1203,7 +1201,7 @@ int vm_run(struct VM *const vm) {
 			b = vm_pop(vm);
 			a = vm_pop(vm);
 			if (obj_isstr(&a) && obj_isstr(&b)) {
-				vm_push(vm, YASL_BOOL(YASL_String_cmp(YASL_GETSTR(a), YASL_GETSTR(b)) >= 0));
+				vm_push(vm, YASL_BOOL(YASL_String_cmp(obj_getstr(&a), obj_getstr(&b)) >= 0));
 				break;
 			}
 			if (obj_isnum(&a) && obj_isnum(&b)) {
@@ -1292,18 +1290,15 @@ int vm_run(struct VM *const vm) {
 			break;
 		case O_BRF_8:
 			c = vm_read_int(vm);
-			v = vm_pop(vm);
-			if (isfalsey(v)) vm->pc += c;
+			if (isfalsey(vm_pop_p(vm))) vm->pc += c;
 			break;
 		case O_BRT_8:
 			c = vm_read_int(vm);
-			v = vm_pop(vm);
-			if (!(isfalsey(v))) vm->pc += c;
+			if (!(isfalsey(vm_pop_p(vm)))) vm->pc += c;
 			break;
 		case O_BRN_8:
 			c = vm_read_int(vm);
-			v = vm_pop(vm);
-			if (!obj_isundef(&v)) vm->pc += c;
+			if (!obj_isundef(vm_pop_p(vm))) vm->pc += c;
 			break;
 		case O_GLOAD_8:
 			if ((res = vm_GLOAD_8(vm))) return res;
@@ -1361,7 +1356,7 @@ int vm_run(struct VM *const vm) {
 			vm_PRINT(vm);
 			break;
 		case O_ASS:
-			if (isfalsey(vm_peek(vm))) {
+			if (isfalsey(vm_peek_p(vm))) {
 				vm_stringify_top(vm);
 				vm_print_err(vm, "AssertError: %.*s.", (int)YASL_String_len(vm_peekstr(vm)), vm_peekstr(vm)->str + vm_peekstr(vm)->start);
 				vm_pop(vm);

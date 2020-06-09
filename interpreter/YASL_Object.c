@@ -57,7 +57,7 @@ struct YASL_Object *YASL_Table(void) {
 
 int yasl_object_cmp(struct YASL_Object a, struct YASL_Object b) {
 	if (obj_isstr(&a) && obj_isstr(&b)) {
-		return YASL_String_cmp(YASL_GETSTR(a), YASL_GETSTR(b));
+		return YASL_String_cmp(obj_getstr(&a), obj_getstr(&b));
 	} else if (obj_isnum(&a) && obj_isnum(&b)) {
 		yasl_float aVal, bVal;
 		if(obj_isint(&a)) {
@@ -92,7 +92,7 @@ bool ishashable(const struct YASL_Object *const v) {
 		);
 }
 
-bool isfalsey(struct YASL_Object v) {
+bool isfalsey(struct YASL_Object *v) {
 	/*
 	 * Falsey values are:
 	 * 	undef
@@ -101,10 +101,10 @@ bool isfalsey(struct YASL_Object v) {
 	 * 	NaN
 	 */
 	return (
-		obj_isundef(&v) ||
-		(obj_isbool(&v) && obj_getbool(&v) == 0) ||
-		(obj_isstr(&v) && YASL_String_len(YASL_GETSTR(v)) == 0) ||
-		(obj_isfloat(&v) && obj_getfloat(&v) != obj_getfloat(&v))
+		obj_isundef(v) ||
+		(obj_isbool(v) && obj_getbool(v) == 0) ||
+		(obj_isstr(v) && YASL_String_len(obj_getstr(v)) == 0) ||
+		(obj_isfloat(v) && obj_getfloat(v) != obj_getfloat(v))
 	);
 }
 
@@ -122,8 +122,8 @@ bool isequal(const struct YASL_Object *const a, const struct YASL_Object *const 
 	}
 
 	if (obj_isstr(a) && obj_isstr(b)) {
-		struct YASL_String *left = YASL_GETSTR(*a);
-		struct YASL_String *right = YASL_GETSTR(*b);
+		struct YASL_String *left = obj_getstr(a);
+		struct YASL_String *right = obj_getstr(b);
 		return left == right || YASL_String_cmp(left, right) == 0;
 	}
 
@@ -158,8 +158,8 @@ int print(struct YASL_Object v) {
 		break;
 	case Y_STR:
 	case Y_STR_W:
-		for (i = 0; i < (yasl_int) YASL_String_len(YASL_GETSTR(v)); i++) {
-			printf("%c", YASL_GETSTR(v)->str[i + YASL_GETSTR(v)->start]);
+		for (i = 0; i < (yasl_int) YASL_String_len(obj_getstr(&v)); i++) {
+			printf("%c", obj_getstr(&v)->str[i + obj_getstr(&v)->start]);
 		}
 		break;
 	case Y_TABLE:
@@ -204,3 +204,4 @@ extern inline bool obj_getbool(const struct YASL_Object *const v);
 extern inline yasl_float obj_getfloat(const struct YASL_Object *const v);
 extern inline yasl_int obj_getint(const struct YASL_Object *const v);
 extern inline yasl_float obj_getnum(const struct YASL_Object *const v);
+extern inline struct YASL_String *obj_getstr(const struct YASL_Object *const v);

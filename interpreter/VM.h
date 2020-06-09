@@ -30,7 +30,7 @@
 #define vm_peekbool(...) EXPAND(obj_getbool(vm_peek_p(__VA_ARGS__)))
 #define vm_peekfloat(...) EXPAND(obj_getfloat(vm_peek_p(__VA_ARGS__)))
 #define vm_peekint(...) EXPAND(obj_getint(vm_peek_p(__VA_ARGS__)))
-#define vm_peekstr(...) EXPAND(YASL_GETSTR(vm_peek(__VA_ARGS__)))
+#define vm_peekstr(...) EXPAND(obj_getstr(vm_peek_p(__VA_ARGS__)))
 #define vm_peeklist(...) (YASL_GETLIST(vm_peek(__VA_ARGS__)))
 #define vm_peektable(...) (YASL_GETTABLE(vm_peek(__VA_ARGS__)))
 #define vm_peekcfn(...) (YASL_GETCFN(vm_peek(__VA_ARGS__)))

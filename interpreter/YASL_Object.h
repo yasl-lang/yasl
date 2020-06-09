@@ -18,7 +18,6 @@
 #define YASL_FN(f) ((struct YASL_Object){ .type = Y_FN, .value = {.fval = f }})
 #define YASL_CFN(f, n) ((struct YASL_Object){ .type = Y_CFN, .value = {.cval = new_cfn(f, n) }})
 
-#define YASL_GETSTR(v) ((v).value.sval)
 #define YASL_GETLIST(v) ((struct YASL_List *)((v).value.uval->data))
 #define YASL_GETTABLE(v) ((struct YASL_Table *)((v).value.uval->data))
 #define YASL_GETUSERDATA(v) ((v).value.uval)
@@ -63,7 +62,7 @@ struct YASL_Object *YASL_Table(void);
 int yasl_object_cmp(struct YASL_Object a, struct YASL_Object b);
 
 bool ishashable(const struct YASL_Object *const v);
-bool isfalsey(struct YASL_Object v);
+bool isfalsey(struct YASL_Object *const v);
 bool isequal(const struct YASL_Object *const a, const struct YASL_Object *const b);
 int print(struct YASL_Object a);
 
@@ -134,6 +133,10 @@ inline yasl_int obj_getint(const struct YASL_Object *const v) {
 
 inline yasl_float obj_getnum(const struct YASL_Object *const v) {
 	return obj_isfloat(v) ? obj_getfloat(v) : obj_getint(v);
+}
+
+inline struct YASL_String *obj_getstr(const struct YASL_Object *const v) {
+	return v->value.sval;
 }
 
 void inc_ref(struct YASL_Object *v);

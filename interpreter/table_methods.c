@@ -75,7 +75,7 @@ int object_tostr(struct YASL_State *S) {
 	enum YASL_Types index = vm_peek((struct VM *) S, S->vm.sp).type;
 	struct YASL_Object key = YASL_STR(YASL_String_new_sized(strlen("tostr"), "tostr"));
 	struct YASL_Object result = YASL_Table_search(S->vm.builtins_htable[index], key);
-	str_del(YASL_GETSTR(key));
+	str_del(obj_getstr(&key));
 	YASL_GETCFN(result)->value(S);
 	return YASL_SUCCESS;
 }
