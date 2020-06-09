@@ -1039,7 +1039,6 @@ int vm_run(struct VM *const vm) {
 	for (int64_t i = 0; i < vm->num_constants; i++) {
 		int64_t len = *((int64_t *)tmp);
 		tmp += sizeof(int64_t);
-		// printf("%.*s\n", (int)len, tmp);
 		char *str = (char *)malloc((size_t)len);
 		memcpy(str, tmp, (size_t)len);
 		vm->constants[i] = YASL_STR(YASL_String_new_sized_heap(0, (size_t)len, str));
@@ -1047,7 +1046,7 @@ int vm_run(struct VM *const vm) {
 		tmp += len;
 	}
 
-	while (1) {
+	while (true) {
 		unsigned char opcode = NCODE(vm);        // fetch
 		signed char offset;
 		struct YASL_Object a, b;
@@ -1098,7 +1097,7 @@ int vm_run(struct VM *const vm) {
 			break;
 		case O_BCONST_F:
 		case O_BCONST_T:
-			vm_pushbool(vm, opcode & 0x01);
+			vm_pushbool(vm, (bool)(opcode & 0x01));
 			break;
 		case O_NCONST:
 			vm_pushundef(vm);
@@ -1148,7 +1147,6 @@ int vm_run(struct VM *const vm) {
 			if (vm_isint(vm) && vm_peekint(vm) == 0) {
 				vm_print_err_divide_by_zero(vm);
 				return YASL_DIVIDE_BY_ZERO_ERROR;
-				break;
 			}
 			if ((res = vm_int_binop(vm, &idiv, "//", OP_BIN_IDIV))) return res;
 			break;
@@ -1157,7 +1155,6 @@ int vm_run(struct VM *const vm) {
 			if (vm_isint(vm) && vm_peekint(vm) == 0) {
 				vm_print_err_divide_by_zero(vm);
 				return YASL_DIVIDE_BY_ZERO_ERROR;
-				break;
 			}
 			if ((res = vm_int_binop(vm, &modulo, "%", OP_BIN_MOD))) return res;
 			break;

@@ -92,7 +92,7 @@ bool ishashable(const struct YASL_Object *const v) {
 		);
 }
 
-bool isfalsey(struct YASL_Object *v) {
+bool isfalsey(const struct YASL_Object *const v) {
 	/*
 	 * Falsey values are:
 	 * 	undef
