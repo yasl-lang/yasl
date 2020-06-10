@@ -331,5 +331,7 @@ int vmtest(void) {
 	ASSERT_ARG_TYPE_ERR("let f = io.open('test/unit_tests/test_vm/sample.txt'); f.flush([]);",
 			    "io.file.flush", "file", "list", 0, 1);
 
+	ASSERT_TYPE_ERR("mt.setmt(1, {});", "cannot set metatable for value of type int", 1);
+	ASSERT_ARG_TYPE_ERR("mt.setmt({}, 1);", "mt.setmt", "table", "int", 1, 1);
 	return __YASL_TESTS_FAILED__;
 }

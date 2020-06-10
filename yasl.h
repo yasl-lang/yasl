@@ -45,6 +45,7 @@ int YASL_decllib_io(struct YASL_State *S);
 int YASL_decllib_math(struct YASL_State *S);
 int YASL_decllib_require(struct YASL_State *S);
 int YASL_decllib_require_c(struct YASL_State *S);
+int YASL_decllib_mt(struct YASL_State *S);
 
 struct YASL_Object *YASL_DEPRECATE YASL_Table(void);
 

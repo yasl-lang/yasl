@@ -120,6 +120,7 @@ void vm_cleanup(struct VM *const vm);
 void vvm_print_err(struct VM *vm, const char *const fmt, va_list args);
 void vm_print_err(struct VM *vm, const char *const fmt, ...);
 
+void vm_get_metatable(struct VM *const vm);
 int vm_stringify_top(struct VM *const vm);
 
 struct YASL_Object vm_pop(struct VM *const vm);
@@ -128,6 +129,7 @@ yasl_float vm_popfloat(struct VM *const vm);
 yasl_int vm_popint(struct VM *const vm);
 struct YASL_String *vm_popstr(struct VM *const vm);
 struct YASL_List *vm_poplist(struct VM *const vm);
+struct YASL_Table *vm_poptable(struct VM *const vm);
 
 void vm_push(struct VM *const vm, const struct YASL_Object val);
 void vm_pushend(struct VM *const vm);

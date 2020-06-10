@@ -254,6 +254,10 @@ struct YASL_List *vm_poplist(struct VM *const vm) {
 	return YASL_GETLIST(vm_pop(vm));
 }
 
+struct YASL_Table *vm_poptable(struct VM *const vm) {
+	return YASL_GETTABLE(vm_pop(vm));
+}
+
 static yasl_int vm_read_int(struct VM *const vm) {
     yasl_int val;
     memcpy(&val, vm->pc, sizeof(yasl_int));
@@ -714,11 +718,15 @@ static void nop_del_data(void *data) {
 	(void) data;
 }
 
-static void vm_get_metatable(struct VM *const vm) {
+void vm_get_metatable(struct VM *const vm) {
 	struct YASL_Object v = vm_pop(vm);
 	switch (v.type) {
 	case Y_USERDATA:
 	case Y_USERDATA_W:
+	case Y_LIST:
+	case Y_LIST_W:
+	case Y_TABLE:
+	case Y_TABLE_W:
 		vm_push(vm, YASL_TABLE(ud_new(YASL_GETUSERDATA(v)->mt, T_TABLE, NULL, nop_del_data)));
 		break;
 	default:
@@ -1228,6 +1236,7 @@ int vm_run(struct VM *const vm) {
 			break;
 		case O_NEWTABLE: {
 			struct RC_UserData *table = rcht_new();
+			table->mt = vm->builtins_htable[Y_TABLE];
 			struct YASL_Table *ht = (struct YASL_Table *)table->data;
 			while (vm_peek(vm).type != Y_END) {
 				struct YASL_Object val = vm_pop(vm);
@@ -1243,6 +1252,7 @@ int vm_run(struct VM *const vm) {
 		}
 		case O_NEWLIST: {
 			struct RC_UserData *ls = rcls_new();
+			ls->mt = vm->builtins_htable[Y_LIST];
 			while (vm_peek(vm).type != Y_END) {
 				YASL_List_append((struct YASL_List *) ls->data, vm_pop(vm));
 			}

@@ -86,7 +86,7 @@ add_executable(yasl
         yasl_conf.h
         yasl_error.h
         yasl_plat.h
-        )
+        std/yasl-std-mt.c std/yasl-std-mt.h)
 
 if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
     add_executable(tests
@@ -160,7 +160,7 @@ if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
             interpreter/int_methods.c
             interpreter/bool_methods.c
             util/IO.c
-            util/varint.c)
+            util/varint.c std/yasl-std-mt.c std/yasl-std-mt.h)
 endif()
 
 add_library(yaslapi
@@ -202,11 +202,11 @@ add_library(yaslapi
         std/yasl-std-math.c
         std/yasl-std-require.c
         data-structures/YASL_Set.c
-        )
+        std/yasl-std-mt.c std/yasl-std-mt.h)
 
 add_executable(tests2
         test2/test2.c
-        )
+        std/yasl-std-mt.c std/yasl-std-mt.h)
 
 if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
     target_link_libraries(yasl m)
