@@ -335,12 +335,14 @@ int YASL_pushcfunction(struct YASL_State *S, int (*value)(struct YASL_State *), 
 
 int YASL_pushtable(struct YASL_State *S) {
 	struct RC_UserData *table = rcht_new();
+	table->mt = S->vm.builtins_htable[Y_TABLE];
 	vm_push(&S->vm, YASL_TABLE(table));
 	return YASL_SUCCESS;
 }
 
 int YASL_pushlist(struct YASL_State *S) {
 	struct RC_UserData *list = rcls_new();
+	list->mt = S->vm.builtins_htable[Y_LIST];
 	vm_push(&S->vm, YASL_LIST(list));
 	return YASL_SUCCESS;
 }

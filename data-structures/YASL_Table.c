@@ -52,6 +52,7 @@ struct RC_UserData *rcht_new_sized(const size_t base_size) {
         ht->rc = rc_new();
         ht->tag = T_TABLE;
         ht->destructor = rcht_del_data;
+        ht->mt = NULL;
         return ht;
 }
 

@@ -40,10 +40,12 @@ int YASL_decllib_mt(struct YASL_State *S) {
 	YASL_pushcfunction(S, YASL_mt_getmt, 1);
 	YASL_tableset(S);
 
+	/*
 	YASL_loadglobal(S, "mt");
 	YASL_pushlitszstring(S, "setmt");
 	YASL_pushcfunction(S, YASL_mt_setmt, 2);
 	YASL_tableset(S);
+	*/
 
 	return YASL_SUCCESS;
 }

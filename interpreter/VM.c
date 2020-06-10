@@ -727,10 +727,10 @@ void vm_get_metatable(struct VM *const vm) {
 	case Y_LIST_W:
 	case Y_TABLE:
 	case Y_TABLE_W:
-		vm_push(vm, YASL_TABLE(ud_new(YASL_GETUSERDATA(v)->mt, T_TABLE, NULL, nop_del_data)));
+		vm_push(vm, YASL_TABLE(ud_new(YASL_GETUSERDATA(v)->mt, T_TABLE, vm->builtins_htable[Y_TABLE], nop_del_data)));
 		break;
 	default:
-		vm_push(vm, YASL_TABLE(ud_new(vm->builtins_htable[v.type], T_TABLE, NULL, nop_del_data)));
+		vm_push(vm, YASL_TABLE(ud_new(vm->builtins_htable[v.type], T_TABLE, vm->builtins_htable[Y_TABLE], nop_del_data)));
 		break;
 	}
 }

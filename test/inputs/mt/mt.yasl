@@ -1,18 +1,15 @@
-# let mt110 = { .first: fn(self) { return self[0]; }, .rest: fn(self) { return self[1:]; } }
+let ls = [ 1, 2, 3, 4, 5 ]
 
-let ls = mt.setmt([ 1, 2, 3, 4, 5, 6 ], { .first: fn(self) { return self[0]; }, .rest: fn(self) { return self[1:]; } })
+let mtlist = mt.getmt(ls)
 
-# mt110 = undef
+mtlist.first = fn(self) {
+    return self[0]
+}
 
-# echo ls->first()
+mtlist.rest = fn(self) {
+    return self[1:]
+}
+
+echo ls->first()
 echo ls->rest()
-
-mt.setmt(ls, {})
-
-let tbl = {}
-mt.setmt(tbl, tbl)
-
-echo tbl
-
-mt.setmt(tbl, {})
 
