@@ -1,0 +1,8 @@
+
+let left = [ 1, 2, 3 ]
+let right = collections.list(4, 5, 6)
+
+echo left == right
+echo left != right
+echo left == [ 1, 2, 3 ]
+echo right == [ 4, 5 ]

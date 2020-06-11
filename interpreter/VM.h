@@ -14,7 +14,7 @@
 #include "opcode.h"
 
 
-#define NUM_GLOBALS 256
+#define NUM_FRAMES 1000
 #define NUM_TYPES 13                                     // number of builtin types, each needs a vtable
 
 // EXPAND is to deal with MSVC bullshit
@@ -93,7 +93,7 @@ struct VM {
 	struct YASL_Table **globals;   // variables, see "constant.c" for details on YASL_Object.
 	size_t num_globals;
 	struct YASL_Object *stack;     // stack
-	struct CallFrame frames[1000];
+	struct CallFrame frames[NUM_FRAMES];
 	int frame_num;
 	struct LoopFrame loopframes[16];
 	int loopframe_num;
@@ -122,6 +122,7 @@ void vm_print_err(struct VM *vm, const char *const fmt, ...);
 
 void vm_get_metatable(struct VM *const vm);
 int vm_stringify_top(struct VM *const vm);
+int vm_EQ(struct VM *const vm);
 
 struct YASL_Object vm_pop(struct VM *const vm);
 bool vm_popbool(struct VM *const vm);

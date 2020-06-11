@@ -225,6 +225,34 @@ int list___add(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
+int list___eq(struct YASL_State *S) {
+	if (!YASL_islist(S)) {
+		YASLX_print_err_bad_arg_type(S, "list.__eq", 1, "list", YASL_TYPE_NAMES[YASL_peektype(S)]);
+		return YASL_TYPE_ERROR;
+	}
+	struct YASL_List *right = YASL_GETLIST(vm_pop((struct VM *) S));
+	if (!YASL_islist(S)) {
+		YASLX_print_err_bad_arg_type(S, "list.__eq", 0, "list", YASL_TYPE_NAMES[YASL_peektype(S)]);
+		return YASL_TYPE_ERROR;
+	}
+	struct YASL_List *left = YASL_GETLIST(vm_pop((struct VM *) S));
+
+	if (left->count != right->count) {
+		return YASL_pushbool(S, false);
+	}
+
+	for (size_t i = 0; i < left->count; i++) {
+		vm_push((struct VM *)S, left->items[i]);
+		vm_push((struct VM *)S, right->items[i]);
+		int res = vm_EQ((struct VM *)S);
+		if (res) return res;
+		if (!YASL_popbool(S)) {
+			return YASL_pushbool(S, false);
+		}
+	}
+	return YASL_pushbool(S, true);
+}
+
 int list_extend(struct YASL_State *S) {
 	if (!YASL_islist(S)) {
 		YASLX_print_err_bad_arg_type(S, "list.extend", 1, "list", YASL_TYPE_NAMES[YASL_peektype(S)]);

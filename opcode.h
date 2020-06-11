@@ -103,7 +103,8 @@ enum SpecialStrings {
 	S_UNKNOWN_STR = -1, // ERROR, used internally but doesn't represent a real string value
 
 	S___ADD,      // __add
-	S___BOR,
+	S___BOR,      // __bor
+	S___EQ,       // __eq
 	S___GET,      // __get
 	S___SET,      // __set
 
