@@ -78,7 +78,7 @@ static int YASL_io_open(struct YASL_State *S) {
 		}
 	}
 	if (f) {
-		YASL_pushuserdata(S, f, T_FILE, NULL, NULL);
+		YASL_pushuserdata(S, f, T_FILE, NULL);
 		YASL_loadmt(S, FILE_PRE);
 		YASL_setmt(S);
 	} else {
@@ -316,21 +316,21 @@ int YASL_decllib_io(struct YASL_State *S) {
 
 	YASL_loadglobal(S, "io");
 	YASL_pushlitszstring(S, "stdin");
-	YASL_pushuserdata(S, stdin, T_FILE, NULL, NULL);
+	YASL_pushuserdata(S, stdin, T_FILE, NULL);
 	YASL_loadmt(S, FILE_PRE);
 	YASL_setmt(S);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "io");
 	YASL_pushlitszstring(S, "stdout");
-	YASL_pushuserdata(S, stdout, T_FILE, NULL, NULL);
+	YASL_pushuserdata(S, stdout, T_FILE, NULL);
 	YASL_loadmt(S, FILE_PRE);
 	YASL_setmt(S);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "io");
 	YASL_pushlitszstring(S, "stderr");
-	YASL_pushuserdata(S, stderr, T_FILE, NULL, NULL);
+	YASL_pushuserdata(S, stderr, T_FILE, NULL);
 	YASL_loadmt(S, FILE_PRE);
 	YASL_setmt(S);
 	YASL_tableset(S);
