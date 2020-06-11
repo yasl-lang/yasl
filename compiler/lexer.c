@@ -652,6 +652,14 @@ static void YASLKeywords(struct Lexer *const lex) {
 		lex_print_err_syntax(lex,  "`enum` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
 		lex_error(lex);
 		return;
+	} else if (matches_keyword(lex, "struct")) {
+		lex_print_err_syntax(lex,  "`struct` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
+		lex_error(lex);
+		return;
+	} else if (matches_keyword(lex, "pragma")) {
+		lex_print_err_syntax(lex,  "`pragma` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
+		lex_error(lex);
+		return;
 	} else if (matches_keyword(lex, "yield")) {
 		lex_print_err_syntax(lex,  "`yield` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
 		lex_error(lex);
