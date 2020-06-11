@@ -7,3 +7,5 @@ echo left != right
 echo left == [ 1, 2, 3 ]
 echo right == [ 4, 5 ]
 echo [ .a, .b, .c ] != [ .a, .b, .c ]
+
+echo [ [], [ 0, 1 ] ] == [ [], [ 0, 1 ] ]
