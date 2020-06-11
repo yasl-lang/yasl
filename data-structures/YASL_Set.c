@@ -71,7 +71,7 @@ bool YASL_Set_insert(struct YASL_Set *const set, struct YASL_Object value) {
 	size_t i = 1;
 	while (!obj_isundef(&curr_item)) {
 		if (curr_item.type != Y_END) {
-			if (!isfalsey(isequal(&curr_item, &value))) {
+			if ((isequal(&curr_item, &value))) {
 				dec_ref(&curr_item);
 				set->items[index] = value;
 				return true;
@@ -85,18 +85,18 @@ bool YASL_Set_insert(struct YASL_Set *const set, struct YASL_Object value) {
 	return true;
 }
 
-struct YASL_Object YASL_Set_search(const struct YASL_Set *const table, const struct YASL_Object key) {
+bool YASL_Set_search(const struct YASL_Set *const table, const struct YASL_Object key) {
 	size_t index = get_hash(key, table->size, 0);
 	struct YASL_Object item = table->items[index];
 	size_t i = 1;
 	while (!obj_isundef(&item)) {
-		if (!isfalsey(isequal(&item, &key))) {
-			return YASL_BOOL(true);
+		if ((isequal(&item, &key))) {
+			return true;
 		}
 		index = get_hash(key, table->size, i++);
 		item = table->items[index];
 	}
-	return YASL_BOOL(false);
+	return false;
 }
 
 void YASL_Set_rm(struct YASL_Set *const table, struct YASL_Object key) {
@@ -110,7 +110,7 @@ void YASL_Set_rm(struct YASL_Set *const table, struct YASL_Object key) {
 	size_t i = 1;
 	while (!obj_isundef(&item)) {
 		if (item.type != Y_END) {
-			if (!isfalsey(isequal(&item, &key))) {
+			if ((isequal(&item, &key))) {
 				dec_ref(&item);
 				table->items[index] = YASL_END();
 			}
@@ -135,8 +135,8 @@ struct YASL_Set *YASL_Set_union(const struct YASL_Set *const left, const struct 
 struct YASL_Set *YASL_Set_intersection(const struct YASL_Set *const left, const struct YASL_Set *const right) {
 	struct YASL_Set *tmp = YASL_Set_new();
 	FOR_SET(i, iteml, left) {
-		struct YASL_Object cond = YASL_Set_search(right, *iteml);
-		if (YASL_GETBOOL(cond)) {
+		bool cond = YASL_Set_search(right, *iteml);
+		if (cond) {
 			YASL_Set_insert(tmp, *iteml);
 		}
 	}
@@ -146,14 +146,14 @@ struct YASL_Set *YASL_Set_intersection(const struct YASL_Set *const left, const 
 struct YASL_Set *YASL_Set_symmetric_difference(const struct YASL_Set *const left, const struct YASL_Set *const right) {
 	struct YASL_Set *tmp = YASL_Set_new();
 	FOR_SET(i, iteml, left) {
-		struct YASL_Object cond = YASL_Set_search(right, *iteml);
-		if (!YASL_GETBOOL(cond)) {
+		bool cond = YASL_Set_search(right, *iteml);
+		if (!cond) {
 			YASL_Set_insert(tmp, *iteml);
 		}
 	}
 	FOR_SET(i, itemr, right) {
-		struct YASL_Object cond = YASL_Set_search(left, *itemr);
-		if (!YASL_GETBOOL(cond)) {
+		bool cond = YASL_Set_search(left, *itemr);
+		if (!cond) {
 			YASL_Set_insert(tmp, *itemr);
 		}
 	}
@@ -164,8 +164,8 @@ struct YASL_Set *YASL_Set_symmetric_difference(const struct YASL_Set *const left
 struct YASL_Set *YASL_Set_difference(const struct YASL_Set *const left, const struct YASL_Set *const right) {
 	struct YASL_Set *tmp = YASL_Set_new();
 	FOR_SET(i, iteml, left) {
-		struct YASL_Object cond = YASL_Set_search(right, *iteml);
-		if (!YASL_GETBOOL(cond)) {
+		bool cond = YASL_Set_search(right, *iteml);
+		if (!cond) {
 			YASL_Set_insert(tmp, *iteml);
 		}
 	}

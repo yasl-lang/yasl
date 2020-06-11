@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define YASL_VERSION "v0.8.4"
+#define YASL_VERSION "v0.8.5"
 
 struct YASL_State;
 struct YASL_Object;
@@ -45,6 +45,7 @@ int YASL_decllib_io(struct YASL_State *S);
 int YASL_decllib_math(struct YASL_State *S);
 int YASL_decllib_require(struct YASL_State *S);
 int YASL_decllib_require_c(struct YASL_State *S);
+int YASL_decllib_mt(struct YASL_State *S);
 
 struct YASL_Object *YASL_DEPRECATE YASL_Table(void);
 

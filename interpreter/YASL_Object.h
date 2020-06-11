@@ -4,11 +4,6 @@
 #include "data-structures/YASL_String.h"
 #include "yasl_conf.h"
 #include "yasl_types.h"
-// #include "interpreter/closure.h"
-
-#define UNDEF_C ((struct YASL_Object){ .type = Y_UNDEF, .value = { .ival = 0 }  })
-#define FALSE_C ((struct YASL_Object){ .type = Y_BOOL, .value = {.ival = 0 }})
-#define TRUE_C ((struct YASL_Object){ .type = Y_BOOL, .value = {.ival = 1 }})
 
 #define YASL_END() ((struct YASL_Object){ .type = Y_END, .value = {.ival = 0}})
 #define YASL_UNDEF() ((struct YASL_Object){ .type = Y_UNDEF, .value = {.ival = 0 }})
@@ -23,25 +18,6 @@
 #define YASL_FN(f) ((struct YASL_Object){ .type = Y_FN, .value = {.fval = f }})
 #define YASL_CFN(f, n) ((struct YASL_Object){ .type = Y_CFN, .value = {.cval = new_cfn(f, n) }})
 
-#define YASL_ISUNDEF(v) ((v).type == Y_UNDEF)
-#define YASL_ISFLOAT(v) ((v).type == Y_FLOAT)
-#define YASL_ISINT(v) ((v).type == Y_INT)
-#define YASL_ISNUM(v) (YASL_ISINT(v) || YASL_ISFLOAT(v))
-#define YASL_ISBOOL(v) ((v).type == Y_BOOL)
-#define YASL_ISSTR(v) ((v).type == Y_STR)
-#define YASL_ISLIST(v) ((v).type == Y_LIST)
-#define YASL_ISTABLE(v) ((v).type == Y_TABLE)
-#define YASL_ISUSERDATA(v) ((v).type == Y_USERDATA)
-#define YASL_ISUSERPTR(v) ((v).type == Y_USERPTR)
-#define YASL_ISFN(v) ((v).type == Y_FN)
-#define YASL_ISCLOSURE(v) ((v).type == Y_CLOSURE)
-#define YASL_ISCFN(v) ((v).type == Y_CFN)
-
-#define YASL_GETFLOAT(v) ((v).value.dval)
-#define YASL_GETINT(v) ((v).value.ival)
-#define YASL_GETNUM(v) (YASL_ISFLOAT(v) ? YASL_GETFLOAT(v) : YASL_GETINT(v))
-#define YASL_GETBOOL(v) ((v).value.ival)
-#define YASL_GETSTR(v) ((v).value.sval)
 #define YASL_GETLIST(v) ((struct YASL_List *)((v).value.uval->data))
 #define YASL_GETTABLE(v) ((struct YASL_Table *)((v).value.uval->data))
 #define YASL_GETUSERDATA(v) ((v).value.uval)
@@ -56,14 +32,14 @@ struct Closure;
 struct YASL_Object {
 	enum YASL_Types type;
 	union {
-		yasl_int ival;
-		yasl_float dval;
-		struct YASL_String *sval;
-		struct RC_UserData *uval;
-		struct CFunction *cval;
-		struct Closure *lval;
-		unsigned char *fval;
-		void *pval;
+		yasl_int ival;             // bool or int
+		yasl_float dval;           // float
+		struct YASL_String *sval;  // str
+		struct RC_UserData *uval;  // list, table, userdata
+		struct CFunction *cval;    // C fn
+		struct Closure *lval;      // closure
+		unsigned char *fval;       // YASL fn
+		void *pval;                // userptr
 	} value;
 };
 
@@ -86,8 +62,8 @@ struct YASL_Object *YASL_Table(void);
 int yasl_object_cmp(struct YASL_Object a, struct YASL_Object b);
 
 bool ishashable(const struct YASL_Object *const v);
-bool isfalsey(struct YASL_Object v);
-struct YASL_Object isequal(const struct YASL_Object *const a, const struct YASL_Object *const b);
+bool isfalsey(const struct YASL_Object *const v);
+bool isequal(const struct YASL_Object *const a, const struct YASL_Object *const b);
 int print(struct YASL_Object a);
 
 inline bool obj_isundef(const struct YASL_Object *const v) {
@@ -141,6 +117,26 @@ inline bool obj_isclosure(const struct YASL_Object *const v) {
 
 inline bool obj_iscfn(const struct YASL_Object *const v) {
 	return v->type == Y_CFN;
+}
+
+inline bool obj_getbool(const struct YASL_Object *const v) {
+	return (bool) v->value.ival;
+}
+
+inline yasl_float obj_getfloat(const struct YASL_Object *const v) {
+	return v->value.dval;
+}
+
+inline yasl_int obj_getint(const struct YASL_Object *const v) {
+	return v->value.ival;
+}
+
+inline yasl_float obj_getnum(const struct YASL_Object *const v) {
+	return obj_isfloat(v) ? obj_getfloat(v) : obj_getint(v);
+}
+
+inline struct YASL_String *obj_getstr(const struct YASL_Object *const v) {
+	return v->value.sval;
 }
 
 void inc_ref(struct YASL_Object *v);

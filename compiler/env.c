@@ -185,7 +185,7 @@ int64_t env_resolve_upval_value(struct Env *const env, const char *const name) {
 	YASL_ASSERT(value.type == Y_INT, "Value must be found in upvals for env.");
 
 	str_del(key.value.sval);
-	return YASL_GETINT(value);
+	return obj_getint(&value);
 }
 
 int64_t scope_get(const struct Scope *const scope, const char *const name) {

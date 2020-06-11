@@ -21,47 +21,47 @@
 #define GET_MACRO(_1, _2, NAME, ...) NAME
 #define EXPAND(x) x
 #define vm_peek_offset(vm, offset) ((vm)->stack[offset])
+#define vm_peek_offset_p(vm, offset) ((vm)->stack + (offset))
 #define vm_peek_default(vm) ((vm)->stack[(vm)->sp])
+#define vm_peek_default_p(vm) ((vm)->stack + (vm)->sp)
 #define vm_peek(...) EXPAND(GET_MACRO(__VA_ARGS__, vm_peek_offset, vm_peek_default,)(__VA_ARGS__))
+#define vm_peek_p(...) EXPAND(GET_MACRO(__VA_ARGS__, vm_peek_offset_p, vm_peek_default_p,)(__VA_ARGS__))
 
-#define vm_peekbool(...) EXPAND(YASL_GETBOOL(vm_peek(__VA_ARGS__)))
-#define vm_peekfloat(...) EXPAND(YASL_GETFLOAT(vm_peek(__VA_ARGS__)))
-#define vm_peekint(...) EXPAND(YASL_GETINT(vm_peek(__VA_ARGS__)))
-#define vm_peekstr(...) EXPAND(YASL_GETSTR(vm_peek(__VA_ARGS__)))
+#define vm_peekbool(...) EXPAND(obj_getbool(vm_peek_p(__VA_ARGS__)))
+#define vm_peekfloat(...) EXPAND(obj_getfloat(vm_peek_p(__VA_ARGS__)))
+#define vm_peekint(...) EXPAND(obj_getint(vm_peek_p(__VA_ARGS__)))
+#define vm_peekstr(...) EXPAND(obj_getstr(vm_peek_p(__VA_ARGS__)))
 #define vm_peeklist(...) (YASL_GETLIST(vm_peek(__VA_ARGS__)))
 #define vm_peektable(...) (YASL_GETTABLE(vm_peek(__VA_ARGS__)))
 #define vm_peekcfn(...) (YASL_GETCFN(vm_peek(__VA_ARGS__)))
 
 #define vm_isend(vm) (YASL_ISEND(vm_peek(vm)))
-#define vm_isundef(...) (YASL_ISUNDEF(vm_peek(__VA_ARGS__)))
-#define vm_isfloat(vm) (YASL_ISFLOAT(vm_peek(vm)))
-#define vm_isint(...) (YASL_ISINT(vm_peek(__VA_ARGS__)))
-#define vm_isbool(vm) (YASL_ISBOOL(vm_peek(vm)))
-#define vm_isstr(...) (YASL_ISSTR(vm_peek(__VA_ARGS__)))
-#define vm_istable(vm) (YASL_ISTABLE(vm_peek(vm)))
-#define vm_islist(...) (YASL_ISLIST(vm_peek(__VA_ARGS__)))
-#define vm_isuserdata(vm) (YASL_ISUSERDATA(vm_peek(vm)))
-#define vm_isuserptr(vm) (YASL_ISUSERPTR(vm_peek(vm)))
+#define vm_isundef(...) (obj_isundef(vm_peek_p(__VA_ARGS__)))
+#define vm_isfloat(...) (obj_isfloat(vm_peek_p(__VA_ARGS__)))
+#define vm_isint(...) (obj_isint(vm_peek_p(__VA_ARGS__)))
+#define vm_isnum(...) (obj_isnum(vm_peek_p(__VA_ARGS__)))
+#define vm_isbool(...) (obj_isbool(vm_peek_p(__VA_ARGS__)))
+#define vm_isstr(...) (obj_isstr(vm_peek_p(__VA_ARGS__)))
+#define vm_istable(...) (obj_istable(vm_peek_p(__VA_ARGS__)))
+#define vm_islist(...) (obj_islist(vm_peek_p(__VA_ARGS__)))
+#define vm_isuserdata(...) (obj_isuserdata(vm_peek_p(__VA_ARGS__)))
+#define vm_isuserptr(...) (obj_isuserptr(vm_peek_p(__VA_ARGS__)))
+#define vm_isfn(...) (obj_isfn(vm_peek_p(__VA_ARGS__)))
+#define vm_iscfn(...) (obj_iscfn(vm_peek_p(__VA_ARGS__)))
+#define vm_isclosure(...) (obj_isclosure(vm_peek_p(__VA_ARGS__)))
 
 #define BUFFER_SIZE 256
 #define NCODE(vm)    (*((vm)->pc++))     // get next bytecode
 
 #define GT(a, b) ((a) > (b))
 #define GE(a, b) ((a) >= (b))
-#define COMP(vm, a, b, f, str)  do {\
-                            if (a.type == Y_INT && b.type == Y_INT) {\
-                                c = f(a.value.ival, b.value.ival);\
-                            }\
-                            else if (a.type == Y_FLOAT && b.type == Y_INT) {\
-                                c = f(a.value.dval, (yasl_float)b.value.ival);\
-                            }\
-                            else if (a.type == Y_INT && b.type == Y_FLOAT) {\
-                                c = f((yasl_float)a.value.ival, (b).value.dval);\
-                            }\
-                            else {\
-                                c = f(a.value.dval, (b).value.dval);\
-                            }\
-                            vm_pushbool(vm, c);} while(0);
+#define COMP(vm, a, b, f)  do {\
+	if (obj_isint(&a) && obj_isint(&b)) {\
+		c = f(obj_getint(&a), obj_getint(&b));\
+	} else {\
+		c = f(obj_getnum(&a), obj_getnum(&b));\
+	}\
+	vm_pushbool(vm, c);} while(0);
 
 #define vm_print_err_type(vm, format, ...) vm_print_err((vm), MSG_TYPE_ERROR format, __VA_ARGS__)
 #define vm_print_err_value(vm, format, ...) vm_print_err((vm), MSG_VALUE_ERROR format, __VA_ARGS__)
@@ -120,6 +120,7 @@ void vm_cleanup(struct VM *const vm);
 void vvm_print_err(struct VM *vm, const char *const fmt, va_list args);
 void vm_print_err(struct VM *vm, const char *const fmt, ...);
 
+void vm_get_metatable(struct VM *const vm);
 int vm_stringify_top(struct VM *const vm);
 
 struct YASL_Object vm_pop(struct VM *const vm);
@@ -128,6 +129,7 @@ yasl_float vm_popfloat(struct VM *const vm);
 yasl_int vm_popint(struct VM *const vm);
 struct YASL_String *vm_popstr(struct VM *const vm);
 struct YASL_List *vm_poplist(struct VM *const vm);
+struct YASL_Table *vm_poptable(struct VM *const vm);
 
 void vm_push(struct VM *const vm, const struct YASL_Object val);
 void vm_pushend(struct VM *const vm);

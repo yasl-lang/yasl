@@ -22,5 +22,5 @@ YASL: 3.6492
 Python: 3.2944
 
 list_push:
-YASL: 2.7176
+YASL: 2.4368
 Python: 1.1024

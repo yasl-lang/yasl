@@ -335,12 +335,14 @@ int YASL_pushcfunction(struct YASL_State *S, int (*value)(struct YASL_State *), 
 
 int YASL_pushtable(struct YASL_State *S) {
 	struct RC_UserData *table = rcht_new();
+	table->mt = S->vm.builtins_htable[Y_TABLE];
 	vm_push(&S->vm, YASL_TABLE(table));
 	return YASL_SUCCESS;
 }
 
 int YASL_pushlist(struct YASL_State *S) {
 	struct RC_UserData *list = rcls_new();
+	list->mt = S->vm.builtins_htable[Y_LIST];
 	vm_push(&S->vm, YASL_LIST(list));
 	return YASL_SUCCESS;
 }
@@ -367,7 +369,7 @@ int YASL_tableset(struct YASL_State *S) {
 	struct YASL_Object table = vm_pop(&S->vm);
 
 	// TODO change to TYPE_ERROR
-	if (!YASL_ISTABLE(table))
+	if (!obj_istable(&table))
 		return YASL_TYPE_ERROR;
 	if (!YASL_Table_insert(YASL_GETTABLE(table), key, value)) {
 		return YASL_TYPE_ERROR;
@@ -459,7 +461,7 @@ bool YASL_top_isuserpointer(struct YASL_State *S) {
 
 bool YASL_peekbool(struct YASL_State *S) {
 	if (YASL_isbool(S)) {
-		return vm_popbool(&S->vm);
+		return vm_peekbool(&S->vm);
 	}
 	return false;
 }
@@ -470,7 +472,7 @@ bool YASL_top_peekboolean(struct YASL_State *S) {
 
 bool YASL_popbool(struct YASL_State *S) {
 	if (YASL_isbool(S)) {
-		return (bool)YASL_GETBOOL(vm_pop(&S->vm));
+		return vm_popbool(&S->vm);
 	}
 	return false;
 }

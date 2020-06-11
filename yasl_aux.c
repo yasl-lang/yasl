@@ -23,6 +23,7 @@ int YASLX_decllibs(struct YASL_State *S) {
 	YASL_decllib_math(S);
 	YASL_decllib_require(S);
 	YASL_decllib_require_c(S);
+	YASL_decllib_mt(S);
 	
 	return YASL_SUCCESS;
 }
