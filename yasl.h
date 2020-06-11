@@ -10,8 +10,6 @@
 #define YASL_VERSION "v0.9.0"
 
 struct YASL_State;
-struct YASL_Object;
-struct YASL_Table;
 
 /**
  * Typedef for YASL functions defined through the C API.
@@ -46,8 +44,6 @@ int YASL_decllib_math(struct YASL_State *S);
 int YASL_decllib_require(struct YASL_State *S);
 int YASL_decllib_require_c(struct YASL_State *S);
 int YASL_decllib_mt(struct YASL_State *S);
-
-struct YASL_Object *YASL_DEPRECATE YASL_Table(void);
 
 /**
  * initialises a new YASL_State for usage, or NULL on failure.
