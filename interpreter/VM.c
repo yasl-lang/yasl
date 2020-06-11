@@ -514,7 +514,25 @@ static int vm_len_unop(struct VM *const vm) {
 static int vm_EQ(struct VM *const vm) {
 	struct YASL_Object b = vm_pop(vm);
 	struct YASL_Object a = vm_pop(vm);
-	vm_pushbool(vm, isequal(&a, &b));
+	if (obj_isuserdata(&a) && obj_isuserdata(&b)) {
+		struct YASL_Object op_name = YASL_STR(YASL_String_new_sized(strlen("__eq"), "__eq"));
+		inc_ref(&a);
+		inc_ref(&b);
+		vm_push(vm, a);
+		vm_push(vm, op_name);
+		if (vm_GET_noprint(vm)) {
+			vm_print_err_type(vm, "== not supported for operands of types %s and %s.", YASL_TYPE_NAMES[a.type], YASL_TYPE_NAMES[b.type]);
+			return YASL_TYPE_ERROR;
+		} else {
+			vm_INIT_CALL(vm);
+			vm_push(vm, a);
+			vm_push(vm, b);
+			vm_CALL(vm);
+		}
+		// vm_pushbool(vm, isequal(&a, &b));
+	} else {
+		vm_pushbool(vm, isequal(&a, &b));
+	}
 	return YASL_SUCCESS;
 }
 

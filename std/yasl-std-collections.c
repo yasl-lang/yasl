@@ -151,6 +151,34 @@ YASL_COLLECTIONS_SET_BINOP(__bxor, YASL_Set_symmetric_difference)
 
 YASL_COLLECTIONS_SET_BINOP(__bandnot, YASL_Set_difference)
 
+static int YASL_collections_set___eq(struct YASL_State *S) {
+	if (!YASL_isuserdata(S, T_SET)) {
+		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type set, got arg of type %s.",
+				SET_PRE ".__eq",  1, YASL_TYPE_NAMES[vm_peek(&S->vm).type]);
+		return YASL_TYPE_ERROR;
+	}
+	struct YASL_Set *right = (struct YASL_Set *)YASL_popuserdata(S);\
+
+	if (!YASL_isuserdata(S, T_SET)) {\
+		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type set, got arg of type %s.",
+				SET_PRE ".__eq", 0, YASL_TYPE_NAMES[vm_peek(&S->vm).type]);
+		return YASL_TYPE_ERROR;
+	}
+	struct YASL_Set *left = (struct YASL_Set *)YASL_popuserdata(S);
+
+	if (YASL_Set_length(left) != YASL_Set_length(right)) {
+		return YASL_pushbool(S, false);
+	}
+
+	FOR_SET(i, item, left) {
+		if (!YASL_Set_search(right, *item)) {
+			return YASL_pushbool(S, false);
+		}
+	}
+
+	return YASL_pushbool(S, true);
+}
+
 static int YASL_collections_set___len(struct YASL_State *S) {
 	if (!YASL_isuserdata(S, T_SET)) {
 		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type set, got arg of type %s.",
@@ -294,6 +322,11 @@ int YASL_decllib_collections(struct YASL_State *S) {
 	YASL_loadmt(S, SET_PRE);
 	YASL_pushlitszstring(S, "__len");
 	YASL_pushcfunction(S, YASL_collections_set___len, 1);
+	YASL_tableset(S);
+
+	YASL_loadmt(S, SET_PRE);
+	YASL_pushlitszstring(S, "__eq");
+	YASL_pushcfunction(S, YASL_collections_set___eq, 2);
 	YASL_tableset(S);
 
 	YASL_loadmt(S, SET_PRE);

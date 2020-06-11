@@ -4,7 +4,6 @@ const set = collections.set
 let s1, let s2 = collections.set(3), collections.set(1, 2)
 
 s1->add(1)
-
 s2->add(2)
 s2->add(0)
 
@@ -47,3 +46,9 @@ echo len s3
 
 echo set(.a, .b, .c, .d, .e)->tolist()
 echo set(10, 9, 8, 7, 6, 5)->tolist()
+
+echo set(1, 2, 3) == set(1, 2, 3)
+echo s3 == set(0, 2, 1)
+echo s3 != set(0, 2, 1)
+echo s2 != s3
+echo s2 == set(0, 1)
