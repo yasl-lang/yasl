@@ -296,7 +296,7 @@ int vmtest(void) {
 	ASSERT_ARG_TYPE_ERR("echo collections.set().__len(1);", "collections.set.__len", "set", "int", 0, 1);
 	ASSERT_ARG_TYPE_ERR("echo collections.set().copy(1);", "collections.set.copy", "set", "int", 0, 1);
 	ASSERT_ARG_TYPE_ERR("echo collections.set().clear(1);", "collections.set.clear", "set", "int", 0, 1);
-	ASSERT_ARG_TYPE_ERR("echo collections.set().contains([], true);", "collections.set.contains", "set", "list", 0, 1);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().__get([], true);", "collections.set.__get", "set", "list", 0, 1);
 
 	// io errors
 	ASSERT_ARG_TYPE_ERR("let f = io.open('f', true);", "io.open", "str", "bool", 1, 1);
