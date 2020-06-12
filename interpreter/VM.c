@@ -791,7 +791,7 @@ static int vm_lookup_method(struct VM *const vm, struct YASL_Object index) {
 	inc_ref(&val);
 
 	if (obj_istable(&val)) {
-		struct YASL_Object search = YASL_Table_search(YASL_GETUSERDATA(val)->data, index);
+		struct YASL_Object search = YASL_Table_search((struct YASL_Table *)YASL_GETUSERDATA(val)->data, index);
 		if (search.type != Y_END) {
 			vm_push(vm, search);
 			return YASL_SUCCESS;
