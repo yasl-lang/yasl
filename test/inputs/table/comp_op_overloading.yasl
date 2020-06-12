@@ -8,6 +8,6 @@ x.__gt = fn(left, right) { return left.a > right.a; }
 
 let y = x | { .a: 20 }
 
-echo x <= y
 echo x > y
+
 

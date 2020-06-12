@@ -15,6 +15,11 @@ echo s2 &^ s1
 echo len s1
 echo len s2
 
+echo s1 < s2
+echo s1 > s2
+echo s1 <= s2
+echo s1 >= s2
+
 let s3 = s2->copy()
 s2->remove(2)
 
@@ -52,3 +57,18 @@ echo s3 == set(0, 2, 1)
 echo s3 != set(0, 2, 1)
 echo s2 != s3
 echo s2 == set(0, 1)
+
+const a = set()
+const b = set(.a, .b)
+
+echo a < b
+echo a > b
+echo a >= b
+echo a <= b
+
+a->add(.c)
+
+echo a < b
+echo a > b
+echo a >= b
+echo a <= b

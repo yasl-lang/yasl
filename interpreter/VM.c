@@ -545,13 +545,13 @@ static int vm_CNCT(struct VM *const vm) {
 		return YASL_SUCCESS;
 }
 
-#define MAKE_COMP(name, opstr, op, overload_name) \
+#define MAKE_COMP(name, opstr, overload_name) \
 static int vm_##name(struct VM *const vm) {\
 	struct YASL_Object right = vm_pop(vm);\
 	struct YASL_Object left = vm_pop(vm);\
 	bool c;\
 	if (obj_isstr(&left) && obj_isstr(&right)) {\
-		vm_pushbool(vm, YASL_String_cmp(obj_getstr(&left), obj_getstr(&right)) op 0);\
+		vm_pushbool(vm, name(YASL_String_cmp(obj_getstr(&left), obj_getstr(&right)), 0));\
 		return YASL_SUCCESS;\
 	}\
 	if (obj_isnum(&left) && obj_isnum(&right)) {\
@@ -582,8 +582,10 @@ static int vm_##name(struct VM *const vm) {\
 	return YASL_SUCCESS;\
 }
 
-MAKE_COMP(GT, "< and >", >, "__gt")
-MAKE_COMP(GE, "<= and >=", >=, "__ge")
+MAKE_COMP(GT, ">", "__gt")
+MAKE_COMP(GE, ">=", "__ge")
+MAKE_COMP(LT, "<", "__lt")
+MAKE_COMP(LE, "<=", "__le")
 
 int vm_stringify_top(struct VM *const vm) {
 	enum YASL_Types index = vm_peek(vm, vm->sp).type;
@@ -1279,6 +1281,12 @@ int vm_run(struct VM *const vm) {
 			break;
 		case O_GE:
 			if ((res = vm_GE(vm))) return res;
+			break;
+		case O_LT:
+			if ((res = vm_LT(vm))) return res;
+			break;
+		case O_LE:
+			if ((res = vm_LE(vm))) return res;
 			break;
 		case O_EQ:
 			if ((res = vm_EQ(vm))) return res;

@@ -55,6 +55,9 @@
 
 #define GT(a, b) ((a) > (b))
 #define GE(a, b) ((a) >= (b))
+#define LT(a, b) ((a) < (b))
+#define LE(a, b) ((a) <= (b))
+
 #define COMP(vm, a, b, f)  do {\
 	if (obj_isint(&a) && obj_isint(&b)) {\
 		c = f(obj_getint(&a), obj_getint(&b));\

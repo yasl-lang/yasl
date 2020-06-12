@@ -50,6 +50,8 @@ enum Opcode {
 	O_LEN = 0x6A, // get length
 	O_CNCT = 0x6B, // concat two strings or lists
 
+	O_LT = 0x70, // less than
+	O_LE = 0x71, // less than or equal
 	O_GT = 0x72, // greater than
 	O_GE = 0x73, // greater than or equal
 	O_EQ = 0x74, // equality
