@@ -285,7 +285,7 @@ static yasl_float vm_read_float(struct VM *const vm) {
     return val;
 }
 
-static int vm_GET_noprint(struct VM *const vm);
+static int vm_lookup_method(struct VM *const vm, struct YASL_Object index);
 static int vm_GET(struct VM *const vm);
 static int vm_INIT_CALL(struct VM *const vm);
 static int vm_CALL(struct VM *const vm);
@@ -312,8 +312,7 @@ static int vm_int_binop(struct VM *const vm, yasl_int (*op)(yasl_int, yasl_int),
 		inc_ref(&right);
 		struct YASL_Object op_name = YASL_STR(YASL_String_new_sized(strlen(overload_name), overload_name));
 		vm_push(vm, left);
-		vm_push(vm, op_name);
-		if (vm_GET_noprint(vm)) {
+		if (vm_lookup_method(vm, op_name)) {
 			vm_print_err_type(vm, "%s not supported for operands of types %s and %s.",
 					      opstr,
 					      YASL_TYPE_NAMES[left.type],
@@ -362,8 +361,7 @@ static int vm_num_binop(
 		inc_ref(&right);
 		struct YASL_Object op_name = YASL_STR(YASL_String_new_sized(strlen(overload_name), overload_name));
 		vm_push(vm, left);
-		vm_push(vm, op_name);
-		if (vm_GET_noprint(vm)) {
+		if (vm_lookup_method(vm, op_name)) {
 			vm_print_err_type(vm, "%s not supported for operands of types %s and %s.",
 					      opstr,
 					      YASL_TYPE_NAMES[left.type],
@@ -396,8 +394,7 @@ static int vm_fdiv(struct VM *const vm) {
 		inc_ref(&right);
 		struct YASL_Object op_name = YASL_STR(YASL_String_new_sized(strlen(overload_name), overload_name));
 		vm_push(vm, left);
-		vm_push(vm, op_name);
-		if (vm_GET_noprint(vm)) {
+		if (vm_lookup_method(vm, op_name)) {
 			vm_print_err_type(vm, "/ not supported for operands of types %s and %s.",
 					      YASL_TYPE_NAMES[left.type],
 					      YASL_TYPE_NAMES[right.type]);
@@ -448,8 +445,7 @@ static int vm_int_unop(struct VM *const vm, yasl_int (*op)(yasl_int), const char
 	} else {
 		struct YASL_Object op_name = YASL_STR(YASL_String_new_sized(strlen(overload_name), overload_name));
 		vm_push(vm, a);
-		vm_push(vm, op_name);
-		if (vm_GET_noprint(vm)) {
+		if (vm_lookup_method(vm, op_name)) {
 			vm_print_err_type(vm, "%s not supported for operand of type %s.",
 					      opstr,
 					      YASL_TYPE_NAMES[a.type]);
@@ -472,8 +468,7 @@ static int vm_num_unop(struct VM *const vm, yasl_int (*int_op)(yasl_int), yasl_f
 	} else {
 		struct YASL_Object op_name = YASL_STR(YASL_String_new_sized(strlen(overload_name), overload_name));
 		vm_push(vm, expr);
-		vm_push(vm, op_name);
-		if (vm_GET_noprint(vm)) {
+		if (vm_lookup_method(vm, op_name)) {
 			vm_print_err_type(vm,  "%s not supported for operand of type %s.",
 					      opstr,
 					      YASL_TYPE_NAMES[expr.type]);
@@ -498,8 +493,7 @@ static int vm_len_unop(struct VM *const vm) {
 	} else {
 		struct YASL_Object op_name = YASL_STR(YASL_String_new_sized(strlen("__len"), "__len"));
 		vm_push(vm, v);
-		vm_push(vm, op_name);
-		if (vm_GET_noprint(vm)) {
+		if (vm_lookup_method(vm, op_name)) {
 			vm_print_err_type(vm,  "len not supported for operand of type %s.",
 					      YASL_TYPE_NAMES[v.type]);
 			return YASL_TYPE_ERROR;
@@ -516,14 +510,14 @@ int vm_EQ(struct VM *const vm) {
 	struct YASL_Object b = vm_pop(vm);
 	struct YASL_Object a = vm_pop(vm);
 	if (obj_isuserdata(&a) && obj_isuserdata(&b) ||
-	  /*  obj_istable(&a) && obj_istable(&b) || */
+	    obj_istable(&a) && obj_istable(&b) ||
 	    obj_islist(&a) && obj_islist(&b)) {
 		struct YASL_Object op_name = YASL_STR(YASL_String_new_sized(strlen("__eq"), "__eq"));
 		inc_ref(&a);
 		inc_ref(&b);
 		vm_push(vm, a);
-		vm_push(vm, op_name);
-		if (vm_GET_noprint(vm)) {
+		// vm_push(vm, op_name);
+		if (vm_lookup_method(vm, op_name)) {
 			vm_print_err_type(vm, "== not supported for operands of types %s and %s.", YASL_TYPE_NAMES[a.type], YASL_TYPE_NAMES[b.type]);
 			dec_ref(&a);
 			dec_ref(&b);
@@ -781,12 +775,41 @@ static int lookup(struct VM *vm, struct YASL_Object obj, struct YASL_Table *mt, 
 	return YASL_VALUE_ERROR;
 }
 
-static int vm_GET_noprint(struct VM *const vm) {
+static int vm_lookup_method_helper(struct VM *vm, struct YASL_Object obj, struct YASL_Table *mt, struct YASL_Object index) {
+	(void) obj;
+	struct YASL_Object search = YASL_Table_search(mt, index);
+	if (search.type != Y_END) {
+		vm_push(vm,search);
+		return YASL_SUCCESS;
+	}
+
+	return YASL_VALUE_ERROR;
+}
+
+static int vm_lookup_method(struct VM *const vm, struct YASL_Object index) {
+	struct YASL_Object val = vm_peek(vm);
+	inc_ref(&val);
+
+	if (obj_istable(&val)) {
+		struct YASL_Object search = YASL_Table_search(YASL_GETUSERDATA(val)->data, index);
+		if (search.type != Y_END) {
+			vm_push(vm, search);
+			return YASL_SUCCESS;
+		}
+	}
+
+	vm_get_metatable(vm);
+	struct YASL_Table *mt = YASL_GETTABLE(vm_pop(vm));
 	void (*old_print)(struct IO *const, const char *const, va_list) = vm->err.print;
 	vm->err.print = io_print_none;
-	int result = vm_GET(vm);
+	int result = vm_lookup_method_helper(vm, val, mt, index);
 	vm->err.print = old_print;
-	return result;
+	if (result) {
+		dec_ref(&val);
+		return YASL_VALUE_ERROR;
+	}
+	dec_ref(&val);
+	return YASL_SUCCESS;
 }
 
 static int vm_GET_helper(struct VM *const vm, struct YASL_Object index) {
