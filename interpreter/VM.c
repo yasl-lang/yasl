@@ -545,6 +545,46 @@ static int vm_CNCT(struct VM *const vm) {
 		return YASL_SUCCESS;
 }
 
+#define MAKE_COMP(name, opstr, op, overload_name) \
+static int vm_##name(struct VM *const vm) {\
+	struct YASL_Object right = vm_pop(vm);\
+	struct YASL_Object left = vm_pop(vm);\
+	bool c;\
+	if (obj_isstr(&left) && obj_isstr(&right)) {\
+		vm_pushbool(vm, YASL_String_cmp(obj_getstr(&left), obj_getstr(&right)) op 0);\
+		return YASL_SUCCESS;\
+	}\
+	if (obj_isnum(&left) && obj_isnum(&right)) {\
+		COMP(vm, left, right, name);\
+		return YASL_SUCCESS;\
+	}\
+	inc_ref(&left);\
+	inc_ref(&right);\
+	vm_push(vm, left);\
+	if (vm_lookup_method(vm, overload_name)) {\
+		vm_print_err_type(vm, "%s not supported for operands of types %s and %s.",\
+		opstr,\
+		YASL_TYPE_NAMES[left.type],\
+		YASL_TYPE_NAMES[right.type]);\
+		dec_ref(&left);\
+		dec_ref(&right);\
+		return YASL_TYPE_ERROR;\
+	} else {\
+		int res;\
+		vm_INIT_CALL(vm);\
+		vm_push(vm, left);\
+		vm_push(vm, right);\
+		res = vm_CALL(vm);\
+		dec_ref(&left);\
+		dec_ref(&right);\
+		return res;\
+	}\
+	return YASL_SUCCESS;\
+}
+
+MAKE_COMP(GT, "< and >", >, "__gt")
+MAKE_COMP(GE, "<= and >=", >=, "__ge")
+
 int vm_stringify_top(struct VM *const vm) {
 	enum YASL_Types index = vm_peek(vm, vm->sp).type;
 	if (vm_isfn(vm) || vm_iscfn(vm) || vm_isclosure(vm)) {
@@ -1235,40 +1275,10 @@ int vm_run(struct VM *const vm) {
 			if ((res = vm_CNCT(vm))) return res;
 			break;
 		case O_GT:
-			b = vm_pop(vm);
-			a = vm_pop(vm);
-			if (obj_isstr(&a) && obj_isstr(&b)) {
-				vm_pushbool(vm, YASL_String_cmp(obj_getstr(&a), obj_getstr(&b)) > 0);
-				break;
-			}
-			if (obj_isnum(&a) && obj_isnum(&b)) {
-				COMP(vm, a, b, GT);
-				break;
-			}
-			if (!obj_isnum(&a) || !obj_isnum(&b)) {
-				vm_print_err_type(vm,  "< and > not supported for operands of types %s and %s.",
-				       YASL_TYPE_NAMES[a.type],
-				       YASL_TYPE_NAMES[b.type]);
-				return YASL_TYPE_ERROR;
-			}
+			if ((res = vm_GT(vm))) return res;
 			break;
 		case O_GE:
-			b = vm_pop(vm);
-			a = vm_pop(vm);
-			if (obj_isstr(&a) && obj_isstr(&b)) {
-				vm_push(vm, YASL_BOOL(YASL_String_cmp(obj_getstr(&a), obj_getstr(&b)) >= 0));
-				break;
-			}
-			if (obj_isnum(&a) && obj_isnum(&b)) {
-				COMP(vm, a, b, GE);
-				break;
-			}
-			if (!obj_isnum(&a) || !obj_isnum(&b)) {
-				vm_print_err_type(vm,  "<= and >= not supported for operands of types %s and %s.",
-				       YASL_TYPE_NAMES[a.type],
-				       YASL_TYPE_NAMES[b.type]);
-				return YASL_TYPE_ERROR;
-			}
+			if ((res = vm_GE(vm))) return res;
 			break;
 		case O_EQ:
 			if ((res = vm_EQ(vm))) return res;
