@@ -516,7 +516,7 @@ int vm_EQ(struct VM *const vm) {
 	struct YASL_Object b = vm_pop(vm);
 	struct YASL_Object a = vm_pop(vm);
 	if (obj_isuserdata(&a) && obj_isuserdata(&b) ||
-	    obj_istable(&a) && obj_istable(&b) ||
+	  /*  obj_istable(&a) && obj_istable(&b) || */
 	    obj_islist(&a) && obj_islist(&b)) {
 		struct YASL_Object op_name = YASL_STR(YASL_String_new_sized(strlen("__eq"), "__eq"));
 		inc_ref(&a);
