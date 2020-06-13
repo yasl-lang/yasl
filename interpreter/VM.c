@@ -615,7 +615,7 @@ int vm_stringify_top(struct VM *const vm) {
 		vm_pushstr(vm, YASL_String_new_sized_heap(0, strlen(buffer), buffer));
 	} else if (vm_isuserdata(vm)) {
 		struct YASL_Object key = YASL_STR(YASL_String_new_sized(strlen("tostr"), "tostr"));
-		struct YASL_Object result = YASL_Table_search(vm_peek(vm).value.uval->mt->data, key);
+		struct YASL_Object result = YASL_Table_search((struct YASL_Table *)vm_peek(vm).value.uval->mt->data, key);
 		str_del(obj_getstr(&key));
 		if (result.type == Y_END) {
 			exit(EXIT_FAILURE);
