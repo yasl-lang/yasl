@@ -22,17 +22,27 @@
 #include "YASL_Object.h"
 #include "closure.h"
 
-static struct YASL_Table **builtins_htable_new(struct VM *const vm) {
-    struct YASL_Table **ht = (struct YASL_Table **)malloc(sizeof(struct YASL_Table*) * NUM_TYPES);
-    ht[Y_UNDEF] = undef_builtins(vm);
-    ht[Y_FLOAT] = float_builtins(vm);
-    ht[Y_INT] = int_builtins(vm);
-    ht[Y_BOOL] = bool_builtins(vm);
-    ht[Y_STR] = str_builtins(vm);
-    ht[Y_LIST] = list_builtins(vm);
-    ht[Y_TABLE] = table_builtins(vm);
+static void nop_del_data(void *data) {
+	(void) data;
+}
 
-    return ht;
+static struct RC_UserData **builtins_htable_new(struct VM *const vm) {
+	struct RC_UserData **ht = (struct RC_UserData **) malloc(sizeof(struct RC_UserData *) * NUM_TYPES);
+	ht[Y_UNDEF] = ud_new(undef_builtins(vm), T_TABLE, NULL, rcht_del_data);
+	ht[Y_UNDEF]->rc->refs++;
+	ht[Y_FLOAT] = ud_new(float_builtins(vm), T_TABLE, NULL, rcht_del_data);
+	ht[Y_FLOAT]->rc->refs++;
+	ht[Y_INT] = ud_new(int_builtins(vm), T_TABLE, NULL, rcht_del_data);
+	ht[Y_INT]->rc->refs++;
+	ht[Y_BOOL] = ud_new(bool_builtins(vm), T_TABLE, NULL, rcht_del_data);
+	ht[Y_BOOL]->rc->refs++;
+	ht[Y_STR] = ud_new(str_builtins(vm), T_TABLE, NULL, rcht_del_data);
+	ht[Y_STR]->rc->refs++;
+	ht[Y_LIST] = ud_new(list_builtins(vm), T_TABLE, NULL, rcht_del_data);
+	ht[Y_LIST]->rc->refs++;
+	ht[Y_TABLE] = ud_new(table_builtins(vm), T_TABLE, NULL, rcht_del_data);
+	ht[Y_TABLE]->rc->refs++;
+	return ht;
 }
 
 void vm_init(struct VM *const vm,
@@ -131,14 +141,23 @@ void vm_cleanup(struct VM *const vm) {
 
 	YASL_Table_del(vm->metatables);
 
-	YASL_Table_del(vm->builtins_htable[Y_UNDEF]);
-	YASL_Table_del(vm->builtins_htable[Y_FLOAT]);
-	YASL_Table_del(vm->builtins_htable[Y_INT]);
-	YASL_Table_del(vm->builtins_htable[Y_BOOL]);
-	YASL_Table_del(vm->builtins_htable[Y_STR]);
-	YASL_Table_del(vm->builtins_htable[Y_LIST]);
-	YASL_Table_del(vm->builtins_htable[Y_TABLE]);
+	struct YASL_Object v;
+	v = YASL_TABLE(vm->builtins_htable[Y_UNDEF]);
+	dec_ref(&v);
+	v = YASL_TABLE(vm->builtins_htable[Y_FLOAT]);
+	dec_ref(&v);
+	v = YASL_TABLE(vm->builtins_htable[Y_INT]);
+	dec_ref(&v);
+	v = YASL_TABLE(vm->builtins_htable[Y_BOOL]);
+	dec_ref(&v);
+	v = YASL_TABLE(vm->builtins_htable[Y_STR]);
+	dec_ref(&v);
+	v = YASL_TABLE(vm->builtins_htable[Y_LIST]);
+	dec_ref(&v);
+	v = YASL_TABLE(vm->builtins_htable[Y_TABLE]);
+	dec_ref(&v);
 	free(vm->builtins_htable);
+
 	// TODO: free upvalues
 }
 
@@ -596,7 +615,7 @@ int vm_stringify_top(struct VM *const vm) {
 		vm_pushstr(vm, YASL_String_new_sized_heap(0, strlen(buffer), buffer));
 	} else if (vm_isuserdata(vm)) {
 		struct YASL_Object key = YASL_STR(YASL_String_new_sized(strlen("tostr"), "tostr"));
-		struct YASL_Object result = YASL_Table_search(vm_peek(vm).value.uval->mt, key);
+		struct YASL_Object result = YASL_Table_search(vm_peek(vm).value.uval->mt->data, key);
 		str_del(obj_getstr(&key));
 		if (result.type == Y_END) {
 			exit(EXIT_FAILURE);
@@ -610,7 +629,7 @@ int vm_stringify_top(struct VM *const vm) {
 		vm_pushstr(vm, YASL_String_new_sized_heap(0, strlen(buffer), buffer));
 	} else {
 		struct YASL_Object key = YASL_STR(YASL_String_new_sized(strlen("tostr"), "tostr"));
-		struct YASL_Object result = YASL_Table_search(vm->builtins_htable[index], key);
+		struct YASL_Object result = YASL_Table_search((struct YASL_Table *)vm->builtins_htable[index]->data, key);
 		str_del(obj_getstr(&key));
 		YASL_GETCFN(result)->value((struct YASL_State *)vm);
 	}
@@ -766,10 +785,6 @@ static int vm_SLICE(struct VM *const vm) {
 
 }
 
-static void nop_del_data(void *data) {
-	(void) data;
-}
-
 void vm_get_metatable(struct VM *const vm) {
 	struct YASL_Object v = vm_pop(vm);
 	switch (v.type) {
@@ -779,10 +794,10 @@ void vm_get_metatable(struct VM *const vm) {
 	case Y_LIST_W:
 	case Y_TABLE:
 	case Y_TABLE_W:
-		vm_push(vm, YASL_TABLE(ud_new(YASL_GETUSERDATA(v)->mt, T_TABLE, vm->builtins_htable[Y_TABLE], nop_del_data)));
+		vm_push(vm, YASL_TABLE(YASL_GETUSERDATA(v)->mt));
 		break;
 	default:
-		vm_push(vm, YASL_TABLE(ud_new(vm->builtins_htable[v.type], T_TABLE, vm->builtins_htable[Y_TABLE], nop_del_data)));
+		vm_push(vm, YASL_TABLE(vm->builtins_htable[v.type]));
 		break;
 	}
 }
@@ -1093,7 +1108,7 @@ static int vm_CALL(struct VM *const vm) {
 		return vm_CALL_closure(vm);
 	}
 	YASL_ASSERT(false, "We never reach this point");
-	return 0;
+	return YASL_SUCCESS;
 }
 
 static int vm_RET(struct VM *const vm) {
@@ -1302,6 +1317,7 @@ int vm_run(struct VM *const vm) {
 		case O_NEWTABLE: {
 			struct RC_UserData *table = rcht_new();
 			table->mt = vm->builtins_htable[Y_TABLE];
+			table->mt->rc->refs++;
 			struct YASL_Table *ht = (struct YASL_Table *)table->data;
 			while (vm_peek(vm).type != Y_END) {
 				struct YASL_Object val = vm_pop(vm);
@@ -1318,6 +1334,7 @@ int vm_run(struct VM *const vm) {
 		case O_NEWLIST: {
 			struct RC_UserData *ls = rcls_new();
 			ls->mt = vm->builtins_htable[Y_LIST];
+			ls->mt->rc->refs++;
 			while (vm_peek(vm).type != Y_END) {
 				YASL_List_append((struct YASL_List *) ls->data, vm_pop(vm));
 			}

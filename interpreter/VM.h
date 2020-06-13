@@ -110,7 +110,7 @@ struct VM {
 	int fp;                        // frame pointer
 	int next_fp;
 	struct YASL_String *special_strings[NUM_SPECIAL_STRINGS];
-	struct YASL_Table **builtins_htable;   // htable of builtin methods
+	struct RC_UserData **builtins_htable;   // htable of builtin methods
 	struct Upvalue *pending;
 	jmp_buf buf;
 	int status;

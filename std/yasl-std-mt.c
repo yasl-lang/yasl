@@ -13,7 +13,7 @@ int YASL_mt_setmt(struct YASL_State *S) {
 		return YASL_TYPE_ERROR;
 	}
 
-	struct YASL_Table *mt = vm_poptable((struct VM *)S);
+	struct YASL_Object mt = vm_pop((struct VM *)S);
 	switch (YASL_peektype(S)) {
 	case Y_USERDATA:
 	case Y_USERDATA_W:
@@ -21,7 +21,7 @@ int YASL_mt_setmt(struct YASL_State *S) {
 	case Y_LIST_W:
 	case Y_TABLE:
 	case Y_TABLE_W:
-		YASL_GETUSERDATA(vm_peek((struct VM *)S))->mt = mt;
+		YASL_GETUSERDATA(vm_peek((struct VM *)S))->mt = YASL_GETUSERDATA(mt);
 		break;
 	default:
 		vm_print_err_type((struct VM *)S, "cannot set metatable for value of type %s.", YASL_TYPE_NAMES[YASL_peektype(S)]);
