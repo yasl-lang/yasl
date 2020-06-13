@@ -32,3 +32,12 @@ void ud_del(struct RC_UserData *ud) {
 	rc_del(ud->rc);
 	free(ud);
 }
+
+void ud_setmt(struct RC_UserData *ud, struct RC_UserData *mt) {
+	if (mt) mt->rc->refs++;
+	if (ud->mt) {
+		struct YASL_Object v = YASL_TABLE(ud->mt);
+		dec_ref(&v);
+	}
+	ud->mt = mt;
+}

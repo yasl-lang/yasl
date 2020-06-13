@@ -237,8 +237,7 @@ int YASL_setmt(struct YASL_State *S) {
 		return YASL_TYPE_ERROR;
 	}
 
-	vm_peek(&S->vm).value.uval->mt = mt;
-	if (mt) mt->rc->refs++;
+	ud_setmt(vm_peek(&S->vm).value.uval, mt);
 
 	return YASL_SUCCESS;
 }
@@ -337,16 +336,14 @@ int YASL_pushcfunction(struct YASL_State *S, int (*value)(struct YASL_State *), 
 
 int YASL_pushtable(struct YASL_State *S) {
 	struct RC_UserData *table = rcht_new();
-	table->mt = S->vm.builtins_htable[Y_TABLE];
-	table->mt->rc->refs++;
+	ud_setmt(table, S->vm.builtins_htable[Y_TABLE]);
 	vm_push(&S->vm, YASL_TABLE(table));
 	return YASL_SUCCESS;
 }
 
 int YASL_pushlist(struct YASL_State *S) {
 	struct RC_UserData *list = rcls_new();
-	list->mt = S->vm.builtins_htable[Y_LIST];
-	list->mt->rc->refs++;
+	ud_setmt(list, S->vm.builtins_htable[Y_LIST]);
 	vm_push(&S->vm, YASL_LIST(list));
 	return YASL_SUCCESS;
 }

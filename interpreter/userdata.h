@@ -17,4 +17,6 @@ void ud_del_data(struct RC_UserData *ud);
 void ud_del_rc(struct RC_UserData *ud);
 void ud_del(struct RC_UserData *ud);
 
+void ud_setmt(struct RC_UserData *ud, struct RC_UserData *mt);
+
 #endif

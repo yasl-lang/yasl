@@ -1316,8 +1316,7 @@ int vm_run(struct VM *const vm) {
 			break;
 		case O_NEWTABLE: {
 			struct RC_UserData *table = rcht_new();
-			table->mt = vm->builtins_htable[Y_TABLE];
-			table->mt->rc->refs++;
+			ud_setmt(table, vm->builtins_htable[Y_TABLE]);
 			struct YASL_Table *ht = (struct YASL_Table *)table->data;
 			while (vm_peek(vm).type != Y_END) {
 				struct YASL_Object val = vm_pop(vm);
@@ -1333,8 +1332,7 @@ int vm_run(struct VM *const vm) {
 		}
 		case O_NEWLIST: {
 			struct RC_UserData *ls = rcls_new();
-			ls->mt = vm->builtins_htable[Y_LIST];
-			ls->mt->rc->refs++;
+			ud_setmt(ls, vm->builtins_htable[Y_LIST]);
 			while (vm_peek(vm).type != Y_END) {
 				YASL_List_append((struct YASL_List *) ls->data, vm_pop(vm));
 			}
