@@ -794,7 +794,7 @@ void vm_get_metatable(struct VM *const vm) {
 	case Y_LIST_W:
 	case Y_TABLE:
 	case Y_TABLE_W:
-		vm_push(vm, YASL_TABLE(YASL_GETUSERDATA(v)->mt));
+		vm_push(vm, YASL_GETUSERDATA(v)->mt ? YASL_TABLE(YASL_GETUSERDATA(v)->mt) : YASL_UNDEF());
 		break;
 	default:
 		vm_push(vm, YASL_TABLE(vm->builtins_htable[v.type]));
@@ -826,6 +826,7 @@ static int lookup(struct VM *vm, struct YASL_Object obj, struct YASL_Table *mt, 
 
 static int vm_lookup_method_helper(struct VM *vm, struct YASL_Object obj, struct YASL_Table *mt, struct YASL_Object index) {
 	(void) obj;
+	if (!mt) return YASL_VALUE_ERROR;
 	struct YASL_Object search = YASL_Table_search(mt, index);
 	if (search.type != Y_END) {
 		vm_push(vm,search);
@@ -850,7 +851,7 @@ static int vm_lookup_method(struct VM *const vm, const char *const method_name) 
 
 	inc_ref(&val);
 	vm_get_metatable(vm);
-	struct YASL_Table *mt = YASL_GETTABLE(vm_pop(vm));
+	struct YASL_Table *mt = vm_istable(vm) ? YASL_GETTABLE(vm_pop(vm)) : NULL;
 	void (*old_print)(struct IO *const, const char *const, va_list) = vm->err.print;
 	vm->err.print = io_print_none;
 	int result = vm_lookup_method_helper(vm, val, mt, index);
@@ -880,7 +881,7 @@ static int vm_GET_helper(struct VM *const vm, struct YASL_Object index) {
 	}
 
 	vm_get_metatable(vm);
-	struct YASL_Table *mt = YASL_GETTABLE(vm_pop(vm));
+	struct YASL_Table *mt = vm_istable(vm) ? YASL_GETTABLE(vm_pop(vm)) : NULL;
 	void (*old_print)(struct IO *const, const char *const, va_list) = vm->err.print;
 	vm->err.print = io_print_none;
 	int result = lookup(vm, val, mt, index);

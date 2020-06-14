@@ -1,0 +1,17 @@
+
+
+let ls = []
+
+mt.setmt(ls, {}.__bor(mt.getmt(ls), { .first: fn(self) { return self[0]; }, .rest: fn(self) { return self[1:]; } }))
+
+echo ls
+ls->push(1)
+
+echo ls
+ls->push(2)
+
+echo ls
+ls->push(3)
+
+echo ls->first()
+echo ls->rest()
