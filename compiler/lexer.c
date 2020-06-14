@@ -668,6 +668,14 @@ static void YASLKeywords(struct Lexer *const lex) {
 		lex_print_err_syntax(lex,  "`do` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
 		lex_error(lex);
 		return;
+	} else if (matches_keyword(lex, "ifdef")) {
+		lex_print_err_syntax(lex,  "`ifdef` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
+		lex_error(lex);
+		return;
+	} else if (matches_keyword(lex, "elseifdef")) {
+		lex_print_err_syntax(lex,  "`elseifdef` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
+		lex_error(lex);
+		return;
 	} else if (matches_keyword(lex, "use")) {
 		lex_print_err_syntax(lex,  "`use` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
 		lex_error(lex);
