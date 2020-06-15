@@ -115,7 +115,6 @@ enum SpecialStrings {
 	S_COUNT,      // count
 
 	S_ENDSWITH,   // endswith
-	S_EXTEND,     // extend
 
 	S_ISAL,       // isal
 	S_ISALNUM,    // isalnum

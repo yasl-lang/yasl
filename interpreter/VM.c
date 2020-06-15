@@ -81,7 +81,6 @@ void vm_init(struct VM *const vm,
 	DEF_SPECIAL_STR(S_COPY, "copy");
 	DEF_SPECIAL_STR(S_COUNT, "count");
 	DEF_SPECIAL_STR(S_ENDSWITH, "endswith");
-	DEF_SPECIAL_STR(S_EXTEND, "extend");
 	DEF_SPECIAL_STR(S_ISAL, "isal");
 	DEF_SPECIAL_STR(S_ISALNUM, "isalnum");
 	DEF_SPECIAL_STR(S_ISNUM, "isnum");
