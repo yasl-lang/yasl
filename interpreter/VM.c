@@ -56,16 +56,14 @@ void vm_init(struct VM *const vm,
 	vm->num_globals = datasize;
 	vm->frame_num = -1;
 	vm->loopframe_num = -1;
-	vm->globals = (struct YASL_Table **)calloc(sizeof(struct YASL_Table *), datasize);
 	vm->out = NEW_IO(stdout);
 	vm->err = NEW_IO(stderr);
 	for (size_t i = 0; i < datasize; i++) {
 		vm->headers[i] = NULL;
-		vm->globals[i] = NULL;
 	}
 	vm->metatables = YASL_Table_new();
 	vm->headers[datasize - 1] = code;
-	vm->globals[0] = YASL_Table_new();
+	vm->globals = YASL_Table_new();
 	vm->pc = code + pc;
 	vm->fp = -1;
 	vm->sp = -1;
@@ -134,10 +132,8 @@ void vm_cleanup(struct VM *const vm) {
 	}
 	free(vm->headers);
 
-	for (size_t i = 0; i < vm->num_globals; i++) {
-		YASL_Table_del(vm->globals[i]);
-	}
-	free(vm->globals);
+
+	YASL_Table_del(vm->globals);
 
 	YASL_Table_del(vm->metatables);
 
@@ -963,7 +959,7 @@ static int vm_GSTORE_8(struct VM *const vm) {
 	// yasl_int table = vm_read_int(vm);
 	yasl_int addr = vm_read_int(vm);
 
-	YASL_Table_insert_fast(vm->globals[0], vm->constants[addr], vm_pop(vm));
+	YASL_Table_insert_fast(vm->globals, vm->constants[addr], vm_pop(vm));
 
 	return YASL_SUCCESS;
 }
@@ -971,7 +967,7 @@ static int vm_GSTORE_8(struct VM *const vm) {
 static int vm_GLOAD_8(struct VM *const vm) {
 	yasl_int addr = vm_read_int(vm);
 
-	vm_push(vm, YASL_Table_search(vm->globals[0], vm->constants[addr]));
+	vm_push(vm, YASL_Table_search(vm->globals, vm->constants[addr]));
 
 	YASL_ASSERT(vm_peek(vm).type != Y_END, "global not found");
 
