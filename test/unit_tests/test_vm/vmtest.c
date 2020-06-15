@@ -136,9 +136,9 @@ int vmtest(void) {
 	ASSERT_ARG_TYPE_ERR("[].__add(true, 1);", "list.__add", "list", "int", 1, 1);
 	ASSERT_ARG_TYPE_ERR("[] + true;", "list.__add", "list", "bool", 1, 1);
 	// ASSERT_ARG_TYPE_ERR("true + [];", "list.__add", "list", "bool", 0);
-	ASSERT_ARG_TYPE_ERR("[].extend(1, []);", "list.extend", "list", "int", 0, 1);
-	ASSERT_ARG_TYPE_ERR("[].extend([], 1);", "list.extend", "list", "int", 1, 1);
-	ASSERT_ARG_TYPE_ERR("[].extend(1, true);", "list.extend", "list", "bool", 1, 1);
+	// ASSERT_ARG_TYPE_ERR("[].extend(1, []);", "list.extend", "list", "int", 0, 1);
+	// ASSERT_ARG_TYPE_ERR("[].extend([], 1);", "list.extend", "list", "int", 1, 1);
+	// ASSERT_ARG_TYPE_ERR("[].extend(1, true);", "list.extend", "list", "bool", 1, 1);
 	// TODO: __get, __set
 	ASSERT_VALUE_ERR("[][2];", "unable to index list with value of type int", 1);
 	ASSERT_ARG_TYPE_ERR("[].tostr(1);", "list.tostr", "list", "int", 0, 1);
