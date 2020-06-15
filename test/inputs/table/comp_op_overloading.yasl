@@ -12,7 +12,7 @@ const ops = {
 
 let y = x | { .a: 20 }
 
-mt.setmt(x, ops)
+mt.set(x, ops)
 
 echo x > y
 echo x >= y

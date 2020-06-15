@@ -84,7 +84,7 @@ const ops = {
 
 const x = { .val: 0xA1 }
 const y = { .val: 0x0A }
-mt.setmt(x, ops)
+mt.set(x, ops)
 
 
 
