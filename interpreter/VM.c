@@ -840,17 +840,6 @@ static int vm_lookup_method(struct VM *const vm, const char *const method_name) 
 	struct YASL_Object index = YASL_STR(YASL_String_new_sized(strlen(method_name), method_name));
 	struct YASL_Object val = vm_peek(vm);
 
-	/*
-	if (obj_istable(&val)) {
-		struct YASL_Object search = YASL_Table_search((struct YASL_Table *)YASL_GETUSERDATA(val)->data, index);
-		if (search.type != Y_END) {
-			vm_push(vm, search);
-			str_del(obj_getstr(&index));
-			return YASL_SUCCESS;
-		}
-	}
-	*/
-
 	inc_ref(&val);
 	vm_get_metatable(vm);
 	struct YASL_Table *mt = vm_istable(vm) ? YASL_GETTABLE(vm_pop(vm)) : NULL;
