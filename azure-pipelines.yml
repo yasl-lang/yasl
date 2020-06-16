@@ -37,6 +37,7 @@ jobs:
       solution: yasl.sln
     displayName: "Compile"
   - script: |
+      cd yasl.dir
       dir
       yasl.exe /V
     displayName: "Print Version"
