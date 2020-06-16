@@ -36,6 +36,10 @@ jobs:
     inputs:
       solution: yasl.sln
     displayName: "Compile"
+  - script: |
+      dir
+      yasl.exe /V
+    displayName: "Print Version"
 - job: 
   displayName: "C TCC Ubuntu"
   pool:
