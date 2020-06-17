@@ -102,8 +102,6 @@ enum Opcode {
 };
 
 enum SpecialStrings {
-	S_UNKNOWN_STR = -1, // ERROR, used internally but doesn't represent a real string value
-
 	S___ADD,      // __add
 	S___BOR,      // __bor
 	S___EQ,       // __eq
@@ -137,7 +135,6 @@ enum SpecialStrings {
 	S_RTRIM,      // rtrim
 
 	S_SEARCH,     // search
-	// S_SLICE,      // slice
 	S_SORT,       // sort
 	S_SPLIT,      // split
 	S_STARTSWITH, // startswith
@@ -151,7 +148,7 @@ enum SpecialStrings {
 	S_TRIM,       // trim
 
 	S_VALUES,     // values
-	
+
 	NUM_SPECIAL_STRINGS // don't treat this as a member
 };
 
