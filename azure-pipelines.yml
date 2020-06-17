@@ -37,11 +37,8 @@ jobs:
       solution: yasl.sln
     displayName: "Compile"
   - script: |
-      cd
-      dir
       dir Debug
-      dir Win32\Debug
-      Debug\yasl.exe /V
+      Debug\yasl.exe -V
     displayName: "Print Version"
 - job: 
   displayName: "C TCC Ubuntu"
