@@ -134,11 +134,13 @@ static bool lex_eatop(struct Lexer *const lex) {
 	char c1, c2, c3;
 	enum Token last;
 	c1 = lex->c;
+	long cur_one = lxtell(lex->file);
 	c2 = lxgetc(lex->file);
 	if (lxeof(lex->file)) {
 		goto one;
 	}
 
+	long cur_two = lxtell(lex->file);
 	c3 = lxgetc(lex->file);
 	if (lxeof(lex->file)) {
 		goto two;
@@ -150,7 +152,9 @@ static bool lex_eatop(struct Lexer *const lex) {
 		free(lex->value);
 		return true;
 	}
-	lxseek(lex->file, -1, SEEK_CUR);
+	lxseek(lex->file, cur_two, SEEK_SET);
+	// lex_rewind(lex, -1);
+	// lxseek(lex->file, -1, SEEK_CUR);
 
 	two:
 	last = YASLToken_TwoChars(c1, c2);
@@ -159,7 +163,7 @@ static bool lex_eatop(struct Lexer *const lex) {
 		free(lex->value);
 		return true;
 	}
-	lxseek(lex->file, -1, SEEK_CUR);
+	lxseek(lex->file, cur_one, SEEK_SET);
 
 	one:
 	last = YASLToken_OneChar(c1);
@@ -462,6 +466,7 @@ static bool lex_eatrawstring(struct Lexer *const lex) {
 	}
 	return false;
 }
+
 
 void gettok(struct Lexer *const lex) {
 	YASL_LEX_DEBUG_LOG("getting token from line %" PRI_SIZET "\n", lex->line);

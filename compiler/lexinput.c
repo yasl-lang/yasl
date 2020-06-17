@@ -2,6 +2,8 @@
 
 #include "data-structures/YASL_ByteBuffer.h"
 
+#undef getc
+
 struct LEXINPUT {
   FILE *fp;
   struct YASL_ByteBuffer *bb;
@@ -16,7 +18,6 @@ struct LEXINPUT {
 
 
 int lxgetc(struct LEXINPUT *const lp) {
-#undef getc
 	int ch = lp->getc(lp);
 	return ch;
 }
