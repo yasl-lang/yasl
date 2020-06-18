@@ -171,18 +171,18 @@ static bool lex_eatop(struct Lexer *const lex) {
 	return false;
 }
 
-static int lex_eatnumber_fill(struct Lexer *const lex, int (*isvaliddigit)(int)) {
-    long cur;
+static long lex_eatnumber_fill(struct Lexer *const lex, int (*isvaliddigit)(int)) {
+	long cur;
 	do {
 		lex_val_append(lex, lex->c);
-        cur = lxtell(lex->file);
+		cur = lxtell(lex->file);
 		lex_getchar(lex);
 		while (lex->c == NUM_SEPERATOR) {
-		    cur = lxtell(lex->file);
-		    lex_getchar(lex);
+			cur = lxtell(lex->file);
+			lex_getchar(lex);
 		}
 	} while (!lxeof(lex->file) && (*isvaliddigit)(lex->c));
-    return cur;
+	return cur;
 }
 
 static bool lex_eatint(struct Lexer *const lex, char separator, int (*isvaliddigit)(int)) {
@@ -217,14 +217,15 @@ static bool lex_eatint(struct Lexer *const lex, char separator, int (*isvaliddig
 
 static bool lex_eatfloat(struct Lexer *const lex) {
 	if (lex->c == '.') {
-	    long cur = lxtell(lex->file);
+		long cur = lxtell(lex->file);
 		lex_getchar(lex);
 		if (lxeof(lex->file)) {
-            lxseek(lex->file, cur, SEEK_SET);
+			lxseek(lex->file, cur - 1, SEEK_SET);
+			lex->c = '.';
 			return true;
 		}
 		if (!isdigit(lex->c)) {
-		    lxseek(lex->file, cur - 1, SEEK_SET);
+			lxseek(lex->file, cur - 1, SEEK_SET);
 			return true;
 		}
 		lex->val_len--;
