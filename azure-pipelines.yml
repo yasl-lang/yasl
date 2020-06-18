@@ -36,6 +36,9 @@ jobs:
     inputs:
       solution: yasl.sln
     displayName: "Compile"
+  - script:
+      Debug\tests2.exe
+    displayName: "Run API Tests"
 - job: 
   displayName: "C TCC Ubuntu"
   pool:

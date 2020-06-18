@@ -20,8 +20,8 @@ for (size_t i = 0; i < sizeof(errors) / sizeof(char *); i++) {\
 	size_t size = ftell(f);\
 	fseek(f, 0, SEEK_SET);\
 	char *expected_output = (char *)malloc(size + 1);\
-	fread(expected_output, 1, size, f);\
-	expected_output[size] = '\0';\
+	size_t read = fread(expected_output, 1, size, f);\
+	expected_output[read] = '\0';\
 	S = YASL_newstate(errors[i]);\
 	YASLX_decllibs(S);\
 	YASL_setprinterr_tostr(S);\
@@ -55,8 +55,8 @@ int main(void) {
 		size_t size = ftell(f);
 		fseek(f, 0, SEEK_SET);
 		char *expected_output = (char *)malloc(size + 1);
-		fread(expected_output, 1, size, f);
-		expected_output[size] = '\0';
+		size_t read = fread(expected_output, 1, size, f);
+		expected_output[read] = '\0';
 
 		S = YASL_newstate(outputs[i]);
 		YASLX_decllibs(S);
