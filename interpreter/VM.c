@@ -51,7 +51,6 @@ void vm_init(struct VM *const vm,
              const size_t datasize) {      // total params size required to perform a program operations
 	vm->code = code;
 	vm->headers = (unsigned char **)calloc(sizeof(unsigned char *), datasize);
-	// vm->headers[0] = code;
 	vm->headers_size = datasize;
 	vm->num_globals = datasize;
 	vm->frame_num = -1;
@@ -67,6 +66,7 @@ void vm_init(struct VM *const vm,
 	vm->pc = code + pc;
 	vm->fp = -1;
 	vm->sp = -1;
+	vm->num_constants = 0;
 	vm->constants = NULL;
 	vm->stack = (struct YASL_Object *)calloc(sizeof(struct YASL_Object), STACK_SIZE);
 
@@ -211,12 +211,13 @@ YASL_FORMAT_CHECK static void vm_print_out(struct VM *vm, const char *const fmt,
 }
 
 void vm_push(struct VM *const vm, const struct YASL_Object val) {
-	vm->sp++;
-	if (vm->sp >= STACK_SIZE) {
+	if (vm->sp + 1 >= STACK_SIZE) {
 		vm->status = YASL_STACK_OVERFLOW_ERROR;
 		vm_print_err(vm, "StackOverflow.");
 		longjmp(vm->buf, 1);
 	}
+
+	vm->sp++;
 
 	dec_ref(vm->stack + vm->sp);
 	vm->stack[vm->sp] = val;
