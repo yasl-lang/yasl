@@ -46,7 +46,7 @@ static struct Node *parse_boolean(struct Parser *const parser);
 static struct Node *parse_string(struct Parser *const parser);
 static struct Node *parse_table(struct Parser *const parser);
 static struct Node *parse_lambda(struct Parser *const parser);
-static struct Node *parse_collection(struct Parser *const parser);
+static struct Node *parse_list(struct Parser *const parser);
 static struct Node *parse_assert(struct Parser *const parser);
 
 YASL_FORMAT_CHECK static void parser_print_err(struct Parser *parser, const char *const fmt, ...) {
@@ -665,7 +665,7 @@ static struct Node *parse_constant(struct Parser *const parser) {
 		return expr;
 	}
 	case T_LSQB:
-		return parse_collection(parser);
+		return parse_list(parser);
 	case T_LBRC:
 		return parse_table(parser);
 	case T_STR:
@@ -842,13 +842,14 @@ static struct Node *parse_table(struct Parser *const parser) {
 		eattok(parser, T_COLON);
 		body_append(&keys, parse_expr(parser));
 	}
+	while (parser->lex.c == '\n') eattok(parser, T_SEMI);
 	eattok(parser, T_RBRC);
 	return new_Table(keys, line);
 }
 
 
-// parse list and table literals
-static struct Node *parse_collection(struct Parser *const parser) {
+// parse list literal
+static struct Node *parse_list(struct Parser *const parser) {
 	size_t line = parser->lex.line;
 	eattok(parser, T_LSQB);
 	struct Node *keys = new_Body(line);
@@ -879,6 +880,7 @@ static struct Node *parse_collection(struct Parser *const parser) {
 			YASL_PARSE_DEBUG_LOG("%s\n", "Parsing list");
 			body_append(&keys, parse_expr(parser));
 		}
+		while (parser->lex.c == '\n') eattok(parser, T_SEMI);
 		eattok(parser, T_RSQB);
 		return new_List(keys, line);
 	}

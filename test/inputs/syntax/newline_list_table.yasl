@@ -1,0 +1,14 @@
+
+let x = {
+    .a: 10,
+    .b: 11
+}
+
+echo x
+
+let y = [
+    1,
+    2
+]
+
+echo y
