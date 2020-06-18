@@ -5,6 +5,8 @@
 #include "yasl.h"
 #include "yasl_aux.h"
 
+#include <yasl_test.h>
+
 #define MAX_FILE_NAME_LEN 1024
 
 #define ERROR_TEST(errors) \
@@ -37,6 +39,7 @@ for (size_t i = 0; i < sizeof(errors) / sizeof(char *); i++) {\
 }
 
 int main(void) {
+	int result = 0;
 	int failed = 0;
 #include "outputs.inl"
 #include "assert_errors.inl"
@@ -75,5 +78,14 @@ int main(void) {
 	ERROR_TEST(assert_errors);
 	ERROR_TEST(stackoverflow_errors);
 
-	return failed;
+	result = result || failed;
+	printf("Failed %d script tests.\n", failed);
+
+	failed = yasl_test();
+
+	result = result || failed;
+	printf("Failed %d unit tests.\n", failed);
+
+	printf("Tests exited with code %d.\n", result);
+	return result;
 }

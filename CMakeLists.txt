@@ -206,7 +206,33 @@ add_library(yaslapi
 
 add_executable(tests2
         test2/test2.c
-        std/yasl-std-mt.c std/yasl-std-mt.h)
+        test/yats.c
+        test/yasl_test.c
+        test/unit_tests/test_api/apitest.c
+        test/unit_tests/test_api/pushtest.c
+        test/unit_tests/test_api/poptest.c
+        test/unit_tests/test_lexer/lexertest.c
+        test/unit_tests/test_env/envtest.c
+        test/unit_tests/test_compiler/compilertest.c
+        test/unit_tests/test_compiler/binoptest.c
+        test/unit_tests/test_compiler/unoptest.c
+        test/unit_tests/test_compiler/literaltest.c
+        test/unit_tests/test_compiler/iftest.c
+        test/unit_tests/test_compiler/whiletest.c
+        test/unit_tests/test_compiler/fortest.c
+        test/unit_tests/test_compiler/foreachtest.c
+        test/unit_tests/test_compiler/foldingtest.c
+        test/unit_tests/test_compiler/comprehensiontest.c
+        test/unit_tests/test_compiler/syntaxerrortest.c
+        test/unit_tests/test_compiler/closuretest.c
+        test/unit_tests/test_collections/collectiontest.c
+        test/unit_tests/test_collections/settest.c
+        test/unit_tests/test_methods/methodtest.c
+        test/unit_tests/test_methods/listtest.c
+        test/unit_tests/test_methods/strtest.c
+        test/unit_tests/test_vm/vmtest.c
+        test/unit_tests/test_util/utiltest.c
+        test/unit_tests/test_api/deltest.c)
 
 if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
     target_link_libraries(yasl m)

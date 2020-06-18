@@ -28,15 +28,10 @@ int neatsystem(const char *const *command) {
 	return WEXITSTATUS(status);
 }
 
-int comp_main(void) {
-	return yasl_test();
-}
-
 static const struct {
 	const char *desc;
 	int (*func)(void);
-} tests[] = {{"C Unit Tests", comp_main},
-	     {"CLI", cli_main},
+} tests[] = {{"CLI", cli_main},
 	     {"script", file_main},
 	     {"memory", mem_main}};
 
