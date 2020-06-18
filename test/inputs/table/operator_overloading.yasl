@@ -80,7 +80,8 @@ const ops = {
     .__bshr: bshr,
     .__band: band,
     .__bor: bor,
-    .__bandnot: bandnot }
+    .__bandnot: bandnot
+}
 
 const x = { .val: 0xA1 }
 const y = { .val: 0x0A }

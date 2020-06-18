@@ -8,7 +8,8 @@ const ops = {
     .__gt: fn(left, right) { return left.a > right.a; },
     .__ge: fn(left, right) { return left.a >= right.a; },
     .__lt: fn(left, right) { return left.a < right.a; },
-    .__le: fn(left, right) { return left.a <= right.a; } }
+    .__le: fn(left, right) { return left.a <= right.a; }
+}
 
 let y = x | { .a: 20 }
 

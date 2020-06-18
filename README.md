@@ -39,9 +39,9 @@ $> ./tests
 $> ./tests2
 ```
 
-`tests` tests the YASL interpter itself. `tests2` tests the YASL api.
+`tests` tests the YASL interpreter itself. `tests2` tests the YASL api.
 
-Tests should execute with exitcode 0. If they do not, either there's a bug or your installation was incorrect.
+All tests should execute with exitcode 0. If they do not, either there's a bug or your installation was incorrect.
 
 ## Feature Requests
 If you find yourself desiring a feature that YASL is missing, please open an issue on this repo with the `feature-request` tag, and outline what feature you want. There's no need to provide an implementation at this stage, just explain on the issue what you want added. This doesn't guarantee that I will add it. If I do, I'll open another isssue asking for an implementation of the feature, which can then be added to YASL once it's complete.
