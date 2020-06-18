@@ -24,10 +24,9 @@ jobs:
       make yaslapi
       make tests2
     displayName: "Compile"
-  - script: |
-      ls
-      yasl.exe -V
-    displayName: "Printout"
+  - script:
+      tests2.exe
+    displayName: "Run API Tests"
 - job:
   displayName: "C MSVC Windows"
   pool:
