@@ -50,6 +50,8 @@ enum Opcode {
 	O_LEN = 0x6A, // get length
 	O_CNCT = 0x6B, // concat two strings or lists
 
+	O_LT = 0x70, // less than
+	O_LE = 0x71, // less than or equal
 	O_GT = 0x72, // greater than
 	O_GE = 0x73, // greater than or equal
 	O_EQ = 0x74, // equality
@@ -100,10 +102,9 @@ enum Opcode {
 };
 
 enum SpecialStrings {
-	S_UNKNOWN_STR = -1, // ERROR, used internally but doesn't represent a real string value
-
 	S___ADD,      // __add
-	S___BOR,
+	S___BOR,      // __bor
+	S___EQ,       // __eq
 	S___GET,      // __get
 	S___SET,      // __set
 
@@ -112,7 +113,6 @@ enum SpecialStrings {
 	S_COUNT,      // count
 
 	S_ENDSWITH,   // endswith
-	S_EXTEND,     // extend
 
 	S_ISAL,       // isal
 	S_ISALNUM,    // isalnum
@@ -135,7 +135,6 @@ enum SpecialStrings {
 	S_RTRIM,      // rtrim
 
 	S_SEARCH,     // search
-	// S_SLICE,      // slice
 	S_SORT,       // sort
 	S_SPLIT,      // split
 	S_STARTSWITH, // startswith
@@ -149,7 +148,7 @@ enum SpecialStrings {
 	S_TRIM,       // trim
 
 	S_VALUES,     // values
-	
+
 	NUM_SPECIAL_STRINGS // don't treat this as a member
 };
 

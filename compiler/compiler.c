@@ -912,53 +912,73 @@ static void visit_BinOp(struct Compiler *const compiler, const struct Node *cons
 	visit(compiler, BinOp_get_left(node));
 	visit(compiler, BinOp_get_right(node));
 	switch (node->value.type) {
-	case T_BAR: YASL_ByteBuffer_add_byte(compiler->buffer, O_BOR);
+	case T_BAR:
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_BOR);
 		break;
-	case T_CARET: YASL_ByteBuffer_add_byte(compiler->buffer, O_BXOR);
+	case T_CARET:
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_BXOR);
 		break;
-	case T_AMP: YASL_ByteBuffer_add_byte(compiler->buffer, O_BAND);
+	case T_AMP:
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_BAND);
 		break;
-	case T_AMPCARET: YASL_ByteBuffer_add_byte(compiler->buffer, O_BANDNOT);
+	case T_AMPCARET:
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_BANDNOT);
 		break;
-	case T_DEQ: YASL_ByteBuffer_add_byte(compiler->buffer, O_EQ);
+	case T_DEQ:
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_EQ);
 		break;
-	case T_TEQ: YASL_ByteBuffer_add_byte(compiler->buffer, O_ID);
+	case T_TEQ:
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_ID);
 		break;
-	case T_BANGEQ: YASL_ByteBuffer_add_byte(compiler->buffer, O_EQ);
+	case T_BANGEQ:
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_EQ);
 		YASL_ByteBuffer_add_byte(compiler->buffer, O_NOT);
 		break;
-	case T_BANGDEQ: YASL_ByteBuffer_add_byte(compiler->buffer, O_ID);
+	case T_BANGDEQ:
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_ID);
 		YASL_ByteBuffer_add_byte(compiler->buffer, O_NOT);
 		break;
-	case T_GT: YASL_ByteBuffer_add_byte(compiler->buffer, O_GT);
+	case T_GT:
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_GT);
 		break;
-	case T_GTEQ: YASL_ByteBuffer_add_byte(compiler->buffer, O_GE);
+	case T_GTEQ:
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_GE);
 		break;
-	case T_LT: YASL_ByteBuffer_add_byte(compiler->buffer, O_GE);
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_NOT);
+	case T_LT:
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_LT);
 		break;
-	case T_LTEQ: YASL_ByteBuffer_add_byte(compiler->buffer, O_GT);
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_NOT);
+	case T_LTEQ:
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_LE);
 		break;
-	case T_TILDE: YASL_ByteBuffer_add_byte(compiler->buffer, O_CNCT);
+	case T_TILDE:
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_CNCT);
 		break;
-	case T_DGT: YASL_ByteBuffer_add_byte(compiler->buffer, O_BSR);
+	case T_DGT:
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_BSR);
 		break;
-	case T_DLT: YASL_ByteBuffer_add_byte(compiler->buffer, O_BSL);
+	case T_DLT:
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_BSL);
 		break;
-	case T_PLUS: YASL_ByteBuffer_add_byte(compiler->buffer, O_ADD);
+	case T_PLUS:
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_ADD);
 		break;
-	case T_MINUS: YASL_ByteBuffer_add_byte(compiler->buffer, O_SUB);
+	case T_MINUS:
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_SUB);
 		break;
-	case T_STAR: YASL_ByteBuffer_add_byte(compiler->buffer, O_MUL);
+	case T_STAR:
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_MUL);
 		break;
-	case T_SLASH: YASL_ByteBuffer_add_byte(compiler->buffer, O_FDIV);
+	case T_SLASH:
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_FDIV);
 		break;
-	case T_DSLASH: YASL_ByteBuffer_add_byte(compiler->buffer, O_IDIV);
+	case T_DSLASH:
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_IDIV);
 		break;
-	case T_MOD: YASL_ByteBuffer_add_byte(compiler->buffer, O_MOD);
+	case T_MOD:
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_MOD);
 		break;
-	case T_DSTAR: YASL_ByteBuffer_add_byte(compiler->buffer, O_EXP);
+	case T_DSTAR:
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_EXP);
 		break;
 	default:
 		puts("error in visit_BinOp");

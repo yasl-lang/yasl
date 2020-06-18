@@ -63,11 +63,6 @@ void lex_val_append(struct Lexer *const lex, char c) {
 	lex->value[lex->val_len++] = c;
 }
 
-void lex_rewind(struct Lexer *const lex, int len) {
-	lxseek(lex->file, len - 1, SEEK_CUR);
-	lex_getchar(lex);
-}
-
 static bool lex_eatwhitespace(struct Lexer *const lex) {
 	while (!lxeof(lex->file) && iswhitespace(lex->c)) {
 		if (lex->c == '\n') {
@@ -97,6 +92,7 @@ static bool lex_eatcommentsandwhitespace(struct Lexer * lex) {
 
 		// block comments
 		if (lex->c == '/') {
+		    long cur = lxtell(lex->file);
 			lex_getchar(lex);
 			if (lex->c == '*') {
 				int addsemi = 0;
@@ -122,7 +118,8 @@ static bool lex_eatcommentsandwhitespace(struct Lexer * lex) {
 				lex->type = T_SLASH;
 				return true;
 			} else {
-				lex_rewind(lex, -1);
+			    lxseek(lex->file, cur, SEEK_SET);
+			    lex->c = '/';
 				break;
 			}
 		}
@@ -134,11 +131,14 @@ static bool lex_eatop(struct Lexer *const lex) {
 	char c1, c2, c3;
 	enum Token last;
 	c1 = lex->c;
+	long cur_one = lxtell(lex->file);
+	long cur_two = cur_one;
 	c2 = lxgetc(lex->file);
 	if (lxeof(lex->file)) {
 		goto one;
 	}
 
+	cur_two = lxtell(lex->file);
 	c3 = lxgetc(lex->file);
 	if (lxeof(lex->file)) {
 		goto two;
@@ -150,7 +150,7 @@ static bool lex_eatop(struct Lexer *const lex) {
 		free(lex->value);
 		return true;
 	}
-	lxseek(lex->file, -1, SEEK_CUR);
+	lxseek(lex->file, cur_two, SEEK_SET);
 
 	two:
 	last = YASLToken_TwoChars(c1, c2);
@@ -159,7 +159,7 @@ static bool lex_eatop(struct Lexer *const lex) {
 		free(lex->value);
 		return true;
 	}
-	lxseek(lex->file, -1, SEEK_CUR);
+	lxseek(lex->file, cur_one, SEEK_SET);
 
 	one:
 	last = YASLToken_OneChar(c1);
@@ -171,12 +171,18 @@ static bool lex_eatop(struct Lexer *const lex) {
 	return false;
 }
 
-static void lex_eatnumber_fill(struct Lexer *const lex, int (*isvaliddigit)(int)) {
+static long lex_eatnumber_fill(struct Lexer *const lex, int (*isvaliddigit)(int)) {
+	long cur;
 	do {
 		lex_val_append(lex, lex->c);
+		cur = lxtell(lex->file);
 		lex_getchar(lex);
-		while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
+		while (lex->c == NUM_SEPERATOR) {
+			cur = lxtell(lex->file);
+			lex_getchar(lex);
+		}
 	} while (!lxeof(lex->file) && (*isvaliddigit)(lex->c));
+	return cur;
 }
 
 static bool lex_eatint(struct Lexer *const lex, char separator, int (*isvaliddigit)(int)) {
@@ -196,10 +202,10 @@ static bool lex_eatint(struct Lexer *const lex, char separator, int (*isvaliddig
 				return true;
 			}
 
-			lex_eatnumber_fill(lex, isvaliddigit);
+			long cur = lex_eatnumber_fill(lex, isvaliddigit);
 			lex_val_append(lex, '\0');
 			lex->type = T_INT;
-			if (!lxeof(lex->file)) lex_rewind(lex, -1);
+			if (!lxeof(lex->file)) lxseek(lex->file, cur, SEEK_SET);
 			return true;
 		}
 	}
@@ -211,13 +217,15 @@ static bool lex_eatint(struct Lexer *const lex, char separator, int (*isvaliddig
 
 static bool lex_eatfloat(struct Lexer *const lex) {
 	if (lex->c == '.') {
+		long cur = lxtell(lex->file);
 		lex_getchar(lex);
 		if (lxeof(lex->file)) {
-			lxseek(lex->file, -1, SEEK_CUR);
+			lxseek(lex->file, cur - 1, SEEK_SET);
+			lex->c = '.';
 			return true;
 		}
 		if (!isdigit(lex->c)) {
-			lxseek(lex->file, -2, SEEK_CUR);
+			lxseek(lex->file, cur - 1, SEEK_SET);
 			return true;
 		}
 		lex->val_len--;
@@ -250,33 +258,34 @@ static bool lex_eatnumber(struct Lexer *const lex) {
 		if (lex_eatint(lex, 'b', &isbdigit)) return true;
 
 		// decimal (or first half of float)
-		lex_eatnumber_fill(lex, &isddigit);
+		long cur = lex_eatnumber_fill(lex, &isddigit);
 
-		while (lex->c == NUM_SEPERATOR) lex_getchar(lex);
 		lex->type = T_INT;
 		lex_val_append(lex, '\0');
 
 		// floats
 		if (lex_eatfloat(lex)) return true;
 
-		if (!lxeof(lex->file)) lxseek(lex->file, -1, SEEK_CUR);
+		if (!lxeof(lex->file)) lxseek(lex->file, cur, SEEK_SET);
 		return true;
 	}
 	return false;
 }
 
 static void lex_eatid_fill(struct Lexer *const lex) {
+    long cur;
 	do {
 		lex_val_append(lex, lex->c);
+		cur = lxtell(lex->file);
 		lex_getchar(lex);
 	} while (!lxeof(lex->file) && isyaslid(lex->c));
+    if (!lxeof(lex->file)) lxseek(lex->file, cur, SEEK_SET);
 }
 static bool lex_eatid(struct Lexer *const lex) {
 	if (isyaslidstart(lex->c)) {                           // identifiers and keywords
 		lex_val_init(lex);
 		lex_eatid_fill(lex);
 
-		if (!lxeof(lex->file)) lxseek(lex->file, -1, SEEK_CUR);
 		lex_val_append(lex, '\0');
 
 		switch (lex->type) {
@@ -462,6 +471,7 @@ static bool lex_eatrawstring(struct Lexer *const lex) {
 	}
 	return false;
 }
+
 
 void gettok(struct Lexer *const lex) {
 	YASL_LEX_DEBUG_LOG("getting token from line %" PRI_SIZET "\n", lex->line);
@@ -652,12 +662,28 @@ static void YASLKeywords(struct Lexer *const lex) {
 		lex_print_err_syntax(lex,  "`enum` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
 		lex_error(lex);
 		return;
+	} else if (matches_keyword(lex, "struct")) {
+		lex_print_err_syntax(lex,  "`struct` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
+		lex_error(lex);
+		return;
+	} else if (matches_keyword(lex, "pragma")) {
+		lex_print_err_syntax(lex,  "`pragma` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
+		lex_error(lex);
+		return;
 	} else if (matches_keyword(lex, "yield")) {
 		lex_print_err_syntax(lex,  "`yield` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
 		lex_error(lex);
 		return;
 	} else if (matches_keyword(lex, "do")) {
 		lex_print_err_syntax(lex,  "`do` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
+		lex_error(lex);
+		return;
+	} else if (matches_keyword(lex, "ifdef")) {
+		lex_print_err_syntax(lex,  "`ifdef` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
+		lex_error(lex);
+		return;
+	} else if (matches_keyword(lex, "elseifdef")) {
+		lex_print_err_syntax(lex,  "`elseifdef` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
 		lex_error(lex);
 		return;
 	} else if (matches_keyword(lex, "use")) {

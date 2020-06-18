@@ -14,7 +14,7 @@
 #include "opcode.h"
 
 
-#define NUM_GLOBALS 256
+#define NUM_FRAMES 1000
 #define NUM_TYPES 13                                     // number of builtin types, each needs a vtable
 
 // EXPAND is to deal with MSVC bullshit
@@ -55,6 +55,9 @@
 
 #define GT(a, b) ((a) > (b))
 #define GE(a, b) ((a) >= (b))
+#define LT(a, b) ((a) < (b))
+#define LE(a, b) ((a) <= (b))
+
 #define COMP(vm, a, b, f)  do {\
 	if (obj_isint(&a) && obj_isint(&b)) {\
 		c = f(obj_getint(&a), obj_getint(&b));\
@@ -90,10 +93,10 @@ struct VM {
 	struct IO out;
 	struct IO err;
 	struct YASL_Table *metatables;
-	struct YASL_Table **globals;   // variables, see "constant.c" for details on YASL_Object.
+	struct YASL_Table *globals;   // variables, see "constant.c" for details on YASL_Object.
 	size_t num_globals;
 	struct YASL_Object *stack;     // stack
-	struct CallFrame frames[1000];
+	struct CallFrame frames[NUM_FRAMES];
 	int frame_num;
 	struct LoopFrame loopframes[16];
 	int loopframe_num;
@@ -107,7 +110,7 @@ struct VM {
 	int fp;                        // frame pointer
 	int next_fp;
 	struct YASL_String *special_strings[NUM_SPECIAL_STRINGS];
-	struct YASL_Table **builtins_htable;   // htable of builtin methods
+	struct RC_UserData **builtins_htable;   // htable of builtin methods
 	struct Upvalue *pending;
 	jmp_buf buf;
 	int status;
@@ -122,6 +125,7 @@ void vm_print_err(struct VM *vm, const char *const fmt, ...);
 
 void vm_get_metatable(struct VM *const vm);
 int vm_stringify_top(struct VM *const vm);
+int vm_EQ(struct VM *const vm);
 
 struct YASL_Object vm_pop(struct VM *const vm);
 bool vm_popbool(struct VM *const vm);

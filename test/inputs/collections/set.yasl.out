@@ -5,6 +5,10 @@ set(3)
 set(0, 2)
 2
 3
+false
+false
+false
+false
 set(1)
 set(0, 1, 3)
 set(0, 3)
@@ -28,3 +32,16 @@ set(0, 2, 1)
 3
 [a, b, c, d, e]
 [10, 7, 8, 6, 9, 5]
+true
+true
+false
+true
+true
+true
+false
+false
+true
+false
+false
+false
+false

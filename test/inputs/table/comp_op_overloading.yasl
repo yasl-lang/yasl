@@ -1,0 +1,22 @@
+
+
+let x = {
+    .a: 10,
+    .b: 12 }
+
+const ops = {
+    .__gt: fn(left, right) { return left.a > right.a; },
+    .__ge: fn(left, right) { return left.a >= right.a; },
+    .__lt: fn(left, right) { return left.a < right.a; },
+    .__le: fn(left, right) { return left.a <= right.a; } }
+
+let y = x | { .a: 20 }
+
+mt.set(x, ops)
+
+echo x > y
+echo x >= y
+echo x < y
+echo x <= y
+
+

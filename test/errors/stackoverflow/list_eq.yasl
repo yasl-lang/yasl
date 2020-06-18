@@ -1,0 +1,15 @@
+
+
+
+
+let x = []
+x->push(x)
+
+# echo x
+
+let y = []
+y->push(y)
+
+# echo y
+
+echo x == y

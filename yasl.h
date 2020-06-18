@@ -7,11 +7,9 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define YASL_VERSION "v0.8.5"
+#define YASL_VERSION "v0.9.0"
 
 struct YASL_State;
-struct YASL_Object;
-struct YASL_Table;
 
 /**
  * Typedef for YASL functions defined through the C API.
@@ -46,8 +44,6 @@ int YASL_decllib_math(struct YASL_State *S);
 int YASL_decllib_require(struct YASL_State *S);
 int YASL_decllib_require_c(struct YASL_State *S);
 int YASL_decllib_mt(struct YASL_State *S);
-
-struct YASL_Object *YASL_DEPRECATE YASL_Table(void);
 
 /**
  * initialises a new YASL_State for usage, or NULL on failure.
@@ -158,24 +154,12 @@ int YASL_pushfloat(struct YASL_State *S, yasl_float value);
 int YASL_pushint(struct YASL_State *S, yasl_int value);
 
 /**
- * Use YASL_pushint instead.
- */
-YASL_DEPRECATE
-int YASL_pushinteger(struct YASL_State *S, yasl_int value);
-
-/**
  * Pushes a boolean value onto the stack.
  * @param S the YASL_State onto which to push the boolean.
  * @param value boolean to be pushed onto the stack.
  * @return YASL_SUCCESS on success, otherwise an error code.
  */
 int YASL_pushbool(struct YASL_State *S, bool value);
-
-/**
- * Use YASL_pushbool instead.
- */
-YASL_DEPRECATE
-int YASL_pushboolean(struct YASL_State *S, bool value);
 
 /**
  * Pushes a null-terminated string onto the stack.
@@ -241,7 +225,7 @@ int YASL_pushcfunction(struct YASL_State *S, int (*value)(struct YASL_State *), 
  * @param userpointer the user-pointer to push onto the stack.
  * @return YASL_SUCCESS on success, otherwise an error code.
  */
-int YASL_pushuserdata(struct YASL_State *S, void *data, int tag, struct YASL_Table *mt, void (*destructor)(void *));
+int YASL_pushuserdata(struct YASL_State *S, void *data, int tag, void (*destructor)(void *));
 
 /**
  * Pushes a user-pointer onto the stack
@@ -250,11 +234,6 @@ int YASL_pushuserdata(struct YASL_State *S, void *data, int tag, struct YASL_Tab
  * @return YASL_SUCCESS on success, otherwise an error code.
  */
 int YASL_pushuserptr(struct YASL_State *S, void *userpointer);
-
-/**
- * Use YASL_pushuserptr instead.
- */
-YASL_DEPRECATE int YASL_pushuserpointer(struct YASL_State *S, void *userpointer);
 
 /**
  * pops the top of the stack.
@@ -271,20 +250,12 @@ int YASL_pop(struct YASL_State *S);
 int YASL_duptop(struct YASL_State *S);
 
 /**
- * Use YASL_duptop instead.
- */
-YASL_DEPRECATE int YASL_top_dup(struct YASL_State *S);
-
-/**
  * inserts a key-value pair into the table. The topmost
  * items is value, then key, then table. All 3 are popped from the stack.
  * @param S the YASL_State which has the 3 items on top of the stack.
  * @return 0 on success, else error code
  */
 int YASL_tableset(struct YASL_State *S);
-
-YASL_DEPRECATE
-int YASL_settable(struct YASL_State *S);
 
 int YASL_listpush(struct YASL_State *S);
 
@@ -296,21 +267,11 @@ int YASL_listpush(struct YASL_State *S);
 int YASL_peektype(struct YASL_State *S);
 
 /**
- * Use YASL_peektype instead.
- */
-YASL_DEPRECATE int YASL_top_peektype(struct YASL_State *S);
-
-/**
  * checks if the top of the stack is undef.
  * @param S the YASL_State to which the stack belongs.
  * @return true if the top of the stack is undef, else false.
  */
 bool YASL_isundef(struct YASL_State *S);
-
-/**
- * Use YASL_isundef instead.
- */
-YASL_DEPRECATE bool YASL_top_isundef(struct YASL_State *S);
 
 /**
  * checks if the top of the stack is bool.
@@ -320,21 +281,11 @@ YASL_DEPRECATE bool YASL_top_isundef(struct YASL_State *S);
 bool YASL_isbool(struct YASL_State *S);
 
 /**
- * Use YASL_isbool instead
- */
-YASL_DEPRECATE bool YASL_top_isboolean(struct YASL_State *S);
-
-/**
  * checks if the top of the stack is float.
  * @param S the YASL_State to which the stack belongs.
  * @return true if the top of the stack is float, else false.
  */
 bool YASL_isfloat(struct YASL_State *S);
-
-/**
- * Use YASL_isfloat instead.
- */
-YASL_DEPRECATE bool YASL_top_isfloat(struct YASL_State *S);
 
 /**
  * checks if the top of the stack is int.
@@ -344,21 +295,11 @@ YASL_DEPRECATE bool YASL_top_isfloat(struct YASL_State *S);
 bool YASL_isint(struct YASL_State *S);
 
 /**
- * Use YASL_isint instead.
- */
-YASL_DEPRECATE bool YASL_top_isinteger(struct YASL_State *S);
-
-/**
  * checks if the top of the stack is str.
  * @param S the YASL_State to which the stack belongs.
  * @return true if the top of the stack is str, else false.
  */
 bool YASL_isstr(struct YASL_State *S);
-
-/**
- * Use YASL_isstr instead.
- */
-YASL_DEPRECATE bool YASL_top_isstring(struct YASL_State *S);
 
 /**
  * checks if the top of the stack is list.
@@ -368,21 +309,11 @@ YASL_DEPRECATE bool YASL_top_isstring(struct YASL_State *S);
 bool YASL_islist(struct YASL_State *S);
 
 /**
- * Use YASL_islist instead.
- */
-YASL_DEPRECATE bool YASL_top_islist(struct YASL_State *S);
-
-/**
  * checks if the top of the stack is table.
  * @param S the YASL_State to which the stack belongs.
  * @return true if the top of the stack is table, else false.
  */
 bool YASL_istable(struct YASL_State *S);
-
-/**
- * Use YASL_istable instead.
- */
-YASL_DEPRECATE bool YASL_top_istable(struct YASL_State *S);
 
 /**
  * checks if the top of the stack is userdata.
@@ -392,21 +323,11 @@ YASL_DEPRECATE bool YASL_top_istable(struct YASL_State *S);
 bool YASL_isuserdata(struct YASL_State *S, int tag);
 
 /**
- * Use YASL_isuserdata instead.
- */
-YASL_DEPRECATE bool YASL_top_isuserdata(struct YASL_State *S, int tag);
-
-/**
  * checks if the top of the stack is userpointer.
  * @param S the YASL_State to which the stack belongs.
  * @return true if the top of the stack is userpointer, else false.
  */
 bool YASL_isuserptr(struct YASL_State *S);
-
-/**
- * Use YASL_isuserptr instead.
- */
-YASL_DEPRECATE bool YASL_top_isuserpointer(struct YASL_State *S);
 
 /**
  * Returns the bool value of the top of the stack, if the top of the stack is a boolean.
@@ -424,9 +345,6 @@ bool YASL_peekbool(struct YASL_State *S);
  */
 bool YASL_popbool(struct YASL_State *S);
 
-YASL_DEPRECATE bool YASL_top_peekboolean(struct YASL_State *S);
-YASL_DEPRECATE bool YASL_top_popboolean(struct YASL_State *S);
-
 /**
  * Returns the float value of the top of the stack, if the top of the stack is a float.
  * Otherwise returns 0.0. Does not modify the stack.
@@ -442,9 +360,6 @@ yasl_float YASL_peekfloat(struct YASL_State *S);
  * @return
  */
 yasl_float YASL_popfloat(struct YASL_State *S);
-
-YASL_DEPRECATE yasl_float YASL_top_peekfloat(struct YASL_State *S);
-YASL_DEPRECATE yasl_float YASL_top_popfloat(struct YASL_State *S);
 
 /**
  * Returns the int value of the top of the stack, if the top of the stack is an int.
@@ -462,27 +377,13 @@ yasl_int YASL_peekint(struct YASL_State *S);
  */
 yasl_int YASL_popint(struct YASL_State *S);
 
-YASL_DEPRECATE yasl_int YASL_top_peekinteger(struct YASL_State *S);
-YASL_DEPRECATE yasl_int YASL_top_popinteger(struct YASL_State *S);
-
 char *YASL_peekcstr(struct YASL_State *S);
 char *YASL_popcstr(struct YASL_State *S);
-
-YASL_DEPRECATE char *YASL_top_peekcstring(struct YASL_State *S);
-YASL_DEPRECATE char *YASL_top_popcstring(struct YASL_State *S);
-
-YASL_DEPRECATE size_t YASL_getstringlen(struct YASL_Object *obj);
 
 void *YASL_peekuserdata(struct YASL_State *S);
 void *YASL_popuserdata(struct YASL_State *S);
 
-YASL_DEPRECATE void *YASL_top_peekuserdata(struct YASL_State *S);
-YASL_DEPRECATE void *YASL_top_popuserdata(struct YASL_State *S);
-
 void *YASL_peekuserptr(struct YASL_State *S);
 void *YASL_popuserptr(struct YASL_State *S);
-
-YASL_DEPRECATE void *YASL_top_peekuserpointer(struct YASL_State *S);
-YASL_DEPRECATE void *YASL_top_popuserpointer(struct YASL_State *S);
 
 #endif

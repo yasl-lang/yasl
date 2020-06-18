@@ -98,10 +98,10 @@ int vmtest(void) {
 	ASSERT_BINOP_TYPE_ERR(".true ** false;", "**", "str", "bool", 1);
 
 	// comparison operator type errors
-	ASSERT_BINOP_TYPE_ERR("true < 1;", "<= and >=", "bool", "int", 1);
-	ASSERT_BINOP_TYPE_ERR("true <= 1;", "< and >", "bool", "int", 1);
-	ASSERT_BINOP_TYPE_ERR("true >= 1;", "<= and >=", "bool", "int", 1);
-	ASSERT_BINOP_TYPE_ERR("true > 1;", "< and >", "bool", "int", 1);
+	ASSERT_BINOP_TYPE_ERR("true < 1;", "<", "bool", "int", 1);
+	ASSERT_BINOP_TYPE_ERR("true <= 1;", "<=", "bool", "int", 1);
+	ASSERT_BINOP_TYPE_ERR("true >= 1;", ">=", "bool", "int", 1);
+	ASSERT_BINOP_TYPE_ERR("true > 1;", ">", "bool", "int", 1);
 
 	// Not callable
 	ASSERT_TYPE_ERR("undef();", "undef is not callable", 1);
@@ -136,9 +136,9 @@ int vmtest(void) {
 	ASSERT_ARG_TYPE_ERR("[].__add(true, 1);", "list.__add", "list", "int", 1, 1);
 	ASSERT_ARG_TYPE_ERR("[] + true;", "list.__add", "list", "bool", 1, 1);
 	// ASSERT_ARG_TYPE_ERR("true + [];", "list.__add", "list", "bool", 0);
-	ASSERT_ARG_TYPE_ERR("[].extend(1, []);", "list.extend", "list", "int", 0, 1);
-	ASSERT_ARG_TYPE_ERR("[].extend([], 1);", "list.extend", "list", "int", 1, 1);
-	ASSERT_ARG_TYPE_ERR("[].extend(1, true);", "list.extend", "list", "bool", 1, 1);
+	// ASSERT_ARG_TYPE_ERR("[].extend(1, []);", "list.extend", "list", "int", 0, 1);
+	// ASSERT_ARG_TYPE_ERR("[].extend([], 1);", "list.extend", "list", "int", 1, 1);
+	// ASSERT_ARG_TYPE_ERR("[].extend(1, true);", "list.extend", "list", "bool", 1, 1);
 	// TODO: __get, __set
 	ASSERT_VALUE_ERR("[][2];", "unable to index list with value of type int", 1);
 	ASSERT_ARG_TYPE_ERR("[].tostr(1);", "list.tostr", "list", "int", 0, 1);
@@ -296,7 +296,7 @@ int vmtest(void) {
 	ASSERT_ARG_TYPE_ERR("echo collections.set().__len(1);", "collections.set.__len", "set", "int", 0, 1);
 	ASSERT_ARG_TYPE_ERR("echo collections.set().copy(1);", "collections.set.copy", "set", "int", 0, 1);
 	ASSERT_ARG_TYPE_ERR("echo collections.set().clear(1);", "collections.set.clear", "set", "int", 0, 1);
-	ASSERT_ARG_TYPE_ERR("echo collections.set().contains([], true);", "collections.set.contains", "set", "list", 0, 1);
+	ASSERT_ARG_TYPE_ERR("echo collections.set().__get([], true);", "collections.set.__get", "set", "list", 0, 1);
 
 	// io errors
 	ASSERT_ARG_TYPE_ERR("let f = io.open('f', true);", "io.open", "str", "bool", 1, 1);

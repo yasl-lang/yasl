@@ -225,6 +225,34 @@ int list___add(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
+int list___eq(struct YASL_State *S) {
+	if (!YASL_islist(S)) {
+		YASLX_print_err_bad_arg_type(S, "list.__eq", 1, "list", YASL_TYPE_NAMES[YASL_peektype(S)]);
+		return YASL_TYPE_ERROR;
+	}
+	struct YASL_List *right = YASL_GETLIST(vm_pop((struct VM *) S));
+	if (!YASL_islist(S)) {
+		YASLX_print_err_bad_arg_type(S, "list.__eq", 0, "list", YASL_TYPE_NAMES[YASL_peektype(S)]);
+		return YASL_TYPE_ERROR;
+	}
+	struct YASL_List *left = YASL_GETLIST(vm_pop((struct VM *) S));
+
+	if (left->count != right->count) {
+		return YASL_pushbool(S, false);
+	}
+
+	for (size_t i = 0; i < left->count; i++) {
+		vm_push((struct VM *)S, left->items[i]);
+		vm_push((struct VM *)S, right->items[i]);
+		int res = vm_EQ((struct VM *)S);
+		if (res) return res;
+		if (!YASL_popbool(S)) {
+			return YASL_pushbool(S, false);
+		}
+	}
+	return YASL_pushbool(S, true);
+}
+
 int list_extend(struct YASL_State *S) {
 	if (!YASL_islist(S)) {
 		YASLX_print_err_bad_arg_type(S, "list.extend", 1, "list", YASL_TYPE_NAMES[YASL_peektype(S)]);
@@ -332,7 +360,7 @@ int list_join(struct YASL_State *S) {
 	vm_push((struct VM *) S, list->items[0]);
 	enum YASL_Types index = vm_peek((struct VM *) S, S->vm.sp).type;
 	struct YASL_Object key = YASL_STR(YASL_String_new_sized(strlen("tostr"), "tostr"));
-	struct YASL_Object result = YASL_Table_search(S->vm.builtins_htable[index], key);
+	struct YASL_Object result = YASL_Table_search((struct YASL_Table *)S->vm.builtins_htable[index]->data, key);
 	str_del(obj_getstr(&key));
 	YASL_GETCFN(result)->value(S);
 	struct YASL_String *str = vm_popstr((struct VM *) S);
@@ -358,7 +386,7 @@ int list_join(struct YASL_State *S) {
 		vm_push((struct VM *) S, list->items[i]);
 		enum YASL_Types index = vm_peek((struct VM *) S, S->vm.sp).type;
 		struct YASL_Object key = YASL_STR(YASL_String_new_sized(strlen("tostr"), "tostr"));
-		struct YASL_Object result = YASL_Table_search(S->vm.builtins_htable[index], key);
+		struct YASL_Object result = YASL_Table_search((struct YASL_Table *)S->vm.builtins_htable[index]->data, key);
 		str_del(obj_getstr(&key));
 		YASL_GETCFN(result)->value(S);
 		struct YASL_String *str = vm_popstr((struct VM *) S);

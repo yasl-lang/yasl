@@ -1,6 +1,6 @@
 let ls = [ 1, 2, 3, 4, 5 ]
 
-let mtlist = mt.getmt(ls)
+let mtlist = mt.get(ls)
 
 mtlist.first = fn(self) {
     return self[0]

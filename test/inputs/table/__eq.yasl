@@ -1,0 +1,19 @@
+
+
+
+let left = { .a: 10, .b: 12 }
+let right = collections.table(.a, 10, .b, 12, .c, 7)
+
+
+echo left == right
+echo left != right
+echo left ==  collections.table(.a, 10, .b, 12)
+echo right == { .a: 10, .b: 12, .c: 7 }
+echo left != { .a: 10, .b: 11 }
+
+
+mt.set(left, { .__eq: fn(a, b) {
+    return a.a == b.a
+} })
+
+echo left == right

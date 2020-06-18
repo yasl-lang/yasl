@@ -18,7 +18,7 @@ static int YASL_collections_set_new(struct YASL_State *S) {
 		YASL_pop(S);
 	}
 
-	YASL_pushuserdata(S, set, T_SET, NULL, YASL_Set_del);
+	YASL_pushuserdata(S, set, T_SET, YASL_Set_del);
 	YASL_loadmt(S, SET_PRE);
 	YASL_setmt(S);
 	return YASL_SUCCESS;
@@ -27,7 +27,7 @@ static int YASL_collections_set_new(struct YASL_State *S) {
 static int YASL_collections_list_new(struct YASL_State *S) {
 	yasl_int i = YASL_popint(S);
 	struct RC_UserData *list = rcls_new();
-	list->mt = S->vm.builtins_htable[Y_LIST];
+	ud_setmt(list, S->vm.builtins_htable[Y_LIST]);
 	while (i-- > 0) {
 		YASL_List_append((struct YASL_List *) list->data, vm_pop((struct VM *) S));
 	}
@@ -43,7 +43,7 @@ static int YASL_collections_table_new(struct YASL_State *S) {
 		YASL_pushundef(S);
 	}
 	struct RC_UserData *table = rcht_new();
-	table->mt = S->vm.builtins_htable[Y_TABLE];
+	ud_setmt(table, S->vm.builtins_htable[Y_TABLE]);
 	while (i > 0) {
 		struct YASL_Object value = vm_pop((struct VM *)S);
 		struct YASL_Object key = vm_pop((struct VM *)S);
@@ -139,7 +139,7 @@ static int YASL_collections_set_##name(struct YASL_State *S) {\
 \
 	struct YASL_Set *tmp = fn(left, right);\
 \
-	YASL_pushuserdata(S, tmp, T_SET, NULL, YASL_Set_del);\
+	YASL_pushuserdata(S, tmp, T_SET, YASL_Set_del);\
 	YASL_loadmt(S, SET_PRE);\
 	YASL_setmt(S);\
 	return YASL_SUCCESS;\
@@ -150,6 +150,130 @@ YASL_COLLECTIONS_SET_BINOP(__bor, YASL_Set_union)
 YASL_COLLECTIONS_SET_BINOP(__bxor, YASL_Set_symmetric_difference)
 
 YASL_COLLECTIONS_SET_BINOP(__bandnot, YASL_Set_difference)
+
+static int YASL_collections_set___eq(struct YASL_State *S) {
+	if (!YASL_isuserdata(S, T_SET)) {
+		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type set, got arg of type %s.",
+				SET_PRE ".__eq",  1, YASL_TYPE_NAMES[vm_peek(&S->vm).type]);
+		return YASL_TYPE_ERROR;
+	}
+	struct YASL_Set *right = (struct YASL_Set *)YASL_popuserdata(S);\
+
+	if (!YASL_isuserdata(S, T_SET)) {\
+		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type set, got arg of type %s.",
+				SET_PRE ".__eq", 0, YASL_TYPE_NAMES[vm_peek(&S->vm).type]);
+		return YASL_TYPE_ERROR;
+	}
+	struct YASL_Set *left = (struct YASL_Set *)YASL_popuserdata(S);
+
+	if (YASL_Set_length(left) != YASL_Set_length(right)) {
+		return YASL_pushbool(S, false);
+	}
+
+	FOR_SET(i, item, left) {
+		if (!YASL_Set_search(right, *item)) {
+			return YASL_pushbool(S, false);
+		}
+	}
+
+	return YASL_pushbool(S, true);
+}
+
+static int YASL_collections_set___gt(struct YASL_State *S) {
+	if (!YASL_isuserdata(S, T_SET)) {
+		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type set, got arg of type %s.",
+				  SET_PRE ".__eq",  1, YASL_TYPE_NAMES[vm_peek(&S->vm).type]);
+		return YASL_TYPE_ERROR;
+	}
+	struct YASL_Set *right = (struct YASL_Set *)YASL_popuserdata(S);\
+
+	if (!YASL_isuserdata(S, T_SET)) {\
+		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type set, got arg of type %s.",
+				  SET_PRE ".__eq", 0, YASL_TYPE_NAMES[vm_peek(&S->vm).type]);
+		return YASL_TYPE_ERROR;
+	}
+	struct YASL_Set *left = (struct YASL_Set *)YASL_popuserdata(S);
+
+	FOR_SET(i, item, right) {
+		if (!YASL_Set_search(left, *item)) {
+			return YASL_pushbool(S, false);
+		}
+	}
+
+	return YASL_pushbool(S, YASL_Set_length(left) > YASL_Set_length(right));
+}
+
+static int YASL_collections_set___ge(struct YASL_State *S) {
+	if (!YASL_isuserdata(S, T_SET)) {
+		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type set, got arg of type %s.",
+				  SET_PRE ".__eq",  1, YASL_TYPE_NAMES[vm_peek(&S->vm).type]);
+		return YASL_TYPE_ERROR;
+	}
+	struct YASL_Set *right = (struct YASL_Set *)YASL_popuserdata(S);\
+
+	if (!YASL_isuserdata(S, T_SET)) {\
+		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type set, got arg of type %s.",
+				  SET_PRE ".__eq", 0, YASL_TYPE_NAMES[vm_peek(&S->vm).type]);
+		return YASL_TYPE_ERROR;
+	}
+	struct YASL_Set *left = (struct YASL_Set *)YASL_popuserdata(S);
+
+	FOR_SET(i, item, right) {
+		if (!YASL_Set_search(left, *item)) {
+			return YASL_pushbool(S, false);
+		}
+	}
+
+	return YASL_pushbool(S, YASL_Set_length(left) >= YASL_Set_length(right));
+}
+
+static int YASL_collections_set___lt(struct YASL_State *S) {
+	if (!YASL_isuserdata(S, T_SET)) {
+		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type set, got arg of type %s.",
+				  SET_PRE ".__eq",  1, YASL_TYPE_NAMES[vm_peek(&S->vm).type]);
+		return YASL_TYPE_ERROR;
+	}
+	struct YASL_Set *right = (struct YASL_Set *)YASL_popuserdata(S);\
+
+	if (!YASL_isuserdata(S, T_SET)) {\
+		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type set, got arg of type %s.",
+				  SET_PRE ".__eq", 0, YASL_TYPE_NAMES[vm_peek(&S->vm).type]);
+		return YASL_TYPE_ERROR;
+	}
+	struct YASL_Set *left = (struct YASL_Set *)YASL_popuserdata(S);
+
+	FOR_SET(i, item, left) {
+			if (!YASL_Set_search(right, *item)) {
+				return YASL_pushbool(S, false);
+			}
+		}
+
+	return YASL_pushbool(S, YASL_Set_length(left) < YASL_Set_length(right));
+}
+
+static int YASL_collections_set___le(struct YASL_State *S) {
+	if (!YASL_isuserdata(S, T_SET)) {
+		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type set, got arg of type %s.",
+				  SET_PRE ".__eq",  1, YASL_TYPE_NAMES[vm_peek(&S->vm).type]);
+		return YASL_TYPE_ERROR;
+	}
+	struct YASL_Set *right = (struct YASL_Set *)YASL_popuserdata(S);\
+
+	if (!YASL_isuserdata(S, T_SET)) {\
+		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type set, got arg of type %s.",
+				  SET_PRE ".__eq", 0, YASL_TYPE_NAMES[vm_peek(&S->vm).type]);
+		return YASL_TYPE_ERROR;
+	}
+	struct YASL_Set *left = (struct YASL_Set *)YASL_popuserdata(S);
+
+	FOR_SET(i, item, left) {
+			if (!YASL_Set_search(right, *item)) {
+				return YASL_pushbool(S, false);
+			}
+		}
+
+	return YASL_pushbool(S, YASL_Set_length(left) <= YASL_Set_length(right));
+}
 
 static int YASL_collections_set___len(struct YASL_State *S) {
 	if (!YASL_isuserdata(S, T_SET)) {
@@ -210,7 +334,7 @@ static int YASL_collections_set_copy(struct YASL_State *S) {
 			YASL_Set_insert(tmp, *item);
 	}
 
-	YASL_pushuserdata(S, tmp, T_SET, NULL, YASL_Set_del);
+	YASL_pushuserdata(S, tmp, T_SET, YASL_Set_del);
 	YASL_loadmt(S, SET_PRE);
 	YASL_setmt(S);
 	return YASL_SUCCESS;
@@ -228,19 +352,6 @@ static int YASL_collections_set_clear(struct YASL_State *S) {
 			YASL_Set_rm(set, *item);
 	}
 
-	return YASL_SUCCESS;
-}
-
-static int YASL_collections_set_contains(struct YASL_State *S) {
-	struct YASL_Object object = vm_pop(&S->vm);
-	if (!YASL_isuserdata(S, T_SET)) {
-		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type set, got arg of type %s.",
-				  SET_PRE ".contains", 0, YASL_TYPE_NAMES[vm_peek(&S->vm).type]);
-		return YASL_TYPE_ERROR;
-	}
-	struct YASL_Set *set = (struct YASL_Set *)YASL_popuserdata(S);
-
-	YASL_pushbool(S, YASL_Set_search(set, object));
 	return YASL_SUCCESS;
 }
 
@@ -297,6 +408,31 @@ int YASL_decllib_collections(struct YASL_State *S) {
 	YASL_tableset(S);
 
 	YASL_loadmt(S, SET_PRE);
+	YASL_pushlitszstring(S, "__eq");
+	YASL_pushcfunction(S, YASL_collections_set___eq, 2);
+	YASL_tableset(S);
+
+	YASL_loadmt(S, SET_PRE);
+	YASL_pushlitszstring(S, "__gt");
+	YASL_pushcfunction(S, YASL_collections_set___gt, 2);
+	YASL_tableset(S);
+
+	YASL_loadmt(S, SET_PRE);
+	YASL_pushlitszstring(S, "__ge");
+	YASL_pushcfunction(S, YASL_collections_set___ge, 2);
+	YASL_tableset(S);
+
+	YASL_loadmt(S, SET_PRE);
+	YASL_pushlitszstring(S, "__lt");
+	YASL_pushcfunction(S, YASL_collections_set___lt, 2);
+	YASL_tableset(S);
+
+	YASL_loadmt(S, SET_PRE);
+	YASL_pushlitszstring(S, "__le");
+	YASL_pushcfunction(S, YASL_collections_set___le, 2);
+	YASL_tableset(S);
+
+	YASL_loadmt(S, SET_PRE);
 	YASL_pushlitszstring(S, "add");
 	YASL_pushcfunction(S, YASL_collections_set_add, 2);
 	YASL_tableset(S);
@@ -314,11 +450,6 @@ int YASL_decllib_collections(struct YASL_State *S) {
 	YASL_loadmt(S, SET_PRE);
 	YASL_pushlitszstring(S, "clear");
 	YASL_pushcfunction(S, YASL_collections_set_clear, 1);
-	YASL_tableset(S);
-
-	YASL_loadmt(S, SET_PRE);
-	YASL_pushlitszstring(S, "contains");
-	YASL_pushcfunction(S, YASL_collections_set_contains, 2);
 	YASL_tableset(S);
 
 	YASL_loadmt(S, SET_PRE);

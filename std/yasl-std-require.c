@@ -31,13 +31,15 @@ int YASL_require(struct YASL_State *S) {
 	Ss->compiler.strings = S->compiler.strings;
 	YASL_ByteBuffer_del(Ss->compiler.header);
 	Ss->compiler.header = S->compiler.header;
+	YASL_Table_del(Ss->vm.globals);
+	Ss->vm.globals = S->vm.globals;
 	// Ss->vm.constants = S->vm.constants;
 
 	// Load Standard Libraries
 	YASLX_decllibs(Ss);
 
-	Ss->vm.globals[Ss->vm.headers_size - 1] = Ss->vm.globals[0];
-	Ss->vm.globals[0] = NULL;
+	// Ss->vm.globals[Ss->vm.headers_size - 1] = Ss->vm.globals[0];
+	// Ss->vm.globals[0] = NULL;
 	int status = YASL_execute(Ss);
 
 	if (status != YASL_MODULE_SUCCESS) {
@@ -53,13 +55,13 @@ int YASL_require(struct YASL_State *S) {
 	size_t old_headers_size = S->vm.headers_size;
 	size_t new_headers_size = Ss->vm.headers_size;
 	S->vm.headers = (unsigned char **) realloc(S->vm.headers, new_headers_size * sizeof(unsigned char *));
-	S->vm.globals = (struct YASL_Table **) realloc(S->vm.globals, new_headers_size * sizeof(struct YASL_Table *));
 	for (size_t i = old_headers_size; i < new_headers_size; i++) {
 		S->vm.headers[i] = Ss->vm.headers[i];
 		Ss->vm.headers[i] = NULL;
-		S->vm.globals[i] = Ss->vm.globals[i];
-		Ss->vm.globals[i] = NULL;
 	}
+
+	Ss->vm.globals = NULL;
+
 	Ss->vm.code = NULL;
 	S->vm.headers_size = S->vm.num_globals = new_headers_size;
 	Ss->compiler.strings = NULL;

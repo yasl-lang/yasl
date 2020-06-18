@@ -190,7 +190,7 @@ int YASL_setglobal(struct YASL_State *S, const char *name) {
 	if (is_const(index)) return YASL_ERROR;
 
 	struct YASL_String *string = YASL_String_new_sized(strlen(name), name);
-	YASL_Table_insert_fast(S->vm.globals[0], YASL_STR(string), vm_peek((struct VM *) S));
+	YASL_Table_insert_fast(S->vm.globals, YASL_STR(string), vm_peek((struct VM *) S));
 	YASL_pop(S);
 
 	return YASL_SUCCESS;
@@ -198,7 +198,7 @@ int YASL_setglobal(struct YASL_State *S, const char *name) {
 
 int YASL_loadglobal(struct YASL_State *S, const char *name) {
 	struct YASL_String *string = YASL_String_new_sized(strlen(name), name);
-	struct YASL_Object global = YASL_Table_search(S->vm.globals[0], YASL_STR(string));
+	struct YASL_Object global = YASL_Table_search(S->vm.globals, YASL_STR(string));
 	str_del(string);
 	if (global.type == Y_END) {
 		return YASL_ERROR;
@@ -231,13 +231,14 @@ int YASL_setmt(struct YASL_State *S) {
 		return YASL_TYPE_ERROR;
 	}
 
-	struct YASL_Table *mt = YASL_istable(S) ? YASL_GETTABLE(vm_pop(&S->vm)) : NULL;
+	struct RC_UserData *mt = YASL_istable(S) ? YASL_GETUSERDATA(vm_pop(&S->vm)) : NULL;
 
 	if (!vm_isuserdata(&S->vm)) {
 		return YASL_TYPE_ERROR;
 	}
 
-	vm_peek(&S->vm).value.uval->mt = mt;
+	ud_setmt(vm_peek(&S->vm).value.uval, mt);
+
 	return YASL_SUCCESS;
 }
 
@@ -294,8 +295,8 @@ int YASL_pushcstring(struct YASL_State *S, char *value) {
 	return YASL_SUCCESS;
 }
 
-int YASL_pushuserdata(struct YASL_State *S, void *data, int tag, struct YASL_Table *mt, void (*destructor)(void *)) {
-	vm_push(&S->vm, YASL_USERDATA(ud_new(data, tag, mt, destructor)));
+int YASL_pushuserdata(struct YASL_State *S, void *data, int tag, void (*destructor)(void *)) {
+	vm_push(&S->vm, YASL_USERDATA(ud_new(data, tag, NULL, destructor)));
 	return YASL_SUCCESS;
 }
 
@@ -335,14 +336,14 @@ int YASL_pushcfunction(struct YASL_State *S, int (*value)(struct YASL_State *), 
 
 int YASL_pushtable(struct YASL_State *S) {
 	struct RC_UserData *table = rcht_new();
-	table->mt = S->vm.builtins_htable[Y_TABLE];
+	ud_setmt(table, S->vm.builtins_htable[Y_TABLE]);
 	vm_push(&S->vm, YASL_TABLE(table));
 	return YASL_SUCCESS;
 }
 
 int YASL_pushlist(struct YASL_State *S) {
 	struct RC_UserData *list = rcls_new();
-	list->mt = S->vm.builtins_htable[Y_LIST];
+	ud_setmt(list, S->vm.builtins_htable[Y_LIST]);
 	vm_push(&S->vm, YASL_LIST(list));
 	return YASL_SUCCESS;
 }
