@@ -26,7 +26,7 @@ jobs:
     displayName: "Compile"
   - script: |
       ls
-      ./yasl -V
+      yasl.exe -V
     displayName: "Printout"
 - job:
   displayName: "C MSVC Windows"
