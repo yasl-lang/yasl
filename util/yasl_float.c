@@ -9,13 +9,13 @@ const char *float64_to_str(const yasl_float d) {
 	if (isinf(d) || isnan(d)) {
 		char *ptr;
 		if (d > 0) {
-			ptr = malloc(sizeof("inf") + 1);
+			ptr = (char *)malloc(sizeof("inf") + 1);
 			strcpy(ptr, "inf");
 		} else if (d < 0) {
-			ptr = malloc(sizeof("-inf") + 1);
+			ptr = (char *)malloc(sizeof("-inf") + 1);
 			strcpy(ptr, "-inf");
 		} else {
-			ptr = malloc(sizeof("nan") + 1);
+			ptr = (char *)malloc(sizeof("nan") + 1);
 			strcpy(ptr, "nan");
 		}
 		return ptr;
