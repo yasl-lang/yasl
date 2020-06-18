@@ -6,9 +6,22 @@ let x = {
 
 echo x
 
+let xx = { k: x[k] + 1
+            for k <- x
+         }
+
+echo xx
+
 let y = [
     1,
     2
 ]
 
 echo y
+
+let yy = [ v + 1
+           for v <- y
+         ]
+
+echo yy
+

@@ -825,6 +825,7 @@ static struct Node *parse_table(struct Parser *const parser) {
 	eattok(parser, T_COLON);
 	body_append(&keys, parse_expr(parser));
 
+	while (parser->lex.c == '\n') eattok(parser, T_SEMI);
 	if (matcheattok(parser, T_FOR)) {
 		struct Node *iter = parse_iterate(parser);
 
@@ -833,6 +834,7 @@ static struct Node *parse_table(struct Parser *const parser) {
 			cond = parse_expr(parser);
 		}
 
+		while (parser->lex.c == '\n') eattok(parser, T_SEMI);
 		eattok(parser, T_RBRC);
 		struct Node *table_comp = new_TableComp(keys, iter, cond, line);
 		return table_comp;
@@ -862,6 +864,8 @@ static struct Node *parse_list(struct Parser *const parser) {
 
 	body_append(&keys, parse_expr(parser));
 
+	while (parser->lex.c == '\n') eattok(parser, T_SEMI);
+
 	// non-empty list
 	if (matcheattok(parser, T_FOR)) {
 		struct Node *iter = parse_iterate(parser);
@@ -871,6 +875,7 @@ static struct Node *parse_list(struct Parser *const parser) {
 			cond = parse_expr(parser);
 		}
 
+		while (parser->lex.c == '\n') eattok(parser, T_SEMI);
 		eattok(parser, T_RSQB);
 		struct Node *table_comp = new_ListComp(keys->children[0], iter, cond, line);
 		free(keys);
