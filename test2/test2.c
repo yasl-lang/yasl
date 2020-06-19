@@ -31,7 +31,7 @@ for (size_t i = 0; i < sizeof(errors) / sizeof(char *); i++) {\
 	YASL_loadprinterr(S);\
 	char *actual_output = YASL_peekcstr(S);\
 	if (!!strcmp(expected_output, actual_output)) {\
-		fprintf(stderr, "test for %s failed (expected %s, got %s).\n", errors[i], expected_output, actual_output);\
+		fprintf(stderr, "test for %s failed (expected:\n`%s`, got:\n`%s`).\n", errors[i], expected_output, actual_output);\
 		failed++;\
 	}\
 	free(expected_output);\
@@ -44,6 +44,7 @@ int main(void) {
 #include "outputs.inl"
 #include "assert_errors.inl"
 #include "stackoverflow_errors.inl"
+#include "type_errors.inl"
 	char buffer[MAX_FILE_NAME_LEN];
 	struct YASL_State *S;
 	for (size_t i = 0; i < sizeof(outputs) / sizeof(char *); i++) {
@@ -77,6 +78,7 @@ int main(void) {
 
 	ERROR_TEST(assert_errors);
 	ERROR_TEST(stackoverflow_errors);
+	ERROR_TEST(type_errors);
 
 	result = result || failed;
 	printf("Failed %d script tests.\n", failed);
