@@ -82,15 +82,6 @@ int vmtest(void) {
 	ASSERT_ASSERT_ERR("assert fn(a, b) { return a + b; }(1.0, 2.0) === 3;", "false", 1);
 	ASSERT_ASSERT_ERR("assert undef;", "undef", 1);
 
-	// binary operator type errors
-	ASSERT_BINOP_TYPE_ERR(".true + false;", "+", "str", "bool", 1);
-	ASSERT_BINOP_TYPE_ERR(".true - false;", "-", "str", "bool", 1);
-	ASSERT_BINOP_TYPE_ERR(".true * false;", "*", "str", "bool", 1);
-	ASSERT_BINOP_TYPE_ERR(".true / false;", "/", "str", "bool", 1);
-	ASSERT_BINOP_TYPE_ERR(".true // false;", "//", "str", "bool", 1);
-	ASSERT_BINOP_TYPE_ERR(".true % false;", "%", "str", "bool", 1);
-	ASSERT_BINOP_TYPE_ERR(".true ** false;", "**", "str", "bool", 1);
-
 	// comparison operator type errors
 	ASSERT_BINOP_TYPE_ERR("true < 1;", "<", "bool", "int", 1);
 	ASSERT_BINOP_TYPE_ERR("true <= 1;", "<=", "bool", "int", 1);
