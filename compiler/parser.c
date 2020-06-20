@@ -563,21 +563,23 @@ BINOP_L(add, multiply, "+ and -", T_PLUS, T_MINUS)
 BINOP_L(multiply, unary, "*, %%, / and //", T_STAR, T_DSLASH, T_SLASH, T_MOD)
 
 static struct Node *parse_unary(struct Parser *const parser) {
+	size_t line = parser->lex.line;
 	YASL_PARSE_DEBUG_LOG("parsing !, -, +, ^, len in line %" PRI_SIZET "\n", parser->lex.line);
 	if (curtok(parser) == T_PLUS || curtok(parser) == T_MINUS || curtok(parser) == T_BANG ||
 	    curtok(parser) == T_CARET || curtok(parser) == T_LEN) {
 		enum Token op = eattok(parser, curtok(parser));
-		return new_UnOp(op, parse_unary(parser), parser->lex.line);
+		return new_UnOp(op, parse_unary(parser), line);
 	} else {
 		return parse_power(parser);
 	}
 }
 
 static struct Node *parse_power(struct Parser *const parser) {
+	size_t line = parser->lex.line;
 	YASL_PARSE_DEBUG_LOG("parsing ** in line %" PRI_SIZET "\n", parser->lex.line);
 	struct Node *cur_node = parse_call(parser);
 	if (matcheattok(parser, T_DSTAR)) {
-		return new_BinOp(T_DSTAR, cur_node, parse_unary(parser), parser->lex.line);
+		return new_BinOp(T_DSTAR, cur_node, parse_unary(parser), line);
 	}
 	return cur_node;
 }
