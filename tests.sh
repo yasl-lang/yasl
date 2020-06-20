@@ -2,6 +2,8 @@
 
 shopt -s globstar nullglob dotglob;
 
+declare K_RED="\033[31m";
+declare K_END="\033[0m";
 declare -i failed=0;
 declare -i ran=0;
 
@@ -36,7 +38,7 @@ run_tests () {
         actual=$(./yasl "$f" 2>&1);
         declare exit_code=$?;
         if [[ "$expected" != "$actual" || $exit_code -ne $expected_exit ]]; then
-            >&2 echo "Failed test for $f. Exited with $exit_code, expected $expected_exit.";
+            >&2 echo -e "Failed test for $K_RED$f$K_END. Exited with $exit_code, expected $expected_exit.";
             >&2 echo "Expected:";
             >&2 echo "$expected";
             >&2 echo "Got:";

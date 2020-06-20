@@ -53,7 +53,6 @@ SETUP_YATS();
 	YASL_delstate(S);\
 }
 
-#define ASSERT_UNOP_TYPE_ERR(code, op, expr, line) ASSERT_TYPE_ERR(code, op " not supported for operand of type " expr, line)
 #define ASSERT_BINOP_TYPE_ERR(code, op, left, right, line) \
 	ASSERT_TYPE_ERR(code, op " not supported for operands of types " left " and " right, line)
 #define ASSERT_ARG_TYPE_ERR(code, method, exp, actual, arg, line) \
@@ -128,59 +127,6 @@ int vmtest(void) {
 
 	// str method type errors
 	ASSERT_VALUE_ERR("''[2];", "unable to index str with value of type int", 1);
-	ASSERT_ARG_TYPE_ERR("''.tofloat(1);", "str.tofloat", "str", "int", 0, 1);
-	ASSERT_ARG_TYPE_ERR("''.toint(1);", "str.toint", "str", "int", 0, 1);
-	ASSERT_ARG_TYPE_ERR("''.isalnum(1);", "str.isalnum", "str", "int", 0, 1);
-	ASSERT_ARG_TYPE_ERR("''.isal(1);", "str.isal", "str", "int", 0, 1);
-	ASSERT_ARG_TYPE_ERR("''.isnum(1);", "str.isnum", "str", "int", 0, 1);
-	ASSERT_ARG_TYPE_ERR("''.isspace(1);", "str.isspace", "str", "int", 0, 1);
-	ASSERT_ARG_TYPE_ERR("''.tobool(1);", "str.tobool", "str", "int", 0, 1);
-	ASSERT_ARG_TYPE_ERR("''.tostr(1);", "str.tostr", "str", "int", 0, 1);
-	ASSERT_ARG_TYPE_ERR("''.toupper(1);", "str.toupper", "str", "int", 0, 1);
-	ASSERT_ARG_TYPE_ERR("''.tolower(1);", "str.tolower", "str", "int", 0, 1);
-	ASSERT_ARG_TYPE_ERR("''.startswith(1, true);", "str.startswith", "str", "bool", 1, 1);
-	ASSERT_ARG_TYPE_ERR("''.startswith(1, .true);", "str.startswith", "str", "int", 0, 1);
-	ASSERT_ARG_TYPE_ERR("''.startswith(.str, true);", "str.startswith", "str", "bool", 1, 1);
-	ASSERT_ARG_TYPE_ERR("''->startswith(1);", "str.startswith", "str", "int", 1, 1);
-	ASSERT_ARG_TYPE_ERR("''.endswith(1, true);", "str.endswith", "str", "bool", 1, 1);
-	ASSERT_ARG_TYPE_ERR("''.endswith(1, .true);", "str.endswith", "str", "int", 0, 1);
-	ASSERT_ARG_TYPE_ERR("''.endswith(.str, true);", "str.endswith", "str", "bool", 1, 1);
-	ASSERT_ARG_TYPE_ERR("''->endswith(1);", "str.endswith", "str", "int", 1, 1);
-	ASSERT_ARG_TYPE_ERR("''.replace(1, true, 1.0);", "str.replace", "str", "float", 2, 1);
-	ASSERT_ARG_TYPE_ERR("''.replace(1, true, .str);", "str.replace", "str", "bool", 1, 1);
-	ASSERT_ARG_TYPE_ERR("''.replace(1, .true, .str);", "str.replace", "str", "int", 0, 1);
-	ASSERT_ARG_TYPE_ERR("''.replace(1, .true, 1.0);", "str.replace", "str", "float", 2, 1);
-	ASSERT_ARG_TYPE_ERR("''.replace(.tr, true, .str);", "str.replace", "str", "bool", 1, 1);
-	ASSERT_ARG_TYPE_ERR("''.replace(.tr, .true, 1);", "str.replace", "str", "int", 2, 1);
-	ASSERT_ARG_TYPE_ERR("''.replace(.tr, true, 1);", "str.replace", "str", "int", 2, 1);
-	ASSERT_ARG_TYPE_ERR("''.search(1, true);", "str.search", "str", "bool", 1, 1);
-	ASSERT_ARG_TYPE_ERR("''.search(1, .true);", "str.search", "str", "int", 0, 1);
-	ASSERT_ARG_TYPE_ERR("''.search(.str, true);", "str.search", "str", "bool", 1, 1);
-	ASSERT_ARG_TYPE_ERR("''->search(1);", "str.search", "str", "int", 1, 1);
-	ASSERT_ARG_TYPE_ERR("''.count(1, true);", "str.count", "str", "bool", 1, 1);
-	ASSERT_ARG_TYPE_ERR("''.count(1, .true);", "str.count", "str", "int", 0, 1);
-	ASSERT_ARG_TYPE_ERR("''.count(.str, true);", "str.count", "str", "bool", 1, 1);
-	ASSERT_ARG_TYPE_ERR("''->count(1);", "str.count", "str", "int", 1, 1);
-	ASSERT_ARG_TYPE_ERR("''.split(1, true);", "str.split", "str", "bool", 1, 1);
-	ASSERT_ARG_TYPE_ERR("''.split(1, .true);", "str.split", "str", "int", 0, 1);
-	ASSERT_ARG_TYPE_ERR("''.split(.str, true);", "str.split", "str", "bool", 1, 1);
-	ASSERT_ARG_TYPE_ERR("''->split(1);", "str.split", "str", "int", 1, 1);
-	ASSERT_ARG_TYPE_ERR("''.ltrim(1, true);", "str.ltrim", "str", "bool", 1, 1);
-	ASSERT_ARG_TYPE_ERR("''.ltrim(1, .true);", "str.ltrim", "str", "int", 0, 1);
-	ASSERT_ARG_TYPE_ERR("''.ltrim(.str, true);", "str.ltrim", "str", "bool", 1, 1);
-	ASSERT_ARG_TYPE_ERR("''->ltrim(1);", "str.ltrim", "str", "int", 1, 1);
-	ASSERT_ARG_TYPE_ERR("''.rtrim(1, true);", "str.rtrim", "str", "bool", 1, 1);
-	ASSERT_ARG_TYPE_ERR("''.rtrim(1, .true);", "str.rtrim", "str", "int", 0, 1);
-	ASSERT_ARG_TYPE_ERR("''.rtrim(.str, true);", "str.rtrim", "str", "bool", 1, 1);
-	ASSERT_ARG_TYPE_ERR("''->rtrim(1);", "str.rtrim", "str", "int", 1, 1);
-	ASSERT_ARG_TYPE_ERR("''.trim(1, true);", "str.trim", "str", "bool", 1, 1);
-	ASSERT_ARG_TYPE_ERR("''.trim(1, .true);", "str.trim", "str", "int", 0, 1);
-	ASSERT_ARG_TYPE_ERR("''.trim(.str, true);", "str.trim", "str", "bool", 1, 1);
-	ASSERT_ARG_TYPE_ERR("''->trim(1);", "str.trim", "str", "int", 1, 1);
-	ASSERT_ARG_TYPE_ERR("''.rep(1, true);", "str.rep", "int", "bool", 1, 1);
-	ASSERT_ARG_TYPE_ERR("''.rep(1, 1);", "str.rep", "str", "int", 0, 1);
-	ASSERT_ARG_TYPE_ERR("''.rep(.str, true);", "str.rep", "int", "bool", 1, 1);
-	ASSERT_ARG_TYPE_ERR("''->rep(true);", "str.rep", "int", "bool", 1, 1);
 
 	// table method type errors
 	ASSERT_ARG_TYPE_ERR("{}.remove(1, 2.0);", "table.remove", "table", "int", 0, 1);
@@ -209,33 +155,6 @@ int vmtest(void) {
 	ASSERT_TYPE_ERR("const x = {}; x[[]] = .list;", "unable to use mutable object of type list as key", 1);
 
 	ASSERT_VALUE_ERR("const x = [ .a, .b, .c ]; x[3] = .d;", "unable to index list of length 3 with index 3", 1);
-
-	// math type errors
-	ASSERT_ARG_TYPE_ERR("math.max(1, 2, .a);", "math.max", "float", "str", 2, 1);
-	ASSERT_ARG_TYPE_ERR("math.min(1, 2, .a);", "math.min", "float", "str", 2, 1);
-	ASSERT_ARG_TYPE_ERR("math.max(.a, 1);", "math.max", "float", "str", 0, 1);
-	ASSERT_ARG_TYPE_ERR("math.min(.a, 1);", "math.min", "float", "str", 0, 1);
-	ASSERT_ARG_TYPE_ERR("math.abs(.str);", "math.abs", "float", "str", 0, 1);
-	ASSERT_ARG_TYPE_ERR("math.log(.str);", "math.log", "float", "str", 0, 1);
-	ASSERT_ARG_TYPE_ERR("math.exp(.str);", "math.exp", "float", "str", 0, 1);
-	ASSERT_ARG_TYPE_ERR("math.sqrt(.str);", "math.sqrt", "float", "str", 0, 1);
-	ASSERT_ARG_TYPE_ERR("math.cos(.str);", "math.cos", "float", "str", 0, 1);
-	ASSERT_ARG_TYPE_ERR("math.sin(.str);", "math.sin", "float", "str", 0, 1);
-	ASSERT_ARG_TYPE_ERR("math.tan(.str);", "math.tan", "float", "str", 0, 1);
-	ASSERT_ARG_TYPE_ERR("math.acos(.str);", "math.acos", "float", "str", 0, 1);
-	ASSERT_ARG_TYPE_ERR("math.asin(.str);", "math.asin", "float", "str", 0, 1);
-	ASSERT_ARG_TYPE_ERR("math.atan(.str);", "math.atan", "float", "str", 0, 1);
-	ASSERT_ARG_TYPE_ERR("math.ceil(.str);", "math.ceil", "float", "str", 0, 1);
-	ASSERT_ARG_TYPE_ERR("math.floor(.str);", "math.floor", "float", "str", 0, 1);
-	ASSERT_ARG_TYPE_ERR("math.deg(.str);", "math.deg", "float", "str", 0, 1);
-	ASSERT_ARG_TYPE_ERR("math.rad(.str);", "math.rad", "float", "str", 0, 1);
-	ASSERT_ARG_TYPE_ERR("math.isprime(.str);", "math.isprime", "float", "str", 0, 1);
-	ASSERT_ARG_TYPE_ERR("math.gcd(.str, 1);", "math.gcd", "float", "str", 0, 1);
-	ASSERT_ARG_TYPE_ERR("math.gcd(2, .s);", "math.gcd", "float", "str", 1, 1);
-	ASSERT_ARG_TYPE_ERR("math.gcd(.a, .b);", "math.gcd", "float", "str", 1, 1);
-	ASSERT_ARG_TYPE_ERR("math.lcm(.str, 1);", "math.lcm", "float", "str", 0, 1);
-	ASSERT_ARG_TYPE_ERR("math.lcm(2, .s);", "math.lcm", "float", "str", 1, 1);
-	ASSERT_ARG_TYPE_ERR("math.lcm(.a, .b);", "math.lcm", "float", "str", 1, 1);
 
 	// collection errors
 	ASSERT_TYPE_ERR("echo collections.table({},[]);", "unable to use mutable object of type table as key", 1);
