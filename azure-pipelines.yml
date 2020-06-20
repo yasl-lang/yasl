@@ -70,7 +70,8 @@ jobs:
   - script:
       ./tests2
     displayName: "Run API Tests"
-  - script:
+  - script: |
+      ./tests.sh
       ./tests
     displayName: "Run Interpreter Tests"
 - job: 
@@ -92,7 +93,8 @@ jobs:
   - script:
       ./tests2
     displayName: "Run API Tests"
-  - script:
+  - script: |
+      ./tests.sh
       ./tests
     displayName: "Run Interpreter Tests"
 - job: 
@@ -116,7 +118,8 @@ jobs:
   - script:
       ./tests2
     displayName: "Run API Tests"
-  - script:
+  - script: |
+      ./tests.sh
       ./tests
     displayName: "Run Interpreter Tests"
 - job: 
@@ -139,7 +142,8 @@ jobs:
   - script:
       ./tests2
     displayName: "Run API Tests"
-  - script:
+  - script: |
+      ./tests.sh
       ./tests
     displayName: "Run Interpreter Tests"
 - job: 
@@ -164,7 +168,8 @@ jobs:
   - script:
       ./tests2
     displayName: "Run API Tests"
-  - script:
+  - script: |
+      ./tests.sh
       ./tests
     displayName: "Run Interpreter Tests"
 - job: 
@@ -185,7 +190,8 @@ jobs:
   - script:
       ./tests2
     displayName: "Run API Tests"
-  - script:
+  - script: |
+      ./tests.sh -m
       ./tests -m
     displayName: "Run Interpreter Tests"
 - job: 
@@ -207,6 +213,7 @@ jobs:
   - script:
       ./tests2
     displayName: "Run API Tests"
-  - script:
+  - script: |
+      ./tests.sh -m
       ./tests -m
     displayName: "Run Interpreter Tests"

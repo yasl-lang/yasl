@@ -78,17 +78,10 @@ SETUP_YATS();
 
 int vmtest(void) {
 	// assert errors
-	ASSERT_ASSERT_ERR("assert false;", "false", 1);
-	ASSERT_ASSERT_ERR("assert fn(a, b) { return a + b; }(1.0, 2.0) === 3;", "false", 1);
+	// ASSERT_ASSERT_ERR("assert fn(a, b) { return a + b; }(1.0, 2.0) === 3;", "false", 1);
 	ASSERT_ASSERT_ERR("assert undef;", "undef", 1);
 
 	// binary operator type errors
-	ASSERT_BINOP_TYPE_ERR(".true | false;", "|", "str", "bool", 1);
-	ASSERT_BINOP_TYPE_ERR(".true ^ false;", "^", "str", "bool", 1);
-	ASSERT_BINOP_TYPE_ERR(".true & false;", "&", "str", "bool", 1);
-	ASSERT_BINOP_TYPE_ERR(".true &^ false;", "&^", "str", "bool", 1);
-	ASSERT_BINOP_TYPE_ERR(".true << false;", "<<", "str", "bool", 1);
-	ASSERT_BINOP_TYPE_ERR(".true >> false;", ">>", "str", "bool", 1);
 	ASSERT_BINOP_TYPE_ERR(".true + false;", "+", "str", "bool", 1);
 	ASSERT_BINOP_TYPE_ERR(".true - false;", "-", "str", "bool", 1);
 	ASSERT_BINOP_TYPE_ERR(".true * false;", "*", "str", "bool", 1);
@@ -105,12 +98,6 @@ int vmtest(void) {
 
 	// Not callable
 	ASSERT_TYPE_ERR("undef();", "undef is not callable", 1);
-
-	// unary operator type errors
-	ASSERT_UNOP_TYPE_ERR("+true;", "+", "bool", 1);
-	ASSERT_UNOP_TYPE_ERR("-true;", "-", "bool", 1);
-	ASSERT_UNOP_TYPE_ERR("^true;", "^", "bool", 1);
-	ASSERT_UNOP_TYPE_ERR("len true;", "len", "bool", 1);
 
 	// bool method type errors
 	ASSERT_ARG_TYPE_ERR("true.tostr(1);", "bool.tostr", "bool", "int", 0, 1);
