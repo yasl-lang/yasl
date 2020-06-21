@@ -1,0 +1,4 @@
+const x = collections.set()
+
+collections.set().add([], 1)
+

@@ -1,0 +1,1 @@
+echo collections.set().clear(1)

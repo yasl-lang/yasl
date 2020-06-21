@@ -31,8 +31,7 @@ int neatsystem(const char *const *command) {
 static const struct {
 	const char *desc;
 	int (*func)(void);
-} tests[] = {{"CLI", cli_main},
-	     {"script", file_main},
+} tests[] = {{"script", file_main},
 	     {"memory", mem_main}};
 
 int main(int argc, char **argv) {

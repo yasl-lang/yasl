@@ -45,6 +45,8 @@ int main(void) {
 #include "assert_errors.inl"
 #include "stackoverflow_errors.inl"
 #include "type_errors.inl"
+#include "value_errors.inl"
+#include "divisionbyzero_errors.inl"
 	char buffer[MAX_FILE_NAME_LEN];
 	struct YASL_State *S;
 	for (size_t i = 0; i < sizeof(outputs) / sizeof(char *); i++) {
@@ -79,6 +81,8 @@ int main(void) {
 	ERROR_TEST(assert_errors);
 	ERROR_TEST(stackoverflow_errors);
 	ERROR_TEST(type_errors);
+	ERROR_TEST(value_errors);
+	ERROR_TEST(divisionbyzero_errors);
 
 	result = result || failed;
 	printf("Failed %d script tests.\n", failed);

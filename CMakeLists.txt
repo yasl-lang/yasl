@@ -92,7 +92,6 @@ if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
     add_executable(tests
             opcode.h
             test/test.c
-            test/clitest.c
             test/filetest.c
             test/memtest.c
             test/test_util.c

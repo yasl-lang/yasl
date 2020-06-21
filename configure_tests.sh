@@ -21,3 +21,15 @@ for f in $(find test/errors/stackoverflow -name '*.yasl'); do
     echo "  \"$f\"," >> test2/stackoverflow_errors.inl;
 done;
 echo '};' >> test2/stackoverflow_errors.inl
+
+echo 'static const char *value_errors[] = {' > test2/value_errors.inl
+for f in $(find test/errors/value -name '*.yasl'); do
+    echo "  \"$f\"," >> test2/value_errors.inl;
+done;
+echo '};' >> test2/value_errors.inl
+
+echo 'static const char *divisionbyzero_errors[] = {' > test2/divisionbyzero_errors.inl
+for f in $(find test/errors/divisionbyzero -name '*.yasl'); do
+    echo "  \"$f\"," >> test2/divisionbyzero_errors.inl;
+done;
+echo '};' >> test2/divisionbyzero_errors.inl
