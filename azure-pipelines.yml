@@ -64,7 +64,6 @@ jobs:
       cmake -DCMAKE_C_COMPILER=tcc .
       make yasl
       make yaslapi
-      make tests
       make tests2
     displayName: "Compile"
   - script:
@@ -86,7 +85,6 @@ jobs:
       cmake .
       make yasl
       make yaslapi
-      make tests
       make tests2
     displayName: "Compile"
   - script:
@@ -110,7 +108,6 @@ jobs:
       cmake .
       make yasl
       make yaslapi
-      make tests
       make tests2
     displayName: "Compile"
   - script:
@@ -133,7 +130,6 @@ jobs:
       cmake .
       make yasl
       make yaslapi
-      make tests
       make tests2
     displayName: "Compile"
   - script:
@@ -158,7 +154,6 @@ jobs:
       cmake .
       make yasl
       make yaslapi
-      make tests
       make tests2
     displayName: "Compile"
   - script:
@@ -179,7 +174,6 @@ jobs:
       cmake .
       make yasl
       make yaslapi
-      make tests
       make tests2
     displayName: "Compile"
   - script:
@@ -201,7 +195,6 @@ jobs:
       cmake .
       make yasl
       make yaslapi
-      make tests
       make tests2
     displayName: "Compile"
   - script:
