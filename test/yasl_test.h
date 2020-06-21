@@ -1,3 +1,3 @@
 #pragma once
 
-int yasl_test(void);
+int unit_tests(void);

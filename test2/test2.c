@@ -34,6 +34,7 @@ for (size_t i = 0; i < sizeof(errors) / sizeof(char *); i++) {\
 		fprintf(stderr, "test for %s failed (expected:\n`%s`, got:\n`%s`).\n", errors[i], expected_output, actual_output);\
 		failed++;\
 	}\
+	ran++;\
 	free(expected_output);\
 	YASL_delstate(S);\
 }
@@ -41,6 +42,7 @@ for (size_t i = 0; i < sizeof(errors) / sizeof(char *); i++) {\
 int main(void) {
 	int result = 0;
 	int failed = 0;
+	int ran = 0;
 #include "outputs.inl"
 #include "assert_errors.inl"
 #include "stackoverflow_errors.inl"
@@ -74,6 +76,7 @@ int main(void) {
 			fprintf(stderr, "test for %s failed.\n", outputs[i]);
 			failed++;
 		}
+		ran++;
 		free(expected_output);
 		YASL_delstate(S);
 	}
@@ -85,9 +88,9 @@ int main(void) {
 	ERROR_TEST(divisionbyzero_errors);
 
 	result = result || failed;
-	printf("Failed %d script tests.\n", failed);
+	printf("Failed %d (/%d) script tests.\n", failed, ran);
 
-	failed = yasl_test();
+	failed = unit_tests();
 
 	result = result || failed;
 	printf("Failed %d unit tests.\n", failed);

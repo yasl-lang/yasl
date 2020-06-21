@@ -70,9 +70,8 @@ jobs:
   - script:
       ./tests2
     displayName: "Run API Tests"
-  - script: |
+  - script:
       ./tests.sh
-      ./tests
     displayName: "Run Interpreter Tests"
 - job: 
   displayName: "C GCC Ubuntu"
@@ -93,9 +92,8 @@ jobs:
   - script:
       ./tests2
     displayName: "Run API Tests"
-  - script: |
+  - script:
       ./tests.sh
-      ./tests
     displayName: "Run Interpreter Tests"
 - job: 
   displayName: "C Clang Ubuntu"
@@ -118,9 +116,8 @@ jobs:
   - script:
       ./tests2
     displayName: "Run API Tests"
-  - script: |
+  - script:
       ./tests.sh
-      ./tests
     displayName: "Run Interpreter Tests"
 - job: 
   displayName: "C++ GCC Ubuntu"
@@ -142,9 +139,8 @@ jobs:
   - script:
       ./tests2
     displayName: "Run API Tests"
-  - script: |
+  - script:
       ./tests.sh
-      ./tests
     displayName: "Run Interpreter Tests"
 - job: 
   displayName: "C++ Clang Ubuntu"
@@ -168,9 +164,8 @@ jobs:
   - script:
       ./tests2
     displayName: "Run API Tests"
-  - script: |
+  - script:
       ./tests.sh
-      ./tests
     displayName: "Run Interpreter Tests"
 - job: 
   displayName: "C Clang MacOS"
@@ -190,9 +185,8 @@ jobs:
   - script:
       ./tests2
     displayName: "Run API Tests"
-  - script: |
+  - script:
       ./tests.sh -m
-      ./tests -m
     displayName: "Run Interpreter Tests"
 - job: 
   displayName: "C++ Clang MacOS"
@@ -213,7 +207,6 @@ jobs:
   - script:
       ./tests2
     displayName: "Run API Tests"
-  - script: |
+  - script:
       ./tests.sh -m
-      ./tests -m
     displayName: "Run Interpreter Tests"
