@@ -1,4 +1,4 @@
-static const char *outputs[] = {
+static const char *inputs[] = {
   "test/inputs/clear.yasl",
   "test/inputs/lambdas/ambiguous.yasl",
   "test/inputs/lambdas/basic.yasl",

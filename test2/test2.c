@@ -43,7 +43,7 @@ int main(void) {
 	int result = 0;
 	int failed = 0;
 	int ran = 0;
-#include "outputs.inl"
+#include "inputs.inl"
 #include "assert_errors.inl"
 #include "stackoverflow_errors.inl"
 #include "type_errors.inl"
@@ -51,13 +51,13 @@ int main(void) {
 #include "divisionbyzero_errors.inl"
 	char buffer[MAX_FILE_NAME_LEN];
 	struct YASL_State *S;
-	for (size_t i = 0; i < sizeof(outputs) / sizeof(char *); i++) {
-		if (strlen(outputs[i]) + 5 > MAX_FILE_NAME_LEN) {
-			printf("file name too large: %s\n", outputs[i]);
+	for (size_t i = 0; i < sizeof(inputs) / sizeof(char *); i++) {
+		if (strlen(inputs[i]) + 5 > MAX_FILE_NAME_LEN) {
+			printf("file name too large: %s\n", inputs[i]);
 			exit(1);
 		}
-		strcpy(buffer, outputs[i]);
-		strcpy(buffer + strlen(outputs[i]), ".out");
+		strcpy(buffer, inputs[i]);
+		strcpy(buffer + strlen(inputs[i]), ".out");
 		FILE *f = fopen(buffer, "r");
 		fseek(f, 0, SEEK_END);
 		size_t size = ftell(f);
@@ -66,14 +66,14 @@ int main(void) {
 		size_t read = fread(expected_output, 1, size, f);
 		expected_output[read] = '\0';
 
-		S = YASL_newstate(outputs[i]);
+		S = YASL_newstate(inputs[i]);
 		YASLX_decllibs(S);
 		YASL_setprintout_tostr(S);
 		YASL_execute(S);
 		YASL_loadprintout(S);
 		char *actual_output = YASL_peekcstr(S);
 		if (!!strcmp(expected_output, actual_output)) {
-			fprintf(stderr, "test for %s failed.\n", outputs[i]);
+			fprintf(stderr, "test for %s failed.\n", inputs[i]);
 			failed++;
 		}
 		ran++;
