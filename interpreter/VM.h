@@ -34,6 +34,7 @@
 #define vm_peeklist(...) (YASL_GETLIST(vm_peek(__VA_ARGS__)))
 #define vm_peektable(...) (YASL_GETTABLE(vm_peek(__VA_ARGS__)))
 #define vm_peekcfn(...) (YASL_GETCFN(vm_peek(__VA_ARGS__)))
+#define vm_peekuserptr(...) EXPAND(obj_getuserptr(vm_peek_p(__VA_ARGS__)))
 
 #define vm_isend(vm) (YASL_ISEND(vm_peek(vm)))
 #define vm_isundef(...) (obj_isundef(vm_peek_p(__VA_ARGS__)))

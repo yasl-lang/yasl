@@ -605,9 +605,9 @@ MAKE_COMP(LE, "<=", "__le")
 int vm_stringify_top(struct VM *const vm) {
 	enum YASL_Types index = vm_peek(vm, vm->sp).type;
 	if (vm_isfn(vm) || vm_iscfn(vm) || vm_isclosure(vm)) {
-		size_t n = (size_t)snprintf(NULL, 0, "<fn: %d>", (int)vm_peekint(vm)) + 1;
+		size_t n = (size_t)snprintf(NULL, 0, "<fn: %p>", vm_peekuserptr(vm)) + 1;
 		char *buffer = (char *)malloc(n);
-		snprintf(buffer, n, "<fn: %d>", (int)vm_pop(vm).value.ival);
+		snprintf(buffer, n, "<fn: %d>", (int)vm_popint(vm));
 		vm_pushstr(vm, YASL_String_new_sized_heap(0, strlen(buffer), buffer));
 	} else if (vm_isuserdata(vm)) {
 		struct YASL_Object key = YASL_STR(YASL_String_new_sized(strlen("tostr"), "tostr"));
@@ -619,7 +619,7 @@ int vm_stringify_top(struct VM *const vm) {
 		YASL_GETCFN(result)->value((struct YASL_State *)vm);
 	} else if (vm_isuserptr(vm)) {
 		// TODO clean up
-		size_t n = (size_t)snprintf(NULL, 0, "<userptr: %p>", (void *)vm_peekint(vm)) + 1;
+		size_t n = (size_t)snprintf(NULL, 0, "<userptr: %p>", vm_peekuserptr(vm)) + 1;
 		char *buffer = (char *)malloc(n);
 		snprintf(buffer, n, "<userptr: %p>", (void *)vm_popint(vm));
 		vm_pushstr(vm, YASL_String_new_sized_heap(0, strlen(buffer), buffer));

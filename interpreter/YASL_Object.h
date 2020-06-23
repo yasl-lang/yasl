@@ -139,6 +139,10 @@ inline struct YASL_String *obj_getstr(const struct YASL_Object *const v) {
 	return v->value.sval;
 }
 
+inline void *obj_getuserptr(const struct YASL_Object *const v) {
+	return v->value.pval;
+}
+
 void inc_ref(struct YASL_Object *v);
 void dec_ref(struct YASL_Object *v);
 
