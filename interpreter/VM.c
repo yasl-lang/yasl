@@ -957,6 +957,37 @@ static int vm_ITER_1(struct VM *const vm) {
 
 static bool vm_MATCH_subpattern(struct VM *const vm, struct YASL_Object *expr);
 
+static void vm_ff_subpattern(struct VM *const vm) {
+	switch((enum Pattern)NCODE(vm)) {
+	case P_UNDEF:
+	case P_ANY:
+		break;
+	case P_BIND:
+	case P_BOOL:
+		(void)NCODE(vm);
+		break;
+	case P_INT:
+		(void)vm_read_int(vm);
+		break;
+	case P_FL:
+		(void)vm_read_float(vm);
+		break;
+	case P_STR:
+		(void)vm_read_int(vm);
+		break;
+	case P_LS:
+	case P_VLS:
+	case P_TABLE:
+	case P_VTABLE:
+		for (size_t i = vm_read_int(vm); i > 0; i--) vm_ff_subpattern(vm);
+		break;
+	case P_ALT:
+		vm_ff_subpattern(vm);
+		vm_ff_subpattern(vm);
+		break;
+	}
+}
+
 static bool vm_MATCH_table_elements(struct VM *const vm, size_t len, struct YASL_Table *table) {
 	bool tmp = true;
 	for (size_t i = 0; i < len; i++) {
@@ -980,7 +1011,13 @@ static bool vm_MATCH_table_elements(struct VM *const vm, size_t len, struct YASL
 		default:
 			break;
 		}
-		if (val.type == Y_END || !(vm_MATCH_subpattern(vm, &val))) tmp = false;
+		if (val.type == Y_END || !(vm_MATCH_subpattern(vm, &val))) {
+			for (size_t j = i + 1; j < len; j++) {
+				vm_ff_subpattern(vm);
+				vm_ff_subpattern(vm);
+			}
+			return false;
+		}
 	}
 	return tmp;
 }
@@ -1013,8 +1050,8 @@ static bool vm_MATCH_subpattern(struct VM *const vm, struct YASL_Object *expr) {
 		if (!obj_istable(expr)) {
 			tmp = false;
 			for (size_t i = 0; i < len; i++) {
-				vm_MATCH_subpattern(vm, expr);
-				vm_MATCH_subpattern(vm, expr);
+				vm_ff_subpattern(vm);
+				vm_ff_subpattern(vm);
 			}
 		}
 
@@ -1031,8 +1068,8 @@ static bool vm_MATCH_subpattern(struct VM *const vm, struct YASL_Object *expr) {
 		if (!obj_istable(expr)) {
 			tmp = false;
 			for (size_t i = 0; i < len; i++) {
-				vm_MATCH_subpattern(vm, expr);
-				vm_MATCH_subpattern(vm, expr);
+				vm_ff_subpattern(vm);
+				vm_ff_subpattern(vm);
 			}
 		}
 
@@ -1086,8 +1123,14 @@ static bool vm_MATCH_subpattern(struct VM *const vm, struct YASL_Object *expr) {
 	}
 	case P_ANY:
 		return true;
-	case P_ALT:
-		return vm_MATCH_subpattern(vm, expr) || vm_MATCH_subpattern(vm, expr);
+	case P_ALT: {
+		bool tmp = vm_MATCH_subpattern(vm, expr);
+		if (tmp) {
+			vm_ff_subpattern(vm);
+			return true;
+		}
+		return vm_MATCH_subpattern(vm, expr);
+	}
 	}
 
 	return false;

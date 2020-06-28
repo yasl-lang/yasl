@@ -822,25 +822,41 @@ static void visit_StringPattern(struct Compiler *const compiler, const struct No
 static void visit_TablePattern(struct Compiler *const compiler, const struct Node *const node) {
 	YASL_ByteBuffer_add_byte(compiler->buffer, P_TABLE);
 	YASL_ByteBuffer_add_int(compiler->buffer, node->children[0]->children_len);
-	visit_Body(compiler, node);
+	bool old = compiler->left_pattern;
+	FOR_CHILDREN(i, child, node) {
+		visit(compiler, child);
+		compiler->left_pattern = old;
+	}
 }
 
 static void visit_ListPattern(struct Compiler *const compiler, const struct Node *const node) {
 	YASL_ByteBuffer_add_byte(compiler->buffer, P_LS);
 	YASL_ByteBuffer_add_int(compiler->buffer, node->children[0]->children_len);
-	visit_Body(compiler, node);
+	bool old = compiler->left_pattern;
+	FOR_CHILDREN(i, child, node) {
+		visit(compiler, child);
+		compiler->left_pattern = old;
+	}
 }
 
 static void visit_VarTablePattern(struct Compiler *const compiler, const struct Node *const node) {
 	YASL_ByteBuffer_add_byte(compiler->buffer, P_VTABLE);
 	YASL_ByteBuffer_add_int(compiler->buffer, node->children[0]->children_len);
-	visit_Body(compiler, node);
+	bool old = compiler->left_pattern;
+	FOR_CHILDREN(i, child, node) {
+		visit(compiler, child);
+		compiler->left_pattern = old;
+	}
 }
 
 static void visit_VarListPattern(struct Compiler *const compiler, const struct Node *const node) {
 	YASL_ByteBuffer_add_byte(compiler->buffer, P_VLS);
 	YASL_ByteBuffer_add_int(compiler->buffer, node->children[0]->children_len);
-	visit_Body(compiler, node);
+	bool old = compiler->left_pattern;
+	FOR_CHILDREN(i, child, node) {
+		visit(compiler, child);
+		compiler->left_pattern = old;
+	}
 }
 
 static struct Scope *get_scope_in_use(struct Compiler *const compiler) {
@@ -893,11 +909,8 @@ static void visit_AnyPattern(struct Compiler *const compiler, const struct Node 
 }
 
 static void visit_AltPattern(struct Compiler *const compiler, const struct Node *const node) {
-	(void) compiler;
-	(void) node;
 	YASL_ByteBuffer_add_byte(compiler->buffer, P_ALT);
 	struct Scope *scope = get_scope_in_use(compiler);
-	compiler->left_pattern = true;
 	visit(compiler, BinOp_get_left(node));
 	compiler->left_pattern = false;
 	FOR_TABLE(i, item, &scope->vars) {
@@ -923,6 +936,7 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 	YASL_ByteBuffer_add_int(compiler->buffer, 0);
 
 	enter_scope(compiler);
+	compiler->left_pattern = true;
 	visit(compiler, patterns->children[curr]);
 	int64_t body_start = compiler->buffer->count;
 	unsigned char bindings = (unsigned char) (in_function(compiler) ? compiler->params->scope->vars.count : compiler->stack->vars.count);
