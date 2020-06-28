@@ -21,8 +21,8 @@
 	.globals = scope_new(NULL),\
 	.stack = NULL,\
 	.params = NULL,\
-	.left_pattern = true,\
-	.left_bindings = NEW_TABLE(),\
+	.leftmost_pattern = true,\
+	.seen_bindings = NEW_TABLE(),\
 	.strings = YASL_Table_new(),\
 	.buffer = YASL_ByteBuffer_new(16),\
 	.header = YASL_ByteBuffer_new(24),\
@@ -53,8 +53,8 @@ struct Compiler {
 	struct Scope *globals;
 	struct Scope *stack;
 	struct Env *params;
-	bool left_pattern;
-	struct YASL_Table left_bindings;
+	bool leftmost_pattern;
+	struct YASL_Table seen_bindings;
 	struct YASL_Table *strings;
 	struct YASL_ByteBuffer *buffer;    // temporary buffer during code-gen
 	struct YASL_ByteBuffer *header;    // header includes things like string constants

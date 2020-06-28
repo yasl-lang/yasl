@@ -34,7 +34,7 @@ YASL_FORMAT_CHECK static void compiler_print_err(struct Compiler *compiler, cons
 
 
 void compiler_tables_del(struct Compiler *compiler) {
-	DEL_TABLE(&compiler->left_bindings);
+	DEL_TABLE(&compiler->seen_bindings);
 	YASL_Table_del(compiler->strings);
 }
 
@@ -822,40 +822,40 @@ static void visit_StringPattern(struct Compiler *const compiler, const struct No
 static void visit_TablePattern(struct Compiler *const compiler, const struct Node *const node) {
 	YASL_ByteBuffer_add_byte(compiler->buffer, P_TABLE);
 	YASL_ByteBuffer_add_int(compiler->buffer, node->children[0]->children_len);
-	bool old = compiler->left_pattern;
+	bool old = compiler->leftmost_pattern;
 	FOR_CHILDREN(i, child, (node->children[0])) {
 		visit(compiler, child);
-		compiler->left_pattern = old;
+		compiler->leftmost_pattern = old;
 	}
 }
 
 static void visit_ListPattern(struct Compiler *const compiler, const struct Node *const node) {
 	YASL_ByteBuffer_add_byte(compiler->buffer, P_LS);
 	YASL_ByteBuffer_add_int(compiler->buffer, node->children[0]->children_len);
-	bool old = compiler->left_pattern;
+	bool old = compiler->leftmost_pattern;
 	FOR_CHILDREN(i, child, (node->children[0])) {
 		visit(compiler, child);
-		compiler->left_pattern = old;
+		compiler->leftmost_pattern = old;
 	}
 }
 
 static void visit_VarTablePattern(struct Compiler *const compiler, const struct Node *const node) {
 	YASL_ByteBuffer_add_byte(compiler->buffer, P_VTABLE);
 	YASL_ByteBuffer_add_int(compiler->buffer, node->children[0]->children_len);
-	bool old = compiler->left_pattern;
+	bool old = compiler->leftmost_pattern;
 	FOR_CHILDREN(i, child, (node->children[0])) {
 		visit(compiler, child);
-		compiler->left_pattern = old;
+		compiler->leftmost_pattern = old;
 	}
 }
 
 static void visit_VarListPattern(struct Compiler *const compiler, const struct Node *const node) {
 	YASL_ByteBuffer_add_byte(compiler->buffer, P_VLS);
 	YASL_ByteBuffer_add_int(compiler->buffer, node->children[0]->children_len);
-	bool old = compiler->left_pattern;
+	bool old = compiler->leftmost_pattern;
 	FOR_CHILDREN(i, child, (node->children[0])) {
 		visit(compiler, child);
-		compiler->left_pattern = old;
+		compiler->leftmost_pattern = old;
 	}
 }
 
@@ -865,15 +865,13 @@ static struct Scope *get_scope_in_use(struct Compiler *const compiler) {
 
 static void visit_DeclPattern(struct Compiler *const compiler, const struct Node *const node, const bool isconst) {
 	char *name = Decl_get_name(node);
-	if (!compiler->left_pattern) {
+	YASL_Table_insert_string_int(&compiler->seen_bindings, name, strlen(name), 1);
+	if (!compiler->leftmost_pattern) {
 		if (!contains_var_in_current_scope(compiler, name)) {
 			compiler_print_err_syntax(compiler, "Bindings on both sides of | must match, right side has %s not found on left (line %" PRI_SIZET ").\n", name, node->line);
 			handle_error(compiler);
 			return;
 		}
-		struct YASL_String *str = YASL_String_new_sized(strlen(name), name);
-		YASL_Table_rm(&compiler->left_bindings, YASL_STR(str));
-		str_del(str);
 	} else {
 		if (contains_var_in_current_scope(compiler, name)) {
 			compiler_print_err_syntax(compiler, "Illegal redeclaration of %s (line %" PRI_SIZET ").\n", name, node->line);
@@ -910,24 +908,30 @@ static void visit_AnyPattern(struct Compiler *const compiler, const struct Node 
 
 static void visit_AltPattern(struct Compiler *const compiler, const struct Node *const node) {
 	YASL_ByteBuffer_add_byte(compiler->buffer, P_ALT);
-	struct Scope *scope = get_scope_in_use(compiler);
+	struct YASL_Table prev = compiler->seen_bindings;
+	compiler->seen_bindings = NEW_TABLE();
 	visit(compiler, BinOp_get_left(node));
-	compiler->left_pattern = false;
-	FOR_TABLE(i, item, &scope->vars) {
-		YASL_Table_insert_fast(&compiler->left_bindings, item->key, item->value);
-	}
+
+	struct YASL_Table old = compiler->seen_bindings;
+	(void) old;
+	compiler->seen_bindings = NEW_TABLE();
+	compiler->leftmost_pattern = false;
 
 	visit(compiler, BinOp_get_right(node));
-	if (compiler->left_bindings.count) {
-		FOR_TABLE(i, item, &compiler->left_bindings) {
+
+	FOR_TABLE(i, item, &old) {
+		struct YASL_Object val = YASL_Table_search(&compiler->seen_bindings, item->key);
+		if (val.type == Y_END) {
 			compiler_print_err_syntax(compiler, "Bindings on both sides of | must match, %.*s not bound on right (line %" PRI_SIZET ").\n", (int)YASL_String_len(item->key.value.sval), item->key.value.sval->str, node->line);
 			handle_error(compiler);
 			return;
 		}
+		YASL_Table_insert(&prev, item->key, YASL_INT(1));
 	}
 
-	DEL_TABLE(&compiler->left_bindings);
-	compiler->left_bindings = NEW_TABLE();
+	DEL_TABLE(&old);
+	DEL_TABLE(&compiler->seen_bindings);
+	compiler->seen_bindings = prev;
 }
 
 static void visit_Match_helper(struct Compiler *const compiler, const struct Node *const patterns, const struct Node *const bodies, size_t curr) {
@@ -936,7 +940,7 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 	YASL_ByteBuffer_add_int(compiler->buffer, 0);
 
 	enter_scope(compiler);
-	compiler->left_pattern = true;
+	compiler->leftmost_pattern = true;
 	visit(compiler, patterns->children[curr]);
 	int64_t body_start = compiler->buffer->count;
 	unsigned char bindings = (unsigned char) (in_function(compiler) ? compiler->params->scope->vars.count : compiler->stack->vars.count);

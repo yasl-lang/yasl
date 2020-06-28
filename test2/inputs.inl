@@ -82,6 +82,7 @@ static const char *inputs[] = {
   "test/inputs/match/str/str_single.yasl",
   "test/inputs/match/str/str_back.yasl",
   "test/inputs/match/str/str_dot.yasl",
+  "test/inputs/match/alt/alt_multi.yasl",
   "test/inputs/match/alt/alt_nested_right.yasl",
   "test/inputs/match/alt/alt_nested_left.yasl",
   "test/inputs/match/alt/alt.yasl",
