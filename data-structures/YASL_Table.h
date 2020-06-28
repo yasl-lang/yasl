@@ -18,6 +18,14 @@
 	.items = (struct YASL_Table_Item *)calloc((size_t) next_prime(TABLE_BASESIZE), sizeof(struct YASL_Table_Item))\
 })
 
+#define DEL_TABLE(table) do {\
+        FOR_TABLE(i, item, table) {\
+                del_item(item);\
+        }\
+        free((table)->items);\
+} while (0)
+
+
 struct YASL_Table_Item {
 	struct YASL_Object key;
 	struct YASL_Object value;

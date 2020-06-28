@@ -1,0 +1,26 @@
+
+
+fn match_list(n) {
+    match n {
+        [ const x, const y ] {
+            return "[ x, y ] are [ #{x}, #{y} ]."
+        }
+        [ const a, const b, ... ] {
+            return "[ a, b, ... ] is [ #{a}, #{b}, ... ]."
+        }
+        [ const v, ... ] {
+            return "short list starting in #{v}"
+        }
+        [ ... ] {
+            return 'any other list'
+        }
+        * {
+            return '???'
+        }
+    }
+}
+
+for i <- [ [], [ 1, 2 ], [ 1 ], [ .a, .b ], [ 2, 3, 4, 5 ] ] {
+    echo match_list(i)
+}
+

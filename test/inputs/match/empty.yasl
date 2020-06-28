@@ -1,0 +1,7 @@
+
+
+const x = fn() { echo 0; }
+
+match x() {
+}
+

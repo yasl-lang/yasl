@@ -1,0 +1,17 @@
+##0\n1\n1\n2\n3\n5\n8\n13\n21\n34\n
+
+const fn fib(const n) {
+    match n {
+        0 | 1 {
+            return n
+        }
+        * {
+            return fib(n-1) + fib(n-2)
+        }
+    }
+}
+
+
+for let i = 0; i < 10; i += 1 {
+    echo fib(i)
+}

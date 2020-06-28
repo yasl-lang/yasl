@@ -1,0 +1,25 @@
+
+
+fn match_list(n) {
+    match n {
+        [ let x, let y ] {
+            return "[ x, y ] are [ #{x}, #{y} ]."
+        }
+        * {
+            return '???'
+        }
+    }
+}
+
+for i <- [ [ 1, 2 ], [ 1 ], [ .a, .b ] ] {
+    echo match_list(i)
+}
+
+# echo match_list(4)
+
+let n = 3
+match n {
+    let n {
+        echo "n is #{n}."
+    }
+}

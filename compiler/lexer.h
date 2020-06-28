@@ -64,6 +64,7 @@ enum Token {
 	T_ECHO,       // echo
 	T_LEN,        // len
 	T_ASS,        // assert
+	T_MATCH,      // match
 	T_LPAR,       // (
 	T_RPAR,       // )
 	T_LSQB,       // [
@@ -145,6 +146,6 @@ void lex_eatinterpstringbody(struct Lexer *const lex);
 void lex_error(struct Lexer *const lex);
 int lex_getchar(struct Lexer *const lex);
 
-extern const char *YASL_TOKEN_NAMES[83];
+extern const char *YASL_TOKEN_NAMES[84];
 
 #endif
