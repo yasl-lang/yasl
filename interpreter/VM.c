@@ -1080,12 +1080,13 @@ static bool vm_MATCH_subpattern(struct VM *const vm, struct YASL_Object *expr) {
 		bool tmp = true;
 		yasl_int len = vm_read_int(vm);
 		if (!obj_islist(expr)) {
-			for (yasl_int i = 0; i < len; i++) vm_MATCH_subpattern(vm, expr);
+			for (yasl_int i = 0; i < len; i++) vm_ff_subpattern(vm);
 			return false;
 		}
 
 		if (((struct YASL_List *)expr->value.uval->data)->count != (size_t)len) {
-			tmp = false;
+			for (yasl_int i = 0; i < len; i++) vm_ff_subpattern(vm);
+			return false;
 		}
 
 		for (yasl_int i = 0; i < len; i++) {
@@ -1104,7 +1105,8 @@ static bool vm_MATCH_subpattern(struct VM *const vm, struct YASL_Object *expr) {
 		}
 
 		if (((struct YASL_List *)expr->value.uval->data)->count < (size_t)len) {
-			tmp = false;
+			for (yasl_int i = 0; i < len; i++) vm_ff_subpattern(vm);
+			return false;
 		}
 
 		for (yasl_int i = 0; i < len; i++) {
