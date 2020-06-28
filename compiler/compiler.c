@@ -823,7 +823,7 @@ static void visit_TablePattern(struct Compiler *const compiler, const struct Nod
 	YASL_ByteBuffer_add_byte(compiler->buffer, P_TABLE);
 	YASL_ByteBuffer_add_int(compiler->buffer, node->children[0]->children_len);
 	bool old = compiler->left_pattern;
-	FOR_CHILDREN(i, child, node) {
+	FOR_CHILDREN(i, child, (node->children[0])) {
 		visit(compiler, child);
 		compiler->left_pattern = old;
 	}
@@ -833,7 +833,7 @@ static void visit_ListPattern(struct Compiler *const compiler, const struct Node
 	YASL_ByteBuffer_add_byte(compiler->buffer, P_LS);
 	YASL_ByteBuffer_add_int(compiler->buffer, node->children[0]->children_len);
 	bool old = compiler->left_pattern;
-	FOR_CHILDREN(i, child, node) {
+	FOR_CHILDREN(i, child, (node->children[0])) {
 		visit(compiler, child);
 		compiler->left_pattern = old;
 	}
@@ -843,7 +843,7 @@ static void visit_VarTablePattern(struct Compiler *const compiler, const struct 
 	YASL_ByteBuffer_add_byte(compiler->buffer, P_VTABLE);
 	YASL_ByteBuffer_add_int(compiler->buffer, node->children[0]->children_len);
 	bool old = compiler->left_pattern;
-	FOR_CHILDREN(i, child, node) {
+	FOR_CHILDREN(i, child, (node->children[0])) {
 		visit(compiler, child);
 		compiler->left_pattern = old;
 	}
@@ -853,7 +853,7 @@ static void visit_VarListPattern(struct Compiler *const compiler, const struct N
 	YASL_ByteBuffer_add_byte(compiler->buffer, P_VLS);
 	YASL_ByteBuffer_add_int(compiler->buffer, node->children[0]->children_len);
 	bool old = compiler->left_pattern;
-	FOR_CHILDREN(i, child, node) {
+	FOR_CHILDREN(i, child, (node->children[0])) {
 		visit(compiler, child);
 		compiler->left_pattern = old;
 	}

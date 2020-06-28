@@ -1,0 +1,16 @@
+
+
+const x = 10
+
+match x {
+    0 {
+        echo 'zero!'
+    }
+    5 {
+        echo 'five!'
+    }
+    const m {
+        echo "m: #{m}!"
+    }
+}
+
