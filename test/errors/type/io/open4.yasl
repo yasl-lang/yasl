@@ -1,0 +1,1 @@
+let f = io.open(1)

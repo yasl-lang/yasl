@@ -18,6 +18,7 @@ static struct Node *parse_decl(struct Parser *const parser);
 static struct Node *parse_fn(struct Parser *const parser);
 static struct Node *parse_for(struct Parser *const parser);
 static struct Node *parse_while(struct Parser *const parser);
+static struct Node *parse_match(struct Parser *const parser);
 static struct Node *parse_if(struct Parser *const parser);
 static struct Node *parse_expr(struct Parser *const parser);
 static struct Node *parse_assign(struct Parser *const parser, struct Node *cur_node);
@@ -219,6 +220,8 @@ static struct Node *parse_program(struct Parser *const parser) {
 	case T_CONT:
 		eattok(parser, T_CONT);
 		return new_Continue(line);
+	case T_MATCH:
+		return parse_match(parser);
 	case T_IF:
 		return parse_if(parser);
 	case T_ELSEIF:
@@ -425,13 +428,185 @@ static struct Node *parse_while(struct Parser *const parser) {
 	return new_While(cond, new_Block(body, line), NULL, line);
 }
 
+static struct Node *parse_pattern(struct Parser *const parser);
+
+static struct Node *parse_primitivepattern(struct Parser *const parser) {
+	size_t line = parser->lex.line;
+	struct Node *n;
+
+	switch (curtok(parser)) {
+	case T_INT:
+		n = parse_integer(parser);
+		n->nodetype = N_PATINT;
+		return n;
+	case T_FLOAT:
+		n = parse_float(parser);
+		n->nodetype = N_PATFL;
+		return n;
+	case T_BOOL:
+		n = parse_boolean(parser);
+		n->nodetype = N_PATBOOL;
+		return n;
+	case T_MINUS:
+		eattok(parser, T_MINUS);
+		if (curtok(parser) == T_INT) {
+			n = parse_integer(parser);
+			n->nodetype = N_PATINT;
+			n->value.ival *= -1;
+			return n;
+		} else if (curtok(parser) == T_FLOAT) {
+			n = parse_float(parser);
+			n->nodetype = N_PATFL;
+			n->value.dval *= -1;
+			return n;
+		} else {
+			parser_print_err_syntax(parser, "Expected numeric pattern, got pattern starting in %s (line %" PRI_SIZET ").\n", YASL_TOKEN_NAMES[curtok(parser)], line);
+			return handle_error(parser);
+		}
+	case T_STR:
+		if (parser->lex.mode == L_INTERP) {
+			while (parser->lex.c != '"') {
+				lex_getchar(&parser->lex);
+			}
+			eattok(parser, T_STR);
+			parser_print_err_syntax(parser, "Interpolated strings cannot be used in patterns (line %" PRI_SIZET ").\n", line);
+			return handle_error(parser);
+		}
+		n = parse_string(parser);
+		n->nodetype = N_PATSTR;
+		return n;
+	case T_DOT:
+		eattok(parser, T_DOT);
+		n = parse_id(parser);
+		n->nodetype = N_PATSTR;
+		return n;
+	default:
+		parser_print_err_syntax(parser, "Invalid pattern starting in %s (line %" PRI_SIZET ").\n", YASL_TOKEN_NAMES[curtok(parser)], line);
+		return handle_error(parser);
+	}
+}
+
+static struct Node *parse_patternsingle(struct Parser *const parser) {
+	size_t line = parser->lex.line;
+	struct Node *n;
+
+	switch (curtok(parser)) {
+	case T_STAR:
+		eattok(parser, T_STAR);
+		n = new_Undef(line);
+		n->nodetype = N_PATANY;
+		return n;
+	case T_UNDEF:
+		eattok(parser, T_UNDEF);
+		n = new_Undef(line);
+		n->nodetype = N_PATUNDEF;
+		return n;
+	case T_LET: {
+		eattok(parser, T_LET);
+		char *name = eatname(parser);
+		n = new_Let(name, NULL, line);
+		n->nodetype = N_PATLET;
+		return n;
+	}
+	case T_CONST: {
+		eattok(parser, T_CONST);
+		char *name = eatname(parser);
+		n = new_Const(name, NULL, line);
+		n->nodetype = N_PATCONST;
+		return n;
+	}
+	case T_LBRC: {
+		eattok(parser, T_LBRC);
+		n = new_Body(line);
+		n->nodetype = N_PATTABLE;
+		if (matcheattok(parser, T_TDOT)) {
+			n->nodetype = N_PATVTABLE;
+		} else if (curtok(parser) != T_RBRC) {
+			body_append(&n, parse_primitivepattern(parser));
+			eattok(parser, T_COLON);
+			body_append(&n, parse_pattern(parser));
+			while (parser->lex.c == '\n') eattok(parser, T_SEMI);
+			while (matcheattok(parser, T_COMMA)) {
+				YASL_PARSE_DEBUG_LOG("%s\n", "Parsing table pattern");
+				if (matcheattok(parser, T_TDOT)) {
+					n->nodetype = N_PATVTABLE;
+					break;
+				}
+				body_append(&n, parse_primitivepattern(parser));
+				eattok(parser, T_COLON);
+				body_append(&n, parse_pattern(parser));
+			}
+			while (parser->lex.c == '\n') eattok(parser, T_SEMI);
+		}
+		eattok(parser, T_RBRC);
+		return n;
+	}
+	case T_LSQB:
+		eattok(parser, T_LSQB);
+		n = new_Body(line);
+		n->nodetype = N_PATLS;
+		if (matcheattok(parser, T_TDOT)) {
+			n->nodetype = N_PATVLS;
+		} else if (curtok(parser) != T_RSQB) {
+			body_append(&n, parse_pattern(parser));
+			while (parser->lex.c == '\n') eattok(parser, T_SEMI);
+			while (matcheattok(parser, T_COMMA)) {
+				YASL_PARSE_DEBUG_LOG("%s\n", "Parsing list pattern");
+				if (matcheattok(parser, T_TDOT)) {
+					n->nodetype = N_PATVLS;
+					break;
+				}
+				body_append(&n, parse_pattern(parser));
+			}
+			while (parser->lex.c == '\n') eattok(parser, T_SEMI);
+		}
+		eattok(parser, T_RSQB);
+		return n;
+	default:
+		return parse_primitivepattern(parser);
+	}
+}
+
+static struct Node *parse_alt(struct Parser *const parser) {
+	size_t line = parser->lex.line;
+        struct Node *cur_node = parse_patternsingle(parser);
+        if (matcheattok(parser, T_BAR)) {
+                struct Node *tmp = new_BinOp(T_BAR, cur_node, parse_patternsingle(parser), line);
+                tmp->nodetype = N_PATALT;
+                return tmp;
+        }
+        return cur_node;
+}
+
+static struct Node *parse_pattern(struct Parser *const parser) {
+	return parse_alt(parser);
+}
+
+static struct Node *parse_match(struct Parser *const parser) {
+	size_t line = parser->lex.line;
+	YASL_PARSE_DEBUG_LOG("parsing match in line %" PRI_SIZET "\n", line);
+	eattok(parser, T_MATCH);
+	struct Node *expr = parse_expr(parser);
+	(void)expr;
+	eattok(parser, T_LBRC);
+	struct Node *pats = new_Body(line);
+	struct Node *bodies = new_Body(line);
+	while (curtok(parser) != T_RBRC && curtok(parser) != T_EOF) {
+		body_append(&pats, parse_pattern(parser));
+		body_append(&bodies, parse_body(parser));
+		eattok(parser, T_SEMI);
+	}
+	eattok(parser, T_RBRC);
+	return new_Match(expr, pats, bodies, line);
+}
+
 static struct Node *parse_if(struct Parser *const parser) {
 	size_t line = parser->lex.line;
 	YASL_PARSE_DEBUG_LOG("parsing if in line %" PRI_SIZET "\n", line);
 	if (matcheattok(parser, T_IF)) ;
 	else if (matcheattok(parser, T_ELSEIF)) ;
 	else {
-		parser_print_err_syntax(parser, "Expected `if` or `elseif`, got `%s` (line %" PRI_SIZET "\n", YASL_TOKEN_NAMES[curtok(parser)], line);
+		parser_print_err_syntax(parser, "Expected `if` or `elseif`, got `%s` (line %" PRI_SIZET ")\n", YASL_TOKEN_NAMES[curtok(parser)], line);
 		return handle_error(parser);
 	}
 	struct Node *cond = parse_expr(parser);
@@ -527,11 +702,12 @@ static struct Node *parse_ternary(struct Parser *const parser) {
 
 #define BINOP_R(name, next, msg, ...)\
 static struct Node *parse_##name(struct Parser *const parser) {\
-        YASL_PARSE_DEBUG_LOG("parsing " msg " in line %" PRI_SIZET "\n", parser->lex.line);\
+	size_t line = parser->lex.line;\
+	YASL_PARSE_DEBUG_LOG("parsing " msg " in line %" PRI_SIZET "\n", parser->lex.line);\
         struct Node *cur_node = parse_##next(parser);\
         if (TOKEN_MATCHES(parser, __VA_ARGS__)) {\
                 enum Token op = eattok(parser, curtok(parser));\
-                return new_BinOp(op, cur_node, parse_##name(parser), parser->lex.line);\
+                return new_BinOp(op, cur_node, parse_##name(parser), line);\
         }\
         return cur_node;\
 }
@@ -562,21 +738,23 @@ BINOP_L(add, multiply, "+ and -", T_PLUS, T_MINUS)
 BINOP_L(multiply, unary, "*, %%, / and //", T_STAR, T_DSLASH, T_SLASH, T_MOD)
 
 static struct Node *parse_unary(struct Parser *const parser) {
+	size_t line = parser->lex.line;
 	YASL_PARSE_DEBUG_LOG("parsing !, -, +, ^, len in line %" PRI_SIZET "\n", parser->lex.line);
 	if (curtok(parser) == T_PLUS || curtok(parser) == T_MINUS || curtok(parser) == T_BANG ||
 	    curtok(parser) == T_CARET || curtok(parser) == T_LEN) {
 		enum Token op = eattok(parser, curtok(parser));
-		return new_UnOp(op, parse_unary(parser), parser->lex.line);
+		return new_UnOp(op, parse_unary(parser), line);
 	} else {
 		return parse_power(parser);
 	}
 }
 
 static struct Node *parse_power(struct Parser *const parser) {
+	size_t line = parser->lex.line;
 	YASL_PARSE_DEBUG_LOG("parsing ** in line %" PRI_SIZET "\n", parser->lex.line);
 	struct Node *cur_node = parse_call(parser);
 	if (matcheattok(parser, T_DSTAR)) {
-		return new_BinOp(T_DSTAR, cur_node, parse_unary(parser), parser->lex.line);
+		return new_BinOp(T_DSTAR, cur_node, parse_unary(parser), line);
 	}
 	return cur_node;
 }

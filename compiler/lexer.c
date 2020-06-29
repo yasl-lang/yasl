@@ -512,6 +512,7 @@ void gettok(struct Lexer *const lex) {
 
 static enum Token YASLToken_ThreeChars(char c1, char c2, char c3) {
 	switch(c1) {
+	case '.': switch(c2) { case '.': switch(c3) { case '.': return T_TDOT;} } return T_UNKNOWN;
 	case '<': switch(c2) { case '<': switch(c3) { case '=': return T_DLTEQ;} } return T_UNKNOWN;
 	case '>': switch(c2) { case '>': switch(c3) { case '=': return T_DGTEQ; } } return T_UNKNOWN;
 	case '=': switch(c2) { case '=': switch(c3) { case '=': return T_TEQ; } } return T_UNKNOWN;
@@ -650,10 +651,6 @@ static void YASLKeywords(struct Lexer *const lex) {
 		lex_print_err_syntax(lex,  "`header` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
 		lex_error(lex);
 		return;
-	} else if (matches_keyword(lex, "match")) {
-		lex_print_err_syntax(lex,  "`match` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
-		lex_error(lex);
-		return;
 	} else if (matches_keyword(lex, "global")) {
 		lex_print_err_syntax(lex,  "`global` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
 		lex_error(lex);
@@ -741,6 +738,7 @@ static void YASLKeywords(struct Lexer *const lex) {
 	else if (matches_keyword(lex, "while")) set_keyword(lex, T_WHILE);
 	else if (matches_keyword(lex, "len")) set_keyword(lex, T_LEN);
 	else if (matches_keyword(lex, "assert")) set_keyword(lex, T_ASS);
+	else if (matches_keyword(lex, "match")) set_keyword(lex, T_MATCH);
 	// NOTE: special case for bools
 	else if (matches_keyword(lex, "true") || matches_keyword(lex, "false")) lex->type = T_BOOL;
 }
@@ -770,6 +768,7 @@ const char *YASL_TOKEN_NAMES[] = {
 	"echo",         // T_PRINT,
 	"len",          // T_LEN,
 	"assert",       // T_ASS,
+	"match",        // T_MATCH,
 	"(",            // LPAR,
 	")",            // RPAR,
 	"[",            // LSQB,

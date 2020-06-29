@@ -2,6 +2,7 @@
 
 #include <math.h>
 #include <stdarg.h>
+#include <interpreter/YASL_Object.h>
 
 #include "YASL_Object.h"
 #include "ast.h"
@@ -33,6 +34,7 @@ YASL_FORMAT_CHECK static void compiler_print_err(struct Compiler *compiler, cons
 
 
 void compiler_tables_del(struct Compiler *compiler) {
+	DEL_TABLE(&compiler->seen_bindings);
 	YASL_Table_del(compiler->strings);
 }
 
@@ -80,9 +82,13 @@ static void exit_scope(struct Compiler *const compiler) {
 			YASL_ByteBuffer_add_byte(compiler->buffer, O_POP);
 		}
 	} else {
+		size_t num_locals = compiler->stack->vars.count;
 		struct Scope *tmp = compiler->stack;
 		compiler->stack = compiler->stack->parent;
 		scope_del_current_only(tmp);
+		while (num_locals-- > 0) {
+			YASL_ByteBuffer_add_byte(compiler->buffer, O_POP);
+		}
 	}
 }
 
@@ -477,6 +483,11 @@ static void visit_MethodCall(struct Compiler *const compiler, const struct Node 
 }
 
 static void visit_Return(struct Compiler *const compiler, const struct Node *const node) {
+	if (!in_function(compiler)) {
+		compiler_print_err_syntax(compiler, "`return` outside of function (line %" PRI_SIZET ").\n", node->line);
+		handle_error(compiler);
+		return;
+	}
 	visit(compiler, Return_get_expr(node));
 	YASL_ByteBuffer_add_byte(compiler->buffer, compiler->params->usedinclosure ? O_CRET : O_RET);
 }
@@ -522,7 +533,7 @@ static inline void branch_back(struct Compiler *const compiler, int64_t index) {
 	YASL_ByteBuffer_add_int(compiler->buffer, index - compiler->buffer->count - 8);
 }
 
-static void visit_ListComp_cond(struct Compiler *const compiler, const struct Node *const cond, const struct Node *const expr) {
+static void visit_Comp_cond(struct Compiler *const compiler, const struct Node *const cond, const struct Node *const expr) {
 	if (cond) {
 		int64_t index_third;
 		visit(compiler, cond);
@@ -536,23 +547,7 @@ static void visit_ListComp_cond(struct Compiler *const compiler, const struct No
 	}
 }
 
-static void visit_TableComp_cond(struct Compiler *const compiler, const struct Node *const cond, const struct Node *const expr) {
-	if (cond) {
-		int64_t index_third;
-		visit(compiler, cond);
-		enter_conditional_false(compiler, &index_third);
-
-		visit(compiler, expr->children[0]);
-		visit(compiler, expr->children[1]);
-
-		exit_conditional_false(compiler, &index_third);
-	} else {
-		visit(compiler, expr->children[0]);
-		visit(compiler, expr->children[1]);
-	}
-}
-
-static void visit_ListComp(struct Compiler *const compiler, const struct Node *const node) {
+static void visit_Comp(struct Compiler *const compiler, const struct Node *const node, unsigned char byte) {
 	enter_scope(compiler);
 
 	struct Node *expr = ListComp_get_expr(node);
@@ -579,14 +574,13 @@ static void visit_ListComp(struct Compiler *const compiler, const struct Node *c
 
 	store_var(compiler, name, iter->line);
 
-	visit_ListComp_cond(compiler, cond, expr);
+	visit_Comp_cond(compiler, cond, expr);
 
 	branch_back(compiler, index_start);
 
 	exit_conditional_false(compiler, &index_second);
 
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_NEWLIST);
-
+	YASL_ByteBuffer_add_byte(compiler->buffer, byte);
 	YASL_ByteBuffer_add_byte(compiler->buffer, O_ENDCOMP);
 
 	size_t curr = compiler->buffer->count;
@@ -594,44 +588,12 @@ static void visit_ListComp(struct Compiler *const compiler, const struct Node *c
 	compiler->buffer->count = curr;
 }
 
+static void visit_ListComp(struct Compiler *const compiler, const struct Node *const node) {
+	visit_Comp(compiler, node, O_NEWLIST);
+}
+
 static void visit_TableComp(struct Compiler *const compiler, const struct Node *const node) {
-	enter_scope(compiler);
-
-	struct Node *expr = TableComp_get_key_value(node);
-	struct Node *iter = TableComp_get_iter(node);
-	struct Node *cond = TableComp_get_cond(node);
-
-	struct Node *collection = LetIter_get_collection(iter);
-	char *name = iter->value.sval.str;
-
-	visit(compiler, collection);
-
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_INITFOR);
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_END);
-	decl_var(compiler, name, iter->line);
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_END);
-
-	int64_t index_start = compiler->buffer->count;
-
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_ITER_1);
-
-	int64_t index_second;
-	enter_conditional_false(compiler, &index_second);
-
-	store_var(compiler, name, iter->line);
-
-	visit_TableComp_cond(compiler, cond, expr);
-
-	branch_back(compiler, index_start);
-
-	exit_conditional_false(compiler, &index_second);
-
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_NEWTABLE);
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_ENDCOMP);
-
-	size_t curr = compiler->buffer->count;
-	exit_scope(compiler);
-	compiler->buffer->count = curr;
+	visit_Comp(compiler, node, O_NEWTABLE);
 }
 
 static void visit_ForIter(struct Compiler *const compiler, const struct Node *const node) {
@@ -769,6 +731,211 @@ static void visit_Continue(struct Compiler *const compiler, const struct Node *c
 	branch_back(compiler, continue_checkpoint(compiler));
 }
 
+static yasl_int intern_string(struct Compiler *const compiler, const struct Node *const node) {
+	const char *const str = String_get_str(node);
+	size_t len = String_get_len(node);
+
+	struct YASL_Object value = YASL_Table_search_string_int(compiler->strings, str, len);
+	if (value.type == Y_END) {
+		YASL_COMPILE_DEBUG_LOG("%s\n", "caching string");
+		YASL_Table_insert_string_int(compiler->strings, str, len, compiler->strings->count);
+		YASL_ByteBuffer_add_int(compiler->header, len);
+		YASL_ByteBuffer_extend(compiler->header, (unsigned char *) str, len);
+	}
+
+	value = YASL_Table_search_string_int(compiler->strings, str, len);
+
+	return value.value.ival;
+}
+
+static void visit_UndefPattern(struct Compiler *const compiler, const struct Node *const node) {
+	(void) node;
+	YASL_ByteBuffer_add_byte(compiler->buffer, P_UNDEF);
+}
+
+static void visit_BoolPattern(struct Compiler *const compiler, const struct Node *const node) {
+	YASL_ByteBuffer_add_byte(compiler->buffer, P_BOOL);
+	YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char)((bool)node->value.ival ? 1 : 0));
+}
+
+static void visit_FloatPattern(struct Compiler *const compiler, const struct Node *const node) {
+	YASL_ByteBuffer_add_byte(compiler->buffer, P_FL);
+	YASL_ByteBuffer_add_float(compiler->buffer, node->value.dval);
+}
+
+static void visit_IntPattern(struct Compiler *const compiler, const struct Node *const node) {
+	YASL_ByteBuffer_add_byte(compiler->buffer, P_INT);
+	YASL_ByteBuffer_add_int(compiler->buffer, node->value.ival);
+}
+
+static void visit_StringPattern(struct Compiler *const compiler, const struct Node *const node) {
+	yasl_int index = intern_string(compiler, node);
+	YASL_ByteBuffer_add_byte(compiler->buffer, P_STR);
+	YASL_ByteBuffer_add_int(compiler->buffer, index);
+}
+
+static void visit_CollectionPattern(struct Compiler *const compiler, const struct Node *const node, unsigned char byte) {
+	YASL_ByteBuffer_add_byte(compiler->buffer, byte);
+	YASL_ByteBuffer_add_int(compiler->buffer, node->children_len);
+	bool old = compiler->leftmost_pattern;
+	FOR_CHILDREN(i, child, node) {
+			visit(compiler, child);
+			compiler->leftmost_pattern = old;
+		}
+}
+
+static void visit_TablePattern(struct Compiler *const compiler, const struct Node *const node) {
+	visit_CollectionPattern(compiler, node, P_TABLE);
+}
+
+static void visit_ListPattern(struct Compiler *const compiler, const struct Node *const node) {
+	visit_CollectionPattern(compiler, node, P_LS);
+}
+
+static void visit_VarTablePattern(struct Compiler *const compiler, const struct Node *const node) {
+	visit_CollectionPattern(compiler, node, P_VTABLE);
+}
+
+static void visit_VarListPattern(struct Compiler *const compiler, const struct Node *const node) {
+	visit_CollectionPattern(compiler, node, P_VLS);
+}
+
+static struct Scope *get_scope_in_use(struct Compiler *const compiler) {
+	return in_function(compiler) ? compiler->params->scope : compiler->stack;
+}
+
+static void visit_DeclPattern(struct Compiler *const compiler, const struct Node *const node, const bool isconst) {
+	char *name = Decl_get_name(node);
+	YASL_Table_insert_string_int(&compiler->seen_bindings, name, strlen(name), 1);
+	if (!compiler->leftmost_pattern) {
+		if (!contains_var_in_current_scope(compiler, name)) {
+			compiler_print_err_syntax(compiler, "%s not bound on left side of | (line %" PRI_SIZET ").\n", name, node->line);
+			handle_error(compiler);
+			return;
+		}
+	} else {
+		if (contains_var_in_current_scope(compiler, name)) {
+			compiler_print_err_syntax(compiler, "Illegal rebinding of %s (line %" PRI_SIZET ").\n", name, node->line);
+			handle_error(compiler);
+			return;
+		}
+		decl_var(compiler, name, node->line);
+		if (isconst) make_const(compiler, Decl_get_name(node));
+	}
+
+	YASL_ByteBuffer_add_byte(compiler->buffer, P_BIND);
+	int64_t index = scope_get(get_scope_in_use(compiler), name);
+	if (is_const(index) != isconst) {
+		compiler_print_err_syntax(compiler, "%s must be bound with either `const` or `let` on both sides of | (line %" PRI_SIZET ").\n", name, node->line);
+		handle_error(compiler);
+		return;
+	}
+
+	YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char)get_index(index));
+}
+
+static void visit_LetPattern(struct Compiler *const compiler, const struct Node *const node) {
+	visit_DeclPattern(compiler, node, false);
+}
+
+static void visit_ConstPattern(struct Compiler *const compiler, const struct Node *const node) {
+	visit_DeclPattern(compiler, node, true);
+}
+
+static void visit_AnyPattern(struct Compiler *const compiler, const struct Node *const node) {
+	(void) node;
+	YASL_ByteBuffer_add_byte(compiler->buffer, P_ANY);
+}
+
+static void visit_AltPattern(struct Compiler *const compiler, const struct Node *const node) {
+	YASL_ByteBuffer_add_byte(compiler->buffer, P_ALT);
+	struct YASL_Table prev = compiler->seen_bindings;
+	compiler->seen_bindings = NEW_TABLE();
+	visit(compiler, BinOp_get_left(node));
+
+	if (compiler->status) {
+		DEL_TABLE(&prev);
+		return;
+	}
+
+	struct YASL_Table old = compiler->seen_bindings;
+	(void) old;
+	compiler->seen_bindings = NEW_TABLE();
+	compiler->leftmost_pattern = false;
+
+	visit(compiler, BinOp_get_right(node));
+
+	if (compiler->status) {
+		goto cleanup;
+	}
+
+	FOR_TABLE(i, item, &old) {
+		struct YASL_Object val = YASL_Table_search(&compiler->seen_bindings, item->key);
+		if (val.type == Y_END) {
+			compiler_print_err_syntax(compiler, "%.*s not bound on right side of | (line %" PRI_SIZET ").\n", (int)YASL_String_len(item->key.value.sval), item->key.value.sval->str, node->line);
+			handle_error(compiler);
+			goto cleanup;
+		}
+		YASL_Table_insert(&prev, item->key, YASL_INT(1));
+	}
+	
+cleanup:
+	DEL_TABLE(&old);
+	DEL_TABLE(&compiler->seen_bindings);
+	compiler->seen_bindings = prev;
+}
+
+static void visit_Match_helper(struct Compiler *const compiler, const struct Node *const patterns, const struct Node *const bodies, size_t curr) {
+	size_t start = compiler->buffer->count;
+	YASL_ByteBuffer_add_int(compiler->buffer, 0);
+	YASL_ByteBuffer_add_int(compiler->buffer, 0);
+
+	enter_scope(compiler);
+	compiler->leftmost_pattern = true;
+	visit(compiler, patterns->children[curr]);
+	int64_t body_start = compiler->buffer->count;
+	unsigned char bindings = (unsigned char) (in_function(compiler) ? compiler->params->scope->vars.count : compiler->stack->vars.count);
+	if (bindings) {
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_INCSP);
+		YASL_ByteBuffer_add_byte(compiler->buffer, bindings);
+	}
+	visit(compiler, bodies->children[curr]);
+	exit_scope(compiler);
+
+	YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, start, body_start - start);
+
+	curr++;
+	size_t body_end = 0;
+	if (patterns->children_len > curr) {
+		enter_jump(compiler, &body_end);
+	}
+
+	YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, start + 8, compiler->buffer->count - start);
+
+	if (patterns->children_len <= curr) return;
+
+	visit_Match_helper(compiler, patterns, bodies, curr);
+
+	if (patterns->children_len > curr) {
+		exit_jump(compiler, &body_end);
+	}
+}
+
+static void visit_Match(struct Compiler *const compiler, const struct Node *const node) {
+	struct Node *expr = Match_get_expr(node);
+	struct Node *patterns = Match_get_patterns(node);
+	struct Node *bodies = Match_get_bodies(node);
+	visit(compiler, expr);
+	if (patterns->children_len == 0) {
+		YASL_ByteBuffer_add_byte(compiler->buffer, O_POP);
+		return;
+	}
+
+	YASL_ByteBuffer_add_byte(compiler->buffer, O_MATCH);
+	YASL_ByteBuffer_add_int(compiler->buffer, patterns->children_len);
+	visit_Match_helper(compiler, patterns, bodies, 0);
+}
+
 static void visit_If_true(struct Compiler *const compiler, const struct Node *const then_br, const struct Node *const else_br) {
 	visit(compiler, then_br);
 	if (else_br) validate(compiler, else_br);
@@ -821,30 +988,32 @@ static void visit_Print(struct Compiler *const compiler, const struct Node *cons
 }
 
 static void declare_with_let_or_const(struct Compiler *const compiler, const struct Node *const node) {
-	if (contains_var_in_current_scope(compiler, Decl_get_name(node))) {
-		compiler_print_err_syntax(compiler, "Illegal redeclaration of %s (line %" PRI_SIZET ").\n", Decl_get_name(node), node->line);
+	char *name = Decl_get_name(node);
+	if (contains_var_in_current_scope(compiler, name)) {
+		compiler_print_err_syntax(compiler, "Illegal redeclaration of %s (line %" PRI_SIZET ").\n", name, node->line);
 		handle_error(compiler);
 		return;
 	}
 
-	if (Decl_get_expr(node) &&
-	    Decl_get_expr(node)->nodetype == N_FNDECL &&
-	    Decl_get_expr(node)->value.sval.str != NULL) {
-		decl_var(compiler, Decl_get_name(node), node->line);
-		visit(compiler, Decl_get_expr(node));
+	struct Node *expr = Decl_get_expr(node);
+	if (expr &&
+	    expr->nodetype == N_FNDECL &&
+	    expr->value.sval.str != NULL) {
+		decl_var(compiler, name, node->line);
+		visit(compiler, expr);
 	} else {
-		if (Decl_get_expr(node)) visit(compiler, Decl_get_expr(node));
+		if (expr) visit(compiler, expr);
 		else YASL_ByteBuffer_add_byte(compiler->buffer, O_NCONST);
 
-		decl_var(compiler, Decl_get_name(node), node->line);
+		decl_var(compiler, name, node->line);
 	}
 
 	struct Scope *scope = compiler->params ? compiler->params->scope : compiler->stack;
 	// while (scope && scope->parent) scope = scope->parent;
 
 
-	if (!(scope_contains(scope, Decl_get_name(node)))) {
-		store_var(compiler, Decl_get_name(node), node->line);
+	if (!(scope_contains(scope, name))) {
+		store_var(compiler, name, node->line);
 	}
 }
 
@@ -1074,21 +1243,10 @@ static void visit_Boolean(struct Compiler *const compiler, const struct Node *co
 }
 
 static void visit_String(struct Compiler *const compiler, const struct Node *const node) {
-	const char *const str = String_get_str(node);
-	size_t len = String_get_len(node);
-
-	struct YASL_Object value = YASL_Table_search_string_int(compiler->strings, str, len);
-	if (value.type == Y_END) {
-		YASL_COMPILE_DEBUG_LOG("%s\n", "caching string");
-		YASL_Table_insert_string_int(compiler->strings, str, len, compiler->strings->count);
-		YASL_ByteBuffer_add_int(compiler->header, len);
-		YASL_ByteBuffer_extend(compiler->header, (unsigned char *) str, len);
-	}
-
-	value = YASL_Table_search_string_int(compiler->strings, str, len);
+	yasl_int index = intern_string(compiler, node);
 
 	YASL_ByteBuffer_add_byte(compiler->buffer, O_NEWSTR);
-	YASL_ByteBuffer_add_int(compiler->buffer, value.value.ival);
+	YASL_ByteBuffer_add_int(compiler->buffer, index);
 }
 
 static void visit_Assert(struct Compiler *const compiler, const struct Node *const node) {
@@ -1187,6 +1345,48 @@ static void visit(struct Compiler *const compiler, const struct Node *const node
 		break;
 	case N_CONT:
 		visit_Continue(compiler, node);
+		break;
+	case N_MATCH:
+		visit_Match(compiler, node);
+		break;
+	case N_PATUNDEF:
+		visit_UndefPattern(compiler, node);
+		break;
+	case N_PATBOOL:
+		visit_BoolPattern(compiler, node);
+		break;
+	case N_PATFL:
+		visit_FloatPattern(compiler, node);
+		break;
+	case N_PATINT:
+		visit_IntPattern(compiler, node);
+		break;
+	case N_PATSTR:
+		visit_StringPattern(compiler, node);
+		break;
+	case N_PATTABLE:
+		visit_TablePattern(compiler, node);
+		break;
+	case N_PATLS:
+		visit_ListPattern(compiler, node);
+		break;
+	case N_PATVTABLE:
+		visit_VarTablePattern(compiler, node);
+		break;
+	case N_PATVLS:
+		visit_VarListPattern(compiler, node);
+		break;
+	case N_PATLET:
+		visit_LetPattern(compiler, node);
+		break;
+	case N_PATCONST:
+		visit_ConstPattern(compiler, node);
+		break;
+	case N_PATANY:
+		visit_AnyPattern(compiler, node);
+		break;
+	case N_PATALT:
+		visit_AltPattern(compiler, node);
 		break;
 	case N_IF:
 		visit_If(compiler, node);

@@ -7,7 +7,7 @@
 #include "test/unit_tests/test_env/envtest.h"
 #include "test/unit_tests/test_util/utiltest.h"
 
-int yasl_test(void) {
+int unit_tests(void) {
 	int failed = 0;
 	failed += apitest();
 	failed += lexertest();

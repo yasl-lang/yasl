@@ -64,14 +64,13 @@ jobs:
       cmake -DCMAKE_C_COMPILER=tcc .
       make yasl
       make yaslapi
-      make tests
       make tests2
     displayName: "Compile"
   - script:
       ./tests2
     displayName: "Run API Tests"
   - script:
-      ./tests
+      ./tests.sh
     displayName: "Run Interpreter Tests"
 - job: 
   displayName: "C GCC Ubuntu"
@@ -86,14 +85,13 @@ jobs:
       cmake .
       make yasl
       make yaslapi
-      make tests
       make tests2
     displayName: "Compile"
   - script:
       ./tests2
     displayName: "Run API Tests"
   - script:
-      ./tests
+      ./tests.sh
     displayName: "Run Interpreter Tests"
 - job: 
   displayName: "C Clang Ubuntu"
@@ -110,14 +108,13 @@ jobs:
       cmake .
       make yasl
       make yaslapi
-      make tests
       make tests2
     displayName: "Compile"
   - script:
       ./tests2
     displayName: "Run API Tests"
   - script:
-      ./tests
+      ./tests.sh
     displayName: "Run Interpreter Tests"
 - job: 
   displayName: "C++ GCC Ubuntu"
@@ -133,14 +130,13 @@ jobs:
       cmake .
       make yasl
       make yaslapi
-      make tests
       make tests2
     displayName: "Compile"
   - script:
       ./tests2
     displayName: "Run API Tests"
   - script:
-      ./tests
+      ./tests.sh
     displayName: "Run Interpreter Tests"
 - job: 
   displayName: "C++ Clang Ubuntu"
@@ -158,14 +154,13 @@ jobs:
       cmake .
       make yasl
       make yaslapi
-      make tests
       make tests2
     displayName: "Compile"
   - script:
       ./tests2
     displayName: "Run API Tests"
   - script:
-      ./tests
+      ./tests.sh
     displayName: "Run Interpreter Tests"
 - job: 
   displayName: "C Clang MacOS"
@@ -179,14 +174,13 @@ jobs:
       cmake .
       make yasl
       make yaslapi
-      make tests
       make tests2
     displayName: "Compile"
   - script:
       ./tests2
     displayName: "Run API Tests"
   - script:
-      ./tests -m
+      zsh ./tests.sh -m
     displayName: "Run Interpreter Tests"
 - job: 
   displayName: "C++ Clang MacOS"
@@ -201,12 +195,11 @@ jobs:
       cmake .
       make yasl
       make yaslapi
-      make tests
       make tests2
     displayName: "Compile"
   - script:
       ./tests2
     displayName: "Run API Tests"
   - script:
-      ./tests -m
+      zsh ./tests.sh -m
     displayName: "Run Interpreter Tests"

@@ -6,7 +6,6 @@
 struct Scope {
     struct Scope *parent;
     struct YASL_Table vars;
-    // TODO: keep track of which variables need to be closed over...?
 };
 
 struct Env {

@@ -5,6 +5,8 @@
 #include "yasl.h"
 #include "yasl_aux.h"
 
+#include <yasl_test.h>
+
 #define MAX_FILE_NAME_LEN 1024
 
 #define ERROR_TEST(errors) \
@@ -29,27 +31,33 @@ for (size_t i = 0; i < sizeof(errors) / sizeof(char *); i++) {\
 	YASL_loadprinterr(S);\
 	char *actual_output = YASL_peekcstr(S);\
 	if (!!strcmp(expected_output, actual_output)) {\
-		fprintf(stderr, "test for %s failed (expected %s, got %s).\n", errors[i], expected_output, actual_output);\
+		fprintf(stderr, "test for %s failed (expected:\n`%s`, got:\n`%s`).\n", errors[i], expected_output, actual_output);\
 		failed++;\
 	}\
+	ran++;\
 	free(expected_output);\
 	YASL_delstate(S);\
 }
 
 int main(void) {
+	int result = 0;
 	int failed = 0;
-#include "outputs.inl"
+	int ran = 0;
+#include "inputs.inl"
 #include "assert_errors.inl"
 #include "stackoverflow_errors.inl"
+#include "type_errors.inl"
+#include "value_errors.inl"
+#include "divisionbyzero_errors.inl"
 	char buffer[MAX_FILE_NAME_LEN];
 	struct YASL_State *S;
-	for (size_t i = 0; i < sizeof(outputs) / sizeof(char *); i++) {
-		if (strlen(outputs[i]) + 5 > MAX_FILE_NAME_LEN) {
-			printf("file name too large: %s\n", outputs[i]);
+	for (size_t i = 0; i < sizeof(inputs) / sizeof(char *); i++) {
+		if (strlen(inputs[i]) + 5 > MAX_FILE_NAME_LEN) {
+			printf("file name too large: %s\n", inputs[i]);
 			exit(1);
 		}
-		strcpy(buffer, outputs[i]);
-		strcpy(buffer + strlen(outputs[i]), ".out");
+		strcpy(buffer, inputs[i]);
+		strcpy(buffer + strlen(inputs[i]), ".out");
 		FILE *f = fopen(buffer, "r");
 		fseek(f, 0, SEEK_END);
 		size_t size = ftell(f);
@@ -58,22 +66,35 @@ int main(void) {
 		size_t read = fread(expected_output, 1, size, f);
 		expected_output[read] = '\0';
 
-		S = YASL_newstate(outputs[i]);
+		S = YASL_newstate(inputs[i]);
 		YASLX_decllibs(S);
 		YASL_setprintout_tostr(S);
 		YASL_execute(S);
 		YASL_loadprintout(S);
 		char *actual_output = YASL_peekcstr(S);
 		if (!!strcmp(expected_output, actual_output)) {
-			fprintf(stderr, "test for %s failed.\n", outputs[i]);
+			fprintf(stderr, "test for %s failed.\n", inputs[i]);
 			failed++;
 		}
+		ran++;
 		free(expected_output);
 		YASL_delstate(S);
 	}
 
 	ERROR_TEST(assert_errors);
 	ERROR_TEST(stackoverflow_errors);
+	ERROR_TEST(type_errors);
+	ERROR_TEST(value_errors);
+	ERROR_TEST(divisionbyzero_errors);
 
-	return failed;
+	result = result || failed;
+	printf("Failed %d (/%d) script tests.\n", failed, ran);
+
+	failed = unit_tests();
+
+	result = result || failed;
+	printf("Failed %d unit tests.\n", failed);
+
+	printf("Tests exited with code %d.\n", result);
+	return result;
 }

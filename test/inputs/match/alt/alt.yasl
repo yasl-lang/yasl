@@ -1,0 +1,33 @@
+
+
+fn f(n) {
+    match n {
+        [ 0, let x, let y ] | [ 1, let y, let x ] {
+            echo "x: #{x}, y: #{y}"
+        }
+        [ 0, let x, let y, ... ] | [ 1, let y, let x, ... ] {
+             echo "x: #{x}, y: #{y}, ..."
+        }
+        { .t: 0, .y: let y, .x: let x } |  { .t: 1, .x: let x, .y: let y } {
+            echo "x: #{x}, y: #{y}"
+        }
+        { .t: 0, .y: let y, .x: let x, ...} | { .t: 1, .x: let x, .y: let y, ... } {
+            echo "x: #{x}, y: #{y}, ..."
+        }
+        * {
+            echo '???'
+        }
+    }
+}
+
+f([ 1, 2, 3 ])
+f([ 0, 2, 3 ])
+
+f([ 1, 2, 3, 5 ])
+f([ 0, 2, 3, 5 ])
+
+f({.t: 1, .x: 10, .y: 20})
+f({.t: 0, .x: 10, .y: 20})
+
+f({.t: 1, .x: 10, .y: 20, .v: 5})
+f({.t: 0, .x: 10, .y: 20, .v: 5})

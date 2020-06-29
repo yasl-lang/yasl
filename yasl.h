@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define YASL_VERSION "v0.9.0"
+#define YASL_VERSION "v0.9.1"
 
 struct YASL_State;
 

@@ -1,0 +1,29 @@
+
+
+fn match_list(n) {
+    match n {
+        [] {
+            return '0'
+        }
+        [ 1 ] {
+            return '1'
+        }
+        [ 1, 2 ] {
+            return '2'
+        }
+        [ [ .a, .b, .c ], [ .d, .e ] ] {
+            return 'nested'
+        }
+        * {
+            return '???'
+        }
+    }
+}
+
+for i <- [ [], [ 1, 2 ], [ 1 ], [ 2, 1 ] ] {
+    echo match_list(i)
+}
+
+echo match_list([ [ .a, .b, .c ], [ .d, .e ] ])
+
+

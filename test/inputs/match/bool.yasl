@@ -1,0 +1,20 @@
+
+
+fn match_bool(n) {
+    match n {
+        true {
+            return 'truthy'
+        }
+        false {
+            return 'falsey'
+        }
+        * {
+            return '???'
+        }
+    }
+}
+
+for i <- [ true, false, undef ] {
+    echo match_bool(i)
+}
+

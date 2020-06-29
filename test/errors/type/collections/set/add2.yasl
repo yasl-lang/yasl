@@ -1,0 +1,3 @@
+const x = collections.set()
+
+x->add([])

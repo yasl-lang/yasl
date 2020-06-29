@@ -1,0 +1,8 @@
+
+let name = 1
+
+match name {
+    1 {
+        echo 'one'
+    }
+}

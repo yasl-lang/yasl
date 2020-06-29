@@ -1,0 +1,1 @@
+echo collections.set().__bxor(collections.set(), true)
