@@ -180,7 +180,7 @@ jobs:
       ./tests2
     displayName: "Run API Tests"
   - script:
-      ./tests.sh -m
+      zsh ./tests.sh -m
     displayName: "Run Interpreter Tests"
 - job: 
   displayName: "C++ Clang MacOS"
@@ -201,5 +201,5 @@ jobs:
       ./tests2
     displayName: "Run API Tests"
   - script:
-      ./tests.sh -m
+      zsh ./tests.sh -m
     displayName: "Run Interpreter Tests"
