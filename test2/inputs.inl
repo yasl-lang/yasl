@@ -77,6 +77,7 @@ static const char *inputs[] = {
   "test/inputs/syntax/for_break.yasl",
   "test/inputs/match/bind/let.yasl",
   "test/inputs/match/bind/const.yasl",
+  "test/inputs/match/table/vtable_basic.yasl",
   "test/inputs/match/table/table.yasl",
   "test/inputs/match/table/vtable.yasl",
   "test/inputs/match/str/str_single.yasl",

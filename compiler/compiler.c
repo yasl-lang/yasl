@@ -776,9 +776,9 @@ static void visit_StringPattern(struct Compiler *const compiler, const struct No
 
 static void visit_CollectionPattern(struct Compiler *const compiler, const struct Node *const node, unsigned char byte) {
 	YASL_ByteBuffer_add_byte(compiler->buffer, byte);
-	YASL_ByteBuffer_add_int(compiler->buffer, node->children[0]->children_len);
+	YASL_ByteBuffer_add_int(compiler->buffer, node->children_len);
 	bool old = compiler->leftmost_pattern;
-	FOR_CHILDREN(i, child, (node->children[0])) {
+	FOR_CHILDREN(i, child, node) {
 			visit(compiler, child);
 			compiler->leftmost_pattern = old;
 		}

@@ -1,0 +1,10 @@
+
+
+match { .x: 10, .y: 29 } {
+    { ... } {
+        echo 'table'
+    }
+    * {
+        echo 'not table'
+    }
+}

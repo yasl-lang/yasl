@@ -517,54 +517,51 @@ static struct Node *parse_patternsingle(struct Parser *const parser) {
 	}
 	case T_LBRC: {
 		eattok(parser, T_LBRC);
-		struct Node *kv = new_Body(line);
-		enum NodeType type = N_PATTABLE;
-		if (curtok(parser) != T_RBRC) {
-			body_append(&kv, parse_primitivepattern(parser));
+		n = new_Body(line);
+		n->nodetype = N_PATTABLE;
+		if (matcheattok(parser, T_TDOT)) {
+			n->nodetype = N_PATVTABLE;
+		} else if (curtok(parser) != T_RBRC) {
+			body_append(&n, parse_primitivepattern(parser));
 			eattok(parser, T_COLON);
-			body_append(&kv, parse_pattern(parser));
+			body_append(&n, parse_pattern(parser));
 			while (parser->lex.c == '\n') eattok(parser, T_SEMI);
 			while (matcheattok(parser, T_COMMA)) {
 				YASL_PARSE_DEBUG_LOG("%s\n", "Parsing table pattern");
 				if (matcheattok(parser, T_TDOT)) {
-					type = N_PATVTABLE;
+					n->nodetype = N_PATVTABLE;
 					break;
 				}
-				body_append(&kv, parse_primitivepattern(parser));
+				body_append(&n, parse_primitivepattern(parser));
 				eattok(parser, T_COLON);
-				body_append(&kv, parse_pattern(parser));
+				body_append(&n, parse_pattern(parser));
 			}
 			while (parser->lex.c == '\n') eattok(parser, T_SEMI);
 		}
 		eattok(parser, T_RBRC);
-		n = new_List(kv, line);
-		n->nodetype = type;
 		return n;
 	}
-	case T_LSQB: {
+	case T_LSQB:
 		eattok(parser, T_LSQB);
-		struct Node *keys = new_Body(line);
-		enum NodeType type = N_PATLS;
+		n = new_Body(line);
+		n->nodetype = N_PATLS;
 		if (matcheattok(parser, T_TDOT)) {
-			type = N_PATVLS;
+			n->nodetype = N_PATVLS;
 		} else if (curtok(parser) != T_RSQB) {
-			body_append(&keys, parse_pattern(parser));
+			body_append(&n, parse_pattern(parser));
 			while (parser->lex.c == '\n') eattok(parser, T_SEMI);
 			while (matcheattok(parser, T_COMMA)) {
 				YASL_PARSE_DEBUG_LOG("%s\n", "Parsing list pattern");
 				if (matcheattok(parser, T_TDOT)) {
-					type = N_PATVLS;
+					n->nodetype = N_PATVLS;
 					break;
 				}
-				body_append(&keys, parse_pattern(parser));
+				body_append(&n, parse_pattern(parser));
 			}
 			while (parser->lex.c == '\n') eattok(parser, T_SEMI);
 		}
 		eattok(parser, T_RSQB);
-		n = new_List(keys, line);
-		n->nodetype = type;
 		return n;
-	}
 	default:
 		return parse_primitivepattern(parser);
 	}
