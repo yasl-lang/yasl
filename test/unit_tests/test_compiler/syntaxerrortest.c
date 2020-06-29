@@ -53,6 +53,23 @@ int syntaxerrortest(void) {
 	ASSERT_SYNTAX_ERR("echo 'hello \\xworld'\n", "Invalid hex string escape in line 1");
 	ASSERT_SYNTAX_ERR("0b__2", "Invalid int literal in line 1");
 
+	ASSERT_SYNTAX_ERR("match 1 {\n"
+			  "let x | const x {\n"
+			  "}\n }\n", "x must be bound with either `const` or `let` on both sides of | (line 2)");
+	ASSERT_SYNTAX_ERR("match 1 {\n"
+			  "let x | {} {\n"
+			  "}\n }\n", "x not bound on right side of | (line 2)");
+	ASSERT_SYNTAX_ERR("match 1 {\n"
+			  "{} | let y {\n"
+			  "}\n }\n", "y not bound on left side of | (line 2)");
+	ASSERT_SYNTAX_ERR("match 1 {\n"
+			  "let x | let y {\n"
+			  "}\n }\n", "y not bound on left side of | (line 2)");
+	ASSERT_SYNTAX_ERR("match 1 {\n"
+			  "[ let x, let x ] {\n"
+			  "}\n }\n", "Illegal rebinding of x (line 2)");
+
+
 	ASSERT_SYNTAX_ERR("\"asdsadasd\n", "Unclosed string literal in line 1");
 	ASSERT_SYNTAX_ERR("\"asdsadasd", "Unclosed string literal in line 1");
 	ASSERT_SYNTAX_ERR("\"das#{1}asd\n", "Unclosed string literal in line 1");

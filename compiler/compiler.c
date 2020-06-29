@@ -868,13 +868,13 @@ static void visit_DeclPattern(struct Compiler *const compiler, const struct Node
 	YASL_Table_insert_string_int(&compiler->seen_bindings, name, strlen(name), 1);
 	if (!compiler->leftmost_pattern) {
 		if (!contains_var_in_current_scope(compiler, name)) {
-			compiler_print_err_syntax(compiler, "Bindings on both sides of | must match, right side has %s not found on left (line %" PRI_SIZET ").\n", name, node->line);
+			compiler_print_err_syntax(compiler, "%s not bound on left side of | (line %" PRI_SIZET ").\n", name, node->line);
 			handle_error(compiler);
 			return;
 		}
 	} else {
 		if (contains_var_in_current_scope(compiler, name)) {
-			compiler_print_err_syntax(compiler, "Illegal redeclaration of %s (line %" PRI_SIZET ").\n", name, node->line);
+			compiler_print_err_syntax(compiler, "Illegal rebinding of %s (line %" PRI_SIZET ").\n", name, node->line);
 			handle_error(compiler);
 			return;
 		}
@@ -885,7 +885,7 @@ static void visit_DeclPattern(struct Compiler *const compiler, const struct Node
 	YASL_ByteBuffer_add_byte(compiler->buffer, P_BIND);
 	int64_t index = scope_get(get_scope_in_use(compiler), name);
 	if (is_const(index) != isconst) {
-		compiler_print_err_syntax(compiler, "Variable %s must be declared with either const or let on both sides of | (line %" PRI_SIZET ").\n", name, node->line);
+		compiler_print_err_syntax(compiler, "%s must be bound with either `const` or `let` on both sides of | (line %" PRI_SIZET ").\n", name, node->line);
 		handle_error(compiler);
 		return;
 	}
@@ -912,6 +912,11 @@ static void visit_AltPattern(struct Compiler *const compiler, const struct Node 
 	compiler->seen_bindings = NEW_TABLE();
 	visit(compiler, BinOp_get_left(node));
 
+	if (compiler->status) {
+		DEL_TABLE(&prev);
+		return;
+	}
+
 	struct YASL_Table old = compiler->seen_bindings;
 	(void) old;
 	compiler->seen_bindings = NEW_TABLE();
@@ -919,16 +924,21 @@ static void visit_AltPattern(struct Compiler *const compiler, const struct Node 
 
 	visit(compiler, BinOp_get_right(node));
 
+	if (compiler->status) {
+		goto cleanup;
+	}
+
 	FOR_TABLE(i, item, &old) {
 		struct YASL_Object val = YASL_Table_search(&compiler->seen_bindings, item->key);
 		if (val.type == Y_END) {
-			compiler_print_err_syntax(compiler, "Bindings on both sides of | must match, %.*s not bound on right (line %" PRI_SIZET ").\n", (int)YASL_String_len(item->key.value.sval), item->key.value.sval->str, node->line);
+			compiler_print_err_syntax(compiler, "%.*s not bound on right side of | (line %" PRI_SIZET ").\n", (int)YASL_String_len(item->key.value.sval), item->key.value.sval->str, node->line);
 			handle_error(compiler);
-			return;
+			goto cleanup;
 		}
 		YASL_Table_insert(&prev, item->key, YASL_INT(1));
 	}
-
+	
+cleanup:
 	DEL_TABLE(&old);
 	DEL_TABLE(&compiler->seen_bindings);
 	compiler->seen_bindings = prev;

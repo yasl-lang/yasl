@@ -1569,11 +1569,10 @@ int vm_run(struct VM *const vm) {
 		case O_END:
 			vm_pushend(vm);
 			break;
-		case O_DUP: {
+		case O_DUP:
 			a = vm_peek(vm);
 			vm_push(vm, a);
 			break;
-		}
 		case O_MATCH:
 			if ((res = vm_MATCH(vm))) return res;
 			break;
