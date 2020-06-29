@@ -1048,15 +1048,19 @@ static bool vm_MATCH_subpattern(struct VM *const vm, struct YASL_Object *expr) {
 		bool tmp = true;
 		size_t len = (size_t) vm_read_int(vm) / 2;
 		if (!obj_istable(expr)) {
-			tmp = false;
 			for (size_t i = 0; i < len; i++) {
 				vm_ff_subpattern(vm);
 				vm_ff_subpattern(vm);
 			}
+			return false;
 		}
 
-		if (tmp && ((struct YASL_Table *) expr->value.uval->data)->count != len) {
-			tmp = false;
+		if (((struct YASL_Table *) expr->value.uval->data)->count != len) {
+			for (size_t i = 0; i < len; i++) {
+				vm_ff_subpattern(vm);
+				vm_ff_subpattern(vm);
+			}
+			return false;
 		}
 
 		struct YASL_Table *table = (struct YASL_Table *) expr->value.uval->data;
@@ -1066,11 +1070,11 @@ static bool vm_MATCH_subpattern(struct VM *const vm, struct YASL_Object *expr) {
 		bool tmp = true;
 		size_t len = (size_t) vm_read_int(vm) / 2;
 		if (!obj_istable(expr)) {
-			tmp = false;
 			for (size_t i = 0; i < len; i++) {
 				vm_ff_subpattern(vm);
 				vm_ff_subpattern(vm);
 			}
+			return false;
 		}
 
 		struct YASL_Table *table = (struct YASL_Table *) expr->value.uval->data;

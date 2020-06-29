@@ -533,7 +533,7 @@ static inline void branch_back(struct Compiler *const compiler, int64_t index) {
 	YASL_ByteBuffer_add_int(compiler->buffer, index - compiler->buffer->count - 8);
 }
 
-static void visit_ListComp_cond(struct Compiler *const compiler, const struct Node *const cond, const struct Node *const expr) {
+static void visit_Comp_cond(struct Compiler *const compiler, const struct Node *const cond, const struct Node *const expr) {
 	if (cond) {
 		int64_t index_third;
 		visit(compiler, cond);
@@ -547,23 +547,7 @@ static void visit_ListComp_cond(struct Compiler *const compiler, const struct No
 	}
 }
 
-static void visit_TableComp_cond(struct Compiler *const compiler, const struct Node *const cond, const struct Node *const expr) {
-	if (cond) {
-		int64_t index_third;
-		visit(compiler, cond);
-		enter_conditional_false(compiler, &index_third);
-
-		visit(compiler, expr->children[0]);
-		visit(compiler, expr->children[1]);
-
-		exit_conditional_false(compiler, &index_third);
-	} else {
-		visit(compiler, expr->children[0]);
-		visit(compiler, expr->children[1]);
-	}
-}
-
-static void visit_ListComp(struct Compiler *const compiler, const struct Node *const node) {
+static void visit_Comp(struct Compiler *const compiler, const struct Node *const node, unsigned char byte) {
 	enter_scope(compiler);
 
 	struct Node *expr = ListComp_get_expr(node);
@@ -590,14 +574,13 @@ static void visit_ListComp(struct Compiler *const compiler, const struct Node *c
 
 	store_var(compiler, name, iter->line);
 
-	visit_ListComp_cond(compiler, cond, expr);
+	visit_Comp_cond(compiler, cond, expr);
 
 	branch_back(compiler, index_start);
 
 	exit_conditional_false(compiler, &index_second);
 
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_NEWLIST);
-
+	YASL_ByteBuffer_add_byte(compiler->buffer, byte);
 	YASL_ByteBuffer_add_byte(compiler->buffer, O_ENDCOMP);
 
 	size_t curr = compiler->buffer->count;
@@ -605,45 +588,12 @@ static void visit_ListComp(struct Compiler *const compiler, const struct Node *c
 	compiler->buffer->count = curr;
 }
 
+static void visit_ListComp(struct Compiler *const compiler, const struct Node *const node) {
+	visit_Comp(compiler, node, O_NEWLIST);
+}
+
 static void visit_TableComp(struct Compiler *const compiler, const struct Node *const node) {
-	enter_scope(compiler);
-
-	struct Node *expr = TableComp_get_key_value(node);
-	struct Node *iter = TableComp_get_iter(node);
-	struct Node *cond = TableComp_get_cond(node);
-
-	struct Node *collection = LetIter_get_collection(iter);
-
-	char *name = iter->value.sval.str;
-
-	visit(compiler, collection);
-
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_INITFOR);
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_END);
-	decl_var(compiler, name, iter->line);
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_END);
-
-	int64_t index_start = compiler->buffer->count;
-
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_ITER_1);
-
-	int64_t index_second;
-	enter_conditional_false(compiler, &index_second);
-
-	store_var(compiler, name, iter->line);
-
-	visit_TableComp_cond(compiler, cond, expr);
-
-	branch_back(compiler, index_start);
-
-	exit_conditional_false(compiler, &index_second);
-
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_NEWTABLE);
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_ENDCOMP);
-
-	size_t curr = compiler->buffer->count;
-	exit_scope(compiler);
-	compiler->buffer->count = curr;
+	visit_Comp(compiler, node, O_NEWTABLE);
 }
 
 static void visit_ForIter(struct Compiler *const compiler, const struct Node *const node) {
@@ -824,44 +774,30 @@ static void visit_StringPattern(struct Compiler *const compiler, const struct No
 	YASL_ByteBuffer_add_int(compiler->buffer, index);
 }
 
-static void visit_TablePattern(struct Compiler *const compiler, const struct Node *const node) {
-	YASL_ByteBuffer_add_byte(compiler->buffer, P_TABLE);
+static void visit_CollectionPattern(struct Compiler *const compiler, const struct Node *const node, unsigned char byte) {
+	YASL_ByteBuffer_add_byte(compiler->buffer, byte);
 	YASL_ByteBuffer_add_int(compiler->buffer, node->children[0]->children_len);
 	bool old = compiler->leftmost_pattern;
 	FOR_CHILDREN(i, child, (node->children[0])) {
-		visit(compiler, child);
-		compiler->leftmost_pattern = old;
-	}
+			visit(compiler, child);
+			compiler->leftmost_pattern = old;
+		}
+}
+
+static void visit_TablePattern(struct Compiler *const compiler, const struct Node *const node) {
+	visit_CollectionPattern(compiler, node, P_TABLE);
 }
 
 static void visit_ListPattern(struct Compiler *const compiler, const struct Node *const node) {
-	YASL_ByteBuffer_add_byte(compiler->buffer, P_LS);
-	YASL_ByteBuffer_add_int(compiler->buffer, node->children[0]->children_len);
-	bool old = compiler->leftmost_pattern;
-	FOR_CHILDREN(i, child, (node->children[0])) {
-		visit(compiler, child);
-		compiler->leftmost_pattern = old;
-	}
+	visit_CollectionPattern(compiler, node, P_LS);
 }
 
 static void visit_VarTablePattern(struct Compiler *const compiler, const struct Node *const node) {
-	YASL_ByteBuffer_add_byte(compiler->buffer, P_VTABLE);
-	YASL_ByteBuffer_add_int(compiler->buffer, node->children[0]->children_len);
-	bool old = compiler->leftmost_pattern;
-	FOR_CHILDREN(i, child, (node->children[0])) {
-		visit(compiler, child);
-		compiler->leftmost_pattern = old;
-	}
+	visit_CollectionPattern(compiler, node, P_VTABLE);
 }
 
 static void visit_VarListPattern(struct Compiler *const compiler, const struct Node *const node) {
-	YASL_ByteBuffer_add_byte(compiler->buffer, P_VLS);
-	YASL_ByteBuffer_add_int(compiler->buffer, node->children[0]->children_len);
-	bool old = compiler->leftmost_pattern;
-	FOR_CHILDREN(i, child, (node->children[0])) {
-		visit(compiler, child);
-		compiler->leftmost_pattern = old;
-	}
+	visit_CollectionPattern(compiler, node, P_VLS);
 }
 
 static struct Scope *get_scope_in_use(struct Compiler *const compiler) {
