@@ -76,6 +76,7 @@ int syntaxerrortest(void) {
 	ASSERT_SYNTAX_ERR("if (true) { export 1; };", "`export` statement must be at top level of module (line 1)");
 	ASSERT_SYNTAX_ERR("continue;", "`continue` outside of loop (line 1)");
 	ASSERT_SYNTAX_ERR("break;", "`break` outside of loop (line 1)");
+	ASSERT_SYNTAX_ERR("return 10;", "`return` outside of function (line 1)");
 
 	ASSERT_SYNTAX_ERR("echo if;", "Expected expression, got `if` (line 1)");
 	ASSERT_SYNTAX_ERR("assert false", "Expected ;, got END OF FILE (line 1)");

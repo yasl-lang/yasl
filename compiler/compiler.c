@@ -477,6 +477,11 @@ static void visit_MethodCall(struct Compiler *const compiler, const struct Node 
 }
 
 static void visit_Return(struct Compiler *const compiler, const struct Node *const node) {
+	if (!in_function(compiler)) {
+		compiler_print_err_syntax(compiler, "`return` outside of function (line %" PRI_SIZET ").\n", node->line);
+		handle_error(compiler);
+		return;
+	}
 	visit(compiler, Return_get_expr(node));
 	YASL_ByteBuffer_add_byte(compiler->buffer, compiler->params->usedinclosure ? O_CRET : O_RET);
 }
