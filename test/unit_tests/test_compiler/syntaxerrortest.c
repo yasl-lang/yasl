@@ -68,6 +68,10 @@ int syntaxerrortest(void) {
 	ASSERT_SYNTAX_ERR("match 1 {\n"
 			  "[ let x, let x ] {\n"
 			  "}\n }\n", "Illegal rebinding of x (line 2)");
+	ASSERT_SYNTAX_ERR("match n {\n"
+			  "    \"x: #{let x}\" {\n"
+			  "    }\n"
+			  "}\n", "Interpolated strings cannot be used in patterns (line 2)")
 
 
 	ASSERT_SYNTAX_ERR("\"asdsadasd\n", "Unclosed string literal in line 1");

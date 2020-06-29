@@ -460,15 +460,19 @@ static struct Node *parse_primitivepattern(struct Parser *const parser) {
 			n->value.dval *= -1;
 			return n;
 		} else {
-			parser_print_err_syntax(parser, "Expected numeric pattern, got pattern starting in %s (line %" PRI_SIZET ")\n", YASL_TOKEN_NAMES[curtok(parser)], line);
+			parser_print_err_syntax(parser, "Expected numeric pattern, got pattern starting in %s (line %" PRI_SIZET ").\n", YASL_TOKEN_NAMES[curtok(parser)], line);
 			return handle_error(parser);
 		}
 	case T_STR:
-		n = parse_string(parser);
-		if (n->nodetype != N_STR) {
-			parser_print_err_syntax(parser, "Interpolated strings cannot be used in patterns (line %" PRI_SIZET ")\n", line);
+		if (parser->lex.mode == L_INTERP) {
+			while (parser->lex.c != '"') {
+				lex_getchar(&parser->lex);
+			}
+			eattok(parser, T_STR);
+			parser_print_err_syntax(parser, "Interpolated strings cannot be used in patterns (line %" PRI_SIZET ").\n", line);
 			return handle_error(parser);
 		}
+		n = parse_string(parser);
 		n->nodetype = N_PATSTR;
 		return n;
 	case T_DOT:
@@ -477,7 +481,7 @@ static struct Node *parse_primitivepattern(struct Parser *const parser) {
 		n->nodetype = N_PATSTR;
 		return n;
 	default:
-		parser_print_err_syntax(parser, "Invalid pattern starting in %s (line %" PRI_SIZET ")\n", YASL_TOKEN_NAMES[curtok(parser)], line);
+		parser_print_err_syntax(parser, "Invalid pattern starting in %s (line %" PRI_SIZET ").\n", YASL_TOKEN_NAMES[curtok(parser)], line);
 		return handle_error(parser);
 	}
 }
