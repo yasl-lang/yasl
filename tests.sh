@@ -1,6 +1,10 @@
 #!/bin/bash
 
-shopt -s globstar nullglob dotglob;
+if [ -n "$ZSH_NAME" ]; then
+    setopt extended_glob;
+else
+    shopt -s globstar nullglob dotglob;
+fi;
 
 declare K_RED="\033[31m";
 declare K_END="\033[0m";
@@ -47,7 +51,6 @@ run_tests () {
         *) ext=".err" ;;
     esac;
     for f in test/$folder/**/*.yasl; do
-        declare expected actual;
         expected=$(<"$f$ext");
         actual=$(./yasl "$f" 2>&1);
         declare exit_code=$?;
