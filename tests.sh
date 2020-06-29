@@ -18,7 +18,7 @@ options:
 EOF
 
 [[ "$1" == "-m" ]];
-declare MEM=$?;
+declare NO_MEM=$?;
 
 run_mem_tests () {
     declare folder="$1";
@@ -61,7 +61,7 @@ run_tests () {
         fi;
         (( ++ran ));
     done;
-    if (( MEM == 0 )); then
+    if (( NO_MEM != 0 )); then
         run_mem_tests $1;
     fi;
 }

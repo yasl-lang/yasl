@@ -39,10 +39,7 @@ struct YASL_Table *YASL_Table_new(void) {
 
 void YASL_Table_del(struct YASL_Table *const table) {
 	if (!table) return;
-	FOR_TABLE(i, item, table) {
-		del_item(item);
-	}
-	free(table->items);
+	DEL_TABLE(table);
 	free(table);
 }
 

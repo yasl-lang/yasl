@@ -1,0 +1,26 @@
+
+
+fn match_list(n) {
+    match n {
+        [ const x, const y ] {
+            return "list of len two: [ #{x}, #{y} ]"
+        }
+        [ .a ] {
+            return '[ .a ]'
+        }
+        [ .a, ... ] {
+            return `list starting in 'a'`
+        }
+        [ ... ] {
+            return 'any other list'
+        }
+        * {
+            return '???'
+        }
+    }
+}
+
+for i <- [ [], [ 1, 2 ], [ 'a' ], [ .a, .b ], [ 2, 3, 4, 5 ], undef ] {
+    echo match_list(i)
+}
+

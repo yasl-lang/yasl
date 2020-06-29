@@ -16,24 +16,26 @@
 	})
 
 #define NEW_COMPILER(fp)\
-  ((struct Compiler) {\
-    .parser = NEW_PARSER(fp),\
-    .globals = scope_new(NULL),\
-    .stack = NULL,\
-    .params = NULL,\
-    .strings = YASL_Table_new(),\
-    .buffer = YASL_ByteBuffer_new(16),\
-    .header = YASL_ByteBuffer_new(24),\
-    .code = YASL_ByteBuffer_new(16),\
-    .lines = YASL_ByteBuffer_new(16),\
-    .line = 0,\
-    .checkpoints = NEW_SIZEBUFFER(4),\
-    .locals = (struct Frame *)malloc(sizeof(struct Frame) * 4),\
-    .locals_count = 0,\
-    .locals_size = 4,\
-    .status = YASL_SUCCESS,\
-    .num = 0,\
-  })
+((struct Compiler) {\
+	.parser = NEW_PARSER(fp),\
+	.globals = scope_new(NULL),\
+	.stack = NULL,\
+	.params = NULL,\
+	.leftmost_pattern = true,\
+	.seen_bindings = NEW_TABLE(),\
+	.strings = YASL_Table_new(),\
+	.buffer = YASL_ByteBuffer_new(16),\
+	.header = YASL_ByteBuffer_new(24),\
+	.code = YASL_ByteBuffer_new(16),\
+	.lines = YASL_ByteBuffer_new(16),\
+	.line = 0,\
+	.checkpoints = NEW_SIZEBUFFER(4),\
+	.locals = (struct Frame *)malloc(sizeof(struct Frame) * 4),\
+	.locals_count = 0,\
+	.locals_size = 4,\
+	.status = YASL_SUCCESS,\
+	.num = 0,\
+})
 
 struct SizeBuffer {
 	size_t count;
@@ -51,6 +53,8 @@ struct Compiler {
 	struct Scope *globals;
 	struct Scope *stack;
 	struct Env *params;
+	bool leftmost_pattern;
+	struct YASL_Table seen_bindings;
 	struct YASL_Table *strings;
 	struct YASL_ByteBuffer *buffer;    // temporary buffer during code-gen
 	struct YASL_ByteBuffer *header;    // header includes things like string constants

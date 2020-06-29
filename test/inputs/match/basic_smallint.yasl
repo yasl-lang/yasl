@@ -1,0 +1,35 @@
+
+
+fn match_smallint(n) {
+    match n {
+        -1 {
+            return 'negative one'
+        }
+        0 {
+            return 'zero'
+        }
+        1 {
+            return 'one'
+        }
+        2 {
+            return 'two'
+        }
+        3 {
+            return 'three'
+        }
+        4 {
+            return 'four'
+        }
+        5 {
+            return 'five'
+        }
+        * {
+            return '???'
+        }
+    }
+}
+
+for let i = -1; i < 7; i += 1 {
+    echo match_smallint(i)
+}
+

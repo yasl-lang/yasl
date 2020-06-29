@@ -1,0 +1,23 @@
+
+
+fn match_undef(n) {
+    match n {
+        undef {
+            return 'undefined'
+        }
+        true {
+            return 'truthy'
+        }
+        false {
+            return 'falsey'
+        }
+        * {
+            return '???'
+        }
+    }
+}
+
+for i <- [ true, false, undef ] {
+    echo match_undef(i)
+}
+

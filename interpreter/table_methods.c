@@ -302,7 +302,7 @@ int table_clone(struct YASL_State *S) {
 	struct RC_UserData *new_ht = rcht_new_sized(ht->base_size);
 
 	FOR_TABLE(i, item, ht) {
-			YASL_Table_insert_fast((struct YASL_Table *) new_ht->data, item->key, item->value);
+		YASL_Table_insert_fast((struct YASL_Table *) new_ht->data, item->key, item->value);
 	}
 
 	vm_push((struct VM *) S, YASL_TABLE(new_ht));

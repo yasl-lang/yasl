@@ -1,0 +1,23 @@
+
+
+fn match_str(n) {
+    match n {
+        `abc` {
+            return 'al'
+        }
+        `123` {
+            return 'num'
+        }
+        `abc123` {
+            return 'alnum'
+        }
+        * {
+            return '???'
+        }
+    }
+}
+
+for i <- [ '!!!', 'abc123', .abc, '123' ] {
+    echo match_str(i)
+}
+

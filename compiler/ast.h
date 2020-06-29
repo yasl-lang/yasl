@@ -27,6 +27,7 @@ enum NodeType {
 	N_WHILE,
 	N_BREAK,
 	N_CONT,
+	N_MATCH,
 	N_IF,
 	N_PRINT,
 	N_LET,
@@ -44,7 +45,20 @@ enum NodeType {
 	N_STR,
 	N_LIST,
 	N_TABLE,
-	N_ASS
+	N_ASS,
+	N_PATUNDEF,
+	N_PATBOOL,
+	N_PATFL,
+	N_PATINT,
+	N_PATSTR,
+	N_PATTABLE,
+	N_PATLS,
+	N_PATVTABLE,
+	N_PATVLS,
+	N_PATALT,
+	N_PATANY,
+	N_PATLET,
+	N_PATCONST,
 };
 
 struct BinOpNode {
@@ -135,6 +149,9 @@ struct Node *While_get_body(const struct Node *const node);
 struct Node *While_get_post(const struct Node *const node);
 struct Node *Table_get_values(const struct Node *const node);
 struct Node *While_get_body(const struct Node *const node);
+struct Node *Match_get_expr(const struct Node *const node);
+struct Node *Match_get_patterns(const struct Node *const node);
+struct Node *Match_get_bodies(const struct Node *const node);
 struct Node *Print_get_expr(const struct Node *const node);
 struct Node *Decl_get_expr(const struct Node *const node);
 char *Decl_get_name(const struct Node *const node);
@@ -193,6 +210,7 @@ struct Node *new_ForIter(struct Node *iter, struct Node *body, const size_t line
 struct Node *new_While(struct Node *cond, struct Node *body, struct Node *post, const size_t line);
 struct Node *new_Break(size_t line);
 struct Node *new_Continue(size_t line);
+struct Node *new_Match(struct Node *cond, struct Node *pats, struct Node *bodies, const size_t line);
 struct Node *new_If(struct Node *cond, struct Node *then_node, struct Node *else_node, const size_t line);
 struct Node *new_Print(struct Node *expr, const size_t line);
 struct Node *new_Assert(struct Node *expr, const size_t line);

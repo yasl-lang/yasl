@@ -37,6 +37,8 @@ enum Opcode {
 
 	O_ASS = 0x50, // assert
 
+	O_MATCH = 0x51, // match
+
 	O_ADD = 0x60, // add two numbers
 	O_SUB = 0x61, // subtract two numbers
 	O_MUL = 0x62, // multiply two integers
@@ -66,7 +68,6 @@ enum Opcode {
 	O_NEWSTR = 0x9B, // make new String and push it onto stack (length (8 bytes), string (length bytes))
 	O_NEWTABLE = 0x9C, // make new HashTable and push it onto stack
 	O_NEWLIST = 0x9D, // make new List and push it onto stack
-
 	O_SCONST = 0x9E, // load a string literal from constant table.
 	O_SCONST_INIT = 0x9F, // initialize the constant table with a string literal.
 
@@ -74,6 +75,7 @@ enum Opcode {
 
 	O_END = 0xB0, // indicate end of list on stack.
 	O_DUP = 0xB8, // duplicate top value of stack
+	O_INCSP = 0xBE,
 	O_POP = 0xBF, // pop top of stack
 
 	O_BR_8 = 0xC0, // branch unconditionally (takes next 8 bytes as jump length)
@@ -150,6 +152,21 @@ enum SpecialStrings {
 	S_VALUES,     // values
 
 	NUM_SPECIAL_STRINGS // don't treat this as a member
+};
+
+enum Pattern {
+	P_UNDEF = 0x01,
+	P_BOOL = 0x08,
+	P_ANY = 0x0F,
+	P_FL  = 0x1A,
+	P_INT = 0x23,
+	P_STR = 0x9B,
+	P_TABLE = 0x9C,
+	P_LS = 0x9D,
+	P_VTABLE = 0xAC,
+	P_VLS = 0xAD,
+	P_ALT = 0xB0,
+	P_BIND = 0xF4,
 };
 
 #endif

@@ -144,6 +144,10 @@ struct Node *new_Continue(size_t line) {
 	return new_Node_0(N_CONT, NULL, 0, line);
 }
 
+struct Node *new_Match(struct Node *cond, struct Node *pats, struct Node *bodies, const size_t line) {
+	return new_Node_3(N_MATCH, cond, pats, bodies, NULL, 0, line);
+}
+
 struct Node *new_If(struct Node *cond, struct Node *then_node, struct Node *else_node, const size_t line) {
 	return new_Node_3(N_IF, cond, then_node, else_node, NULL, 0, line);
 }
@@ -245,6 +249,7 @@ void node_del(struct Node *node) {
 			node_del(node->children[node->children_len]);
 	}
 	switch (node->nodetype) {
+	case N_PATALT:
 	case N_BINOP:
 		node_del(node->value.binop.left);
 		node_del(node->value.binop.right);
@@ -256,6 +261,9 @@ void node_del(struct Node *node) {
 	case N_BOOL:
 	case N_INT:
 	case N_FLOAT:
+	case N_PATBOOL:
+	case N_PATINT:
+	case N_PATFL:
 		break;
 	default:
 		free(node->value.sval.str);
@@ -329,6 +337,18 @@ struct Node *Table_get_values(const struct Node *const node) {
 
 struct Node *While_get_body(const struct Node *const node) {
 	return ((node)->children[1]);
+}
+
+struct Node *Match_get_expr(const struct Node *const node) {
+	return ((node)->children[0]);
+}
+
+struct Node *Match_get_patterns(const struct Node *const node) {
+	return ((node)->children[1]);
+}
+
+struct Node *Match_get_bodies(const struct Node *const node) {
+	return ((node)->children[2]);
 }
 
 struct Node *Print_get_expr(const struct Node *const node) {
