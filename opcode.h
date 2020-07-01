@@ -10,17 +10,7 @@ enum Opcode {
 	O_CCONST = 0x0B, // push closure literal onto stack
 
 	O_ICONST = 0x10, // push next 8 bytes onto stack as integer constant
-	O_ICONST_M1 = 0x11, // push -1 onto stack
-	O_ICONST_0 = 0x12, // push 0 onto stack
-	O_ICONST_1 = 0x13, // push 1 onto stack
-	O_ICONST_2 = 0x14, // push 2 onto stack
-	O_ICONST_3 = 0x15, // push 3 onto stack
-	O_ICONST_4 = 0x16, // push 4 onto stack
-	O_ICONST_5 = 0x17, // push 5 onto stack
 	O_DCONST = 0x1A, // push next 8 bytes onto stack as float constant
-	O_DCONST_0 = 0x1B, // push 0.0 onto stack
-	O_DCONST_1 = 0x1C, // push 1.0 onto stack
-	O_DCONST_2 = 0x1D, // push 2.0 onto stack
 
 	O_ICONST_B1 = 0x20, // push literal integer that only requires 1 byte onto stack.
 	O_ICONST_B2 = 0x21, // TODO
@@ -68,8 +58,7 @@ enum Opcode {
 	O_NEWSTR = 0x9B, // make new String and push it onto stack (length (8 bytes), string (length bytes))
 	O_NEWTABLE = 0x9C, // make new HashTable and push it onto stack
 	O_NEWLIST = 0x9D, // make new List and push it onto stack
-	O_SCONST = 0x9E, // load a string literal from constant table.
-	O_SCONST_INIT = 0x9F, // initialize the constant table with a string literal.
+	O_SCONST = 0x9E,  // initialize the constant table with a string literal.
 
 	O_CRET = 0xA0, // return from closure.
 

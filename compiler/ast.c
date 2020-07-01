@@ -306,12 +306,7 @@ struct Node *Const_get_expr(const struct Node *const node) {
 	return node->children[0];
 }
 
-struct Node *TableComp_get_key_value(const struct Node *const node) {
-	YASL_ASSERT(node->nodetype == N_TABLECOMP, "Expected TableComp");
-	return node->children[0];
-}
-
-struct Node *ListComp_get_expr(const struct Node *const node) {
+struct Node *Comp_get_expr(const struct Node *const node) {
 	return ((node)->children[0]);
 }
 
@@ -461,28 +456,15 @@ struct Node *Assign_get_expr(const struct Node *const node) {
 	return ((node)->children[0]);
 }
 
-struct Node *ListComp_get_iter(const struct Node *const node) {
-	YASL_ASSERT(node->nodetype == N_LISTCOMP, "Expected ListComp");
+struct Node *Comp_get_iter(const struct Node *const node) {
+	YASL_ASSERT(node->nodetype == N_LISTCOMP || node->nodetype == N_TABLECOMP, "Expected Comp");
 	return node->children[1];
 }
 
-struct Node *TableComp_get_iter(const struct Node *const node) {
-	YASL_ASSERT(node->nodetype == N_TABLECOMP, "Expected TableComp");
-	return node->children[1];
-}
-
-
-struct Node *ListComp_get_cond(const struct Node *const node) {
-	YASL_ASSERT(node->nodetype == N_LISTCOMP, "Expected ListComp");
+struct Node *Comp_get_cond(const struct Node *const node) {
+	YASL_ASSERT(node->nodetype == N_LISTCOMP || node->nodetype == N_TABLECOMP, "Expected Comp");
 	return node->children[2];
 }
-
-
-struct Node *TableComp_get_cond(const struct Node *const node) {
-	YASL_ASSERT(node->nodetype == N_TABLECOMP, "Expected TableComp");
-	return node->children[2];
-}
-
 
 struct Node *LetIter_get_collection(const struct Node *const node) {
 	return node->children[0];

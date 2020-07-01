@@ -1381,20 +1381,6 @@ int vm_run(struct VM *const vm) {
 			return YASL_MODULE_SUCCESS;
 		case O_HALT:
 			return YASL_SUCCESS;
-		case O_ICONST_M1:
-		case O_ICONST_0:
-		case O_ICONST_1:
-		case O_ICONST_2:
-		case O_ICONST_3:
-		case O_ICONST_4:
-		case O_ICONST_5:
-			vm_pushint(vm, opcode - O_ICONST_0); // make sure no changes to opcodes ruin this
-			break;
-		case O_DCONST_0:
-		case O_DCONST_1:
-		case O_DCONST_2:
-			vm_pushfloat(vm, (yasl_float)(opcode - O_DCONST_0)); // make sure no changes to opcodes ruin this
-			break;
 		case O_DCONST:        // constants have native endianness
 			d = vm_read_float(vm);
 			vm_pushfloat(vm, d);

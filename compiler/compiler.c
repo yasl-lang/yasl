@@ -556,9 +556,9 @@ static void visit_Comp_cond(struct Compiler *const compiler, const struct Node *
 static void visit_Comp(struct Compiler *const compiler, const struct Node *const node, unsigned char byte) {
 	enter_scope(compiler);
 
-	struct Node *expr = ListComp_get_expr(node);
-	struct Node *cond = ListComp_get_cond(node);
-	struct Node *iter = ListComp_get_iter(node);
+	struct Node *expr = Comp_get_expr(node);
+	struct Node *cond = Comp_get_cond(node);
+	struct Node *iter = Comp_get_iter(node);
 
 	struct Node *collection = LetIter_get_collection(iter);
 
@@ -737,21 +737,25 @@ static void visit_Continue(struct Compiler *const compiler, const struct Node *c
 	branch_back(compiler, continue_checkpoint(compiler));
 }
 
+yasl_int compiler_intern_string(struct Compiler *const compiler, const char *const str, const size_t len) {
+	struct YASL_Object value = YASL_Table_search_string_int(compiler->strings, str, len);
+	if (value.type == Y_END) {
+		YASL_COMPILE_DEBUG_LOG("%s\n", "caching string");
+		size_t index = compiler->strings->count;
+		YASL_Table_insert_string_int(compiler->strings, str, len, index);
+		YASL_ByteBuffer_add_int(compiler->header, len);
+		YASL_ByteBuffer_extend(compiler->header, (unsigned char *) str, len);
+		return index;
+	}
+
+	return value.value.ival;
+}
+
 static yasl_int intern_string(struct Compiler *const compiler, const struct Node *const node) {
 	const char *const str = String_get_str(node);
 	size_t len = String_get_len(node);
 
-	struct YASL_Object value = YASL_Table_search_string_int(compiler->strings, str, len);
-	if (value.type == Y_END) {
-		YASL_COMPILE_DEBUG_LOG("%s\n", "caching string");
-		YASL_Table_insert_string_int(compiler->strings, str, len, compiler->strings->count);
-		YASL_ByteBuffer_add_int(compiler->header, len);
-		YASL_ByteBuffer_extend(compiler->header, (unsigned char *) str, len);
-	}
-
-	value = YASL_Table_search_string_int(compiler->strings, str, len);
-
-	return value.value.ival;
+	return compiler_intern_string(compiler, str, len);
 }
 
 static void visit_UndefPattern(struct Compiler *const compiler, const struct Node *const node) {
@@ -1207,54 +1211,19 @@ static void visit_Undef(struct Compiler *const compiler, const struct Node *cons
 
 static void visit_Float(struct Compiler *const compiler, const struct Node *const node) {
 	yasl_float val = Float_get_float(node);
-	if (val == 0.0) {
-		compiler_add_byte(compiler, O_DCONST_0);
-	} else if (val == 1.0) {
-		compiler_add_byte(compiler, O_DCONST_1);
-	} else if (val == 2.0) {
-		compiler_add_byte(compiler, O_DCONST_2);
-	} else {
-		compiler_add_byte(compiler, O_DCONST);
-		YASL_ByteBuffer_add_float(compiler->buffer, val);
-	}
+	compiler_add_byte(compiler, O_DCONST);
+	YASL_ByteBuffer_add_float(compiler->buffer, val);
 }
 
 static void visit_Integer(struct Compiler *const compiler, const struct Node *const node) {
 	yasl_int val = Integer_get_int(node);
-	YASL_COMPILE_DEBUG_LOG("int64: %"
-				       PRId64
-				       "\n", val);
-	switch (val) {
-	case -1:
-		compiler_add_byte(compiler, O_ICONST_M1);
-		break;
-	case 0:
-		compiler_add_byte(compiler, O_ICONST_0);
-		break;
-	case 1:
-		compiler_add_byte(compiler, O_ICONST_1);
-		break;
-	case 2:
-		compiler_add_byte(compiler, O_ICONST_2);
-		break;
-	case 3:
-		compiler_add_byte(compiler, O_ICONST_3);
-		break;
-	case 4:
-		compiler_add_byte(compiler, O_ICONST_4);
-		break;
-	case 5:
-		compiler_add_byte(compiler, O_ICONST_5);
-		break;
-	default:
-		if (-(1 << 7) < val && val < (1 << 7)) {
-			compiler_add_byte(compiler, O_ICONST_B1);
-			compiler_add_byte(compiler, (unsigned char) val);
-		} else {
-			compiler_add_byte(compiler, O_ICONST_B8);
-			compiler_add_int(compiler, val);
-		}
-		break;
+	YASL_COMPILE_DEBUG_LOG("int: %" PRId64 "\n", val);
+	if (-(1 << 7) < val && val < (1 << 7)) {
+		compiler_add_byte(compiler, O_ICONST_B1);
+		compiler_add_byte(compiler, (unsigned char) val);
+	} else {
+		compiler_add_byte(compiler, O_ICONST_B8);
+		compiler_add_int(compiler, val);
 	}
 }
 
