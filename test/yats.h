@@ -37,7 +37,8 @@
 	FILE *file = fopen("dump.yb", "rb");\
 	int64_t size = getsize(file);\
 	unsigned char *actual = (unsigned char *)malloc(size);\
-	fread(actual, sizeof(char), size, file);\
+	size_t read = fread(actual, sizeof(char), size, file);\
+	(void) read;\
 	ASSERT_BC_EQ(expected, actual, (size_t)size);\
 	fclose(file);\
 	free(actual);\
