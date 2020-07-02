@@ -276,13 +276,7 @@ static void decl_var(struct Compiler *const compiler, const char *const name, co
 			handle_error(compiler);
 		}
 	} else {
-		struct YASL_Object value = YASL_Table_search_string_int(compiler->strings, name, name_len);
-		if (value.type == Y_END) {
-			YASL_COMPILE_DEBUG_LOG("%s\n", "caching string");
-			YASL_Table_insert_string_int(compiler->strings, name, name_len, compiler->strings->count);
-			YASL_ByteBuffer_add_int(compiler->header, name_len);
-			YASL_ByteBuffer_extend(compiler->header, (unsigned char *) name, name_len);
-		}
+		compiler_intern_string(compiler, name, name_len);
 		scope_decl_var(compiler->globals, name);
 	}
 }
@@ -471,18 +465,10 @@ static void visit_MethodCall(struct Compiler *const compiler, const struct Node 
 	size_t len = strlen(str);
 	visit(compiler, Call_get_object(node));
 
-	struct YASL_Object value = YASL_Table_search_string_int(compiler->strings, str, len);
-	if (value.type == Y_END) {
-		YASL_COMPILE_DEBUG_LOG("%s\n", "caching string");
-		YASL_Table_insert_string_int(compiler->strings, str, len, compiler->strings->count);
-		YASL_ByteBuffer_add_int(compiler->header, len);
-		YASL_ByteBuffer_extend(compiler->header, (unsigned char *) str, len);
-	}
-
-	value = YASL_Table_search_string_int(compiler->strings, str, len);
+	yasl_int index = compiler_intern_string(compiler, str, len);
 
 	compiler_add_byte(compiler, O_INIT_MC);
-	compiler_add_int(compiler, value.value.ival);
+	compiler_add_int(compiler, index);
 
 	visit_Body(compiler, Call_get_params(node));
 	compiler_add_byte(compiler, O_CALL);
@@ -743,6 +729,7 @@ yasl_int compiler_intern_string(struct Compiler *const compiler, const char *con
 		YASL_COMPILE_DEBUG_LOG("%s\n", "caching string");
 		size_t index = compiler->strings->count;
 		YASL_Table_insert_string_int(compiler->strings, str, len, index);
+		YASL_ByteBuffer_add_byte(compiler->header, O_SCONST);
 		YASL_ByteBuffer_add_int(compiler->header, len);
 		YASL_ByteBuffer_extend(compiler->header, (unsigned char *) str, len);
 		return index;

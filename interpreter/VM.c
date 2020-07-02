@@ -1356,6 +1356,7 @@ int vm_run(struct VM *const vm) {
 	vm->constants = (struct YASL_Object *)malloc(sizeof(struct YASL_Object) * vm->num_constants);
 	unsigned char *tmp = vm->code + 24;
 	for (int64_t i = 0; i < vm->num_constants; i++) {
+		tmp++;
 		int64_t len = *((int64_t *)tmp);
 		tmp += sizeof(int64_t);
 		char *str = (char *)malloc((size_t)len);
