@@ -1024,8 +1024,30 @@ static void visit_Const(struct Compiler *const compiler, const struct Node *cons
 }
 
 static void visit_Decl(struct Compiler *const compiler, const struct Node *const node) {
+	FOR_CHILDREN(i, child_expr, node) {
+		visit(compiler, child_expr->children[0]);
+	}
+
 	FOR_CHILDREN(i, child, node) {
-		visit(compiler, child);
+		const char *name = child->value.sval.str;
+		if (child->nodetype == N_ASSIGN) {
+			if (!contains_var(compiler, name)) {
+				compiler_print_err_undeclared_var(compiler, name, node->line);
+				handle_error(compiler);
+				return;
+			}
+			compiler_add_byte(compiler, O_MOVEUP);
+			compiler_add_byte(compiler, get_scope_in_use(compiler)->vars.count);
+			store_var(compiler, name, node->line);
+		} else {
+			if (contains_var_in_current_scope(compiler, name)) {
+				compiler_print_err_syntax(compiler, "Illegal redeclaration of %s (line %" PRI_SIZET ").\n", name, node->line);
+				handle_error(compiler);
+				return;
+			}
+			decl_var(compiler, name, child->line);
+			if (child->nodetype == N_CONST) make_const(compiler, name);
+		}
 	}
 }
 

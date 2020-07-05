@@ -1564,6 +1564,12 @@ int vm_run(struct VM *const vm) {
 			a = vm_peek(vm);
 			vm_push(vm, a);
 			break;
+		case O_MOVEUP:
+			offset = NCODE(vm);
+			a = vm_peek(vm, vm->fp + offset + 1);
+			memmove(vm->stack + vm->fp + offset + 1, vm->stack + vm->fp + offset + 2, (vm->sp - (vm->fp + offset + 1)) * sizeof(struct YASL_Object));
+			vm->stack[vm->sp] = a;
+			break;
 		case O_MATCH:
 			if ((res = vm_MATCH(vm))) return res;
 			break;
