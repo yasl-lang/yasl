@@ -347,11 +347,7 @@ static struct Node *parse_let_const_or_var(struct Parser *const parser) {
 	}
 }
 
-static struct Node *parse_decl(struct Parser *const parser) {
-	YASL_PARSE_DEBUG_LOG("parsing let in line %" PRI_SIZET "\n", parser->lex.line);
-	size_t i = 0;
-	struct Node *buffer = new_Body(parser->lex.line);
-
+static struct Node *parse_decl_helper(struct Parser *const parser, struct Node *buffer, size_t i) {
 	do {
 		struct Node *lval = parse_let_const_or_var(parser);
 		body_append(&buffer, lval);
@@ -367,6 +363,14 @@ static struct Node *parse_decl(struct Parser *const parser) {
 
 	buffer->nodetype = N_DECL;
 	return buffer;
+}
+
+static struct Node *parse_decl(struct Parser *const parser) {
+	YASL_PARSE_DEBUG_LOG("parsing let in line %" PRI_SIZET "\n", parser->lex.line);
+	size_t i = 0;
+	struct Node *buffer = new_Body(parser->lex.line);
+
+	return parse_decl_helper(parser, buffer, i);
 }
 
 static struct Node *parse_let(struct Parser *const parser) {

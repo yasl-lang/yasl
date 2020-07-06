@@ -1037,7 +1037,7 @@ static void visit_Decl(struct Compiler *const compiler, const struct Node *const
 				return;
 			}
 			compiler_add_byte(compiler, O_MOVEUP);
-			compiler_add_byte(compiler, get_scope_in_use(compiler)->vars.count);
+			compiler_add_byte(compiler, (unsigned char)get_scope_in_use(compiler)->vars.count);
 			store_var(compiler, name, node->line);
 		} else {
 			if (contains_var_in_current_scope(compiler, name)) {
@@ -1045,7 +1045,13 @@ static void visit_Decl(struct Compiler *const compiler, const struct Node *const
 				handle_error(compiler);
 				return;
 			}
-			decl_var(compiler, name, child->line);
+			if (in_function(compiler) || compiler->stack) decl_var(compiler, name, child->line);
+			else {
+				compiler_add_byte(compiler, O_MOVEUP);
+				compiler_add_byte(compiler, (unsigned char)0);
+				decl_var(compiler, name, node->line);
+				store_var(compiler, name, node->line);
+			}
 			if (child->nodetype == N_CONST) make_const(compiler, name);
 		}
 	}
