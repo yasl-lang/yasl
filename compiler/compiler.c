@@ -209,7 +209,7 @@ static void store_var_in_upval(struct Compiler *const compiler, const char *cons
 static void store_var(struct Compiler *const compiler, const char *const name, const size_t line) {
 	const size_t name_len = strlen(name);
 	if (in_function(compiler) && env_contains_cur_only(compiler->params, name)) { // fn-local variable
-		return store_var_cur_scope(compiler, compiler->params->scope, name, line);
+		store_var_cur_scope(compiler, compiler->params->scope, name, line);
 	} else if (env_contains(compiler->params, name)) {                            // closure over fn-local variable
 		struct Env *curr = get_nearest(compiler->params, name);
 		curr->usedinclosure = true;
@@ -229,7 +229,7 @@ static void store_var(struct Compiler *const compiler, const char *const name, c
 		}
 		store_var_in_upval(compiler, name);
 	} else if (scope_contains(compiler->stack, name)) {                           // file-local vars
-		return store_var_cur_scope(compiler, compiler->stack, name, line);
+		store_var_cur_scope(compiler, compiler->stack, name, line);
 	} else if (scope_contains(compiler->globals, name)) {                         // global vars
 		int64_t index = scope_get(compiler->globals, name);
 		if (is_const(index)) {
