@@ -147,35 +147,41 @@ static inline int64_t get_index(const int64_t value) {
 	return is_const(value) ? ~value : value;
 }
 
+static struct Env *get_nearest(struct Env *env, const char *const name) {
+	while (!env_contains_cur_only(env, name)) {
+		env = env->parent;
+	}
+	return env;
+}
+
+static void load_var_local(struct Compiler *const compiler, const struct Scope *scope, const char *const name) {
+	int64_t index = get_index(scope_get(scope, name));
+	compiler_add_byte(compiler, O_LLOAD);
+	compiler_add_byte(compiler, (unsigned char) index);
+}
+
+static void load_var_from_upval(struct Compiler *const compiler, const char *const name) {
+	compiler->params->isclosure = true;
+	compiler_add_byte(compiler, O_ULOAD);
+	yasl_int tmp = env_resolve_upval_index(compiler->params, compiler->stack, name);
+	compiler_add_byte(compiler, (unsigned char) tmp);
+}
+
 static void load_var(struct Compiler *const compiler, const char *const name, const size_t line) {
 	const size_t name_len = strlen(name);
-	if (compiler->params && scope_contains(compiler->params->scope, name)) {   // function-local var
-		int64_t index = get_index(scope_get(compiler->params->scope, name));
-		compiler_add_byte(compiler, O_LLOAD);
-		compiler_add_byte(compiler, (unsigned char) index);
-	} else if (env_contains(compiler->params, name)) {                         // closure over function-local variable
-		compiler->params->isclosure = true;
-		struct Env *curr = compiler->params;
-		while (!env_contains_cur_only(curr, name)) {
-			curr = curr->parent;
-		}
+	if (compiler->params && scope_contains(compiler->params->scope, name)) {   // fn-local var
+		return load_var_local(compiler, compiler->params->scope, name);
+	} else if (env_contains(compiler->params, name)) {                         // closure over fn-local variable
+		struct Env *curr = get_nearest(compiler->params, name);
 		curr->usedinclosure = true;
-		compiler_add_byte(compiler, O_ULOAD);
-		yasl_int tmp = env_resolve_upval_index(compiler->params, compiler->stack, name);
-		compiler_add_byte(compiler, (unsigned char) tmp);
+		return load_var_from_upval(compiler, name);
 	} else if (compiler->params && scope_contains(compiler->stack, name)) {    // closure over file-local var
-		compiler->params->isclosure = true;
-		compiler_add_byte(compiler, O_ULOAD);
-		yasl_int tmp = env_resolve_upval_index(compiler->params, compiler->stack, name);
-		compiler_add_byte(compiler, (unsigned char) tmp);
+		return load_var_from_upval(compiler, name);
 	} else if (scope_contains(compiler->stack, name)) {                        // file-local vars
-		int64_t index = get_index(scope_get(compiler->stack, name));
-		compiler_add_byte(compiler, O_LLOAD);
-		compiler_add_byte(compiler, (unsigned char) index);
+		return load_var_local(compiler, compiler->stack, name);
 	} else if (scope_contains(compiler->globals, name)) {                      // global vars
 		compiler_add_byte(compiler, O_GLOAD_8);
-		compiler_add_int(compiler,
-					YASL_Table_search_string_int(compiler->strings, name, name_len).value.ival);
+		compiler_add_int(compiler, YASL_Table_search_string_int(compiler->strings, name, name_len).value.ival);
 	} else {
 		compiler_print_err_undeclared_var(compiler, name, line);
 		handle_error(compiler);
@@ -183,23 +189,30 @@ static void load_var(struct Compiler *const compiler, const char *const name, co
 	}
 }
 
+static void store_var_cur_scope(struct Compiler *const compiler, const struct Scope *const scope, const char *const name, const size_t line) {
+	int64_t index = scope_get(scope, name);
+	if (is_const(index)) {
+		compiler_print_err_const(compiler, name, line);
+		handle_error(compiler);
+		return;
+	}
+	compiler_add_byte(compiler, O_LSTORE);
+	compiler_add_byte(compiler, (unsigned char) index);
+}
+
+static void store_var_in_upval(struct Compiler *const compiler, const char *const name) {
+	compiler->params->isclosure = true;
+	yasl_int index = env_resolve_upval_index(compiler->params, compiler->stack, name);
+	compiler_add_byte(compiler, O_USTORE);
+	compiler_add_byte(compiler, (unsigned char) index);
+}
+
 static void store_var(struct Compiler *const compiler, const char *const name, const size_t line) {
 	const size_t name_len = strlen(name);
-	if (compiler->params && scope_contains(compiler->params->scope, name)) {  // function-local variable
-		int64_t index = scope_get(compiler->params->scope, name);
-		if (is_const(index)) {
-			compiler_print_err_const(compiler, name, line);
-			handle_error(compiler);
-			return;
-		}
-		compiler_add_byte(compiler, O_LSTORE);
-		compiler_add_byte(compiler, (unsigned char) index);
-	} else if (env_contains(compiler->params, name)) {                        // closure over function-local variable
-		compiler->params->isclosure = true;
-		struct Env *curr = compiler->params;
-		while (!env_contains_cur_only(curr, name)) {
-			curr = curr->parent;
-		}
+	if (in_function(compiler) && env_contains_cur_only(compiler->params, name)) { // fn-local variable
+		return store_var_cur_scope(compiler, compiler->params->scope, name, line);
+	} else if (env_contains(compiler->params, name)) {                            // closure over fn-local variable
+		struct Env *curr = get_nearest(compiler->params, name);
 		curr->usedinclosure = true;
 		int64_t index = scope_get(curr->scope, name);
 		if (is_const(index)) {
@@ -207,30 +220,18 @@ static void store_var(struct Compiler *const compiler, const char *const name, c
 			handle_error(compiler);
 			return;
 		}
-		compiler_add_byte(compiler, O_USTORE);
-		yasl_int tmp = env_resolve_upval_index(compiler->params, compiler->stack, name);
-		compiler_add_byte(compiler, (unsigned char) tmp);
-	} else if (compiler->params && scope_contains(compiler->stack, name)) {   // closure over file-local var
+		return store_var_in_upval(compiler, name);
+	} else if (in_function(compiler) && scope_contains(compiler->stack, name)) {  // closure over file-local var
 		int64_t index = scope_get(compiler->stack, name);
 		if (is_const(index)) {
 			compiler_print_err_const(compiler, name, line);
 			handle_error(compiler);
 			return;
 		}
-		compiler->params->isclosure = true;
-		compiler_add_byte(compiler, O_USTORE);
-		yasl_int tmp = env_resolve_upval_index(compiler->params, compiler->stack, name);
-		compiler_add_byte(compiler, (unsigned char) tmp);
-	} else if (scope_contains(compiler->stack, name)) {                       // file-local vars
-		int64_t index = scope_get(compiler->stack, name);
-		if (is_const(index)) {
-			compiler_print_err_const(compiler, name, line);
-			handle_error(compiler);
-			return;
-		}
-		compiler_add_byte(compiler, O_LSTORE);
-		compiler_add_byte(compiler, (unsigned char) index);
-	} else if (scope_contains(compiler->globals, name)) {                     // global vars
+		return store_var_in_upval(compiler, name);
+	} else if (scope_contains(compiler->stack, name)) {                           // file-local vars
+		return store_var_cur_scope(compiler, compiler->stack, name, line);
+	} else if (scope_contains(compiler->globals, name)) {                         // global vars
 		int64_t index = scope_get(compiler->globals, name);
 		if (is_const(index)) {
 			compiler_print_err_const(compiler, name, line);
@@ -238,8 +239,7 @@ static void store_var(struct Compiler *const compiler, const char *const name, c
 			return;
 		}
 		compiler_add_byte(compiler, O_GSTORE_8);
-		compiler_add_int(compiler,
-					YASL_Table_search_string_int(compiler->strings, name, name_len).value.ival);
+		compiler_add_int(compiler, YASL_Table_search_string_int(compiler->strings, name, name_len).value.ival);
 	} else {
 		compiler_print_err_undeclared_var(compiler, name, line);
 		handle_error(compiler);
@@ -1045,11 +1045,10 @@ static void visit_Decl(struct Compiler *const compiler, const struct Node *const
 				handle_error(compiler);
 				return;
 			}
-			if (in_function(compiler) || compiler->stack) decl_var(compiler, name, child->line);
-			else {
+			decl_var(compiler, name, child->line);
+			if (!in_function(compiler) && !compiler->stack) {
 				compiler_add_byte(compiler, O_MOVEUP);
 				compiler_add_byte(compiler, (unsigned char)0);
-				decl_var(compiler, name, node->line);
 				store_var(compiler, name, node->line);
 			}
 			if (child->nodetype == N_CONST) make_const(compiler, name);
