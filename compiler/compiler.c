@@ -73,30 +73,18 @@ static inline void compiler_add_int(struct Compiler *const compiler, yasl_int n)
 }
 
 static void enter_scope(struct Compiler *const compiler) {
-	if (in_function(compiler)) {
-		compiler->params->scope = scope_new(compiler->params->scope);
-	} else {
-		compiler->stack = scope_new(compiler->stack);
-	}
+	struct Scope **lval = in_function(compiler) ? &compiler->params->scope : &compiler->stack;
+	*lval = scope_new(*lval);
 }
 
 static void exit_scope(struct Compiler *const compiler) {
-	if (in_function(compiler)) {
-		size_t num_locals = compiler->params->scope->vars.count;
-		struct Scope *tmp = compiler->params->scope;
-		compiler->params->scope = compiler->params->scope->parent;
-		scope_del_current_only(tmp);
-		while (num_locals-- > 0) {
-			compiler_add_byte(compiler, O_POP);
-		}
-	} else {
-		size_t num_locals = compiler->stack->vars.count;
-		struct Scope *tmp = compiler->stack;
-		compiler->stack = compiler->stack->parent;
-		scope_del_current_only(tmp);
-		while (num_locals-- > 0) {
-			compiler_add_byte(compiler, O_POP);
-		}
+	struct Scope **lval = in_function(compiler) ? &compiler->params->scope : &compiler->stack;
+	struct Scope *tmp = *lval;
+	 *lval = tmp->parent;
+	size_t num_locals = tmp->vars.count;
+	scope_del_current_only(tmp);
+	while (num_locals-- > 0) {
+		compiler_add_byte(compiler, O_POP);
 	}
 }
 
@@ -145,6 +133,10 @@ int is_const(const int64_t value) {
 
 static inline int64_t get_index(const int64_t value) {
 	return is_const(value) ? ~value : value;
+}
+
+static struct Scope *get_scope_in_use(const struct Compiler *const compiler) {
+	return in_function(compiler) ? compiler->params->scope : compiler->stack;
 }
 
 static struct Env *get_nearest(struct Env *env, const char *const name) {
@@ -214,35 +206,31 @@ static void store_var(struct Compiler *const compiler, const char *const name, c
 		struct Env *curr = get_nearest(compiler->params, name);
 		curr->usedinclosure = true;
 		int64_t index = scope_get(curr->scope, name);
-		if (is_const(index)) {
-			compiler_print_err_const(compiler, name, line);
-			handle_error(compiler);
-			return;
-		}
+		if (is_const(index))
+			goto handle_const_err;
 		store_var_in_upval(compiler, name);
 	} else if (in_function(compiler) && scope_contains(compiler->stack, name)) {  // closure over file-local var
 		int64_t index = scope_get(compiler->stack, name);
-		if (is_const(index)) {
-			compiler_print_err_const(compiler, name, line);
-			handle_error(compiler);
-			return;
-		}
+		if (is_const(index))
+			goto handle_const_err;
 		store_var_in_upval(compiler, name);
 	} else if (scope_contains(compiler->stack, name)) {                           // file-local vars
 		store_var_cur_scope(compiler, compiler->stack, name, line);
 	} else if (scope_contains(compiler->globals, name)) {                         // global vars
 		int64_t index = scope_get(compiler->globals, name);
-		if (is_const(index)) {
-			compiler_print_err_const(compiler, name, line);
-			handle_error(compiler);
-			return;
-		}
+		if (is_const(index))
+			goto handle_const_err;
 		compiler_add_byte(compiler, O_GSTORE_8);
 		compiler_add_int(compiler, YASL_Table_search_string_int(compiler->strings, name, name_len).value.ival);
 	} else {
 		compiler_print_err_undeclared_var(compiler, name, line);
 		handle_error(compiler);
 	}
+	return;
+
+	handle_const_err:
+	compiler_print_err_const(compiler, name, line);
+	handle_error(compiler);
 }
 
 static int contains_var_in_current_scope(const struct Compiler *const compiler, const char *const name) {
@@ -261,14 +249,9 @@ static int contains_var(const struct Compiler *const compiler, const char *const
 
 static void decl_var(struct Compiler *const compiler, const char *const name, const size_t line) {
 	const size_t name_len = strlen(name);
-	if (in_function(compiler)) {
-		int64_t index = scope_decl_var(compiler->params->scope, name);
-		if (index > 255) {
-			compiler_print_err_syntax(compiler, "Too many variables in current scope (line %" PRI_SIZET ").\n",  line);
-			handle_error(compiler);
-		}
-	} else if (compiler->stack) {
-		int64_t index = scope_decl_var(compiler->stack, name);
+	struct Scope *scope = get_scope_in_use(compiler);
+	if (scope) {
+		int64_t index = scope_decl_var(scope, name);
 		if (index > 255) {
 			compiler_print_err_syntax(compiler, "Too many variables in current scope (line %" PRI_SIZET ").\n",  line);
 			handle_error(compiler);
@@ -280,8 +263,8 @@ static void decl_var(struct Compiler *const compiler, const char *const name, co
 }
 
 static void make_const(const struct Compiler * const compiler, const char *const name) {
-	if (in_function(compiler)) scope_make_const(compiler->params->scope, name);
-	else if (compiler->stack) scope_make_const(compiler->stack, name);
+	struct Scope *scope = get_scope_in_use(compiler);
+	if (scope) scope_make_const(scope, name);
 	else scope_make_const(compiler->globals, name);
 }
 
@@ -795,10 +778,6 @@ static void visit_VarListPattern(struct Compiler *const compiler, const struct N
 	visit_CollectionPattern(compiler, node, P_VLS);
 }
 
-static struct Scope *get_scope_in_use(struct Compiler *const compiler) {
-	return in_function(compiler) ? compiler->params->scope : compiler->stack;
-}
-
 static void visit_DeclPattern(struct Compiler *const compiler, const struct Node *const node, const bool isconst) {
 	char *name = Decl_get_name(node);
 	YASL_Table_insert_string_int(&compiler->seen_bindings, name, strlen(name), 1);
@@ -889,7 +868,7 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 	compiler->leftmost_pattern = true;
 	visit(compiler, patterns->children[curr]);
 	int64_t body_start = compiler->buffer->count;
-	unsigned char bindings = (unsigned char) (in_function(compiler) ? compiler->params->scope->vars.count : compiler->stack->vars.count);
+	unsigned char bindings = (unsigned char) get_scope_in_use(compiler)->vars.count;
 	if (bindings) {
 		compiler_add_byte(compiler, O_INCSP);
 		compiler_add_byte(compiler, bindings);
