@@ -98,6 +98,7 @@ static const char *inputs[] = {
   "test/inputs/match/basic_smallint.yasl",
   "test/inputs/match/float_smallint.yasl",
   "test/inputs/match/float.yasl",
+  "test/inputs/match/parens.yasl",
   "test/inputs/smallints.yasl",
   "test/inputs/math/min-max.yasl",
   "test/inputs/math/math.yasl",

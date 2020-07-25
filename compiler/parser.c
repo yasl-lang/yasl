@@ -566,6 +566,11 @@ static struct Node *parse_patternsingle(struct Parser *const parser) {
 		}
 		eattok(parser, T_RSQB);
 		return n;
+	case T_LPAR:
+		eattok(parser, T_LPAR);
+		n = parse_pattern(parser);
+		eattok(parser, T_RPAR);
+		return n;
 	default:
 		return parse_primitivepattern(parser);
 	}
@@ -575,7 +580,7 @@ static struct Node *parse_alt(struct Parser *const parser) {
 	size_t line = parser->lex.line;
         struct Node *cur_node = parse_patternsingle(parser);
         if (matcheattok(parser, T_BAR)) {
-                struct Node *tmp = new_BinOp(T_BAR, cur_node, parse_patternsingle(parser), line);
+                struct Node *tmp = new_BinOp(T_BAR, cur_node, parse_alt(parser), line);
                 tmp->nodetype = N_PATALT;
                 return tmp;
         }
