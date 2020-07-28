@@ -42,6 +42,15 @@ jobs:
   - script:
       Debug\tests2.exe
     displayName: "Run API Tests"
+- job:
+  displayName: "C Clang Windows"
+  pool:
+    vmImage: 'vs2017-win2016'
+  steps:
+  - script: |
+      clang --version
+      clang-cl --version
+    displayName: "Test clang install"  
 - job: 
   displayName: "C TCC Ubuntu"
   pool:
