@@ -1,5 +1,5 @@
-#ifndef YASL_YASL_FLOAT_H_
-#define YASL_YASL_FLOAT_H_
+#ifndef YASL_UTIL_BUILTINS_H_
+#define YASL_UTIL_BUILTINS_H_
 
 #include "yasl_conf.h"
 

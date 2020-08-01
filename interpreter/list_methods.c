@@ -60,100 +60,63 @@ int list___set(struct YASL_State *S) {
 }
 
 int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, size_t buffer_count);
+bool buffer_contains(void **buffer, size_t buffer_count, void *val);
+void rec_call(struct YASL_State *S, void **buffer, const size_t buffer_count, const size_t buffer_size, int (*f)(struct YASL_State *, void **, size_t, size_t));
+
+#define FOUND_LIST "[...], "
+#define FOUND_TABLE "{...}, "
 
 int list_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, size_t buffer_count) {
-	size_t string_count = 0;
-	size_t string_size = 8;
-	char *string = (char *) malloc(string_size);
+	struct YASL_ByteBuffer bb = (struct YASL_ByteBuffer){
+		.size = 8,
+		.count = 0,
+		.bytes = (unsigned char *)malloc(8)
+	};
 
-	string[string_count++] = '[';
-	struct YASL_List *list = vm_peeklist((struct VM *) S, S->vm.sp);
+	YASL_ByteBuffer_add_byte(&bb, '[');
+	struct YASL_List *list = vm_peeklist((struct VM *) S);
 	if (list->count == 0) {
 		vm_pop((struct VM *) S);
-		string[string_count++] = ']';
-		vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, string_count, string)));
+		YASL_ByteBuffer_add_byte(&bb, ']');
+		vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, bb.count, (char *)bb.bytes)));
 		return YASL_SUCCESS;
 	}
 
 	FOR_LIST(i, obj, list) {
 		vm_push((struct VM *) S, obj);
 
-		if (vm_islist((struct VM *) S, S->vm.sp)) {
-			int found = 0;
-			for (size_t j = 0; j < buffer_count; j++) {
-				if (buffer[j] == vm_peeklist((struct VM *) S, S->vm.sp)) {
-					found = 1;
-					break;
-				}
-			}
+		if (vm_islist((struct VM *) S)) {
+			bool found = buffer_contains(buffer, buffer_count, vm_peeklist((struct VM *) S));
 			if (found) {
-				if (string_count + strlen("[...], ") >= string_size) {
-					string_size *= 2;
-					string = (char *) realloc(string, string_size);
-				}
-				memcpy(string + string_count, "[...], ", strlen("[...], "));
-				string_count += strlen("[...], ");
+				YASL_ByteBuffer_extend(&bb, (unsigned char *)FOUND_LIST, strlen(FOUND_LIST));
 				vm_pop((struct VM *) S);
 				continue;
 			} else {
-				size_t tmp_buffer_size = buffer_count == buffer_size ? buffer_size * 2 : buffer_size;
-				void **tmp_buffer = (void **) malloc(tmp_buffer_size * sizeof(void *));
-				memcpy(tmp_buffer, buffer, sizeof(void *) * buffer_count);
-				tmp_buffer[buffer_count] = vm_peeklist((struct VM *) S, S->vm.sp);
-				list_tostr_helper(S, tmp_buffer, tmp_buffer_size, buffer_count + 1);
-				free(tmp_buffer);
+				rec_call(S, buffer, buffer_count, buffer_size, &list_tostr_helper);
 			}
-		} else if (vm_istable((struct VM *) S, S->vm.sp)) {
-			int found = 0;
-			for (size_t j = 0; j < buffer_count; j++) {
-				if (buffer[j] == vm_peeklist((struct VM *) S, S->vm.sp)) {
-					found = 1;
-					break;
-				}
-			}
+		} else if (vm_istable((struct VM *) S)) {
+			bool found = buffer_contains(buffer, buffer_count, vm_peeklist((struct VM *) S));
 			if (found) {
-				if (string_count + strlen("{...}, ") >= string_size) {
-					string_size *= 2;
-					string = (char *) realloc(string, string_size);
-				}
-				memcpy(string + string_count, "{...}, ", strlen("{...}, "));
-				string_count += strlen("{...}, ");
+				YASL_ByteBuffer_extend(&bb, (unsigned char *)FOUND_TABLE, strlen(FOUND_TABLE));
 				vm_pop((struct VM *) S);
 				continue;
 			} else {
-				size_t tmp_buffer_size = buffer_count == buffer_size ? buffer_size * 2 : buffer_size;
-				void **tmp_buffer = (void **) malloc(tmp_buffer_size * sizeof(void *));
-				memcpy(tmp_buffer, buffer, sizeof(void *) * buffer_count);
-				tmp_buffer[buffer_count] = vm_peeklist((struct VM *) S, S->vm.sp);
-				table_tostr_helper(S, tmp_buffer, tmp_buffer_size, buffer_count + 1);
-				free(tmp_buffer);
+				rec_call(S, buffer, buffer_count, buffer_size, &table_tostr_helper);
 			}
 		} else {
 			vm_stringify_top((struct VM *) S);
 		}
 
 		struct YASL_String *str = vm_popstr((struct VM *) S);
-		while (string_count + YASL_String_len(str) >= string_size) {
-			string_size *= 2;
-			string = (char *) realloc(string, string_size);
-		}
-
-		memcpy(string + string_count, str->str + str->start, YASL_String_len(str));
-		string_count += YASL_String_len(str);
-
-		if (string_count + 2 >= string_size) {
-			string_size *= 2;
-			string = (char *) realloc(string, string_size);
-		}
-
-		string[string_count++] = ',';
-		string[string_count++] = ' ';
+		YASL_ByteBuffer_extend(&bb, (unsigned char *)str->str + str->start, YASL_String_len(str));
+		YASL_ByteBuffer_extend(&bb, (unsigned char *)", ", strlen(", "));
 	}
 	vm_pop((struct VM *) S);
 
-	string_count -= 2;
-	string[string_count++] = ']';
-	vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, string_count, string)));
+	bb.count -= 2;
+	YASL_ByteBuffer_add_byte(&bb, ']');
+
+	vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, bb.count, (char *)bb.bytes)));
 
 	return YASL_SUCCESS;
 }
@@ -251,28 +214,6 @@ int list___eq(struct YASL_State *S) {
 		}
 	}
 	return YASL_pushbool(S, true);
-}
-
-int list_extend(struct YASL_State *S) {
-	if (!YASL_islist(S)) {
-		YASLX_print_err_bad_arg_type(S, "list.extend", 1, "list", YASL_TYPE_NAMES[YASL_peektype(S)]);
-		return YASL_TYPE_ERROR;
-	}
-	struct YASL_List *extend_ls = YASL_GETLIST(vm_pop((struct VM *) S));
-	if (!YASL_islist(S)) {
-		YASLX_print_err_bad_arg_type(S, "list.extend", 0, "list", YASL_TYPE_NAMES[YASL_peektype(S)]);
-		return YASL_TYPE_ERROR;
-	}
-	struct YASL_List *ls = YASL_GETLIST(vm_pop((struct VM *) S));
-
-	struct YASL_List *exls = extend_ls;
-
-	FOR_LIST(i, obj, exls) {
-		YASL_List_append(ls, obj);
-	}
-
-	vm_pushundef((struct VM *) S);
-	return YASL_SUCCESS;
 }
 
 int list_pop(struct YASL_State *S) {
