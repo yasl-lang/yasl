@@ -67,12 +67,12 @@ int main(void) {
 		expected_output[read] = '\0';
 
 		S = YASL_newstate(inputs[i]);
-		YASLX_decllibs(S);
+		int status = YASLX_decllibs(S);
 		YASL_setprintout_tostr(S);
-		YASL_execute(S);
+		status |= YASL_execute(S);
 		YASL_loadprintout(S);
 		char *actual_output = YASL_peekcstr(S);
-		if (!!strcmp(expected_output, actual_output)) {
+		if (!!strcmp(expected_output, actual_output) || status != YASL_SUCCESS) {
 			fprintf(stderr, "test for %s failed.\n", inputs[i]);
 			failed++;
 		}

@@ -1,0 +1,14 @@
+
+
+
+fn map(it, f) {
+    return [ f(x) for x <- it ]
+}
+
+fn filter(it, pred) {
+    return [ x for x <- it if pred(x) ]
+}
+
+echo map([ 1, 2, 3, 4 ], fn(a) { return a * 2; })
+echo filter([ 1, 2, 3, 4 ], fn(n) { return n % 2 == 0; })
+
