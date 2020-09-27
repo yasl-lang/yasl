@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define YASL_VERSION "v0.9.2"
+#define YASL_VERSION "v0.9.3"
 
 struct YASL_State;
 
@@ -217,7 +217,7 @@ int YASL_pushlist(struct YASL_State *S);
  * @param value the function pointer to be pushed onto the stack.
  * @return YASL_SUCCESS on success, otherwise an error code.
  */
-int YASL_pushcfunction(struct YASL_State *S, int (*value)(struct YASL_State *), int num_args);
+int YASL_pushcfunction(struct YASL_State *S, YASL_cfn value, int num_args);
 
 /**
  * Pushes a user-pointer onto the stack

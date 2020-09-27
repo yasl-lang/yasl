@@ -323,7 +323,7 @@ int YASL_pushlitstring(struct YASL_State *S, const char *value, const size_t siz
 	return YASL_SUCCESS;
 }
 
-int YASL_pushcfunction(struct YASL_State *S, int (*value)(struct YASL_State *), int num_args) {
+int YASL_pushcfunction(struct YASL_State *S, YASL_cfn value, int num_args) {
 	vm_push((struct VM *) S, YASL_CFN(value, num_args));
 	return YASL_SUCCESS;
 }

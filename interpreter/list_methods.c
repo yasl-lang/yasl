@@ -67,11 +67,7 @@ void rec_call(struct YASL_State *S, void **buffer, const size_t buffer_count, co
 #define FOUND_TABLE "{...}, "
 
 int list_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, size_t buffer_count) {
-	struct YASL_ByteBuffer bb = (struct YASL_ByteBuffer){
-		.size = 8,
-		.count = 0,
-		.bytes = (unsigned char *)malloc(8)
-	};
+	struct YASL_ByteBuffer bb = NEW_BB(8);
 
 	YASL_ByteBuffer_add_byte(&bb, '[');
 	struct YASL_List *list = vm_peeklist((struct VM *) S);

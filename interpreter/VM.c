@@ -245,9 +245,11 @@ void vm_pushbool(struct VM *const vm, bool b) {
 }
 
 struct YASL_Object *vm_pop_p(struct VM *const vm) {
+	YASL_ASSERT(vm->sp >= 0, "cannot pop from empty stack.")
 	return vm->stack + vm->sp--;
 }
 struct YASL_Object vm_pop(struct VM *const vm) {
+	YASL_ASSERT(vm->sp >= 0, "cannot pop from empty stack.")
 	return vm->stack[vm->sp--];
 }
 bool vm_popbool(struct VM *const vm) {

@@ -11,6 +11,12 @@ struct YASL_ByteBuffer {
 	unsigned char *bytes;
 };
 
+#define NEW_BB(s) ((struct YASL_ByteBuffer){\
+	.size = (s),\
+	.count = 0,\
+	.bytes = (unsigned char *)malloc(s)\
+})
+
 struct YASL_ByteBuffer *YASL_ByteBuffer_new(const size_t size);
 void YASL_ByteBuffer_del(struct YASL_ByteBuffer *const bb);
 

@@ -134,11 +134,7 @@ void rec_call(struct YASL_State *S, void **buffer, const size_t buffer_count, co
 }
 
 int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, size_t buffer_count) {
-	struct YASL_ByteBuffer bb = (struct YASL_ByteBuffer){
-		.size = 8,
-		.count = 0,
-		.bytes = (unsigned char *)malloc(8)
-	};
+	struct YASL_ByteBuffer bb = NEW_BB(8);
 
 	YASL_ByteBuffer_add_byte(&bb, '{');
 	struct YASL_Table *table = vm_peektable((struct VM *) S);
