@@ -71,6 +71,7 @@ struct Compiler {
 
 struct Compiler *compiler_new(FILE *const fp);
 struct Compiler *compiler_new_bb(const char *const buf, const size_t len);
+yasl_int compiler_intern_string(struct Compiler *const compiler, const char *const str, const size_t len);
 void compiler_cleanup(struct Compiler *const compiler);
 unsigned char *compile(struct Compiler *const compiler);
 unsigned char *compile_REPL(struct Compiler *const compiler);

@@ -166,14 +166,8 @@ int YASL_execute(struct YASL_State *S) {
 }
 
 int YASL_declglobal(struct YASL_State *S, const char *name) {
-	struct YASL_Object value = YASL_Table_search_string_int(S->compiler.strings, name, strlen(name));
-	if (value.type == Y_END) {
-		YASL_COMPILE_DEBUG_LOG("%s\n", "caching string");
-		YASL_Table_insert_string_int(S->compiler.strings, name, strlen(name), S->compiler.strings->count);
-		YASL_ByteBuffer_add_int(S->compiler.header, strlen(name));
-		YASL_ByteBuffer_extend(S->compiler.header, (unsigned char *) name, strlen(name));
-	}
-	/* int64_t index =*/ scope_decl_var(S->compiler.globals, name);
+	compiler_intern_string(&S->compiler, name, strlen(name));
+	scope_decl_var(S->compiler.globals, name);
 	return YASL_SUCCESS;
 }
 

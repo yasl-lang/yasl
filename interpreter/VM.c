@@ -1356,6 +1356,7 @@ int vm_run(struct VM *const vm) {
 	vm->constants = (struct YASL_Object *)malloc(sizeof(struct YASL_Object) * vm->num_constants);
 	unsigned char *tmp = vm->code + 24;
 	for (int64_t i = 0; i < vm->num_constants; i++) {
+		tmp++;
 		int64_t len = *((int64_t *)tmp);
 		tmp += sizeof(int64_t);
 		char *str = (char *)malloc((size_t)len);
@@ -1381,20 +1382,6 @@ int vm_run(struct VM *const vm) {
 			return YASL_MODULE_SUCCESS;
 		case O_HALT:
 			return YASL_SUCCESS;
-		case O_ICONST_M1:
-		case O_ICONST_0:
-		case O_ICONST_1:
-		case O_ICONST_2:
-		case O_ICONST_3:
-		case O_ICONST_4:
-		case O_ICONST_5:
-			vm_pushint(vm, opcode - O_ICONST_0); // make sure no changes to opcodes ruin this
-			break;
-		case O_DCONST_0:
-		case O_DCONST_1:
-		case O_DCONST_2:
-			vm_pushfloat(vm, (yasl_float)(opcode - O_DCONST_0)); // make sure no changes to opcodes ruin this
-			break;
 		case O_DCONST:        // constants have native endianness
 			d = vm_read_float(vm);
 			vm_pushfloat(vm, d);
@@ -1576,6 +1563,12 @@ int vm_run(struct VM *const vm) {
 		case O_DUP:
 			a = vm_peek(vm);
 			vm_push(vm, a);
+			break;
+		case O_MOVEUP:
+			offset = NCODE(vm);
+			a = vm_peek(vm, vm->fp + offset + 1);
+			memmove(vm->stack + vm->fp + offset + 1, vm->stack + vm->fp + offset + 2, (vm->sp - (vm->fp + offset + 1)) * sizeof(struct YASL_Object));
+			vm->stack[vm->sp] = a;
 			break;
 		case O_MATCH:
 			if ((res = vm_MATCH(vm))) return res;

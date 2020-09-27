@@ -1,0 +1,29 @@
+
+
+fn match_float(n) {
+    match n {
+        -1.5 {
+            return 'negative one point five'
+        }
+        ( 0.2 ) {
+            return 'zero point two'
+        }
+        ( 1.5 | 2.0 | 2.5 ) {
+            return 'two point zero'
+        }
+        ( 1.0 ) | 1.5 {
+            return 'one point zero'
+        }
+        ( 0.0 ) {
+            return 'zero point zero'
+        }
+        * {
+            return '???'
+        }
+    }
+}
+
+for let i = -1; i < 7; i += 1 {
+    echo match_float(i)
+}
+

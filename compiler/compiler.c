@@ -64,38 +64,34 @@ static bool in_function(const struct Compiler *const compiler) {
 	return compiler->params != NULL;
 }
 
+static inline void compiler_add_byte(struct Compiler *const compiler, unsigned char byte) {
+	YASL_ByteBuffer_add_byte(compiler->buffer, byte);
+}
+
+static inline void compiler_add_int(struct Compiler *const compiler, yasl_int n) {
+	YASL_ByteBuffer_add_int(compiler->buffer, n);
+}
+
 static void enter_scope(struct Compiler *const compiler) {
-	if (in_function(compiler)) {
-		compiler->params->scope = scope_new(compiler->params->scope);
-	} else {
-		compiler->stack = scope_new(compiler->stack);
-	}
+	struct Scope **lval = in_function(compiler) ? &compiler->params->scope : &compiler->stack;
+	*lval = scope_new(*lval);
 }
 
 static void exit_scope(struct Compiler *const compiler) {
-	if (in_function(compiler)) {
-		size_t num_locals = compiler->params->scope->vars.count;
-		struct Scope *tmp = compiler->params->scope;
-		compiler->params->scope = compiler->params->scope->parent;
-		scope_del_current_only(tmp);
-		while (num_locals-- > 0) {
-			YASL_ByteBuffer_add_byte(compiler->buffer, O_POP);
-		}
-	} else {
-		size_t num_locals = compiler->stack->vars.count;
-		struct Scope *tmp = compiler->stack;
-		compiler->stack = compiler->stack->parent;
-		scope_del_current_only(tmp);
-		while (num_locals-- > 0) {
-			YASL_ByteBuffer_add_byte(compiler->buffer, O_POP);
-		}
+	struct Scope **lval = in_function(compiler) ? &compiler->params->scope : &compiler->stack;
+	struct Scope *tmp = *lval;
+	 *lval = tmp->parent;
+	size_t num_locals = tmp->vars.count;
+	scope_del_current_only(tmp);
+	while (num_locals-- > 0) {
+		compiler_add_byte(compiler, O_POP);
 	}
 }
 
-static inline void enter_conditional_false(const struct Compiler *const compiler, int64_t *const index) {
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_BRF_8);
+static inline void enter_conditional_false(struct Compiler *const compiler, int64_t *const index) {
+	compiler_add_byte(compiler, O_BRF_8);
 	*index = compiler->buffer->count;
-	YASL_ByteBuffer_add_int(compiler->buffer, 0);
+	compiler_add_int(compiler, 0);
 }
 
 static inline void exit_conditional_false(const struct Compiler *const compiler, const int64_t *const index) {
@@ -139,106 +135,102 @@ static inline int64_t get_index(const int64_t value) {
 	return is_const(value) ? ~value : value;
 }
 
+static struct Scope *get_scope_in_use(const struct Compiler *const compiler) {
+	return in_function(compiler) ? compiler->params->scope : compiler->stack;
+}
+
+static struct Env *get_nearest(struct Env *env, const char *const name) {
+	while (!env_contains_cur_only(env, name)) {
+		env = env->parent;
+	}
+	return env;
+}
+
+static void load_var_local(struct Compiler *const compiler, const struct Scope *scope, const char *const name) {
+	int64_t index = get_index(scope_get(scope, name));
+	compiler_add_byte(compiler, O_LLOAD);
+	compiler_add_byte(compiler, (unsigned char) index);
+}
+
+static void load_var_from_upval(struct Compiler *const compiler, const char *const name) {
+	compiler->params->isclosure = true;
+	compiler_add_byte(compiler, O_ULOAD);
+	yasl_int tmp = env_resolve_upval_index(compiler->params, compiler->stack, name);
+	compiler_add_byte(compiler, (unsigned char) tmp);
+}
+
 static void load_var(struct Compiler *const compiler, const char *const name, const size_t line) {
 	const size_t name_len = strlen(name);
-	if (compiler->params && scope_contains(compiler->params->scope, name)) {   // function-local var
-		int64_t index = get_index(scope_get(compiler->params->scope, name));
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_LLOAD);
-		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) index);
-	} else if (env_contains(compiler->params, name)) {                         // closure over function-local variable
-		compiler->params->isclosure = true;
-		struct Env *curr = compiler->params;
-		while (!env_contains_cur_only(curr, name)) {
-			curr = curr->parent;
-		}
+	if (compiler->params && scope_contains(compiler->params->scope, name)) {   // fn-local var
+		load_var_local(compiler, compiler->params->scope, name);
+	} else if (env_contains(compiler->params, name)) {                         // closure over fn-local variable
+		struct Env *curr = get_nearest(compiler->params, name);
 		curr->usedinclosure = true;
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_ULOAD);
-		yasl_int tmp = env_resolve_upval_index(compiler->params, compiler->stack, name);
-		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) tmp);
+		load_var_from_upval(compiler, name);
 	} else if (compiler->params && scope_contains(compiler->stack, name)) {    // closure over file-local var
-		compiler->params->isclosure = true;
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_ULOAD);
-		yasl_int tmp = env_resolve_upval_index(compiler->params, compiler->stack, name);
-		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) tmp);
+		load_var_from_upval(compiler, name);
 	} else if (scope_contains(compiler->stack, name)) {                        // file-local vars
-		int64_t index = get_index(scope_get(compiler->stack, name));
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_LLOAD);
-		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) index);
+		load_var_local(compiler, compiler->stack, name);
 	} else if (scope_contains(compiler->globals, name)) {                      // global vars
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_GLOAD_8);
-		// YASL_ByteBuffer_add_int(compiler->buffer, compiler->num);
-		YASL_ByteBuffer_add_int(compiler->buffer,
-					YASL_Table_search_string_int(compiler->strings, name, name_len).value.ival);
+		compiler_add_byte(compiler, O_GLOAD_8);
+		compiler_add_int(compiler, YASL_Table_search_string_int(compiler->strings, name, name_len).value.ival);
 	} else {
 		compiler_print_err_undeclared_var(compiler, name, line);
 		handle_error(compiler);
+	}
+}
+
+static void store_var_cur_scope(struct Compiler *const compiler, const struct Scope *const scope, const char *const name, const size_t line) {
+	int64_t index = scope_get(scope, name);
+	if (is_const(index)) {
+		compiler_print_err_const(compiler, name, line);
+		handle_error(compiler);
 		return;
 	}
+	compiler_add_byte(compiler, O_LSTORE);
+	compiler_add_byte(compiler, (unsigned char) index);
+}
+
+static void store_var_in_upval(struct Compiler *const compiler, const char *const name) {
+	compiler->params->isclosure = true;
+	yasl_int index = env_resolve_upval_index(compiler->params, compiler->stack, name);
+	compiler_add_byte(compiler, O_USTORE);
+	compiler_add_byte(compiler, (unsigned char) index);
 }
 
 static void store_var(struct Compiler *const compiler, const char *const name, const size_t line) {
 	const size_t name_len = strlen(name);
-	if (compiler->params && scope_contains(compiler->params->scope, name)) {  // function-local variable
-		int64_t index = scope_get(compiler->params->scope, name);
-		if (is_const(index)) {
-			compiler_print_err_const(compiler, name, line);
-			handle_error(compiler);
-			return;
-		}
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_LSTORE);
-		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) index);
-	} else if (env_contains(compiler->params, name)) {                        // closure over function-local variable
-		compiler->params->isclosure = true;
-		struct Env *curr = compiler->params;
-		while (!env_contains_cur_only(curr, name)) {
-			curr = curr->parent;
-		}
+	if (in_function(compiler) && env_contains_cur_only(compiler->params, name)) { // fn-local variable
+		store_var_cur_scope(compiler, compiler->params->scope, name, line);
+	} else if (env_contains(compiler->params, name)) {                            // closure over fn-local variable
+		struct Env *curr = get_nearest(compiler->params, name);
 		curr->usedinclosure = true;
 		int64_t index = scope_get(curr->scope, name);
-		if (is_const(index)) {
-			compiler_print_err_const(compiler, name, line);
-			handle_error(compiler);
-			return;
-		}
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_USTORE);
-		yasl_int tmp = env_resolve_upval_index(compiler->params, compiler->stack, name);
-		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) tmp);
-	} else if (compiler->params && scope_contains(compiler->stack, name)) {   // closure over file-local var
+		if (is_const(index))
+			goto handle_const_err;
+		store_var_in_upval(compiler, name);
+	} else if (in_function(compiler) && scope_contains(compiler->stack, name)) {  // closure over file-local var
 		int64_t index = scope_get(compiler->stack, name);
-		if (is_const(index)) {
-			compiler_print_err_const(compiler, name, line);
-			handle_error(compiler);
-			return;
-		}
-		compiler->params->isclosure = true;
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_USTORE);
-		yasl_int tmp = env_resolve_upval_index(compiler->params, compiler->stack, name);
-		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) tmp);
-	} else if (scope_contains(compiler->stack, name)) {                       // file-local vars
-		int64_t index = scope_get(compiler->stack, name);
-		if (is_const(index)) {
-			compiler_print_err_const(compiler, name, line);
-			handle_error(compiler);
-			return;
-		}
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_LSTORE);
-		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) index);
-	} else if (scope_contains(compiler->globals, name)) {                     // global vars
+		if (is_const(index))
+			goto handle_const_err;
+		store_var_in_upval(compiler, name);
+	} else if (scope_contains(compiler->stack, name)) {                           // file-local vars
+		store_var_cur_scope(compiler, compiler->stack, name, line);
+	} else if (scope_contains(compiler->globals, name)) {                         // global vars
 		int64_t index = scope_get(compiler->globals, name);
-		if (is_const(index)) {
-			compiler_print_err_const(compiler, name, line);
-			handle_error(compiler);
-			return;
-		}
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_GSTORE_8);
-		// YASL_ByteBuffer_add_int(compiler->buffer, compiler->num);
-		YASL_ByteBuffer_add_int(compiler->buffer,
-					YASL_Table_search_string_int(compiler->strings, name, name_len).value.ival);
+		if (is_const(index))
+			goto handle_const_err;
+		compiler_add_byte(compiler, O_GSTORE_8);
+		compiler_add_int(compiler, YASL_Table_search_string_int(compiler->strings, name, name_len).value.ival);
 	} else {
 		compiler_print_err_undeclared_var(compiler, name, line);
 		handle_error(compiler);
-		return;
 	}
+	return;
+
+	handle_const_err:
+	compiler_print_err_const(compiler, name, line);
+	handle_error(compiler);
 }
 
 static int contains_var_in_current_scope(const struct Compiler *const compiler, const char *const name) {
@@ -257,33 +249,22 @@ static int contains_var(const struct Compiler *const compiler, const char *const
 
 static void decl_var(struct Compiler *const compiler, const char *const name, const size_t line) {
 	const size_t name_len = strlen(name);
-	if (in_function(compiler)) {
-		int64_t index = scope_decl_var(compiler->params->scope, name);
-		if (index > 255) {
-			compiler_print_err_syntax(compiler, "Too many variables in current scope (line %" PRI_SIZET ").\n",  line);
-			handle_error(compiler);
-		}
-	} else if (compiler->stack) {
-		int64_t index = scope_decl_var(compiler->stack, name);
+	struct Scope *scope = get_scope_in_use(compiler);
+	if (scope) {
+		int64_t index = scope_decl_var(scope, name);
 		if (index > 255) {
 			compiler_print_err_syntax(compiler, "Too many variables in current scope (line %" PRI_SIZET ").\n",  line);
 			handle_error(compiler);
 		}
 	} else {
-		struct YASL_Object value = YASL_Table_search_string_int(compiler->strings, name, name_len);
-		if (value.type == Y_END) {
-			YASL_COMPILE_DEBUG_LOG("%s\n", "caching string");
-			YASL_Table_insert_string_int(compiler->strings, name, name_len, compiler->strings->count);
-			YASL_ByteBuffer_add_int(compiler->header, name_len);
-			YASL_ByteBuffer_extend(compiler->header, (unsigned char *) name, name_len);
-		}
+		compiler_intern_string(compiler, name, name_len);
 		scope_decl_var(compiler->globals, name);
 	}
 }
 
 static void make_const(const struct Compiler * const compiler, const char *const name) {
-	if (in_function(compiler)) scope_make_const(compiler->params->scope, name);
-	else if (compiler->stack) scope_make_const(compiler->stack, name);
+	struct Scope *scope = get_scope_in_use(compiler);
+	if (scope) scope_make_const(scope, name);
 	else scope_make_const(compiler->globals, name);
 }
 
@@ -396,7 +377,7 @@ static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *c
 		if (expr->nodetype == N_ASSIGN || expr->nodetype == N_SET) {
 			return;
 		} else {
-			YASL_ByteBuffer_add_byte(compiler->buffer, O_POP);
+			compiler_add_byte(compiler, O_POP);
 		}
 	}
 }
@@ -414,18 +395,18 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 		}
 	}
 
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_FCONST);
-	YASL_ByteBuffer_add_int(compiler->buffer, 0);
+	compiler_add_byte(compiler, O_FCONST);
+	compiler_add_int(compiler, 0);
 
 	size_t old_size = compiler->buffer->count;
 
 	// TODO: verfiy that number of params is small enough. (same for the other casts below.)
-	YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) Body_get_len(FnDecl_get_params(node)));
-	YASL_ByteBuffer_add_byte(compiler->buffer, 0);  // TODO: remove this
+	compiler_add_byte(compiler, (unsigned char) Body_get_len(FnDecl_get_params(node)));
+	compiler_add_byte(compiler, 0);  // TODO: remove this
 	visit_Body(compiler, FnDecl_get_body(node));
 	// TODO: remove this when it's not required.
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_NCONST);
-	YASL_ByteBuffer_add_byte(compiler->buffer, compiler->params->usedinclosure ? O_CRET : O_RET);
+	compiler_add_byte(compiler, O_NCONST);
+	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CRET : O_RET);
 	exit_scope(compiler);
 
 	size_t new_size = compiler->buffer->count;
@@ -434,11 +415,11 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	if (compiler->params->isclosure) {
 		compiler->buffer->bytes[old_size - sizeof(yasl_int) - 1] = O_CCONST;
 		const size_t count = compiler->params->upval_indices.count;
-		YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) count);
+		compiler_add_byte(compiler, (unsigned char) count);
 		const size_t start = compiler->buffer->count;
 		// TODO what's below is wrong. We need to get the right value for the upvals.
 		for (size_t i = 0; i < count; i++) {
-			YASL_ByteBuffer_add_byte(compiler->buffer, 0);
+			compiler_add_byte(compiler, 0);
 		}
 		FOR_TABLE(i, item, &compiler->params->upval_indices) {
 			int64_t index = item->value.value.ival;
@@ -455,9 +436,9 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 
 static void visit_Call(struct Compiler *const compiler, const struct Node *const node) {
 	visit(compiler, Call_get_object(node));
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_INIT_CALL);
+	compiler_add_byte(compiler, O_INIT_CALL);
 	visit_Body(compiler, Call_get_params(node));
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_CALL);
+	compiler_add_byte(compiler, O_CALL);
 }
 
 static void visit_MethodCall(struct Compiler *const compiler, const struct Node *const node) {
@@ -465,21 +446,13 @@ static void visit_MethodCall(struct Compiler *const compiler, const struct Node 
 	size_t len = strlen(str);
 	visit(compiler, Call_get_object(node));
 
-	struct YASL_Object value = YASL_Table_search_string_int(compiler->strings, str, len);
-	if (value.type == Y_END) {
-		YASL_COMPILE_DEBUG_LOG("%s\n", "caching string");
-		YASL_Table_insert_string_int(compiler->strings, str, len, compiler->strings->count);
-		YASL_ByteBuffer_add_int(compiler->header, len);
-		YASL_ByteBuffer_extend(compiler->header, (unsigned char *) str, len);
-	}
+	yasl_int index = compiler_intern_string(compiler, str, len);
 
-	value = YASL_Table_search_string_int(compiler->strings, str, len);
-
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_INIT_MC);
-	YASL_ByteBuffer_add_int(compiler->buffer, value.value.ival);
+	compiler_add_byte(compiler, O_INIT_MC);
+	compiler_add_int(compiler, index);
 
 	visit_Body(compiler, Call_get_params(node));
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_CALL);
+	compiler_add_byte(compiler, O_CALL);
 }
 
 static void visit_Return(struct Compiler *const compiler, const struct Node *const node) {
@@ -489,7 +462,7 @@ static void visit_Return(struct Compiler *const compiler, const struct Node *con
 		return;
 	}
 	visit(compiler, Return_get_expr(node));
-	YASL_ByteBuffer_add_byte(compiler->buffer, compiler->params->usedinclosure ? O_CRET : O_RET);
+	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CRET : O_RET);
 }
 
 static void visit_Export(struct Compiler *const compiler, const struct Node *const node) {
@@ -499,27 +472,27 @@ static void visit_Export(struct Compiler *const compiler, const struct Node *con
 		return;
 	}
 	visit(compiler, Export_get_expr(node));
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_EXPORT);
+	compiler_add_byte(compiler, O_EXPORT);
 }
 
 static void visit_Set(struct Compiler *const compiler, const struct Node *const node) {
 	visit(compiler, Set_get_collection(node));
 	visit(compiler, Set_get_key(node));
 	visit(compiler, Set_get_value(node));
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_SET);
+	compiler_add_byte(compiler, O_SET);
 }
 
 static void visit_Get(struct Compiler *const compiler, const struct Node *const node) {
 	visit(compiler, Get_get_collection(node));
 	visit(compiler, Get_get_value(node));
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_GET);
+	compiler_add_byte(compiler, O_GET);
 }
 
 static void visit_Slice(struct Compiler *const compiler, const struct Node *const node) {
 	visit(compiler, Slice_get_collection(node));
 	visit(compiler, Slice_get_start(node));
 	visit(compiler, Slice_get_end(node));
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_SLICE);
+	compiler_add_byte(compiler, O_SLICE);
 }
 
 static void visit_Block(struct Compiler *const compiler, const struct Node *const node) {
@@ -529,8 +502,8 @@ static void visit_Block(struct Compiler *const compiler, const struct Node *cons
 }
 
 static inline void branch_back(struct Compiler *const compiler, int64_t index) {
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_BR_8);
-	YASL_ByteBuffer_add_int(compiler->buffer, index - compiler->buffer->count - 8);
+	compiler_add_byte(compiler, O_BR_8);
+	compiler_add_int(compiler, index - compiler->buffer->count - 8);
 }
 
 static void visit_Comp_cond(struct Compiler *const compiler, const struct Node *const cond, const struct Node *const expr) {
@@ -550,9 +523,9 @@ static void visit_Comp_cond(struct Compiler *const compiler, const struct Node *
 static void visit_Comp(struct Compiler *const compiler, const struct Node *const node, unsigned char byte) {
 	enter_scope(compiler);
 
-	struct Node *expr = ListComp_get_expr(node);
-	struct Node *cond = ListComp_get_cond(node);
-	struct Node *iter = ListComp_get_iter(node);
+	struct Node *expr = Comp_get_expr(node);
+	struct Node *cond = Comp_get_cond(node);
+	struct Node *iter = Comp_get_iter(node);
 
 	struct Node *collection = LetIter_get_collection(iter);
 
@@ -560,14 +533,14 @@ static void visit_Comp(struct Compiler *const compiler, const struct Node *const
 
 	visit(compiler, collection);
 
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_INITFOR);
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_END);
+	compiler_add_byte(compiler, O_INITFOR);
+	compiler_add_byte(compiler, O_END);
 	decl_var(compiler, name, iter->line);
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_END);
+	compiler_add_byte(compiler, O_END);
 
 	int64_t index_start = compiler->buffer->count;
 
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_ITER_1);
+	compiler_add_byte(compiler, O_ITER_1);
 
 	int64_t index_second;
 	enter_conditional_false(compiler, &index_second);
@@ -580,8 +553,8 @@ static void visit_Comp(struct Compiler *const compiler, const struct Node *const
 
 	exit_conditional_false(compiler, &index_second);
 
-	YASL_ByteBuffer_add_byte(compiler->buffer, byte);
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_ENDCOMP);
+	compiler_add_byte(compiler, byte);
+	compiler_add_byte(compiler, O_ENDCOMP);
 
 	size_t curr = compiler->buffer->count;
 	exit_scope(compiler);
@@ -607,14 +580,14 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 
 	visit(compiler, collection);
 
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_INITFOR);
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_END);
+	compiler_add_byte(compiler, O_INITFOR);
+	compiler_add_byte(compiler, O_END);
 	decl_var(compiler, name, iter->line);
 
 	size_t index_start = compiler->buffer->count;
 	add_checkpoint(compiler, index_start);
 
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_ITER_1);
+	compiler_add_byte(compiler, O_ITER_1);
 
 	add_checkpoint(compiler, compiler->buffer->count);
 
@@ -629,7 +602,7 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 
 	exit_conditional_false(compiler, &index_second);
 
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_ENDFOR);
+	compiler_add_byte(compiler, O_ENDFOR);
 	exit_scope(compiler);
 
 	rm_checkpoint(compiler);
@@ -637,9 +610,9 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 }
 
 static void enter_jump(struct Compiler *const compiler, size_t *index) {
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_BR_8);
+	compiler_add_byte(compiler, O_BR_8);
 	*index = compiler->buffer->count;
-	YASL_ByteBuffer_add_int(compiler->buffer, 0);
+	compiler_add_int(compiler, 0);
 }
 
 static void exit_jump(struct Compiler *const compiler, const size_t *const index) {
@@ -718,7 +691,7 @@ static void visit_Break(struct Compiler *const compiler, const struct Node *cons
 		handle_error(compiler);
 		return;
 	}
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_BCONST_F);
+	compiler_add_byte(compiler, O_BCONST_F);
 	branch_back(compiler, break_checkpoint(compiler));
 }
 
@@ -731,52 +704,57 @@ static void visit_Continue(struct Compiler *const compiler, const struct Node *c
 	branch_back(compiler, continue_checkpoint(compiler));
 }
 
-static yasl_int intern_string(struct Compiler *const compiler, const struct Node *const node) {
-	const char *const str = String_get_str(node);
-	size_t len = String_get_len(node);
-
+yasl_int compiler_intern_string(struct Compiler *const compiler, const char *const str, const size_t len) {
 	struct YASL_Object value = YASL_Table_search_string_int(compiler->strings, str, len);
 	if (value.type == Y_END) {
 		YASL_COMPILE_DEBUG_LOG("%s\n", "caching string");
-		YASL_Table_insert_string_int(compiler->strings, str, len, compiler->strings->count);
+		size_t index = compiler->strings->count;
+		YASL_Table_insert_string_int(compiler->strings, str, len, index);
+		YASL_ByteBuffer_add_byte(compiler->header, O_SCONST);
 		YASL_ByteBuffer_add_int(compiler->header, len);
 		YASL_ByteBuffer_extend(compiler->header, (unsigned char *) str, len);
+		return index;
 	}
-
-	value = YASL_Table_search_string_int(compiler->strings, str, len);
 
 	return value.value.ival;
 }
 
+static yasl_int intern_string(struct Compiler *const compiler, const struct Node *const node) {
+	const char *const str = String_get_str(node);
+	size_t len = String_get_len(node);
+
+	return compiler_intern_string(compiler, str, len);
+}
+
 static void visit_UndefPattern(struct Compiler *const compiler, const struct Node *const node) {
 	(void) node;
-	YASL_ByteBuffer_add_byte(compiler->buffer, P_UNDEF);
+	compiler_add_byte(compiler, P_UNDEF);
 }
 
 static void visit_BoolPattern(struct Compiler *const compiler, const struct Node *const node) {
-	YASL_ByteBuffer_add_byte(compiler->buffer, P_BOOL);
-	YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char)((bool)node->value.ival ? 1 : 0));
+	compiler_add_byte(compiler, P_BOOL);
+	compiler_add_byte(compiler, (unsigned char)((bool)node->value.ival ? 1 : 0));
 }
 
 static void visit_FloatPattern(struct Compiler *const compiler, const struct Node *const node) {
-	YASL_ByteBuffer_add_byte(compiler->buffer, P_FL);
+	compiler_add_byte(compiler, P_FL);
 	YASL_ByteBuffer_add_float(compiler->buffer, node->value.dval);
 }
 
 static void visit_IntPattern(struct Compiler *const compiler, const struct Node *const node) {
-	YASL_ByteBuffer_add_byte(compiler->buffer, P_INT);
-	YASL_ByteBuffer_add_int(compiler->buffer, node->value.ival);
+	compiler_add_byte(compiler, P_INT);
+	compiler_add_int(compiler, node->value.ival);
 }
 
 static void visit_StringPattern(struct Compiler *const compiler, const struct Node *const node) {
 	yasl_int index = intern_string(compiler, node);
-	YASL_ByteBuffer_add_byte(compiler->buffer, P_STR);
-	YASL_ByteBuffer_add_int(compiler->buffer, index);
+	compiler_add_byte(compiler, P_STR);
+	compiler_add_int(compiler, index);
 }
 
 static void visit_CollectionPattern(struct Compiler *const compiler, const struct Node *const node, unsigned char byte) {
-	YASL_ByteBuffer_add_byte(compiler->buffer, byte);
-	YASL_ByteBuffer_add_int(compiler->buffer, node->children_len);
+	compiler_add_byte(compiler, byte);
+	compiler_add_int(compiler, node->children_len);
 	bool old = compiler->leftmost_pattern;
 	FOR_CHILDREN(i, child, node) {
 			visit(compiler, child);
@@ -800,10 +778,6 @@ static void visit_VarListPattern(struct Compiler *const compiler, const struct N
 	visit_CollectionPattern(compiler, node, P_VLS);
 }
 
-static struct Scope *get_scope_in_use(struct Compiler *const compiler) {
-	return in_function(compiler) ? compiler->params->scope : compiler->stack;
-}
-
 static void visit_DeclPattern(struct Compiler *const compiler, const struct Node *const node, const bool isconst) {
 	char *name = Decl_get_name(node);
 	YASL_Table_insert_string_int(&compiler->seen_bindings, name, strlen(name), 1);
@@ -823,7 +797,7 @@ static void visit_DeclPattern(struct Compiler *const compiler, const struct Node
 		if (isconst) make_const(compiler, Decl_get_name(node));
 	}
 
-	YASL_ByteBuffer_add_byte(compiler->buffer, P_BIND);
+	compiler_add_byte(compiler, P_BIND);
 	int64_t index = scope_get(get_scope_in_use(compiler), name);
 	if (is_const(index) != isconst) {
 		compiler_print_err_syntax(compiler, "%s must be bound with either `const` or `let` on both sides of | (line %" PRI_SIZET ").\n", name, node->line);
@@ -831,7 +805,7 @@ static void visit_DeclPattern(struct Compiler *const compiler, const struct Node
 		return;
 	}
 
-	YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char)get_index(index));
+	compiler_add_byte(compiler, (unsigned char)get_index(index));
 }
 
 static void visit_LetPattern(struct Compiler *const compiler, const struct Node *const node) {
@@ -844,11 +818,11 @@ static void visit_ConstPattern(struct Compiler *const compiler, const struct Nod
 
 static void visit_AnyPattern(struct Compiler *const compiler, const struct Node *const node) {
 	(void) node;
-	YASL_ByteBuffer_add_byte(compiler->buffer, P_ANY);
+	compiler_add_byte(compiler, P_ANY);
 }
 
 static void visit_AltPattern(struct Compiler *const compiler, const struct Node *const node) {
-	YASL_ByteBuffer_add_byte(compiler->buffer, P_ALT);
+	compiler_add_byte(compiler, P_ALT);
 	struct YASL_Table prev = compiler->seen_bindings;
 	compiler->seen_bindings = NEW_TABLE();
 	visit(compiler, BinOp_get_left(node));
@@ -887,17 +861,17 @@ cleanup:
 
 static void visit_Match_helper(struct Compiler *const compiler, const struct Node *const patterns, const struct Node *const bodies, size_t curr) {
 	size_t start = compiler->buffer->count;
-	YASL_ByteBuffer_add_int(compiler->buffer, 0);
-	YASL_ByteBuffer_add_int(compiler->buffer, 0);
+	compiler_add_int(compiler, 0);
+	compiler_add_int(compiler, 0);
 
 	enter_scope(compiler);
 	compiler->leftmost_pattern = true;
 	visit(compiler, patterns->children[curr]);
 	int64_t body_start = compiler->buffer->count;
-	unsigned char bindings = (unsigned char) (in_function(compiler) ? compiler->params->scope->vars.count : compiler->stack->vars.count);
+	unsigned char bindings = (unsigned char) get_scope_in_use(compiler)->vars.count;
 	if (bindings) {
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_INCSP);
-		YASL_ByteBuffer_add_byte(compiler->buffer, bindings);
+		compiler_add_byte(compiler, O_INCSP);
+		compiler_add_byte(compiler, bindings);
 	}
 	visit(compiler, bodies->children[curr]);
 	exit_scope(compiler);
@@ -927,12 +901,12 @@ static void visit_Match(struct Compiler *const compiler, const struct Node *cons
 	struct Node *bodies = Match_get_bodies(node);
 	visit(compiler, expr);
 	if (patterns->children_len == 0) {
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_POP);
+		compiler_add_byte(compiler, O_POP);
 		return;
 	}
 
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_MATCH);
-	YASL_ByteBuffer_add_int(compiler->buffer, patterns->children_len);
+	compiler_add_byte(compiler, O_MATCH);
+	compiler_add_int(compiler, patterns->children_len);
 	visit_Match_helper(compiler, patterns, bodies, 0);
 }
 
@@ -984,7 +958,7 @@ static void visit_If(struct Compiler *const compiler, const struct Node *const n
 
 static void visit_Print(struct Compiler *const compiler, const struct Node *const node) {
 	visit(compiler, Print_get_expr(node));
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_PRINT);
+	compiler_add_byte(compiler, O_PRINT);
 }
 
 static void declare_with_let_or_const(struct Compiler *const compiler, const struct Node *const node) {
@@ -1003,7 +977,7 @@ static void declare_with_let_or_const(struct Compiler *const compiler, const str
 		visit(compiler, expr);
 	} else {
 		if (expr) visit(compiler, expr);
-		else YASL_ByteBuffer_add_byte(compiler->buffer, O_NCONST);
+		else compiler_add_byte(compiler, O_NCONST);
 
 		decl_var(compiler, name, node->line);
 	}
@@ -1027,8 +1001,35 @@ static void visit_Const(struct Compiler *const compiler, const struct Node *cons
 }
 
 static void visit_Decl(struct Compiler *const compiler, const struct Node *const node) {
+	FOR_CHILDREN(i, child_expr, node) {
+		visit(compiler, child_expr->children[0]);
+	}
+
 	FOR_CHILDREN(i, child, node) {
-		visit(compiler, child);
+		const char *name = child->value.sval.str;
+		if (child->nodetype == N_ASSIGN) {
+			if (!contains_var(compiler, name)) {
+				compiler_print_err_undeclared_var(compiler, name, node->line);
+				handle_error(compiler);
+				return;
+			}
+			compiler_add_byte(compiler, O_MOVEUP);
+			compiler_add_byte(compiler, (unsigned char)get_scope_in_use(compiler)->vars.count);
+			store_var(compiler, name, node->line);
+		} else {
+			if (contains_var_in_current_scope(compiler, name)) {
+				compiler_print_err_syntax(compiler, "Illegal redeclaration of %s (line %" PRI_SIZET ").\n", name, node->line);
+				handle_error(compiler);
+				return;
+			}
+			decl_var(compiler, name, child->line);
+			if (!in_function(compiler) && !compiler->stack) {
+				compiler_add_byte(compiler, O_MOVEUP);
+				compiler_add_byte(compiler, (unsigned char)0);
+				store_var(compiler, name, node->line);
+			}
+			if (child->nodetype == N_CONST) make_const(compiler, name);
+		}
 	}
 }
 
@@ -1055,11 +1056,11 @@ static void visit_TriOp(struct Compiler *const compiler, const struct Node *cons
 
 static void visit_BinOp_shortcircuit(struct Compiler *const compiler, const struct Node *const node, enum Opcode jump_type) {
 	visit(compiler, BinOp_get_left(node));
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_DUP);
-	YASL_ByteBuffer_add_byte(compiler->buffer, jump_type);
+	compiler_add_byte(compiler, O_DUP);
+	compiler_add_byte(compiler, jump_type);
 	size_t index = compiler->buffer->count;
-	YASL_ByteBuffer_add_int(compiler->buffer, 0);
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_POP);
+	compiler_add_int(compiler, 0);
+	compiler_add_byte(compiler, O_POP);
 	visit(compiler, BinOp_get_right(node));
 	YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, index, compiler->buffer->count - index - 8);
 }
@@ -1082,72 +1083,72 @@ static void visit_BinOp(struct Compiler *const compiler, const struct Node *cons
 	visit(compiler, BinOp_get_right(node));
 	switch (node->value.type) {
 	case T_BAR:
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_BOR);
+		compiler_add_byte(compiler, O_BOR);
 		break;
 	case T_CARET:
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_BXOR);
+		compiler_add_byte(compiler, O_BXOR);
 		break;
 	case T_AMP:
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_BAND);
+		compiler_add_byte(compiler, O_BAND);
 		break;
 	case T_AMPCARET:
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_BANDNOT);
+		compiler_add_byte(compiler, O_BANDNOT);
 		break;
 	case T_DEQ:
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_EQ);
+		compiler_add_byte(compiler, O_EQ);
 		break;
 	case T_TEQ:
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_ID);
+		compiler_add_byte(compiler, O_ID);
 		break;
 	case T_BANGEQ:
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_EQ);
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_NOT);
+		compiler_add_byte(compiler, O_EQ);
+		compiler_add_byte(compiler, O_NOT);
 		break;
 	case T_BANGDEQ:
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_ID);
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_NOT);
+		compiler_add_byte(compiler, O_ID);
+		compiler_add_byte(compiler, O_NOT);
 		break;
 	case T_GT:
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_GT);
+		compiler_add_byte(compiler, O_GT);
 		break;
 	case T_GTEQ:
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_GE);
+		compiler_add_byte(compiler, O_GE);
 		break;
 	case T_LT:
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_LT);
+		compiler_add_byte(compiler, O_LT);
 		break;
 	case T_LTEQ:
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_LE);
+		compiler_add_byte(compiler, O_LE);
 		break;
 	case T_TILDE:
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_CNCT);
+		compiler_add_byte(compiler, O_CNCT);
 		break;
 	case T_DGT:
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_BSR);
+		compiler_add_byte(compiler, O_BSR);
 		break;
 	case T_DLT:
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_BSL);
+		compiler_add_byte(compiler, O_BSL);
 		break;
 	case T_PLUS:
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_ADD);
+		compiler_add_byte(compiler, O_ADD);
 		break;
 	case T_MINUS:
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_SUB);
+		compiler_add_byte(compiler, O_SUB);
 		break;
 	case T_STAR:
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_MUL);
+		compiler_add_byte(compiler, O_MUL);
 		break;
 	case T_SLASH:
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_FDIV);
+		compiler_add_byte(compiler, O_FDIV);
 		break;
 	case T_DSLASH:
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_IDIV);
+		compiler_add_byte(compiler, O_IDIV);
 		break;
 	case T_MOD:
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_MOD);
+		compiler_add_byte(compiler, O_MOD);
 		break;
 	case T_DSTAR:
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_EXP);
+		compiler_add_byte(compiler, O_EXP);
 		break;
 	default:
 		puts("error in visit_BinOp");
@@ -1158,15 +1159,20 @@ static void visit_BinOp(struct Compiler *const compiler, const struct Node *cons
 static void visit_UnOp(struct Compiler *const compiler, const struct Node *const node) {
 	visit(compiler, UnOp_get_expr(node));
 	switch (node->value.type) {
-	case T_PLUS: YASL_ByteBuffer_add_byte(compiler->buffer, O_POS);
+	case T_PLUS:
+		compiler_add_byte(compiler, O_POS);
 		break;
-	case T_MINUS: YASL_ByteBuffer_add_byte(compiler->buffer, O_NEG);
+	case T_MINUS:
+		compiler_add_byte(compiler, O_NEG);
 		break;
-	case T_BANG: YASL_ByteBuffer_add_byte(compiler->buffer, O_NOT);
+	case T_BANG:
+		compiler_add_byte(compiler, O_NOT);
 		break;
-	case T_CARET: YASL_ByteBuffer_add_byte(compiler->buffer, O_BNOT);
+	case T_CARET:
+		compiler_add_byte(compiler, O_BNOT);
 		break;
-	case T_LEN: YASL_ByteBuffer_add_byte(compiler->buffer, O_LEN);
+	case T_LEN:
+		compiler_add_byte(compiler, O_LEN);
 		break;
 	default:
 		YASL_ASSERT(false, "Error in visit_UnOp");
@@ -1191,73 +1197,47 @@ static void visit_Var(struct Compiler *const compiler, const struct Node *const 
 
 static void visit_Undef(struct Compiler *const compiler, const struct Node *const node) {
 	(void) node;
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_NCONST);
+	compiler_add_byte(compiler, O_NCONST);
 }
 
 static void visit_Float(struct Compiler *const compiler, const struct Node *const node) {
 	yasl_float val = Float_get_float(node);
-	if (val == 0.0) {
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_DCONST_0);
-	} else if (val == 1.0) {
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_DCONST_1);
-	} else if (val == 2.0) {
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_DCONST_2);
-	} else {
-		YASL_ByteBuffer_add_byte(compiler->buffer, O_DCONST);
-		YASL_ByteBuffer_add_float(compiler->buffer, val);
-	}
+	compiler_add_byte(compiler, O_DCONST);
+	YASL_ByteBuffer_add_float(compiler->buffer, val);
 }
 
 static void visit_Integer(struct Compiler *const compiler, const struct Node *const node) {
 	yasl_int val = Integer_get_int(node);
-	YASL_COMPILE_DEBUG_LOG("int64: %" PRId64 "\n", val);
-	switch (val) {
-	case -1: YASL_ByteBuffer_add_byte(compiler->buffer, O_ICONST_M1);
-		break;
-	case 0: YASL_ByteBuffer_add_byte(compiler->buffer, O_ICONST_0);
-		break;
-	case 1: YASL_ByteBuffer_add_byte(compiler->buffer, O_ICONST_1);
-		break;
-	case 2: YASL_ByteBuffer_add_byte(compiler->buffer, O_ICONST_2);
-		break;
-	case 3: YASL_ByteBuffer_add_byte(compiler->buffer, O_ICONST_3);
-		break;
-	case 4: YASL_ByteBuffer_add_byte(compiler->buffer, O_ICONST_4);
-		break;
-	case 5: YASL_ByteBuffer_add_byte(compiler->buffer, O_ICONST_5);
-		break;
-	default:
-		if (-(1 << 7) < val && val < (1 << 7)) {
-			YASL_ByteBuffer_add_byte(compiler->buffer, O_ICONST_B1);
-			YASL_ByteBuffer_add_byte(compiler->buffer, (unsigned char) val);
-		} else {
-			YASL_ByteBuffer_add_byte(compiler->buffer, O_ICONST_B8);
-			YASL_ByteBuffer_add_int(compiler->buffer, val);
-		}
-		break;
+	YASL_COMPILE_DEBUG_LOG("int: %" PRId64 "\n", val);
+	if (-(1 << 7) < val && val < (1 << 7)) {
+		compiler_add_byte(compiler, O_ICONST_B1);
+		compiler_add_byte(compiler, (unsigned char) val);
+	} else {
+		compiler_add_byte(compiler, O_ICONST_B8);
+		compiler_add_int(compiler, val);
 	}
 }
 
 static void visit_Boolean(struct Compiler *const compiler, const struct Node *const node) {
-	YASL_ByteBuffer_add_byte(compiler->buffer, Boolean_get_bool(node) ? O_BCONST_T : O_BCONST_F);
+	compiler_add_byte(compiler, Boolean_get_bool(node) ? O_BCONST_T : O_BCONST_F);
 }
 
 static void visit_String(struct Compiler *const compiler, const struct Node *const node) {
 	yasl_int index = intern_string(compiler, node);
 
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_NEWSTR);
-	YASL_ByteBuffer_add_int(compiler->buffer, index);
+	compiler_add_byte(compiler, O_NEWSTR);
+	compiler_add_int(compiler, index);
 }
 
 static void visit_Assert(struct Compiler *const compiler, const struct Node *const node) {
 	visit(compiler, Assert_get_expr(node));
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_ASS);
+	compiler_add_byte(compiler, O_ASS);
 }
 
 static void make_new_collection(struct Compiler *const compiler, const struct Node *const node, enum Opcode type) {
-	YASL_ByteBuffer_add_byte(compiler->buffer, O_END);
+	compiler_add_byte(compiler, O_END);
 	visit_Body(compiler, node);
-	YASL_ByteBuffer_add_byte(compiler->buffer, type);
+	compiler_add_byte(compiler, type);
 }
 
 static void visit_List(struct Compiler *const compiler, const struct Node *const node) {
