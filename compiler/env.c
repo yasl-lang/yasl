@@ -196,9 +196,7 @@ int64_t scope_get(const struct Scope *const scope, const char *const name) {
 	struct YASL_Object value = YASL_Table_search(&scope->vars, key);
 	str_del(key.value.sval);
 	if (value.type == Y_END && scope->parent == NULL) {
-		printf("error in scope_get with key: ");
-		print(key);
-		exit(EXIT_FAILURE);
+		YASL_ASSERT(false, "Lookup should not fail.");
 	}
 	if (value.type == Y_END) return scope_get(scope->parent, name);
 	return value.value.ival;

@@ -563,7 +563,7 @@ void *YASL_top_popuserdata(struct YASL_State *S) {
 }
 
 void *YASL_top_peekuserpointer(struct YASL_State *S) {
-	return YASL_GETUSERPTR(vm_peek(&S->vm));
+	return obj_getuserptr(vm_peek_p(&S->vm));
 }
 
 void *YASL_popuserptr(struct YASL_State *S) {
@@ -573,3 +573,24 @@ void *YASL_popuserptr(struct YASL_State *S) {
 void *YASL_top_popuserpointer(struct YASL_State *S) {
 	return YASL_popuserptr(S);
 }
+
+// TODO: change this to static once we remove all references to it.
+// NOTE: Keep up to date with the YASL_Types
+const char *YASL_TYPE_NAMES[] = {
+	"undef",    // Y_UNDEF,
+	"float",    // Y_FLOAT,
+	"int",      // Y_INT,
+	"bool",     // Y_BOOL,
+	"str",      // Y_STR,
+	"str",      // Y_STR_W,
+	"list",     // Y_LIST,
+	"list",     // Y_LIST_W,
+	"table",    // Y_TABLE,
+	"table",    // Y_TABLE_W,
+	"fn",       // Y_FN,
+	"fn",	    // Y_CLOSURE,
+	"fn",       // Y_CFN,
+	"userptr",  // Y_USERPTR,
+	"userdata", // Y_USERDATA,
+	"userdata", // Y_USERDATA_W
+};
