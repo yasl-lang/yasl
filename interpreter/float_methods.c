@@ -5,12 +5,10 @@
 #include "yasl.h"
 #include "yasl_aux.h"
 #include "yasl_float.h"
-#include "yasl_include.h"
-#include "yasl_types.h"
 
 int float_toint(struct YASL_State *S) {
 	if (!YASL_isfloat(S)) {
-		YASLX_print_err_bad_arg_type(S, "float.toint", 0, "float", YASL_TYPE_NAMES[YASL_peektype(S)]);
+		YASLX_print_err_bad_arg_type(S, "float.toint", 0, "float", YASL_peektypestr(S));
 		return YASL_TYPE_ERROR;
 	}
 	yasl_float val = YASL_popfloat(S);
@@ -20,7 +18,7 @@ int float_toint(struct YASL_State *S) {
 
 int float_tobool(struct YASL_State *S) {
 	if (!YASL_isfloat(S)) {
-		YASLX_print_err_bad_arg_type(S, "float.tobool", 0, "float", YASL_TYPE_NAMES[YASL_peektype(S)]);
+		YASLX_print_err_bad_arg_type(S, "float.tobool", 0, "float", YASL_peektypestr(S));
 		return YASL_TYPE_ERROR;
 	}
 	yasl_float a = YASL_popfloat(S);
@@ -31,7 +29,7 @@ int float_tobool(struct YASL_State *S) {
 
 int float_tofloat(struct YASL_State *S) {
 	if (!YASL_isfloat(S)) {
-		YASLX_print_err_bad_arg_type(S, "float.tofloat", 0, "float", YASL_TYPE_NAMES[YASL_peektype(S)]);
+		YASLX_print_err_bad_arg_type(S, "float.tofloat", 0, "float", YASL_peektypestr(S));
 		return YASL_TYPE_ERROR;
 	}
 	return YASL_SUCCESS;
@@ -39,7 +37,7 @@ int float_tofloat(struct YASL_State *S) {
 
 int float_tostr(struct YASL_State *S) {
 	if (!YASL_isfloat(S)) {
-		YASLX_print_err_bad_arg_type(S, "float.tostr", 0, "float", YASL_TYPE_NAMES[YASL_peektype(S)]);
+		YASLX_print_err_bad_arg_type(S, "float.tostr", 0, "float", YASL_peektypestr(S));
 		return YASL_TYPE_ERROR;
 	}
 	yasl_float val = YASL_popfloat(S);

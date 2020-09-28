@@ -247,6 +247,10 @@ int YASL_peektype(struct YASL_State *S) {
 	return vm_peek(&S->vm).type;
 }
 
+const char *YASL_peektypestr(struct YASL_State *S) {
+	return YASL_TYPE_NAMES[YASL_peektype(S)];
+}
+
 int YASL_top_peektype(struct YASL_State *S) {
 	return YASL_peektype(S);
 }

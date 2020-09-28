@@ -2,14 +2,10 @@
 
 #include "yasl.h"
 #include "yasl_aux.h"
-#include "yasl_float.h"
-#include "yasl_include.h"
-#include "yasl_types.h"
-// #include "interpreter/VM.h"
 
 int bool_tostr(struct YASL_State *S) {
 	if (!YASL_isbool(S)) {
-		YASLX_print_err_bad_arg_type(S, "bool.tostr", 0, "bool", YASL_TYPE_NAMES[YASL_peektype(S)]);
+		YASLX_print_err_bad_arg_type(S, "bool.tostr", 0, "bool", YASL_peektypestr(S));
 		return YASL_TYPE_ERROR;
 	}
 	const char *str = YASL_popbool(S) ? "true" : "false";
@@ -19,7 +15,7 @@ int bool_tostr(struct YASL_State *S) {
 
 int bool_tobool(struct YASL_State *S) {
 	if (!YASL_isbool(S)) {
-		YASLX_print_err_bad_arg_type(S, "bool.tobool", 0, "bool", YASL_TYPE_NAMES[YASL_peektype(S)]);
+		YASLX_print_err_bad_arg_type(S, "bool.tobool", 0, "bool", YASL_peektypestr(S));
 		return YASL_TYPE_ERROR;
 	}
 	return YASL_SUCCESS;

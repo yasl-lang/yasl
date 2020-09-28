@@ -267,6 +267,13 @@ int YASL_listpush(struct YASL_State *S);
 int YASL_peektype(struct YASL_State *S);
 
 /**
+ * returns the type of the top of the stack as a string.
+ * @param S the YASL_State to which the stack belongs.
+ * @return the string representation of the type on top of the stack.
+ */
+const char *YASL_peektypestr(struct YASL_State *S);
+
+/**
  * checks if the top of the stack is undef.
  * @param S the YASL_State to which the stack belongs.
  * @return true if the top of the stack is undef, else false.
