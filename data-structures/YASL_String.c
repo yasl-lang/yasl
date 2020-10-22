@@ -12,21 +12,25 @@
 #include "data-structures/YASL_ByteBuffer.h"
 
 #define iswhitespace(c) ((c) == ' ' || (c) == '\t' || (c) == '\n' || (c) == '\v' || (c) == '\r')
-#define isalphabetic
-#define isnumeric
 
 size_t YASL_String_len(const struct YASL_String *const str) {
 	return (size_t)(str->end - str->start);
 }
 
+const char *YASL_String_chars(const struct YASL_String *const str) {
+	return str->str + str->start;
+}
+
 int64_t YASL_String_cmp(const struct YASL_String *const left, const struct YASL_String *const right) {
-	if (YASL_String_len(left) == YASL_String_len(right)) {
-		return memcmp(left->str + left->start, right->str + right->start, YASL_String_len(left));
-	} else if (YASL_String_len(left) < YASL_String_len(right)) {
-		int64_t tmp = memcmp(left->str + left->start, right->str + right->start, YASL_String_len(left));
+	const size_t left_len = YASL_String_len(left);
+	const size_t right_len = YASL_String_len(right);
+	if (left_len == right_len) {
+		return memcmp(left->str + left->start, right->str + right->start, left_len);
+	} else if (left_len < right_len) {
+		int64_t tmp = memcmp(left->str + left->start, right->str + right->start, left_len);
 		return tmp ? tmp : -1;
 	} else {
-		int64_t tmp = memcmp(left->str + left->start, right->str + right->start, YASL_String_len(right));
+		int64_t tmp = memcmp(left->str + left->start, right->str + right->start, right_len);
 		return tmp ? tmp : 1;
 	}
 }
@@ -138,12 +142,14 @@ bool isvaliddouble(const char *str) {
 
 int64_t str_find_index(const struct YASL_String *const haystack, const struct YASL_String *const needle) {
 	// TODO: implement non-naive algorithm for string search.
-	if (YASL_String_len(haystack) < YASL_String_len(needle)) return -1;
+	const size_t haystack_len = YASL_String_len(haystack);
+	const size_t needle_len = YASL_String_len(needle);
+	if (haystack_len < needle_len) return -1;
 	size_t i = 0;
 	const char *hayStr = haystack->str + haystack->start;
 	const char *needleStr = needle->str + needle->start;
-	while (i <= YASL_String_len(haystack) - YASL_String_len(needle)) {
-		if (!memcmp(hayStr + i, needleStr, YASL_String_len(needle))) return i;
+	while (i <= haystack_len - needle_len) {
+		if (!memcmp(hayStr + i, needleStr, needle_len)) return i;
 		i++;
 	}
 	return -1;
@@ -341,11 +347,12 @@ bool YASL_String_isspace(struct YASL_String *a) {
 }
 
 bool YASL_String_startswith(struct YASL_String *haystack, struct YASL_String *needle) {
-	if ((YASL_String_len(haystack) < YASL_String_len(needle))) {
+	const size_t needle_len = YASL_String_len(needle);
+	if ((YASL_String_len(haystack) < needle_len)) {
 		return false;
 	}
 	size_t i = 0;
-	while (i < YASL_String_len(needle)) {
+	while (i < needle_len) {
 		if (haystack->str[i + haystack->start] != needle->str[i + needle->start]) {
 			return false;
 		}
@@ -356,13 +363,15 @@ bool YASL_String_startswith(struct YASL_String *haystack, struct YASL_String *ne
 }
 
 bool YASL_String_endswith(struct YASL_String *haystack, struct YASL_String *needle) {
-	if ((YASL_String_len(haystack) < YASL_String_len(needle))) {
+	const size_t haystack_len = YASL_String_len(haystack);
+	const size_t needle_len = YASL_String_len(needle);
+	if ((haystack_len < needle_len)) {
 		return false;
 	}
 	size_t i = 0;
-	while (i < YASL_String_len(needle)) {
-		if ((haystack)->str[i + haystack->start + YASL_String_len(haystack) - YASL_String_len(needle)]
-		    != (needle)->str[i + needle->start]) {
+	while (i < needle_len) {
+		if (haystack->str[i + haystack->start + haystack_len - needle_len]
+		    != needle->str[i + needle->start]) {
 			return false;
 		}
 		i++;
@@ -425,8 +434,8 @@ struct YASL_String *YASL_String_replace_fast(struct YASL_String *str, struct YAS
 }
 
 yasl_int YASL_String_count(struct YASL_String *haystack, struct YASL_String *needle) {
-	size_t nLen = YASL_String_len(needle);
-	size_t hLen = YASL_String_len(haystack);
+	const size_t nLen = YASL_String_len(needle);
+	const size_t hLen = YASL_String_len(haystack);
 	int64_t count = 0;
 	for(int64_t i = 0; i + nLen <= hLen; i++) {
 		if(memcmp(needle->str + needle->start, haystack->str + haystack->start + i, nLen) == 0) {
@@ -439,15 +448,16 @@ yasl_int YASL_String_count(struct YASL_String *haystack, struct YASL_String *nee
 }
 
 struct RC_UserData *string_split_default(struct YASL_String *haystack) {
+	const size_t haystack_len = YASL_String_len(haystack);
 	size_t end = 0, start = 0;
 	struct RC_UserData *result = rcls_new();
 	while (true) {
-		while (end < YASL_String_len(haystack) && iswhitespace(*(haystack->str + haystack->start + end))) {
+		while (end < haystack_len && iswhitespace(*(haystack->str + haystack->start + end))) {
 			end++;
 		}
-		if (end >= YASL_String_len(haystack)) break;
+		if (end >= haystack_len) break;
 		start = end;
-		while (end < YASL_String_len(haystack) && !iswhitespace(*(haystack->str + haystack->start + end))) {
+		while (end < haystack_len && !iswhitespace(*(haystack->str + haystack->start + end))) {
 			end++;
 		}
 		struct YASL_Object to = YASL_STR(
@@ -461,16 +471,17 @@ struct RC_UserData *string_split_default(struct YASL_String *haystack) {
 // Caller makes sure needle is not 0 length
 struct RC_UserData *YASL_String_split_fast(struct YASL_String *haystack, struct YASL_String *needle) {
 	YASL_ASSERT(YASL_String_len(needle) != 0, "needle must have non-zero length");
+	const size_t needle_len = YASL_String_len(needle);
 	int64_t end = 0, start = 0;
 	struct RC_UserData *result = rcls_new();
-	while (end + YASL_String_len(needle) <= YASL_String_len(haystack)) {
+	while (end + needle_len <= YASL_String_len(haystack)) {
 		if (!memcmp(haystack->str + haystack->start + end,
 			    needle->str + needle->start,
-			    YASL_String_len(needle))) {
+			    needle_len)) {
 			struct YASL_Object to = YASL_STR(
 				YASL_String_new_substring(start + haystack->start, end + haystack->start, haystack));
 			YASL_List_append((struct YASL_List *) result->data, to);
-			end += YASL_String_len(needle);
+			end += needle_len;
 			start = end;
 		} else {
 			end++;
@@ -484,26 +495,29 @@ struct RC_UserData *YASL_String_split_fast(struct YASL_String *haystack, struct 
 }
 
 struct YASL_String *YASL_String_ltrim_default(struct YASL_String *haystack) {
+	const size_t haystack_len = YASL_String_len(haystack);
 	int64_t start = 0;
-	while (YASL_String_len(haystack) - start >= 1 && iswhitespace(*(haystack->str + haystack->start + start))) {
+	while (haystack_len - start >= 1 && iswhitespace(*(haystack->str + haystack->start + start))) {
 		start++;
 	}
 
-	int64_t end = YASL_String_len(haystack);
+	int64_t end = haystack_len;
 
 	return YASL_String_new_substring(haystack->start + start, haystack->start + end, haystack);
 }
 
 struct YASL_String *YASL_String_ltrim(struct YASL_String *haystack, struct YASL_String *needle) {
+	const size_t haystack_len = YASL_String_len(haystack);
+	const size_t needle_len = YASL_String_len(needle);
 	int64_t start=0;
-	while(YASL_String_len(haystack) - start >= YASL_String_len(needle) &&
+	while(haystack_len - start >= needle_len &&
 	      !memcmp(haystack->str + haystack->start + start,
 		      needle->str + needle->start,
-		      YASL_String_len(needle))) {
-		start += YASL_String_len(needle);
+		      needle_len)) {
+		start += needle_len;
 	}
 
-	return YASL_String_new_substring(haystack->start + start, haystack->start + YASL_String_len(haystack),
+	return YASL_String_new_substring(haystack->start + start, haystack->start + haystack_len,
 					 haystack);
 }
 
@@ -519,24 +533,26 @@ struct YASL_String *YASL_String_rtrim_default(struct YASL_String *haystack) {
 }
 
 struct YASL_String *YASL_String_rtrim(struct YASL_String *haystack, struct YASL_String *needle) {
+	const size_t needle_len = YASL_String_len(needle);
 	size_t end = YASL_String_len(haystack);
-	while (end >= YASL_String_len(needle) &&
-	       !memcmp(haystack->str + haystack->start + end - YASL_String_len(needle),
+	while (end >= needle_len &&
+	       !memcmp(haystack->str + haystack->start + end - needle_len,
 		       needle->str + needle->start,
-		       YASL_String_len(needle))) {
-		end -= YASL_String_len(needle);
+		       needle_len)) {
+		end -= needle_len;
 	}
 
 	return YASL_String_new_substring(haystack->start, haystack->start + end, haystack);
 }
 
 struct YASL_String *YASL_String_trim_default(struct YASL_String *haystack) {
+	const size_t haystack_len = YASL_String_len(haystack);
 	int64_t start = 0;
-	while (YASL_String_len(haystack) - start >= 1 && iswhitespace(*(haystack->str + haystack->start + start))) {
+	while (haystack_len - start >= 1 && iswhitespace(*(haystack->str + haystack->start + start))) {
 		start++;
 	}
 
-	int64_t end = YASL_String_len(haystack);
+	int64_t end = haystack_len;
 	while (end >= 1 && iswhitespace(*(haystack->str + haystack->start + end - 1))) {
 		end--;
 	}
@@ -545,20 +561,22 @@ struct YASL_String *YASL_String_trim_default(struct YASL_String *haystack) {
 }
 
 struct YASL_String *YASL_String_trim(struct YASL_String *haystack, struct YASL_String *needle) {
+	const size_t haystack_len = YASL_String_len(haystack);
+	const size_t needle_len = YASL_String_len(needle);
 	int64_t start = 0;
-	while (YASL_String_len(haystack) - start >= YASL_String_len(needle) &&
+	while (haystack_len - start >= needle_len &&
 	       !memcmp(haystack->str + haystack->start + start,
 		       needle->str + needle->start,
-		       YASL_String_len(needle))) {
-		start += YASL_String_len(needle);
+		       needle_len)) {
+		start += needle_len;
 	}
 
-	size_t end = YASL_String_len(haystack);
-	while (end >= YASL_String_len(needle) &&
-	       !memcmp(haystack->str + haystack->start + end - YASL_String_len(needle),
+	size_t end = haystack_len;
+	while (end >= needle_len &&
+	       !memcmp(haystack->str + haystack->start + end - needle_len,
 		       needle->str + needle->start,
-		       YASL_String_len(needle))) {
-		end -= YASL_String_len(needle);
+		       needle_len)) {
+		end -= needle_len;
 	}
 
 	return YASL_String_new_substring(haystack->start + start, haystack->start + end, haystack);
@@ -567,10 +585,11 @@ struct YASL_String *YASL_String_trim(struct YASL_String *haystack, struct YASL_S
 // Caller ensures num is greater than or equal to zero
 struct YASL_String *YASL_String_rep_fast(struct YASL_String *string, yasl_int num) {
 	YASL_ASSERT(num >= 0, "num must be nonnegative");
-	size_t size = num * YASL_String_len(string);
+	const size_t string_len = YASL_String_len(string);
+	size_t size = num * string_len;
 	char *str = (char *)malloc(size);
-	for (size_t i = 0; i < size; i += YASL_String_len(string)) {
-		memcpy(str + i, string->str + string->start, YASL_String_len(string));
+	for (size_t i = 0; i < size; i += string_len) {
+		memcpy(str + i, string->str + string->start, string_len);
 	}
 
 	return YASL_String_new_sized_heap(0, size, str);
