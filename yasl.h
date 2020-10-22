@@ -131,6 +131,13 @@ int YASL_setmt(struct YASL_State *S);
 void YASL_print_err(struct YASL_State *S, const char *const fmt, ...) YASL_FORMAT_CHECK;
 
 /**
+ * Causes a fatal error.
+ * @param S the YASL_State in which the error occured.
+ * @param error the error code.
+ */
+void YASL_throw_err(struct YASL_State *S, int error);
+
+/**
  * Pushes an undef value onto the stack.
  * @param S the YASL_State onto which to push the undef.
  * @return YASL_SUCCESS on success, otherwise an error code.

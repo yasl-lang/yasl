@@ -7,11 +7,7 @@
 #include "yasl_state.h"
 
 int list___get(struct YASL_State *S) {
-	if (!YASL_isint(S)) {
-		YASLX_print_err_bad_arg_type(S, "list.__get", 1, "int", YASL_peektypestr(S));
-		return YASL_TYPE_ERROR;
-	}
-	yasl_int index = YASL_popint(S);
+	yasl_int index = YASLX_checkint(S, "list.__get", 1);
 
 	if (!YASL_islist(S)) {
 		YASLX_print_err_bad_arg_type(S, "list.__get", 0, "list", YASL_peektypestr(S));
@@ -20,7 +16,7 @@ int list___get(struct YASL_State *S) {
 	struct YASL_List *ls = vm_peeklist((struct VM *) S);
 
 	if (index < -(int64_t) ls->count || index >= (int64_t) ls->count) {
-		// TODO: error here.
+		// TODO: error mesasge here.
 		return YASL_VALUE_ERROR;
 	} else {
 		if (index >= 0) {
@@ -36,12 +32,7 @@ int list___get(struct YASL_State *S) {
 
 int list___set(struct YASL_State *S) {
 	struct YASL_Object value = vm_pop((struct VM *) S);
-	if (!YASL_isint(S)) {
-		YASLX_print_err_bad_arg_type(S, "list.__set", 1, "int", YASL_peektypestr(S));
-		return YASL_TYPE_ERROR;
-	}
-
-	yasl_int index = YASL_popint(S);
+	yasl_int index = YASLX_checkint(S, "list.__set", 1);
 	if (!YASL_islist(S)) {
 		YASLX_print_err_bad_arg_type(S, "list.__set", 0, "list", YASL_peektypestr(S));
 		return YASL_TYPE_ERROR;

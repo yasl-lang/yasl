@@ -37,6 +37,7 @@ struct YASL_Object *YASL_Table(void) {
 }
 
 int yasl_object_cmp(struct YASL_Object a, struct YASL_Object b) {
+	YASL_ASSERT(obj_isstr(&a) && obj_isstr(&b) || obj_isnum(&a) && obj_isnum(&b), "Both must be either numeric or strings");
 	if (obj_isstr(&a) && obj_isstr(&b)) {
 		return YASL_String_cmp(obj_getstr(&a), obj_getstr(&b));
 	} else if (obj_isnum(&a) && obj_isnum(&b)) {
@@ -55,9 +56,6 @@ int yasl_object_cmp(struct YASL_Object a, struct YASL_Object b) {
 		if (aVal < bVal) return -1;
 		if (aVal > bVal) return 1;
 		return 0;
-	} else {
-		printf("Cannot apply object compare to types %s and %s.\n", YASL_TYPE_NAMES[a.type], YASL_TYPE_NAMES[b.type]);
-		exit(-1);
 	}
 	return 0;
 }

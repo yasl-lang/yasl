@@ -6,40 +6,26 @@
 #include "yasl_aux.h"
 
 int int_toint(struct YASL_State *S) {
-	if (!YASL_isint(S)) {
-		YASLX_print_err_bad_arg_type(S, "int.toint", 0, "int", YASL_peektypestr(S));
-		return YASL_TYPE_ERROR;
-	}
-	return YASL_SUCCESS;
+	yasl_int n = YASLX_checkint(S, "int.toint", 0);
+	return YASL_pushint(S, n);
 }
 
 int int_tobool(struct YASL_State *S) {
-	if (!YASL_isint(S)) {
-		YASLX_print_err_bad_arg_type(S, "int.tobool", 0, "int", YASL_peektypestr(S));
-		return YASL_TYPE_ERROR;
-	}
-	YASL_pushbool(S, true);
-	return YASL_SUCCESS;
+	yasl_int n = YASLX_checkint(S, "int.tobool", 0);
+	(void) n;
+	return YASL_pushbool(S, true);
 }
 
 int int_tofloat(struct YASL_State *S) {
-	if (!YASL_isint(S)) {
-		YASLX_print_err_bad_arg_type(S, "int.tofloat", 0, "int", YASL_peektypestr(S));
-		return YASL_TYPE_ERROR;
-	}
-	YASL_pushfloat(S, (yasl_float) YASL_popint(S));
-	return YASL_SUCCESS;
+	yasl_int n = YASLX_checkint(S, "int.tofloat", 0);
+	return YASL_pushfloat(S, (yasl_float) n);
 }
 
 int int_tostr(struct YASL_State *S) {
-	if (!YASL_isint(S)) {
-		YASLX_print_err_bad_arg_type(S, "int.tostr", 0, "int", YASL_peektypestr(S));
-		return YASL_TYPE_ERROR;
-	}
-	yasl_int val = YASL_popint(S);
-	int len = snprintf(NULL, 0, "%" PRId64 "", val);
+	yasl_int n = YASLX_checkint(S, "int.tostr", 0);
+	int len = snprintf(NULL, 0, "%" PRId64 "", n);
 	char *ptr = (char *)malloc(len + 1);
-	sprintf(ptr, "%" PRId64 "", val);
+	sprintf(ptr, "%" PRId64 "", n);
 	YASL_pushstring(S, ptr, len);
 	return YASL_SUCCESS;
 }

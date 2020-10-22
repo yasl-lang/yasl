@@ -19,6 +19,7 @@ int str___get(struct YASL_State *S) {
 	if (index < -(yasl_int) YASL_String_len(str) ||
 		   index >= (yasl_int) YASL_String_len(
 			   str)) {
+		// TODO: value error here
 		return YASL_VALUE_ERROR;
 	} else {
 		if (index >= 0)
@@ -208,11 +209,7 @@ int str_replace(struct YASL_State *S) {
 		return str_replace_default(S);
 	}
 
-	if (!YASL_isint(S)) {
-		YASLX_print_err_bad_arg_type(S, "str.replace", 3, "int", YASL_peektypestr(S));
-		return YASL_TYPE_ERROR;
-	}
-	yasl_int max = YASL_popint(S);
+	yasl_int max = YASLX_checkint(S, "str.replace", 3);
 	if (!YASL_isstr(S)) {
 		YASLX_print_err_bad_arg_type(S, "str.replace", 2, "str", YASL_peektypestr(S));
 		return YASL_TYPE_ERROR;
@@ -419,11 +416,7 @@ int str_trim(struct YASL_State *S) {
 }
 
 int str_repeat(struct YASL_State *S) {
-	if (!vm_isint((struct VM *) S)) {
-		YASLX_print_err_bad_arg_type(S, "str.rep", 1, "int", YASL_peektypestr(S));
-		return YASL_TYPE_ERROR;
-	}
-	yasl_int num = vm_popint((struct VM *) S);
+	yasl_int num = YASLX_checkint(S, "str.rep", 1);
 	if (!YASL_isstr(S)) {
 		YASLX_print_err_bad_arg_type(S, "str.rep", 0, "str", YASL_peektypestr(S));
 		return YASL_TYPE_ERROR;
