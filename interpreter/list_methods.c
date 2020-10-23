@@ -347,6 +347,7 @@ void sort(struct YASL_Object *list, const size_t len) {
 	sort(&list[ltCount], len - ltCount);
 }
 
+// TODO: clean this up
 int list_sort(struct YASL_State *S) {
 	struct YASL_List *list = YASLX_checklist(S, "list.sort", 0);
 	int type = SORT_TYPE_EMPTY;
