@@ -12,7 +12,6 @@
 #include "data-structures/YASL_ByteBuffer.h"
 
 #define iswhitespace(c) ((c) == ' ' || (c) == '\t' || (c) == '\n' || (c) == '\v' || (c) == '\r')
-// #define isalnum(c) (isdigit(c) || isalpha(c))
 
 size_t YASL_String_len(const struct YASL_String *const str) {
 	return (size_t)(str->end - str->start);
@@ -148,7 +147,7 @@ int64_t str_find_index(const struct YASL_String *const haystack, const struct YA
 	if (haystack_len < needle_len) return -1;
 	size_t i = 0;
 	const char *hayStr = YASL_String_chars(haystack);
-	const char *needleStr = needle->str + needle->start;
+	const char *needleStr = YASL_String_chars(needle);
 	while (i <= haystack_len - needle_len) {
 		if (!memcmp(hayStr + i, needleStr, needle_len)) return i;
 		i++;
@@ -156,8 +155,8 @@ int64_t str_find_index(const struct YASL_String *const haystack, const struct YA
 	return -1;
 }
 
-static yasl_float parsedouble(const char *str, int *error) {
-	*error = 1;
+static yasl_float parsedouble(const char *str, bool *ok) {
+	*ok = true;
 	if (!strcmp(str, "inf") || !strcmp(str, "+inf")) return INFINITY;
 	else if (!strcmp(str, "-inf")) return -INFINITY;
 	else if (str[0] == '-' && isvaliddouble(str+1))
@@ -166,11 +165,11 @@ static yasl_float parsedouble(const char *str, int *error) {
 		return +strtod(str+1, NULL);
 	else if (isvaliddouble(str))
 		return strtod(str, NULL);
-	*error = 0;
+	*ok = false;
 	return NAN;
 }
 
-static yasl_int parseint64(const char *str, int *error) {
+static yasl_int parseint64(const char *str, bool *ok) {
 	yasl_int result;
 	size_t len = strlen(str);
 	char *end;
@@ -181,25 +180,27 @@ static yasl_int parseint64(const char *str, int *error) {
 	} else {
 		result = strtoll(str, &end, 10);
 	}
-	*error = str + len == end;
+	*ok = str + len == end;
 	return str + len == end ? result : 0;
 }
 
 yasl_float YASL_String_tofloat(struct YASL_String *str) {
-	char *buffer = (char *)malloc(YASL_String_len(str) + 1);
-	if (!isdigit((int)str->str[str->start])) {
+	const size_t length = YASL_String_len(str);
+	const char *chars = YASL_String_chars(str);
+	char *buffer = (char *)malloc(length + 1);
+	if (!isdigit((int)chars[0])) {
 		free(buffer);
 		return NAN;
 	}
 	size_t curr = 0;
-	for (size_t i = 0; i < YASL_String_len(str); ++i) {
-		if (str->str[str->start + i] == '_' && str->str[str->start + i - 1] != '.') {
+	for (size_t i = 0; i < length; ++i) {
+		if (chars[i] == '_' && chars[i-1] != '.') {
 			continue;
 		}
-		buffer[curr++] = str->str[str->start + i];
+		buffer[curr++] = chars[i];
 	}
 	buffer[curr] = '\0';
-	int ok = 1;
+	bool ok = true;
 	yasl_float result = parsedouble(buffer, &ok);
 	if (ok) {
 		free(buffer);
@@ -217,45 +218,50 @@ yasl_float YASL_String_tofloat(struct YASL_String *str) {
 }
 
 yasl_int YASL_String_toint(struct YASL_String *str) {
-	char *buffer = (char *)malloc(YASL_String_len(str) + 1);
+	const size_t length = YASL_String_len(str);
+	const char *chars = YASL_String_chars(str);
+	char *buffer = (char *)malloc(length + 1);
 
-	if (YASL_String_len(str) <= 2) {
-		memcpy(buffer, str->str + str->start, YASL_String_len(str));
-		buffer[YASL_String_len(str)] = '\0';
-		int ok;
+	if (length <= 2) {
+		memcpy(buffer, chars, length);
+		buffer[length] = '\0';
+		bool ok;
 		yasl_int tmp = parseint64(buffer, &ok);
+		YASL_ASSERT(ok, "parsing int from small buffer should never fail.")
 		free(buffer);
 		return tmp;
 	}
 
-	if (str->str[str->start + 0] == '0' && (isalpha((int)str->str[str->start + 1]))) {
+	if (chars[0] == '0' && (isalpha((int)chars[1]))) {
 		size_t curr = 2;
-		buffer[0] = str->str[str->start + 0];
-		buffer[1] = str->str[str->start + 1];
-		for (size_t i = 2; i < YASL_String_len(str); ++i) {
-			if (str->str[str->start + i] == '_') {
+		buffer[0] = chars[0];
+		buffer[1] = chars[1];
+		for (size_t i = 2; i < length; ++i) {
+			if (chars[i] == '_') {
 				continue;
 			}
-			buffer[curr++] = str->str[str->start + i];
+			buffer[curr++] = chars[i];
 		}
 		buffer[curr] = '\0';
-		int ok;
+		bool ok;
 		yasl_int tmp = parseint64(buffer, &ok);
+		YASL_ASSERT(ok, "parsing int from validated buffer should never fail.")
 		free(buffer);
 		return tmp;
 	}
 
 	size_t curr = 0;
-	for (size_t i = 0; i < YASL_String_len(str); ++i) {
-		if (str->str[str->start + i] == '_') {
+	for (size_t i = 0; i < length; ++i) {
+		if (chars[i] == '_') {
 			continue;
 		}
-		buffer[curr++] = str->str[str->start + i];
+		buffer[curr++] = chars[i];
 	}
 	buffer[curr] = '\0';
-	int ok;
 
+	bool ok;
 	yasl_int tmp = parseint64(buffer, &ok);
+	YASL_ASSERT(ok, "parsing int from validated buffer should never fail.")
 	free(buffer);
 	return tmp;
 }
@@ -338,12 +344,12 @@ bool YASL_String_endswith(struct YASL_String *haystack, struct YASL_String *need
 #define STR_REPLACE_START \
 	YASL_ASSERT(YASL_String_len(search_str) >= 1, "search_str must have length at least 1.");\
 	unsigned char *str_ptr = (unsigned char *) str->str + str->start;\
-	size_t str_len = YASL_String_len(str);\
+	const size_t str_len = YASL_String_len(str);\
 	const char *search_str_ptr = search_str->str + search_str->start;\
-	size_t search_len = YASL_String_len(search_str);\
+	const size_t search_len = YASL_String_len(search_str);\
 	unsigned char *replace_str_ptr = (unsigned char *) replace_str->str + replace_str->start;\
 	\
-	struct YASL_ByteBuffer *buff = YASL_ByteBuffer_new(YASL_String_len(str));\
+	struct YASL_ByteBuffer *buff = YASL_ByteBuffer_new(str_len);\
 	size_t i = 0;
 
 #define STR_REPLACE_END \
