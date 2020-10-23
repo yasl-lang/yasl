@@ -12,6 +12,7 @@
 #include "data-structures/YASL_ByteBuffer.h"
 
 #define iswhitespace(c) ((c) == ' ' || (c) == '\t' || (c) == '\n' || (c) == '\v' || (c) == '\r')
+// #define isalnum(c) (isdigit(c) || isalpha(c))
 
 size_t YASL_String_len(const struct YASL_String *const str) {
 	return (size_t)(str->end - str->start);
@@ -259,53 +260,27 @@ yasl_int YASL_String_toint(struct YASL_String *str) {
 	return tmp;
 }
 
-struct YASL_String *YASL_String_toupper(struct YASL_String *a) {
-	size_t length = YASL_String_len(a);
-	size_t i = 0;
-	char curr;
-	char *ptr = (char *)malloc(length);
+#define UPPER(c) (0x61 <= (c) && (c) < 0x7B ? (c) & ~0x20 : (c))
+#define LOWER(c) (0x41 <= curr && curr < 0x5B ? (c) | 0x20 : (c))
 
-	while (i < length) {
-		curr = a->str[i + a->start];
-		if (0x61 <= curr && curr < 0x7B) {
-			ptr[i++] = curr & ~0x20;
-		} else {
-			ptr[i++] = curr;
-		}
-	}
-
-	return YASL_String_new_sized_heap(0, length, ptr);
+// TODO: this is very ASCII reliant. Clean these up.
+#define STR_TO_X(name, fun) struct YASL_String *YASL_String_to##name(struct YASL_String *a) {\
+	const size_t length = YASL_String_len(a);\
+	const char *chars = YASL_String_chars(a);\
+	size_t i = 0;\
+	char curr;\
+	char *ptr = (char *)malloc(length);\
+\
+	while (i < length) {\
+		curr = chars[i];\
+		ptr[i++] = fun(curr);\
+	}\
+\
+	return YASL_String_new_sized_heap(0, length, ptr);\
 }
 
-struct YASL_String *YASL_String_tolower(struct YASL_String *a) {
-	size_t length = YASL_String_len(a);
-	size_t i = 0;
-	char curr;
-	char *ptr = (char *)malloc(length);
-
-	while (i < length) {
-		curr = a->str[i + a->start];
-		if (0x41 <= curr && curr < 0x5B) {
-			ptr[i++] = curr | 0x20;
-		} else {
-			ptr[i++] = curr;
-		}
-	}
-	return YASL_String_new_sized_heap(0, length, ptr);
-}
-
-bool YASL_String_isalnum(struct YASL_String *a) {
-	int64_t length = YASL_String_len(a);
-	int64_t i = 0;
-	char curr;
-	while (i < length) {
-		curr = (a)->str[i++ + a->start];
-		if (!isalpha(curr) && !isdigit(curr)) {
-			return false;
-		}
-	}
-	return true;
-}
+STR_TO_X(upper, UPPER);
+STR_TO_X(lower, LOWER);
 
 /* Iterates through the string and checks each character against a predicate. */
 #define DEFINE_STR_IS_X(name, fun) bool YASL_String_##name(struct YASL_String *a) {\
@@ -323,6 +298,7 @@ bool YASL_String_isalnum(struct YASL_String *a) {
 
 DEFINE_STR_IS_X(isal, isalpha);
 DEFINE_STR_IS_X(isnum, isdigit);
+DEFINE_STR_IS_X(isalnum, isalnum);
 DEFINE_STR_IS_X(isspace, iswhitespace);
 
 bool YASL_String_startswith(struct YASL_String *haystack, struct YASL_String *needle) {
