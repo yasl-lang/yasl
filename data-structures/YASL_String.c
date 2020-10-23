@@ -270,7 +270,7 @@ yasl_int YASL_String_toint(struct YASL_String *str) {
 #define LOWER(c) (0x41 <= curr && curr < 0x5B ? (c) | 0x20 : (c))
 
 // TODO: this is very ASCII reliant. Clean these up.
-#define STR_TO_X(name, fun) struct YASL_String *YASL_String_to##name(struct YASL_String *a) {\
+#define DEFINE_STR_TO_X(name, fun) struct YASL_String *YASL_String_to##name(struct YASL_String *a) {\
 	const size_t length = YASL_String_len(a);\
 	const char *chars = YASL_String_chars(a);\
 	size_t i = 0;\
@@ -285,8 +285,8 @@ yasl_int YASL_String_toint(struct YASL_String *str) {
 	return YASL_String_new_sized_heap(0, length, ptr);\
 }
 
-STR_TO_X(upper, UPPER);
-STR_TO_X(lower, LOWER);
+DEFINE_STR_TO_X(upper, UPPER);
+DEFINE_STR_TO_X(lower, LOWER);
 
 /* Iterates through the string and checks each character against a predicate. */
 #define DEFINE_STR_IS_X(name, fun) bool YASL_String_##name(struct YASL_String *a) {\
