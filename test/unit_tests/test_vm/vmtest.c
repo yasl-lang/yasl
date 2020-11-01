@@ -60,7 +60,7 @@ int vmtest(void) {
 	// list method type errors
 	// ASSERT_ARG_TYPE_ERR("true + [];", "list.__add", "list", "bool", 0);
 	// TODO: __get, __set
-	ASSERT_VALUE_ERR("[][2];", "unable to index list with value of type int", 1);
+	ASSERT_VALUE_ERR("[][2];", "unable to index list of length 0 with index 2", 1);
 
 	// value errors
 	ASSERT_VALUE_ERR("echo []->pop();", "list.pop expected nonempty list as arg 0", 1);

@@ -871,12 +871,8 @@ static int vm_GET_helper(struct VM *const vm, struct YASL_Object index) {
 
 	vm_get_metatable(vm);
 	struct YASL_Table *mt = vm_istable(vm) ? YASL_GETTABLE(vm_pop(vm)) : NULL;
-	void (*old_print)(struct IO *const, const char *const, va_list) = vm->err.print;
-	vm->err.print = io_print_none;
 	int result = lookup(vm, val, mt, index);
-	vm->err.print = old_print;
 	if (result) {
-		vm_print_err_value(vm, "unable to index %s with value of type %s.", YASL_TYPE_NAMES[val.type], YASL_TYPE_NAMES[index.type]);
 		dec_ref(&val);
 		return YASL_VALUE_ERROR;
 	}
