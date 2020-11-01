@@ -1,0 +1,1 @@
+echo collections.set().__ge(1, collections.set())

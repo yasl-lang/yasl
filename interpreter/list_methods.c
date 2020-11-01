@@ -6,28 +6,26 @@
 #include "yasl_error.h"
 #include "yasl_state.h"
 
-int list___get(struct YASL_State *S) {
-	if (!YASL_isint(S)) {
-		YASLX_print_err_bad_arg_type(S, "list.__get", 1, "int", YASL_TYPE_NAMES[YASL_peektype(S)]);
-		return YASL_TYPE_ERROR;
-	}
-	yasl_int index = YASL_popint(S);
-
+static struct YASL_List *YASLX_checklist(struct YASL_State *S, const char *name, int pos) {
 	if (!YASL_islist(S)) {
-		YASLX_print_err_bad_arg_type(S, "list.__get", 0, "list", YASL_TYPE_NAMES[YASL_peektype(S)]);
-		return YASL_TYPE_ERROR;
+		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type list, got arg of type %s.",
+				  name, pos, YASL_peektypestr(S));
+		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
-	struct YASL_List *ls = vm_peeklist((struct VM *) S);
+	return (struct YASL_List *)YASL_popuserdata(S);
+}
+
+int list___get(struct YASL_State *S) {
+	yasl_int index = YASLX_checkint(S, "list.__get", 1);
+	struct YASL_List *ls = YASLX_checklist(S, "list.__get", 0);
 
 	if (index < -(int64_t) ls->count || index >= (int64_t) ls->count) {
-		// TODO: error here.
-		return YASL_VALUE_ERROR;
+		vm_print_err_value(&S->vm, "unable to index list of length %" PRI_SIZET " with index %" PRI_SIZET ".", ls->count, index);
+		YASL_throw_err(S, YASL_VALUE_ERROR);
 	} else {
 		if (index >= 0) {
-			vm_pop((struct VM *) S);
 			vm_push((struct VM *) S, ls->items[index]);
 		} else {
-			vm_pop((struct VM *) S);
 			vm_push((struct VM *) S, ls->items[index + ls->count]);
 		}
 	}
@@ -36,22 +34,12 @@ int list___get(struct YASL_State *S) {
 
 int list___set(struct YASL_State *S) {
 	struct YASL_Object value = vm_pop((struct VM *) S);
-	if (!YASL_isint(S)) {
-		YASLX_print_err_bad_arg_type(S, "list.__set", 1, "int", YASL_TYPE_NAMES[YASL_peektype(S)]);
-		return YASL_TYPE_ERROR;
-	}
-
-	yasl_int index = YASL_popint(S);
-	if (!YASL_islist(S)) {
-		YASLX_print_err_bad_arg_type(S, "list.__set", 0, "list", YASL_TYPE_NAMES[YASL_peektype(S)]);
-		return YASL_TYPE_ERROR;
-	}
-
-	struct YASL_List *ls = vm_poplist((struct VM *) S);
+	yasl_int index = YASLX_checkint(S, "list.__set", 1);
+	struct YASL_List *ls = YASLX_checklist(S, "list.__set", 0);
 
 	if (index < -(yasl_int) ls->count || index >= (yasl_int) ls->count) {
 		vm_print_err_value(&S->vm, "unable to index list of length %" PRI_SIZET " with index %" PRId64 ".", ls->count, index);
-		return YASL_VALUE_ERROR;
+		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
 	if (index >= 0) ls->items[index] = value;
 	else ls->items[index + ls->count] = value;
@@ -67,11 +55,7 @@ void rec_call(struct YASL_State *S, void **buffer, const size_t buffer_count, co
 #define FOUND_TABLE "{...}, "
 
 int list_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, size_t buffer_count) {
-	struct YASL_ByteBuffer bb = (struct YASL_ByteBuffer){
-		.size = 8,
-		.count = 0,
-		.bytes = (unsigned char *)malloc(8)
-	};
+	struct YASL_ByteBuffer bb = NEW_BB(8);
 
 	YASL_ByteBuffer_add_byte(&bb, '[');
 	struct YASL_List *list = vm_peeklist((struct VM *) S);
@@ -123,8 +107,8 @@ int list_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, s
 
 int list_tostr(struct YASL_State *S) {
 	if (!YASL_islist(S)) {
-		YASLX_print_err_bad_arg_type(S, "list.tostr", 0, "list", YASL_TYPE_NAMES[YASL_peektype(S)]);
-		return YASL_TYPE_ERROR;
+		YASLX_print_err_bad_arg_type(S, "list.tostr", 0, "list", YASL_peektypestr(S));
+		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	void **buffer = (void **) malloc(8 * sizeof(void *));
 	buffer[0] = vm_peeklist((struct VM *) S, S->vm.sp);
@@ -136,19 +120,15 @@ int list_tostr(struct YASL_State *S) {
 int list_push(struct YASL_State *S) {
 	struct YASL_Object val = vm_pop((struct VM *) S);
 	if (!YASL_islist(S)) {
-		YASLX_print_err_bad_arg_type(S, "list.push", 0, "list", YASL_TYPE_NAMES[YASL_peektype(S)]);
-		return YASL_TYPE_ERROR;
+		YASLX_print_err_bad_arg_type(S, "list.push", 0, "list", YASL_peektypestr(S));
+		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	YASL_List_append(YASL_GETLIST(vm_peek((struct VM *) S)), val);
 	return YASL_SUCCESS;
 }
 
 int list_copy(struct YASL_State *S) {
-	if (!YASL_islist(S)) {
-		YASLX_print_err_bad_arg_type(S, "list.copy", 0, "list", YASL_TYPE_NAMES[YASL_peektype(S)]);
-		return YASL_TYPE_ERROR;
-	}
-	struct YASL_List *ls = YASL_GETLIST(vm_pop((struct VM *) S));
+	struct YASL_List *ls = YASLX_checklist(S, "list.copy", 0);
 	struct RC_UserData *new_ls = rcls_new_sized(ls->size);
 	struct YASL_List *new_list = (struct YASL_List *) new_ls->data;
 	FOR_LIST(i, elmt, ls) {
@@ -173,32 +153,16 @@ static struct RC_UserData *list_concat(struct YASL_List *a, struct YASL_List *b)
 }
 
 int list___add(struct YASL_State *S) {
-	if (!YASL_islist(S)) {
-		YASLX_print_err_bad_arg_type(S, "list.__add", 1, "list", YASL_TYPE_NAMES[YASL_peektype(S)]);
-		return YASL_TYPE_ERROR;
-	}
-	struct YASL_List *b = YASL_GETLIST(vm_pop((struct VM *) S));
-	if (!YASL_islist(S)) {
-		YASLX_print_err_bad_arg_type(S, "list.__add", 0, "list", YASL_TYPE_NAMES[YASL_peektype(S)]);
-		return YASL_TYPE_ERROR;
-	}
-	struct YASL_List *a = YASL_GETLIST(vm_pop((struct VM *) S));
+	struct YASL_List *b = YASLX_checklist(S, "list.__add", 1);
+	struct YASL_List *a = YASLX_checklist(S, "list.__add", 0);
 
 	vm_pushlist((struct VM *) S, list_concat(a, b));
 	return YASL_SUCCESS;
 }
 
 int list___eq(struct YASL_State *S) {
-	if (!YASL_islist(S)) {
-		YASLX_print_err_bad_arg_type(S, "list.__eq", 1, "list", YASL_TYPE_NAMES[YASL_peektype(S)]);
-		return YASL_TYPE_ERROR;
-	}
-	struct YASL_List *right = YASL_GETLIST(vm_pop((struct VM *) S));
-	if (!YASL_islist(S)) {
-		YASLX_print_err_bad_arg_type(S, "list.__eq", 0, "list", YASL_TYPE_NAMES[YASL_peektype(S)]);
-		return YASL_TYPE_ERROR;
-	}
-	struct YASL_List *left = YASL_GETLIST(vm_pop((struct VM *) S));
+	struct YASL_List *right = YASLX_checklist(S, "list.__eq", 1);
+	struct YASL_List *left = YASLX_checklist(S, "list.__eq", 0);
 
 	if (left->count != right->count) {
 		return YASL_pushbool(S, false);
@@ -217,14 +181,10 @@ int list___eq(struct YASL_State *S) {
 }
 
 int list_pop(struct YASL_State *S) {
-	if (!YASL_islist(S)) {
-		YASLX_print_err_bad_arg_type(S, "list.pop", 0, "list", YASL_TYPE_NAMES[YASL_peektype(S)]);
-		return YASL_TYPE_ERROR;
-	}
-	struct YASL_List *ls = YASL_GETLIST(vm_pop((struct VM *) S));
+	struct YASL_List *ls = YASLX_checklist(S, "list.pop", 0);
 	if (ls->count == 0) {
 		vm_print_err((struct VM *)S, "ValueError: %s expected nonempty list as arg 0.", "list.pop");
-		return YASL_VALUE_ERROR;
+		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
 	vm_push((struct VM *) S, ls->items[--ls->count]);
 	return YASL_SUCCESS;
@@ -232,11 +192,7 @@ int list_pop(struct YASL_State *S) {
 
 int list_search(struct YASL_State *S) {
 	struct YASL_Object needle = vm_pop((struct VM *) S);
-	if (!YASL_islist(S)) {
-		YASLX_print_err_bad_arg_type(S, "list.search", 0, "list", YASL_TYPE_NAMES[YASL_peektype(S)]);
-		return YASL_TYPE_ERROR;
-	}
-	struct YASL_List *haystack = YASL_GETLIST(vm_pop((struct VM *) S));
+	struct YASL_List *haystack = YASLX_checklist(S, "list.search", 0);
 	struct YASL_Object index = YASL_UNDEF();
 
 	FOR_LIST(i, obj, haystack) {
@@ -249,40 +205,30 @@ int list_search(struct YASL_State *S) {
 }
 
 int list_reverse(struct YASL_State *S) {
-	if (!YASL_islist(S)) {
-		YASLX_print_err_bad_arg_type(S, "list.reverse", 0, "list", YASL_TYPE_NAMES[YASL_peektype(S)]);
-		return YASL_TYPE_ERROR;
-	}
-	struct YASL_List *ls = vm_poplist((struct VM *) S);
+	struct YASL_List *ls = YASLX_checklist(S, "list.reverse", 0);
 	YASL_reverse(ls);
-	vm_pushundef((struct VM *) S);
-	return YASL_SUCCESS;
+	return YASL_pushundef(S);
 }
 
 int list_clear(struct YASL_State *S) {
-	if (!YASL_islist(S)) {
-		YASLX_print_err_bad_arg_type(S, "list.clear", 0, "list", YASL_TYPE_NAMES[YASL_peektype(S)]);
-		return YASL_TYPE_ERROR;
-	}
-	struct YASL_List *list = vm_poplist((struct VM *) S);
+	struct YASL_List *list = YASLX_checklist(S, "list.clear", 0);
 	FOR_LIST(i, obj, list) dec_ref(&obj);
 	list->count = 0;
 	list->size = LIST_BASESIZE;
 	list->items = (struct YASL_Object *) realloc(list->items, sizeof(struct YASL_Object) * list->size);
-	vm_pushundef((struct VM *) S);
-	return YASL_SUCCESS;
+	return YASL_pushundef(S);
 }
 
 int list_join(struct YASL_State *S) {
 	if (!vm_isstr((struct VM *) S)) {
-		YASLX_print_err_bad_arg_type(S, "list.join", 1, "str", YASL_TYPE_NAMES[YASL_peektype(S)]);
-		return YASL_TYPE_ERROR;
+		YASLX_print_err_bad_arg_type(S, "list.join", 1, "str", YASL_peektypestr(S));
+		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	struct YASL_String *string = vm_peekstr((struct VM *) S, S->vm.sp);
 	S->vm.sp--;
 	if (!YASL_islist(S)) {
-		YASLX_print_err_bad_arg_type(S, "list.join", 0, "list", YASL_TYPE_NAMES[YASL_peektype(S)]);
-		return YASL_TYPE_ERROR;
+		YASLX_print_err_bad_arg_type(S, "list.join", 0, "list", YASL_peektypestr(S));
+		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	struct YASL_List *list = vm_peeklist((struct VM *) S, S->vm.sp);
 	S->vm.sp++;
@@ -399,12 +345,9 @@ void sort(struct YASL_Object *list, const size_t len) {
 	sort(&list[ltCount], len - ltCount);
 }
 
+// TODO: clean this up
 int list_sort(struct YASL_State *S) {
-	if (!YASL_islist(S)) {
-		YASLX_print_err_bad_arg_type(S, "list.sort", 0, "list", YASL_TYPE_NAMES[YASL_peektype(S)]);
-		return YASL_TYPE_ERROR;
-	}
-	struct YASL_List *list = vm_poplist((struct VM *) S);
+	struct YASL_List *list = YASLX_checklist(S, "list.sort", 0);
 	int type = SORT_TYPE_EMPTY;
 
 	int err = 0;
@@ -430,7 +373,7 @@ int list_sort(struct YASL_State *S) {
 
 		if (err != 0) {
 			vm_print_err((struct VM *)S, "ValueError: %s expected a list of all numbers or all strings.", "list.sort");
-			return YASL_VALUE_ERROR;
+			YASL_throw_err(S, YASL_VALUE_ERROR);
 		}
 	}
 
@@ -438,6 +381,5 @@ int list_sort(struct YASL_State *S) {
 		sort(list->items, list->count);
 	}
 
-	vm_pushundef((struct VM *) S);
-	return YASL_SUCCESS;
+	return YASL_pushundef(S);
 }

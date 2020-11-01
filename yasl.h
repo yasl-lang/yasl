@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define YASL_VERSION "v0.9.2"
+#define YASL_VERSION "v0.9.3"
 
 struct YASL_State;
 
@@ -131,6 +131,13 @@ int YASL_setmt(struct YASL_State *S);
 void YASL_print_err(struct YASL_State *S, const char *const fmt, ...) YASL_FORMAT_CHECK;
 
 /**
+ * Causes a fatal error.
+ * @param S the YASL_State in which the error occured.
+ * @param error the error code.
+ */
+void YASL_throw_err(struct YASL_State *S, int error);
+
+/**
  * Pushes an undef value onto the stack.
  * @param S the YASL_State onto which to push the undef.
  * @return YASL_SUCCESS on success, otherwise an error code.
@@ -217,7 +224,7 @@ int YASL_pushlist(struct YASL_State *S);
  * @param value the function pointer to be pushed onto the stack.
  * @return YASL_SUCCESS on success, otherwise an error code.
  */
-int YASL_pushcfunction(struct YASL_State *S, int (*value)(struct YASL_State *), int num_args);
+int YASL_pushcfunction(struct YASL_State *S, YASL_cfn value, int num_args);
 
 /**
  * Pushes a user-pointer onto the stack
@@ -265,6 +272,13 @@ int YASL_listpush(struct YASL_State *S);
  * @return the type on top of the stack.
  */
 int YASL_peektype(struct YASL_State *S);
+
+/**
+ * returns the type of the top of the stack as a string.
+ * @param S the YASL_State to which the stack belongs.
+ * @return the string representation of the type on top of the stack.
+ */
+const char *YASL_peektypestr(struct YASL_State *S);
 
 /**
  * checks if the top of the stack is undef.

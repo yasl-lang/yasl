@@ -243,12 +243,17 @@ void YASL_print_err(struct YASL_State *S, const char *const fmt, ...) {
 	va_end(args);
 }
 
+void YASL_throw_err(struct YASL_State *S, int error) {
+	((struct VM *)S)->status = error;
+	longjmp(((struct VM *)S)->buf, 1);
+}
+
 int YASL_peektype(struct YASL_State *S) {
 	return vm_peek(&S->vm).type;
 }
 
-int YASL_top_peektype(struct YASL_State *S) {
-	return YASL_peektype(S);
+const char *YASL_peektypestr(struct YASL_State *S) {
+	return YASL_TYPE_NAMES[YASL_peektype(S)];
 }
 
 int YASL_pushundef(struct YASL_State *S) {
@@ -266,17 +271,9 @@ int YASL_pushint(struct YASL_State *S, yasl_int value) {
 	return YASL_SUCCESS;
 }
 
-int YASL_pushinteger(struct YASL_State *S, yasl_int value) {
-	return YASL_pushint(S, value);
-}
-
 int YASL_pushbool(struct YASL_State *S, bool value) {
 	vm_pushbool(&S->vm, value);
 	return YASL_SUCCESS;
-}
-
-int YASL_pushboolean(struct YASL_State *S, bool value) {
-	return YASL_pushbool(S, value);
 }
 
 int YASL_pushliteralstring(struct YASL_State *S, char *value) {
@@ -323,7 +320,7 @@ int YASL_pushlitstring(struct YASL_State *S, const char *value, const size_t siz
 	return YASL_SUCCESS;
 }
 
-int YASL_pushcfunction(struct YASL_State *S, int (*value)(struct YASL_State *), int num_args) {
+int YASL_pushcfunction(struct YASL_State *S, YASL_cfn value, int num_args) {
 	vm_push((struct VM *) S, YASL_CFN(value, num_args));
 	return YASL_SUCCESS;
 }
@@ -352,10 +349,6 @@ int YASL_duptop(struct YASL_State *S) {
 	vm_push(&S->vm, vm_peek(&S->vm));
 	return YASL_SUCCESS;
 
-}
-
-int YASL_top_dup(struct YASL_State *S) {
-	return YASL_duptop(S);
 }
 
 int YASL_tableset(struct YASL_State *S) {
@@ -389,80 +382,39 @@ bool YASL_isundef(struct YASL_State *S) {
 	return vm_isundef(&S->vm);
 }
 
-bool YASL_top_isundef(struct YASL_State *S) {
-	return YASL_isundef(S);
-}
-
 bool YASL_isbool(struct YASL_State *S) {
 	return vm_isbool(&S->vm);
-}
-
-bool YASL_top_isboolean(struct YASL_State *S) {
-	return YASL_isbool(S);
 }
 
 bool YASL_isfloat(struct YASL_State *S) {
 	return vm_isfloat(&S->vm);
 }
 
-bool YASL_top_isfloat(struct YASL_State *S) {
-	return YASL_isfloat(S);
-}
-
 bool YASL_isint(struct YASL_State *S) {
 	return vm_isint(&S->vm);
-}
-
-bool YASL_top_isinteger(struct YASL_State *S) {
-	return YASL_isint(S);
 }
 
 bool YASL_isstr(struct YASL_State *S) {
 	return vm_isstr(&S->vm);
 }
 
-bool YASL_top_isstring(struct YASL_State *S) {
-	return YASL_isstr(S);
-}
-
 bool YASL_islist(struct YASL_State *S) {
 	return vm_islist(&S->vm);
-}
-
-bool YASL_top_islist(struct YASL_State *S) {
-	return YASL_islist(S);
 }
 
 bool YASL_istable(struct YASL_State *S) {
 	return vm_istable(&S->vm);
 }
 
-bool YASL_top_istable(struct YASL_State *S) {
-	return YASL_istable(S);
-}
-
 bool YASL_isuserdata(struct YASL_State *S, int tag) {
 	return vm_isuserdata(&S->vm) && YASL_GETUSERDATA(vm_peek(&S->vm))->tag == tag;
 }
-
-bool YASL_top_isuserdata(struct YASL_State *S, int tag) {
-	return YASL_isuserdata(S, tag);
-}
-
-bool YASL_top_isuserpointer(struct YASL_State *S) {
-	return vm_isuserptr(&S->vm);
-}
-
 
 bool YASL_peekbool(struct YASL_State *S) {
 	if (YASL_isbool(S)) {
 		return vm_peekbool(&S->vm);
 	}
 	return false;
-}
-
-bool YASL_top_peekboolean(struct YASL_State *S) {
-	return YASL_peekbool(S);
 }
 
 bool YASL_popbool(struct YASL_State *S) {
@@ -472,19 +424,11 @@ bool YASL_popbool(struct YASL_State *S) {
 	return false;
 }
 
-bool YASL_top_popboolean(struct YASL_State *S) {
-	return YASL_popbool(S);
-}
-
 yasl_float YASL_peekfloat(struct YASL_State *S) {
 	if (YASL_isfloat(S)) {
 		return vm_peekfloat(&S->vm);
 	}
 	return 0.0;
-}
-
-yasl_float YASL_top_peekfloat(struct YASL_State *S) {
-	return YASL_peekfloat(S);
 }
 
 yasl_float YASL_popfloat(struct YASL_State *S) {
@@ -494,10 +438,6 @@ yasl_float YASL_popfloat(struct YASL_State *S) {
 	return 0.0;
 }
 
-yasl_float YASL_top_popfloat(struct YASL_State *S) {
-	return YASL_popfloat(S);
-}
-
 yasl_int YASL_peekint(struct YASL_State *S) {
 	if (YASL_isint(S)) {
 		return vm_peekint(&S->vm);
@@ -505,19 +445,11 @@ yasl_int YASL_peekint(struct YASL_State *S) {
 	return 0;
 }
 
-yasl_int YASL_top_peekinteger(struct YASL_State *S) {
-	return YASL_peekint(S);
-}
-
 yasl_int YASL_popint(struct YASL_State *S) {
 	if (YASL_isint(S)) {
 		return vm_popint(&S->vm);
 	}
 	return 0;
-}
-
-yasl_int YASL_top_popinteger(struct YASL_State *S) {
-	return YASL_popint(S);
 }
 
 char *YASL_peekcstr(struct YASL_State *S) {
@@ -538,34 +470,31 @@ char *YASL_popcstr(struct YASL_State *S) {
 	return tmp;
 }
 
-char *YASL_top_peekcstring(struct YASL_State *S) {
-	return YASL_peekcstr(S);
-}
-
-char *YASL_top_popcstring(struct YASL_State *S) {
-	return YASL_popcstr(S);
-}
-
-void *YASL_top_peekuserdata(struct YASL_State *S) {
-	return YASL_GETUSERDATA(vm_peek(&S->vm))->data;
-}
-
 void *YASL_popuserdata(struct YASL_State *S) {
 	return YASL_GETUSERDATA(vm_pop(&S->vm))->data;
-}
-
-void *YASL_top_popuserdata(struct YASL_State *S) {
-	return YASL_popuserdata(S);
-}
-
-void *YASL_top_peekuserpointer(struct YASL_State *S) {
-	return YASL_GETUSERPTR(vm_peek(&S->vm));
 }
 
 void *YASL_popuserptr(struct YASL_State *S) {
 	return YASL_GETUSERPTR(vm_pop(&S->vm));
 }
 
-void *YASL_top_popuserpointer(struct YASL_State *S) {
-	return YASL_popuserptr(S);
-}
+// TODO: change this to static once we remove all references to it.
+// NOTE: Keep up to date with the YASL_Types
+const char *YASL_TYPE_NAMES[] = {
+	"undef",    // Y_UNDEF,
+	"float",    // Y_FLOAT,
+	"int",      // Y_INT,
+	"bool",     // Y_BOOL,
+	"str",      // Y_STR,
+	"str",      // Y_STR_W,
+	"list",     // Y_LIST,
+	"list",     // Y_LIST_W,
+	"table",    // Y_TABLE,
+	"table",    // Y_TABLE_W,
+	"fn",       // Y_FN,
+	"fn",	    // Y_CLOSURE,
+	"fn",       // Y_CFN,
+	"userptr",  // Y_USERPTR,
+	"userdata", // Y_USERDATA,
+	"userdata", // Y_USERDATA_W
+};

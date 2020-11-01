@@ -245,9 +245,11 @@ void vm_pushbool(struct VM *const vm, bool b) {
 }
 
 struct YASL_Object *vm_pop_p(struct VM *const vm) {
+	YASL_ASSERT(vm->sp >= 0, "cannot pop from empty stack.")
 	return vm->stack + vm->sp--;
 }
 struct YASL_Object vm_pop(struct VM *const vm) {
+	YASL_ASSERT(vm->sp >= 0, "cannot pop from empty stack.")
 	return vm->stack[vm->sp--];
 }
 bool vm_popbool(struct VM *const vm) {
@@ -869,12 +871,8 @@ static int vm_GET_helper(struct VM *const vm, struct YASL_Object index) {
 
 	vm_get_metatable(vm);
 	struct YASL_Table *mt = vm_istable(vm) ? YASL_GETTABLE(vm_pop(vm)) : NULL;
-	void (*old_print)(struct IO *const, const char *const, va_list) = vm->err.print;
-	vm->err.print = io_print_none;
 	int result = lookup(vm, val, mt, index);
-	vm->err.print = old_print;
 	if (result) {
-		vm_print_err_value(vm, "unable to index %s with value of type %s.", YASL_TYPE_NAMES[val.type], YASL_TYPE_NAMES[index.type]);
 		dec_ref(&val);
 		return YASL_VALUE_ERROR;
 	}

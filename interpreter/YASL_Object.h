@@ -22,7 +22,6 @@
 #define YASL_GETTABLE(v) ((struct YASL_Table *)((v).value.uval->data))
 #define YASL_GETUSERDATA(v) ((v).value.uval)
 #define YASL_GETUSERPTR(v) ((v).value.pval)
-#define YASL_GETFN(v) ((v).value.fval)
 #define YASL_GETCFN(v) ((v).value.cval)
 
 struct YASL_State;
@@ -64,7 +63,6 @@ int yasl_object_cmp(struct YASL_Object a, struct YASL_Object b);
 bool ishashable(const struct YASL_Object *const v);
 bool isfalsey(const struct YASL_Object *const v);
 bool isequal(const struct YASL_Object *const a, const struct YASL_Object *const b);
-int print(struct YASL_Object a);
 
 inline bool obj_isundef(const struct YASL_Object *const v) {
 	return v->type == Y_UNDEF;

@@ -32,8 +32,8 @@
 #define NUM_SEPERATOR '_'
 
 enum LexerModes {
-    L_NORMAL,     // default mode.
-    L_INTERP,     // for string interpolation.
+	L_NORMAL,     // default mode.
+	L_INTERP,     // for string interpolation.
 };
 
 // NOTE: make sure that augmented version of operand is directly after regular version for all operands.
@@ -128,16 +128,16 @@ enum Token {
 };
 
 struct Lexer {
-    struct LEXINPUT *file;   // OWN
-    int c;                   // current character
-    enum Token type;         // type of current token
-    char *value;             // NOT OWN
-    size_t val_cap;
-    size_t val_len;
-    size_t line;
-    int status;
-    int mode;
-    struct IO err;
+	struct LEXINPUT *file;   // OWN
+	int c;                   // current character
+	enum Token type;         // type of current token
+	char *value;             // NOT OWN
+	size_t val_cap;
+	size_t val_len;
+	size_t line;
+	int status;
+	int mode;
+	struct IO err;
 };
 
 void lex_cleanup(struct Lexer *const lex);

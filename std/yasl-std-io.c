@@ -10,6 +10,15 @@
 // what to prepend to method names in messages to user
 #define FILE_PRE "io.file"
 
+static FILE *YASLX_checkfile(struct YASL_State *S, const char *name, int pos) {
+	if (!YASL_isuserdata(S, T_FILE)) {
+		vm_print_err_type((struct VM *)S, "%s expected arg in position %d to be of type file, got arg of type %s.",
+				  name, pos, YASL_peektypestr(S));
+		YASL_throw_err(S, YASL_TYPE_ERROR);
+	}
+	return (FILE *)YASL_popuserdata(S);
+}
+
 // TODO: fix mem leak in here.
 static int YASL_io_open(struct YASL_State *S) {
 	const char *mode_str;
@@ -103,12 +112,7 @@ static int YASL_io_read(struct YASL_State *S) {
 	}
 	YASL_pop(S);
 
-	if (!YASL_isuserdata(S, T_FILE)) {
-		vm_print_err_type((struct VM *)S, "%s expected arg in position %d to be of type file, got arg of type %s.",
-				  FILE_PRE ".read", 0, YASL_TYPE_NAMES[YASL_peektype(S)]);
-		return YASL_TYPE_ERROR;
-	}
-	FILE *f = (FILE *)YASL_popuserdata(S);
+	FILE *f = YASLX_checkfile(S, FILE_PRE ".read", 0);
 
 	size_t mode_len = strlen(mode_str);
 
@@ -163,12 +167,7 @@ static int YASL_io_write(struct YASL_State *S) {
 	char *str = YASL_peekcstr(S);
 	YASL_pop(S);
 
-	if (!YASL_isuserdata(S, T_FILE)) {
-		vm_print_err_type((struct VM *)S, "%s expected arg in position %d to be of type file, got arg of type %s.",
-				  FILE_PRE ".write", 0, YASL_TYPE_NAMES[YASL_peektype(S)]);
-		return YASL_TYPE_ERROR;
-	}
-	FILE *f = (FILE *)YASL_popuserdata(S);
+	FILE *f = YASLX_checkfile(S, FILE_PRE ".write", 0);
 
 	size_t len = strlen(str);
 
@@ -180,12 +179,7 @@ static int YASL_io_write(struct YASL_State *S) {
 }
 
 static int YASL_io_flush(struct YASL_State *S) {
-	if (!YASL_isuserdata(S, T_FILE)) {
-		vm_print_err_type((struct VM *)S, "%s expected arg in position %d to be of type file, got arg of type %s.",
-				  FILE_PRE ".flush", 0, YASL_TYPE_NAMES[YASL_peektype(S)]);
-		return YASL_TYPE_ERROR;
-	}
-	FILE *f = (FILE *)YASL_popuserdata(S);
+	FILE *f = YASLX_checkfile(S, FILE_PRE ".flush", 0);
 
 	int success = fflush(f);
 
@@ -201,7 +195,7 @@ static int YASL_io_seek(struct YASL_State *S) {
 	} else if ((YASL_isint(S))) {
 		offset = YASL_popint(S);
 	} else {
-		vm_print_err_type((struct VM *)S,"%s expected arg in position %d to be of type int, got arg of type %s.", FILE_PRE ".seek", 2, YASL_TYPE_NAMES[YASL_peektype(S)]);
+		vm_print_err_type((struct VM *)S,"%s expected arg in position %d to be of type int, got arg of type %s.", FILE_PRE ".seek", 2, YASL_peektypestr(S));
 		return YASL_TYPE_ERROR;
 	}
 
@@ -225,12 +219,7 @@ static int YASL_io_seek(struct YASL_State *S) {
 		return YASL_TYPE_ERROR;
 	}
 
-	if (!YASL_isuserdata(S, T_FILE)) {
-		vm_print_err_type((struct VM *)S, "%s expected arg in position %d to be of type file, got arg of type %s.",
-				  FILE_PRE ".seek", 0, YASL_TYPE_NAMES[YASL_peektype(S)]);
-		return YASL_TYPE_ERROR;
-	}
-	FILE *f = (FILE *)YASL_popuserdata(S);
+	FILE *f = YASLX_checkfile(S, FILE_PRE ".seek", 0);
 
 	int success = fseek(f, offset, whence);
 	YASL_pushbool(S, success == 0);
@@ -238,12 +227,7 @@ static int YASL_io_seek(struct YASL_State *S) {
 }
 
 static int YASL_io_close(struct YASL_State *S) {
-	if (!YASL_isuserdata(S, T_FILE)) {
-		vm_print_err_type((struct VM *)S, "%s expected arg in position %d to be of type file, got arg of type %s.",
-				  FILE_PRE ".flush", 0, YASL_TYPE_NAMES[YASL_peektype(S)]);
-		return YASL_TYPE_ERROR;
-	}
-	FILE *f = (FILE *)YASL_popuserdata(S);
+	FILE *f = YASLX_checkfile(S, FILE_PRE ".close", 0);
 
 	int success = fclose(f);
 	YASL_pushbool(S, success == 0);

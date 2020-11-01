@@ -383,7 +383,6 @@ static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *c
 }
 
 static void visit_FunctionDecl(struct Compiler *const compiler, const struct Node *const node) {
-	// start logic for function.
 	compiler->params = env_new(compiler->params);
 
 	enter_scope(compiler);
@@ -983,8 +982,6 @@ static void declare_with_let_or_const(struct Compiler *const compiler, const str
 	}
 
 	struct Scope *scope = compiler->params ? compiler->params->scope : compiler->stack;
-	// while (scope && scope->parent) scope = scope->parent;
-
 
 	if (!(scope_contains(scope, name))) {
 		store_var(compiler, name, node->line);

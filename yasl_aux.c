@@ -1,6 +1,17 @@
 #include "yasl_aux.h"
 #include "yasl_include.h"
 
+int YASLX_decllibs(struct YASL_State *S) {
+	YASL_decllib_collections(S);
+	YASL_decllib_io(S);
+	YASL_decllib_math(S);
+	YASL_decllib_require(S);
+	YASL_decllib_require_c(S);
+	YASL_decllib_mt(S);
+
+	return YASL_SUCCESS;
+}
+
 void YASLX_print_err_bad_arg_type(struct YASL_State *S,
 				 const char *const fn_name,
 				 int position,
@@ -17,13 +28,34 @@ void YASL_print_err_bad_arg_type(struct YASL_State *S,
 	YASLX_print_err_bad_arg_type(S, fn_name, position, exp, act);
 }
 
-int YASLX_decllibs(struct YASL_State *S) {
-	YASL_decllib_collections(S);
-	YASL_decllib_io(S);
-	YASL_decllib_math(S);
-	YASL_decllib_require(S);
-	YASL_decllib_require_c(S);
-	YASL_decllib_mt(S);
-	
-	return YASL_SUCCESS;
+yasl_int YASLX_checkint(struct YASL_State *S, const char *name, int pos) {
+	if (!YASL_isint(S)) {
+		YASLX_print_err_bad_arg_type(S, name, pos, "int", YASL_peektypestr(S));
+		YASL_throw_err(S, YASL_TYPE_ERROR);
+	}
+	return YASL_popint(S);
+}
+
+yasl_float YASLX_checkfloat(struct YASL_State *S, const char *name, int pos) {
+	if (!YASL_isfloat(S)) {
+		YASLX_print_err_bad_arg_type(S, name, pos, "float", YASL_peektypestr(S));
+		YASL_throw_err(S, YASL_TYPE_ERROR);
+	}
+	return YASL_popfloat(S);
+}
+
+bool YASLX_checkbool(struct YASL_State *S, const char *name, int pos) {
+	if (!YASL_isbool(S)) {
+		YASLX_print_err_bad_arg_type(S, name, pos, "bool", YASL_peektypestr(S));
+		YASL_throw_err(S, YASL_TYPE_ERROR);
+	}
+	return YASL_popbool(S);
+}
+
+void YASLX_checkundef(struct YASL_State *S, const char *name, int pos) {
+	if (!YASL_isundef(S)) {
+		YASLX_print_err_bad_arg_type(S, name, pos, "undef", YASL_peektypestr(S));
+		YASL_throw_err(S, YASL_TYPE_ERROR);
+	}
+	YASL_pop(S);
 }

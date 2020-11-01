@@ -8,30 +8,11 @@
 #include "data-structures/YASL_Table.h"
 #include "interpreter/userdata.h"
 #include "interpreter/refcount.h"
+#include "yasl.h"
 
 char *float64_to_str(yasl_float d);
 
-// Keep up to date with the YASL_Types
-const char *YASL_TYPE_NAMES[] = {
-	"undef",    // Y_UNDEF,
-	"float",    // Y_FLOAT,
-	"int",      // Y_INT,
-	"bool",     // Y_BOOL,
-	"str",      // Y_STR,
-	"str",      // Y_STR_W,
-	"list",     // Y_LIST,
-	"list",     // Y_LIST_W,
-	"table",    // Y_TABLE,
-	"table",    // Y_TABLE_W,
-	"fn",       // Y_FN,
-	"fn",	    // Y_CLOSURE,
-	"fn",       // Y_CFN,
-	"userptr",  // Y_USERPTR,
-	"userdata", // Y_USERDATA,
-	"userdata", // Y_USERDATA_W
-};
-
-struct CFunction *new_cfn(int (*value)(struct YASL_State *), int num_args) {
+struct CFunction *new_cfn(YASL_cfn value, int num_args) {
 	struct CFunction *fn = (struct CFunction *) malloc(sizeof(struct CFunction));
 	fn->value = value;
 	fn->num_args = num_args;
@@ -56,6 +37,7 @@ struct YASL_Object *YASL_Table(void) {
 }
 
 int yasl_object_cmp(struct YASL_Object a, struct YASL_Object b) {
+	YASL_ASSERT(obj_isstr(&a) && obj_isstr(&b) || obj_isnum(&a) && obj_isnum(&b), "Both must be either numeric or strings");
 	if (obj_isstr(&a) && obj_isstr(&b)) {
 		return YASL_String_cmp(obj_getstr(&a), obj_getstr(&b));
 	} else if (obj_isnum(&a) && obj_isnum(&b)) {
@@ -74,9 +56,6 @@ int yasl_object_cmp(struct YASL_Object a, struct YASL_Object b) {
 		if (aVal < bVal) return -1;
 		if (aVal > bVal) return 1;
 		return 0;
-	} else {
-		printf("Cannot apply object compare to types %s and %s.\n", YASL_TYPE_NAMES[a.type], YASL_TYPE_NAMES[b.type]);
-		exit(-1);
 	}
 	return 0;
 }
@@ -128,62 +107,10 @@ bool isequal(const struct YASL_Object *const a, const struct YASL_Object *const 
 	}
 
 	if (obj_isuserptr(a) && obj_isuserptr(b)) {
-		return YASL_GETUSERPTR(*a) == YASL_GETUSERPTR(*b);
+		return obj_getuserptr(a) == obj_getuserptr(b);
 	}
 
 	return false;
-}
-
-int print(struct YASL_Object v) {
-	int64_t i;
-	switch (v.type) {
-	case Y_END:
-		YASL_ASSERT(false, "should not have called print with Y_END");
-		break;
-	case Y_INT:
-		printf("%" PRId64 "", obj_getint(&v));
-		break;
-	case Y_FLOAT: {
-		char *tmp = float64_to_str(obj_getfloat(&v));
-		printf("%s", tmp);
-		free(tmp);
-		break;
-	}
-	case Y_BOOL:
-		if (obj_getbool(&v) == 0) printf("false");
-		else printf("true");
-		break;
-	case Y_UNDEF:
-		printf("undef");
-		break;
-	case Y_STR:
-	case Y_STR_W:
-		for (i = 0; i < (yasl_int) YASL_String_len(obj_getstr(&v)); i++) {
-			printf("%c", obj_getstr(&v)->str[i + obj_getstr(&v)->start]);
-		}
-		break;
-	case Y_TABLE:
-	case Y_TABLE_W:
-		printf("<table>");
-		break;
-	case Y_LIST:
-	case Y_LIST_W:
-		printf("<list>");
-		break;
-	case Y_FN:
-	case Y_CLOSURE:
-	case Y_CFN:
-		printf("<fn>");
-		break;
-	case Y_USERPTR:
-		printf("0x%p", YASL_GETUSERPTR(v));
-		break;
-	case Y_USERDATA:
-	case Y_USERDATA_W:
-		printf("<userdata>");
-		break;
-	}
-	return 0;
 }
 
 extern inline bool obj_isundef(const struct YASL_Object *const v);
