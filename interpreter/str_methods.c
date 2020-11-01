@@ -125,7 +125,7 @@ static int str_replace_default(struct YASL_State *S) {
 		vm_print_err((struct VM *)S,
 			"ValueError: %s expected a nonempty str as arg 1.",
 			"str.replace");
-		return YASL_VALUE_ERROR;
+		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
 
 	vm_push((struct VM *) S, YASL_STR(YASL_String_replace_fast_default(str, search_str, replace_str)));
@@ -147,7 +147,7 @@ int str_replace(struct YASL_State *S) {
 		vm_print_err((struct VM *)S,
 			     "ValueError: %s expected a nonempty str as arg 1.",
 			     "str.replace");
-		return YASL_VALUE_ERROR;
+		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
 
 	vm_push((struct VM *) S, YASL_STR(YASL_String_replace_fast(str, search_str, replace_str, max)));
@@ -187,7 +187,7 @@ int str_split(struct YASL_State *S) {
 
 	if (YASL_String_len(needle) == 0) {
 		vm_print_err((struct VM *)S, "ValueError: %s expected a nonempty str as arg 1.", "str.split");
-		return YASL_VALUE_ERROR;
+		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
 
 	vm_push((struct VM *) S, YASL_LIST(YASL_String_split_fast(haystack, needle)));
@@ -287,7 +287,7 @@ int str_repeat(struct YASL_State *S) {
 
 	if (num < 0) {
 		vm_print_err((struct VM *)S, "ValueError: %s expected non-negative int as arg 1.", "str.rep");
-		return YASL_VALUE_ERROR;
+		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
 
 	vm_push((struct VM *) S, YASL_STR(YASL_String_rep_fast(string, num)));

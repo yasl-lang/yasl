@@ -2,6 +2,7 @@ static const char *inputs[] = {
   "test/inputs/clear.yasl",
   "test/inputs/lambdas/ambiguous.yasl",
   "test/inputs/lambdas/basic.yasl",
+  "test/inputs/bool/tobool.yasl",
   "test/inputs/bool/tostr.yasl",
   "test/inputs/fn/cvarfn.yasl",
   "test/inputs/fn/nested.yasl",

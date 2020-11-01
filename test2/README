@@ -1,0 +1,2 @@
+Do not edit the *.inl files in this folder. They are auto-generated from running `./configure_tests.sh` in the main
+folder.

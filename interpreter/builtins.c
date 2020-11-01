@@ -27,6 +27,7 @@ void table_insert_specialstring_cfunction(struct VM *vm, struct YASL_Table *ht, 
 struct YASL_Table *undef_builtins(struct VM *vm) {
 	struct YASL_Table* table = YASL_Table_new();
 	table_insert_specialstring_cfunction(vm, table, S_TOSTR, &undef_tostr, 1);
+	table_insert_specialstring_cfunction(vm, table, S_TOBOOL, &undef_tobool, 1);
 	return table;
 }
 

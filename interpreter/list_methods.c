@@ -39,7 +39,7 @@ int list___set(struct YASL_State *S) {
 
 	if (index < -(yasl_int) ls->count || index >= (yasl_int) ls->count) {
 		vm_print_err_value(&S->vm, "unable to index list of length %" PRI_SIZET " with index %" PRId64 ".", ls->count, index);
-		return YASL_VALUE_ERROR;
+		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
 	if (index >= 0) ls->items[index] = value;
 	else ls->items[index + ls->count] = value;
@@ -184,7 +184,7 @@ int list_pop(struct YASL_State *S) {
 	struct YASL_List *ls = YASLX_checklist(S, "list.pop", 0);
 	if (ls->count == 0) {
 		vm_print_err((struct VM *)S, "ValueError: %s expected nonempty list as arg 0.", "list.pop");
-		return YASL_VALUE_ERROR;
+		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
 	vm_push((struct VM *) S, ls->items[--ls->count]);
 	return YASL_SUCCESS;
@@ -375,7 +375,7 @@ int list_sort(struct YASL_State *S) {
 
 		if (err != 0) {
 			vm_print_err((struct VM *)S, "ValueError: %s expected a list of all numbers or all strings.", "list.sort");
-			return YASL_VALUE_ERROR;
+			YASL_throw_err(S, YASL_VALUE_ERROR);
 		}
 	}
 

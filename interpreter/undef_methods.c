@@ -8,3 +8,9 @@ int undef_tostr(struct YASL_State *S) {
 	YASL_pushlitszstring(S, "undef");
 	return YASL_SUCCESS;
 }
+
+int undef_tobool(struct YASL_State *S) {
+	YASLX_checkundef(S, "undef.tobool", 0);
+	YASL_pushbool(S, false);
+	return YASL_SUCCESS;
+}

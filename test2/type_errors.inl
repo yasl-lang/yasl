@@ -173,5 +173,6 @@ static const char *type_errors[] = {
   "test/errors/type/unary_operators/__len.yasl",
   "test/errors/type/unary_operators/__neg.yasl",
   "test/errors/type/unary_operators/__pos.yasl",
+  "test/errors/type/undef/tobool.yasl",
   "test/errors/type/undef/tostr.yasl",
 };

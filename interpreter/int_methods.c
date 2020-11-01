@@ -11,8 +11,7 @@ int int_toint(struct YASL_State *S) {
 }
 
 int int_tobool(struct YASL_State *S) {
-	yasl_int n = YASLX_checkint(S, "int.tobool", 0);
-	(void) n;
+	(void) YASLX_checkint(S, "int.tobool", 0);
 	return YASL_pushbool(S, true);
 }
 
