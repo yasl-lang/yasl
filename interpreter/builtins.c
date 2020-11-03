@@ -18,7 +18,7 @@
  *                                                                                                                   *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-void table_insert_specialstring_cfunction(struct VM *vm, struct YASL_Table *ht, int index, int (*addr)(struct YASL_State *), int num_args) {
+void table_insert_specialstring_cfunction(struct VM *vm, struct YASL_Table *ht, int index, YASL_cfn addr, int num_args) {
 	struct YASL_String *string = vm->special_strings[index];
 	struct YASL_Object ko = YASL_STR(string), vo = YASL_CFN(addr, num_args);
 	YASL_Table_insert_fast(ht, ko, vo);

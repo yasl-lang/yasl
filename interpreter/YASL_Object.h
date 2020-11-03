@@ -4,6 +4,7 @@
 #include "data-structures/YASL_String.h"
 #include "yasl_conf.h"
 #include "yasl_types.h"
+#include "yasl.h"
 
 #define YASL_END() ((struct YASL_Object){ .type = Y_END, .value = {.ival = 0}})
 #define YASL_UNDEF() ((struct YASL_Object){ .type = Y_UNDEF, .value = {.ival = 0 }})
@@ -45,10 +46,10 @@ struct YASL_Object {
 struct CFunction {
 	struct RC *rc;
 	int num_args;
-	int (*value)(struct YASL_State *);
+	YASL_cfn value;
 };
 
-struct CFunction *new_cfn(int (*value)(struct YASL_State *), int num_args);
+struct CFunction *new_cfn(YASL_cfn value, int num_args);
 void cfn_del_rc(struct CFunction *cfn);
 void cfn_del_data(struct CFunction *cfn);
 

@@ -46,7 +46,7 @@ static yasl_float YASLX_checknum(struct YASL_State *S, const char *name, int pos
 	return YASL_popnum(S);
 }
 
-static int YASL_math_abs(struct YASL_State *S) {
+static void YASL_math_abs(struct YASL_State *S) {
 	if (YASL_isint(S)) {
 		yasl_int i = YASL_popint(S);
 		if (i < 0) i = -i;
@@ -60,10 +60,10 @@ static int YASL_math_abs(struct YASL_State *S) {
 	}
 
 	vm_print_err_bad_arg_type((struct VM*)S,"math.abs", 0, Y_FLOAT, vm_peek((struct VM *)S).type);
-	return YASL_TYPE_ERROR;
+	YASL_throw_err(S, YASL_TYPE_ERROR);
 }
 
-#define DEFINE_MATH_UN_FLOAT_FUN(name) static int YASL_math_##name(struct YASL_State *S) {\
+#define DEFINE_MATH_UN_FLOAT_FUN(name) static void YASL_math_##name(struct YASL_State *S) {\
 	yasl_float n = YASLX_checknum(S, "math." #name, 0);\
 	return YASL_pushfloat(S, name(n));\
 }
@@ -80,13 +80,12 @@ DEFINE_MATH_UN_FLOAT_FUN(atan);
 DEFINE_MATH_UN_FLOAT_FUN(ceil);
 DEFINE_MATH_UN_FLOAT_FUN(floor);
 
-static int YASL_math_max(struct YASL_State *S) {
+static void YASL_math_max(struct YASL_State *S) {
 	struct YASL_Object max = YASL_FLOAT(-YASL_INF);
 
 	yasl_int num_va_args = YASL_popint(S);
 	if (num_va_args == 0) {
-		YASL_pushfloat(S, -YASL_INF);
-		return YASL_SUCCESS;
+		return YASL_pushfloat(S, -YASL_INF);
 	}
 
 	for (yasl_int i = 0; i < num_va_args; i++) {
@@ -98,28 +97,24 @@ static int YASL_math_max(struct YASL_State *S) {
 		} else if (vm_isfloat((struct VM *)S)) {
 			yasl_float top = vm_popfloat((struct VM *)S);
 			if (top != top) {
-				YASL_pushfloat(S, YASL_NAN);
-				return YASL_SUCCESS;
+				return YASL_pushfloat(S, YASL_NAN);
 			}
 			if ((top >= obj_getnum(&max))) {
 				max = YASL_FLOAT(top);
 			}
 		} else {
 			vm_print_err_bad_arg_type((struct VM*)S, "math.max", (int)(num_va_args - i - 1), Y_FLOAT, vm_peek((struct VM *)S).type);
-			return YASL_TYPE_ERROR;
+			YASL_throw_err(S, YASL_TYPE_ERROR);
 		}
 	}
 	vm_push((struct VM *)S, max);
-
-	return YASL_SUCCESS;
 }
-static int YASL_math_min(struct YASL_State *S) {
+static void YASL_math_min(struct YASL_State *S) {
 	struct YASL_Object max = YASL_FLOAT(YASL_INF);
 
 	yasl_int num_va_args = YASL_popint(S);
 	if (num_va_args == 0) {
-		YASL_pushfloat(S, YASL_INF);
-		return YASL_SUCCESS;
+		return YASL_pushfloat(S, YASL_INF);
 	}
 
 	for (yasl_int i = 0; i < num_va_args; i++) {
@@ -131,39 +126,36 @@ static int YASL_math_min(struct YASL_State *S) {
 		} else if (vm_isfloat((struct VM *)S)) {
 			yasl_float top = vm_popfloat((struct VM *)S);
 			if (top != top) {
-				YASL_pushfloat(S, YASL_NAN);
-				return YASL_SUCCESS;
+				return YASL_pushfloat(S, YASL_NAN);
 			}
 			if ((top <= obj_getnum(&max))) {
 				max = YASL_FLOAT(top);
 			}
 		} else {
 			vm_print_err_bad_arg_type((struct VM*)S,"math.min", (int)(num_va_args - i - 1), Y_FLOAT, vm_peek((struct VM *)S).type);
-			return YASL_TYPE_ERROR;
+			YASL_throw_err(S, YASL_TYPE_ERROR);
 		}
 	}
 	vm_push((struct VM *)S, max);
-
-	return YASL_SUCCESS;
 }
 
-static int YASL_math_deg(struct YASL_State *S) {
+static void YASL_math_deg(struct YASL_State *S) {
 	yasl_float n = YASLX_checknum(S, "math.deg", 0);
 
 	n *= (yasl_float)180.0/YASL_PI;
 	return YASL_pushfloat(S, n);
 }
-static int YASL_math_rad(struct YASL_State *S) {
+static void YASL_math_rad(struct YASL_State *S) {
 	yasl_float n = YASLX_checknum(S, "math.rad", 0);
 
 	n *= YASL_PI/(yasl_float)180.0;
 	return YASL_pushfloat(S, n);
 }
 
-static int YASL_math_isprime(struct YASL_State *S) {
+static void YASL_math_isprime(struct YASL_State *S) {
 	if (!YASL_isnum(S)) {
 		vm_print_err_bad_arg_type((struct VM*)S,"math.isprime", 0, Y_FLOAT, vm_peek((struct VM *)S).type);
-		return YASL_TYPE_ERROR;
+		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 
 	yasl_int n;
@@ -192,10 +184,10 @@ yasl_int gcd_helper(yasl_int a, yasl_int b) {
 	};
 	return a;
 }
-static int YASL_math_gcd(struct YASL_State *S) {
+static void YASL_math_gcd(struct YASL_State *S) {
 	if (!YASL_isnum(S)) {
 		vm_print_err_bad_arg_type((struct VM*)S,"math.gcd", 1, Y_FLOAT, vm_peek((struct VM *)S).type);
-		return YASL_TYPE_ERROR;
+		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 
 	yasl_int a;
@@ -207,7 +199,7 @@ static int YASL_math_gcd(struct YASL_State *S) {
 
 	if (!YASL_isnum(S)) {
 		vm_print_err_bad_arg_type((struct VM*)S,"math.gcd", 0, Y_FLOAT, vm_peek((struct VM *)S).type);
-		return YASL_TYPE_ERROR;
+		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 
 	yasl_int b;
@@ -224,10 +216,10 @@ static int YASL_math_gcd(struct YASL_State *S) {
 
 	return YASL_pushint(S, gcd_helper(a, b));
 }
-static int YASL_math_lcm(struct YASL_State *S) {
+static void YASL_math_lcm(struct YASL_State *S) {
 	if (!YASL_isnum(S)) {
 		vm_print_err_bad_arg_type((struct VM*)S,"math.lcm", 1, Y_FLOAT, vm_peek((struct VM *)S).type);
-		return YASL_TYPE_ERROR;
+		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 
 	yasl_int a;
@@ -239,7 +231,7 @@ static int YASL_math_lcm(struct YASL_State *S) {
 
 	if (!YASL_isnum(S)) {
 		vm_print_err_bad_arg_type((struct VM*)S,"math.lcm", 0, Y_FLOAT, vm_peek((struct VM *)S).type);
-		return YASL_TYPE_ERROR;
+		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 
 	yasl_int b;
@@ -257,7 +249,7 @@ static int YASL_math_lcm(struct YASL_State *S) {
 	return YASL_pushint(S, b*a/gcd);
 }
 
-static int YASL_math_rand(struct YASL_State *S) {
+static void YASL_math_rand(struct YASL_State *S) {
 	// rand() is only guarenteed to return a maximum of ~32000. Ensure all 64 bits are used
 	yasl_int r = (yasl_int) rand() ^((yasl_int) rand() << 16) ^((yasl_int) rand() << 32) ^((yasl_int) rand() << 48);
 	return YASL_pushint(S, r);

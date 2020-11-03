@@ -11,10 +11,10 @@ struct YASL_State *YASL_newstate_num(char *filename, size_t num);
 
 // TODO: rewrite this whole fucking mess. I'm not even sure if it works properly honestly.
 
-int YASL_require(struct YASL_State *S) {
+void YASL_require(struct YASL_State *S) {
 	if (!YASL_isstr(S)) {
 		// TODO error message
-		return YASL_TYPE_ERROR;
+		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 
 	char *mode_str = YASL_peekcstr(S);
@@ -24,7 +24,7 @@ int YASL_require(struct YASL_State *S) {
 
 	if (!Ss) {
 		// TODO error message
-		return -1;
+		YASL_throw_err(S, YASL_ERROR);
 	}
 
 	YASL_Table_del(Ss->compiler.strings);
@@ -44,7 +44,7 @@ int YASL_require(struct YASL_State *S) {
 
 	if (status != YASL_MODULE_SUCCESS) {
 		puts("Not a valid module");
-		return YASL_ERROR;
+		YASL_throw_err(S, YASL_ERROR);
 	}
 
 	inc_ref(&vm_peek(&Ss->vm));
@@ -81,15 +81,13 @@ int YASL_require(struct YASL_State *S) {
 	dec_ref(&vm_peek(&S->vm));
 
 	free(mode_str);
-
-	return YASL_SUCCESS;
 }
 
-int YASL_require_c(struct YASL_State *S) {
+void YASL_require_c(struct YASL_State *S) {
 	// TODO: Do I need anything else here?
 	if (!YASL_isstr(S)) {
 		vm_print_err_bad_arg_type((struct VM *) S, "require_c", 0, Y_STR, YASL_peektype(S));
-		return YASL_TYPE_ERROR;
+		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 
 	char *mode_str = YASL_peekcstr(S);
@@ -103,13 +101,13 @@ int YASL_require_c(struct YASL_State *S) {
 	void *lib = LoadLibrary(TEXT(mode_str));
 	if (!lib) {
 	    vm_print_err_value((struct VM *)S, "couldn't open shared library: %s.\n", mode_str);
-	    return YASL_VALUE_ERROR;
+	    YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
 	int (*fun)(struct YASL_State *) =
 		(int (*)(struct YASL_State *))GetProcAddress(lib, LOAD_LIB_FUN_NAME);
 	if (!fun) {
 	    vm_print_err_value((struct VM *)S, "couldn't load function: %s.\n", LOAD_LIB_FUN_NAME);
-	    return YASL_VALUE_ERROR;
+	    YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
 #ifndef _MSC_VER
 #pragma GCC diagnostic pop
@@ -119,12 +117,12 @@ int YASL_require_c(struct YASL_State *S) {
 	void *lib = dlopen(mode_str, RTLD_NOW);
 	if (!lib) {
 		vm_print_err_value((struct VM *) S, "couldn't open shared library: %s.\n", mode_str);
-		return YASL_VALUE_ERROR;
+		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
-	int (*fun)(struct YASL_State *) = (int (*)(struct YASL_State *)) dlsym(lib, LOAD_LIB_FUN_NAME);
+	YASL_cfn fun= (YASL_cfn) dlsym(lib, LOAD_LIB_FUN_NAME);
 	if (!fun) {
 		vm_print_err_value((struct VM *) S, "couldn't load function: %s.\n", LOAD_LIB_FUN_NAME);
-		return YASL_VALUE_ERROR;
+		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
 	return fun(S);
 #else

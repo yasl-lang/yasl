@@ -20,7 +20,7 @@ static FILE *YASLX_checkfile(struct YASL_State *S, const char *name, int pos) {
 }
 
 // TODO: fix mem leak in here.
-static int YASL_io_open(struct YASL_State *S) {
+static void YASL_io_open(struct YASL_State *S) {
 	const char *mode_str;
 	if (YASL_isundef(S)) {
 		mode_str = "r";
@@ -28,13 +28,13 @@ static int YASL_io_open(struct YASL_State *S) {
 		mode_str = YASL_peekcstr(S);
 	} else {
 		vm_print_err_bad_arg_type((struct VM *)S, "io.open", 1, Y_STR, YASL_peektype(S));
-		return YASL_TYPE_ERROR;
+		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	YASL_pop(S);
 
 	if (!YASL_isstr(S)) {
 		vm_print_err_bad_arg_type((struct VM *)S, "io.open", 0, Y_STR, YASL_peektype(S));
-		return YASL_TYPE_ERROR;
+		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 
 	char *filename_str = YASL_peekcstr(S);
@@ -44,7 +44,7 @@ static int YASL_io_open(struct YASL_State *S) {
 
 	if (mode_len > 2 || mode_len < 1 || (mode_len == 2 && mode_str[1] != '+')) {
 		vm_print_err_value((struct VM *)S, "io.open was passed invalid mode: %*s.", (int)mode_len, mode_str);
-		return YASL_VALUE_ERROR;
+		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
 
 	char mode_char = mode_str[0];
@@ -65,7 +65,7 @@ static int YASL_io_open(struct YASL_State *S) {
 			// invalid mode;
 			free(filename_str);
 			vm_print_err_value((struct VM *)S, "io.open was passed invalid mode: %c.", mode_char);
-			return YASL_VALUE_ERROR;
+			YASL_throw_err(S, YASL_VALUE_ERROR);
 		}
 	}
 	if (mode_len == 2) {
@@ -83,7 +83,7 @@ static int YASL_io_open(struct YASL_State *S) {
 			// invalid mode;
 			free(filename_str);
 			vm_print_err_value((struct VM *)S, "io.open was passed invalid mode: %c+.", mode_char);
-			return YASL_VALUE_ERROR;
+			YASL_throw_err(S, YASL_VALUE_ERROR);
 		}
 	}
 	if (f) {
@@ -94,10 +94,9 @@ static int YASL_io_open(struct YASL_State *S) {
 		YASL_pushundef(S);
 	}
 	free(filename_str);
-	return YASL_SUCCESS;
 }
 
-static int YASL_io_read(struct YASL_State *S) {
+static void YASL_io_read(struct YASL_State *S) {
 	char *mode_str;
 
 	if (YASL_isundef(S)) {
@@ -108,7 +107,7 @@ static int YASL_io_read(struct YASL_State *S) {
 		mode_str = YASL_peekcstr(S);
 	} else {
 		vm_print_err_bad_arg_type((struct VM *)S, FILE_PRE ".read", 1, Y_STR, YASL_peektype(S));
-		return YASL_TYPE_ERROR;
+		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	YASL_pop(S);
 
@@ -119,7 +118,7 @@ static int YASL_io_read(struct YASL_State *S) {
 	if (mode_len != 1) {
 		vm_print_err_value((struct VM *)S, FILE_PRE ".read was passed invalid mode: %*s.", (int)mode_len, mode_str);
 		free(mode_str);
-		return YASL_VALUE_ERROR;
+		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
 
 	switch (mode_str[0]) {
@@ -134,7 +133,7 @@ static int YASL_io_read(struct YASL_State *S) {
 		// TODO clean this up.
 		YASL_pushstring(S, string, fsize); }
 		free(mode_str);
-		return YASL_SUCCESS;
+		return;
 	case 'l': {
 		size_t size = 16;
 		char *string = (char *)malloc(size);
@@ -150,19 +149,19 @@ static int YASL_io_read(struct YASL_State *S) {
 		}
 		YASL_pushstring(S, string, i);
 		free(mode_str);
-		return YASL_SUCCESS;
+		return;
 	}
 	default:
 		vm_print_err_value((struct VM *)S, FILE_PRE ".read was passed invalid mode: %c.", mode_str[0]);
 		free(mode_str);
-		return YASL_VALUE_ERROR;
+		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
 }
 
-static int YASL_io_write(struct YASL_State *S) {
+static void YASL_io_write(struct YASL_State *S) {
 	if (!YASL_isstr(S)) {
 		vm_print_err_bad_arg_type((struct VM *)S, FILE_PRE ".write", 1, Y_STR, YASL_peektype(S));
-		return YASL_TYPE_ERROR;
+		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	char *str = YASL_peekcstr(S);
 	YASL_pop(S);
@@ -175,19 +174,17 @@ static int YASL_io_write(struct YASL_State *S) {
 
 	YASL_pushint(S, write_len);
 	free(str);
-	return YASL_SUCCESS;
 }
 
-static int YASL_io_flush(struct YASL_State *S) {
+static void YASL_io_flush(struct YASL_State *S) {
 	FILE *f = YASLX_checkfile(S, FILE_PRE ".flush", 0);
 
 	int success = fflush(f);
 
 	YASL_pushbool(S, success == 0);
-	return YASL_SUCCESS;
 }
 
-static int YASL_io_seek(struct YASL_State *S) {
+static void YASL_io_seek(struct YASL_State *S) {
 	yasl_int offset;
 	if (YASL_isundef(S)) {
 		offset = 0;
@@ -196,7 +193,7 @@ static int YASL_io_seek(struct YASL_State *S) {
 		offset = YASL_popint(S);
 	} else {
 		vm_print_err_type((struct VM *)S,"%s expected arg in position %d to be of type int, got arg of type %s.", FILE_PRE ".seek", 2, YASL_peektypestr(S));
-		return YASL_TYPE_ERROR;
+		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 
 	int whence;
@@ -211,27 +208,25 @@ static int YASL_io_seek(struct YASL_State *S) {
 		else {
 			vm_print_err_value((struct VM *)S, "%s expected arg in position 1 to be one of 'set', 'cur', or 'end', got '%s'.", FILE_PRE ".seek", tmp);
 			free(tmp);
-			return YASL_VALUE_ERROR;
+			YASL_throw_err(S, YASL_VALUE_ERROR);
 		}
 		free(tmp);
 	} else {
 		vm_print_err_bad_arg_type((struct VM *)S, FILE_PRE ".seek", 1, Y_STR, YASL_peektype(S));
-		return YASL_TYPE_ERROR;
+		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 
 	FILE *f = YASLX_checkfile(S, FILE_PRE ".seek", 0);
 
 	int success = fseek(f, offset, whence);
-	YASL_pushbool(S, success == 0);
-	return YASL_SUCCESS;
+	return YASL_pushbool(S, success == 0);
 }
 
-static int YASL_io_close(struct YASL_State *S) {
+static void YASL_io_close(struct YASL_State *S) {
 	FILE *f = YASLX_checkfile(S, FILE_PRE ".close", 0);
 
 	int success = fclose(f);
-	YASL_pushbool(S, success == 0);
-	return YASL_SUCCESS;
+	return YASL_pushbool(S, success == 0);
 }
 
 int YASL_decllib_io(struct YASL_State *S) {

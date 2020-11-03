@@ -28,15 +28,6 @@ void YASLX_print_err_bad_arg_type(struct YASL_State *S,
 				 int position,
 				 const char *const exp,
 				 const char *const act);
-/**
- * Use YASLX_print_err_bad_arg_type instead.
- */
-YASL_DEPRECATE
-void YASL_print_err_bad_arg_type(struct YASL_State *S,
-				 const char *const fn_name,
-				 int position,
-				 const char *const exp,
-				 const char *const act);
 
 /**
  * Returns the top of the stack if it is an int. Otherwise, causes a type error, along with a printed error message.

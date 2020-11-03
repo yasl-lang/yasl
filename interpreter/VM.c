@@ -810,8 +810,8 @@ static int lookup(struct VM *vm, struct YASL_Object obj, struct YASL_Table *mt, 
 	struct YASL_String *get = YASL_String_new_sized(strlen("__get"), "__get");
 	search = YASL_Table_search(mt, YASL_STR(get));
 	str_del(get);
-	int result;
 	if (search.type != Y_END) {
+		int result;
 		vm_push(vm, search);
 		if ((result = vm_INIT_CALL(vm))) return result;
 		vm_push(vm, obj);
@@ -859,20 +859,23 @@ static int vm_GET_helper(struct VM *const vm, struct YASL_Object index) {
 	struct YASL_Object val = vm_peek(vm);
 	inc_ref(&val);
 
-	if (obj_istable(&val)) {
-		struct YASL_Object search = YASL_Table_search(YASL_GETTABLE(val), index);
-		if (search.type != Y_END) {
-			vm_pop(vm);
-			vm_push(vm, search);
-			dec_ref(&val);
-			return YASL_SUCCESS;
-		}
-	}
-
 	vm_get_metatable(vm);
 	struct YASL_Table *mt = vm_istable(vm) ? YASL_GETTABLE(vm_pop(vm)) : NULL;
-	int result = lookup(vm, val, mt, index);
+	int result = YASL_ERROR;
+	if (mt) {
+		result = lookup(vm, val, mt, index);
+	} else {
+		vm_pop(vm);
+	}
 	if (result) {
+		if (obj_istable(&val)) {
+			struct YASL_Object search = YASL_Table_search(YASL_GETTABLE(val), index);
+			if (search.type != Y_END) {
+				vm_push(vm, search);
+				dec_ref(&val);
+				return YASL_SUCCESS;
+			}
+		}
 		dec_ref(&val);
 		return YASL_VALUE_ERROR;
 	}
@@ -888,7 +891,7 @@ static int vm_GET(struct VM *const vm) {
 	return res;
 }
 
-static int vm_SET(struct VM *const vm) {
+static void vm_SET(struct VM *const vm) {
 	vm->sp -= 2;
 	if (vm_islist(vm)) {
 		vm->sp += 2;
@@ -899,11 +902,10 @@ static int vm_SET(struct VM *const vm) {
 	}
 	vm->sp += 2;
 	vm_print_err_type(vm,  "object of type %s is immutable.", YASL_TYPE_NAMES[vm_peek(vm).type]);
-	return YASL_TYPE_ERROR;
+	YASL_throw_err((struct YASL_State *)vm, YASL_TYPE_ERROR);
 }
 
 static int vm_NEWSTR(struct VM *const vm) {
-	// yasl_int table = vm_read_int(vm);
 	yasl_int addr = vm_read_int(vm);
 
 	vm_push(vm, vm->constants[addr]);
@@ -1291,10 +1293,7 @@ static int vm_CALL_cfn(struct VM *const vm) {
 			vm_pop(vm);
 		}
 	}
-	int result;
-	if ((result = vm_peekcfn(vm, vm->fp)->value((struct YASL_State *) vm))) {
-		return result;
-	};
+	vm_peekcfn(vm, vm->fp)->value((struct YASL_State *) vm);
 
 	vm_exitframe(vm);
 	return YASL_SUCCESS;
@@ -1634,7 +1633,7 @@ int vm_run(struct VM *const vm) {
 			if ((res = vm_SLICE(vm))) return res;
 			break;
 		case O_SET:
-			if ((res = vm_SET(vm))) return res;
+			vm_SET(vm);
 			break;
 		case O_POP:
 			vm_pop(vm);
