@@ -107,7 +107,7 @@ static void YASL_io_read(struct YASL_State *S) {
 		mode_str = YASL_peekcstr(S);
 	} else {
 		vm_print_err_bad_arg_type((struct VM *)S, FILE_PRE ".read", 1, Y_STR, YASL_peektype(S));
-		return YASL_throw_err(S, YASL_TYPE_ERROR);
+		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	YASL_pop(S);
 
@@ -219,14 +219,14 @@ static void YASL_io_seek(struct YASL_State *S) {
 	FILE *f = YASLX_checkfile(S, FILE_PRE ".seek", 0);
 
 	int success = fseek(f, offset, whence);
-	return YASL_pushbool(S, success == 0);
+	YASL_pushbool(S, success == 0);
 }
 
 static void YASL_io_close(struct YASL_State *S) {
 	FILE *f = YASLX_checkfile(S, FILE_PRE ".close", 0);
 
 	int success = fclose(f);
-	return YASL_pushbool(S, success == 0);
+	YASL_pushbool(S, success == 0);
 }
 
 int YASL_decllib_io(struct YASL_State *S) {

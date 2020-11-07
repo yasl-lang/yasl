@@ -895,10 +895,12 @@ static void vm_SET(struct VM *const vm) {
 	vm->sp -= 2;
 	if (vm_islist(vm)) {
 		vm->sp += 2;
-		return list___set((struct YASL_State *) vm);
+		list___set((struct YASL_State *) vm);
+		return;
 	} else if (vm_istable(vm)) {
 		vm->sp += 2;
-		return table___set((struct YASL_State *) vm);
+		table___set((struct YASL_State *) vm);
+		return;
 	}
 	vm->sp += 2;
 	vm_print_err_type(vm,  "object of type %s is immutable.", YASL_TYPE_NAMES[vm_peek(vm).type]);

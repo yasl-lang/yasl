@@ -103,8 +103,7 @@ void YASL_require_c(struct YASL_State *S) {
 	    vm_print_err_value((struct VM *)S, "couldn't open shared library: %s.\n", mode_str);
 	    YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
-	int (*fun)(struct YASL_State *) =
-		(int (*)(struct YASL_State *))GetProcAddress(lib, LOAD_LIB_FUN_NAME);
+	YASL_cfn fun = (YASL_cfn)GetProcAddress(lib, LOAD_LIB_FUN_NAME);
 	if (!fun) {
 	    vm_print_err_value((struct VM *)S, "couldn't load function: %s.\n", LOAD_LIB_FUN_NAME);
 	    YASL_throw_err(S, YASL_VALUE_ERROR);
@@ -112,7 +111,7 @@ void YASL_require_c(struct YASL_State *S) {
 #ifndef _MSC_VER
 #pragma GCC diagnostic pop
 #endif
-	return fun(S);
+	fun(S);
 #elif defined(YASL_USE_UNIX) || defined(YASL_USE_APPLE)
 	void *lib = dlopen(mode_str, RTLD_NOW);
 	if (!lib) {
@@ -124,10 +123,10 @@ void YASL_require_c(struct YASL_State *S) {
 		vm_print_err_value((struct VM *) S, "couldn't load function: %s.\n", LOAD_LIB_FUN_NAME);
 		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
-	return fun(S);
+	fun(S);
 #else
 	(void) mode_str;
-	return YASL_PLATFORM_NOT_SUPP;
+	YASL_throw_err(S, YASL_PLATFORM_NOT_SUPP);
 #endif
 }
 

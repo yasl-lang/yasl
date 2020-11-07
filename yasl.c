@@ -288,10 +288,6 @@ void YASL_pushuserptr(struct YASL_State *S, void *userpointer) {
 	vm_push((struct VM *) S, YASL_USERPTR(userpointer));
 }
 
-void YASL_pushuserpointer(struct YASL_State *S, void *userpointer) {
-	return YASL_pushuserptr(S, userpointer);
-}
-
 void YASL_pushszstring(struct YASL_State *S, const char *value) {
 	vm_pushstr((struct VM *) S, YASL_String_new_sized_heap(0, strlen(value), value));
 }
@@ -333,7 +329,6 @@ int YASL_pop(struct YASL_State *S) {
 int YASL_duptop(struct YASL_State *S) {
 	vm_push(&S->vm, vm_peek(&S->vm));
 	return YASL_SUCCESS;
-
 }
 
 int YASL_tableset(struct YASL_State *S) {
@@ -341,7 +336,6 @@ int YASL_tableset(struct YASL_State *S) {
 	struct YASL_Object key = vm_pop(&S->vm);
 	struct YASL_Object table = vm_pop(&S->vm);
 
-	// TODO change to TYPE_ERROR
 	if (!obj_istable(&table))
 		return YASL_TYPE_ERROR;
 	if (!YASL_Table_insert(YASL_GETTABLE(table), key, value)) {
