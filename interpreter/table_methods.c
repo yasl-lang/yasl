@@ -64,19 +64,26 @@ void table___eq(struct YASL_State *S) {
 	struct YASL_Table *left = YASLX_checktable(S, "table.__eq", 0);
 
 	if (left->count != right->count) {
-		return YASL_pushbool(S, false);
+		YASL_pushbool(S, false);
+		return;
 	}
 
 	FOR_TABLE(i, item, left) {
 		struct YASL_Object search = YASL_Table_search(right, item->key);
-		if (search.type == Y_END) return YASL_pushbool(S, false);
-		vm_push((struct VM *)S, item->value);
-		vm_push((struct VM *)S, search);
-		vm_EQ((struct VM *)S);
-		if (!YASL_popbool(S)) return YASL_pushbool(S, false);
+		if (search.type == Y_END) {
+			YASL_pushbool(S, false);
+			return;
+		}
+		vm_push((struct VM *) S, item->value);
+		vm_push((struct VM *) S, search);
+		vm_EQ((struct VM *) S);
+		if (!YASL_popbool(S)) {
+			YASL_pushbool(S, false);
+			return;
+		}
 	}
 
-	return YASL_pushbool(S, true);
+	YASL_pushbool(S, true);
 }
 
 void object_tostr(struct YASL_State *S) {
@@ -241,5 +248,5 @@ void table_clear(struct YASL_State *S) {
 	ht->items = (struct YASL_Table_Item *) calloc((size_t) ht->size, sizeof(struct YASL_Table_Item));
 	dec_ref(&vm_peek((struct VM *) S));
 	vm_pop((struct VM *) S);
-	return YASL_pushundef(S);
+	YASL_pushundef(S);
 }

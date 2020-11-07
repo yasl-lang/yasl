@@ -7,17 +7,17 @@
 
 void int_toint(struct YASL_State *S) {
 	yasl_int n = YASLX_checkint(S, "int.toint", 0);
-	return YASL_pushint(S, n);
+	YASL_pushint(S, n);
 }
 
 void int_tobool(struct YASL_State *S) {
 	(void) YASLX_checkint(S, "int.tobool", 0);
-	return YASL_pushbool(S, true);
+	YASL_pushbool(S, true);
 }
 
 void int_tofloat(struct YASL_State *S) {
 	yasl_int n = YASLX_checkint(S, "int.tofloat", 0);
-	return YASL_pushfloat(S, (yasl_float) n);
+	YASL_pushfloat(S, (yasl_float) n);
 }
 
 void int_tostr(struct YASL_State *S) {
@@ -25,5 +25,5 @@ void int_tostr(struct YASL_State *S) {
 	int len = snprintf(NULL, 0, "%" PRId64 "", n);
 	char *ptr = (char *)malloc(len + 1);
 	sprintf(ptr, "%" PRId64 "", n);
-	return YASL_pushstring(S, ptr, len);
+	YASL_pushstring(S, ptr, len);
 }

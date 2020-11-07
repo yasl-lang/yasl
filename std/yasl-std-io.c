@@ -21,7 +21,7 @@ static FILE *YASLX_checkfile(struct YASL_State *S, const char *name, int pos) {
 
 // TODO: fix mem leak in here.
 static void YASL_io_open(struct YASL_State *S) {
-	const char *mode_str;
+	const char *mode_str = NULL;
 	if (YASL_isundef(S)) {
 		mode_str = "r";
 	} else if (YASL_isstr(S)) {
@@ -49,7 +49,7 @@ static void YASL_io_open(struct YASL_State *S) {
 
 	char mode_char = mode_str[0];
 
-	FILE *f = 0;
+	FILE *f = NULL;
 	if (mode_len == 1) {
 		switch (mode_char) {
 		case 'r':
@@ -107,7 +107,7 @@ static void YASL_io_read(struct YASL_State *S) {
 		mode_str = YASL_peekcstr(S);
 	} else {
 		vm_print_err_bad_arg_type((struct VM *)S, FILE_PRE ".read", 1, Y_STR, YASL_peektype(S));
-		YASL_throw_err(S, YASL_TYPE_ERROR);
+		return YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	YASL_pop(S);
 

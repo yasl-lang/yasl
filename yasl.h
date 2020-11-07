@@ -135,7 +135,7 @@ void YASL_print_err(struct YASL_State *S, const char *const fmt, ...) YASL_FORMA
  * @param S the YASL_State in which the error occured.
  * @param error the error code.
  */
-void YASL_throw_err(struct YASL_State *S, int error);
+void YASL_throw_err(struct YASL_State *S, int error) YASL_NORETURN;
 
 /**
  * Pushes an undef value onto the stack.

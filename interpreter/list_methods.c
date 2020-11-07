@@ -158,7 +158,8 @@ void list___eq(struct YASL_State *S) {
 	struct YASL_List *left = YASLX_checklist(S, "list.__eq", 0);
 
 	if (left->count != right->count) {
-		return YASL_pushbool(S, false);
+		YASL_pushbool(S, false);
+		return;
 	}
 
 	for (size_t i = 0; i < left->count; i++) {
@@ -167,10 +168,11 @@ void list___eq(struct YASL_State *S) {
 		int res = vm_EQ((struct VM *)S);
 		if (res) YASL_throw_err(S, res);
 		if (!YASL_popbool(S)) {
-			return YASL_pushbool(S, false);
+			YASL_pushbool(S, false);
+			return;
 		}
 	}
-	return YASL_pushbool(S, true);
+	YASL_pushbool(S, true);
 }
 
 void list_pop(struct YASL_State *S) {
@@ -198,7 +200,7 @@ void list_search(struct YASL_State *S) {
 void list_reverse(struct YASL_State *S) {
 	struct YASL_List *ls = YASLX_checklist(S, "list.reverse", 0);
 	YASL_reverse(ls);
-	return YASL_pushundef(S);
+	YASL_pushundef(S);
 }
 
 void list_clear(struct YASL_State *S) {
@@ -207,7 +209,7 @@ void list_clear(struct YASL_State *S) {
 	list->count = 0;
 	list->size = LIST_BASESIZE;
 	list->items = (struct YASL_Object *) realloc(list->items, sizeof(struct YASL_Object) * list->size);
-	return YASL_pushundef(S);
+	YASL_pushundef(S);
 }
 
 void list_join(struct YASL_State *S) {
@@ -371,5 +373,5 @@ void list_sort(struct YASL_State *S) {
 		sort(list->items, list->count);
 	}
 
-	return YASL_pushundef(S);
+	YASL_pushundef(S);
 }

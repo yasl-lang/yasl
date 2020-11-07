@@ -74,7 +74,8 @@ static void YASL_collections_set_tostr(struct YASL_State *S) {
 	memcpy(string, "set(", strlen("set("));
 	if (YASL_Set_length(set) == 0) {
 		string[string_count++] = ')';
-		return YASL_pushstring(S, string, string_count);
+		YASL_pushstring(S, string, string_count);
+		return;
 	}
 	FOR_SET(i, item, set) {
 		vm_push((struct VM *)S, *item);
@@ -136,16 +137,18 @@ static void YASL_collections_set___eq(struct YASL_State *S) {
 	struct YASL_Set *left = YASLX_checkset(S, SET_PRE ".__eq", 0);
 
 	if (YASL_Set_length(left) != YASL_Set_length(right)) {
-		return YASL_pushbool(S, false);
+		YASL_pushbool(S, false);
+		return;
 	}
 
 	FOR_SET(i, item, left) {
 		if (!YASL_Set_search(right, *item)) {
-			return YASL_pushbool(S, false);
+			YASL_pushbool(S, false);
+			return;
 		}
 	}
 
-	return YASL_pushbool(S, true);
+	YASL_pushbool(S, true);
 }
 
 static void YASL_collections_set___gt(struct YASL_State *S) {
@@ -154,11 +157,12 @@ static void YASL_collections_set___gt(struct YASL_State *S) {
 
 	FOR_SET(i, item, right) {
 		if (!YASL_Set_search(left, *item)) {
-			return YASL_pushbool(S, false);
+			YASL_pushbool(S, false);
+			return;
 		}
 	}
 
-	return YASL_pushbool(S, YASL_Set_length(left) > YASL_Set_length(right));
+	YASL_pushbool(S, YASL_Set_length(left) > YASL_Set_length(right));
 }
 
 static void YASL_collections_set___ge(struct YASL_State *S) {
@@ -167,11 +171,12 @@ static void YASL_collections_set___ge(struct YASL_State *S) {
 
 	FOR_SET(i, item, right) {
 		if (!YASL_Set_search(left, *item)) {
-			return YASL_pushbool(S, false);
+			YASL_pushbool(S, false);
+			return;
 		}
 	}
 
-	return YASL_pushbool(S, YASL_Set_length(left) >= YASL_Set_length(right));
+	YASL_pushbool(S, YASL_Set_length(left) >= YASL_Set_length(right));
 }
 
 static void YASL_collections_set___lt(struct YASL_State *S) {
@@ -180,11 +185,12 @@ static void YASL_collections_set___lt(struct YASL_State *S) {
 
 	FOR_SET(i, item, left) {
 		if (!YASL_Set_search(right, *item)) {
-			return YASL_pushbool(S, false);
+			YASL_pushbool(S, false);
+			return;
 		}
 	}
 
-	return YASL_pushbool(S, YASL_Set_length(left) < YASL_Set_length(right));
+	YASL_pushbool(S, YASL_Set_length(left) < YASL_Set_length(right));
 }
 
 static void YASL_collections_set___le(struct YASL_State *S) {
@@ -193,17 +199,18 @@ static void YASL_collections_set___le(struct YASL_State *S) {
 
 	FOR_SET(i, item, left) {
 		if (!YASL_Set_search(right, *item)) {
-			return YASL_pushbool(S, false);
+			YASL_pushbool(S, false);
+			return;
 		}
 	}
 
-	return YASL_pushbool(S, YASL_Set_length(left) <= YASL_Set_length(right));
+	YASL_pushbool(S, YASL_Set_length(left) <= YASL_Set_length(right));
 }
 
 static void YASL_collections_set___len(struct YASL_State *S) {
 	struct YASL_Set *set = YASLX_checkset(S, SET_PRE ".__len", 0);
 
-	return YASL_pushint(S, YASL_Set_length(set));
+	YASL_pushint(S, YASL_Set_length(set));
 }
 
 static void YASL_collections_set_add(struct YASL_State *S) {
@@ -252,7 +259,7 @@ static void YASL_collections_set___get(struct YASL_State *S) {
 	struct YASL_Object object = vm_pop(&S->vm);
 	struct YASL_Set *set = YASLX_checkset(S, SET_PRE ".__get", 0);
 
-	return YASL_pushbool(S, YASL_Set_search(set, object));
+	YASL_pushbool(S, YASL_Set_search(set, object));
 }
 
 int YASL_decllib_collections(struct YASL_State *S) {
