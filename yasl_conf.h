@@ -15,7 +15,7 @@
 #define YASL_FORMAT_CHECK
 #endif
 
-#if defined __GNUC__ || __uint32_t_defined __clang__
+#if defined __GNUC__ || defined __clang__
 #define YASL_NORETURN __attribute__((noreturn))
 #else
 #define YASL_NORETURN
