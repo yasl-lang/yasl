@@ -1,0 +1,1 @@
+ValueError: io.open was passed invalid mode: p. (line 1)
