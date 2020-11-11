@@ -8,7 +8,7 @@ void YASL_mt_getmt(struct YASL_State *S) {
 
 void YASL_mt_setmt(struct YASL_State *S) {
 	if (!YASL_istable(S)) {
-		vm_print_err_bad_arg_type((struct VM*)S,"mt.setmt", 1, Y_TABLE, vm_peek((struct VM *)S).type);
+		vm_print_err_bad_arg_type((struct VM*)S,"mt.set", 1, Y_TABLE, vm_peek((struct VM *)S).type);
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 

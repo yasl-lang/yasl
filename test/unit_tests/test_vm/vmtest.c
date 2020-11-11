@@ -26,19 +26,6 @@ SETUP_YATS();
 ////////////////////////////////////////////////////////////////////////////////
 
 int vmtest(void) {
-	// list method type errors
-	// TODO: __get, __set
-	ASSERT_VALUE_ERR("[][2];", "unable to index list of length 0 with index 2", 1);
-
-	// value errors
-	ASSERT_VALUE_ERR("echo []->pop();", "list.pop expected nonempty list as arg 0", 1);
-	ASSERT_VALUE_ERR("echo [1, .a]->sort();", "list.sort expected a list of all numbers or all strings", 1);
-	ASSERT_VALUE_ERR("echo ''.replace(.tr, '', .sad);", "str.replace expected a nonempty str as arg 1", 1);
-	ASSERT_VALUE_ERR("echo 'wasd'->split('');", "str.split expected a nonempty str as arg 1", 1);
-	ASSERT_VALUE_ERR("echo 'as'->rep(-1);", "str.rep expected non-negative int as arg 1", 1);
-
-	ASSERT_VALUE_ERR("const x = [ .a, .b, .c ]; x[3] = .d;", "unable to index list of length 3 with index 3", 1);
-
 	// io errors
 	ASSERT_VALUE_ERR("let f = io.open('f', 'www');", "io.open was passed invalid mode: www", 1);
 	ASSERT_VALUE_ERR("let f = io.open('f', 'y+');", "io.open was passed invalid mode: y+", 1);
