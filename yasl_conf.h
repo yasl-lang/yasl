@@ -17,6 +17,8 @@
 
 #if defined __GNUC__ || defined __clang__
 #define YASL_NORETURN __attribute__((noreturn))
+#elif defined _MSC_VER
+#define YASL_NORETURN __declspec(noreturn)
 #else
 #define YASL_NORETURN
 #endif

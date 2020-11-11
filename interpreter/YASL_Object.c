@@ -88,6 +88,10 @@ bool isfalsey(const struct YASL_Object *const v) {
 }
 
 bool isequal(const struct YASL_Object *const a, const struct YASL_Object *const b) {
+	if (obj_isundef(a) && obj_isundef(b)) {
+		return true;
+	}
+
 	if (obj_isbool(a) && obj_isbool(b)) {
 		return obj_getbool(a) == obj_getbool(b);
 	}
