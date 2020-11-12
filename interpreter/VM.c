@@ -338,6 +338,19 @@ static void vm_GET(struct VM *const vm);
 static void vm_INIT_CALL(struct VM *const vm);
 static void vm_CALL(struct VM *const vm);
 
+static void vm_call_now_1(struct VM *vm, struct YASL_Object a) {
+	vm_INIT_CALL(vm);
+	vm_push(vm, a);
+	vm_CALL(vm);
+}
+
+static void vm_call_now_2(struct VM *vm, struct YASL_Object a, struct YASL_Object b) {
+	vm_INIT_CALL(vm);
+	vm_push(vm, a);
+	vm_push(vm, b);
+	vm_CALL(vm);
+}
+
 #define INT_BINOP(name, op) yasl_int name(yasl_int left, yasl_int right) { return left op right; }
 
 INT_BINOP(bor, |)
@@ -368,10 +381,7 @@ static void vm_int_binop(struct VM *const vm, yasl_int (*op)(yasl_int, yasl_int)
 			dec_ref(&right);
 			vm_throw_err(vm, YASL_TYPE_ERROR);
 		} else {
-			vm_INIT_CALL(vm);
-			vm_push(vm, left);
-			vm_push(vm, right);
-			vm_CALL(vm);
+			vm_call_now_2(vm, left, right);
 			dec_ref(&left);
 			dec_ref(&right);
 		}
@@ -413,10 +423,7 @@ static void vm_num_binop(
 			dec_ref(&right);
 			vm_throw_err(vm, YASL_TYPE_ERROR);
 		} else {
-			vm_INIT_CALL(vm);
-			vm_push(vm, left);
-			vm_push(vm, right);
-			vm_CALL(vm);
+			vm_call_now_2(vm, left, right);
 			dec_ref(&left);
 			dec_ref(&right);
 		}
@@ -441,10 +448,7 @@ static void vm_fdiv(struct VM *const vm) {
 			dec_ref(&right);
 			vm_throw_err(vm, YASL_TYPE_ERROR);
 		} else {
-			vm_INIT_CALL(vm);
-			vm_push(vm, left);
-			vm_push(vm, right);
-			vm_CALL(vm);
+			vm_call_now_2(vm, left, right);
 			dec_ref(&left);
 			dec_ref(&right);
 		}
@@ -484,9 +488,7 @@ static void vm_int_unop(struct VM *const vm, yasl_int (*op)(yasl_int), const cha
 					      YASL_TYPE_NAMES[a.type]);
 			vm_throw_err(vm, YASL_TYPE_ERROR);
 		} else {
-			vm_INIT_CALL(vm);
-			vm_push(vm, a);
-			vm_CALL(vm);
+			vm_call_now_1(vm, a);
 		}
 	}
 }
@@ -505,9 +507,7 @@ static void vm_num_unop(struct VM *const vm, yasl_int (*int_op)(yasl_int), yasl_
 					      YASL_TYPE_NAMES[expr.type]);
 			vm_throw_err(vm, YASL_TYPE_ERROR);
 		} else {
-			vm_INIT_CALL(vm);
-			vm_push(vm, expr);
-			vm_CALL(vm);
+			vm_call_now_1(vm, expr);
 		}
 	}
 }
@@ -527,9 +527,7 @@ static void vm_len_unop(struct VM *const vm) {
 					      YASL_TYPE_NAMES[v.type]);
 			vm_throw_err(vm, YASL_TYPE_ERROR);
 		} else {
-			vm_INIT_CALL(vm);
-			vm_push(vm, v);
-			vm_CALL(vm);
+			vm_call_now_1(vm, v);
 		}
 	}
 }
@@ -549,10 +547,7 @@ int vm_EQ(struct VM *const vm) {
 			dec_ref(&b);
 			return YASL_TYPE_ERROR;
 		} else {
-			vm_INIT_CALL(vm);
-			vm_push(vm, a);
-			vm_push(vm, b);
-			vm_CALL(vm);
+			vm_call_now_2(vm, a, b);
 			dec_ref(&a);
 			dec_ref(&b);
 		}
@@ -603,10 +598,7 @@ static int vm_##name(struct VM *const vm) {\
 		dec_ref(&right);\
 		return YASL_TYPE_ERROR;\
 	} else {\
-		vm_INIT_CALL(vm);\
-		vm_push(vm, left);\
-		vm_push(vm, right);\
-		vm_CALL(vm);\
+		vm_call_now_2(vm, left, right);\
 		dec_ref(&left);\
 		dec_ref(&right);\
 	}\
@@ -823,10 +815,7 @@ static int lookup(struct VM *vm, struct YASL_Object obj, struct YASL_Table *mt, 
 	str_del(get);
 	if (search.type != Y_END) {
 		vm_push(vm, search);
-		vm_INIT_CALL(vm);
-		vm_push(vm, obj);
-		vm_push(vm, index);
-		vm_CALL(vm);
+		vm_call_now_2(vm, obj, index);
 		return YASL_SUCCESS;
 	}
 	return YASL_VALUE_ERROR;
