@@ -124,8 +124,10 @@ void vm_cleanup(struct VM *const vm);
 void vvm_print_err(struct VM *vm, const char *const fmt, va_list args);
 void vm_print_err(struct VM *vm, const char *const fmt, ...);
 
+YASL_NORETURN void vm_throw_err(struct VM *const vm, int error);
+
 void vm_get_metatable(struct VM *const vm);
-int vm_stringify_top(struct VM *const vm);
+void vm_stringify_top(struct VM *const vm);
 int vm_EQ(struct VM *const vm);
 
 struct YASL_Object vm_pop(struct VM *const vm);

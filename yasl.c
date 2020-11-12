@@ -244,8 +244,7 @@ void YASL_print_err(struct YASL_State *S, const char *const fmt, ...) {
 }
 
 void YASL_throw_err(struct YASL_State *S, int error) {
-	((struct VM *)S)->status = error;
-	longjmp(((struct VM *)S)->buf, 1);
+	vm_throw_err(&S->vm, error);
 }
 
 int YASL_peektype(struct YASL_State *S) {

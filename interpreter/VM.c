@@ -210,11 +210,15 @@ YASL_FORMAT_CHECK static void vm_print_out(struct VM *vm, const char *const fmt,
 	va_end(args);
 }
 
+void vm_throw_err(struct VM *const vm, int error) {
+	vm->status = error;
+	longjmp(vm->buf, 1);
+}
+
 void vm_push(struct VM *const vm, const struct YASL_Object val) {
 	if (vm->sp + 1 >= STACK_SIZE) {
-		vm->status = YASL_STACK_OVERFLOW_ERROR;
 		vm_print_err(vm, "StackOverflow.");
-		longjmp(vm->buf, 1);
+		vm_throw_err(vm, YASL_STACK_OVERFLOW_ERROR);
 	}
 
 	vm->sp++;
@@ -248,10 +252,12 @@ struct YASL_Object *vm_pop_p(struct VM *const vm) {
 	YASL_ASSERT(vm->sp >= 0, "cannot pop from empty stack.")
 	return vm->stack + vm->sp--;
 }
+
 struct YASL_Object vm_pop(struct VM *const vm) {
 	YASL_ASSERT(vm->sp >= 0, "cannot pop from empty stack.")
 	return vm->stack[vm->sp--];
 }
+
 bool vm_popbool(struct VM *const vm) {
 	return obj_getbool(vm_pop_p(vm));
 }
@@ -283,7 +289,7 @@ static yasl_int vm_read_int(struct VM *const vm) {
     return val;
 }
 
-#define READ_INT(size) \
+#define DEFINE_READ_INT(size) \
 	static yasl_int vm_read_int##size(struct VM *const vm) {\
 		int##size##_t val;\
 		memcpy(&val, vm->pc, sizeof(int##size##_t));\
@@ -291,9 +297,9 @@ static yasl_int vm_read_int(struct VM *const vm) {
 		return (yasl_int) val;\
 	}
 
-READ_INT(16)
-READ_INT(32)
-READ_INT(64)
+DEFINE_READ_INT(16)
+DEFINE_READ_INT(32)
+DEFINE_READ_INT(64)
 
 static yasl_float vm_read_float(struct VM *const vm) {
     yasl_float val;
@@ -318,12 +324,12 @@ INT_BINOP(shift_right, >>)
 INT_BINOP(modulo, %)
 INT_BINOP(idiv, /)
 
-static int vm_int_binop(struct VM *const vm, yasl_int (*op)(yasl_int, yasl_int), const char *opstr, const char *overload_name) {
+static void vm_int_binop(struct VM *const vm, yasl_int (*op)(yasl_int, yasl_int), const char *opstr, const char *overload_name) {
 	struct YASL_Object right = vm_pop(vm);
 	struct YASL_Object left = vm_pop(vm);
 	if (obj_isint(&left) && obj_isint(&right)) {
 		vm_push(vm, YASL_INT(op(obj_getint(&left), obj_getint(&right))));
-		return YASL_SUCCESS;
+		return;
 	} else {
 		inc_ref(&left);
 		inc_ref(&right);
@@ -335,7 +341,7 @@ static int vm_int_binop(struct VM *const vm, yasl_int (*op)(yasl_int, yasl_int),
 					      YASL_TYPE_NAMES[right.type]);
 			dec_ref(&left);
 			dec_ref(&right);
-			return YASL_TYPE_ERROR;
+			vm_throw_err(vm, YASL_TYPE_ERROR);
 		} else {
 			int res;
 			vm_INIT_CALL(vm);
@@ -344,10 +350,9 @@ static int vm_int_binop(struct VM *const vm, yasl_int (*op)(yasl_int, yasl_int),
 			res = vm_CALL(vm);
 			dec_ref(&left);
 			dec_ref(&right);
-			return res;
+			if (res) vm_throw_err(vm, res);
 		}
 	}
-	return YASL_SUCCESS;
 }
 
 #define FLOAT_BINOP(name, op) yasl_float name(yasl_float left, yasl_float right) { return left op right; }
@@ -361,7 +366,7 @@ static yasl_int int_pow(yasl_int left, yasl_int right) {
     return (yasl_int)pow((double)left, (double)right);
 }
 
-static int vm_num_binop(
+static void vm_num_binop(
         struct VM *const vm, yasl_int (*int_op)(yasl_int, yasl_int),
         yasl_float (*float_op)(yasl_float, yasl_float),
         const char *const opstr,
@@ -383,7 +388,7 @@ static int vm_num_binop(
 					      YASL_TYPE_NAMES[right.type]);
 			dec_ref(&left);
 			dec_ref(&right);
-			return YASL_TYPE_ERROR;
+			vm_throw_err(vm, YASL_TYPE_ERROR);
 		} else {
 			int res;
 			vm_INIT_CALL(vm);
@@ -392,13 +397,12 @@ static int vm_num_binop(
 			res = vm_CALL(vm);
 			dec_ref(&left);
 			dec_ref(&right);
-			return res;
+			if (res) vm_throw_err(vm, res);
 		}
 	}
-	return YASL_SUCCESS;
 }
 
-static int vm_fdiv(struct VM *const vm) {
+static void vm_fdiv(struct VM *const vm) {
 	const char *overload_name = OP_BIN_FDIV;
 	struct YASL_Object right = vm_pop(vm);
 	struct YASL_Object left = vm_pop(vm);
@@ -414,7 +418,7 @@ static int vm_fdiv(struct VM *const vm) {
 					      YASL_TYPE_NAMES[right.type]);
 			dec_ref(&left);
 			dec_ref(&right);
-			return YASL_TYPE_ERROR;
+			vm_throw_err(vm, YASL_TYPE_ERROR);
 		} else {
 			int res;
 			vm_INIT_CALL(vm);
@@ -423,13 +427,12 @@ static int vm_fdiv(struct VM *const vm) {
 			res = vm_CALL(vm);
 			dec_ref(&left);
 			dec_ref(&right);
-			return res;
+			if (res) vm_throw_err(vm, res);
 		}
 	}
-	return YASL_SUCCESS;
 }
 
-static int vm_pow(struct VM *const vm) {
+static void vm_pow(struct VM *const vm) {
 	struct YASL_Object right = vm_pop(vm);
 	struct YASL_Object left = vm_peek(vm);
 	if (obj_isint(&left) && obj_isint(&right) && obj_getint(&right) < 0) {
@@ -437,10 +440,8 @@ static int vm_pow(struct VM *const vm) {
 		vm_pushfloat(vm, pow((double)obj_getint(&left), (double)obj_getint(&right)));
 	} else {
 		vm->sp++;
-		int res = vm_num_binop(vm, &int_pow, &pow, "**", OP_BIN_POWER);
-		return res;
+		vm_num_binop(vm, &int_pow, &pow, "**", OP_BIN_POWER);
 	}
-	return YASL_SUCCESS;
 }
 
 #define INT_UNOP(name, op) yasl_int name(yasl_int val) { return op val; }
@@ -451,28 +452,27 @@ INT_UNOP(bnot, ~)
 NUM_UNOP(neg, -)
 NUM_UNOP(pos, +)
 
-static int vm_int_unop(struct VM *const vm, yasl_int (*op)(yasl_int), const char *opstr, const char *overload_name) {
+static void vm_int_unop(struct VM *const vm, yasl_int (*op)(yasl_int), const char *opstr, const char *overload_name) {
 	struct YASL_Object a = vm_pop(vm);
 	if (obj_isint(&a)) {
 		vm_pushint(vm, op(obj_getint(&a)));
-		return YASL_SUCCESS;
+		return;
 	} else {
 		vm_push(vm, a);
 		if (vm_lookup_method(vm, overload_name)) {
 			vm_print_err_type(vm, "%s not supported for operand of type %s.",
 					      opstr,
 					      YASL_TYPE_NAMES[a.type]);
-			return YASL_TYPE_ERROR;
+			vm_throw_err(vm, YASL_TYPE_ERROR);
 		} else {
 			vm_INIT_CALL(vm);
 			vm_push(vm, a);
 			vm_CALL(vm);
 		}
 	}
-	return YASL_SUCCESS;
 }
 
-static int vm_num_unop(struct VM *const vm, yasl_int (*int_op)(yasl_int), yasl_float (*float_op)(yasl_float), const char *opstr, const char *overload_name) {
+static void vm_num_unop(struct VM *const vm, yasl_int (*int_op)(yasl_int), yasl_float (*float_op)(yasl_float), const char *opstr, const char *overload_name) {
 	struct YASL_Object expr = vm_pop(vm);
 	if (obj_isint(&expr)) {
 		vm_pushint(vm, int_op(obj_getint(&expr)));
@@ -484,17 +484,16 @@ static int vm_num_unop(struct VM *const vm, yasl_int (*int_op)(yasl_int), yasl_f
 			vm_print_err_type(vm,  "%s not supported for operand of type %s.",
 					      opstr,
 					      YASL_TYPE_NAMES[expr.type]);
-			return YASL_TYPE_ERROR;
+			vm_throw_err(vm, YASL_TYPE_ERROR);
 		} else {
 			vm_INIT_CALL(vm);
 			vm_push(vm, expr);
 			vm_CALL(vm);
 		}
 	}
-	return YASL_SUCCESS;
 }
 
-static int vm_len_unop(struct VM *const vm) {
+static void vm_len_unop(struct VM *const vm) {
 	struct YASL_Object v = vm_pop(vm);
 	if (obj_isstr(&v)) {
 		vm_pushint(vm, (yasl_int) YASL_String_len(obj_getstr(&v)));
@@ -507,14 +506,13 @@ static int vm_len_unop(struct VM *const vm) {
 		if (vm_lookup_method(vm, "__len")) {
 			vm_print_err_type(vm,  "len not supported for operand of type %s.",
 					      YASL_TYPE_NAMES[v.type]);
-			return YASL_TYPE_ERROR;
+			vm_throw_err(vm, YASL_TYPE_ERROR);
 		} else {
 			vm_INIT_CALL(vm);
 			vm_push(vm, v);
 			vm_CALL(vm);
 		}
 	}
-	return YASL_SUCCESS;
 }
 
 int vm_EQ(struct VM *const vm) {
@@ -604,7 +602,7 @@ MAKE_COMP(GE, ">=", "__ge")
 MAKE_COMP(LT, "<", "__lt")
 MAKE_COMP(LE, "<=", "__le")
 
-int vm_stringify_top(struct VM *const vm) {
+void vm_stringify_top(struct VM *const vm) {
 	enum YASL_Types index = vm_peek(vm, vm->sp).type;
 	if (vm_isfn(vm) || vm_iscfn(vm) || vm_isclosure(vm)) {
 		size_t n = (size_t)snprintf(NULL, 0, "<fn: %p>", vm_peekuserptr(vm)) + 1;
@@ -616,6 +614,7 @@ int vm_stringify_top(struct VM *const vm) {
 		struct YASL_Object result = YASL_Table_search((struct YASL_Table *)vm_peek(vm).value.uval->mt->data, key);
 		str_del(obj_getstr(&key));
 		if (result.type == Y_END) {
+			// TODO: error here
 			exit(EXIT_FAILURE);
 		}
 		YASL_GETCFN(result)->value((struct YASL_State *)vm);
@@ -631,7 +630,6 @@ int vm_stringify_top(struct VM *const vm) {
 		str_del(obj_getstr(&key));
 		YASL_GETCFN(result)->value((struct YASL_State *)vm);
 	}
-	return YASL_SUCCESS;
 }
 
 static struct Upvalue *add_upvalue(struct VM *const vm, struct YASL_Object *const location) {
@@ -816,8 +814,7 @@ static int lookup(struct VM *vm, struct YASL_Object obj, struct YASL_Table *mt, 
 		if ((result = vm_INIT_CALL(vm))) return result;
 		vm_push(vm, obj);
 		vm_push(vm, index);
-		if ((result = vm_CALL(vm))) return result;
-		return YASL_SUCCESS;
+		return vm_CALL(vm);
 	}
 	return YASL_VALUE_ERROR;
 }
@@ -904,7 +901,7 @@ static void vm_SET(struct VM *const vm) {
 	}
 	vm->sp += 2;
 	vm_print_err_type(vm,  "object of type %s is immutable.", YASL_TYPE_NAMES[vm_peek(vm).type]);
-	YASL_throw_err((struct YASL_State *)vm, YASL_TYPE_ERROR);
+	vm_throw_err(vm, YASL_TYPE_ERROR);
 }
 
 static int vm_NEWSTR(struct VM *const vm) {
@@ -1416,44 +1413,44 @@ int vm_run(struct VM *const vm) {
 			vm_CCONST(vm);
 			break;
 		case O_BOR:
-			if ((res = vm_int_binop(vm, &bor, "|", OP_BIN_BAR))) return res;
+			vm_int_binop(vm, &bor, "|", OP_BIN_BAR);
 			break;
 		case O_BXOR:
-			if ((res = vm_int_binop(vm, &bxor, "^", OP_BIN_CARET))) return res;
+			vm_int_binop(vm, &bxor, "^", OP_BIN_CARET);
 			break;
 		case O_BAND:
-			if ((res = vm_int_binop(vm, &band, "&", OP_BIN_AMP))) return res;
+			vm_int_binop(vm, &band, "&", OP_BIN_AMP);
 			break;
 		case O_BANDNOT:
-			if ((res = vm_int_binop(vm, &bandnot, "&^", OP_BIN_AMPCARET))) return res;
+			vm_int_binop(vm, &bandnot, "&^", OP_BIN_AMPCARET);
 			break;
 		case O_BNOT:
-			if ((res = vm_int_unop(vm, &bnot, "^", OP_UN_CARET))) return res;
+			vm_int_unop(vm, &bnot, "^", OP_UN_CARET);
 			break;
 		case O_BSL:
-			if ((res = vm_int_binop(vm, &shift_left, "<<", OP_BIN_SHL))) return res;
+			vm_int_binop(vm, &shift_left, "<<", OP_BIN_SHL);
 			break;
 		case O_BSR:
-			if ((res = vm_int_binop(vm, &shift_right, ">>", OP_BIN_SHR))) return res;
+			vm_int_binop(vm, &shift_right, ">>", OP_BIN_SHR);
 			break;
 		case O_ADD:
-			if ((res = vm_num_binop(vm, &int_add, &float_add, "+", OP_BIN_PLUS))) return res;
+			vm_num_binop(vm, &int_add, &float_add, "+", OP_BIN_PLUS);
 			break;
 		case O_MUL:
-			if ((res = vm_num_binop(vm, &int_mul, &float_mul, "*", OP_BIN_TIMES))) return res;
+			vm_num_binop(vm, &int_mul, &float_mul, "*", OP_BIN_TIMES);
 			break;
 		case O_SUB:
-			if ((res = vm_num_binop(vm, &int_sub, &float_sub, "-", OP_BIN_MINUS))) return res;
+			vm_num_binop(vm, &int_sub, &float_sub, "-", OP_BIN_MINUS);
 			break;
 		case O_FDIV:
-			if ((res = vm_fdiv(vm))) return res;   // handled differently because we always convert to float
+			vm_fdiv(vm);   // handled differently because we always convert to float
 			break;
 		case O_IDIV:
 			if (vm_isint(vm) && vm_peekint(vm) == 0) {
 				vm_print_err_divide_by_zero(vm);
 				return YASL_DIVIDE_BY_ZERO_ERROR;
 			}
-			if ((res = vm_int_binop(vm, &idiv, "//", OP_BIN_IDIV))) return res;
+			vm_int_binop(vm, &idiv, "//", OP_BIN_IDIV);
 			break;
 		case O_MOD:
 			// TODO: handle undefined C behaviour for negative numbers.
@@ -1461,22 +1458,22 @@ int vm_run(struct VM *const vm) {
 				vm_print_err_divide_by_zero(vm);
 				return YASL_DIVIDE_BY_ZERO_ERROR;
 			}
-			if ((res = vm_int_binop(vm, &modulo, "%", OP_BIN_MOD))) return res;
+			vm_int_binop(vm, &modulo, "%", OP_BIN_MOD);
 			break;
 		case O_EXP:
-			if ((res = vm_pow(vm))) return res;
+			vm_pow(vm);
 			break;
 		case O_NEG:
-			if ((res = vm_num_unop(vm, &int_neg, &float_neg, "-", OP_UN_MINUS))) return res;
+			vm_num_unop(vm, &int_neg, &float_neg, "-", OP_UN_MINUS);
 			break;
 		case O_POS:
-			if ((res = vm_num_unop(vm, &int_pos, &float_pos, "+", OP_UN_PLUS))) return res;
+			vm_num_unop(vm, &int_pos, &float_pos, "+", OP_UN_PLUS);
 			break;
 		case O_NOT:
 			vm_pushbool(vm, isfalsey(vm_pop_p(vm)));
 			break;
 		case O_LEN:
-			if ((res = vm_len_unop(vm))) return res;
+			vm_len_unop(vm);
 			break;
 		case O_CNCT:
 			if ((res = vm_CNCT(vm))) return res;
