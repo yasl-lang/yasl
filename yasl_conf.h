@@ -6,7 +6,7 @@
 #if defined __GNUC__ || defined __clang__
 #define YASL_DEPRECATE __attribute__((deprecated))
 #elif defined _MSC_VER
-#define YASL_NORETURN __declspec(deprecated)
+#define YASL_DEPRECATE __declspec(deprecated)
 #else
 #define YASL_DEPRECATE
 #endif
