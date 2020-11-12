@@ -311,7 +311,7 @@ static yasl_float vm_read_float(struct VM *const vm) {
 static int vm_lookup_method(struct VM *const vm, const char *const method_name);
 static int vm_GET(struct VM *const vm);
 static int vm_INIT_CALL(struct VM *const vm);
-static int vm_CALL(struct VM *const vm);
+static void vm_CALL(struct VM *const vm);
 
 #define INT_BINOP(name, op) yasl_int name(yasl_int left, yasl_int right) { return left op right; }
 
@@ -343,14 +343,12 @@ static void vm_int_binop(struct VM *const vm, yasl_int (*op)(yasl_int, yasl_int)
 			dec_ref(&right);
 			vm_throw_err(vm, YASL_TYPE_ERROR);
 		} else {
-			int res;
 			vm_INIT_CALL(vm);
 			vm_push(vm, left);
 			vm_push(vm, right);
-			res = vm_CALL(vm);
+			vm_CALL(vm);
 			dec_ref(&left);
 			dec_ref(&right);
-			if (res) vm_throw_err(vm, res);
 		}
 	}
 }
@@ -390,14 +388,12 @@ static void vm_num_binop(
 			dec_ref(&right);
 			vm_throw_err(vm, YASL_TYPE_ERROR);
 		} else {
-			int res;
 			vm_INIT_CALL(vm);
 			vm_push(vm, left);
 			vm_push(vm, right);
-			res = vm_CALL(vm);
+			vm_CALL(vm);
 			dec_ref(&left);
 			dec_ref(&right);
-			if (res) vm_throw_err(vm, res);
 		}
 	}
 }
@@ -420,14 +416,12 @@ static void vm_fdiv(struct VM *const vm) {
 			dec_ref(&right);
 			vm_throw_err(vm, YASL_TYPE_ERROR);
 		} else {
-			int res;
 			vm_INIT_CALL(vm);
 			vm_push(vm, left);
 			vm_push(vm, right);
-			res = vm_CALL(vm);
+			vm_CALL(vm);
 			dec_ref(&left);
 			dec_ref(&right);
-			if (res) vm_throw_err(vm, res);
 		}
 	}
 }
@@ -543,7 +537,7 @@ int vm_EQ(struct VM *const vm) {
 	return YASL_SUCCESS;
 }
 
-static int vm_CNCT(struct VM *const vm) {
+static void vm_CNCT(struct VM *const vm) {
 		vm_stringify_top(vm);
 		struct YASL_String *b = vm_popstr(vm);
 		vm_stringify_top(vm);
@@ -557,7 +551,6 @@ static int vm_CNCT(struct VM *const vm) {
 		       ((b))->str + (b)->start,
 		       YASL_String_len((b)));
 		vm_pushstr(vm, YASL_String_new_sized_heap(0, size, ptr));
-		return YASL_SUCCESS;
 }
 
 #define MAKE_COMP(name, opstr, overload_name) \
@@ -585,14 +578,12 @@ static int vm_##name(struct VM *const vm) {\
 		dec_ref(&right);\
 		return YASL_TYPE_ERROR;\
 	} else {\
-		int res;\
 		vm_INIT_CALL(vm);\
 		vm_push(vm, left);\
 		vm_push(vm, right);\
-		res = vm_CALL(vm);\
+		vm_CALL(vm);\
 		dec_ref(&left);\
 		dec_ref(&right);\
-		return res;\
 	}\
 	return YASL_SUCCESS;\
 }
@@ -657,7 +648,7 @@ static struct Upvalue *add_upvalue(struct VM *const vm, struct YASL_Object *cons
 	return NULL;
 }
 
-static int vm_CCONST(struct VM *const vm) {
+static void vm_CCONST(struct VM *const vm) {
 	yasl_int len = vm_read_int(vm);
 	unsigned char *start = vm->pc;
 	vm->pc += len;
@@ -679,8 +670,6 @@ static int vm_CCONST(struct VM *const vm) {
 	}
 
 	vm_push(vm, ((struct YASL_Object){.type = Y_CLOSURE, .value = {.lval = closure}}));
-
-	return YASL_SUCCESS;
 }
 
 static int vm_SLICE(struct VM *const vm) {
@@ -778,7 +767,6 @@ static int vm_SLICE(struct VM *const vm) {
 	vm_pop(vm);
 	vm_print_err_type(vm,  "slice is not defined for objects of type %s.", YASL_TYPE_NAMES[vm_pop(vm).type]);
 	return YASL_TYPE_ERROR;
-
 }
 
 void vm_get_metatable(struct VM *const vm) {
@@ -814,7 +802,8 @@ static int lookup(struct VM *vm, struct YASL_Object obj, struct YASL_Table *mt, 
 		if ((result = vm_INIT_CALL(vm))) return result;
 		vm_push(vm, obj);
 		vm_push(vm, index);
-		return vm_CALL(vm);
+		vm_CALL(vm);
+		return YASL_SUCCESS;
 	}
 	return YASL_VALUE_ERROR;
 }
@@ -904,14 +893,12 @@ static void vm_SET(struct VM *const vm) {
 	vm_throw_err(vm, YASL_TYPE_ERROR);
 }
 
-static int vm_NEWSTR(struct VM *const vm) {
+static void vm_NEWSTR(struct VM *const vm) {
 	yasl_int addr = vm_read_int(vm);
-
 	vm_push(vm, vm->constants[addr]);
-	return YASL_SUCCESS;
 }
 
-static int vm_ITER_1(struct VM *const vm) {
+static void vm_ITER_1(struct VM *const vm) {
 	struct LoopFrame *frame = &vm->loopframes[vm->loopframe_num];
 	switch (frame->iterable.type) {
 	case Y_LIST:
@@ -921,7 +908,7 @@ static int vm_ITER_1(struct VM *const vm) {
 			vm_push(vm, YASL_GETLIST(frame->iterable)->items[frame->iter++]);
 			vm_pushbool(vm, 1);
 		}
-		return YASL_SUCCESS;
+		return;
 	case Y_TABLE:
 		while (YASL_GETTABLE(frame->iterable)->size > (size_t) frame->iter &&
 		       (YASL_GETTABLE(frame->iterable)->items[frame->iter].key.type == Y_END ||
@@ -932,12 +919,11 @@ static int vm_ITER_1(struct VM *const vm) {
 		if (YASL_GETTABLE(frame->iterable)->size <=
 		    (size_t) frame->iter) {
 			vm_pushbool(vm, 0);
-			return YASL_SUCCESS;
+			return;
 		}
-		vm_push(vm,
-			YASL_GETTABLE(frame->iterable)->items[frame->iter++].key);
+		vm_push(vm, YASL_GETTABLE(frame->iterable)->items[frame->iter++].key);
 		vm_pushbool(vm, 1);
-		return YASL_SUCCESS;
+		return;
 	case Y_STR:
 		if ((yasl_int) YASL_String_len(obj_getstr(&frame->iterable)) <= frame->iter) {
 			vm_push(vm, YASL_BOOL(0));
@@ -947,10 +933,10 @@ static int vm_ITER_1(struct VM *const vm) {
 			frame->iter++;
 			vm_pushbool(vm, 1);
 		}
-		return YASL_SUCCESS;
+		return;
 	default:
 		vm_print_err_type(vm,  "object of type %s is not iterable.\n", YASL_TYPE_NAMES[frame->iterable.type]);
-		return YASL_TYPE_ERROR;
+		vm_throw_err(vm, YASL_TYPE_ERROR);
 	}
 }
 
@@ -1157,41 +1143,27 @@ static bool vm_MATCH_pattern(struct VM *const vm, struct YASL_Object *expr) {
 	}
 }
 
-static int vm_MATCH(struct VM *const vm) {
+static void vm_MATCH(struct VM *const vm) {
 	struct YASL_Object expr = vm_pop(vm);
 	inc_ref(&expr);
 	yasl_int num_pats = vm_read_int(vm);
 	(void) num_pats;
-	while (num_pats-- && !vm_MATCH_pattern(vm, &expr)) {
-
-	}
+	while (num_pats-- && !vm_MATCH_pattern(vm, &expr)) {}
 	dec_ref(&expr);
-	return YASL_SUCCESS;
-
 }
 
-static int vm_GSTORE_8(struct VM *const vm) {
-	// yasl_int table = vm_read_int(vm);
+static void vm_GSTORE_8(struct VM *const vm) {
 	yasl_int addr = vm_read_int(vm);
 
 	YASL_Table_insert_fast(vm->globals, vm->constants[addr], vm_pop(vm));
-
-	return YASL_SUCCESS;
 }
 
-static int vm_GLOAD_8(struct VM *const vm) {
+static void vm_GLOAD_8(struct VM *const vm) {
 	yasl_int addr = vm_read_int(vm);
 
 	vm_push(vm, YASL_Table_search(vm->globals, vm->constants[addr]));
 
 	YASL_ASSERT(vm_peek(vm).type != Y_END, "global not found");
-
-	return YASL_SUCCESS;
-}
-
-void vm_CLOSE(struct VM *const vm) {
-	(void) vm;
-	// TODO
 }
 
 static void vm_enterframe(struct VM *const vm) {
@@ -1246,7 +1218,7 @@ static int vm_INIT_MC(struct VM *const vm) {
 	return YASL_SUCCESS;
 }
 
-static int vm_CALL_closure(struct VM *const vm) {
+static void vm_CALL_closure(struct VM *const vm) {
 	vm->frames[vm->frame_num].pc = vm->pc;
 	unsigned char *const code = vm_peek(vm, vm->fp).value.lval->f;
 
@@ -1259,10 +1231,9 @@ static int vm_CALL_closure(struct VM *const vm) {
 	}
 
 	vm->pc =  code + 2;
-	return YASL_SUCCESS;
 }
 
-static int vm_CALL_fn(struct VM *const vm) {
+static void vm_CALL_fn(struct VM *const vm) {
 	vm->frames[vm->frame_num].pc = vm->pc;
 	unsigned char *const code = vm_peek(vm, vm->fp).value.fval;
 
@@ -1275,10 +1246,9 @@ static int vm_CALL_fn(struct VM *const vm) {
 	}
 
 	vm->pc =  code + 2;
-	return YASL_SUCCESS;
 }
 
-static int vm_CALL_cfn(struct VM *const vm) {
+static void vm_CALL_cfn(struct VM *const vm) {
 	vm->frames[vm->frame_num].pc = vm->pc;
 	if (vm_peekcfn(vm, vm->fp)->num_args == -1) {
 		YASL_VM_DEBUG_LOG("vm->sp - vm->prev_fp: %d\n", vm->sp - (vm->fp));
@@ -1295,26 +1265,22 @@ static int vm_CALL_cfn(struct VM *const vm) {
 	vm_peekcfn(vm, vm->fp)->value((struct YASL_State *) vm);
 
 	vm_exitframe(vm);
-	return YASL_SUCCESS;
 }
 
-static int vm_CALL(struct VM *const vm) {
+static void vm_CALL(struct VM *const vm) {
 	vm->fp = vm->next_fp;
 	if (vm_isfn(vm, vm->fp)) {
-		return vm_CALL_fn(vm);
+		vm_CALL_fn(vm);
 	} else if (vm_iscfn(vm, vm->fp)) {
-		return vm_CALL_cfn(vm);
+		vm_CALL_cfn(vm);
 	} else if (vm_isclosure(vm, vm->fp)) {
-		return vm_CALL_closure(vm);
+		vm_CALL_closure(vm);
 	}
-	YASL_ASSERT(false, "We never reach this point");
-	return YASL_SUCCESS;
 }
 
-static int vm_RET(struct VM *const vm) {
+static void vm_RET(struct VM *const vm) {
 	// TODO: handle multiple returns
 	vm_exitframe(vm);
-	return YASL_SUCCESS;
 }
 
 static struct Upvalue *vm_close_all_helper(struct YASL_Object *const end, struct Upvalue *const curr) {
@@ -1330,11 +1296,9 @@ void vm_close_all(struct VM *const vm) {
 	vm->pending = vm_close_all_helper(vm->stack + vm->fp, vm->pending);
 }
 
-static int vm_CRET(struct VM *const vm) {
+static void vm_CRET(struct VM *const vm) {
 	vm_close_all(vm);
 	vm_exitframe(vm);
-
-	return YASL_SUCCESS;
 }
 
 static void vm_PRINT(struct VM *const vm) {
@@ -1476,7 +1440,7 @@ int vm_run(struct VM *const vm) {
 			vm_len_unop(vm);
 			break;
 		case O_CNCT:
-			if ((res = vm_CNCT(vm))) return res;
+			vm_CNCT(vm);
 			break;
 		case O_GT:
 			if ((res = vm_GT(vm))) return res;
@@ -1499,7 +1463,7 @@ int vm_run(struct VM *const vm) {
 			vm_pushbool(vm, a.type == b.type && obj_getint(&a) == obj_getint(&b));
 			break;
 		case O_NEWSTR:
-			if ((res = vm_NEWSTR(vm))) return res;
+			vm_NEWSTR(vm);
 			break;
 		case O_NEWTABLE: {
 			struct RC_UserData *table = rcht_new();
@@ -1548,7 +1512,7 @@ int vm_run(struct VM *const vm) {
 			vm->loopframe_num--;
 			break;
 		case O_ITER_1:
-			if ((res = vm_ITER_1(vm))) return res;
+			vm_ITER_1(vm);
 			break;
 		case O_ITER_2:
 			puts("NOT IMPLEMENTED");
@@ -1567,7 +1531,7 @@ int vm_run(struct VM *const vm) {
 			vm->stack[vm->sp] = a;
 			break;
 		case O_MATCH:
-			if ((res = vm_MATCH(vm))) return res;
+			vm_MATCH(vm);
 			break;
 		case O_BR_8:
 			c = vm_read_int(vm);
@@ -1586,10 +1550,10 @@ int vm_run(struct VM *const vm) {
 			if (!obj_isundef(vm_pop_p(vm))) vm->pc += c;
 			break;
 		case O_GLOAD_8:
-			if ((res = vm_GLOAD_8(vm))) return res;
+			vm_GLOAD_8(vm);
 			break;
 		case O_GSTORE_8:
-			if ((res = vm_GSTORE_8(vm))) return res;
+			vm_GSTORE_8(vm);
 			break;
 		case O_LLOAD:
 			offset = NCODE(vm);
@@ -1617,10 +1581,10 @@ int vm_run(struct VM *const vm) {
 			if ((res = vm_INIT_CALL(vm))) return res;
 			break;
 		case O_CALL:
-			if ((res = vm_CALL(vm))) return res;
+			vm_CALL(vm);
 			break;
 		case O_RET:
-			if ((res = vm_RET(vm))) return res;
+			vm_RET(vm);
 			break;
 		case O_CRET:
 			vm_CRET(vm);
