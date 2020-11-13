@@ -215,31 +215,6 @@ void vm_throw_err(struct VM *const vm, int error) {
 	longjmp(vm->buf, 1);
 }
 
-/*
-void vm_insert_from_top(struct VM *const vm, const size_t index, const struct YASL_Object val) {
-	if (vm->sp + 1 >= STACK_SIZE) {
-		vm_print_err(vm, "StackOverflow.");
-		vm_throw_err(vm, YASL_STACK_OVERFLOW_ERROR);
-	}
-
-	vm->sp++;
-	dec_ref(vm->stack + vm->sp);
-
-	YASL_ASSERT(vm->sp - index - 1 >= 0, "Cannot index off the bottom of the stack.");
-
-	for (size_t i = 0; i < index; i++) {
-		vm->stack[vm->sp - i] = vm->stack[vm->sp - i - 1];
-	}
-
-	vm->stack[vm->sp - index] = val;
-	inc_ref(vm->stack + vm->sp - index);
-}
-
-void vm_remove_from_top(struct VM *const vm, const size_t index) {
-
-}
-*/
-
 void vm_push(struct VM *const vm, const struct YASL_Object val) {
 	if (vm->sp + 1 >= STACK_SIZE) {
 		vm_print_err(vm, "StackOverflow.");
