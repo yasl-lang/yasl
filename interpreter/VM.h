@@ -51,7 +51,6 @@
 #define vm_iscfn(...) (obj_iscfn(vm_peek_p(__VA_ARGS__)))
 #define vm_isclosure(...) (obj_isclosure(vm_peek_p(__VA_ARGS__)))
 
-#define BUFFER_SIZE 256
 #define NCODE(vm)    (*((vm)->pc++))     // get next bytecode
 
 #define GT(a, b) ((a) > (b))
@@ -148,7 +147,6 @@ void vm_pushbool(struct VM *const vm, bool b);
 #define vm_pushlist(vm, l) vm_push(vm, YASL_LIST(l))
 #define vm_pushtable(vm, l) vm_push(vm, YASL_TABLE(l))
 #define vm_pushfn(vm, f) vm_push(vm, YASL_FN(f))
-void vm_pushclosure(struct VM *const vm, unsigned char *const f);
 
 int vm_run(struct VM *const vm);
 

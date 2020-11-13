@@ -632,7 +632,7 @@ static void vm_CCONST(struct VM *const vm) {
 	vm_push(vm, ((struct YASL_Object){.type = Y_CLOSURE, .value = {.lval = closure}}));
 }
 
-static int vm_SLICE(struct VM *const vm) {
+static void vm_SLICE(struct VM *const vm) {
 	if (vm_islist(vm, vm->sp - 2)) {
 		yasl_int len = vm_peeklist(vm, vm->sp - 2)->count;
 		yasl_int end;
@@ -649,7 +649,7 @@ static int vm_SLICE(struct VM *const vm) {
 					  YASL_TYPE_NAMES[vm_peek(vm, vm->sp - 1).type],
 					  YASL_TYPE_NAMES[vm_peek(vm, vm->sp).type]
 			);
-			return YASL_TYPE_ERROR;
+			vm_throw_err(vm, YASL_TYPE_ERROR);
 		}
 
 		if (vm_isundef(vm, vm->sp - 1)) {
@@ -664,7 +664,7 @@ static int vm_SLICE(struct VM *const vm) {
 					  YASL_TYPE_NAMES[vm_peek(vm, vm->sp - 1).type],
 					  YASL_TYPE_NAMES[vm_peek(vm, vm->sp).type]
 			);
-			return YASL_TYPE_ERROR;
+			vm_throw_err(vm, YASL_TYPE_ERROR);
 		}
 
 		vm_pop(vm);
@@ -677,7 +677,7 @@ static int vm_SLICE(struct VM *const vm) {
 			YASL_List_append((struct YASL_List *) new_ls->data, list->items[i]);
 		}
 		vm_push(vm, YASL_LIST(new_ls));
-		return YASL_SUCCESS;
+		return;
 	}
 
 	if (vm_isstr(vm, vm->sp - 2)) {
@@ -696,7 +696,7 @@ static int vm_SLICE(struct VM *const vm) {
 					  YASL_TYPE_NAMES[vm_peek(vm, vm->sp - 1).type],
 					  YASL_TYPE_NAMES[vm_peek(vm, vm->sp).type]
 			);
-			return YASL_TYPE_ERROR;
+			vm_throw_err(vm, YASL_TYPE_ERROR);
 		}
 
 		if (vm_isundef(vm, vm->sp - 1)) {
@@ -711,7 +711,7 @@ static int vm_SLICE(struct VM *const vm) {
 					  YASL_TYPE_NAMES[vm_peek(vm, vm->sp - 1).type],
 					  YASL_TYPE_NAMES[vm_peek(vm, vm->sp).type]
 			);
-			return YASL_TYPE_ERROR;
+			vm_throw_err(vm, YASL_TYPE_ERROR);
 		}
 
 		vm_pop(vm);
@@ -720,13 +720,13 @@ static int vm_SLICE(struct VM *const vm) {
 		struct YASL_String *str = vm_popstr(vm);
 
 		vm_push(vm, YASL_STR(YASL_String_new_substring((size_t)start, (size_t)end, str)));
-		return YASL_SUCCESS;
+		return;
 	}
 
 	vm_pop(vm);
 	vm_pop(vm);
 	vm_print_err_type(vm,  "slice is not defined for objects of type %s.", YASL_TYPE_NAMES[vm_pop(vm).type]);
-	return YASL_TYPE_ERROR;
+	vm_throw_err(vm, YASL_TYPE_ERROR);
 }
 
 void vm_get_metatable(struct VM *const vm) {
@@ -1266,7 +1266,6 @@ int vm_run(struct VM *const vm) {
 		struct YASL_Object a, b;
 		yasl_int c;
 		yasl_float d;
-		int res;
 		YASL_VM_DEBUG_LOG("----------------"
 				  "opcode: %x\n"
 				  "vm->sp, vm->prev_fp, vm->curr_fp: %d, %d, %d\n\n", opcode, vm->sp, vm->fp, vm->next_fp);
@@ -1525,7 +1524,7 @@ int vm_run(struct VM *const vm) {
 			vm_GET(vm);
 			break;
 		case O_SLICE:
-			if ((res = vm_SLICE(vm))) return res;
+			vm_SLICE(vm);
 			break;
 		case O_SET:
 			vm_SET(vm);
