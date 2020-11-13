@@ -165,8 +165,7 @@ void list___eq(struct YASL_State *S) {
 	for (size_t i = 0; i < left->count; i++) {
 		vm_push((struct VM *)S, left->items[i]);
 		vm_push((struct VM *)S, right->items[i]);
-		int res = vm_EQ((struct VM *)S);
-		if (res) YASL_throw_err(S, res);
+		vm_EQ((struct VM *)S);
 		if (!YASL_popbool(S)) {
 			YASL_pushbool(S, false);
 			return;

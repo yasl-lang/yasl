@@ -128,7 +128,7 @@ YASL_NORETURN void vm_throw_err(struct VM *const vm, int error);
 
 void vm_get_metatable(struct VM *const vm);
 void vm_stringify_top(struct VM *const vm);
-int vm_EQ(struct VM *const vm);
+void vm_EQ(struct VM *const vm);
 
 struct YASL_Object vm_pop(struct VM *const vm);
 bool vm_popbool(struct VM *const vm);
