@@ -97,6 +97,7 @@ enum SpecialStrings {
 	S___BOR,      // __bor
 	S___EQ,       // __eq
 	S___GET,      // __get
+	S___LEN,      // __len
 	S___SET,      // __set
 
 	S_CLEAR,      // clear

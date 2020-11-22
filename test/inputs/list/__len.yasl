@@ -1,0 +1,3 @@
+
+echo len []
+echo len [ 11, 12, .a ]

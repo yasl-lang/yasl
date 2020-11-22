@@ -14,6 +14,11 @@ static struct YASL_Table *YASLX_checktable(struct YASL_State *S, const char *nam
 	return (struct YASL_Table *)YASL_popuserdata(S);
 }
 
+void table___len(struct YASL_State *S) {
+	struct YASL_Table *ht = YASLX_checktable(S, "table.__get", 0);
+	YASL_pushint(S, YASL_Table_length(ht));
+}
+
 void table___get(struct YASL_State *S) {
 	struct YASL_Object key = vm_pop((struct VM *) S);
 	struct YASL_Table *ht = YASLX_checktable(S, "table.__get", 0);

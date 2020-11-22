@@ -15,6 +15,11 @@ static struct YASL_List *YASLX_checklist(struct YASL_State *S, const char *name,
 	return (struct YASL_List *)YASL_popuserdata(S);
 }
 
+void list___len(struct YASL_State *S) {
+	struct YASL_List *ls = YASLX_checklist(S, "list.__len", 0);
+	YASL_pushint(S, YASL_List_length(ls));
+}
+
 void list___get(struct YASL_State *S) {
 	yasl_int index = YASLX_checkint(S, "list.__get", 1);
 	struct YASL_List *ls = YASLX_checklist(S, "list.__get", 0);

@@ -16,6 +16,11 @@ static struct YASL_String *YASLX_checkstr(struct YASL_State *S, const char *name
 }
 
 
+void str___len(struct YASL_State *S) {
+	struct YASL_String *str = YASLX_checkstr(S, "str.__len", 0);
+	YASL_pushint(S, YASL_String_len(str));
+}
+
 void str___get(struct YASL_State *S) {
 	yasl_int index = YASLX_checkint(S, "str.__get", 1);
 	struct YASL_String *str = YASLX_checkstr(S, "str.__get", 0);

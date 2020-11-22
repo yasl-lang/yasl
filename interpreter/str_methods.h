@@ -3,6 +3,8 @@
 
 struct YASL_State;
 
+void str___len(struct YASL_State *S);
+
 void str___get(struct YASL_State *S);
 
 void str_tobool(struct YASL_State *S);

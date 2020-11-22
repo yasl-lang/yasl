@@ -3,6 +3,8 @@
 
 struct YASL_State;
 
+void table___len(struct YASL_State *S);
+
 void table___get(struct YASL_State *S);
 
 void table___set(struct YASL_State *S);

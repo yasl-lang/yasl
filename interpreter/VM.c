@@ -76,6 +76,7 @@ void vm_init(struct VM *const vm,
 	DEF_SPECIAL_STR(S___BOR, "__bor");
 	DEF_SPECIAL_STR(S___EQ, "__eq");
 	DEF_SPECIAL_STR(S___GET, "__get");
+	DEF_SPECIAL_STR(S___LEN, "__len");
 	DEF_SPECIAL_STR(S___SET, "__set");
 	DEF_SPECIAL_STR(S_CLEAR, "clear");
 	DEF_SPECIAL_STR(S_COPY, "copy");
@@ -479,15 +480,13 @@ static void vm_num_unop(struct VM *const vm, yasl_int (*int_op)(yasl_int), yasl_
 static void vm_len_unop(struct VM *const vm) {
 	if (vm_isstr(vm)) {
 		vm_pushint(vm, (yasl_int) YASL_String_len(vm_popstr(vm)));
-	} else if (vm_istable(vm)) {
-		vm_pushint(vm, (yasl_int)vm_poptable(vm)->count);
-	} else if (vm_islist(vm)) {
-		vm_pushint(vm, (yasl_int)vm_poplist(vm)->count);
 	} else {
 		struct YASL_Object expr = vm_peek(vm);
+		inc_ref(&expr);
 		vm_lookup_method_throwing(vm, "__len", "len not supported for operand of type %s.",
 					  YASL_TYPE_NAMES[expr.type]);
 		vm_call_now_1(vm, expr);
+		dec_ref(&expr);
 	}
 }
 

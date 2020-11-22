@@ -3,6 +3,8 @@
 
 struct YASL_State;
 
+void list___len(struct YASL_State *S);
+
 void list___get(struct YASL_State *S);
 
 void list___set(struct YASL_State *S);
