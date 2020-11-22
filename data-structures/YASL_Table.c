@@ -140,14 +140,6 @@ void YASL_Table_insert_string_int(struct YASL_Table *const table, const char *co
 	YASL_Table_insert_fast(table, ko, vo);
 }
 
-void YASL_Table_insert_literalcstring_cfunction(struct YASL_Table *const ht, const char *key,
-						YASL_cfn addr, const int num_args) {
-	struct YASL_String *string = YASL_String_new_sized(strlen(key), key);
-	struct YASL_Object f = YASL_CFN(addr, num_args);
-	struct YASL_Object s = YASL_STR(string);
-	YASL_Table_insert_fast(ht, s, f);
-}
-
 yasl_int YASL_Table_length(const struct YASL_Table *const ht) {
 	return (yasl_int)ht->count;
 }

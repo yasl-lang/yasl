@@ -48,8 +48,6 @@ bool YASL_Table_insert(struct YASL_Table *const table, const struct YASL_Object 
 void YASL_Table_insert_fast(struct YASL_Table *const table, const struct YASL_Object key, const struct YASL_Object value);
 void YASL_Table_insert_string_int(struct YASL_Table *const table, const char *const key, const size_t key_len,
 				  const int64_t val);
-void YASL_Table_insert_literalcstring_cfunction(struct YASL_Table *const ht, const char *key,
-						YASL_cfn addr, const int num_args);
 yasl_int YASL_Table_length(const struct YASL_Table *const ht);
 struct YASL_Object YASL_Table_search(const struct YASL_Table *const table, const struct YASL_Object key);
 struct YASL_Object YASL_Table_search_string_int(const struct YASL_Table *const table, const char *const key,
