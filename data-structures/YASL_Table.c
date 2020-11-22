@@ -148,8 +148,8 @@ void YASL_Table_insert_literalcstring_cfunction(struct YASL_Table *const ht, con
 	YASL_Table_insert_fast(ht, s, f);
 }
 
-size_t YASL_Table_length(struct YASL_Table *ht) {
-	return ht->count;
+yasl_int YASL_Table_length(struct YASL_Table *ht) {
+	return (yasl_int)ht->count;
 }
 
 struct YASL_Object YASL_Table_search(const struct YASL_Table *const table, const struct YASL_Object key) {
