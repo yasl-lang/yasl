@@ -128,7 +128,7 @@ int YASL_setmt(struct YASL_State *S);
  * @param fmt a format string, taking the same parameters as printf.
  * @param ... var args for the above format strings.
  */
-void YASL_print_err(struct YASL_State *S, const char *const fmt, ...) YASL_FORMAT_CHECK;
+YASL_FORMAT_CHECK void YASL_print_err(struct YASL_State *S, const char *const fmt, ...);
 
 /**
  * Causes a fatal error.

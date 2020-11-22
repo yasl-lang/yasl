@@ -308,6 +308,7 @@ static yasl_float vm_read_float(struct VM *const vm) {
     return val;
 }
 
+static int vm_lookup_method_helper(struct VM *vm, struct YASL_Object obj, struct YASL_Table *mt, struct YASL_Object index);
 static int vm_lookup_method(struct VM *const vm, const char *const method_name);
 static void vm_GET(struct VM *const vm);
 static void vm_INIT_CALL(struct VM *const vm);
@@ -328,7 +329,15 @@ static void vm_call_now_2(struct VM *vm, struct YASL_Object a, struct YASL_Objec
 
 #define vm_lookup_method_throwing(vm, method_name, err_str, ...) \
 do {\
-	if (vm_lookup_method(vm, method_name)) {\
+	struct YASL_Object index = YASL_STR(YASL_String_new_sized(strlen(method_name), method_name));\
+	struct YASL_Object val = vm_peek(vm);\
+	inc_ref(&val);\
+	vm_get_metatable(vm);\
+	struct YASL_Table *mt = vm_istable(vm) ? vm_poptable(vm) : NULL;\
+	int result = vm_lookup_method_helper(vm, val, mt, index);\
+	dec_ref(&val);\
+	str_del(obj_getstr(&index));\
+	if (result) {\
 		vm_print_err_type(vm, err_str, __VA_ARGS__);\
 		vm_throw_err(vm, YASL_TYPE_ERROR);\
 	}\
@@ -392,9 +401,9 @@ static void vm_num_binop(
 		inc_ref(&right);
 		vm_push(vm, left);
 		vm_lookup_method_throwing(vm, overload_name, "%s not supported for operands of types %s and %s.",
-					      opstr,
-					      YASL_TYPE_NAMES[left.type],
-					      YASL_TYPE_NAMES[right.type]);
+					  opstr,
+					  YASL_TYPE_NAMES[left.type],
+					  YASL_TYPE_NAMES[right.type]);
 		vm_call_now_2(vm, left, right);
 		dec_ref(&left);
 		dec_ref(&right);
@@ -412,8 +421,8 @@ static void vm_fdiv(struct VM *const vm) {
 		inc_ref(&right);
 		vm_push(vm, left);
 		vm_lookup_method_throwing(vm, overload_name, "/ not supported for operands of types %s and %s.",
-					      YASL_TYPE_NAMES[left.type],
-					      YASL_TYPE_NAMES[right.type]);
+					  YASL_TYPE_NAMES[left.type],
+					  YASL_TYPE_NAMES[right.type]);
 		vm_call_now_2(vm, left, right);
 		dec_ref(&left);
 		dec_ref(&right);
@@ -441,27 +450,25 @@ NUM_UNOP(neg, -)
 NUM_UNOP(pos, +)
 
 static void vm_int_unop(struct VM *const vm, yasl_int (*op)(yasl_int), const char *opstr, const char *overload_name) {
-	struct YASL_Object expr = vm_pop(vm);
-	if (obj_isint(&expr)) {
-		vm_pushint(vm, op(obj_getint(&expr)));
+	if (vm_isint(vm)) {
+		vm_pushint(vm, op(vm_popint(vm)));
 		return;
 	} else {
-		vm_push(vm, expr);
+		struct YASL_Object expr = vm_peek(vm);
 		vm_lookup_method_throwing(vm, overload_name, "%s not supported for operand of type %s.",
-					      opstr,
-					      YASL_TYPE_NAMES[expr.type]);
+					  opstr,
+					  YASL_TYPE_NAMES[expr.type]);
 		vm_call_now_1(vm, expr);
 	}
 }
 
 static void vm_num_unop(struct VM *const vm, yasl_int (*int_op)(yasl_int), yasl_float (*float_op)(yasl_float), const char *opstr, const char *overload_name) {
-	struct YASL_Object expr = vm_pop(vm);
-	if (obj_isint(&expr)) {
-		vm_pushint(vm, int_op(obj_getint(&expr)));
-	} else if (obj_isfloat(&expr)) {
-		vm_pushfloat(vm, float_op(obj_getfloat(&expr)));
+	if (vm_isint(vm)) {
+		vm_pushint(vm, int_op(vm_popint(vm)));
+	} else if (vm_isfloat(vm)) {
+		vm_pushfloat(vm, float_op(vm_popfloat(vm)));
 	} else {
-		vm_push(vm, expr);
+		struct YASL_Object expr = vm_peek(vm);
 		vm_lookup_method_throwing(vm, overload_name, "%s not supported for operand of type %s.",
 					  opstr,
 					  YASL_TYPE_NAMES[expr.type]);
@@ -470,15 +477,14 @@ static void vm_num_unop(struct VM *const vm, yasl_int (*int_op)(yasl_int), yasl_
 }
 
 static void vm_len_unop(struct VM *const vm) {
-	struct YASL_Object expr = vm_pop(vm);
-	if (obj_isstr(&expr)) {
-		vm_pushint(vm, (yasl_int) YASL_String_len(obj_getstr(&expr)));
-	} else if (obj_istable(&expr)) {
-		vm_pushint(vm, (yasl_int)YASL_GETTABLE(expr)->count);
-	} else if (obj_islist(&expr)) {
-		vm_pushint(vm, (yasl_int)YASL_GETLIST(expr)->count);
+	if (vm_isstr(vm)) {
+		vm_pushint(vm, (yasl_int) YASL_String_len(vm_popstr(vm)));
+	} else if (vm_istable(vm)) {
+		vm_pushint(vm, (yasl_int)vm_poptable(vm)->count);
+	} else if (vm_islist(vm)) {
+		vm_pushint(vm, (yasl_int)vm_poplist(vm)->count);
 	} else {
-		vm_push(vm, expr);
+		struct YASL_Object expr = vm_peek(vm);
 		vm_lookup_method_throwing(vm, "__len", "len not supported for operand of type %s.",
 					  YASL_TYPE_NAMES[expr.type]);
 		vm_call_now_1(vm, expr);
@@ -632,101 +638,105 @@ static void vm_CCONST(struct VM *const vm) {
 	vm_push(vm, ((struct YASL_Object){.type = Y_CLOSURE, .value = {.lval = closure}}));
 }
 
+static void vm_SLICE_list(struct VM *const vm) {
+	yasl_int len = vm_peeklist(vm, vm->sp - 2)->count;
+	yasl_int end;
+	yasl_int start;
+
+	if (vm_isundef(vm)) {
+		end = len;
+	} else if (vm_isint(vm)) {
+		end = vm_peekint(vm);
+		if (end < 0) end += len;
+		if (end > len) end = len;
+	} else {
+		vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
+				  YASL_TYPE_NAMES[vm_peek(vm, vm->sp - 1).type],
+				  YASL_TYPE_NAMES[vm_peek(vm, vm->sp).type]
+		);
+		vm_throw_err(vm, YASL_TYPE_ERROR);
+	}
+
+	if (vm_isundef(vm, vm->sp - 1)) {
+		start = 0;
+	} else if (vm_isint(vm, vm->sp - 1)) {
+		start = vm_peekint(vm, vm->sp -1);
+		if (start < 0) start += len;
+
+		if (start < 0) start = 0;
+	} else {
+		vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
+				  YASL_TYPE_NAMES[vm_peek(vm, vm->sp - 1).type],
+				  YASL_TYPE_NAMES[vm_peek(vm, vm->sp).type]
+		);
+		vm_throw_err(vm, YASL_TYPE_ERROR);
+	}
+
+	vm_pop(vm);
+	vm_pop(vm);
+
+	struct YASL_List *list = vm_poplist(vm);
+	struct RC_UserData *new_ls = rcls_new();
+
+	for (yasl_int i = start; i <end; ++i) {
+		YASL_List_append((struct YASL_List *) new_ls->data, list->items[i]);
+	}
+	vm_push(vm, YASL_LIST(new_ls));
+}
+
+static void vm_SLICE_str(struct VM *const vm){
+	yasl_int len = YASL_String_len(vm_peekstr(vm, vm->sp - 2));
+	yasl_int end;
+	yasl_int start;
+
+	if (vm_isundef(vm)) {
+		end = len;
+	} else if (vm_isint(vm)) {
+		end = vm_peekint(vm);
+		if (end < 0) end += len;
+		if (end > len) end = len;
+	} else {
+		vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
+				  YASL_TYPE_NAMES[vm_peek(vm, vm->sp - 1).type],
+				  YASL_TYPE_NAMES[vm_peek(vm, vm->sp).type]
+		);
+		vm_throw_err(vm, YASL_TYPE_ERROR);
+	}
+
+	if (vm_isundef(vm, vm->sp - 1)) {
+		start = 0;
+	} else if (vm_isint(vm, vm->sp - 1)) {
+		start = vm_peekint(vm, vm->sp -1);
+		if (start < 0) start += len;
+
+		if (start < 0) start = 0;
+	} else {
+		vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
+				  YASL_TYPE_NAMES[vm_peek(vm, vm->sp - 1).type],
+				  YASL_TYPE_NAMES[vm_peek(vm, vm->sp).type]
+		);
+		vm_throw_err(vm, YASL_TYPE_ERROR);
+	}
+
+	vm_pop(vm);
+	vm_pop(vm);
+
+	struct YASL_String *str = vm_popstr(vm);
+
+	vm_push(vm, YASL_STR(YASL_String_new_substring((size_t)start, (size_t)end, str)));
+}
+
 static void vm_SLICE(struct VM *const vm) {
 	if (vm_islist(vm, vm->sp - 2)) {
-		yasl_int len = vm_peeklist(vm, vm->sp - 2)->count;
-		yasl_int end;
-		yasl_int start;
-
-		if (vm_isundef(vm)) {
-			end = len;
-		} else if (vm_isint(vm)) {
-			end = vm_peekint(vm);
-			if (end < 0) end += len;
-			if (end > len) end = len;
-		} else {
-			vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
-					  YASL_TYPE_NAMES[vm_peek(vm, vm->sp - 1).type],
-					  YASL_TYPE_NAMES[vm_peek(vm, vm->sp).type]
-			);
-			vm_throw_err(vm, YASL_TYPE_ERROR);
-		}
-
-		if (vm_isundef(vm, vm->sp - 1)) {
-			start = 0;
-		} else if (vm_isint(vm, vm->sp - 1)) {
-			start = vm_peekint(vm, vm->sp -1);
-			if (start < 0) start += len;
-
-			if (start < 0) start = 0;
-		} else {
-			vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
-					  YASL_TYPE_NAMES[vm_peek(vm, vm->sp - 1).type],
-					  YASL_TYPE_NAMES[vm_peek(vm, vm->sp).type]
-			);
-			vm_throw_err(vm, YASL_TYPE_ERROR);
-		}
-
+		vm_SLICE_list(vm);
+	} else if (vm_isstr(vm, vm->sp - 2)) {
+		vm_SLICE_str(vm);
+	} else {
 		vm_pop(vm);
 		vm_pop(vm);
-
-		struct YASL_List *list = vm_poplist(vm);
-		struct RC_UserData *new_ls = rcls_new();
-
-		for (yasl_int i = start; i <end; ++i) {
-			YASL_List_append((struct YASL_List *) new_ls->data, list->items[i]);
-		}
-		vm_push(vm, YASL_LIST(new_ls));
-		return;
+		vm_print_err_type(vm,  "slice is not defined for objects of type %s.", YASL_TYPE_NAMES[vm_pop(vm).type]);
+		vm_throw_err(vm, YASL_TYPE_ERROR);
 	}
-
-	if (vm_isstr(vm, vm->sp - 2)) {
-		yasl_int len = YASL_String_len(vm_peekstr(vm, vm->sp - 2));
-		yasl_int end;
-		yasl_int start;
-
-		if (vm_isundef(vm)) {
-			end = len;
-		} else if (vm_isint(vm)) {
-			end = vm_peekint(vm);
-			if (end < 0) end += len;
-			if (end > len) end = len;
-		} else {
-			vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
-					  YASL_TYPE_NAMES[vm_peek(vm, vm->sp - 1).type],
-					  YASL_TYPE_NAMES[vm_peek(vm, vm->sp).type]
-			);
-			vm_throw_err(vm, YASL_TYPE_ERROR);
-		}
-
-		if (vm_isundef(vm, vm->sp - 1)) {
-			start = 0;
-		} else if (vm_isint(vm, vm->sp - 1)) {
-			start = vm_peekint(vm, vm->sp -1);
-			if (start < 0) start += len;
-
-			if (start < 0) start = 0;
-		} else {
-			vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
-					  YASL_TYPE_NAMES[vm_peek(vm, vm->sp - 1).type],
-					  YASL_TYPE_NAMES[vm_peek(vm, vm->sp).type]
-			);
-			vm_throw_err(vm, YASL_TYPE_ERROR);
-		}
-
-		vm_pop(vm);
-		vm_pop(vm);
-
-		struct YASL_String *str = vm_popstr(vm);
-
-		vm_push(vm, YASL_STR(YASL_String_new_substring((size_t)start, (size_t)end, str)));
-		return;
-	}
-
-	vm_pop(vm);
-	vm_pop(vm);
-	vm_print_err_type(vm,  "slice is not defined for objects of type %s.", YASL_TYPE_NAMES[vm_pop(vm).type]);
-	vm_throw_err(vm, YASL_TYPE_ERROR);
 }
 
 void vm_get_metatable(struct VM *const vm) {
@@ -792,7 +802,7 @@ static int vm_lookup_method(struct VM *const vm, const char *const method_name) 
 		return YASL_SUCCESS;
 }
 
-static int vm_GET_helper(struct VM *const vm, struct YASL_Object index) {
+static void vm_GET_helper(struct VM *const vm, struct YASL_Object index) {
 	struct YASL_Object val = vm_peek(vm);
 	inc_ref(&val);
 
@@ -810,22 +820,20 @@ static int vm_GET_helper(struct VM *const vm, struct YASL_Object index) {
 			if (search.type != Y_END) {
 				vm_push(vm, search);
 				dec_ref(&val);
-				return YASL_SUCCESS;
+				return;
 			}
 		}
 		dec_ref(&val);
-		return YASL_VALUE_ERROR;
+		vm_throw_err(vm, YASL_VALUE_ERROR);
 	}
 	dec_ref(&val);
-	return YASL_SUCCESS;
 }
 
 static void vm_GET(struct VM *const vm) {
 	struct YASL_Object index = vm_pop(vm);
 	inc_ref(&index);
-	int res = vm_GET_helper(vm, index);
+	vm_GET_helper(vm, index);
 	dec_ref(&index);
-	if (res) vm_throw_err(vm, res);
 }
 
 static void vm_SET(struct VM *const vm) {
@@ -1445,9 +1453,6 @@ int vm_run(struct VM *const vm) {
 		case O_ITER_1:
 			vm_ITER_1(vm);
 			break;
-		case O_ITER_2:
-			puts("NOT IMPLEMENTED");
-			exit(1);
 		case O_END:
 			vm_pushend(vm);
 			break;
@@ -1465,8 +1470,7 @@ int vm_run(struct VM *const vm) {
 			vm_MATCH(vm);
 			break;
 		case O_BR_8:
-			c = vm_read_int(vm);
-			vm->pc += c;
+			vm->pc += vm_read_int(vm);
 			break;
 		case O_BRF_8:
 			c = vm_read_int(vm);
@@ -1474,7 +1478,7 @@ int vm_run(struct VM *const vm) {
 			break;
 		case O_BRT_8:
 			c = vm_read_int(vm);
-			if (!(isfalsey(vm_pop_p(vm)))) vm->pc += c;
+			if (!isfalsey(vm_pop_p(vm))) vm->pc += c;
 			break;
 		case O_BRN_8:
 			c = vm_read_int(vm);
