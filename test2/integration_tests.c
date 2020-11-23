@@ -9,7 +9,37 @@
 
 #define MAX_FILE_NAME_LEN 1024
 
-#define ERROR_TEST(errors) \
+#define INPUT_TEST(inputs) \
+for (size_t i = 0; i < sizeof(inputs) / sizeof(char *); i++) {\
+	if (strlen(inputs[i]) + 5 > MAX_FILE_NAME_LEN) {\
+		printf("file name too large: %s\n", inputs[i]);\
+		exit(1);\
+	}\
+	strcpy(buffer, inputs[i]);\
+	strcpy(buffer + strlen(inputs[i]), ".out");\
+	FILE *f = fopen(buffer, "r");\
+	fseek(f, 0, SEEK_END);\
+	size_t size = ftell(f);\
+	fseek(f, 0, SEEK_SET);\
+	char *expected_output = (char *)malloc(size + 1);\
+	size_t read = fread(expected_output, 1, size, f);\
+	expected_output[read] = '\0';\
+	S = YASL_newstate(inputs[i]);\
+	int status = YASLX_decllibs(S);\
+	YASL_setprintout_tostr(S);\
+	status |= YASL_execute(S);\
+	YASL_loadprintout(S);\
+	char *actual_output = YASL_peekcstr(S);\
+	if (!!strcmp(expected_output, actual_output) || status != YASL_SUCCESS) {\
+		fprintf(stderr, "test for %s failed (expected:\n`%s`, got:\n`%s`).\n", inputs[i], expected_output, actual_output);\
+		failed++;\
+	}\
+	ran++;\
+	free(expected_output);\
+	YASL_delstate(S);\
+}
+
+#define ERROR_TEST(errors, error_code) \
 for (size_t i = 0; i < sizeof(errors) / sizeof(char *); i++) {\
 	if (strlen(errors[i]) + 5 > MAX_FILE_NAME_LEN) {\
 		printf("file name too large: %s\n", errors[i]);\
@@ -27,10 +57,10 @@ for (size_t i = 0; i < sizeof(errors) / sizeof(char *); i++) {\
 	S = YASL_newstate(errors[i]);\
 	YASLX_decllibs(S);\
 	YASL_setprinterr_tostr(S);\
-	YASL_execute(S);\
+	int status = YASL_execute(S);\
 	YASL_loadprinterr(S);\
 	char *actual_output = YASL_peekcstr(S);\
-	if (!!strcmp(expected_output, actual_output)) {\
+	if (!!strcmp(expected_output, actual_output) || status != error_code) {\
 		fprintf(stderr, "test for %s failed (expected:\n`%s`, got:\n`%s`).\n", errors[i], expected_output, actual_output);\
 		failed++;\
 	}\
@@ -51,41 +81,13 @@ int main(void) {
 #include "divisionbyzero_errors.inl"
 	char buffer[MAX_FILE_NAME_LEN];
 	struct YASL_State *S;
-	for (size_t i = 0; i < sizeof(inputs) / sizeof(char *); i++) {
-		if (strlen(inputs[i]) + 5 > MAX_FILE_NAME_LEN) {
-			printf("file name too large: %s\n", inputs[i]);
-			exit(1);
-		}
-		strcpy(buffer, inputs[i]);
-		strcpy(buffer + strlen(inputs[i]), ".out");
-		FILE *f = fopen(buffer, "r");
-		fseek(f, 0, SEEK_END);
-		size_t size = ftell(f);
-		fseek(f, 0, SEEK_SET);
-		char *expected_output = (char *)malloc(size + 1);
-		size_t read = fread(expected_output, 1, size, f);
-		expected_output[read] = '\0';
 
-		S = YASL_newstate(inputs[i]);
-		int status = YASLX_decllibs(S);
-		YASL_setprintout_tostr(S);
-		status |= YASL_execute(S);
-		YASL_loadprintout(S);
-		char *actual_output = YASL_peekcstr(S);
-		if (!!strcmp(expected_output, actual_output) || status != YASL_SUCCESS) {
-			fprintf(stderr, "test for %s failed.\n", inputs[i]);
-			failed++;
-		}
-		ran++;
-		free(expected_output);
-		YASL_delstate(S);
-	}
-
-	ERROR_TEST(assert_errors);
-	ERROR_TEST(stackoverflow_errors);
-	ERROR_TEST(type_errors);
-	ERROR_TEST(value_errors);
-	ERROR_TEST(divisionbyzero_errors);
+	INPUT_TEST(inputs);
+	ERROR_TEST(assert_errors, YASL_ASSERT_ERROR);
+	ERROR_TEST(stackoverflow_errors, YASL_STACK_OVERFLOW_ERROR);
+	ERROR_TEST(type_errors, YASL_TYPE_ERROR);
+	ERROR_TEST(value_errors, YASL_VALUE_ERROR);
+	ERROR_TEST(divisionbyzero_errors, YASL_DIVIDE_BY_ZERO_ERROR);
 
 	result = result || failed;
 	printf("Failed %d (/%d) script tests.\n", failed, ran);
