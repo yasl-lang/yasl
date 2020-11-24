@@ -16,6 +16,8 @@ enum Opcode {
 	O_ICONST_B8 = 0x14, // synonym for O_ICONST
 	O_DCONST = 0x1A, // push next 8 bytes onto stack as float constant
 
+	O_MATCH = 0x30, // pattern matching
+
 	O_BOR = 0x40, // bitwise or
 	O_BXOR = 0x41, // bitwise xor
 	O_BAND = 0x42, // bitwise and
@@ -25,8 +27,6 @@ enum Opcode {
 	O_BSR = 0x46, // bitwise right shift
 
 	O_ASS = 0x50, // assert
-
-	O_MATCH = 0x51, // match
 
 	O_ADD = 0x60, // add two numbers
 	O_SUB = 0x61, // subtract two numbers
@@ -75,7 +75,6 @@ enum Opcode {
 	O_ENDCOMP = 0xD1, // end list / table comprehension
 	O_ENDFOR = 0xD2, // end for-loop in VM
 	O_ITER_1 = 0xD3, // iterate to next, 1 var
-	O_ITER_2 = 0xD5, // iterate to next, 2 var
 
 	O_INIT_MC = 0xE7,
 	O_INIT_CALL = 0xE8, // set up function call
@@ -99,6 +98,7 @@ enum SpecialStrings {
 	S___GET,      // __get
 	S___LEN,      // __len
 	S___SET,      // __set
+	S___SLICE,    // __slice
 
 	S_CLEAR,      // clear
 	S_COPY,       // copy
