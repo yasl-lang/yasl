@@ -510,7 +510,7 @@ static void vm_CNCT(struct VM *const vm) {
 		vm_pushstr(vm, YASL_String_new_sized_heap(0, size, ptr));
 }
 
-#define MAKE_COMP(name, opstr, overload_name) \
+#define DEFINE_COMP(name, opstr, overload_name) \
 static void vm_##name(struct VM *const vm) {\
 	struct YASL_Object right = vm_pop(vm);\
 	struct YASL_Object left = vm_pop(vm);\
@@ -523,26 +523,16 @@ static void vm_##name(struct VM *const vm) {\
 		COMP(vm, left, right, name);\
 		return;\
 	}\
-	inc_ref(&left);\
-	inc_ref(&right);\
-	vm_push(vm, left);\
-	if (vm_lookup_method(vm, overload_name)) {\
-		vm_print_err_type(vm, "%s not supported for operands of types %s and %s.",\
+	vm_call_method_now_2(vm, left, right, overload_name, "%s not supported for operands of types %s and %s.",\
 		opstr,\
 		YASL_TYPE_NAMES[left.type],\
 		YASL_TYPE_NAMES[right.type]);\
-		vm_throw_err(vm, YASL_TYPE_ERROR);\
-	} else {\
-		vm_call_now_2(vm, left, right);\
-		dec_ref(&left);\
-		dec_ref(&right);\
-	}\
 }
 
-MAKE_COMP(GT, ">", "__gt")
-MAKE_COMP(GE, ">=", "__ge")
-MAKE_COMP(LT, "<", "__lt")
-MAKE_COMP(LE, "<=", "__le")
+DEFINE_COMP(GT, ">", "__gt")
+DEFINE_COMP(GE, ">=", "__ge")
+DEFINE_COMP(LT, "<", "__lt")
+DEFINE_COMP(LE, "<=", "__le")
 
 void vm_stringify_top(struct VM *const vm) {
 	enum YASL_Types index = vm_peek(vm, vm->sp).type;
