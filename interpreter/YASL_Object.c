@@ -88,6 +88,12 @@ bool isfalsey(const struct YASL_Object *const v) {
 }
 
 bool isequal(const struct YASL_Object *const a, const struct YASL_Object *const b) {
+	if (obj_isstr(a) && obj_isstr(b)) {
+		struct YASL_String *left = obj_getstr(a);
+		struct YASL_String *right = obj_getstr(b);
+		return left == right || YASL_String_cmp(left, right) == 0;
+	}
+
 	if (obj_isundef(a) && obj_isundef(b)) {
 		return true;
 	}
@@ -102,12 +108,6 @@ bool isequal(const struct YASL_Object *const a, const struct YASL_Object *const 
 
 	if (obj_isnum(a) && obj_isnum(b)) {
 		return obj_getnum(a) == obj_getnum(b);
-	}
-
-	if (obj_isstr(a) && obj_isstr(b)) {
-		struct YASL_String *left = obj_getstr(a);
-		struct YASL_String *right = obj_getstr(b);
-		return left == right || YASL_String_cmp(left, right) == 0;
 	}
 
 	if (obj_isuserptr(a) && obj_isuserptr(b)) {

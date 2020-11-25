@@ -329,6 +329,14 @@ static void vm_call_now_2(struct VM *vm, struct YASL_Object a, struct YASL_Objec
 	vm_CALL(vm);
 }
 
+static void vm_call_now_3(struct VM *vm, struct YASL_Object a, struct YASL_Object b, struct YASL_Object c) {
+	vm_INIT_CALL(vm);
+	vm_push(vm, a);
+	vm_push(vm, b);
+	vm_push(vm, c);
+	vm_CALL(vm);
+}
+
 #define vm_lookup_method_throwing(vm, method_name, err_str, ...) \
 do {\
 	struct YASL_Object index = YASL_STR(YASL_String_new_sized(strlen(method_name), method_name));\
@@ -360,6 +368,18 @@ do {\
 	vm_call_now_2(vm, left, right);\
 	dec_ref(&left);\
 	dec_ref(&right);\
+} while (0)
+
+#define vm_call_method_now_3(vm, first, second, third, method_name, ...) do {\
+	inc_ref(&first);\
+	inc_ref(&second);\
+	inc_ref(&third);\
+	vm_push(vm, first);\
+	vm_lookup_method_throwing(vm, method_name, __VA_ARGS__);\
+	vm_call_now_3(vm, first, second, third);\
+	dec_ref(&first);\
+	dec_ref(&second);\
+	dec_ref(&third);\
 } while (0)
 
 #define INT_BINOP(name, op) yasl_int name(yasl_int left, yasl_int right) { return left op right; }
@@ -714,8 +734,7 @@ static void vm_SLICE(struct VM *const vm) {
 	}
 }
 
-void vm_get_metatable(struct VM *const vm) {
-	struct YASL_Object v = vm_pop(vm);
+struct RC_UserData *obj_get_metatable(const struct VM *const vm, struct YASL_Object v) {
 	switch (v.type) {
 	case Y_USERDATA:
 	case Y_USERDATA_W:
@@ -723,12 +742,20 @@ void vm_get_metatable(struct VM *const vm) {
 	case Y_LIST_W:
 	case Y_TABLE:
 	case Y_TABLE_W:
-		vm_push(vm, YASL_GETUSERDATA(v)->mt ? YASL_TABLE(YASL_GETUSERDATA(v)->mt) : YASL_UNDEF());
-		break;
+		return YASL_GETUSERDATA(v)->mt;
 	default:
-		vm_push(vm, YASL_TABLE(vm->builtins_htable[v.type]));
-		break;
+		return vm->builtins_htable[v.type];
 	}
+}
+
+struct YASL_Table *get_mt(const struct VM *const vm, struct YASL_Object v) {
+	struct RC_UserData *ud = obj_get_metatable(vm, v);
+	return ud ? (struct YASL_Table *)ud->data : NULL;
+}
+
+void vm_get_metatable(struct VM *const vm) {
+	struct RC_UserData *mt = obj_get_metatable(vm, vm_pop(vm));
+	vm_push(vm, mt ? YASL_TABLE(mt) : YASL_UNDEF());
 }
 
 static int lookup(struct VM *vm, struct YASL_Object obj, struct YASL_Table *mt, struct YASL_Object index) {
@@ -761,44 +788,27 @@ static int vm_lookup_method_helper(struct VM *vm, struct YASL_Object obj, struct
 	return YASL_VALUE_ERROR;
 }
 
-static int vm_lookup_method(struct VM *const vm, const char *const method_name) {
-	struct YASL_Object index = YASL_STR(YASL_String_new_sized(strlen(method_name), method_name));
-	struct YASL_Object val = vm_peek(vm);
-
-	inc_ref(&val);
-	vm_get_metatable(vm);
-	struct YASL_Table *mt = vm_istable(vm) ? vm_poptable(vm) : NULL;
-	int result = vm_lookup_method_helper(vm, val, mt, index);
-	dec_ref(&val);
-	str_del(obj_getstr(&index));
-	return result;
-}
-
 static void vm_GET_helper(struct VM *const vm, struct YASL_Object index) {
-	struct YASL_Object val = vm_peek(vm);
-	inc_ref(&val);
+	struct YASL_Object v = vm_pop(vm);
 
-	vm_get_metatable(vm);
-	struct YASL_Table *mt = vm_istable(vm) ? vm_poptable(vm) : NULL;
+	struct YASL_Table *mt = get_mt(vm, v);
 	int result = YASL_ERROR;
 	if (mt) {
-		result = lookup(vm, val, mt, index);
-	} else {
-		vm_pop(vm);
+		inc_ref(&v);
+		result = lookup(vm, v, mt, index);
+		dec_ref(&v);
 	}
+
 	if (result) {
-		if (obj_istable(&val)) {
-			struct YASL_Object search = YASL_Table_search(YASL_GETTABLE(val), index);
+		if (obj_istable(&v)) {
+			struct YASL_Object search = YASL_Table_search(YASL_GETTABLE(v), index);
 			if (search.type != Y_END) {
 				vm_push(vm, search);
-				dec_ref(&val);
 				return;
 			}
 		}
-		dec_ref(&val);
 		vm_throw_err(vm, YASL_VALUE_ERROR);
 	}
-	dec_ref(&val);
 }
 
 static void vm_GET(struct VM *const vm) {
@@ -1153,22 +1163,20 @@ static void vm_fill_args(struct VM *const vm, const int num_args) {
 	}
 }
 
-static void vm_CALL_closure(struct VM *const vm) {
+static void vm_CALL_native(struct VM *const vm, unsigned char *const code) {
 	vm->frames[vm->frame_num].pc = vm->pc;
-	unsigned char *const code = vm_peek(vm, vm->fp).value.lval->f;
 
 	vm_fill_args(vm, code[0]);
 
 	vm->pc =  code + 2;
 }
 
+static void vm_CALL_closure(struct VM *const vm) {
+	return vm_CALL_native(vm, vm_peek(vm, vm->fp).value.lval->f);
+}
+
 static void vm_CALL_fn(struct VM *const vm) {
-	vm->frames[vm->frame_num].pc = vm->pc;
-	unsigned char *const code = vm_peek(vm, vm->fp).value.fval;
-
-	vm_fill_args(vm, code[0]);
-
-	vm->pc =  code + 2;
+	return vm_CALL_native(vm, vm_peek(vm, vm->fp).value.fval);
 }
 
 static void vm_CALL_cfn(struct VM *const vm) {
