@@ -1163,7 +1163,7 @@ static void vm_fill_args(struct VM *const vm, const int num_args) {
 	}
 }
 
-static void vm_CALL_native(struct VM *const vm, unsigned char *const code) {
+static inline void vm_CALL_native(struct VM *const vm, unsigned char *const code) {
 	vm->frames[vm->frame_num].pc = vm->pc;
 
 	vm_fill_args(vm, code[0]);
@@ -1172,11 +1172,11 @@ static void vm_CALL_native(struct VM *const vm, unsigned char *const code) {
 }
 
 static void vm_CALL_closure(struct VM *const vm) {
-	return vm_CALL_native(vm, vm_peek(vm, vm->fp).value.lval->f);
+	vm_CALL_native(vm, vm_peek(vm, vm->fp).value.lval->f);
 }
 
 static void vm_CALL_fn(struct VM *const vm) {
-	return vm_CALL_native(vm, vm_peek(vm, vm->fp).value.fval);
+	vm_CALL_native(vm, vm_peek(vm, vm->fp).value.fval);
 }
 
 static void vm_CALL_cfn(struct VM *const vm) {
