@@ -29,12 +29,14 @@ struct Node *node_clone(const struct Node *const node) {
 		break;
 	case N_INT:
 	case N_BOOL:
-	case N_FLOAT: clone->value.ival = node->value.ival;
+	case N_FLOAT:
+		clone->value.ival = node->value.ival;
 		break;
-	default: clone->value.sval.str_len = node->value.sval.str_len;
-      	  clone->value.sval.str = (char *)malloc(node->value.sval.str_len + 1);
-      	  clone->value.sval.str[clone->value.sval.str_len] = '\0';
-	  memcpy(clone->value.sval.str, node->value.sval.str, clone->value.sval.str_len);
+	default:
+		clone->value.sval.str_len = node->value.sval.str_len;
+		clone->value.sval.str = (char *) malloc(node->value.sval.str_len + 1);
+		clone->value.sval.str[clone->value.sval.str_len] = '\0';
+		memcpy(clone->value.sval.str, node->value.sval.str, clone->value.sval.str_len);
 	}
 
 	clone->line = node->line;
@@ -356,7 +358,7 @@ struct Node *Decl_get_expr(const struct Node *const node) {
 }
 
 char *Decl_get_name(const struct Node *const node) {
-	YASL_ASSERT(node->nodetype == N_LET || node->nodetype == N_CONST, "Expected let or const");
+	YASL_ASSERT(node->nodetype == N_LET || node->nodetype == N_CONST || node->nodetype == N_PATLET || node->nodetype == N_PATCONST, "Expected let or const");
 	return node->value.sval.str;
 }
 
@@ -381,11 +383,11 @@ char *MCall_get_name(const struct Node *const node) {
 }
 
 struct Node *Call_get_params(const struct Node *const node) {
-	return ((node)->children[0]);
+	return (node->children[0]);
 }
 
 struct Node *Call_get_object(const struct Node *const node) {
-	return ((node)->children[1]);
+	return (node->children[1]);
 }
 
 struct Node *Return_get_expr(const struct Node *const node) {
@@ -409,11 +411,11 @@ struct Node *Set_get_value(const struct Node *const node) {
 }
 
 struct Node *Get_get_collection(const struct Node *const node) {
-	return ((node)->children[0]);
+	return (node->children[0]);
 }
 
 struct Node *Get_get_value(const struct Node *const node) {
-	return ((node)->children[1]);
+	return (node->children[1]);
 }
 
 struct Node *Slice_get_collection(const struct Node *const node) {

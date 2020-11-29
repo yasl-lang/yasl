@@ -251,12 +251,12 @@ void vm_pushbool(struct VM *const vm, bool b) {
 }
 
 struct YASL_Object *vm_pop_p(struct VM *const vm) {
-	YASL_ASSERT(vm->sp >= 0, "cannot pop from empty stack.")
+	YASL_ASSERT(vm->sp >= 0, "cannot pop from empty stack.");
 	return vm->stack + vm->sp--;
 }
 
 struct YASL_Object vm_pop(struct VM *const vm) {
-	YASL_ASSERT(vm->sp >= 0, "cannot pop from empty stack.")
+	YASL_ASSERT(vm->sp >= 0, "cannot pop from empty stack.");
 	return vm->stack[vm->sp--];
 }
 
@@ -1232,15 +1232,12 @@ static void vm_PRINT(struct VM *const vm) {
 	vm_print_out(vm, "%.*s\n", (int)YASL_String_len(v), v->start + v->str);
 }
 
-int vm_run(struct VM *const vm) {
-	if (setjmp(vm->buf)) {
-		return vm->status;
-	}
-
+void vm_setupconstants(struct VM *const vm) {
 	vm->num_constants = ((int64_t *)vm->code)[2];
 	vm->constants = (struct YASL_Object *)malloc(sizeof(struct YASL_Object) * vm->num_constants);
-	unsigned char *tmp = vm->code + 24;
+	unsigned char *tmp = vm->code + 3*sizeof(int64_t);
 	for (int64_t i = 0; i < vm->num_constants; i++) {
+		YASL_ASSERT(*tmp == O_SCONST, "must be a string constant.");
 		tmp++;
 		int64_t len = *((int64_t *)tmp);
 		tmp += sizeof(int64_t);
@@ -1250,293 +1247,305 @@ int vm_run(struct VM *const vm) {
 		inc_ref(vm->constants + i);
 		tmp += len;
 	}
+}
+
+void vm_executenext(struct VM *const vm) {
+	unsigned char opcode = NCODE(vm);        // fetch
+	signed char offset;
+	struct YASL_Object a, b;
+	yasl_int c;
+	yasl_float d;
+	YASL_VM_DEBUG_LOG("----------------"
+			  "opcode: %x\n"
+			  "vm->sp, vm->prev_fp, vm->curr_fp: %d, %d, %d\n\n", opcode, vm->sp, vm->fp, vm->next_fp);
+	switch (opcode) {
+	case O_EXPORT:
+		vm_close_all(vm);
+		vm_throw_err(vm, YASL_MODULE_SUCCESS);
+	case O_HALT:
+		vm_throw_err(vm, YASL_SUCCESS);
+	case O_DCONST:        // constants have native endianness
+		d = vm_read_float(vm);
+		vm_pushfloat(vm, d);
+		break;
+	case O_ICONST_B1:
+		vm_pushint(vm, (signed char)NCODE(vm));
+		break;
+	case O_ICONST_B2:
+		vm_pushint(vm, vm_read_int16(vm));
+		break;
+	case O_ICONST_B4:
+		vm_pushint(vm, vm_read_int32(vm));
+		break;
+	case O_ICONST_B8:
+		vm_pushint(vm, vm_read_int64(vm));
+		break;
+	case O_ICONST:        // constants have native endianness
+		vm_pushint(vm, vm_read_int(vm));
+		break;
+	case O_BCONST_F:
+	case O_BCONST_T:
+		vm_pushbool(vm, (bool)(opcode & 0x01));
+		break;
+	case O_NCONST:
+		vm_pushundef(vm);
+		break;
+	case O_FCONST:
+		c = vm_read_int(vm);
+		vm_pushfn(vm, vm->pc);
+		vm->pc += c;
+		break;
+	case O_CCONST:
+		vm_CCONST(vm);
+		break;
+	case O_BOR:
+		vm_int_binop(vm, &bor, "|", OP_BIN_BAR);
+		break;
+	case O_BXOR:
+		vm_int_binop(vm, &bxor, "^", OP_BIN_CARET);
+		break;
+	case O_BAND:
+		vm_int_binop(vm, &band, "&", OP_BIN_AMP);
+		break;
+	case O_BANDNOT:
+		vm_int_binop(vm, &bandnot, "&^", OP_BIN_AMPCARET);
+		break;
+	case O_BNOT:
+		vm_int_unop(vm, &bnot, "^", OP_UN_CARET);
+		break;
+	case O_BSL:
+		vm_int_binop(vm, &shift_left, "<<", OP_BIN_SHL);
+		break;
+	case O_BSR:
+		vm_int_binop(vm, &shift_right, ">>", OP_BIN_SHR);
+		break;
+	case O_ADD:
+		vm_num_binop(vm, &int_add, &float_add, "+", OP_BIN_PLUS);
+		break;
+	case O_MUL:
+		vm_num_binop(vm, &int_mul, &float_mul, "*", OP_BIN_TIMES);
+		break;
+	case O_SUB:
+		vm_num_binop(vm, &int_sub, &float_sub, "-", OP_BIN_MINUS);
+		break;
+	case O_FDIV:
+		vm_fdiv(vm);   // handled differently because we always convert to float
+		break;
+	case O_IDIV:
+		if (vm_isint(vm) && vm_peekint(vm) == 0) {
+			vm_print_err_divide_by_zero(vm);
+			vm_throw_err(vm, YASL_DIVIDE_BY_ZERO_ERROR);
+		}
+		vm_int_binop(vm, &idiv, "//", OP_BIN_IDIV);
+		break;
+	case O_MOD:
+		// TODO: handle undefined C behaviour for negative numbers.
+		if (vm_isint(vm) && vm_peekint(vm) == 0) {
+			vm_print_err_divide_by_zero(vm);
+			vm_throw_err(vm, YASL_DIVIDE_BY_ZERO_ERROR);
+		}
+		vm_int_binop(vm, &modulo, "%", OP_BIN_MOD);
+		break;
+	case O_EXP:
+		vm_pow(vm);
+		break;
+	case O_NEG:
+		vm_num_unop(vm, &int_neg, &float_neg, "-", OP_UN_MINUS);
+		break;
+	case O_POS:
+		vm_num_unop(vm, &int_pos, &float_pos, "+", OP_UN_PLUS);
+		break;
+	case O_NOT:
+		vm_pushbool(vm, isfalsey(vm_pop_p(vm)));
+		break;
+	case O_LEN:
+		vm_len_unop(vm);
+		break;
+	case O_CNCT:
+		vm_CNCT(vm);
+		break;
+	case O_GT:
+		vm_GT(vm);
+		break;
+	case O_GE:
+		vm_GE(vm);
+		break;
+	case O_LT:
+		vm_LT(vm);
+		break;
+	case O_LE:
+		vm_LE(vm);
+		break;
+	case O_EQ:
+		vm_EQ(vm);
+		break;
+	case O_ID:     // TODO: clean-up
+		b = vm_pop(vm);
+		a = vm_pop(vm);
+		vm_pushbool(vm, a.type == b.type && obj_getint(&a) == obj_getint(&b));
+		break;
+	case O_NEWSTR:
+		vm_NEWSTR(vm);
+		break;
+	case O_NEWTABLE: {
+		struct RC_UserData *table = rcht_new();
+		ud_setmt(table, vm->builtins_htable[Y_TABLE]);
+		struct YASL_Table *ht = (struct YASL_Table *)table->data;
+		while (vm_peek(vm).type != Y_END) {
+			struct YASL_Object val = vm_pop(vm);
+			struct YASL_Object key = vm_pop(vm);
+			if (!YASL_Table_insert(ht, key, val)) {
+				vm_print_err_type(vm, "unable to use mutable object of type %s as key.", YASL_TYPE_NAMES[key.type]);
+				vm_throw_err(vm, YASL_TYPE_ERROR);
+			}
+		}
+		vm_pop(vm);
+		vm_push(vm, YASL_TABLE(table));
+		break;
+	}
+	case O_NEWLIST: {
+		struct RC_UserData *ls = rcls_new();
+		ud_setmt(ls, vm->builtins_htable[Y_LIST]);
+		while (vm_peek(vm).type != Y_END) {
+			YASL_List_append((struct YASL_List *) ls->data, vm_pop(vm));
+		}
+		YASL_reverse((struct YASL_List *) ls->data);
+		vm_pop(vm);
+		vm_push(vm, YASL_LIST(ls));
+		break;
+	}
+	case O_INITFOR:
+		inc_ref(&vm_peek(vm));
+		vm->loopframe_num++;
+		vm->loopframes[vm->loopframe_num].iter = 0;
+		vm->loopframes[vm->loopframe_num].iterable = vm_pop(vm);
+		break;
+	case O_ENDFOR:
+		dec_ref(&vm->loopframes[vm->loopframe_num].iterable);
+		vm->loopframe_num--;
+		break;
+	case O_ENDCOMP:
+		a = vm_pop(vm);
+		vm_pop(vm);
+		vm_push(vm, a);
+		dec_ref(&vm->loopframes[vm->loopframe_num].iterable);
+		vm->loopframe_num--;
+		break;
+	case O_ITER_1:
+		vm_ITER_1(vm);
+		break;
+	case O_END:
+		vm_pushend(vm);
+		break;
+	case O_DUP:
+		a = vm_peek(vm);
+		vm_push(vm, a);
+		break;
+	case O_MOVEUP:
+		offset = NCODE(vm);
+		a = vm_peek(vm, vm->fp + offset + 1);
+		memmove(vm->stack + vm->fp + offset + 1, vm->stack + vm->fp + offset + 2, (vm->sp - (vm->fp + offset + 1)) * sizeof(struct YASL_Object));
+		vm->stack[vm->sp] = a;
+		break;
+	case O_MATCH:
+		vm_MATCH(vm);
+		break;
+	case O_BR_8:
+		vm->pc += vm_read_int(vm);
+		break;
+	case O_BRF_8:
+		c = vm_read_int(vm);
+		if (isfalsey(vm_pop_p(vm))) vm->pc += c;
+		break;
+	case O_BRT_8:
+		c = vm_read_int(vm);
+		if (!isfalsey(vm_pop_p(vm))) vm->pc += c;
+		break;
+	case O_BRN_8:
+		c = vm_read_int(vm);
+		if (!obj_isundef(vm_pop_p(vm))) vm->pc += c;
+		break;
+	case O_GLOAD_8:
+		vm_GLOAD_8(vm);
+		break;
+	case O_GSTORE_8:
+		vm_GSTORE_8(vm);
+		break;
+	case O_LLOAD:
+		offset = NCODE(vm);
+		vm_push(vm, vm_peek(vm, vm->fp + offset + 1));
+		break;
+	case O_LSTORE:
+		offset = NCODE(vm);
+		dec_ref(&vm_peek(vm, vm->fp + offset + 1));
+		vm_peek(vm, vm->fp + offset + 1) = vm_pop(vm);
+		inc_ref(&vm_peek(vm, vm->fp + offset + 1));
+		break;
+	case O_ULOAD:
+		offset = NCODE(vm);
+		vm_push(vm, upval_get(vm_peek(vm, vm->fp).value.lval->upvalues[offset]));
+		break;
+	case O_USTORE:
+		offset = NCODE(vm);
+		inc_ref(&vm_peek(vm));
+		upval_set(vm_peek(vm, vm->fp).value.lval->upvalues[offset], vm_pop(vm));
+		break;
+	case O_INIT_MC:
+		vm_INIT_MC(vm);
+		break;
+	case O_INIT_CALL:
+		vm_INIT_CALL(vm);
+		break;
+	case O_CALL:
+		vm_CALL(vm);
+		break;
+	case O_RET:
+		vm_RET(vm);
+		break;
+	case O_CRET:
+		vm_CRET(vm);
+		break;
+	case O_GET:
+		vm_GET(vm);
+		break;
+	case O_SLICE:
+		vm_SLICE(vm);
+		break;
+	case O_SET:
+		vm_SET(vm);
+		break;
+	case O_POP:
+		vm_pop(vm);
+		break;
+	case O_INCSP:
+		vm->sp += NCODE(vm);
+		break;
+	case O_PRINT:
+		vm_PRINT(vm);
+		break;
+	case O_ASS:
+		if (isfalsey(vm_peek_p(vm))) {
+			vm_stringify_top(vm);
+			vm_print_err(vm, "AssertError: %.*s.", (int)YASL_String_len(vm_peekstr(vm)), vm_peekstr(vm)->str + vm_peekstr(vm)->start);
+			vm_pop(vm);
+			vm_throw_err(vm, YASL_ASSERT_ERROR);
+		}
+		vm_pop(vm);
+		break;
+	default:
+		vm_print_err(vm, "ERROR UNKNOWN OPCODE: %x\n", opcode);
+		vm_throw_err(vm, YASL_ERROR);
+	}
+}
+
+int vm_run(struct VM *const vm) {
+	if (setjmp(vm->buf)) {
+		return vm->status;
+	}
+
+	vm_setupconstants(vm);
 
 	while (true) {
-		unsigned char opcode = NCODE(vm);        // fetch
-		signed char offset;
-		struct YASL_Object a, b;
-		yasl_int c;
-		yasl_float d;
-		YASL_VM_DEBUG_LOG("----------------"
-				  "opcode: %x\n"
-				  "vm->sp, vm->prev_fp, vm->curr_fp: %d, %d, %d\n\n", opcode, vm->sp, vm->fp, vm->next_fp);
-		switch (opcode) {
-		case O_EXPORT:
-			vm_close_all(vm);
-			return YASL_MODULE_SUCCESS;
-		case O_HALT:
-			return YASL_SUCCESS;
-		case O_DCONST:        // constants have native endianness
-			d = vm_read_float(vm);
-			vm_pushfloat(vm, d);
-			break;
-		case O_ICONST_B1:
-			vm_pushint(vm, (signed char)NCODE(vm));
-			break;
-		case O_ICONST_B2:
-			vm_pushint(vm, vm_read_int16(vm));
-			break;
-		case O_ICONST_B4:
-			vm_pushint(vm, vm_read_int32(vm));
-			break;
-		case O_ICONST_B8:
-			vm_pushint(vm, vm_read_int64(vm));
-			break;
-		case O_ICONST:        // constants have native endianness
-			vm_pushint(vm, vm_read_int(vm));
-			break;
-		case O_BCONST_F:
-		case O_BCONST_T:
-			vm_pushbool(vm, (bool)(opcode & 0x01));
-			break;
-		case O_NCONST:
-			vm_pushundef(vm);
-			break;
-		case O_FCONST:
-			c = vm_read_int(vm);
-			vm_pushfn(vm, vm->pc);
-			vm->pc += c;
-			break;
-		case O_CCONST:
-			vm_CCONST(vm);
-			break;
-		case O_BOR:
-			vm_int_binop(vm, &bor, "|", OP_BIN_BAR);
-			break;
-		case O_BXOR:
-			vm_int_binop(vm, &bxor, "^", OP_BIN_CARET);
-			break;
-		case O_BAND:
-			vm_int_binop(vm, &band, "&", OP_BIN_AMP);
-			break;
-		case O_BANDNOT:
-			vm_int_binop(vm, &bandnot, "&^", OP_BIN_AMPCARET);
-			break;
-		case O_BNOT:
-			vm_int_unop(vm, &bnot, "^", OP_UN_CARET);
-			break;
-		case O_BSL:
-			vm_int_binop(vm, &shift_left, "<<", OP_BIN_SHL);
-			break;
-		case O_BSR:
-			vm_int_binop(vm, &shift_right, ">>", OP_BIN_SHR);
-			break;
-		case O_ADD:
-			vm_num_binop(vm, &int_add, &float_add, "+", OP_BIN_PLUS);
-			break;
-		case O_MUL:
-			vm_num_binop(vm, &int_mul, &float_mul, "*", OP_BIN_TIMES);
-			break;
-		case O_SUB:
-			vm_num_binop(vm, &int_sub, &float_sub, "-", OP_BIN_MINUS);
-			break;
-		case O_FDIV:
-			vm_fdiv(vm);   // handled differently because we always convert to float
-			break;
-		case O_IDIV:
-			if (vm_isint(vm) && vm_peekint(vm) == 0) {
-				vm_print_err_divide_by_zero(vm);
-				return YASL_DIVIDE_BY_ZERO_ERROR;
-			}
-			vm_int_binop(vm, &idiv, "//", OP_BIN_IDIV);
-			break;
-		case O_MOD:
-			// TODO: handle undefined C behaviour for negative numbers.
-			if (vm_isint(vm) && vm_peekint(vm) == 0) {
-				vm_print_err_divide_by_zero(vm);
-				return YASL_DIVIDE_BY_ZERO_ERROR;
-			}
-			vm_int_binop(vm, &modulo, "%", OP_BIN_MOD);
-			break;
-		case O_EXP:
-			vm_pow(vm);
-			break;
-		case O_NEG:
-			vm_num_unop(vm, &int_neg, &float_neg, "-", OP_UN_MINUS);
-			break;
-		case O_POS:
-			vm_num_unop(vm, &int_pos, &float_pos, "+", OP_UN_PLUS);
-			break;
-		case O_NOT:
-			vm_pushbool(vm, isfalsey(vm_pop_p(vm)));
-			break;
-		case O_LEN:
-			vm_len_unop(vm);
-			break;
-		case O_CNCT:
-			vm_CNCT(vm);
-			break;
-		case O_GT:
-			vm_GT(vm);
-			break;
-		case O_GE:
-			vm_GE(vm);
-			break;
-		case O_LT:
-			vm_LT(vm);
-			break;
-		case O_LE:
-			vm_LE(vm);
-			break;
-		case O_EQ:
-			vm_EQ(vm);
-			break;
-		case O_ID:     // TODO: clean-up
-			b = vm_pop(vm);
-			a = vm_pop(vm);
-			vm_pushbool(vm, a.type == b.type && obj_getint(&a) == obj_getint(&b));
-			break;
-		case O_NEWSTR:
-			vm_NEWSTR(vm);
-			break;
-		case O_NEWTABLE: {
-			struct RC_UserData *table = rcht_new();
-			ud_setmt(table, vm->builtins_htable[Y_TABLE]);
-			struct YASL_Table *ht = (struct YASL_Table *)table->data;
-			while (vm_peek(vm).type != Y_END) {
-				struct YASL_Object val = vm_pop(vm);
-				struct YASL_Object key = vm_pop(vm);
-				if (!YASL_Table_insert(ht, key, val)) {
-					vm_print_err_type(vm, "unable to use mutable object of type %s as key.", YASL_TYPE_NAMES[key.type]);
-					return YASL_TYPE_ERROR;
-				}
-			}
-			vm_pop(vm);
-			vm_push(vm, YASL_TABLE(table));
-			break;
-		}
-		case O_NEWLIST: {
-			struct RC_UserData *ls = rcls_new();
-			ud_setmt(ls, vm->builtins_htable[Y_LIST]);
-			while (vm_peek(vm).type != Y_END) {
-				YASL_List_append((struct YASL_List *) ls->data, vm_pop(vm));
-			}
-			YASL_reverse((struct YASL_List *) ls->data);
-			vm_pop(vm);
-			vm_push(vm, YASL_LIST(ls));
-			break;
-		}
-		case O_INITFOR:
-			inc_ref(&vm_peek(vm));
-			vm->loopframe_num++;
-			vm->loopframes[vm->loopframe_num].iter = 0;
-			vm->loopframes[vm->loopframe_num].iterable = vm_pop(vm);
-			break;
-		case O_ENDFOR:
-			dec_ref(&vm->loopframes[vm->loopframe_num].iterable);
-			vm->loopframe_num--;
-			break;
-		case O_ENDCOMP:
-			a = vm_pop(vm);
-			vm_pop(vm);
-			vm_push(vm, a);
-			dec_ref(&vm->loopframes[vm->loopframe_num].iterable);
-			vm->loopframe_num--;
-			break;
-		case O_ITER_1:
-			vm_ITER_1(vm);
-			break;
-		case O_END:
-			vm_pushend(vm);
-			break;
-		case O_DUP:
-			a = vm_peek(vm);
-			vm_push(vm, a);
-			break;
-		case O_MOVEUP:
-			offset = NCODE(vm);
-			a = vm_peek(vm, vm->fp + offset + 1);
-			memmove(vm->stack + vm->fp + offset + 1, vm->stack + vm->fp + offset + 2, (vm->sp - (vm->fp + offset + 1)) * sizeof(struct YASL_Object));
-			vm->stack[vm->sp] = a;
-			break;
-		case O_MATCH:
-			vm_MATCH(vm);
-			break;
-		case O_BR_8:
-			vm->pc += vm_read_int(vm);
-			break;
-		case O_BRF_8:
-			c = vm_read_int(vm);
-			if (isfalsey(vm_pop_p(vm))) vm->pc += c;
-			break;
-		case O_BRT_8:
-			c = vm_read_int(vm);
-			if (!isfalsey(vm_pop_p(vm))) vm->pc += c;
-			break;
-		case O_BRN_8:
-			c = vm_read_int(vm);
-			if (!obj_isundef(vm_pop_p(vm))) vm->pc += c;
-			break;
-		case O_GLOAD_8:
-			vm_GLOAD_8(vm);
-			break;
-		case O_GSTORE_8:
-			vm_GSTORE_8(vm);
-			break;
-		case O_LLOAD:
-			offset = NCODE(vm);
-			vm_push(vm, vm_peek(vm, vm->fp + offset + 1));
-			break;
-		case O_LSTORE:
-			offset = NCODE(vm);
-			dec_ref(&vm_peek(vm, vm->fp + offset + 1));
-			vm_peek(vm, vm->fp + offset + 1) = vm_pop(vm);
-			inc_ref(&vm_peek(vm, vm->fp + offset + 1));
-			break;
-		case O_ULOAD:
-			offset = NCODE(vm);
-			vm_push(vm, upval_get(vm_peek(vm, vm->fp).value.lval->upvalues[offset]));
-			break;
-		case O_USTORE:
-			offset = NCODE(vm);
-			inc_ref(&vm_peek(vm));
-			upval_set(vm_peek(vm, vm->fp).value.lval->upvalues[offset], vm_pop(vm));
-			break;
-		case O_INIT_MC:
-			vm_INIT_MC(vm);
-			break;
-		case O_INIT_CALL:
-			vm_INIT_CALL(vm);
-			break;
-		case O_CALL:
-			vm_CALL(vm);
-			break;
-		case O_RET:
-			vm_RET(vm);
-			break;
-		case O_CRET:
-			vm_CRET(vm);
-			break;
-		case O_GET:
-			vm_GET(vm);
-			break;
-		case O_SLICE:
-			vm_SLICE(vm);
-			break;
-		case O_SET:
-			vm_SET(vm);
-			break;
-		case O_POP:
-			vm_pop(vm);
-			break;
-		case O_INCSP:
-			vm->sp += NCODE(vm);
-			break;
-		case O_PRINT:
-			vm_PRINT(vm);
-			break;
-		case O_ASS:
-			if (isfalsey(vm_peek_p(vm))) {
-				vm_stringify_top(vm);
-				vm_print_err(vm, "AssertError: %.*s.", (int)YASL_String_len(vm_peekstr(vm)), vm_peekstr(vm)->str + vm_peekstr(vm)->start);
-				vm_pop(vm);
-				return YASL_ASSERT_ERROR;
-			}
-			vm_pop(vm);
-			break;
-		default:
-			vm_print_err(vm, "ERROR UNKNOWN OPCODE: %x\n", opcode);
-			return YASL_ERROR;
-		}
+		vm_executenext(vm);
 	}
 }

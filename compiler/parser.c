@@ -791,12 +791,11 @@ static struct Node *parse_call(struct Parser *const parser) {
 				eattok(parser, T_COMMA);
 			}
 			eattok(parser, T_RPAR);
-
 		} else if (matcheattok(parser, T_DOT)) {
 			struct Node *right = parse_constant(parser);
 			if (right->nodetype == N_CALL) {
-				cur_node = new_Set(cur_node, right->children[0]->children[0],
-						   right->children[0]->children[1], parser->lex.line);
+				cur_node = new_Set(cur_node, Call_get_params(right)->children[0],
+						   Call_get_params(right)->children[1], parser->lex.line);
 				free(right);
 			} else if (right->nodetype == N_VAR) {
 				right->nodetype = N_STR;
