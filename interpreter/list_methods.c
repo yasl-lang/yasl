@@ -45,6 +45,7 @@ void list___set(struct YASL_State *S) {
 		vm_print_err_value(&S->vm, "unable to index list of length %" PRI_SIZET " with index %" PRId64 ".", ls->count, index);
 		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
+	inc_ref(&value);
 	if (index >= 0) ls->items[index] = value;
 	else ls->items[index + ls->count] = value;
 }

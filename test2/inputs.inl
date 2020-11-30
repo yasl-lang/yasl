@@ -64,6 +64,7 @@ static const char *inputs[] = {
   "test/inputs/syntax/augmented_assign.yasl",
   "test/inputs/syntax/multi_assign.yasl",
   "test/inputs/syntax/foreach_str.yasl",
+  "test/inputs/syntax/multi_assign_set.yasl",
   "test/inputs/syntax/while_break.yasl",
   "test/inputs/syntax/newline_list_table.yasl",
   "test/inputs/syntax/for_continue.yasl",

@@ -1,0 +1,16 @@
+
+const x = [ 1, 2, 3]
+let y = false
+
+let z, y, x[0] = .zzzz, .yy, 'xxx'
+
+echo z
+echo y
+echo x
+
+
+x[0], y, z = 'first', 'second', 'third'
+
+echo z
+echo y
+echo x

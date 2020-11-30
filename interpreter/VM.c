@@ -78,7 +78,7 @@ void vm_init(struct VM *const vm,
 	DEF_SPECIAL_STR(S___GET, "__get");
 	DEF_SPECIAL_STR(S___LEN, "__len");
 	DEF_SPECIAL_STR(S___SET, "__set");
-	DEF_SPECIAL_STR(S___SLICE, "__slice");
+	// DEF_SPECIAL_STR(S___SLICE, "__slice");
 	DEF_SPECIAL_STR(S_CLEAR, "clear");
 	DEF_SPECIAL_STR(S_COPY, "copy");
 	DEF_SPECIAL_STR(S_COUNT, "count");
@@ -117,9 +117,6 @@ void vm_init(struct VM *const vm,
 }
 
 void vm_cleanup(struct VM *const vm) {
-	// YASL_ASSERT(vm->sp == -1, "VM stack pointer should have been -1.");
-	// YASL_ASSERT(vm->prev_fp == -1, "VM frame pointer should have been -1.");
-	// YASL_ASSERT(vm->frame_num == (size_t)-1, "frame num should be 0.");
 	for (size_t i = 0; i < STACK_SIZE; i++) dec_ref(vm->stack + i);
 	free(vm->stack);
 
@@ -132,7 +129,6 @@ void vm_cleanup(struct VM *const vm) {
 		free(vm->headers[i]);
 	}
 	free(vm->headers);
-
 
 	YASL_Table_del(vm->globals);
 

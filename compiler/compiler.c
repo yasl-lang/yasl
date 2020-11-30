@@ -999,6 +999,9 @@ static void visit_Const(struct Compiler *const compiler, const struct Node *cons
 
 static void visit_Decl(struct Compiler *const compiler, const struct Node *const node) {
 	FOR_CHILDREN(i, child_expr, node) {
+		if (child_expr->nodetype == N_SET) {
+			continue;
+		}
 		visit(compiler, child_expr->children[0]);
 	}
 
@@ -1013,6 +1016,8 @@ static void visit_Decl(struct Compiler *const compiler, const struct Node *const
 			compiler_add_byte(compiler, O_MOVEUP);
 			compiler_add_byte(compiler, (unsigned char)get_scope_in_use(compiler)->vars.count);
 			store_var(compiler, name, node->line);
+		} else if (child->nodetype == N_SET) {
+			visit_Set(compiler, child);
 		} else {
 			if (contains_var_in_current_scope(compiler, name)) {
 				compiler_print_err_syntax(compiler, "Illegal redeclaration of %s (line %" PRI_SIZET ").\n", name, node->line);
