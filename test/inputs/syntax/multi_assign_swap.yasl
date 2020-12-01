@@ -1,0 +1,9 @@
+let a, let b = .A, .B
+
+echo a
+echo b
+
+a, b = b, a
+
+echo a
+echo b

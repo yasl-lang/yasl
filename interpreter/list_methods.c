@@ -45,9 +45,12 @@ void list___set(struct YASL_State *S) {
 		vm_print_err_value(&S->vm, "unable to index list of length %" PRI_SIZET " with index %" PRId64 ".", ls->count, index);
 		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
+
+	if (index < 0) index += ls->count;
+
 	inc_ref(&value);
-	if (index >= 0) ls->items[index] = value;
-	else ls->items[index + ls->count] = value;
+	dec_ref(ls->items + index);
+	ls->items[index] = value;
 }
 
 int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, size_t buffer_count);
