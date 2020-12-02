@@ -150,8 +150,6 @@ void vm_cleanup(struct VM *const vm) {
 	v = YASL_TABLE(vm->builtins_htable[Y_TABLE]);
 	dec_ref(&v);
 	free(vm->builtins_htable);
-
-	// TODO: free upvalues
 }
 
 YASL_FORMAT_CHECK static void vm_print_err_wrapper(struct VM *vm, const char *const fmt, ...) {
@@ -325,14 +323,6 @@ static void vm_call_now_2(struct VM *vm, struct YASL_Object a, struct YASL_Objec
 	vm_CALL(vm);
 }
 
-static void vm_call_now_3(struct VM *vm, struct YASL_Object a, struct YASL_Object b, struct YASL_Object c) {
-	vm_INIT_CALL(vm);
-	vm_push(vm, a);
-	vm_push(vm, b);
-	vm_push(vm, c);
-	vm_CALL(vm);
-}
-
 #define vm_lookup_method_throwing(vm, method_name, err_str, ...) \
 do {\
 	struct YASL_Object index = YASL_STR(YASL_String_new_sized(strlen(method_name), method_name));\
@@ -364,18 +354,6 @@ do {\
 	vm_call_now_2(vm, left, right);\
 	dec_ref(&left);\
 	dec_ref(&right);\
-} while (0)
-
-#define vm_call_method_now_3(vm, first, second, third, method_name, ...) do {\
-	inc_ref(&first);\
-	inc_ref(&second);\
-	inc_ref(&third);\
-	vm_push(vm, first);\
-	vm_lookup_method_throwing(vm, method_name, __VA_ARGS__);\
-	vm_call_now_3(vm, first, second, third);\
-	dec_ref(&first);\
-	dec_ref(&second);\
-	dec_ref(&third);\
 } while (0)
 
 #define INT_BINOP(name, op) yasl_int name(yasl_int left, yasl_int right) { return left op right; }
@@ -757,13 +735,11 @@ void vm_get_metatable(struct VM *const vm) {
 static int lookup(struct VM *vm, struct YASL_Object obj, struct YASL_Table *mt, struct YASL_Object index) {
 	struct YASL_Object search = YASL_Table_search(mt, index);
 	if (search.type != Y_END) {
-		vm_push(vm,search);
+		vm_push(vm, search);
 		return YASL_SUCCESS;
 	}
 
-	struct YASL_String *get = YASL_String_new_sized(strlen("__get"), "__get");
-	search = YASL_Table_search(mt, YASL_STR(get));
-	str_del(get);
+	search = YASL_Table_search_string_int(mt, "__get", strlen("__get"));
 	if (search.type != Y_END) {
 		vm_push(vm, search);
 		vm_call_now_2(vm, obj, index);
@@ -909,6 +885,12 @@ static void vm_ff_subpattern(struct VM *const vm) {
 	}
 }
 
+static void vm_ff_subpatterns_multiple(struct VM *const vm, const size_t n) {
+	for (size_t i = 0; i < n; i++) {
+		vm_ff_subpattern(vm);
+	}
+}
+
 static bool vm_MATCH_table_elements(struct VM *const vm, size_t len, struct YASL_Table *table) {
 	bool tmp = true;
 	for (size_t i = 0; i < len; i++) {
@@ -943,6 +925,16 @@ static bool vm_MATCH_table_elements(struct VM *const vm, size_t len, struct YASL
 	return tmp;
 }
 
+static bool MATCH_list(struct VM *vm, struct YASL_List *ls, int64_t len) {
+	bool tmp = true;
+	for (yasl_int i = 0; i < len; i++) {
+		if (!vm_MATCH_subpattern(vm, ls->items + i)) {
+			tmp = false;
+		}
+	}
+	return tmp;
+}
+
 static bool vm_MATCH_subpattern(struct VM *const vm, struct YASL_Object *expr) {
 	unsigned char next = NCODE(vm);
 	switch ((enum Pattern)next) {
@@ -966,80 +958,59 @@ static bool vm_MATCH_subpattern(struct VM *const vm, struct YASL_Object *expr) {
 		return obj_isstr(expr) && !YASL_String_cmp(obj_getstr(expr), obj_getstr(vm->constants + tmp));
 	}
 	case P_TABLE: {
-		bool tmp = true;
 		size_t len = (size_t) vm_read_int(vm) / 2;
 		if (!obj_istable(expr)) {
-			for (size_t i = 0; i < len; i++) {
-				vm_ff_subpattern(vm);
-				vm_ff_subpattern(vm);
-			}
-			return false;
-		}
-
-		if (((struct YASL_Table *) expr->value.uval->data)->count != len) {
-			for (size_t i = 0; i < len; i++) {
-				vm_ff_subpattern(vm);
-				vm_ff_subpattern(vm);
-			}
+			vm_ff_subpatterns_multiple(vm, len * 2);
 			return false;
 		}
 
 		struct YASL_Table *table = (struct YASL_Table *) expr->value.uval->data;
-		return vm_MATCH_table_elements(vm, len, table) && tmp;
+		if (table->count != len) {
+			vm_ff_subpatterns_multiple(vm, len * 2);
+			return false;
+		}
+
+		return vm_MATCH_table_elements(vm, len, table);
 	}
 	case P_VTABLE: {
-		bool tmp = true;
 		size_t len = (size_t) vm_read_int(vm) / 2;
 		if (!obj_istable(expr)) {
-			for (size_t i = 0; i < len; i++) {
-				vm_ff_subpattern(vm);
-				vm_ff_subpattern(vm);
-			}
+			vm_ff_subpatterns_multiple(vm, len * 2);
 			return false;
 		}
 
 		struct YASL_Table *table = (struct YASL_Table *) expr->value.uval->data;
-		return vm_MATCH_table_elements(vm, len, table) && tmp;
+		return vm_MATCH_table_elements(vm, len, table);
 	}
 	case P_LS: {
-		bool tmp = true;
-		yasl_int len = vm_read_int(vm);
+		size_t len = (size_t)vm_read_int(vm);
 		if (!obj_islist(expr)) {
-			for (yasl_int i = 0; i < len; i++) vm_ff_subpattern(vm);
+			vm_ff_subpatterns_multiple(vm, len);
 			return false;
 		}
 
-		if (((struct YASL_List *)expr->value.uval->data)->count != (size_t)len) {
-			for (yasl_int i = 0; i < len; i++) vm_ff_subpattern(vm);
+		struct YASL_List *ls = (struct YASL_List *)expr->value.uval->data;
+		if (ls->count != (size_t)len) {
+			vm_ff_subpatterns_multiple(vm, len);
 			return false;
 		}
 
-		for (yasl_int i = 0; i < len; i++) {
-			if (!vm_MATCH_subpattern(vm, ((struct YASL_List *)expr->value.uval->data)->items + i)) {
-				tmp = false;
-			}
-		}
-		return tmp;
+		return MATCH_list(vm, ls, len);
 	}
 	case P_VLS: {
-		bool tmp = true;
-		yasl_int len = vm_read_int(vm);
+		size_t len = (size_t)vm_read_int(vm);
 		if (!obj_islist(expr)) {
-			for (yasl_int i = 0; i < len; i++) vm_MATCH_subpattern(vm, expr);
+			vm_ff_subpatterns_multiple(vm, len);
 			return false;
 		}
 
-		if (((struct YASL_List *)expr->value.uval->data)->count < (size_t)len) {
-			for (yasl_int i = 0; i < len; i++) vm_ff_subpattern(vm);
+		struct YASL_List *ls = (struct YASL_List *)expr->value.uval->data;
+		if (ls->count < (size_t)len) {
+			vm_ff_subpatterns_multiple(vm, len);
 			return false;
 		}
 
-		for (yasl_int i = 0; i < len; i++) {
-			if (!vm_MATCH_subpattern(vm, ((struct YASL_List *)expr->value.uval->data)->items + i)) {
-				tmp = false;
-			}
-		}
-		return tmp;
+		return MATCH_list(vm, ls, len);
 	}
 	case P_BIND: {
 		unsigned char offset = NCODE(vm);
@@ -1051,8 +1022,7 @@ static bool vm_MATCH_subpattern(struct VM *const vm, struct YASL_Object *expr) {
 	case P_ANY:
 		return true;
 	case P_ALT: {
-		bool tmp = vm_MATCH_subpattern(vm, expr);
-		if (tmp) {
+		if (vm_MATCH_subpattern(vm, expr)) {
 			vm_ff_subpattern(vm);
 			return true;
 		}
