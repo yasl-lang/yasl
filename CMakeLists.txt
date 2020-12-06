@@ -129,7 +129,7 @@ add_library(yaslapi
         data-structures/YASL_Set.c
         std/yasl-std-mt.c std/yasl-std-mt.h)
 
-add_executable(tests2
+add_executable(tests
         test2/integration_tests.c
         test/yats.c
         test/yasl_test.c
@@ -162,13 +162,13 @@ add_executable(tests2
 if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
     target_link_libraries(yasl m)
     target_link_libraries(yaslapi m)
-    target_link_libraries(tests2 m)
+    target_link_libraries(tests m)
 endif()
 
-target_link_libraries(tests2 yaslapi)
+target_link_libraries(tests yaslapi)
 
 if (UNIX)
     target_link_libraries(yasl dl)
     target_link_libraries(yaslapi dl)
-    target_link_libraries(tests2 dl)
+    target_link_libraries(tests dl)
 endif()

@@ -22,10 +22,6 @@
 #include "YASL_Object.h"
 #include "closure.h"
 
-static void nop_del_data(void *data) {
-	(void) data;
-}
-
 static struct RC_UserData **builtins_htable_new(struct VM *const vm) {
 	struct RC_UserData **ht = (struct RC_UserData **) malloc(sizeof(struct RC_UserData *) * NUM_TYPES);
 	ht[Y_UNDEF] = ud_new(undef_builtins(vm), T_TABLE, NULL, rcht_del_data);
@@ -276,6 +272,19 @@ struct YASL_List *vm_poplist(struct VM *const vm) {
 
 struct YASL_Table *vm_poptable(struct VM *const vm) {
 	return YASL_GETTABLE(vm_pop(vm));
+}
+
+void vm_rm_range(struct VM *const vm, int start, int end) {
+	int after = vm->sp - end + 1;
+	int len = end - start;
+	for (int i = 0; i < after && i < len; i++) {
+		dec_ref(vm->stack + start + i);
+	}
+	memmove(vm->stack + start, vm->stack + end, after * sizeof(struct YASL_Object));
+	for (int i = 0; i < after && i < len; i++) {
+		inc_ref(vm->stack + start + i);
+	}
+	vm->sp -= len;
 }
 
 static yasl_int vm_read_int(struct VM *const vm) {
@@ -853,6 +862,7 @@ static void vm_ITER_1(struct VM *const vm) {
 }
 
 static bool vm_MATCH_subpattern(struct VM *const vm, struct YASL_Object *expr);
+static void vm_ff_subpatterns_multiple(struct VM *const vm, const size_t n);
 
 static void vm_ff_subpattern(struct VM *const vm) {
 	switch((enum Pattern)NCODE(vm)) {
@@ -876,11 +886,10 @@ static void vm_ff_subpattern(struct VM *const vm) {
 	case P_VLS:
 	case P_TABLE:
 	case P_VTABLE:
-		for (yasl_int i = vm_read_int(vm); i > 0; i--) vm_ff_subpattern(vm);
+		vm_ff_subpatterns_multiple(vm, (size_t)vm_read_int(vm));
 		break;
 	case P_ALT:
-		vm_ff_subpattern(vm);
-		vm_ff_subpattern(vm);
+		vm_ff_subpatterns_multiple(vm, 2);
 		break;
 	}
 }
@@ -892,7 +901,6 @@ static void vm_ff_subpatterns_multiple(struct VM *const vm, const size_t n) {
 }
 
 static bool vm_MATCH_table_elements(struct VM *const vm, size_t len, struct YASL_Table *table) {
-	bool tmp = true;
 	for (size_t i = 0; i < len; i++) {
 		struct YASL_Object val;
 		switch ((enum Pattern)NCODE(vm)) {
@@ -915,24 +923,21 @@ static bool vm_MATCH_table_elements(struct VM *const vm, size_t len, struct YASL
 			break;
 		}
 		if (val.type == Y_END || !(vm_MATCH_subpattern(vm, &val))) {
-			for (size_t j = i + 1; j < len; j++) {
-				vm_ff_subpattern(vm);
-				vm_ff_subpattern(vm);
-			}
+			vm_ff_subpatterns_multiple(vm, 2 * (len - (i + 1)));
 			return false;
 		}
 	}
-	return tmp;
+	return true;
 }
 
-static bool MATCH_list(struct VM *vm, struct YASL_List *ls, int64_t len) {
-	bool tmp = true;
-	for (yasl_int i = 0; i < len; i++) {
+static bool MATCH_list(struct VM *vm, struct YASL_List *ls, size_t len) {
+	for (size_t i = 0; i < len; i++) {
 		if (!vm_MATCH_subpattern(vm, ls->items + i)) {
-			tmp = false;
+			vm_ff_subpatterns_multiple(vm, len - (i + 1));
+			return false;
 		}
 	}
-	return tmp;
+	return true;
 }
 
 static bool vm_MATCH_subpattern(struct VM *const vm, struct YASL_Object *expr) {
@@ -1084,20 +1089,17 @@ static void vm_enterframe(struct VM *const vm) {
 }
 
 static void vm_exitframe(struct VM *const vm) {
-	struct YASL_Object v = vm_pop(vm);
-	vm->sp = vm->fp;
-	vm_pop(vm);
+	vm_rm_range(vm, vm->fp, vm->sp);
 
-	vm->pc = vm->frames[vm->frame_num].pc;
-	vm->fp = vm->frames[vm->frame_num].prev_fp;
-	vm->next_fp = vm->frames[vm->frame_num].curr_fp;
-	while (vm->loopframe_num > vm->frames[vm->frame_num].lp) {
+	struct CallFrame frame = vm->frames[vm->frame_num];
+	vm->pc = frame.pc;
+	vm->fp = frame.prev_fp;
+	vm->next_fp = frame.curr_fp;
+	while (vm->loopframe_num > frame.lp) {
 		dec_ref(&vm->loopframes[vm->loopframe_num--].iterable);
 	}
 
 	vm->frame_num--;
-
-	vm_push(vm, v);
 }
 
 static void vm_INIT_CALL(struct VM *const vm) {
@@ -1120,12 +1122,14 @@ static void vm_INIT_MC(struct VM *const vm) {
 }
 
 static void vm_fill_args(struct VM *const vm, const int num_args) {
-	while (vm->sp - vm->fp < num_args) {
-		vm_pushundef(vm);
-	}
-
-	while (vm->sp - vm->fp > num_args) {
-		vm_pop(vm);
+	if (vm->sp - vm->fp < num_args) {
+		while (vm->sp - vm->fp < num_args) {
+			vm_pushundef(vm);
+		}
+	} else if (vm->sp - vm->fp > num_args) {
+		while (vm->sp - vm->fp > num_args) {
+			vm_pop(vm);
+		}
 	}
 }
 
@@ -1204,14 +1208,23 @@ void vm_setupconstants(struct VM *const vm) {
 	unsigned char *tmp = vm->code + 3*sizeof(int64_t);
 	for (int64_t i = 0; i < vm->num_constants; i++) {
 		YASL_ASSERT(*tmp == O_SCONST, "must be a string constant.");
-		tmp++;
-		int64_t len = *((int64_t *)tmp);
-		tmp += sizeof(int64_t);
-		char *str = (char *)malloc((size_t)len);
-		memcpy(str, tmp, (size_t)len);
-		vm->constants[i] = YASL_STR(YASL_String_new_sized_heap(0, (size_t)len, str));
-		inc_ref(vm->constants + i);
-		tmp += len;
+		switch (*tmp++) {
+		case O_SCONST: {
+			int64_t len = *((int64_t *) tmp);
+			tmp += sizeof(int64_t);
+			char *str = (char *) malloc((size_t) len);
+			memcpy(str, tmp, (size_t) len);
+			vm->constants[i] = YASL_STR(YASL_String_new_sized_heap(0, (size_t) len, str));
+			inc_ref(vm->constants + i);
+			tmp += len;
+			break;
+		}
+		case O_ICONST_B8:
+			vm->constants[i] = YASL_INT(vm_read_int64(vm));
+			break;
+		default:
+			break;
+		}
 	}
 }
 
