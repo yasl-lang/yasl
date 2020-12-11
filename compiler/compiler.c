@@ -722,7 +722,7 @@ yasl_int compiler_intern_int(struct Compiler *const compiler, const yasl_int val
 	struct YASL_Object value = YASL_Table_search(compiler->strings, YASL_INT(val));
 	if (value.type == Y_END) {
 		YASL_COMPILE_DEBUG_LOG("%s\n", "caching integer");
-		size_t index = compiler->strings->count;
+		yasl_int index = (yasl_int)compiler->strings->count;
 		YASL_Table_insert(compiler->strings, YASL_INT(val), YASL_INT(index));
 		if (-(1 << 7) < val && val < (1 << 7)) {
 			YASL_ByteBuffer_add_byte(compiler->header, O_ICONST_B1);
