@@ -718,6 +718,25 @@ yasl_int compiler_intern_string(struct Compiler *const compiler, const char *con
 	return value.value.ival;
 }
 
+yasl_int compiler_intern_int(struct Compiler *const compiler, const yasl_int val) {
+	struct YASL_Object value = YASL_Table_search(compiler->strings, YASL_INT(val));
+	if (value.type == Y_END) {
+		YASL_COMPILE_DEBUG_LOG("%s\n", "caching integer");
+		size_t index = compiler->strings->count;
+		YASL_Table_insert(compiler->strings, YASL_INT(val), YASL_INT(index));
+		if (-(1 << 7) < val && val < (1 << 7)) {
+			YASL_ByteBuffer_add_byte(compiler->header, O_ICONST_B1);
+			YASL_ByteBuffer_add_byte(compiler->header, (unsigned char) val);
+		} else {
+			YASL_ByteBuffer_add_byte(compiler->header, O_ICONST_B8);
+			YASL_ByteBuffer_add_int(compiler->header, val);
+		}
+		return index;
+	}
+
+	return value.value.ival;
+}
+
 static yasl_int intern_string(struct Compiler *const compiler, const struct Node *const node) {
 	const char *const str = String_get_str(node);
 	size_t len = String_get_len(node);
@@ -1211,13 +1230,11 @@ static void visit_Float(struct Compiler *const compiler, const struct Node *cons
 static void visit_Integer(struct Compiler *const compiler, const struct Node *const node) {
 	yasl_int val = Integer_get_int(node);
 	YASL_COMPILE_DEBUG_LOG("int: %" PRId64 "\n", val);
-	if (-(1 << 7) < val && val < (1 << 7)) {
-		compiler_add_byte(compiler, O_ICONST_B1);
-		compiler_add_byte(compiler, (unsigned char) val);
-	} else {
-		compiler_add_byte(compiler, O_ICONST_B8);
-		compiler_add_int(compiler, val);
-	}
+
+	yasl_int index = compiler_intern_int(compiler, val);
+
+	compiler_add_byte(compiler, O_LIT);
+	compiler_add_byte(compiler, index);
 }
 
 static void visit_Boolean(struct Compiler *const compiler, const struct Node *const node) {
@@ -1226,9 +1243,13 @@ static void visit_Boolean(struct Compiler *const compiler, const struct Node *co
 
 static void visit_String(struct Compiler *const compiler, const struct Node *const node) {
 	yasl_int index = intern_string(compiler, node);
-
-	compiler_add_byte(compiler, O_NEWSTR);
-	compiler_add_int(compiler, index);
+	if (index < 128) {
+		compiler_add_byte(compiler, O_LIT);
+		compiler_add_byte(compiler, (unsigned char)index);
+	} else {
+		compiler_add_byte(compiler, O_LIT8);
+		compiler_add_int(compiler, index);
+	}
 }
 
 static void visit_Assert(struct Compiler *const compiler, const struct Node *const node) {
@@ -1254,14 +1275,14 @@ static void visit_Table(struct Compiler *const compiler, const struct Node *cons
  * Like visit, but doesn't save the results. Will validate things like variables having been declared before use.
  */
 static void validate(struct Compiler *compiler, const struct Node *const node) {
-	size_t buffer_count = compiler->buffer->count;
-	size_t header_count = compiler->header->count;
-	size_t code_count = compiler->code->count;
-	size_t line_count = compiler->lines->count;
-	size_t line = compiler->line;
+	const size_t buffer_count = compiler->buffer->count;
+	// size_t header_count = compiler->header->count;
+	const size_t code_count = compiler->code->count;
+	const size_t line_count = compiler->lines->count;
+	const size_t line = compiler->line;
 	visit(compiler, node);
 	compiler->buffer->count = buffer_count;
-	compiler->header->count = header_count;
+	// compiler->header->count = header_count;
 	compiler->code->count = code_count;
 	compiler->lines->count = line_count;
 	compiler->line = line;

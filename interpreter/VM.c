@@ -302,6 +302,7 @@ static yasl_int vm_read_int(struct VM *const vm) {
 		return (yasl_int) val;\
 	}
 
+DEFINE_READ_INT(8)
 DEFINE_READ_INT(16)
 DEFINE_READ_INT(32)
 DEFINE_READ_INT(64)
@@ -811,7 +812,13 @@ static void vm_SET(struct VM *const vm) {
 	vm_throw_err(vm, YASL_TYPE_ERROR);
 }
 
-static void vm_NEWSTR(struct VM *const vm) {
+static void vm_LIT(struct VM *const vm) {
+	unsigned char addr = NCODE(vm);
+	// printf("index: %d\n", addr);
+	vm_push(vm, vm->constants[addr]);
+}
+
+static void vm_LIT8(struct VM *const vm) {
 	yasl_int addr = vm_read_int(vm);
 	vm_push(vm, vm->constants[addr]);
 }
@@ -1207,7 +1214,6 @@ void vm_setupconstants(struct VM *const vm) {
 	vm->constants = (struct YASL_Object *)malloc(sizeof(struct YASL_Object) * vm->num_constants);
 	unsigned char *tmp = vm->code + 3*sizeof(int64_t);
 	for (int64_t i = 0; i < vm->num_constants; i++) {
-		YASL_ASSERT(*tmp == O_SCONST, "must be a string constant.");
 		switch (*tmp++) {
 		case O_SCONST: {
 			int64_t len = *((int64_t *) tmp);
@@ -1219,9 +1225,16 @@ void vm_setupconstants(struct VM *const vm) {
 			tmp += len;
 			break;
 		}
-		case O_ICONST_B8:
-			vm->constants[i] = YASL_INT(vm_read_int64(vm));
+		case O_ICONST_B1: {
+			vm->constants[i] = YASL_INT((signed char)*tmp++);
 			break;
+		}
+		case O_ICONST_B8: {
+			int64_t v = *((int64_t *) tmp);
+			vm->constants[i] = YASL_INT(v);
+			tmp += sizeof(int64_t);
+			break;
+		}
 		default:
 			break;
 		}
@@ -1363,8 +1376,11 @@ void vm_executenext(struct VM *const vm) {
 		a = vm_pop(vm);
 		vm_pushbool(vm, a.type == b.type && obj_getint(&a) == obj_getint(&b));
 		break;
-	case O_NEWSTR:
-		vm_NEWSTR(vm);
+	case O_LIT:
+		vm_LIT(vm);
+		break;
+	case O_LIT8:
+		vm_LIT8(vm);
 		break;
 	case O_NEWTABLE: {
 		struct RC_UserData *table = rcht_new();

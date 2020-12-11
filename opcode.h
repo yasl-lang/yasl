@@ -54,7 +54,8 @@ enum Opcode {
 
 	O_EXPORT = 0x90, // export
 
-	O_NEWSTR = 0x9B, // make new String and push it onto stack (length (8 bytes), string (length bytes))
+	O_LIT = 0x9A,
+	O_LIT8 = 0x9B, // make new String and push it onto stack (length (8 bytes), string (length bytes))
 	O_NEWTABLE = 0x9C, // make new HashTable and push it onto stack
 	O_NEWLIST = 0x9D, // make new List and push it onto stack
 	O_SCONST = 0x9E,  // initialize the constant table with a string literal.
