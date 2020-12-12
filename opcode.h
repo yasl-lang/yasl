@@ -9,12 +9,10 @@ enum Opcode {
 	O_FCONST = 0x0A, // push function literal onto stack
 	O_CCONST = 0x0B, // push closure literal onto stack
 
-	O_ICONST = 0x10, // push next 8 bytes onto stack as integer constant
-	O_ICONST_B1 = 0x11, // push literal integer that only requires 1 byte onto stack.
-	O_ICONST_B2 = 0x12, // TODO
-	O_ICONST_B4 = 0x13, // TODO
-	O_ICONST_B8 = 0x14, // synonym for O_ICONST
-	O_DCONST = 0x1A, // push next 8 bytes onto stack as float constant
+	//O_ICONST = 0x10, // push next 8 bytes onto stack as integer constant
+	//O_ICONST_B1 = 0x11, // push literal integer that only requires 1 byte onto stack.
+	//O_ICONST_B8 = 0x14, // synonym for O_ICONST
+	//O_DCONST = 0x1A, // push next 8 bytes onto stack as float constant
 
 	O_MATCH = 0x30, // pattern matching
 
@@ -58,7 +56,7 @@ enum Opcode {
 	O_LIT8 = 0x9B, // make new String and push it onto stack (length (8 bytes), string (length bytes))
 	O_NEWTABLE = 0x9C, // make new HashTable and push it onto stack
 	O_NEWLIST = 0x9D, // make new List and push it onto stack
-	O_SCONST = 0x9E,  // initialize the constant table with a string literal.
+	//O_SCONST = 0x9E,  // initialize the constant table with a string literal.
 
 	O_MOVEUP = 0xA0, // move an element from index whatever to top of stack, indexing from fp.
 
@@ -143,6 +141,13 @@ enum SpecialStrings {
 	S_VALUES,     // values
 
 	NUM_SPECIAL_STRINGS // don't treat this as a member
+};
+
+enum Constants {
+	C_FLOAT,
+	C_INT_1,
+	C_INT_8,
+	C_STR,
 };
 
 enum Pattern {

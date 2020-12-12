@@ -709,7 +709,7 @@ yasl_int compiler_intern_string(struct Compiler *const compiler, const char *con
 		YASL_COMPILE_DEBUG_LOG("%s\n", "caching string");
 		size_t index = compiler->strings->count;
 		YASL_Table_insert_string_int(compiler->strings, str, len, index);
-		YASL_ByteBuffer_add_byte(compiler->header, O_SCONST);
+		YASL_ByteBuffer_add_byte(compiler->header, C_STR);
 		YASL_ByteBuffer_add_int(compiler->header, len);
 		YASL_ByteBuffer_extend(compiler->header, (unsigned char *) str, len);
 		return index;
@@ -724,7 +724,7 @@ yasl_int compiler_intern_float(struct Compiler *const compiler, const yasl_float
 		YASL_COMPILE_DEBUG_LOG("%s\n", "caching float");
 		yasl_int index = (yasl_int)compiler->strings->count;
 		YASL_Table_insert(compiler->strings, YASL_FLOAT(val), YASL_INT(index));
-		YASL_ByteBuffer_add_byte(compiler->header, O_DCONST);
+		YASL_ByteBuffer_add_byte(compiler->header, C_FLOAT);
 		YASL_ByteBuffer_add_float(compiler->header, val);
 
 		return index;
@@ -740,10 +740,10 @@ yasl_int compiler_intern_int(struct Compiler *const compiler, const yasl_int val
 		yasl_int index = (yasl_int)compiler->strings->count;
 		YASL_Table_insert(compiler->strings, YASL_INT(val), YASL_INT(index));
 		if (-(1 << 7) < val && val < (1 << 7)) {
-			YASL_ByteBuffer_add_byte(compiler->header, O_ICONST_B1);
+			YASL_ByteBuffer_add_byte(compiler->header, C_INT_1);
 			YASL_ByteBuffer_add_byte(compiler->header, (unsigned char) val);
 		} else {
-			YASL_ByteBuffer_add_byte(compiler->header, O_ICONST_B8);
+			YASL_ByteBuffer_add_byte(compiler->header, C_INT_8);
 			YASL_ByteBuffer_add_int(compiler->header, val);
 		}
 		return index;

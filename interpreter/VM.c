@@ -1215,7 +1215,7 @@ void vm_setupconstants(struct VM *const vm) {
 	unsigned char *tmp = vm->code + 3*sizeof(int64_t);
 	for (int64_t i = 0; i < vm->num_constants; i++) {
 		switch (*tmp++) {
-		case O_SCONST: {
+		case C_STR: {
 			int64_t len = *((int64_t *) tmp);
 			tmp += sizeof(int64_t);
 			char *str = (char *) malloc((size_t) len);
@@ -1225,17 +1225,17 @@ void vm_setupconstants(struct VM *const vm) {
 			tmp += len;
 			break;
 		}
-		case O_ICONST_B1: {
+		case C_INT_1: {
 			vm->constants[i] = YASL_INT((signed char)*tmp++);
 			break;
 		}
-		case O_ICONST_B8: {
+		case C_INT_8: {
 			int64_t v = *((int64_t *) tmp);
 			vm->constants[i] = YASL_INT(v);
 			tmp += sizeof(int64_t);
 			break;
 		}
-		case O_DCONST: {
+		case C_FLOAT: {
 			yasl_float v = *((yasl_float *) tmp);
 			vm->constants[i] = YASL_FLOAT(v);
 			tmp += sizeof(yasl_float);
@@ -1252,7 +1252,6 @@ void vm_executenext(struct VM *const vm) {
 	signed char offset;
 	struct YASL_Object a, b;
 	yasl_int c;
-	yasl_float d;
 	YASL_VM_DEBUG_LOG("----------------"
 			  "opcode: %x\n"
 			  "vm->sp, vm->prev_fp, vm->curr_fp: %d, %d, %d\n\n", opcode, vm->sp, vm->fp, vm->next_fp);
@@ -1262,25 +1261,6 @@ void vm_executenext(struct VM *const vm) {
 		vm_throw_err(vm, YASL_MODULE_SUCCESS);
 	case O_HALT:
 		vm_throw_err(vm, YASL_SUCCESS);
-	case O_DCONST:        // constants have native endianness
-		d = vm_read_float(vm);
-		vm_pushfloat(vm, d);
-		break;
-	case O_ICONST_B1:
-		vm_pushint(vm, (signed char)NCODE(vm));
-		break;
-	case O_ICONST_B2:
-		vm_pushint(vm, vm_read_int16(vm));
-		break;
-	case O_ICONST_B4:
-		vm_pushint(vm, vm_read_int32(vm));
-		break;
-	case O_ICONST_B8:
-		vm_pushint(vm, vm_read_int64(vm));
-		break;
-	case O_ICONST:        // constants have native endianness
-		vm_pushint(vm, vm_read_int(vm));
-		break;
 	case O_BCONST_F:
 	case O_BCONST_T:
 		vm_pushbool(vm, (bool)(opcode & 0x01));
