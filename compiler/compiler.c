@@ -718,6 +718,21 @@ yasl_int compiler_intern_string(struct Compiler *const compiler, const char *con
 	return value.value.ival;
 }
 
+yasl_int compiler_intern_float(struct Compiler *const compiler, const yasl_float val) {
+	struct YASL_Object value = YASL_Table_search(compiler->strings, YASL_FLOAT(val));
+	if (value.type == Y_END) {
+		YASL_COMPILE_DEBUG_LOG("%s\n", "caching float");
+		yasl_int index = (yasl_int)compiler->strings->count;
+		YASL_Table_insert(compiler->strings, YASL_FLOAT(val), YASL_INT(index));
+		YASL_ByteBuffer_add_byte(compiler->header, O_DCONST);
+		YASL_ByteBuffer_add_float(compiler->header, val);
+
+		return index;
+	}
+
+	return value.value.ival;
+}
+
 yasl_int compiler_intern_int(struct Compiler *const compiler, const yasl_int val) {
 	struct YASL_Object value = YASL_Table_search(compiler->strings, YASL_INT(val));
 	if (value.type == Y_END) {
@@ -1221,10 +1236,21 @@ static void visit_Undef(struct Compiler *const compiler, const struct Node *cons
 	compiler_add_byte(compiler, O_NCONST);
 }
 
+static void compiler_add_literal(struct Compiler *const compiler, const yasl_int index) {
+	if (index < 128) {
+		compiler_add_byte(compiler, O_LIT);
+		compiler_add_byte(compiler, (unsigned char)index);
+	} else {
+		compiler_add_byte(compiler, O_LIT8);
+		compiler_add_int(compiler, index);
+	}
+}
+
 static void visit_Float(struct Compiler *const compiler, const struct Node *const node) {
 	yasl_float val = Float_get_float(node);
-	compiler_add_byte(compiler, O_DCONST);
-	YASL_ByteBuffer_add_float(compiler->buffer, val);
+
+	yasl_int index = compiler_intern_float(compiler, val);
+	compiler_add_literal(compiler, index);
 }
 
 static void visit_Integer(struct Compiler *const compiler, const struct Node *const node) {
@@ -1232,9 +1258,7 @@ static void visit_Integer(struct Compiler *const compiler, const struct Node *co
 	YASL_COMPILE_DEBUG_LOG("int: %" PRId64 "\n", val);
 
 	yasl_int index = compiler_intern_int(compiler, val);
-
-	compiler_add_byte(compiler, O_LIT);
-	compiler_add_byte(compiler, index);
+	compiler_add_literal(compiler, index);
 }
 
 static void visit_Boolean(struct Compiler *const compiler, const struct Node *const node) {
@@ -1243,13 +1267,7 @@ static void visit_Boolean(struct Compiler *const compiler, const struct Node *co
 
 static void visit_String(struct Compiler *const compiler, const struct Node *const node) {
 	yasl_int index = intern_string(compiler, node);
-	if (index < 128) {
-		compiler_add_byte(compiler, O_LIT);
-		compiler_add_byte(compiler, (unsigned char)index);
-	} else {
-		compiler_add_byte(compiler, O_LIT8);
-		compiler_add_int(compiler, index);
-	}
+	compiler_add_literal(compiler, index);
 }
 
 static void visit_Assert(struct Compiler *const compiler, const struct Node *const node) {

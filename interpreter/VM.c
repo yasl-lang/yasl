@@ -1235,6 +1235,12 @@ void vm_setupconstants(struct VM *const vm) {
 			tmp += sizeof(int64_t);
 			break;
 		}
+		case O_DCONST: {
+			yasl_float v = *((yasl_float *) tmp);
+			vm->constants[i] = YASL_FLOAT(v);
+			tmp += sizeof(yasl_float);
+			break;
+		}
 		default:
 			break;
 		}
