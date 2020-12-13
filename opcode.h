@@ -2,17 +2,13 @@
 #define YASL_OPCODE_H_
 
 enum Opcode {
-	O_HALT = 0x0F, // halt
 	O_NCONST = 0x01, // push literal undef onto stack
 	O_BCONST_F = 0x08, // push literal false onto stack
 	O_BCONST_T = 0x09, // push literal true onto stack
 	O_FCONST = 0x0A, // push function literal onto stack
 	O_CCONST = 0x0B, // push closure literal onto stack
 
-	//O_ICONST = 0x10, // push next 8 bytes onto stack as integer constant
-	//O_ICONST_B1 = 0x11, // push literal integer that only requires 1 byte onto stack.
-	//O_ICONST_B8 = 0x14, // synonym for O_ICONST
-	//O_DCONST = 0x1A, // push next 8 bytes onto stack as float constant
+	O_HALT = 0x0F, // halt
 
 	O_MATCH = 0x30, // pattern matching
 
@@ -87,7 +83,7 @@ enum Opcode {
 	O_ULOAD = 0xF3, // store upvalue
 	O_LSTORE = 0xF4, // store top of stack as local at addr
 	O_LLOAD = 0xF5, // load local from addr
-	O_PRINT = 0xFF  // print
+	O_ECHO = 0xFF  // print
 };
 
 enum SpecialStrings {

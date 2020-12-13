@@ -12,6 +12,7 @@
 #include "comprehensiontest.h"
 #include "foldingtest.h"
 #include "syntaxerrortest.h"
+#include "matchtest.h"
 
 #define RUN(test) __YASL_TESTS_FAILED__ |= test()
 
@@ -33,6 +34,7 @@ int compilertest() {
 	RUN(comprehensiontest);
 	RUN(foldingtest);
 	RUN(syntaxerrortest);
+	RUN(matchtest);
 
 	return __YASL_TESTS_FAILED__;
 }

@@ -21,7 +21,7 @@ static void test_undef() {
 		0x1B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		O_NCONST,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "echo undef;");
@@ -33,7 +33,7 @@ static void test_true() {
 		0x1B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		O_BCONST_T,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "echo true;");
@@ -45,7 +45,7 @@ static void test_false() {
 		0x1B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		O_BCONST_F,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "echo false;");
@@ -64,19 +64,19 @@ static void test_small_ints() {
 		C_INT_1, 4,
 		C_INT_1, 5,
 		O_LIT, 0x00,
-		O_PRINT,
+		O_ECHO,
 		O_LIT, 0x01,
-		O_PRINT,
+		O_ECHO,
 		O_LIT, 0x02,
-		O_PRINT,
+		O_ECHO,
 		O_LIT, 0x03,
-		O_PRINT,
+		O_ECHO,
 		O_LIT, 0x04,
-		O_PRINT,
+		O_ECHO,
 		O_LIT, 0x05,
-		O_PRINT,
+		O_ECHO,
 		O_LIT, 0x06,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "echo -1; echo 0; echo 1; echo 2; echo 3; echo 4; echo 5;");
@@ -89,7 +89,7 @@ static void test_bin() {
 		0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		C_INT_1, 3,
 		O_LIT, 0x00,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "echo 0b11;");
@@ -102,7 +102,7 @@ static void test_dec() {
 		0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		C_INT_1, 0x0A,
 		O_LIT, 0x00,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "echo 10;");
@@ -115,7 +115,7 @@ static void test_hex() {
 		0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		C_INT_1, 0x10,
 		O_LIT, 0x00,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "echo 0x10;");
@@ -130,11 +130,11 @@ static void test_small_floats() {
 		C_FLOAT, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF0, 0x3F,
 		C_FLOAT, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40,
 		O_LIT, 0x00,
-		O_PRINT,
+		O_ECHO,
 		O_LIT, 0x01,
-		O_PRINT,
+		O_ECHO,
 		O_LIT, 0x02,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "echo 0.0; echo 1.0; echo 2.0;");
@@ -148,7 +148,7 @@ static void test_float() {
 		C_FLOAT,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF8, 0x3F,
 		O_LIT, 0x00,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "echo 1.5;");
@@ -163,7 +163,7 @@ static void test_string() {
 		0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		'Y', 'A', 'S', 'L',
 		O_LIT, 0x00,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "echo 'YASL';");

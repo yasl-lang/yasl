@@ -10,7 +10,7 @@ static void test_neg() {
 		0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		C_INT_1, 0xF0,
 		O_LIT, 0x00,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "echo -16;");
@@ -22,7 +22,7 @@ static void test_not() {
 		0x1B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		O_BCONST_F,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "echo !true;");
@@ -35,7 +35,7 @@ static void test_bnot() {
 		0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		C_INT_1, 0xFF,
 		O_LIT, 0x00,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "echo ^0x00;");
@@ -48,7 +48,7 @@ static void test_mul() {
 		0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		C_INT_1, 0x06,
 		O_LIT, 0x00,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "echo 2 * 3;");
@@ -61,7 +61,7 @@ static void test_idiv() {
 		0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		C_INT_1, 0x01,
 		O_LIT, 0x00,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "echo 3 // 2;");
@@ -74,7 +74,7 @@ static void test_mod() {
 		0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		C_INT_1, 0x02,
 		O_LIT, 0x00,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "echo 5 % 3;");
@@ -87,7 +87,7 @@ static void test_add() {
 		0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		C_INT_1, 0x0B,
 		O_LIT, 0x00,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "echo 6 + 5;");
@@ -100,7 +100,7 @@ static void test_sub() {
 		0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		C_INT_1, 0x05,
 		O_LIT, 0x00,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "echo 8 - 3;");
@@ -113,7 +113,7 @@ static void test_bshl() {
 		0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		C_INT_1, 0x10,
 		O_LIT, 0x00,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "echo 2 << 3;");
@@ -126,7 +126,7 @@ static void test_bshr() {
 		0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		C_INT_1, 0x02,
 		O_LIT, 0x00,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected,"echo 8 >> 2;");
@@ -139,7 +139,7 @@ static void test_band() {
 		0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		C_INT_1, 0x08,
 		O_LIT, 0x00,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected,"echo 8 & 10;");
@@ -152,7 +152,7 @@ static void test_bandnot() {
 		0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		C_INT_1, 0x02,
 		O_LIT, 0x00,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected,"echo 2 &^ 12;");
@@ -165,7 +165,7 @@ static void test_bxor() {
 		0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		C_INT_1, 0x0A,
 		O_LIT, 0x00,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected,"echo 8 ^ 2;");
@@ -178,7 +178,7 @@ static void test_bor() {
 		0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		C_INT_1, 0x0A,
 		O_LIT, 0x00,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "echo 8 | 2;");
@@ -192,7 +192,7 @@ static void test_fneg() {
 		C_FLOAT,
 		0x9A, 0x99, 0x99, 0x99, 0x99, 0x99, 0xF9, 0xBF,
 		O_LIT, 0x00,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "echo -1.6;");
@@ -206,7 +206,7 @@ static void test_fmul() {
 		C_FLOAT,
 		0xAF, 0x47, 0xE1, 0x7A, 0x14, 0xAE, 0x1F, 0x40,
 		O_LIT, 0x00,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "echo 2.2 * 3.6;");
@@ -220,7 +220,7 @@ static void test_fdiv() {
 		C_FLOAT,
 		0xCD, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xFC, 0x3F,
 		O_LIT, 0x00,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "echo 3.6 / 2.0;");
@@ -234,7 +234,7 @@ static void test_fadd() {
 		C_FLOAT,
 		0x9A, 0x99, 0x99, 0x99, 0x99, 0x99, 0x15, 0x40,
 		O_LIT, 0x00,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "echo 2.1 + 3.3;");
@@ -248,7 +248,7 @@ static void test_fsub() {
 		C_FLOAT,
 		0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0xF6, 0xBF,
 		O_LIT, 0x00,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "echo 2.2 - 3.6;");

@@ -28,7 +28,7 @@ static void test_fdiv() {
 		C_FLOAT,
 		0x0, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF8, 0x3F,
 		O_LIT, 0x00,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "echo 3 / 2;");

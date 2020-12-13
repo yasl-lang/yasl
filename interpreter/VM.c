@@ -1501,7 +1501,7 @@ void vm_executenext(struct VM *const vm) {
 	case O_INCSP:
 		vm->sp += NCODE(vm);
 		break;
-	case O_PRINT:
+	case O_ECHO:
 		vm_PRINT(vm);
 		break;
 	case O_ASS:

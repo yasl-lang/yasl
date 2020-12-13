@@ -142,6 +142,7 @@ add_executable(tests
         test/unit_tests/test_compiler/binoptest.c
         test/unit_tests/test_compiler/unoptest.c
         test/unit_tests/test_compiler/literaltest.c
+        test/unit_tests/test_compiler/matchtest.c
         test/unit_tests/test_compiler/iftest.c
         test/unit_tests/test_compiler/whiletest.c
         test/unit_tests/test_compiler/fortest.c

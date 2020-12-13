@@ -30,7 +30,7 @@ static void test_tablecomp_noif() {
 		0xE6, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 		O_NEWTABLE,
 		O_ENDCOMP,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "echo {i:-i for i <- [1,2,3]};");
@@ -72,7 +72,7 @@ static void test_tablecomp() {
 		0xD4, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 		O_NEWTABLE,
 		O_ENDCOMP,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "echo {i:-i for i <- [1,2,3] if i % 2 != 0};");
@@ -104,7 +104,7 @@ static void test_listcomp_noif() {
 		0xE8, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 		O_NEWLIST,
 		O_ENDCOMP,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "echo [-i for i <- [1,2,3]];");
@@ -145,7 +145,7 @@ static void test_listcomp() {
 		0xD6, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 		O_NEWLIST,
 		O_ENDCOMP,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "echo [-i for i <- [1,2,3] if i % 2 != 0];");

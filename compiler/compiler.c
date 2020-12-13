@@ -991,7 +991,7 @@ static void visit_If(struct Compiler *const compiler, const struct Node *const n
 
 static void visit_Print(struct Compiler *const compiler, const struct Node *const node) {
 	visit(compiler, Print_get_expr(node));
-	compiler_add_byte(compiler, O_PRINT);
+	compiler_add_byte(compiler, O_ECHO);
 }
 
 static void declare_with_let_or_const(struct Compiler *const compiler, const struct Node *const node) {
