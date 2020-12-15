@@ -770,18 +770,20 @@ static void visit_BoolPattern(struct Compiler *const compiler, const struct Node
 }
 
 static void visit_FloatPattern(struct Compiler *const compiler, const struct Node *const node) {
-	compiler_add_byte(compiler, P_FL);
-	YASL_ByteBuffer_add_float(compiler->buffer, node->value.dval);
+	yasl_int index = compiler_intern_float(compiler, Float_get_float(node));
+	compiler_add_byte(compiler, P_LIT);
+	compiler_add_int(compiler, index);
 }
 
 static void visit_IntPattern(struct Compiler *const compiler, const struct Node *const node) {
-	compiler_add_byte(compiler, P_INT);
-	compiler_add_int(compiler, node->value.ival);
+	yasl_int index = compiler_intern_int(compiler, Integer_get_int(node));
+	compiler_add_byte(compiler, P_LIT);
+	compiler_add_int(compiler, index);
 }
 
 static void visit_StringPattern(struct Compiler *const compiler, const struct Node *const node) {
 	yasl_int index = intern_string(compiler, node);
-	compiler_add_byte(compiler, P_STR);
+	compiler_add_byte(compiler, P_LIT);
 	compiler_add_int(compiler, index);
 }
 

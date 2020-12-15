@@ -880,13 +880,7 @@ static void vm_ff_subpattern(struct VM *const vm) {
 	case P_BOOL:
 		(void)NCODE(vm);
 		break;
-	case P_INT:
-		(void)vm_read_int(vm);
-		break;
-	case P_FL:
-		(void)vm_read_float(vm);
-		break;
-	case P_STR:
+	case P_LIT:
 		(void)vm_read_int(vm);
 		break;
 	case P_LS:
@@ -914,16 +908,10 @@ static bool vm_MATCH_table_elements(struct VM *const vm, size_t len, struct YASL
 		case P_UNDEF:
 			val = YASL_Table_search(table, YASL_UNDEF());
 			break;
-		case P_INT:
-			val = YASL_Table_search(table, YASL_INT(vm_read_int(vm)));
-			break;
-		case P_FL:
-			val = YASL_Table_search(table, YASL_FLOAT(vm_read_float(vm)));
-			break;
 		case P_BOOL:
 			val = YASL_Table_search(table, YASL_BOOL(NCODE(vm)));
 			break;
-		case P_STR:
+		case P_LIT:
 			val = YASL_Table_search(table, vm->constants[vm_read_int(vm)]);
 			break;
 		default:
@@ -956,18 +944,9 @@ static bool vm_MATCH_subpattern(struct VM *const vm, struct YASL_Object *expr) {
 		bool tmp = (bool)NCODE(vm);
 		return obj_isbool(expr) && obj_getbool(expr) == tmp;
 	}
-	case P_FL: {
-		yasl_float tmp = vm_read_float(vm);
-		return obj_isnum(expr) && obj_getnum(expr) == tmp;
-	}
-	case P_INT: {
+	case P_LIT: {
 		yasl_int tmp = vm_read_int(vm);
-		return (obj_isint(expr) && obj_getint(expr) == tmp) ||
-		       (obj_isnum(expr) && obj_getnum(expr) == tmp);
-	}
-	case P_STR: {
-		yasl_int tmp = vm_read_int(vm);
-		return obj_isstr(expr) && !YASL_String_cmp(obj_getstr(expr), obj_getstr(vm->constants + tmp));
+		return isequal(vm->constants + tmp, expr);
 	}
 	case P_TABLE: {
 		size_t len = (size_t) vm_read_int(vm) / 2;
