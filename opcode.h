@@ -151,6 +151,7 @@ enum Pattern {
 	P_BOOL = 0x08,
 	P_ANY = 0x0F,
 	P_LIT = 0x9A,
+	P_LIT8 = 0x9B,
 	P_TABLE = 0x9C,
 	P_LS = 0x9D,
 	P_VTABLE = 0xAC,

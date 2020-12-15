@@ -881,6 +881,9 @@ static void vm_ff_subpattern(struct VM *const vm) {
 		(void)NCODE(vm);
 		break;
 	case P_LIT:
+		(void)NCODE(vm);
+		break;
+	case P_LIT8:
 		(void)vm_read_int(vm);
 		break;
 	case P_LS:
@@ -912,6 +915,9 @@ static bool vm_MATCH_table_elements(struct VM *const vm, size_t len, struct YASL
 			val = YASL_Table_search(table, YASL_BOOL(NCODE(vm)));
 			break;
 		case P_LIT:
+			val = YASL_Table_search(table, vm->constants[NCODE(vm)]);
+			break;
+		case P_LIT8:
 			val = YASL_Table_search(table, vm->constants[vm_read_int(vm)]);
 			break;
 		default:
@@ -945,6 +951,10 @@ static bool vm_MATCH_subpattern(struct VM *const vm, struct YASL_Object *expr) {
 		return obj_isbool(expr) && obj_getbool(expr) == tmp;
 	}
 	case P_LIT: {
+		unsigned char tmp = NCODE(vm);
+		return isequal(vm->constants + tmp, expr);
+	}
+	case P_LIT8: {
 		yasl_int tmp = vm_read_int(vm);
 		return isequal(vm->constants + tmp, expr);
 	}

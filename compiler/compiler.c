@@ -769,22 +769,29 @@ static void visit_BoolPattern(struct Compiler *const compiler, const struct Node
 	compiler_add_byte(compiler, (unsigned char)((bool)node->value.ival ? 1 : 0));
 }
 
+static void compiler_add_literal_pattern(struct Compiler *const compiler, const yasl_int index) {
+	if (index < 128) {
+		compiler_add_byte(compiler, P_LIT);
+		compiler_add_byte(compiler, (unsigned char)index);
+	} else {
+		compiler_add_byte(compiler, P_LIT8);
+		compiler_add_int(compiler, index);
+	}
+}
+
 static void visit_FloatPattern(struct Compiler *const compiler, const struct Node *const node) {
 	yasl_int index = compiler_intern_float(compiler, Float_get_float(node));
-	compiler_add_byte(compiler, P_LIT);
-	compiler_add_int(compiler, index);
+	compiler_add_literal_pattern(compiler, index);
 }
 
 static void visit_IntPattern(struct Compiler *const compiler, const struct Node *const node) {
 	yasl_int index = compiler_intern_int(compiler, Integer_get_int(node));
-	compiler_add_byte(compiler, P_LIT);
-	compiler_add_int(compiler, index);
+	compiler_add_literal_pattern(compiler, index);
 }
 
 static void visit_StringPattern(struct Compiler *const compiler, const struct Node *const node) {
 	yasl_int index = intern_string(compiler, node);
-	compiler_add_byte(compiler, P_LIT);
-	compiler_add_int(compiler, index);
+	compiler_add_literal_pattern(compiler, index);
 }
 
 static void visit_CollectionPattern(struct Compiler *const compiler, const struct Node *const node, unsigned char byte) {
