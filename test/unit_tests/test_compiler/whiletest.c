@@ -91,10 +91,10 @@ static void test_break() {
 	ASSERT_GEN_BC_EQ(expected, "let i = 0; while i < 10 { if i == 5 { break; }; echo i; };");
 }
 
-int whiletest(void) {
+int TEST(whiletest) {
 	test_while();
 	test_while_fold_false();
 	test_continue();
 	test_break();
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }

@@ -36,5 +36,5 @@ int utiltest(void) {
 	ASSERT_EQ(vint_decode(vint_next(buff)), v2);
 	ASSERT_EQ(vint_decode(vint_next(vint_next(buff))), v3);
 
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }

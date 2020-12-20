@@ -28,7 +28,7 @@ static void testlistresizing(void) {
 
 
 
-int listtest(void) {
+int TEST(listtest) {
 	testlistresizing();
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }

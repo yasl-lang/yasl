@@ -1,3 +1,4 @@
 #pragma once
+#include "yats.h"
 
-int poptest(void);
+int TEST(poptest);

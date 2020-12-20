@@ -254,7 +254,7 @@ static void test_fsub() {
 	ASSERT_GEN_BC_EQ(expected, "echo 2.2 - 3.6;");
 }
 
-int foldingtest(void) {
+int TEST(foldingtest) {
 	test_neg();
 	test_not();
 	test_bnot();
@@ -277,5 +277,5 @@ int foldingtest(void) {
 	test_fadd();
 	test_fsub();
 
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }

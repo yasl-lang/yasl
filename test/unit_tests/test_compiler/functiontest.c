@@ -26,7 +26,7 @@ static void test_simple() {
 
 }
 
-int functiontest(void) {
+int TEST(functiontest) {
 	test_simple();
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }

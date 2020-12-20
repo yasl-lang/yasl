@@ -130,7 +130,7 @@ static void test_ifelseelseif_fold_false() {
 	ASSERT_GEN_BC_EQ(expected, "if false { echo true; } elseif true { echo false; } else { echo undef; };");
 }
 
-int iftest(void) {
+int TEST(iftest) {
 	test_if();
 	test_ifelse();
 	test_ifelseelseif();
@@ -141,5 +141,5 @@ int iftest(void) {
 	test_ifelse_fold_false();
 	test_ifelseelseif_fold_false();
 
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }

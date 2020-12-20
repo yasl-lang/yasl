@@ -80,8 +80,8 @@ static void test_break() {
 	ASSERT_GEN_BC_EQ(expected, "for let i = 0; i < 10; i += 1 { if i == 5 { break; }; echo i; };");
 }
 
-int fortest(void) {
+int TEST(fortest) {
 	test_continue();
 	test_break();
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }

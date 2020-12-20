@@ -90,7 +90,7 @@ static void testsetglobal_list(void) {
 	YASL_delstate(S);
 }
 
-int pushtest(void) {
+int TEST(pushtest) {
 	testrun();
 	testsetglobal_undef();
 	testsetglobal_float();
@@ -99,5 +99,5 @@ int pushtest(void) {
 	testsetglobal_szstr();
 	testsetglobal_litstr();
 	testsetglobal_list();
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }

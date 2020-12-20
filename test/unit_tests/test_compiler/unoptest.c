@@ -64,11 +64,11 @@ static void test_bnot() {
 	ASSERT_GEN_BC_EQ(expected, "let x = 0x00; ^x;");
 }
 
-int unoptest(void) {
+int TEST(unoptest) {
 	test_len();
 	test_neg();
 	test_not();
 	test_bnot();
 
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }

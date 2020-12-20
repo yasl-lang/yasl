@@ -222,7 +222,7 @@ static void test_table() {
 	ASSERT_GEN_BC_EQ(expected, "{0:'zero', 1:'one'};");
 }
 
-int literaltest(void) {
+int TEST(literaltest) {
 	test_undef();
 	test_true();
 	test_false();
@@ -237,5 +237,5 @@ int literaltest(void) {
 	test_table();
 	test_elimination();
 
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }

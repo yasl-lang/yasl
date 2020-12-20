@@ -19,7 +19,7 @@ int after = (vm)->sp;\
 ASSERT_EQ(before + 1, after);\
 } while (0)
 
-static int testpushundef(void) {
+static int TEST(testpushundef) {
 	unsigned char code[] = {
 		O_NCONST,
 	};
@@ -28,10 +28,10 @@ static int testpushundef(void) {
 	vm_init(&vm, code, 0, sizeof(code));
 
 	ASSERT_INC(&vm);
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }
 
-static int testpushbool(void) {
+static int TEST(testpushbool) {
 	unsigned char code[] = {
 		O_BCONST_F,
 		O_BCONST_T
@@ -42,10 +42,10 @@ static int testpushbool(void) {
 
 	ASSERT_INC(&vm);
 	ASSERT_INC(&vm);
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }
 
-static int testpushint(void) {
+static int TEST(testpushint) {
 	unsigned char code[] = {
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,    // First two lines are just for offset
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -60,10 +60,10 @@ static int testpushint(void) {
 	vm_setupconstants(&vm);
 
 	ASSERT_INC(&vm);
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }
 
-static int testpushfloat(void) {
+static int TEST(testpushfloat) {
 	unsigned char code[] = {
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,    // First two lines are just for offset
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -78,10 +78,10 @@ static int testpushfloat(void) {
 	vm_setupconstants(&vm);
 
 	ASSERT_INC(&vm);
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }
 
-static int testpushstr(void) {
+static int TEST(testpushstr) {
 	unsigned char code[] = {
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,    // First two lines are just for offset
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -98,10 +98,10 @@ static int testpushstr(void) {
 	vm_setupconstants(&vm);
 
 	ASSERT_INC(&vm);
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }
 
-static int testrmrange(void) {
+static int TEST(testrmrange) {
 	struct VM vm;
 	vm_init(&vm, NULL, 0, 0);
 
@@ -120,10 +120,10 @@ static int testrmrange(void) {
 	ASSERT_EQ(vm_popint(&vm), 0);
 
 
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }
 
-static int testrmrangetop(void) {
+static int TEST(testrmrangetop) {
 	struct VM vm;
 	vm_init(&vm, NULL, 0, 0);
 
@@ -140,10 +140,10 @@ static int testrmrangetop(void) {
 	ASSERT_EQ(vm_popint(&vm), 0);
 
 
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }
 
-static int testrmrangetotop(void) {
+static int TEST(testrmrangetotop) {
 	struct VM vm;
 	vm_init(&vm, NULL, 0, 0);
 
@@ -159,7 +159,7 @@ static int testrmrangetotop(void) {
 	ASSERT_EQ(vm_popint(&vm), 0);
 
 
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }
 
 int vmtest(void) {
@@ -172,5 +172,5 @@ int vmtest(void) {
 	RUN(testrmrangetop);
 	RUN(testrmrangetotop);
 
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }

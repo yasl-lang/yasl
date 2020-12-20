@@ -114,12 +114,12 @@ static void testremoveset(void) {
 	ASSERT_EQ((YASL_Set_search(set, YASL_INT(1))), false);
 }
 
-int settest(void) {
+int TEST(settest) {
 	testsearchset();
 	testunionset();
 	testintersectionset();
 	testsymmetricdifferenceset();
 	testdifferenceset();
 	testremoveset();
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }

@@ -151,10 +151,10 @@ static void test_listcomp() {
 	ASSERT_GEN_BC_EQ(expected, "echo [-i for i <- [1,2,3] if i % 2 != 0];");
 }
 
-int comprehensiontest(void) {
+int TEST(comprehensiontest) {
 	test_listcomp();
 	test_listcomp_noif();
 	test_tablecomp();
 	test_tablecomp_noif();
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }

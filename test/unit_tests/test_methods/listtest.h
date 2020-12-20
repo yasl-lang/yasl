@@ -1,3 +1,4 @@
 #pragma once
+#include "yats.h"
 
-int listtest(void);
+int TEST(listtest);

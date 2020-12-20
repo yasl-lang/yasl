@@ -253,7 +253,7 @@ static void test_or() {
 	ASSERT_GEN_BC_EQ(expected, "true || false;");
 }
 
-int binoptest(void) {
+int TEST(binoptest) {
 	test_mul();
 	test_fdiv();
 	test_idiv();
@@ -270,5 +270,5 @@ int binoptest(void) {
 	test_and();
 	test_or();
 
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }

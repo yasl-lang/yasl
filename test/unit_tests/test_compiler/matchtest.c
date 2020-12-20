@@ -141,10 +141,10 @@ static void test_table() {
 	ASSERT_GEN_BC_EQ(expected, "let x = {}; match x { { .x: *, .y: * } { echo 2; }; { .x: * } { echo 1; }; { ... } { echo 'var'; }; };");
 }
 
-int matchtest(void) {
+int TEST(matchtest) {
 	test_simple();
 	test_list();
 	test_table();
 
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }

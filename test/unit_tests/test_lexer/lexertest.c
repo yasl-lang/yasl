@@ -8,7 +8,7 @@ SETUP_YATS();
         /*printf(K_GRN "assert passed in %s: line %d" K_END "\n", __func__, __LINE__);*/\
     } else {\
         printf(K_RED "assert failed in %s (in %s): line %d: `%s` =/= `%s`" K_END "\n", __FILE__, __func__, __LINE__, YASL_TOKEN_NAMES[left], YASL_TOKEN_NAMES[right]);\
-        __YASL_TESTS_FAILED__ = 1;\
+        TEST_FAILED();\
     }\
 } while(0)
 
@@ -655,5 +655,5 @@ int lexertest(void) {
 	test_colon();
 	test_colon_eq();
 	test_small_arrow();
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }

@@ -15,8 +15,6 @@
 #include "syntaxerrortest.h"
 #include "matchtest.h"
 
-#define RUN(test) __YASL_TESTS_FAILED__ |= test()
-
 SETUP_YATS();
 
 // NOTE: these tests depend on the endianess of the system, so they may fail on big endian systems.
@@ -38,5 +36,5 @@ int compilertest() {
 	RUN(syntaxerrortest);
 	RUN(matchtest);
 
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }

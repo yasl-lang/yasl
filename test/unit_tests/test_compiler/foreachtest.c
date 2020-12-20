@@ -90,8 +90,8 @@ static void test_break() {
 	ASSERT_GEN_BC_EQ(expected, "for i <- [0, 1, 2, 3, 4, 5] { if i == 5 { break; }; echo i; };");
 }
 
-int foreachtest(void) {
+int TEST(foreachtest) {
 	test_continue();
 	test_break();
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }
