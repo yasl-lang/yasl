@@ -62,7 +62,7 @@ static void testpopuserptr(void) {
 	YASL_delstate(S);
 }
 
-int TEST(poptest) {
+TEST(poptest) {
 	testpopfloat();
 	testpopint();
 	testpopbool();

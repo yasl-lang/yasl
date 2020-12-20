@@ -3,6 +3,6 @@
 
 SETUP_YATS();
 
-int TEST(closuretest) {
+TEST(closuretest) {
 	return NUM_FAILED;
 }

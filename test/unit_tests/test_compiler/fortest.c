@@ -80,7 +80,7 @@ static void test_break() {
 	ASSERT_GEN_BC_EQ(expected, "for let i = 0; i < 10; i += 1 { if i == 5 { break; }; echo i; };");
 }
 
-int TEST(fortest) {
+TEST(fortest) {
 	test_continue();
 	test_break();
 	return NUM_FAILED;

@@ -26,7 +26,7 @@ static void test_simple() {
 
 }
 
-int TEST(functiontest) {
+TEST(functiontest) {
 	test_simple();
 	return NUM_FAILED;
 }

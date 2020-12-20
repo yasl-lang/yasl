@@ -253,7 +253,7 @@ static void test_or() {
 	ASSERT_GEN_BC_EQ(expected, "true || false;");
 }
 
-int TEST(binoptest) {
+TEST(binoptest) {
 	test_mul();
 	test_fdiv();
 	test_idiv();

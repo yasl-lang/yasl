@@ -222,7 +222,7 @@ static void test_table() {
 	ASSERT_GEN_BC_EQ(expected, "{0:'zero', 1:'one'};");
 }
 
-int TEST(literaltest) {
+TEST(literaltest) {
 	test_undef();
 	test_true();
 	test_false();

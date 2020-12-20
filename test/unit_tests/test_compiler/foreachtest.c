@@ -90,7 +90,7 @@ static void test_break() {
 	ASSERT_GEN_BC_EQ(expected, "for i <- [0, 1, 2, 3, 4, 5] { if i == 5 { break; }; echo i; };");
 }
 
-int TEST(foreachtest) {
+TEST(foreachtest) {
 	test_continue();
 	test_break();
 	return NUM_FAILED;

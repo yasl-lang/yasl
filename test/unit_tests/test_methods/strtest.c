@@ -26,7 +26,7 @@ static void test_string_toint(void) {
 	ASSERT_EQ(YASL_String_toint(string), 9);
 }
 
-int TEST(strtest) {
+TEST(strtest) {
 	test_string_len();
 	test_string_tofloat();
 	test_string_toint();

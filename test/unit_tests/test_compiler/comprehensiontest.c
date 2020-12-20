@@ -151,7 +151,7 @@ static void test_listcomp() {
 	ASSERT_GEN_BC_EQ(expected, "echo [-i for i <- [1,2,3] if i % 2 != 0];");
 }
 
-int TEST(comprehensiontest) {
+TEST(comprehensiontest) {
 	test_listcomp();
 	test_listcomp_noif();
 	test_tablecomp();

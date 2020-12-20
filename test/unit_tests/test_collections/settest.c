@@ -114,7 +114,7 @@ static void testremoveset(void) {
 	ASSERT_EQ((YASL_Set_search(set, YASL_INT(1))), false);
 }
 
-int TEST(settest) {
+TEST(settest) {
 	testsearchset();
 	testunionset();
 	testintersectionset();

@@ -17,7 +17,7 @@ SETUP_YATS();
 	YASL_delstate(S);\
 }
 
-int TEST(syntaxerrortest) {
+TEST(syntaxerrortest) {
 	ASSERT_SYNTAX_ERR("for let x = 0; x < 5; x += 1 { };\necho x;", "Undeclared variable x (line 2)");
 	ASSERT_SYNTAX_ERR("const x = 10; x = 11;", "Cannot assign to constant x (line 1)");
 	ASSERT_SYNTAX_ERR("const x = 10; let x = 11;", "Illegal redeclaration of x (line 1)");

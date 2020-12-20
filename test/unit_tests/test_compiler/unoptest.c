@@ -64,7 +64,7 @@ static void test_bnot() {
 	ASSERT_GEN_BC_EQ(expected, "let x = 0x00; ^x;");
 }
 
-int TEST(unoptest) {
+TEST(unoptest) {
 	test_len();
 	test_neg();
 	test_not();

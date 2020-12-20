@@ -12,7 +12,7 @@
 
 #define _YATS_MANGLE_NAME(name) _YATS__##name
 
-#define TEST(name) _YATS_MANGLE_NAME(name)(void)
+#define TEST(name) int _YATS_MANGLE_NAME(name)(void)
 #define RUN(name) __YATS_TESTS_FAILED__ |= _YATS_MANGLE_NAME(name)()
 
 #define SETUP_YATS() \

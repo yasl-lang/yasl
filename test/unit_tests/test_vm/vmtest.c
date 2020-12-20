@@ -19,7 +19,7 @@ int after = (vm)->sp;\
 ASSERT_EQ(before + 1, after);\
 } while (0)
 
-static int TEST(testpushundef) {
+static TEST(testpushundef) {
 	unsigned char code[] = {
 		O_NCONST,
 	};
@@ -31,7 +31,7 @@ static int TEST(testpushundef) {
 	return NUM_FAILED;
 }
 
-static int TEST(testpushbool) {
+static TEST(testpushbool) {
 	unsigned char code[] = {
 		O_BCONST_F,
 		O_BCONST_T
@@ -45,7 +45,7 @@ static int TEST(testpushbool) {
 	return NUM_FAILED;
 }
 
-static int TEST(testpushint) {
+static TEST(testpushint) {
 	unsigned char code[] = {
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,    // First two lines are just for offset
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -63,7 +63,7 @@ static int TEST(testpushint) {
 	return NUM_FAILED;
 }
 
-static int TEST(testpushfloat) {
+static TEST(testpushfloat) {
 	unsigned char code[] = {
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,    // First two lines are just for offset
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -81,7 +81,7 @@ static int TEST(testpushfloat) {
 	return NUM_FAILED;
 }
 
-static int TEST(testpushstr) {
+static TEST(testpushstr) {
 	unsigned char code[] = {
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,    // First two lines are just for offset
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -101,7 +101,7 @@ static int TEST(testpushstr) {
 	return NUM_FAILED;
 }
 
-static int TEST(testrmrange) {
+static TEST(testrmrange) {
 	struct VM vm;
 	vm_init(&vm, NULL, 0, 0);
 
@@ -123,7 +123,7 @@ static int TEST(testrmrange) {
 	return NUM_FAILED;
 }
 
-static int TEST(testrmrangetop) {
+static TEST(testrmrangetop) {
 	struct VM vm;
 	vm_init(&vm, NULL, 0, 0);
 
@@ -143,7 +143,7 @@ static int TEST(testrmrangetop) {
 	return NUM_FAILED;
 }
 
-static int TEST(testrmrangetotop) {
+static TEST(testrmrangetotop) {
 	struct VM vm;
 	vm_init(&vm, NULL, 0, 0);
 

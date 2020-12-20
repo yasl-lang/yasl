@@ -28,7 +28,7 @@ static void testlistresizing(void) {
 
 
 
-int TEST(listtest) {
+TEST(listtest) {
 	testlistresizing();
 	return NUM_FAILED;
 }

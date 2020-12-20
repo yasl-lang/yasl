@@ -254,7 +254,7 @@ static void test_fsub() {
 	ASSERT_GEN_BC_EQ(expected, "echo 2.2 - 3.6;");
 }
 
-int TEST(foldingtest) {
+TEST(foldingtest) {
 	test_neg();
 	test_not();
 	test_bnot();

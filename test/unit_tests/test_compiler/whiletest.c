@@ -91,7 +91,7 @@ static void test_break() {
 	ASSERT_GEN_BC_EQ(expected, "let i = 0; while i < 10 { if i == 5 { break; }; echo i; };");
 }
 
-int TEST(whiletest) {
+TEST(whiletest) {
 	test_while();
 	test_while_fold_false();
 	test_continue();

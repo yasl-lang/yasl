@@ -8,7 +8,7 @@ static void testnull(void) {
 	ASSERT_SUCCESS(YASL_delstate(NULL));
 }
 
-int TEST(deltest) {
+TEST(deltest) {
 	testnull();
 	return NUM_FAILED;
 }

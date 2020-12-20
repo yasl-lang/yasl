@@ -1,4 +1,4 @@
 #pragma once
 #include "yats.h"
 
-int TEST(functiontest);
+TEST(functiontest);
