@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define YASL_VERSION "v0.10.0"
+#define YASL_VERSION "v0.10.1"
 
 struct YASL_State;
 
@@ -267,12 +267,16 @@ int YASL_peektype(struct YASL_State *S);
  */
 const char *YASL_peektypestr(struct YASL_State *S);
 
+const char *YASL_peekntypestr(struct YASL_State *S, unsigned n);
+
 /**
  * checks if the top of the stack is undef.
  * @param S the YASL_State to which the stack belongs.
  * @return true if the top of the stack is undef, else false.
  */
 bool YASL_isundef(struct YASL_State *S);
+
+bool YASL_isnundef(struct YASL_State *S, unsigned n);
 
 /**
  * checks if the top of the stack is bool.
@@ -281,12 +285,16 @@ bool YASL_isundef(struct YASL_State *S);
  */
 bool YASL_isbool(struct YASL_State *S);
 
+bool YASL_isnbool(struct YASL_State *S, unsigned n);
+
 /**
  * checks if the top of the stack is float.
  * @param S the YASL_State to which the stack belongs.
  * @return true if the top of the stack is float, else false.
  */
 bool YASL_isfloat(struct YASL_State *S);
+
+bool YASL_isnfloat(struct YASL_State *S, unsigned n);
 
 /**
  * checks if the top of the stack is int.
@@ -295,12 +303,16 @@ bool YASL_isfloat(struct YASL_State *S);
  */
 bool YASL_isint(struct YASL_State *S);
 
+bool YASL_isnint(struct YASL_State *S, unsigned n);
+
 /**
  * checks if the top of the stack is str.
  * @param S the YASL_State to which the stack belongs.
  * @return true if the top of the stack is str, else false.
  */
 bool YASL_isstr(struct YASL_State *S);
+
+bool YASL_isnstr(struct YASL_State *S, unsigned n);
 
 /**
  * checks if the top of the stack is list.
@@ -309,12 +321,16 @@ bool YASL_isstr(struct YASL_State *S);
  */
 bool YASL_islist(struct YASL_State *S);
 
+bool YASL_isnlist(struct YASL_State *S, unsigned n);
+
 /**
  * checks if the top of the stack is table.
  * @param S the YASL_State to which the stack belongs.
  * @return true if the top of the stack is table, else false.
  */
 bool YASL_istable(struct YASL_State *S);
+
+bool YASL_isntable(struct YASL_State *S, unsigned n);
 
 /**
  * checks if the top of the stack is userdata.
@@ -323,12 +339,16 @@ bool YASL_istable(struct YASL_State *S);
  */
 bool YASL_isuserdata(struct YASL_State *S, int tag);
 
+bool YASL_isnuserdata(struct YASL_State *S, int tag, unsigned n);
+
 /**
  * checks if the top of the stack is userpointer.
  * @param S the YASL_State to which the stack belongs.
  * @return true if the top of the stack is userpointer, else false.
  */
 bool YASL_isuserptr(struct YASL_State *S);
+
+bool YASL_isnuserptr(struct YASL_State *S, unsigned n);
 
 /**
  * Returns the bool value of the top of the stack, if the top of the stack is a boolean.
@@ -337,6 +357,8 @@ bool YASL_isuserptr(struct YASL_State *S);
  * @return
  */
 bool YASL_peekbool(struct YASL_State *S);
+
+bool YASL_peeknbool(struct YASL_State *S, unsigned n);
 
 /**
  * Returns the bool value of the top of the stack, if the top of the stack is a boolean.
@@ -354,6 +376,8 @@ bool YASL_popbool(struct YASL_State *S);
  */
 yasl_float YASL_peekfloat(struct YASL_State *S);
 
+yasl_float YASL_peeknfloat(struct YASL_State *S, unsigned n);
+
 /**
  * Returns the float value of the top of the stack, if the top of the stack is a float.
  * Otherwise returns 0.0. Removes the top of the stack.
@@ -369,6 +393,8 @@ yasl_float YASL_popfloat(struct YASL_State *S);
  * @return
  */
 yasl_int YASL_peekint(struct YASL_State *S);
+
+yasl_int YASL_peeknint(struct YASL_State *S, unsigned n);
 
 /**
  * Returns the int value of the top of the stack, if the top of the stack is an int.

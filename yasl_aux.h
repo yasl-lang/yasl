@@ -38,6 +38,8 @@ void YASLX_print_err_bad_arg_type(struct YASL_State *S,
  */
 yasl_int YASLX_checkint(struct YASL_State *S, const char *name, int pos);
 
+yasl_int YASLX_checknint(struct YASL_State *S, const char *name, unsigned pos);
+
 /**
  * Returns the top of the stack if it is a float. Otherwise, causes a type error, along with a printed error message.
  * @param S The YASL_State.
@@ -47,6 +49,8 @@ yasl_int YASLX_checkint(struct YASL_State *S, const char *name, int pos);
  */
 yasl_float YASLX_checkfloat(struct YASL_State *S, const char *name, int pos);
 
+yasl_float YASLX_checknfloat(struct YASL_State *S, const char *name, unsigned pos);
+
 /**
  * Returns the top of the stack if it is a bool. Otherwise, causes a type error, along with a printed error message.
  * @param S The YASL_State.
@@ -55,6 +59,8 @@ yasl_float YASLX_checkfloat(struct YASL_State *S, const char *name, int pos);
  * @return the top of the stack if it's a bool, otherwise no return.
  */
 bool YASLX_checkbool(struct YASL_State *S, const char *name, int pos);
+
+bool YASLX_checknbool(struct YASL_State *S, const char *name, unsigned pos);
 
 /**
  * Pops the top of the stack if it is undef. Otherwise, causes a type error, along with a printed error message.

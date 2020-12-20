@@ -251,8 +251,16 @@ int YASL_peektype(struct YASL_State *S) {
 	return vm_peek(&S->vm).type;
 }
 
+int YASL_peekntype(struct YASL_State *S, unsigned n) {
+	return vm_peek(&S->vm, S->vm.fp + 1 + n).type;
+}
+
 const char *YASL_peektypestr(struct YASL_State *S) {
 	return YASL_TYPE_NAMES[YASL_peektype(S)];
+}
+
+const char *YASL_peekntypestr(struct YASL_State *S, unsigned n) {
+	return YASL_TYPE_NAMES[YASL_peekntype(S, n)];
 }
 
 void YASL_pushundef(struct YASL_State *S) {
@@ -364,16 +372,32 @@ bool YASL_isbool(struct YASL_State *S) {
 	return vm_isbool(&S->vm);
 }
 
+bool YASL_isnbool(struct YASL_State *S, unsigned n) {
+	return vm_isbool(&S->vm, S->vm.fp + 1 + n);
+}
+
 bool YASL_isfloat(struct YASL_State *S) {
 	return vm_isfloat(&S->vm);
+}
+
+bool YASL_isnfloat(struct YASL_State *S, unsigned n) {
+	return vm_isfloat(&S->vm, S->vm.fp + 1 + n);
 }
 
 bool YASL_isint(struct YASL_State *S) {
 	return vm_isint(&S->vm);
 }
 
+bool YASL_isnint(struct YASL_State *S, unsigned n) {
+	return vm_isint(&S->vm, S->vm.fp + 1 + n);
+}
+
 bool YASL_isstr(struct YASL_State *S) {
 	return vm_isstr(&S->vm);
+}
+
+bool YASL_isnstr(struct YASL_State *S, unsigned n) {
+	return vm_isstr(&S->vm, S->vm.fp + 1 + n);
 }
 
 bool YASL_islist(struct YASL_State *S) {
@@ -395,6 +419,14 @@ bool YASL_peekbool(struct YASL_State *S) {
 	return false;
 }
 
+bool YASL_peeknbool(struct YASL_State *S, unsigned n) {
+	if (YASL_isnbool(S, n)) {
+		return vm_peekbool(&S->vm, S->vm.fp + 1 + n);
+	}
+
+	return false;
+}
+
 bool YASL_popbool(struct YASL_State *S) {
 	if (YASL_isbool(S)) {
 		return vm_popbool(&S->vm);
@@ -409,6 +441,14 @@ yasl_float YASL_peekfloat(struct YASL_State *S) {
 	return 0.0;
 }
 
+yasl_float YASL_peeknfloat(struct YASL_State *S, unsigned n) {
+	if (YASL_isnfloat(S, n)) {
+		return vm_peekfloat(&S->vm, S->vm.fp + 1 + n);
+	}
+
+	return 0.0;
+}
+
 yasl_float YASL_popfloat(struct YASL_State *S) {
 	if (YASL_isfloat(S)) {
 		return vm_popfloat(&S->vm);
@@ -420,6 +460,14 @@ yasl_int YASL_peekint(struct YASL_State *S) {
 	if (YASL_isint(S)) {
 		return vm_peekint(&S->vm);
 	}
+	return 0;
+}
+
+yasl_int YASL_peeknint(struct YASL_State *S, unsigned n) {
+	if (YASL_isnint(S, n)) {
+		return vm_peekint(&S->vm, S->vm.fp + 1 + n);
+	}
+
 	return 0;
 }
 

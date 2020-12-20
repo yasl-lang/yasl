@@ -10,5 +10,5 @@ void bool_tostr(struct YASL_State *S) {
 }
 
 void bool_tobool(struct YASL_State *S) {
-	(void)YASLX_checkbool(S, "bool.tobool", 0);
+	(void)YASLX_checknbool(S, "bool.tobool", 0);
 }
