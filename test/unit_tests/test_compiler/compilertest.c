@@ -9,6 +9,7 @@
 #include "whiletest.h"
 #include "fortest.h"
 #include "foreachtest.h"
+#include "functiontest.h"
 #include "comprehensiontest.h"
 #include "foldingtest.h"
 #include "syntaxerrortest.h"
@@ -31,6 +32,7 @@ int compilertest() {
 	RUN(whiletest);
 	RUN(fortest);
 	RUN(foreachtest);
+	RUN(functiontest);
 	RUN(comprehensiontest);
 	RUN(foldingtest);
 	RUN(syntaxerrortest);

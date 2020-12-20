@@ -148,6 +148,7 @@ add_executable(tests
         test/unit_tests/test_compiler/fortest.c
         test/unit_tests/test_compiler/foreachtest.c
         test/unit_tests/test_compiler/foldingtest.c
+        test/unit_tests/test_compiler/functiontest.c
         test/unit_tests/test_compiler/comprehensiontest.c
         test/unit_tests/test_compiler/syntaxerrortest.c
         test/unit_tests/test_compiler/closuretest.c

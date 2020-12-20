@@ -1132,7 +1132,7 @@ static void vm_fill_args(struct VM *const vm, const int num_args) {
 static inline void vm_CALL_native(struct VM *const vm, unsigned char *const code) {
 	vm->frames[vm->frame_num].pc = vm->pc;
 
-	vm_fill_args(vm, code[0]);
+	vm_fill_args(vm, *code);
 
 	vm->pc =  code + 1;
 }
