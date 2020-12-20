@@ -2,19 +2,15 @@
 #define YASL_OPCODE_H_
 
 enum Opcode {
-	O_HALT = 0x0F, // halt
 	O_NCONST = 0x01, // push literal undef onto stack
 	O_BCONST_F = 0x08, // push literal false onto stack
 	O_BCONST_T = 0x09, // push literal true onto stack
 	O_FCONST = 0x0A, // push function literal onto stack
 	O_CCONST = 0x0B, // push closure literal onto stack
 
-	O_ICONST = 0x10, // push next 8 bytes onto stack as integer constant
-	O_ICONST_B1 = 0x11, // push literal integer that only requires 1 byte onto stack.
-	O_ICONST_B2 = 0x12, // TODO
-	O_ICONST_B4 = 0x13, // TODO
-	O_ICONST_B8 = 0x14, // synonym for O_ICONST
-	O_DCONST = 0x1A, // push next 8 bytes onto stack as float constant
+	O_HALT = 0x0F, // halt
+
+	O_MATCH = 0x30, // pattern matching
 
 	O_BOR = 0x40, // bitwise or
 	O_BXOR = 0x41, // bitwise xor
@@ -25,8 +21,6 @@ enum Opcode {
 	O_BSR = 0x46, // bitwise right shift
 
 	O_ASS = 0x50, // assert
-
-	O_MATCH = 0x51, // match
 
 	O_ADD = 0x60, // add two numbers
 	O_SUB = 0x61, // subtract two numbers
@@ -54,10 +48,11 @@ enum Opcode {
 
 	O_EXPORT = 0x90, // export
 
-	O_NEWSTR = 0x9B, // make new String and push it onto stack (length (8 bytes), string (length bytes))
+	O_LIT = 0x9A,
+	O_LIT8 = 0x9B, // make new String and push it onto stack (length (8 bytes), string (length bytes))
 	O_NEWTABLE = 0x9C, // make new HashTable and push it onto stack
 	O_NEWLIST = 0x9D, // make new List and push it onto stack
-	O_SCONST = 0x9E,  // initialize the constant table with a string literal.
+	//O_SCONST = 0x9E,  // initialize the constant table with a string literal.
 
 	O_MOVEUP = 0xA0, // move an element from index whatever to top of stack, indexing from fp.
 
@@ -75,7 +70,6 @@ enum Opcode {
 	O_ENDCOMP = 0xD1, // end list / table comprehension
 	O_ENDFOR = 0xD2, // end for-loop in VM
 	O_ITER_1 = 0xD3, // iterate to next, 1 var
-	O_ITER_2 = 0xD5, // iterate to next, 2 var
 
 	O_INIT_MC = 0xE7,
 	O_INIT_CALL = 0xE8, // set up function call
@@ -89,7 +83,7 @@ enum Opcode {
 	O_ULOAD = 0xF3, // store upvalue
 	O_LSTORE = 0xF4, // store top of stack as local at addr
 	O_LLOAD = 0xF5, // load local from addr
-	O_PRINT = 0xFF  // print
+	O_ECHO = 0xFF  // print
 };
 
 enum SpecialStrings {
@@ -97,7 +91,9 @@ enum SpecialStrings {
 	S___BOR,      // __bor
 	S___EQ,       // __eq
 	S___GET,      // __get
+	S___LEN,      // __len
 	S___SET,      // __set
+	S___SLICE,    // __slice
 
 	S_CLEAR,      // clear
 	S_COPY,       // copy
@@ -143,13 +139,19 @@ enum SpecialStrings {
 	NUM_SPECIAL_STRINGS // don't treat this as a member
 };
 
+enum Constants {
+	C_FLOAT,
+	C_INT_1,
+	C_INT_8,
+	C_STR,
+};
+
 enum Pattern {
 	P_UNDEF = 0x01,
 	P_BOOL = 0x08,
 	P_ANY = 0x0F,
-	P_FL  = 0x1A,
-	P_INT = 0x23,
-	P_STR = 0x9B,
+	P_LIT = 0x9A,
+	P_LIT8 = 0x9B,
 	P_TABLE = 0x9C,
 	P_LS = 0x9D,
 	P_VTABLE = 0xAC,

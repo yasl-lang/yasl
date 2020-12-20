@@ -5,6 +5,8 @@
 
 #if defined __GNUC__ || defined __clang__
 #define YASL_DEPRECATE __attribute__((deprecated))
+#elif defined _MSC_VER
+#define YASL_DEPRECATE __declspec(deprecated)
 #else
 #define YASL_DEPRECATE
 #endif
@@ -13,6 +15,14 @@
 #define YASL_FORMAT_CHECK __attribute__((format (printf, 2, 3)))
 #else
 #define YASL_FORMAT_CHECK
+#endif
+
+#if defined __GNUC__ || defined __clang__
+#define YASL_NORETURN __attribute__((noreturn))
+#elif defined _MSC_VER
+#define YASL_NORETURN __declspec(noreturn)
+#else
+#define YASL_NORETURN
 #endif
 
 #if defined(WIN32) || defined(_WIN32)

@@ -22,10 +22,10 @@ jobs:
       cmake  -G "MinGW Makefiles" -DCMAKE_SH="CMAKE_SH-NOTFOUND" .
       make yasl
       make yaslapi
-      make tests2
+      make tests
     displayName: "Compile"
   - script:
-      tests2.exe
+      tests.exe
     displayName: "Run API Tests"
 - job:
   displayName: "C MSVC Windows"
@@ -40,12 +40,12 @@ jobs:
       solution: yasl.sln
     displayName: "Compile"
   - script:
-      Debug\tests2.exe
+      Debug\tests.exe
     displayName: "Run API Tests"
 - job: 
   displayName: "C TCC Ubuntu"
   pool:
-    vmImage: 'ubuntu-latest'
+    vmImage: 'ubuntu-16.04'
   steps:
   - script:
       sudo apt install valgrind
@@ -64,10 +64,10 @@ jobs:
       cmake -DCMAKE_C_COMPILER=tcc .
       make yasl
       make yaslapi
-      make tests2
+      make tests
     displayName: "Compile"
   - script:
-      ./tests2
+      ./tests
     displayName: "Run API Tests"
   - script:
       ./tests.sh
@@ -75,7 +75,7 @@ jobs:
 - job: 
   displayName: "C GCC Ubuntu"
   pool:
-    vmImage: 'ubuntu-latest'
+    vmImage: 'ubuntu-16.04'
   steps:
   - script:
       sudo apt install valgrind
@@ -85,10 +85,10 @@ jobs:
       cmake .
       make yasl
       make yaslapi
-      make tests2
+      make tests
     displayName: "Compile"
   - script:
-      ./tests2
+      ./tests
     displayName: "Run API Tests"
   - script:
       ./tests.sh
@@ -96,7 +96,7 @@ jobs:
 - job: 
   displayName: "C Clang Ubuntu"
   pool:
-    vmImage: 'ubuntu-latest'
+    vmImage: 'ubuntu-16.04'
   steps:
   - script:
       sudo apt install valgrind
@@ -108,10 +108,10 @@ jobs:
       cmake .
       make yasl
       make yaslapi
-      make tests2
+      make tests
     displayName: "Compile"
   - script:
-      ./tests2
+      ./tests
     displayName: "Run API Tests"
   - script:
       ./tests.sh
@@ -119,7 +119,7 @@ jobs:
 - job: 
   displayName: "C++ GCC Ubuntu"
   pool:
-    vmImage: 'ubuntu-latest'
+    vmImage: 'ubuntu-16.04'
   steps:
   - script:
       sudo apt install valgrind
@@ -130,10 +130,10 @@ jobs:
       cmake .
       make yasl
       make yaslapi
-      make tests2
+      make tests
     displayName: "Compile"
   - script:
-      ./tests2
+      ./tests
     displayName: "Run API Tests"
   - script:
       ./tests.sh
@@ -141,7 +141,7 @@ jobs:
 - job: 
   displayName: "C++ Clang Ubuntu"
   pool:
-    vmImage: 'ubuntu-latest'
+    vmImage: 'ubuntu-16.04'
   steps:
   - script:
       sudo apt install valgrind
@@ -154,10 +154,10 @@ jobs:
       cmake .
       make yasl
       make yaslapi
-      make tests2
+      make tests
     displayName: "Compile"
   - script:
-      ./tests2
+      ./tests
     displayName: "Run API Tests"
   - script:
       ./tests.sh
@@ -174,10 +174,10 @@ jobs:
       cmake .
       make yasl
       make yaslapi
-      make tests2
+      make tests
     displayName: "Compile"
   - script:
-      ./tests2
+      ./tests
     displayName: "Run API Tests"
   - script:
       zsh ./tests.sh -m
@@ -195,10 +195,10 @@ jobs:
       cmake .
       make yasl
       make yaslapi
-      make tests2
+      make tests
     displayName: "Compile"
   - script:
-      ./tests2
+      ./tests
     displayName: "Run API Tests"
   - script:
       zsh ./tests.sh -m

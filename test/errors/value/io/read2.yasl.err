@@ -1,0 +1,1 @@
+ValueError: io.file.read was passed invalid mode: ysadasd. (line 3)

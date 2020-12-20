@@ -109,7 +109,7 @@ static int main_command_REPL(int argc, char **argv) {
 	return status;
 }
 
-static int YASL_quit(struct YASL_State *S) {
+static void YASL_quit(struct YASL_State *S) {
 	(void) S;
 	exit(0);
 }

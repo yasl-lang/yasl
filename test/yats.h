@@ -8,10 +8,17 @@
 #include "opcode.h"
 #include "yasl_include.h"
 
-#define RUN(test) __YASL_TESTS_FAILED__ |= test()
+#define NUM_FAILED __YATS_TESTS_FAILED__
+
+#define _YATS_MANGLE_NAME(name) _YATS__##name
+
+#define TEST(name) int _YATS_MANGLE_NAME(name)(void)
+#define RUN(name) __YATS_TESTS_FAILED__ |= _YATS_MANGLE_NAME(name)()
 
 #define SETUP_YATS() \
-	static int __YASL_TESTS_FAILED__ = 0
+	static int __YATS_TESTS_FAILED__ = 0
+
+#define TEST_FAILED() __YATS_TESTS_FAILED__ = 1
 
 // change to true to print out all passing tests as well.
 #define SHOW_PASSING false
@@ -27,7 +34,7 @@
 		puts("actual: ");\
 		for (size_t i = 0; i < sr; i++) printf(i < sizeof(left) && (left)[i] == (right)[i] ? K_GRN "%02x " : K_RED "%02x ", (right)[i] & 0xFF);\
 		printf(K_END "\n");\
-		__YASL_TESTS_FAILED__ = 1;\
+		TEST_FAILED();\
 	}\
 } while(0)
 
@@ -47,7 +54,7 @@
 #define ASSERT_EQ(left, right) do {\
 	if ((left) != (right)) {\
 		printf(K_RED "assert failed in %s (in %s): line %d: `%s` =/= `%s`" K_END "\n", __FILE__, __func__, __LINE__, #left, #right);\
-		__YASL_TESTS_FAILED__ = 1;\
+		TEST_FAILED();\
 	} else {\
 		if (SHOW_PASSING) printf(K_GRN "assert passed in %s: line %d" K_END "\n", __func__, __LINE__);\
 	}\
@@ -56,7 +63,7 @@
 #define ASSERT_STR_EQ(left, right, len) do {\
 	if (memcmp(left, right, len) != 0) {\
 	printf(K_RED "assert failed in %s (in %s): line %d: `%s` =/= `%s`" K_END "\n", __FILE__, __func__, __LINE__, left, right);\
-		__YASL_TESTS_FAILED__ = 1;\
+		TEST_FAILED();\
 	} else {\
 		if (SHOW_PASSING) printf(K_GRN "assert passed in %s: line %d" K_END "\n", __func__, __LINE__);\
 	}\

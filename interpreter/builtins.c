@@ -18,7 +18,7 @@
  *                                                                                                                   *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-void table_insert_specialstring_cfunction(struct VM *vm, struct YASL_Table *ht, int index, int (*addr)(struct YASL_State *), int num_args) {
+void table_insert_specialstring_cfunction(struct VM *vm, struct YASL_Table *ht, int index, YASL_cfn addr, int num_args) {
 	struct YASL_String *string = vm->special_strings[index];
 	struct YASL_Object ko = YASL_STR(string), vo = YASL_CFN(addr, num_args);
 	YASL_Table_insert_fast(ht, ko, vo);
@@ -58,6 +58,7 @@ struct YASL_Table* bool_builtins(struct VM *vm) {
 
 struct YASL_Table* str_builtins(struct VM *vm) {
 	struct YASL_Table *table = YASL_Table_new();
+	table_insert_specialstring_cfunction(vm, table, S___LEN, &str___len, 1);
 	table_insert_specialstring_cfunction(vm, table, S_TOFLOAT, &str_tofloat, 1);
 	table_insert_specialstring_cfunction(vm, table, S_TOINT, &str_toint, 1);
 	table_insert_specialstring_cfunction(vm, table, S_ISALNUM, &str_isalnum, 1);
@@ -84,6 +85,7 @@ struct YASL_Table* str_builtins(struct VM *vm) {
 
 struct YASL_Table* list_builtins(struct VM *vm) {
 	struct YASL_Table *table = YASL_Table_new();
+	table_insert_specialstring_cfunction(vm, table, S___LEN, &list___len, 1);
 	table_insert_specialstring_cfunction(vm, table, S_PUSH, &list_push, 2);
 	table_insert_specialstring_cfunction(vm, table, S_COPY, &list_copy, 1);
 	table_insert_specialstring_cfunction(vm, table, S___ADD, &list___add, 2);
@@ -103,6 +105,7 @@ struct YASL_Table* list_builtins(struct VM *vm) {
 
 struct YASL_Table* table_builtins(struct VM *vm) {
 	struct YASL_Table *table = YASL_Table_new();
+	table_insert_specialstring_cfunction(vm, table, S___LEN, &table___len, 1);
 	table_insert_specialstring_cfunction(vm, table, S_REMOVE, &table_remove, 2);
 	table_insert_specialstring_cfunction(vm, table, S_KEYS, &table_keys, 1);
 	table_insert_specialstring_cfunction(vm, table, S_VALUES, &table_values, 1);

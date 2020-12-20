@@ -7,14 +7,14 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define YASL_VERSION "v0.9.3"
+#define YASL_VERSION "v0.10.0"
 
 struct YASL_State;
 
 /**
  * Typedef for YASL functions defined through the C API.
  */
-typedef int (*YASL_cfn)(struct YASL_State *);
+typedef void (*YASL_cfn)(struct YASL_State *);
 
 /**
  * initialises a new YASL_State for usage.
@@ -128,71 +128,64 @@ int YASL_setmt(struct YASL_State *S);
  * @param fmt a format string, taking the same parameters as printf.
  * @param ... var args for the above format strings.
  */
-void YASL_print_err(struct YASL_State *S, const char *const fmt, ...) YASL_FORMAT_CHECK;
+YASL_FORMAT_CHECK void YASL_print_err(struct YASL_State *S, const char *const fmt, ...);
 
 /**
  * Causes a fatal error.
  * @param S the YASL_State in which the error occured.
  * @param error the error code.
  */
-void YASL_throw_err(struct YASL_State *S, int error);
+YASL_NORETURN void YASL_throw_err(struct YASL_State *S, int error);
 
 /**
  * Pushes an undef value onto the stack.
  * @param S the YASL_State onto which to push the undef.
- * @return YASL_SUCCESS on success, otherwise an error code.
  */
-int YASL_pushundef(struct YASL_State *S);
+void YASL_pushundef(struct YASL_State *S);
 
 /**
  * Pushes a double value onto the stack.
  * @param S the YASL_State onto which to push the double.
  * @param value the float to push onto the stack.
- * @return YASL_SUCCESS on success, otherwise an error code.
  */
-int YASL_pushfloat(struct YASL_State *S, yasl_float value);
+void YASL_pushfloat(struct YASL_State *S, yasl_float value);
 
 /**
  * Pushes an integer value onto the stack.
  * @param S the YASL_State onto which to push the integer.
  * @param integer to be pushed onto the stack.
- * @return YASL_SUCCESS on success, otherwise an error code.
  */
-int YASL_pushint(struct YASL_State *S, yasl_int value);
+void YASL_pushint(struct YASL_State *S, yasl_int value);
 
 /**
  * Pushes a boolean value onto the stack.
  * @param S the YASL_State onto which to push the boolean.
  * @param value boolean to be pushed onto the stack.
- * @return YASL_SUCCESS on success, otherwise an error code.
  */
-int YASL_pushbool(struct YASL_State *S, bool value);
+void YASL_pushbool(struct YASL_State *S, bool value);
 
 /**
  * Pushes a null-terminated string onto the stack.
  * @param S the YASL_State onto which to push the string.
  * @param value null-terminated string to be pushed onto the stack.
- * @return YASL_SUCCESS on success, otherwise an error code.
  */
-int YASL_pushszstring(struct YASL_State *S, const char *value);
+void YASL_pushszstring(struct YASL_State *S, const char *value);
 
 /**
  * Pushes a null-terminated string onto the stack. This memory will not
  * be managed by YASL.
  * @param S the YASL_State onto which to push the string.
  * @param value null-terminated string to be pushed onto the stack.
- * @return YASL_SUCCESS on success, otherwise an error code.
  */
-int YASL_pushlitszstring(struct YASL_State *S, const char *value);
+void YASL_pushlitszstring(struct YASL_State *S, const char *value);
 
 /**
  * Pushes a string of given size onto the stack.
  * @param S the YASL_State onto which to push the string.
  * @param value string to be pushed onto the stack.
  * @param size size of string to be pushed onto the stack.
- * @return YASL_SUCCESS on success, otherwise an error code.
  */
-int YASL_pushstring(struct YASL_State *S, const char *value, const size_t size);
+void YASL_pushstring(struct YASL_State *S, const char *value, const size_t size);
 
 /**
  * Pushes a string of given size onto the stack. This memory will not
@@ -200,47 +193,41 @@ int YASL_pushstring(struct YASL_State *S, const char *value, const size_t size);
  * @param S the YASL_State onto which to push the string.
  * @param value string to be pushed onto the stack.
  * @param size size of string to be pushed onto the stack.
- * @return YASL_SUCCESS on success, otherwise an error code.
  */
-int YASL_pushlitstring(struct YASL_State *S, const char *value, const size_t size);
+void YASL_pushlitstring(struct YASL_State *S, const char *value, const size_t size);
 
 /**
  * Pushes an empty table onto the stack.
  * @param S the YASL_State onto which to push the table.
- * @return YASL_SUCCESS on success, otherwise an error code.
  */
-int YASL_pushtable(struct YASL_State *S);
+void YASL_pushtable(struct YASL_State *S);
 
 /**
  * Pushes an empty list onto the stack.
  * @param S the YASL_State onto which to push the list.
- * @return YASL_SUCCESS on success, otherwise an error code.
  */
-int YASL_pushlist(struct YASL_State *S);
+void YASL_pushlist(struct YASL_State *S);
 
 /**
  * Pushes a function pointer onto the stack
  * @param S the YASL_State onto which to push the string.
  * @param value the function pointer to be pushed onto the stack.
- * @return YASL_SUCCESS on success, otherwise an error code.
  */
-int YASL_pushcfunction(struct YASL_State *S, YASL_cfn value, int num_args);
+void YASL_pushcfunction(struct YASL_State *S, YASL_cfn value, int num_args);
 
 /**
  * Pushes a user-pointer onto the stack
  * @param S the YASL_State onto which to push the user-pointer.
  * @param userpointer the user-pointer to push onto the stack.
- * @return YASL_SUCCESS on success, otherwise an error code.
  */
-int YASL_pushuserdata(struct YASL_State *S, void *data, int tag, void (*destructor)(void *));
+void YASL_pushuserdata(struct YASL_State *S, void *data, int tag, void (*destructor)(void *));
 
 /**
  * Pushes a user-pointer onto the stack
  * @param S the YASL_State onto which to push the user-pointer.
  * @param userpointer the user-pointer to push onto the stack.
- * @return YASL_SUCCESS on success, otherwise an error code.
  */
-int YASL_pushuserptr(struct YASL_State *S, void *userpointer);
+void YASL_pushuserptr(struct YASL_State *S, void *userpointer);
 
 /**
  * pops the top of the stack.

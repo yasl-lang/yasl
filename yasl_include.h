@@ -42,7 +42,7 @@
 #define YASL_WARN_UNUSED __attribute((warn_unused_result))
 #else
 #define YASL_WARN_UNUSED
-#endif
+#endif  // defined __GNUC__ || defined __clang__
 
 #define MSG_SYNTAX_ERROR "SyntaxError: "
 #define MSG_TYPE_ERROR "TypeError: "

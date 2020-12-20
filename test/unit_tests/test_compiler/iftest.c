@@ -14,7 +14,7 @@ static void test_if() {
 		O_BRF_8,
 		0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		O_BCONST_T,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "let x = true; if x { echo true; };");
@@ -30,11 +30,11 @@ static void test_ifelse() {
 		O_BRF_8,
 		0x0B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		O_BCONST_T,
-		O_PRINT,
+		O_ECHO,
 		O_BR_8,
 		0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		O_BCONST_F,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "let x = true; if x { echo true; } else { echo false; };");
@@ -50,11 +50,11 @@ static void test_ifelseelseif() {
 		O_BRF_8,
 		0x0B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		O_BCONST_T,
-		O_PRINT,
+		O_ECHO,
 		O_BR_8,
 		0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		O_NCONST,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "let x = true; if x { echo true; } elseif false { echo false; } else { echo undef; };");
@@ -66,7 +66,7 @@ static void test_if_fold_true() {
 		0x1B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		O_BCONST_T,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "if true { echo true; };");
@@ -78,7 +78,7 @@ static void test_ifelse_fold_true() {
 		0x1B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		O_BCONST_T,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "if true { echo true; } else { echo false; };");
@@ -90,7 +90,7 @@ static void test_ifelseelseif_fold_true() {
 		0x1B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		O_BCONST_T,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "if true { echo true; } elseif false { echo false; } else { echo undef; };");
@@ -112,7 +112,7 @@ static void test_ifelse_fold_false() {
 		0x1B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		O_BCONST_F,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "if false { echo true; } else { echo false; };");
@@ -124,13 +124,13 @@ static void test_ifelseelseif_fold_false() {
 		0x1B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		O_BCONST_F,
-		O_PRINT,
+		O_ECHO,
 		O_HALT
 	};
 	ASSERT_GEN_BC_EQ(expected, "if false { echo true; } elseif true { echo false; } else { echo undef; };");
 }
 
-int iftest(void) {
+TEST(iftest) {
 	test_if();
 	test_ifelse();
 	test_ifelseelseif();
@@ -141,5 +141,5 @@ int iftest(void) {
 	test_ifelse_fold_false();
 	test_ifelseelseif_fold_false();
 
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }

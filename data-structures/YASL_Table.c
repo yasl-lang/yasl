@@ -102,6 +102,10 @@ static void table_resize_down(struct YASL_Table *const table) {
 	table_resize(table, new_size);
 }
 
+bool isequal_typed(const struct YASL_Object *const a, const struct YASL_Object *const b) {
+	return a->type == b->type && isequal(a, b);
+}
+
 void YASL_Table_insert_fast(struct YASL_Table *const table, const struct YASL_Object key, const struct YASL_Object value) {
 	const size_t load = table->count * 100 / table->size;
 	if (load > 70) table_resize_up(table);
@@ -111,7 +115,7 @@ void YASL_Table_insert_fast(struct YASL_Table *const table, const struct YASL_Ob
 	size_t i = 1;
 	while (curr_item.value.type != Y_UNDEF) {
 		if (curr_item.key.type != Y_END) {
-			if (isequal(&curr_item.key, &item.key)) {
+			if (isequal_typed(&curr_item.key, &item.key)) {
 				del_item(&curr_item);
 				table->items[index] = item;
 				return;
@@ -140,12 +144,8 @@ void YASL_Table_insert_string_int(struct YASL_Table *const table, const char *co
 	YASL_Table_insert_fast(table, ko, vo);
 }
 
-void YASL_Table_insert_literalcstring_cfunction(struct YASL_Table *const ht, const char *key,
-						int (*addr)(struct YASL_State *), const int num_args) {
-	struct YASL_String *string = YASL_String_new_sized(strlen(key), key);
-	struct YASL_Object f = YASL_CFN(addr, num_args);
-	struct YASL_Object s = YASL_STR(string);
-	YASL_Table_insert_fast(ht, s, f);
+yasl_int YASL_Table_length(const struct YASL_Table *const ht) {
+	return (yasl_int)ht->count;
 }
 
 struct YASL_Object YASL_Table_search(const struct YASL_Table *const table, const struct YASL_Object key) {
@@ -155,7 +155,7 @@ struct YASL_Object YASL_Table_search(const struct YASL_Table *const table, const
 	struct YASL_Table_Item item = table->items[index];
 	int i = 1;
 	while (!obj_isundef(&item.key)) {
-		if ((isequal(&item.key, &key))) {
+		if ((isequal_typed(&item.key, &key))) {
 			return item.value;
 		}
 		index = get_hash(key, table->size, i++);
@@ -183,7 +183,7 @@ void YASL_Table_rm(struct YASL_Table *const table, const struct YASL_Object key)
 	size_t i = 1;
 	while (!obj_isundef(&item.key)) {
 		if (item.key.type != Y_END) {
-			if ((isequal(&item.key, &key))) {
+			if ((isequal_typed(&item.key, &key))) {
 				del_item(&item);
 				table->items[index] = TOMBSTONE;
 			}

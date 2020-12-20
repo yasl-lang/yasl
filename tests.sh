@@ -87,7 +87,7 @@ run_cli_test () {
 
 run_cli_tests () {
     echo "Running CLI tests...";
-    run_cli_test 'YASL v0.9.3' '-V';
+    run_cli_test 'YASL v0.10.0' '-V';
     run_cli_test '10' '-e' "let x=10; x;";
     run_cli_test '' '-E' 'let x = 10; x;';
     run_cli_test '10' '-E' 'let x = 10; echo x;';
@@ -99,6 +99,7 @@ run_tests errors/assert 10;
 run_tests errors/stackoverflow 11;
 run_tests errors/type 5;
 run_tests errors/divisionbyzero 6;
+run_tests errors/value 7;
 run_cli_tests;
 
 echo "Passed $(( ran - failed ))/$ran script tests.";

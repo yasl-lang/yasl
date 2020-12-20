@@ -3,6 +3,6 @@
 
 SETUP_YATS();
 
-int closuretest(void) {
-	return __YASL_TESTS_FAILED__;
+TEST(closuretest) {
+	return NUM_FAILED;
 }

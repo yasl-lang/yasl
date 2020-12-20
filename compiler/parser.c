@@ -133,12 +133,25 @@ struct Node *parse(struct Parser *const parser) {
 	return parse_program(parser);
 }
 
+static struct Node *parse_decl_helper(struct Parser *const parser, struct Node *buffer, size_t i);
+
 struct Node *parse_assign_or_exprstmt(struct Parser *const parser) {
 	size_t line = parser->lex.line;
 	struct Node *expr = parse_expr(parser);
 
 	if (curtok(parser) == T_EQ || tok_isaugmented(curtok(parser))) {
 		return parse_assign(parser, expr);
+	}
+
+	if (curtok(parser) == T_COMMA && expr->nodetype == N_GET) {
+		struct Node *buffer = new_Body(parser->lex.line);
+
+		struct Node *set = new_Set(Get_get_collection(expr), Get_get_value(expr), NULL, line);
+		free(expr);
+		body_append(&buffer, set);
+
+		return parse_decl_helper(parser, buffer, 0);
+
 	}
 
 	return new_ExprStmt(expr, line);
@@ -338,27 +351,40 @@ static struct Node *parse_let_const_or_var(struct Parser *const parser) {
 	} else if (matcheattok(parser, T_CONST)) {
 		char *name = eatname(parser);
 		return new_Const(name, NULL, line);
-	} else if (TOKEN_MATCHES(parser, T_ID)) {
-		char *name = eatname(parser);
-		return new_Assign(name, NULL, line);
 	} else {
-		parser_print_err_syntax(parser, "Expected `let`, `const`, or id, got %s", YASL_TOKEN_NAMES[curtok(parser)]);
-		return handle_error(parser);
+		struct Node *node = parse_call(parser);
+		if (node->nodetype == N_VAR) {
+			struct Node *assign = new_Assign(node->value.sval.str, NULL, line);
+			free(node);
+			return assign;
+		} else if (node->nodetype == N_GET) {
+			struct Node *set = new_Set(Get_get_collection(node), Get_get_value(node), NULL, line);
+			free(node);
+			return set;
+		} else {
+			parser_print_err_syntax(parser, "Expected `let`, `const`, or id, got %s", YASL_TOKEN_NAMES[curtok(parser)]);
+			return handle_error(parser);
+		}
 	}
 }
 
 static struct Node *parse_decl_helper(struct Parser *const parser, struct Node *buffer, size_t i) {
-	do {
+	while (matcheattok(parser, T_COMMA)) {
 		struct Node *lval = parse_let_const_or_var(parser);
 		body_append(&buffer, lval);
 		i++;
-	} while (matcheattok(parser, T_COMMA));
+	}
 
 	eattok(parser, T_EQ);
 
 	size_t j = 0;
 	do {
-		buffer->children[j]->children[0] = parse_expr(parser);
+		struct Node *child = buffer->children[j];
+		if (child->nodetype == N_SET) {
+			child->children[2] = parse_expr(parser);
+		} else {
+			child->children[0] = parse_expr(parser);
+		}
 	} while (j++ < i && matcheattok(parser, T_COMMA));
 
 	buffer->nodetype = N_DECL;
@@ -369,6 +395,10 @@ static struct Node *parse_decl(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("parsing let in line %" PRI_SIZET "\n", parser->lex.line);
 	size_t i = 0;
 	struct Node *buffer = new_Body(parser->lex.line);
+
+	struct Node *lval = parse_let_const_or_var(parser);
+	body_append(&buffer, lval);
+	i++;
 
 	return parse_decl_helper(parser, buffer, i);
 }
@@ -791,12 +821,11 @@ static struct Node *parse_call(struct Parser *const parser) {
 				eattok(parser, T_COMMA);
 			}
 			eattok(parser, T_RPAR);
-
 		} else if (matcheattok(parser, T_DOT)) {
 			struct Node *right = parse_constant(parser);
 			if (right->nodetype == N_CALL) {
-				cur_node = new_Set(cur_node, right->children[0]->children[0],
-						   right->children[0]->children[1], parser->lex.line);
+				cur_node = new_Set(cur_node, Call_get_params(right)->children[0],
+						   Call_get_params(right)->children[1], parser->lex.line);
 				free(right);
 			} else if (right->nodetype == N_VAR) {
 				right->nodetype = N_STR;

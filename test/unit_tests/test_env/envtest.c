@@ -182,5 +182,5 @@ int envtest(void) {
 	test_multi_reversed();
 	test_deep();
 	test_deep_many_vars();
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }

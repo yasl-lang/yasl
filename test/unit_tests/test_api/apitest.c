@@ -11,5 +11,5 @@ int apitest() {
 	RUN(pushtest);
 	RUN(poptest);
 	RUN(deltest);
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }

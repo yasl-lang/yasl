@@ -1,3 +1,4 @@
+#include <interpreter/YASL_Object.h>
 #include "hash_function.h"
 
 #include "prime.h"
@@ -6,8 +7,9 @@ size_t hash_function(const struct YASL_Object s, const size_t a, const size_t m)
 	size_t hash = 0;
 	if (obj_isstr(&s)) {
 		const int64_t len_s = YASL_String_len(s.value.sval);
+		const char *str = YASL_String_chars(s.value.sval);
 		for (int64_t i = 0; i < len_s; i++) {
-			hash = (hash * a) ^ (s.value.sval->str + s.value.sval->start)[i];
+			hash = (hash * a) ^ str[i];
 			hash %= m;
 		}
 		return (size_t) hash;

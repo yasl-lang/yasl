@@ -2,15 +2,14 @@
 
 #include "VM.h"
 
-int YASL_mt_getmt(struct YASL_State *S) {
+void YASL_mt_getmt(struct YASL_State *S) {
 	vm_get_metatable((struct VM *)S);
-	return YASL_SUCCESS;
 }
 
-int YASL_mt_setmt(struct YASL_State *S) {
+void YASL_mt_setmt(struct YASL_State *S) {
 	if (!YASL_istable(S)) {
-		vm_print_err_bad_arg_type((struct VM*)S,"mt.setmt", 1, Y_TABLE, vm_peek((struct VM *)S).type);
-		return YASL_TYPE_ERROR;
+		vm_print_err_bad_arg_type((struct VM*)S,"mt.set", 1, Y_TABLE, vm_peek((struct VM *)S).type);
+		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 
 	struct YASL_Object mt = vm_pop((struct VM *)S);
@@ -25,9 +24,8 @@ int YASL_mt_setmt(struct YASL_State *S) {
 		break;
 	default:
 		vm_print_err_type((struct VM *)S, "cannot set metatable for value of type %s.", YASL_TYPE_NAMES[YASL_peektype(S)]);
-		return YASL_TYPE_ERROR;
+		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
-	return YASL_SUCCESS;
 }
 
 int YASL_decllib_mt(struct YASL_State *S) {

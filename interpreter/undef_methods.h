@@ -3,8 +3,8 @@
 
 struct YASL_State;
 
-int undef_tostr(struct YASL_State *S);
+void undef_tostr(struct YASL_State *S);
 
-int undef_tobool(struct YASL_State *S);
+void undef_tobool(struct YASL_State *S);
 
 #endif

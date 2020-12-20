@@ -9,5 +9,5 @@ SETUP_YATS();
 
 int collectiontest() {
 	RUN(settest);
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }

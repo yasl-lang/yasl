@@ -244,8 +244,7 @@ void YASL_print_err(struct YASL_State *S, const char *const fmt, ...) {
 }
 
 void YASL_throw_err(struct YASL_State *S, int error) {
-	((struct VM *)S)->status = error;
-	longjmp(((struct VM *)S)->buf, 1);
+	vm_throw_err(&S->vm, error);
 }
 
 int YASL_peektype(struct YASL_State *S) {
@@ -256,87 +255,68 @@ const char *YASL_peektypestr(struct YASL_State *S) {
 	return YASL_TYPE_NAMES[YASL_peektype(S)];
 }
 
-int YASL_pushundef(struct YASL_State *S) {
+void YASL_pushundef(struct YASL_State *S) {
 	vm_push((struct VM *) S, YASL_UNDEF());
-	return YASL_SUCCESS;
 }
 
-int YASL_pushfloat(struct YASL_State *S, yasl_float value) {
+void YASL_pushfloat(struct YASL_State *S, yasl_float value) {
 	vm_pushfloat((struct VM *) S, value);
-	return YASL_SUCCESS;
 }
 
-int YASL_pushint(struct YASL_State *S, yasl_int value) {
+void YASL_pushint(struct YASL_State *S, yasl_int value) {
 	vm_pushint(&S->vm, value);
-	return YASL_SUCCESS;
 }
 
-int YASL_pushbool(struct YASL_State *S, bool value) {
+void YASL_pushbool(struct YASL_State *S, bool value) {
 	vm_pushbool(&S->vm, value);
-	return YASL_SUCCESS;
 }
 
-int YASL_pushliteralstring(struct YASL_State *S, char *value) {
+void YASL_pushliteralstring(struct YASL_State *S, char *value) {
 	vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized(strlen(value), value)));
-	return YASL_SUCCESS;
 }
 
-int YASL_pushcstring(struct YASL_State *S, char *value) {
+void YASL_pushcstring(struct YASL_State *S, char *value) {
 	vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized(strlen(value), value)));
-	return YASL_SUCCESS;
 }
 
-int YASL_pushuserdata(struct YASL_State *S, void *data, int tag, void (*destructor)(void *)) {
+void YASL_pushuserdata(struct YASL_State *S, void *data, int tag, void (*destructor)(void *)) {
 	vm_push(&S->vm, YASL_USERDATA(ud_new(data, tag, NULL, destructor)));
-	return YASL_SUCCESS;
 }
 
-int YASL_pushuserptr(struct YASL_State *S, void *userpointer) {
+void YASL_pushuserptr(struct YASL_State *S, void *userpointer) {
 	vm_push((struct VM *) S, YASL_USERPTR(userpointer));
-	return YASL_SUCCESS;
 }
 
-int YASL_pushuserpointer(struct YASL_State *S, void *userpointer) {
-	return YASL_pushuserptr(S, userpointer);
-}
-
-int YASL_pushszstring(struct YASL_State *S, const char *value) {
+void YASL_pushszstring(struct YASL_State *S, const char *value) {
 	vm_pushstr((struct VM *) S, YASL_String_new_sized_heap(0, strlen(value), value));
-	return YASL_SUCCESS;
 }
 
-int YASL_pushlitszstring(struct YASL_State *S, const char *value) {
+void YASL_pushlitszstring(struct YASL_State *S, const char *value) {
 	vm_pushstr((struct VM *) S, YASL_String_new_sized(strlen(value), value));
-	return YASL_SUCCESS;
 }
 
-int YASL_pushstring(struct YASL_State *S, const char *value, const size_t size) {
+void YASL_pushstring(struct YASL_State *S, const char *value, const size_t size) {
 	vm_pushstr((struct VM *) S, YASL_String_new_sized_heap(0, size, value));
-	return YASL_SUCCESS;
 }
 
-int YASL_pushlitstring(struct YASL_State *S, const char *value, const size_t size) {
+void YASL_pushlitstring(struct YASL_State *S, const char *value, const size_t size) {
 	vm_pushstr((struct VM *) S, YASL_String_new_sized(size, value));
-	return YASL_SUCCESS;
 }
 
-int YASL_pushcfunction(struct YASL_State *S, YASL_cfn value, int num_args) {
+void YASL_pushcfunction(struct YASL_State *S, YASL_cfn value, int num_args) {
 	vm_push((struct VM *) S, YASL_CFN(value, num_args));
-	return YASL_SUCCESS;
 }
 
-int YASL_pushtable(struct YASL_State *S) {
+void YASL_pushtable(struct YASL_State *S) {
 	struct RC_UserData *table = rcht_new();
 	ud_setmt(table, S->vm.builtins_htable[Y_TABLE]);
 	vm_push(&S->vm, YASL_TABLE(table));
-	return YASL_SUCCESS;
 }
 
-int YASL_pushlist(struct YASL_State *S) {
+void YASL_pushlist(struct YASL_State *S) {
 	struct RC_UserData *list = rcls_new();
 	ud_setmt(list, S->vm.builtins_htable[Y_LIST]);
 	vm_push(&S->vm, YASL_LIST(list));
-	return YASL_SUCCESS;
 }
 
 int YASL_pop(struct YASL_State *S) {
@@ -348,7 +328,6 @@ int YASL_pop(struct YASL_State *S) {
 int YASL_duptop(struct YASL_State *S) {
 	vm_push(&S->vm, vm_peek(&S->vm));
 	return YASL_SUCCESS;
-
 }
 
 int YASL_tableset(struct YASL_State *S) {
@@ -356,7 +335,6 @@ int YASL_tableset(struct YASL_State *S) {
 	struct YASL_Object key = vm_pop(&S->vm);
 	struct YASL_Object table = vm_pop(&S->vm);
 
-	// TODO change to TYPE_ERROR
 	if (!obj_istable(&table))
 		return YASL_TYPE_ERROR;
 	if (!YASL_Table_insert(YASL_GETTABLE(table), key, value)) {

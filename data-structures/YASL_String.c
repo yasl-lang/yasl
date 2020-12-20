@@ -227,7 +227,7 @@ yasl_int YASL_String_toint(struct YASL_String *str) {
 		buffer[length] = '\0';
 		bool ok;
 		yasl_int tmp = parseint64(buffer, &ok);
-		YASL_ASSERT(ok, "parsing int from small buffer should never fail.")
+		YASL_ASSERT(ok, "parsing int from small buffer should never fail.");
 		free(buffer);
 		return tmp;
 	}
@@ -245,7 +245,7 @@ yasl_int YASL_String_toint(struct YASL_String *str) {
 		buffer[curr] = '\0';
 		bool ok;
 		yasl_int tmp = parseint64(buffer, &ok);
-		YASL_ASSERT(ok, "parsing int from validated buffer should never fail.")
+		YASL_ASSERT(ok, "parsing int from validated buffer should never fail.");
 		free(buffer);
 		return tmp;
 	}
@@ -261,7 +261,7 @@ yasl_int YASL_String_toint(struct YASL_String *str) {
 
 	bool ok;
 	yasl_int tmp = parseint64(buffer, &ok);
-	YASL_ASSERT(ok, "parsing int from validated buffer should never fail.")
+	YASL_ASSERT(ok, "parsing int from validated buffer should never fail.");
 	free(buffer);
 	return tmp;
 }

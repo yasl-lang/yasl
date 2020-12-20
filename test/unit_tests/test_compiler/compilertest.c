@@ -9,11 +9,11 @@
 #include "whiletest.h"
 #include "fortest.h"
 #include "foreachtest.h"
+#include "functiontest.h"
 #include "comprehensiontest.h"
 #include "foldingtest.h"
 #include "syntaxerrortest.h"
-
-#define RUN(test) __YASL_TESTS_FAILED__ |= test()
+#include "matchtest.h"
 
 SETUP_YATS();
 
@@ -30,9 +30,11 @@ int compilertest() {
 	RUN(whiletest);
 	RUN(fortest);
 	RUN(foreachtest);
+	RUN(functiontest);
 	RUN(comprehensiontest);
 	RUN(foldingtest);
 	RUN(syntaxerrortest);
+	RUN(matchtest);
 
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }

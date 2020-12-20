@@ -4,6 +4,8 @@ let x = {
     .a: 10,
     .b: 12 }
 
+const extend = {}.__bor
+
 const ops = {
     .__gt: fn(left, right) { return left.a > right.a; },
     .__ge: fn(left, right) { return left.a >= right.a; },
@@ -13,7 +15,7 @@ const ops = {
 
 let y = x | { .a: 20 }
 
-mt.set(x, ops)
+mt.set(x, extend(mt.get(x), ops))
 
 echo x > y
 echo x >= y

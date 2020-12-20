@@ -129,8 +129,8 @@ add_library(yaslapi
         data-structures/YASL_Set.c
         std/yasl-std-mt.c std/yasl-std-mt.h)
 
-add_executable(tests2
-        test2/test2.c
+add_executable(tests
+        test2/integration_tests.c
         test/yats.c
         test/yasl_test.c
         test/unit_tests/test_api/apitest.c
@@ -142,11 +142,13 @@ add_executable(tests2
         test/unit_tests/test_compiler/binoptest.c
         test/unit_tests/test_compiler/unoptest.c
         test/unit_tests/test_compiler/literaltest.c
+        test/unit_tests/test_compiler/matchtest.c
         test/unit_tests/test_compiler/iftest.c
         test/unit_tests/test_compiler/whiletest.c
         test/unit_tests/test_compiler/fortest.c
         test/unit_tests/test_compiler/foreachtest.c
         test/unit_tests/test_compiler/foldingtest.c
+        test/unit_tests/test_compiler/functiontest.c
         test/unit_tests/test_compiler/comprehensiontest.c
         test/unit_tests/test_compiler/syntaxerrortest.c
         test/unit_tests/test_compiler/closuretest.c
@@ -162,13 +164,13 @@ add_executable(tests2
 if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
     target_link_libraries(yasl m)
     target_link_libraries(yaslapi m)
-    target_link_libraries(tests2 m)
+    target_link_libraries(tests m)
 endif()
 
-target_link_libraries(tests2 yaslapi)
+target_link_libraries(tests yaslapi)
 
 if (UNIX)
     target_link_libraries(yasl dl)
     target_link_libraries(yaslapi dl)
-    target_link_libraries(tests2 dl)
+    target_link_libraries(tests dl)
 endif()

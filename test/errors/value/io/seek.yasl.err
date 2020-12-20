@@ -1,0 +1,1 @@
+ValueError: io.file.seek expected arg in position 1 to be one of 'set', 'cur', or 'end', got 'p'. (line 3)

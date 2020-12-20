@@ -51,7 +51,6 @@
 #define vm_iscfn(...) (obj_iscfn(vm_peek_p(__VA_ARGS__)))
 #define vm_isclosure(...) (obj_isclosure(vm_peek_p(__VA_ARGS__)))
 
-#define BUFFER_SIZE 256
 #define NCODE(vm)    (*((vm)->pc++))     // get next bytecode
 
 #define GT(a, b) ((a) > (b))
@@ -124,9 +123,11 @@ void vm_cleanup(struct VM *const vm);
 void vvm_print_err(struct VM *vm, const char *const fmt, va_list args);
 void vm_print_err(struct VM *vm, const char *const fmt, ...);
 
+YASL_NORETURN void vm_throw_err(struct VM *const vm, int error);
+
 void vm_get_metatable(struct VM *const vm);
-int vm_stringify_top(struct VM *const vm);
-int vm_EQ(struct VM *const vm);
+void vm_stringify_top(struct VM *const vm);
+void vm_EQ(struct VM *const vm);
 
 struct YASL_Object vm_pop(struct VM *const vm);
 bool vm_popbool(struct VM *const vm);
@@ -146,7 +147,6 @@ void vm_pushbool(struct VM *const vm, bool b);
 #define vm_pushlist(vm, l) vm_push(vm, YASL_LIST(l))
 #define vm_pushtable(vm, l) vm_push(vm, YASL_TABLE(l))
 #define vm_pushfn(vm, f) vm_push(vm, YASL_FN(f))
-void vm_pushclosure(struct VM *const vm, unsigned char *const f);
 
 int vm_run(struct VM *const vm);
 

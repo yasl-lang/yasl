@@ -11,5 +11,5 @@ SETUP_YATS();
 int methodtest() {
 	RUN(listtest);
 	RUN(strtest);
-	return __YASL_TESTS_FAILED__;
+	return NUM_FAILED;
 }

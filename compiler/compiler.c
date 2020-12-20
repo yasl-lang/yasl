@@ -161,13 +161,13 @@ static void load_var_from_upval(struct Compiler *const compiler, const char *con
 
 static void load_var(struct Compiler *const compiler, const char *const name, const size_t line) {
 	const size_t name_len = strlen(name);
-	if (compiler->params && scope_contains(compiler->params->scope, name)) {   // fn-local var
+	if (in_function(compiler) && env_contains_cur_only(compiler->params, name)) {   // fn-local var
 		load_var_local(compiler, compiler->params->scope, name);
 	} else if (env_contains(compiler->params, name)) {                         // closure over fn-local variable
 		struct Env *curr = get_nearest(compiler->params, name);
 		curr->usedinclosure = true;
 		load_var_from_upval(compiler, name);
-	} else if (compiler->params && scope_contains(compiler->stack, name)) {    // closure over file-local var
+	} else if (in_function(compiler) && scope_contains(compiler->stack, name)) {    // closure over file-local var
 		load_var_from_upval(compiler, name);
 	} else if (scope_contains(compiler->stack, name)) {                        // file-local vars
 		load_var_local(compiler, compiler->stack, name);
@@ -401,7 +401,6 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 
 	// TODO: verfiy that number of params is small enough. (same for the other casts below.)
 	compiler_add_byte(compiler, (unsigned char) Body_get_len(FnDecl_get_params(node)));
-	compiler_add_byte(compiler, 0);  // TODO: remove this
 	visit_Body(compiler, FnDecl_get_body(node));
 	// TODO: remove this when it's not required.
 	compiler_add_byte(compiler, O_NCONST);
@@ -465,7 +464,7 @@ static void visit_Return(struct Compiler *const compiler, const struct Node *con
 }
 
 static void visit_Export(struct Compiler *const compiler, const struct Node *const node) {
-	if (compiler->params || compiler->stack && compiler->stack->parent) {
+	if (in_function(compiler) || compiler->stack && compiler->stack->parent) {
 		compiler_print_err_syntax(compiler, "`export` statement must be at top level of module (line %" PRI_SIZET ").\n", node->line);
 		handle_error(compiler);
 		return;
@@ -709,9 +708,43 @@ yasl_int compiler_intern_string(struct Compiler *const compiler, const char *con
 		YASL_COMPILE_DEBUG_LOG("%s\n", "caching string");
 		size_t index = compiler->strings->count;
 		YASL_Table_insert_string_int(compiler->strings, str, len, index);
-		YASL_ByteBuffer_add_byte(compiler->header, O_SCONST);
+		YASL_ByteBuffer_add_byte(compiler->header, C_STR);
 		YASL_ByteBuffer_add_int(compiler->header, len);
 		YASL_ByteBuffer_extend(compiler->header, (unsigned char *) str, len);
+		return index;
+	}
+
+	return value.value.ival;
+}
+
+yasl_int compiler_intern_float(struct Compiler *const compiler, const yasl_float val) {
+	struct YASL_Object value = YASL_Table_search(compiler->strings, YASL_FLOAT(val));
+	if (value.type == Y_END) {
+		YASL_COMPILE_DEBUG_LOG("%s\n", "caching float");
+		yasl_int index = (yasl_int)compiler->strings->count;
+		YASL_Table_insert(compiler->strings, YASL_FLOAT(val), YASL_INT(index));
+		YASL_ByteBuffer_add_byte(compiler->header, C_FLOAT);
+		YASL_ByteBuffer_add_float(compiler->header, val);
+
+		return index;
+	}
+
+	return value.value.ival;
+}
+
+yasl_int compiler_intern_int(struct Compiler *const compiler, const yasl_int val) {
+	struct YASL_Object value = YASL_Table_search(compiler->strings, YASL_INT(val));
+	if (value.type == Y_END) {
+		YASL_COMPILE_DEBUG_LOG("%s\n", "caching integer");
+		yasl_int index = (yasl_int)compiler->strings->count;
+		YASL_Table_insert(compiler->strings, YASL_INT(val), YASL_INT(index));
+		if (-(1 << 7) < val && val < (1 << 7)) {
+			YASL_ByteBuffer_add_byte(compiler->header, C_INT_1);
+			YASL_ByteBuffer_add_byte(compiler->header, (unsigned char) val);
+		} else {
+			YASL_ByteBuffer_add_byte(compiler->header, C_INT_8);
+			YASL_ByteBuffer_add_int(compiler->header, val);
+		}
 		return index;
 	}
 
@@ -735,20 +768,29 @@ static void visit_BoolPattern(struct Compiler *const compiler, const struct Node
 	compiler_add_byte(compiler, (unsigned char)((bool)node->value.ival ? 1 : 0));
 }
 
+static void compiler_add_literal_pattern(struct Compiler *const compiler, const yasl_int index) {
+	if (index < 128) {
+		compiler_add_byte(compiler, P_LIT);
+		compiler_add_byte(compiler, (unsigned char)index);
+	} else {
+		compiler_add_byte(compiler, P_LIT8);
+		compiler_add_int(compiler, index);
+	}
+}
+
 static void visit_FloatPattern(struct Compiler *const compiler, const struct Node *const node) {
-	compiler_add_byte(compiler, P_FL);
-	YASL_ByteBuffer_add_float(compiler->buffer, node->value.dval);
+	yasl_int index = compiler_intern_float(compiler, Float_get_float(node));
+	compiler_add_literal_pattern(compiler, index);
 }
 
 static void visit_IntPattern(struct Compiler *const compiler, const struct Node *const node) {
-	compiler_add_byte(compiler, P_INT);
-	compiler_add_int(compiler, node->value.ival);
+	yasl_int index = compiler_intern_int(compiler, Integer_get_int(node));
+	compiler_add_literal_pattern(compiler, index);
 }
 
 static void visit_StringPattern(struct Compiler *const compiler, const struct Node *const node) {
 	yasl_int index = intern_string(compiler, node);
-	compiler_add_byte(compiler, P_STR);
-	compiler_add_int(compiler, index);
+	compiler_add_literal_pattern(compiler, index);
 }
 
 static void visit_CollectionPattern(struct Compiler *const compiler, const struct Node *const node, unsigned char byte) {
@@ -957,7 +999,7 @@ static void visit_If(struct Compiler *const compiler, const struct Node *const n
 
 static void visit_Print(struct Compiler *const compiler, const struct Node *const node) {
 	visit(compiler, Print_get_expr(node));
-	compiler_add_byte(compiler, O_PRINT);
+	compiler_add_byte(compiler, O_ECHO);
 }
 
 static void declare_with_let_or_const(struct Compiler *const compiler, const struct Node *const node) {
@@ -981,7 +1023,7 @@ static void declare_with_let_or_const(struct Compiler *const compiler, const str
 		decl_var(compiler, name, node->line);
 	}
 
-	struct Scope *scope = compiler->params ? compiler->params->scope : compiler->stack;
+	struct Scope *scope = get_scope_in_use(compiler);
 
 	if (!(scope_contains(scope, name))) {
 		store_var(compiler, name, node->line);
@@ -999,6 +1041,9 @@ static void visit_Const(struct Compiler *const compiler, const struct Node *cons
 
 static void visit_Decl(struct Compiler *const compiler, const struct Node *const node) {
 	FOR_CHILDREN(i, child_expr, node) {
+		if (child_expr->nodetype == N_SET) {
+			continue;
+		}
 		visit(compiler, child_expr->children[0]);
 	}
 
@@ -1013,6 +1058,8 @@ static void visit_Decl(struct Compiler *const compiler, const struct Node *const
 			compiler_add_byte(compiler, O_MOVEUP);
 			compiler_add_byte(compiler, (unsigned char)get_scope_in_use(compiler)->vars.count);
 			store_var(compiler, name, node->line);
+		} else if (child->nodetype == N_SET) {
+			visit_Set(compiler, child);
 		} else {
 			if (contains_var_in_current_scope(compiler, name)) {
 				compiler_print_err_syntax(compiler, "Illegal redeclaration of %s (line %" PRI_SIZET ").\n", name, node->line);
@@ -1197,22 +1244,29 @@ static void visit_Undef(struct Compiler *const compiler, const struct Node *cons
 	compiler_add_byte(compiler, O_NCONST);
 }
 
+static void compiler_add_literal(struct Compiler *const compiler, const yasl_int index) {
+	if (index < 128) {
+		compiler_add_byte(compiler, O_LIT);
+		compiler_add_byte(compiler, (unsigned char)index);
+	} else {
+		compiler_add_byte(compiler, O_LIT8);
+		compiler_add_int(compiler, index);
+	}
+}
+
 static void visit_Float(struct Compiler *const compiler, const struct Node *const node) {
 	yasl_float val = Float_get_float(node);
-	compiler_add_byte(compiler, O_DCONST);
-	YASL_ByteBuffer_add_float(compiler->buffer, val);
+
+	yasl_int index = compiler_intern_float(compiler, val);
+	compiler_add_literal(compiler, index);
 }
 
 static void visit_Integer(struct Compiler *const compiler, const struct Node *const node) {
 	yasl_int val = Integer_get_int(node);
 	YASL_COMPILE_DEBUG_LOG("int: %" PRId64 "\n", val);
-	if (-(1 << 7) < val && val < (1 << 7)) {
-		compiler_add_byte(compiler, O_ICONST_B1);
-		compiler_add_byte(compiler, (unsigned char) val);
-	} else {
-		compiler_add_byte(compiler, O_ICONST_B8);
-		compiler_add_int(compiler, val);
-	}
+
+	yasl_int index = compiler_intern_int(compiler, val);
+	compiler_add_literal(compiler, index);
 }
 
 static void visit_Boolean(struct Compiler *const compiler, const struct Node *const node) {
@@ -1221,9 +1275,7 @@ static void visit_Boolean(struct Compiler *const compiler, const struct Node *co
 
 static void visit_String(struct Compiler *const compiler, const struct Node *const node) {
 	yasl_int index = intern_string(compiler, node);
-
-	compiler_add_byte(compiler, O_NEWSTR);
-	compiler_add_int(compiler, index);
+	compiler_add_literal(compiler, index);
 }
 
 static void visit_Assert(struct Compiler *const compiler, const struct Node *const node) {
@@ -1249,14 +1301,14 @@ static void visit_Table(struct Compiler *const compiler, const struct Node *cons
  * Like visit, but doesn't save the results. Will validate things like variables having been declared before use.
  */
 static void validate(struct Compiler *compiler, const struct Node *const node) {
-	size_t buffer_count = compiler->buffer->count;
-	size_t header_count = compiler->header->count;
-	size_t code_count = compiler->code->count;
-	size_t line_count = compiler->lines->count;
-	size_t line = compiler->line;
+	const size_t buffer_count = compiler->buffer->count;
+	// size_t header_count = compiler->header->count;
+	const size_t code_count = compiler->code->count;
+	const size_t line_count = compiler->lines->count;
+	const size_t line = compiler->line;
 	visit(compiler, node);
 	compiler->buffer->count = buffer_count;
-	compiler->header->count = header_count;
+	// compiler->header->count = header_count;
 	compiler->code->count = code_count;
 	compiler->lines->count = line_count;
 	compiler->line = line;

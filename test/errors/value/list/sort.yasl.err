@@ -1,0 +1,1 @@
+ValueError: list.sort expected a list of all numbers or all strings. (line 3)
