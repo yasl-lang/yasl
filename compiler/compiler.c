@@ -161,13 +161,13 @@ static void load_var_from_upval(struct Compiler *const compiler, const char *con
 
 static void load_var(struct Compiler *const compiler, const char *const name, const size_t line) {
 	const size_t name_len = strlen(name);
-	if (compiler->params && scope_contains(compiler->params->scope, name)) {   // fn-local var
+	if (in_function(compiler) && env_contains_cur_only(compiler->params, name)) {   // fn-local var
 		load_var_local(compiler, compiler->params->scope, name);
 	} else if (env_contains(compiler->params, name)) {                         // closure over fn-local variable
 		struct Env *curr = get_nearest(compiler->params, name);
 		curr->usedinclosure = true;
 		load_var_from_upval(compiler, name);
-	} else if (compiler->params && scope_contains(compiler->stack, name)) {    // closure over file-local var
+	} else if (in_function(compiler) && scope_contains(compiler->stack, name)) {    // closure over file-local var
 		load_var_from_upval(compiler, name);
 	} else if (scope_contains(compiler->stack, name)) {                        // file-local vars
 		load_var_local(compiler, compiler->stack, name);
@@ -401,7 +401,6 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 
 	// TODO: verfiy that number of params is small enough. (same for the other casts below.)
 	compiler_add_byte(compiler, (unsigned char) Body_get_len(FnDecl_get_params(node)));
-	compiler_add_byte(compiler, 0);  // TODO: remove this
 	visit_Body(compiler, FnDecl_get_body(node));
 	// TODO: remove this when it's not required.
 	compiler_add_byte(compiler, O_NCONST);
@@ -465,7 +464,7 @@ static void visit_Return(struct Compiler *const compiler, const struct Node *con
 }
 
 static void visit_Export(struct Compiler *const compiler, const struct Node *const node) {
-	if (compiler->params || compiler->stack && compiler->stack->parent) {
+	if (in_function(compiler) || compiler->stack && compiler->stack->parent) {
 		compiler_print_err_syntax(compiler, "`export` statement must be at top level of module (line %" PRI_SIZET ").\n", node->line);
 		handle_error(compiler);
 		return;
@@ -1024,7 +1023,7 @@ static void declare_with_let_or_const(struct Compiler *const compiler, const str
 		decl_var(compiler, name, node->line);
 	}
 
-	struct Scope *scope = compiler->params ? compiler->params->scope : compiler->stack;
+	struct Scope *scope = get_scope_in_use(compiler);
 
 	if (!(scope_contains(scope, name))) {
 		store_var(compiler, name, node->line);

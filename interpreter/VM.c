@@ -1134,7 +1134,7 @@ static inline void vm_CALL_native(struct VM *const vm, unsigned char *const code
 
 	vm_fill_args(vm, code[0]);
 
-	vm->pc =  code + 2;
+	vm->pc =  code + 1;
 }
 
 static void vm_CALL_closure(struct VM *const vm) {
