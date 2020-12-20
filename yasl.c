@@ -404,8 +404,16 @@ bool YASL_islist(struct YASL_State *S) {
 	return vm_islist(&S->vm);
 }
 
+bool YASL_isnlist(struct YASL_State *S, unsigned n) {
+	return vm_islist(&S->vm, S->vm.fp + 1 + n);
+}
+
 bool YASL_istable(struct YASL_State *S) {
 	return vm_istable(&S->vm);
+}
+
+bool YASL_isntable(struct YASL_State *S, unsigned n) {
+	return vm_istable(&S->vm, S->vm.fp + 1 + n);
 }
 
 bool YASL_isuserdata(struct YASL_State *S, int tag) {
@@ -494,6 +502,10 @@ char *YASL_popcstr(struct YASL_State *S) {
 	char *tmp = YASL_peekcstr(S);
 	YASL_pop(S);
 	return tmp;
+}
+
+void *YASL_peeknuserdata(struct YASL_State *S, unsigned n) {
+	return YASL_GETUSERDATA(vm_peek(&S->vm, S->vm.fp + 1 + n))->data;
 }
 
 void *YASL_popuserdata(struct YASL_State *S) {

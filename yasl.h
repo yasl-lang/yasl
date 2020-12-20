@@ -408,6 +408,7 @@ char *YASL_peekcstr(struct YASL_State *S);
 char *YASL_popcstr(struct YASL_State *S);
 
 void *YASL_peekuserdata(struct YASL_State *S);
+void *YASL_peeknuserdata(struct YASL_State *S, unsigned n);
 void *YASL_popuserdata(struct YASL_State *S);
 
 void *YASL_peekuserptr(struct YASL_State *S);

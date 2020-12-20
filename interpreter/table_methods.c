@@ -14,8 +14,17 @@ static struct YASL_Table *YASLX_checktable(struct YASL_State *S, const char *nam
 	return (struct YASL_Table *)YASL_popuserdata(S);
 }
 
+static struct YASL_Table *YASLX_checkntable(struct YASL_State *S, const char *name, unsigned pos) {
+	if (!YASL_isntable(S, pos)) {
+		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type table, got arg of type %s.",
+				  name, pos, YASL_peektypestr(S));
+		YASL_throw_err(S, YASL_TYPE_ERROR);
+	}
+	return (struct YASL_Table *)YASL_peeknuserdata(S, pos);
+}
+
 void table___len(struct YASL_State *S) {
-	struct YASL_Table *ht = YASLX_checktable(S, "table.__get", 0);
+	struct YASL_Table *ht = YASLX_checkntable(S, "table.__get", 0);
 	YASL_pushint(S, YASL_Table_length(ht));
 }
 
@@ -46,8 +55,8 @@ void table___set(struct YASL_State *S) {
 }
 
 void table___bor(struct YASL_State *S) {
-	struct YASL_Table *right = YASLX_checktable(S, "table.__bor", 1);
-	struct YASL_Table *left = YASLX_checktable(S, "table.__bor", 0);
+	struct YASL_Table *right = YASLX_checkntable(S, "table.__bor", 1);
+	struct YASL_Table *left = YASLX_checkntable(S, "table.__bor", 0);
 
 	YASL_pushtable(S);
 
@@ -65,8 +74,8 @@ void table___bor(struct YASL_State *S) {
 }
 
 void table___eq(struct YASL_State *S) {
-	struct YASL_Table *right = YASLX_checktable(S, "table.__eq", 1);
-	struct YASL_Table *left = YASLX_checktable(S, "table.__eq", 0);
+	struct YASL_Table *right = YASLX_checkntable(S, "table.__eq", 1);
+	struct YASL_Table *left = YASLX_checkntable(S, "table.__eq", 0);
 
 	if (left->count != right->count) {
 		YASL_pushbool(S, false);
@@ -196,7 +205,7 @@ void table_tostr(struct YASL_State *S) {
 }
 
 void table_keys(struct YASL_State *S) {
-	struct YASL_Table *ht = YASLX_checktable(S, "table.keys", 0);
+	struct YASL_Table *ht = YASLX_checkntable(S, "table.keys", 0);
 	struct RC_UserData *ls = rcls_new();
 	FOR_TABLE(i, item, ht) {
 			YASL_List_append((struct YASL_List *) ls->data, (item->key));
@@ -206,7 +215,7 @@ void table_keys(struct YASL_State *S) {
 }
 
 void table_values(struct YASL_State *S) {
-	struct YASL_Table *ht = YASLX_checktable(S, "table.values", 0);
+	struct YASL_Table *ht = YASLX_checkntable(S, "table.values", 0);
 	struct RC_UserData *ls = rcls_new();
 	FOR_TABLE(i, item, ht) {
 			YASL_List_append((struct YASL_List *) ls->data, (item->value));
@@ -226,7 +235,7 @@ void table_remove(struct YASL_State *S) {
 }
 
 void table_clone(struct YASL_State *S) {
-	struct YASL_Table *ht = YASLX_checktable(S, "table.copy", 0);
+	struct YASL_Table *ht = YASLX_checkntable(S, "table.copy", 0);
 	struct RC_UserData *new_ht = rcht_new_sized(ht->base_size);
 
 	FOR_TABLE(i, item, ht) {
