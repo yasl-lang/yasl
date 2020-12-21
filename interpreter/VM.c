@@ -274,6 +274,18 @@ struct YASL_Table *vm_poptable(struct VM *const vm) {
 	return YASL_GETTABLE(vm_pop(vm));
 }
 
+void vm_insert(struct VM *const vm, int index, struct YASL_Object val) {
+	if (vm->sp + 1 >= STACK_SIZE) {
+		vm_print_err(vm, "StackOverflow.");
+		vm_throw_err(vm, YASL_STACK_OVERFLOW_ERROR);
+	}
+
+	dec_ref(vm->stack + vm->sp);
+	memmove(vm->stack + index + 1, vm->stack + index, (vm->sp - index + 1) * sizeof(struct YASL_Object));
+	vm->stack[index] = val;
+	vm->sp++;
+}
+
 void vm_rm_range(struct VM *const vm, int start, int end) {
 	int after = vm->sp - end + 1;
 	int len = end - start;
@@ -294,28 +306,8 @@ static yasl_int vm_read_int(struct VM *const vm) {
     return val;
 }
 
-#define DEFINE_READ_INT(size) \
-	static yasl_int vm_read_int##size(struct VM *const vm) {\
-		int##size##_t val;\
-		memcpy(&val, vm->pc, sizeof(int##size##_t));\
-		vm->pc += sizeof(int##size##_t);\
-		return (yasl_int) val;\
-	}
-
-DEFINE_READ_INT(8)
-DEFINE_READ_INT(16)
-DEFINE_READ_INT(32)
-DEFINE_READ_INT(64)
-
-static yasl_float vm_read_float(struct VM *const vm) {
-    yasl_float val;
-    memcpy(&val, vm->pc, sizeof(yasl_float));
-    vm->pc += sizeof(yasl_float);
-    return val;
-}
-
 static int vm_lookup_method_helper(struct VM *vm, struct YASL_Object obj, struct YASL_Table *mt, struct YASL_Object index);
-static int vm_lookup_method(struct VM *const vm, const char *const method_name);
+// static int vm_lookup_method(struct VM *const vm, const char *const method_name);
 static void vm_GET(struct VM *const vm);
 static void vm_INIT_CALL(struct VM *const vm);
 static void vm_CALL(struct VM *const vm);
@@ -814,7 +806,6 @@ static void vm_SET(struct VM *const vm) {
 
 static void vm_LIT(struct VM *const vm) {
 	unsigned char addr = NCODE(vm);
-	// printf("index: %d\n", addr);
 	vm_push(vm, vm->constants[addr]);
 }
 
@@ -1178,8 +1169,7 @@ static struct Upvalue *vm_close_all_helper(struct YASL_Object *const end, struct
 	if (curr == NULL) return NULL;
 	if (curr->location < end) return curr;
 	inc_ref(curr->location);
-	curr->closed = upval_get(curr);
-	curr->location = &curr->closed;
+	upval_close(curr);
 	return (vm_close_all_helper(end, curr->next));
 }
 

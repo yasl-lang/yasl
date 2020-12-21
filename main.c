@@ -16,12 +16,6 @@
 		  "|     ||  |  | |    | |     |\n" \
 		  "|_____/|__|__| \\____/ |_____|\n"
 
-static int main_error(int argc, char **argv) {
-	(void) argv;
-	printf("error: Invalid arguments passed (passed %d arguments). Type `yasl -h` for help (without the backticks).\n", argc);
-	return EXIT_FAILURE;
-}
-
 // -b: run bytecode
 // -c: compile to bytecode
 static int main_help(int argc, char **argv) {

@@ -33,10 +33,12 @@ static yasl_float YASL_popnum(struct YASL_State *S) {
 	else return YASL_popfloat(S);
 }
 
+/*
 static yasl_float YASL_peeknum(struct YASL_State *S) {
 	if (YASL_isint(S)) return (yasl_float)YASL_peekint(S);
 	else return YASL_peekfloat(S);
 }
+*/
 
 static yasl_float YASLX_checknum(struct YASL_State *S, const char *name, int pos) {
 	if (!YASL_isnum(S)) {

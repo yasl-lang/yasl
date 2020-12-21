@@ -19,7 +19,7 @@ if(MSVC)
 endif()
 
 if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
-    set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-unused-function -Wno-vla -Wno-logical-op-parentheses -Wno-parentheses -Werror")
+    set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-vla -Wno-logical-op-parentheses -Wno-parentheses -Werror")
 endif()
 if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
     set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-function -Wno-unused-variable -Wno-vla -Wno-deprecated -Wno-logical-op-parentheses -Wno-parentheses -Werror")
