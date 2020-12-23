@@ -648,6 +648,7 @@ static void vm_SLICE_list(struct VM *const vm) {
 
 	struct YASL_List *list = vm_poplist(vm);
 	struct RC_UserData *new_ls = rcls_new();
+	ud_setmt(new_ls, vm->builtins_htable[Y_LIST]);
 
 	for (yasl_int i = start; i <end; ++i) {
 		YASL_List_append((struct YASL_List *) new_ls->data, list->items[i]);
