@@ -115,12 +115,14 @@ void YASL_require_c(struct YASL_State *S) {
 #elif defined(YASL_USE_UNIX) || defined(YASL_USE_APPLE)
 	void *lib = dlopen(mode_str, RTLD_NOW);
 	if (!lib) {
-		vm_print_err_value((struct VM *) S, "couldn't open shared library: %s.\n", mode_str);
+		vm_print_err_value((struct VM *) S, "%s\n", dlerror());
+		// vm_print_err_value((struct VM *) S, "couldn't open shared library: %s.\n", mode_str);
 		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
 	YASL_cfn fun= (YASL_cfn) dlsym(lib, LOAD_LIB_FUN_NAME);
 	if (!fun) {
-		vm_print_err_value((struct VM *) S, "couldn't load function: %s.\n", LOAD_LIB_FUN_NAME);
+		// vm_print_err_value((struct VM *) S, "couldn't load function: %s.\n", LOAD_LIB_FUN_NAME);
+		vm_print_err_value((struct VM *) S, "%s\n", dlerror());
 		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
 	fun(S);

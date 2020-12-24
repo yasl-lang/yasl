@@ -1,0 +1,8 @@
+let x = [ 1, 2, 3 ]
+
+echo len x
+
+const y = x[1:]
+
+echo len x
+echo len y
