@@ -145,5 +145,9 @@ int YASL_decllib_require_c(struct YASL_State *S) {
 	YASL_pushcfunction(S, YASL_require_c, 1);
 	YASL_setglobal(S, "require_c");
 
+	YASL_declglobal(S, "__require_c__");
+	YASL_pushcfunction(S, YASL_require_c, 1);
+	YASL_setglobal(S, "__require_c__");
+
 	return YASL_SUCCESS;
 }
