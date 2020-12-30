@@ -17,7 +17,7 @@ struct YASL_State;
 typedef void (*YASL_cfn)(struct YASL_State *);
 
 /**
- * initialises a new YASL_State for usage.
+ * Initialises a new YASL_State for usage.
  * @param filename the name of the file used to initialize the state.
  * @return the new YASL_State, or NULL on failure.
  */
@@ -46,22 +46,20 @@ int YASL_decllib_require_c(struct YASL_State *S);
 int YASL_decllib_mt(struct YASL_State *S);
 
 /**
- * initialises a new YASL_State for usage, or NULL on failure.
- * @param buf buffer containing the source code used to initialize
- * the state.
- * @param len the length of the buffer.
- * @return the new YASL_State
+ * compiles the source for the given YASL_State, but doesn't
+ * run it.
+ * @param S the YASL_State containing the YASL source code to be compiled.
+ * @return 0 on success, otherwise an error code.
  */
-struct YASL_State *YASL_newstate_bb(const char *buf, size_t len);
+int YASL_compile(struct YASL_State *S);
 
 /**
- * resets S to the same state it would be in if newly created using
- * YASL_newstate_bb.
- * @param S the YASL_State
- * @param buf the buffer used to initialize S
- * @param len the length of buf.
+ * Declares a global for use in the given YASL_State.
+ * @param S the YASL_State in which to declare the global.
+ * @param name the name of the global (null-terminated string).
+ * @return YASL_SUCCESS on success, otherwise an error code.
  */
-int YASL_resetstate_bb(struct YASL_State *S, const char *buf, size_t len);
+int YASL_declglobal(struct YASL_State *S, const char *name);
 
 /**
  * deletes the given YASL_State.
@@ -71,12 +69,11 @@ int YASL_resetstate_bb(struct YASL_State *S, const char *buf, size_t len);
 int YASL_delstate(struct YASL_State *S);
 
 /**
- * compiles the source for the given YASL_State, but doesn't
- * run it.
- * @param S the YASL_State containing the YASL source code to be compiled.
- * @return 0 on success, otherwise an error code.
+ * duplicates the top of the stack.
+ * @param S the YASL_State.
+ * @return YASL_SUCCESS on success, otherwise an error code.
  */
-int YASL_compile(struct YASL_State *S);
+int YASL_duptop(struct YASL_State *S);
 
 /**
  * Execute the bytecode for the given YASL_State.
@@ -95,22 +92,6 @@ int YASL_execute(struct YASL_State *S);
 int YASL_execute_REPL(struct YASL_State *S);
 
 /**
- * Declares a global for use in the given YASL_State.
- * @param S the YASL_State in which to declare the global.
- * @param name the name of the global (null-terminated string).
- * @return YASL_SUCCESS on success, otherwise an error code.
- */
-int YASL_declglobal(struct YASL_State *S, const char *name);
-
-/**
- * Pops the top of the YASL stack and stores it in the given global.
- * @param S the YASL_State in which to store the global.
- * @param name the name of the global.
- * @return YASL_SUCCESS on success, otherwise an error code.
- */
-int YASL_setglobal(struct YASL_State *S, const char *name);
-
-/**
  * Loads a global and puts it on top of the stack.
  * @param S the YASL_State.
  * @param name nul-terminated name of the global.
@@ -118,9 +99,47 @@ int YASL_setglobal(struct YASL_State *S, const char *name);
  */
 int YASL_loadglobal(struct YASL_State *S, const char *name);
 
-int YASL_registermt(struct YASL_State *S, const char *name);
 int YASL_loadmt(struct YASL_State *S, const char *name);
-int YASL_setmt(struct YASL_State *S);
+
+/**
+ * initialises a new YASL_State for usage, or NULL on failure.
+ * @param buf buffer containing the source code used to initialize
+ * the state.
+ * @param len the length of the buffer.
+ * @return the new YASL_State
+ */
+struct YASL_State *YASL_newstate_bb(const char *buf, size_t len);
+
+/**
+ * pops the top of the stack.
+ * @param S the YASL_State the stack belongs to.
+ * @return YASL_SUCCESS on success, otherwise an error code.
+ */
+int YASL_pop(struct YASL_State *S);
+
+/**
+ * Returns the bool value of the top of the stack, if the top of the stack is a boolean.
+ * Otherwise returns false. Removes the top element of the stack.
+ * @param S the YASL_State.
+ * @return the bool value of the top of the stack.
+ */
+bool YASL_popbool(struct YASL_State *S);
+
+/**
+ * Returns the float value of the top of the stack, if the top of the stack is a float.
+ * Otherwise returns 0.0. Removes the top of the stack.
+ * @param S the YASL_State.
+ * @return the float value on top of the stack.
+ */
+yasl_float YASL_popfloat(struct YASL_State *S);
+
+/**
+ * Returns the int value of the top of the stack, if the top of the stack is an int.
+ * Otherwise returns 0. Removes the top of the stack.
+ * @param S the YASL_State.
+ * @return the int value of the top of the stack.
+ */
+yasl_int YASL_popint(struct YASL_State *S);
 
 /**
  * Prints a runtime error.
@@ -131,17 +150,18 @@ int YASL_setmt(struct YASL_State *S);
 YASL_FORMAT_CHECK void YASL_print_err(struct YASL_State *S, const char *const fmt, ...);
 
 /**
- * Causes a fatal error.
- * @param S the YASL_State in which the error occured.
- * @param error the error code.
+ * Pushes a boolean value onto the stack.
+ * @param S the YASL_State onto which to push the boolean.
+ * @param value boolean to be pushed onto the stack.
  */
-YASL_NORETURN void YASL_throw_err(struct YASL_State *S, int error);
+void YASL_pushbool(struct YASL_State *S, bool value);
 
 /**
- * Pushes an undef value onto the stack.
- * @param S the YASL_State onto which to push the undef.
+ * Pushes a function pointer onto the stack
+ * @param S the YASL_State onto which to push the string.
+ * @param value the function pointer to be pushed onto the stack.
  */
-void YASL_pushundef(struct YASL_State *S);
+void YASL_pushcfunction(struct YASL_State *S, YASL_cfn value, int num_args);
 
 /**
  * Pushes a double value onto the stack.
@@ -158,18 +178,19 @@ void YASL_pushfloat(struct YASL_State *S, yasl_float value);
 void YASL_pushint(struct YASL_State *S, yasl_int value);
 
 /**
- * Pushes a boolean value onto the stack.
- * @param S the YASL_State onto which to push the boolean.
- * @param value boolean to be pushed onto the stack.
+ * Pushes an empty list onto the stack.
+ * @param S the YASL_State onto which to push the list.
  */
-void YASL_pushbool(struct YASL_State *S, bool value);
+void YASL_pushlist(struct YASL_State *S);
 
 /**
- * Pushes a null-terminated string onto the stack.
+ * Pushes a string of given size onto the stack. This memory will not
+ * be managed by YASL.
  * @param S the YASL_State onto which to push the string.
- * @param value null-terminated string to be pushed onto the stack.
+ * @param value string to be pushed onto the stack.
+ * @param size size of string to be pushed onto the stack.
  */
-void YASL_pushszstring(struct YASL_State *S, const char *value);
+void YASL_pushlitstring(struct YASL_State *S, const char *value, const size_t size);
 
 /**
  * Pushes a null-terminated string onto the stack. This memory will not
@@ -188,13 +209,13 @@ void YASL_pushlitszstring(struct YASL_State *S, const char *value);
 void YASL_pushstring(struct YASL_State *S, const char *value, const size_t size);
 
 /**
- * Pushes a string of given size onto the stack. This memory will not
- * be managed by YASL.
+ * Pushes a null-terminated string onto the stack. YASL takes ownership
+ * of the memory for the string. If this is not desired, see also
+ * YASL_pushlitszstring.
  * @param S the YASL_State onto which to push the string.
- * @param value string to be pushed onto the stack.
- * @param size size of string to be pushed onto the stack.
+ * @param value null-terminated string to be pushed onto the stack.
  */
-void YASL_pushlitstring(struct YASL_State *S, const char *value, const size_t size);
+void YASL_pushszstring(struct YASL_State *S, const char *value);
 
 /**
  * Pushes an empty table onto the stack.
@@ -203,17 +224,10 @@ void YASL_pushlitstring(struct YASL_State *S, const char *value, const size_t si
 void YASL_pushtable(struct YASL_State *S);
 
 /**
- * Pushes an empty list onto the stack.
- * @param S the YASL_State onto which to push the list.
+ * Pushes an undef value onto the stack.
+ * @param S the YASL_State onto which to push the undef.
  */
-void YASL_pushlist(struct YASL_State *S);
-
-/**
- * Pushes a function pointer onto the stack
- * @param S the YASL_State onto which to push the string.
- * @param value the function pointer to be pushed onto the stack.
- */
-void YASL_pushcfunction(struct YASL_State *S, YASL_cfn value, int num_args);
+void YASL_pushundef(struct YASL_State *S);
 
 /**
  * Pushes a user-pointer onto the stack
@@ -229,19 +243,80 @@ void YASL_pushuserdata(struct YASL_State *S, void *data, int tag, void (*destruc
  */
 void YASL_pushuserptr(struct YASL_State *S, void *userpointer);
 
-/**
- * pops the top of the stack.
- * @param S the YASL_State the stack belongs to.
- * @return YASL_SUCCESS on success, otherwise an error code.
- */
-int YASL_pop(struct YASL_State *S);
+
+
+
 
 /**
- * duplicates the top of the stack.
+ * Returns the bool value of the top of the stack, if the top of the stack is a boolean.
+ * Otherwise returns false. Does not modify the stack.
+ * @param S
+ * @return
+ */
+bool YASL_peekbool(struct YASL_State *S);
+
+bool YASL_peeknbool(struct YASL_State *S, unsigned n);
+
+/**
+ * Returns the float value of the top of the stack, if the top of the stack is a float.
+ * Otherwise returns 0.0. Does not modify the stack.
+ * @param S
+ * @return
+ */
+yasl_float YASL_peekfloat(struct YASL_State *S);
+
+yasl_float YASL_peeknfloat(struct YASL_State *S, unsigned n);
+
+/**
+ * Returns the int value of the top of the stack, if the top of the stack is an int.
+ * Otherwise returns 0. Does not modify the stack.
+ * @param S
+ * @return
+ */
+yasl_int YASL_peekint(struct YASL_State *S);
+
+yasl_int YASL_peeknint(struct YASL_State *S, unsigned n);
+
+char *YASL_peekcstr(struct YASL_State *S);
+char *YASL_popcstr(struct YASL_State *S);
+
+void *YASL_peekuserdata(struct YASL_State *S);
+void *YASL_peeknuserdata(struct YASL_State *S, unsigned n);
+void *YASL_popuserdata(struct YASL_State *S);
+
+void *YASL_peekuserptr(struct YASL_State *S);
+void *YASL_popuserptr(struct YASL_State *S);
+
+
+/**
+ * Registers a metatable with name `name`. After this returns, the
+ * metatable can be referred to by `name` in other functions dealing
+ * with metatables, e.g. `YASL_setmt` or `YASL_loadmt`.
  * @param S the YASL_State.
+ * @param name the name of the metatable.
+ * @return YASL_SUCCESS.
+ */
+int YASL_registermt(struct YASL_State *S, const char *name);
+
+/**
+ * resets S to the same state it would be in if newly created using
+ * YASL_newstate_bb.
+ * @param S the YASL_State.
+ * @param buf the buffer used to initialize S.
+ * @param len the length of buf.
+ * @return YASL_SUCCESS on success, else an error code.
+ */
+int YASL_resetstate_bb(struct YASL_State *S, const char *buf, size_t len);
+
+/**
+ * Pops the top of the YASL stack and stores it in the given global.
+ * @param S the YASL_State in which to store the global.
+ * @param name the name of the global.
  * @return YASL_SUCCESS on success, otherwise an error code.
  */
-int YASL_duptop(struct YASL_State *S);
+int YASL_setglobal(struct YASL_State *S, const char *name);
+
+int YASL_setmt(struct YASL_State *S);
 
 /**
  * inserts a key-value pair into the table. The topmost
@@ -250,6 +325,13 @@ int YASL_duptop(struct YASL_State *S);
  * @return 0 on success, else error code
  */
 int YASL_tableset(struct YASL_State *S);
+
+/**
+ * Causes a fatal error.
+ * @param S the YASL_State in which the error occured.
+ * @param error the error code.
+ */
+YASL_NORETURN void YASL_throw_err(struct YASL_State *S, int error);
 
 int YASL_listpush(struct YASL_State *S);
 
@@ -349,69 +431,5 @@ bool YASL_isnuserdata(struct YASL_State *S, int tag, unsigned n);
 bool YASL_isuserptr(struct YASL_State *S);
 
 bool YASL_isnuserptr(struct YASL_State *S, unsigned n);
-
-/**
- * Returns the bool value of the top of the stack, if the top of the stack is a boolean.
- * Otherwise returns false. Does not modify the stack.
- * @param S
- * @return
- */
-bool YASL_peekbool(struct YASL_State *S);
-
-bool YASL_peeknbool(struct YASL_State *S, unsigned n);
-
-/**
- * Returns the bool value of the top of the stack, if the top of the stack is a boolean.
- * Otherwise returns false. Removes the top element of the stack.
- * @param S
- * @return
- */
-bool YASL_popbool(struct YASL_State *S);
-
-/**
- * Returns the float value of the top of the stack, if the top of the stack is a float.
- * Otherwise returns 0.0. Does not modify the stack.
- * @param S
- * @return
- */
-yasl_float YASL_peekfloat(struct YASL_State *S);
-
-yasl_float YASL_peeknfloat(struct YASL_State *S, unsigned n);
-
-/**
- * Returns the float value of the top of the stack, if the top of the stack is a float.
- * Otherwise returns 0.0. Removes the top of the stack.
- * @param S
- * @return
- */
-yasl_float YASL_popfloat(struct YASL_State *S);
-
-/**
- * Returns the int value of the top of the stack, if the top of the stack is an int.
- * Otherwise returns 0. Does not modify the stack.
- * @param S
- * @return
- */
-yasl_int YASL_peekint(struct YASL_State *S);
-
-yasl_int YASL_peeknint(struct YASL_State *S, unsigned n);
-
-/**
- * Returns the int value of the top of the stack, if the top of the stack is an int.
- * Otherwise returns 0. Removes the top of the stack.
- * @param S
- * @return
- */
-yasl_int YASL_popint(struct YASL_State *S);
-
-char *YASL_peekcstr(struct YASL_State *S);
-char *YASL_popcstr(struct YASL_State *S);
-
-void *YASL_peekuserdata(struct YASL_State *S);
-void *YASL_peeknuserdata(struct YASL_State *S, unsigned n);
-void *YASL_popuserdata(struct YASL_State *S);
-
-void *YASL_peekuserptr(struct YASL_State *S);
-void *YASL_popuserptr(struct YASL_State *S);
 
 #endif

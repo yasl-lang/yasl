@@ -236,6 +236,10 @@ int YASL_setmt(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
+size_t YASL_len(struct YASL_State *S) {
+
+}
+
 void YASL_print_err(struct YASL_State *S, const char *const fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
