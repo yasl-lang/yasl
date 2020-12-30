@@ -1,11 +1,10 @@
 # YASL
 Bytecode Interpreter for Yet Another Scripting Language (YASL).
-An online interpreter (that you can use to try YASL from your browser without downloading anything) can be found here:
- https://yasl-lang.github.io/playground/interpreter.html, or you can view the docs here: https://yasl-lang.github.io/docs/.
+An online interpreter (that you can use to try YASL from your browser without downloading anything) can be found [here](https://yasl-lang.github.io/playground/interpreter.html), or you can view the docs [here](https://yasl-lang.github.io/docs/).
 
 ## Portability
-YASL is written in C99, and compiled and tests on Windows (MinGW and MSVC), Ubuntu (GCC, G++, Clang, Clang++, TCC), and MacOS (Clang, Clang++).
-Tests are run on all platforms using Azure for CI. Additional tests for the command-line interpreter are also run on all non-Windows systems.
+YASL is written in C99, and compiled and tested on Windows (MinGW and MSVC), Ubuntu (GCC, G++, Clang, Clang++, TCC), and MacOS (Clang, Clang++).
+Tests are run on all platforms using Azure for CI. Additional tests for the CLI are also run on all non-Windows systems.
 If you find a C99 compiler that YASL is not compatible with, please open an issue so I can do my best to fix this.
 YASL should eventually be completely compatible with any C99 compiler on any platform.
 
@@ -41,13 +40,13 @@ The following can be used to execute the tests:
 
 ```bash
 $> ./tests.sh
-$> ./tests2
+$> ./tests
 ```
 
 Note that `tests.sh` requires either Bash 4 or Z Shell in order to run. By default, it runs with `bash`, but you can
 run `zsh tests.sh` if Bash 4 isn't available on your system (MacOS for example).
 
-`tests.sh` tests the YASL interpreter itself, as it would be invoked from the terminal. `tests2` tests the YASL api.
+`tests.sh` tests the YASL interpreter itself, as it would be invoked from the terminal. `tests` tests the YASL API itself + unittests.
 
 All tests should execute with exitcode 0. If they do not, either there's a bug or your installation was incorrect. Either way, please open an issue if you can't figure it out.
 
