@@ -30,7 +30,7 @@ struct YASL_State *YASL_newstate(const char *filename);
  * @param filename the name of the file used to initialize S
  * @return YASL_SUCCESS if successful, otherwise an error.
  */
-int YASL_resetstate(struct YASL_State *S, const char *filename);
+YASL_DEPRECATE int YASL_resetstate(struct YASL_State *S, const char *filename);
 
 void YASL_setprintout_tostr(struct YASL_State *S);
 void YASL_setprinterr_tostr(struct YASL_State *S);
@@ -46,6 +46,7 @@ int YASL_decllib_require_c(struct YASL_State *S);
 int YASL_decllib_mt(struct YASL_State *S);
 
 /**
+ * [-0, +0]
  * compiles the source for the given YASL_State, but doesn't
  * run it.
  * @param S the YASL_State containing the YASL source code to be compiled.
@@ -54,6 +55,7 @@ int YASL_decllib_mt(struct YASL_State *S);
 int YASL_compile(struct YASL_State *S);
 
 /**
+ * [-0, +0]
  * Declares a global for use in the given YASL_State.
  * @param S the YASL_State in which to declare the global.
  * @param name the name of the global (null-terminated string).

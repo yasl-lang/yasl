@@ -2,6 +2,7 @@
 
 #include "data-structures/YASL_Set.h"
 #include "yasl_state.h"
+#include "yasl_aux.h"
 
 // what to prepend to method names in messages to user
 #define SET_PRE "collections.set"
@@ -352,9 +353,8 @@ int YASL_decllib_collections(struct YASL_State *S) {
 	YASL_tableset(S);
 
 
-	YASL_declglobal(S, "collections");
 	YASL_pushtable(S);
-	YASL_setglobal(S, "collections");
+	YASLX_initglobal(S, "collections");
 
 	YASL_loadglobal(S, "collections");
 	YASL_pushlitszstring(S, "set");

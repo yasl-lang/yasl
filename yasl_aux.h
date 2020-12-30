@@ -16,6 +16,14 @@
 int YASLX_decllibs(struct YASL_State *S);
 
 /**
+ * Declares a global and initializes it with the top value from the stack.
+ * @param S the YASL_State.
+ * @param name name of the global (nul-terminated).
+ * @return
+ */
+void YASLX_initglobal(struct YASL_State *S, const char *name);
+
+/**
  * Prints an error message
  * @param S The YASL State.
  * @param fn_name name of the function in which the error occured.
@@ -30,7 +38,8 @@ void YASLX_print_err_bad_arg_type(struct YASL_State *S,
 				 const char *const act);
 
 /**
- * Returns the top of the stack if it is an int. Otherwise, causes a type error, along with a printed error message.
+ * Returns the top of the stack if it is an int. Otherwise, causes a type error,
+ * along with a printed error message.
  * @param S The YASL_State.
  * @param name Name of the function in which this is called, used for error message.
  * @param pos the position of the argument, used only for the error message.

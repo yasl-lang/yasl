@@ -6,6 +6,7 @@
 
 #include "data-structures/YASL_Table.h"
 #include "VM.h"
+#include "yasl_aux.h"
 
 // what to prepend to method names in messages to user
 #define FILE_PRE "io.file"
@@ -259,9 +260,8 @@ int YASL_decllib_io(struct YASL_State *S) {
 	YASL_tableset(S);
 
 
-	YASL_declglobal(S, "io");
 	YASL_pushtable(S);
-	YASL_setglobal(S, "io");
+	YASLX_initglobal(S, "io");
 
 	YASL_loadglobal(S, "io");
 	YASL_pushlitszstring(S, "open");

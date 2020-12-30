@@ -12,6 +12,11 @@ int YASLX_decllibs(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
+void YASLX_initglobal(struct YASL_State *S, const char *name) {
+	YASL_declglobal(S, name);
+	YASL_setglobal(S, name);
+}
+
 void YASLX_print_err_bad_arg_type(struct YASL_State *S,
 				 const char *const fn_name,
 				 int position,
