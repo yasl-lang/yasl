@@ -471,7 +471,7 @@ static void vm_num_unop(struct VM *const vm, yasl_int (*int_op)(yasl_int), yasl_
 	}
 }
 
-void vm_len_unop(struct VM *const vm) {
+static void vm_len_unop(struct VM *const vm) {
 	if (vm_isstr(vm)) {
 		vm_pushint(vm, (yasl_int) YASL_String_len(vm_popstr(vm)));
 	} else {
