@@ -368,6 +368,10 @@ bool YASL_isundef(struct YASL_State *S) {
 	return vm_isundef(&S->vm);
 }
 
+bool YASL_isnundef(struct YASL_State *S, unsigned n) {
+	return vm_isundef(&S->vm, S->vm.fp + 1 + n);
+}
+
 bool YASL_isbool(struct YASL_State *S) {
 	return vm_isbool(&S->vm);
 }

@@ -79,4 +79,12 @@ bool YASLX_checknbool(struct YASL_State *S, const char *name, unsigned pos);
  */
 void YASLX_checkundef(struct YASL_State *S, const char *name, int pos);
 
+/**
+ * Pops the top of the stack if it is undef. Otherwise, causes a type error, along with a printed error message.
+ * @param S The YASL_State.
+ * @param name Name of the function in which this is called, used for error message.
+ * @param pos the position of the argument, used only for the error message.
+ */
+void YASLX_checknundef(struct YASL_State *S, const char *name, unsigned pos);
+
 #endif
