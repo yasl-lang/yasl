@@ -32,19 +32,6 @@ struct YASL_State *YASL_newstate(const char *filename);
  */
 int YASL_resetstate(struct YASL_State *S, const char *filename);
 
-void YASL_setprintout_tostr(struct YASL_State *S);
-void YASL_setprinterr_tostr(struct YASL_State *S);
-
-void YASL_loadprintout(struct YASL_State *S);
-void YASL_loadprinterr(struct YASL_State *S);
-
-int YASL_decllib_collections(struct YASL_State *S);
-int YASL_decllib_io(struct YASL_State *S);
-int YASL_decllib_math(struct YASL_State *S);
-int YASL_decllib_require(struct YASL_State *S);
-int YASL_decllib_require_c(struct YASL_State *S);
-int YASL_decllib_mt(struct YASL_State *S);
-
 /**
  * [-0, +0]
  * compiles the source for the given YASL_State, but doesn't
@@ -62,6 +49,13 @@ int YASL_compile(struct YASL_State *S);
  * @return YASL_SUCCESS on success, otherwise an error code.
  */
 int YASL_declglobal(struct YASL_State *S, const char *name);
+
+int YASL_decllib_collections(struct YASL_State *S);
+int YASL_decllib_io(struct YASL_State *S);
+int YASL_decllib_math(struct YASL_State *S);
+int YASL_decllib_require(struct YASL_State *S);
+int YASL_decllib_require_c(struct YASL_State *S);
+int YASL_decllib_mt(struct YASL_State *S);
 
 /**
  * [-0, +0]
@@ -98,6 +92,152 @@ int YASL_execute(struct YASL_State *S);
 int YASL_execute_REPL(struct YASL_State *S);
 
 /**
+ * [-0, +0]
+ * checks if the top of the stack is bool.
+ * @param S the YASL_State.
+ * @return true if the top of the stack is bool, else false.
+ */
+bool YASL_isbool(struct YASL_State *S);
+
+/**
+ *
+ * [-0, +0]
+ * checks if the top of the stack is float.
+ * @param S the YASL_State.
+ * @return true if the top of the stack is float, else false.
+ */
+bool YASL_isfloat(struct YASL_State *S);
+
+/**
+ * [-0, +0]
+ * checks if the top of the stack is int.
+ * @param S the YASL_State.
+ * @return true if the top of the stack is int, else false.
+ */
+bool YASL_isint(struct YASL_State *S);
+
+/**
+ * [-0, +0]
+ * checks if the top of the stack is list.
+ * @param S the YASL_State.
+ * @return true if the top of the stack is list, else false.
+ */
+bool YASL_islist(struct YASL_State *S);
+
+/**
+ * [-0, +0]
+ * checks if the object at index n is bool.
+ * @param S the YASL_State.
+ * @return true if the object at index n is bool, else false.
+ */
+bool YASL_isnbool(struct YASL_State *S, unsigned n);
+
+/**
+ *
+ * [-0, +0]
+ * checks if the object at index n is float.
+ * @param S the YASL_State.
+ * @return true if the object at index n is float, else false.
+ */
+bool YASL_isnfloat(struct YASL_State *S, unsigned n);
+
+/**
+ * [-0, +0]
+ * checks if the object at index n is int.
+ * @param S the YASL_State.
+ * @return true if the object at index n is int, else false.
+ */
+bool YASL_isnint(struct YASL_State *S, unsigned n);
+
+/**
+ * [-0, +0]
+ * checks if the object at index n is list.
+ * @param S the YASL_State.
+ * @return true if the object at index n is list, else false.
+ */
+bool YASL_isnlist(struct YASL_State *S, unsigned n);
+
+/**
+ * [-0, +0]
+ * checks if the object at index n is str.
+ * @param S the YASL_State to which the stack belongs.
+ * @return true if the object at index n is str, else false.
+ */
+bool YASL_isnstr(struct YASL_State *S, unsigned n);
+
+/**
+ * [-0, +0]
+ * checks if the object at index n is table.
+ * @param S the YASL_State to which the stack belongs.
+ * @return true if the object at index n is table, else false.
+ */
+bool YASL_isntable(struct YASL_State *S, unsigned n);
+
+/**
+ * [-0, +0]
+ * Checks if the object at index n is undef.
+ * @param S the YASL_State to which the stack belongs.
+ * @return true if the object at index n is undef, else false.
+ */
+bool YASL_isnundef(struct YASL_State *S, unsigned n);
+
+/**
+ * [-0, +0]
+ * checks if the object at index n is userdata.
+ * @param S the YASL_State.
+ * @return true if the object at index n is userdata, else false.
+ */
+bool YASL_isnuserdata(struct YASL_State *S, int tag, unsigned n);
+
+/**
+ * [-0, +0]
+ * checks if the object at index n is userpointer.
+ * @param S the YASL_State.
+ * @return true if the object at index n is userpointer, else false.
+ */
+bool YASL_isnuserptr(struct YASL_State *S, unsigned n);
+
+/**
+ * [-0, +0]
+ * checks if the top of the stack is str.
+ * @param S the YASL_State to which the stack belongs.
+ * @return true if the top of the stack is str, else false.
+ */
+bool YASL_isstr(struct YASL_State *S);
+
+/**
+ * [-0, +0]
+ * checks if the top of the stack is table.
+ * @param S the YASL_State to which the stack belongs.
+ * @return true if the top of the stack is table, else false.
+ */
+bool YASL_istable(struct YASL_State *S);
+
+/**
+ * [-0, +0]
+ * Checks if the top of the stack is undef.
+ * @param S the YASL_State to which the stack belongs.
+ * @return true if the top of the stack is undef, else false.
+ */
+bool YASL_isundef(struct YASL_State *S);
+
+/**
+ * [-0, +0]
+ * checks if the top of the stack is userdata.
+ * @param S the YASL_State.
+ * @return true if the top of the stack is userdata, else false.
+ */
+bool YASL_isuserdata(struct YASL_State *S, int tag);
+
+/**
+ * [-0, +0]
+ * checks if the top of the stack is userpointer.
+ * @param S the YASL_State.
+ * @return true if the top of the stack is userpointer, else false.
+ */
+bool YASL_isuserptr(struct YASL_State *S);
+
+/**
  * [-0, +1]
  * Loads a global and puts it on top of the stack.
  * @param S the YASL_State.
@@ -114,6 +254,10 @@ int YASL_loadglobal(struct YASL_State *S, const char *name);
  * @return YASL_SUCCESS on success, else an error code.
  */
 int YASL_loadmt(struct YASL_State *S, const char *name);
+
+void YASL_loadprintout(struct YASL_State *S);
+
+void YASL_loadprinterr(struct YASL_State *S);
 
 /**
  * initialises a new YASL_State for usage, or NULL on failure.
@@ -313,9 +457,8 @@ void YASL_pushuserptr(struct YASL_State *S, void *userpointer);
 
 
 
-
-
 /**
+ * [-0, +0]
  * Returns the int value of the top of the stack, if the top of the stack is an int.
  * Otherwise returns 0. Does not modify the stack.
  * @param S
@@ -334,6 +477,9 @@ void *YASL_popuserdata(struct YASL_State *S);
 
 void *YASL_peekuserptr(struct YASL_State *S);
 void *YASL_popuserptr(struct YASL_State *S);
+
+
+
 
 
 /**
@@ -367,6 +513,10 @@ int YASL_resetstate_bb(struct YASL_State *S, const char *buf, size_t len);
 int YASL_setglobal(struct YASL_State *S, const char *name);
 
 int YASL_setmt(struct YASL_State *S);
+
+void YASL_setprintout_tostr(struct YASL_State *S);
+
+void YASL_setprinterr_tostr(struct YASL_State *S);
 
 /**
  * inserts a key-value pair into the table. The topmost
@@ -410,150 +560,5 @@ const char *YASL_peektypestr(struct YASL_State *S);
 
 const char *YASL_peekntypestr(struct YASL_State *S, unsigned n);
 
-/**
- * [-0, +0]
- * Checks if the top of the stack is undef.
- * @param S the YASL_State to which the stack belongs.
- * @return true if the top of the stack is undef, else false.
- */
-bool YASL_isundef(struct YASL_State *S);
-
-/**
- * [-0, +0]
- * Checks if the object at index n is undef.
- * @param S the YASL_State to which the stack belongs.
- * @return true if the object at index n is undef, else false.
- */
-bool YASL_isnundef(struct YASL_State *S, unsigned n);
-
-/**
- * [-0, +0]
- * checks if the top of the stack is bool.
- * @param S the YASL_State.
- * @return true if the top of the stack is bool, else false.
- */
-bool YASL_isbool(struct YASL_State *S);
-
-/**
- * [-0, +0]
- * checks if the object at index n is bool.
- * @param S the YASL_State.
- * @return true if the object at index n is bool, else false.
- */
-bool YASL_isnbool(struct YASL_State *S, unsigned n);
-
-/**
- *
- * [-0, +0]
- * checks if the top of the stack is float.
- * @param S the YASL_State.
- * @return true if the top of the stack is float, else false.
- */
-bool YASL_isfloat(struct YASL_State *S);
-
-/**
- *
- * [-0, +0]
- * checks if the object at index n is float.
- * @param S the YASL_State.
- * @return true if the object at index n is float, else false.
- */
-bool YASL_isnfloat(struct YASL_State *S, unsigned n);
-
-/**
- * [-0, +0]
- * checks if the top of the stack is int.
- * @param S the YASL_State.
- * @return true if the top of the stack is int, else false.
- */
-bool YASL_isint(struct YASL_State *S);
-
-/**
- * [-0, +0]
- * checks if the object at index n is int.
- * @param S the YASL_State.
- * @return true if the object at index n is int, else false.
- */
-bool YASL_isnint(struct YASL_State *S, unsigned n);
-
-/**
- * [-0, +0]
- * checks if the top of the stack is str.
- * @param S the YASL_State to which the stack belongs.
- * @return true if the top of the stack is str, else false.
- */
-bool YASL_isstr(struct YASL_State *S);
-
-/**
- * [-0, +0]
- * checks if the object at index n is str.
- * @param S the YASL_State to which the stack belongs.
- * @return true if the object at index n is str, else false.
- */
-bool YASL_isnstr(struct YASL_State *S, unsigned n);
-
-/**
- * [-0, +0]
- * checks if the top of the stack is list.
- * @param S the YASL_State.
- * @return true if the top of the stack is list, else false.
- */
-bool YASL_islist(struct YASL_State *S);
-
-/**
- * [-0, +0]
- * checks if the object at index n is list.
- * @param S the YASL_State.
- * @return true if the object at index n is list, else false.
- */
-bool YASL_isnlist(struct YASL_State *S, unsigned n);
-
-/**
- * [-0, +0]
- * checks if the top of the stack is table.
- * @param S the YASL_State to which the stack belongs.
- * @return true if the top of the stack is table, else false.
- */
-bool YASL_istable(struct YASL_State *S);
-
-/**
- * [-0, +0]
- * checks if the object at index n is table.
- * @param S the YASL_State to which the stack belongs.
- * @return true if the object at index n is table, else false.
- */
-bool YASL_isntable(struct YASL_State *S, unsigned n);
-
-/**
- * [-0, +0]
- * checks if the top of the stack is userdata.
- * @param S the YASL_State.
- * @return true if the top of the stack is userdata, else false.
- */
-bool YASL_isuserdata(struct YASL_State *S, int tag);
-
-/**
- * [-0, +0]
- * checks if the object at index n is userdata.
- * @param S the YASL_State.
- * @return true if the object at index n is userdata, else false.
- */
-bool YASL_isnuserdata(struct YASL_State *S, int tag, unsigned n);
-
-/**
- * [-0, +0]
- * checks if the top of the stack is userpointer.
- * @param S the YASL_State.
- * @return true if the top of the stack is userpointer, else false.
- */
-bool YASL_isuserptr(struct YASL_State *S);
-
-/**
- * [-0, +0]
- * checks if the object at index n is userpointer.
- * @param S the YASL_State.
- * @return true if the object at index n is userpointer, else false.
- */
-bool YASL_isnuserptr(struct YASL_State *S, unsigned n);
 
 #endif
