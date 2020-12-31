@@ -86,5 +86,5 @@ void YASLX_checknundef(struct YASL_State *S, const char *name, unsigned pos) {
 		YASLX_print_err_bad_arg_type(S, name, pos, "undef", YASL_peekntypestr(S, pos));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
-	YASL_pop(S);
+	//YASL_pop(S);
 }

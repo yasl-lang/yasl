@@ -4,7 +4,7 @@
 #include "yasl_aux.h"
 
 void undef_tostr(struct YASL_State *S) {
-	YASLX_checknundef(S, "undef.tostr", 0);
+	YASLX_checkundef(S, "undef.tostr", 0);
 	YASL_pushlitszstring(S, "undef");
 }
 
