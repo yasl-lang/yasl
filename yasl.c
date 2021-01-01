@@ -295,8 +295,8 @@ void YASL_pushcstring(struct YASL_State *S, char *value) {
 	vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized(strlen(value), value)));
 }
 
-void YASL_pushuserdata(struct YASL_State *S, void *data, int tag, void (*destructor)(void *)) {
-	vm_push(&S->vm, YASL_USERDATA(ud_new(data, tag, NULL, destructor)));
+void YASL_pushuserdata(struct YASL_State *S, void *data, int tag, const char *name, void (*destructor)(void *)) {
+	vm_push(&S->vm, YASL_USERDATA(ud_new(data, tag, name, NULL, destructor)));
 }
 
 void YASL_pushuserptr(struct YASL_State *S, void *userpointer) {
