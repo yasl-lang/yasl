@@ -255,12 +255,20 @@ int YASL_peekntype(struct YASL_State *S, unsigned n) {
 	return vm_peek(&S->vm, S->vm.fp + 1 + n).type;
 }
 
-const char *YASL_peektypestr(struct YASL_State *S) {
+const char *YASL_peektypename(struct YASL_State *S) {
 	return YASL_TYPE_NAMES[YASL_peektype(S)];
 }
 
-const char *YASL_peekntypestr(struct YASL_State *S, unsigned n) {
+const char *YASL_peektypestr(struct YASL_State *S) {
+	return YASL_peektypename(S);
+}
+
+const char *YASL_peekntypename(struct YASL_State *S, unsigned n) {
 	return YASL_TYPE_NAMES[YASL_peekntype(S, n)];
+}
+
+const char *YASL_peekntypestr(struct YASL_State *S, unsigned n) {
+	return YASL_peekntypename(S, n);
 }
 
 void YASL_pushundef(struct YASL_State *S) {

@@ -58,7 +58,6 @@ int YASL_decllib_require_c(struct YASL_State *S);
 int YASL_decllib_mt(struct YASL_State *S);
 
 /**
- * [-0, +0]
  * deletes the given YASL_State.
  * @param S YASL_State to be deleted.
  * @return 0 on success, otherwise an error code.
@@ -238,6 +237,14 @@ bool YASL_isuserdata(struct YASL_State *S, int tag);
 bool YASL_isuserptr(struct YASL_State *S);
 
 /**
+ * [-1, +0]
+ * Pops the top of the stack and appends it to a list (which should be located directly below the top of the stack).
+ * @param S the YASL_State.
+ * @return YASL_SUCCESS on sucess, else an error code.
+ */
+int YASL_listpush(struct YASL_State *S);
+
+/**
  * [-0, +1]
  * Loads a global and puts it on top of the stack.
  * @param S the YASL_State.
@@ -279,12 +286,30 @@ bool YASL_peekbool(struct YASL_State *S);
 
 /**
  * [-0, +0]
+ * Returns the int value of the top of the stack, if the top of the stack is an int.
+ * Otherwise returns 0. Does not modify the stack.
+ * @param S the YASL_State.
+ * @return the value of the int on top of the stack, or 0 if it's not an int.
+ */
+char *YASL_peekcstr(struct YASL_State *S);
+
+/**
+ * [-0, +0]
  * Returns the float value of the top of the stack, if the top of the stack is a float.
  * Otherwise returns 0.0. Does not modify the stack.
  * @param S the YASL_State.
  * @return
  */
 yasl_float YASL_peekfloat(struct YASL_State *S);
+
+/**
+ * [-0, +0]
+ * Returns the int value of the top of the stack, if the top of the stack is an int.
+ * Otherwise returns 0. Does not modify the stack.
+ * @param S the YASL_State.
+ * @return the value of the int on top of the stack, or 0 if it's not an int.
+ */
+yasl_int YASL_peekint(struct YASL_State *S);
 
 /**
  * [-0, +0]
@@ -305,6 +330,84 @@ bool YASL_peeknbool(struct YASL_State *S, unsigned n);
 yasl_float YASL_peeknfloat(struct YASL_State *S, unsigned n);
 
 /**
+ * [-0, +0]
+ * Returns the int value at index n, if it is an int.
+ * Otherwise returns 0. Does not modify the stack.
+ * @param S the YASL_State.
+ * @return the value of the int at index n, or 0 if it's not an int.
+ */
+yasl_int YASL_peeknint(struct YASL_State *S, unsigned n);
+
+/**
+ * [-0, +0]
+ * Returns the userdata value at index n, if it is a userdata.
+ * Otherwise returns NULL. Does not modify the stack.
+ * @param S the YASL_State.
+ * @return the userdata value at index n, or NULL if it's not a userdata.
+ */
+void *YASL_peeknuserdata(struct YASL_State *S, unsigned n);
+
+/**
+ * [-0, +0]
+ * returns the type of the top of the stack as a string.
+ * @param S the YASL_State to which the stack belongs.
+ * @return the string representation of the type on top of the stack.
+ */
+const char *YASL_peekntypename(struct YASL_State *S, unsigned n);
+
+/**
+ * [-0, +0]
+ * returns the type of the top of the stack as a string.
+ * @param S the YASL_State to which the stack belongs.
+ * @return the string representation of the type on top of the stack.
+ * @deprecated use YASL_peekntypename instead.
+ */
+YASL_DEPRECATE const char *YASL_peekntypestr(struct YASL_State *S, unsigned n);
+
+/**
+ * [-0, +0]
+ * returns the type of the top of the stack.
+ * @param S the YASL_State.
+ * @return the type on top of the stack.
+ */
+int YASL_peektype(struct YASL_State *S);
+
+/**
+ * [-0, +0]
+ * returns the type of the top of the stack as a string.
+ * @param S the YASL_State to which the stack belongs.
+ * @return the string representation of the type on top of the stack.
+ */
+const char *YASL_peektypename(struct YASL_State *S);
+
+/**
+ * [-0, +0]
+ * returns the type of the top of the stack as a string.
+ * @param S the YASL_State to which the stack belongs.
+ * @return the string representation of the type on top of the stack.
+ * @deprecated use YASL_peektypename instead.
+ */
+YASL_DEPRECATE const char *YASL_peektypestr(struct YASL_State *S);
+
+/**
+ * [-0, +0]
+ * Returns the userdata value of the top of the stack, if the top of the stack is a userdata.
+ * Otherwise returns NULL. Does not modify the stack.
+ * @param S the YASL_State.
+ * @return the userdata value on top of the stack, or NULL if it's not a userdata.
+ */
+void *YASL_peekuserdata(struct YASL_State *S);
+
+/**
+ * [-0, +0]
+ * Returns the userptr value of the top of the stack, if the top of the stack is a userptr.
+ * Otherwise returns NULL. Does not modify the stack.
+ * @param S the YASL_State.
+ * @return the value of the userptr on top of the stack, or NULL if it's not a userptr.
+ */
+void *YASL_peekuserptr(struct YASL_State *S);
+
+/**
  * [-1, +0]
  * Removes the top of the stack.
  * @param S the YASL_State the stack belongs to.
@@ -323,6 +426,15 @@ bool YASL_popbool(struct YASL_State *S);
 
 /**
  * [-1, +0]
+ * Returns the str value (nul-terminated) of the top of the stack, if the top of the stack is a str.
+ * Otherwise returns NULL.
+ * @param S the YASL_State.
+ * @return the value of the str on top of the stack, or NULL if it's not a str.
+ */
+char *YASL_popcstr(struct YASL_State *S);
+
+/**
+ * [-1, +0]
  * Returns the float value of the top of the stack, if the top of the stack is a float.
  * Otherwise returns 0.0. Removes the top of the stack.
  * @param S the YASL_State.
@@ -338,6 +450,10 @@ yasl_float YASL_popfloat(struct YASL_State *S);
  * @return the int value of the top of the stack.
  */
 yasl_int YASL_popint(struct YASL_State *S);
+
+void *YASL_popuserdata(struct YASL_State *S);
+
+void *YASL_popuserptr(struct YASL_State *S);
 
 /**
  * [-0, +0]
@@ -455,33 +571,6 @@ void YASL_pushuserdata(struct YASL_State *S, void *data, int tag, void (*destruc
  */
 void YASL_pushuserptr(struct YASL_State *S, void *userpointer);
 
-
-
-/**
- * [-0, +0]
- * Returns the int value of the top of the stack, if the top of the stack is an int.
- * Otherwise returns 0. Does not modify the stack.
- * @param S
- * @return
- */
-yasl_int YASL_peekint(struct YASL_State *S);
-
-yasl_int YASL_peeknint(struct YASL_State *S, unsigned n);
-
-char *YASL_peekcstr(struct YASL_State *S);
-char *YASL_popcstr(struct YASL_State *S);
-
-void *YASL_peekuserdata(struct YASL_State *S);
-void *YASL_peeknuserdata(struct YASL_State *S, unsigned n);
-void *YASL_popuserdata(struct YASL_State *S);
-
-void *YASL_peekuserptr(struct YASL_State *S);
-void *YASL_popuserptr(struct YASL_State *S);
-
-
-
-
-
 /**
  * [-0, +0]
  * Registers a metatable with name `name`. After this returns, the
@@ -533,32 +622,5 @@ int YASL_tableset(struct YASL_State *S);
  * @param error the error code.
  */
 YASL_NORETURN void YASL_throw_err(struct YASL_State *S, int error);
-
-/**
- * [-1, +0]
- * Pops the top of the stack and appends it to a list (which should be located directly below the top of the stack.
- * @param S the YASL_State.
- * @return YASL_SUCCESS on sucess, else an error code.
- */
-int YASL_listpush(struct YASL_State *S);
-
-/**
- * [-0, +0]
- * returns the type of the top of the stack.
- * @param S the YASL_State to which the stack belongs.
- * @return the type on top of the stack.
- */
-int YASL_peektype(struct YASL_State *S);
-
-/**
- * [-0, +0]
- * returns the type of the top of the stack as a string.
- * @param S the YASL_State to which the stack belongs.
- * @return the string representation of the type on top of the stack.
- */
-const char *YASL_peektypestr(struct YASL_State *S);
-
-const char *YASL_peekntypestr(struct YASL_State *S, unsigned n);
-
 
 #endif

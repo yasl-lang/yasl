@@ -8,7 +8,7 @@
 
 static struct YASL_String *YASLX_checknstr(struct YASL_State *S, const char *name, unsigned pos) {
 	if (!YASL_isnstr(S, pos)) {
-		YASLX_print_err_bad_arg_type(S, name, pos, "str", YASL_peekntypestr(S, pos));
+		YASLX_print_err_bad_arg_type(S, name, pos, "str", YASL_peekntypename(S, pos));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 
@@ -61,7 +61,7 @@ void str_tobool(struct YASL_State* S) {
 
 void str_tostr(struct YASL_State *S) {
 	if (!YASL_isstr(S)) {
-		YASLX_print_err_bad_arg_type(S, "str.tostr", 0, "str", YASL_peektypestr(S));
+		YASLX_print_err_bad_arg_type(S, "str.tostr", 0, "str", YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 }

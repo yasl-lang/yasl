@@ -10,7 +10,7 @@
 static struct YASL_Set *YASLX_checkset(struct YASL_State *S, const char *name, int pos) {
 	if (!YASL_isuserdata(S, T_SET)) {
 		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type set, got arg of type %s.",
-				  name, pos, YASL_peektypestr(S));
+				  name, pos, YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	return (struct YASL_Set *)YASL_popuserdata(S);
@@ -22,7 +22,7 @@ static void YASL_collections_set_new(struct YASL_State *S) {
 	while (i-- > 0) {
 		if (!YASL_Set_insert(set, vm_peek((struct VM *) S))) {
 			vm_print_err_type(&S->vm, "unable to use mutable object of type %s as key.",
-					  YASL_peektypestr(S));
+					  YASL_peektypename(S));
 			YASL_throw_err(S, YASL_TYPE_ERROR);
 		}
 		YASL_pop(S);

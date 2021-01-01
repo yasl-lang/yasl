@@ -42,7 +42,7 @@ static yasl_float YASL_peeknum(struct YASL_State *S) {
 
 static yasl_float YASLX_checknum(struct YASL_State *S, const char *name, int pos) {
 	if (!YASL_isnum(S)) {
-		YASLX_print_err_bad_arg_type(S, name, pos, "float", YASL_peektypestr(S));
+		YASLX_print_err_bad_arg_type(S, name, pos, "float", YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	return YASL_popnum(S);

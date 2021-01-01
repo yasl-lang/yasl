@@ -9,7 +9,7 @@
 static struct YASL_List *YASLX_checklist(struct YASL_State *S, const char *name, int pos) {
 	if (!YASL_islist(S)) {
 		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type list, got arg of type %s.",
-				  name, pos, YASL_peektypestr(S));
+				  name, pos, YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	return (struct YASL_List *)YASL_popuserdata(S);
@@ -19,7 +19,7 @@ static struct YASL_List *YASLX_checklist(struct YASL_State *S, const char *name,
 static struct YASL_List *YASLX_checknlist(struct YASL_State *S, const char *name, unsigned pos) {
 	if (!YASL_isnlist(S, pos)) {
 		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type list, got arg of type %s.",
-				  name, pos, YASL_peekntypestr(S, pos));
+				  name, pos, YASL_peekntypename(S, pos));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	return (struct YASL_List *)YASL_peeknuserdata(S, pos);
@@ -123,7 +123,7 @@ int list_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, s
 
 void list_tostr(struct YASL_State *S) {
 	if (!YASL_islist(S)) {
-		YASLX_print_err_bad_arg_type(S, "list.tostr", 0, "list", YASL_peektypestr(S));
+		YASLX_print_err_bad_arg_type(S, "list.tostr", 0, "list", YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	void **buffer = (void **) malloc(8 * sizeof(void *));
@@ -135,7 +135,7 @@ void list_tostr(struct YASL_State *S) {
 void list_push(struct YASL_State *S) {
 	struct YASL_Object val = vm_pop((struct VM *) S);
 	if (!YASL_islist(S)) {
-		YASLX_print_err_bad_arg_type(S, "list.push", 0, "list", YASL_peektypestr(S));
+		YASLX_print_err_bad_arg_type(S, "list.push", 0, "list", YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	YASL_List_append(YASL_GETLIST(vm_peek((struct VM *) S)), val);
@@ -232,13 +232,13 @@ void list_clear(struct YASL_State *S) {
 
 void list_join(struct YASL_State *S) {
 	if (!vm_isstr((struct VM *) S)) {
-		YASLX_print_err_bad_arg_type(S, "list.join", 1, "str", YASL_peektypestr(S));
+		YASLX_print_err_bad_arg_type(S, "list.join", 1, "str", YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	struct YASL_String *string = vm_peekstr((struct VM *) S, S->vm.sp);
 	S->vm.sp--;
 	if (!YASL_islist(S)) {
-		YASLX_print_err_bad_arg_type(S, "list.join", 0, "list", YASL_peektypestr(S));
+		YASLX_print_err_bad_arg_type(S, "list.join", 0, "list", YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	struct YASL_List *list = vm_peeklist((struct VM *) S, S->vm.sp);

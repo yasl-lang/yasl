@@ -14,7 +14,7 @@
 static FILE *YASLX_checkfile(struct YASL_State *S, const char *name, int pos) {
 	if (!YASL_isuserdata(S, T_FILE)) {
 		vm_print_err_type((struct VM *)S, "%s expected arg in position %d to be of type file, got arg of type %s.",
-				  name, pos, YASL_peektypestr(S));
+				  name, pos, YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	return (FILE *)YASL_popuserdata(S);
@@ -193,7 +193,7 @@ static void YASL_io_seek(struct YASL_State *S) {
 	} else if ((YASL_isint(S))) {
 		offset = YASL_popint(S);
 	} else {
-		vm_print_err_type((struct VM *)S,"%s expected arg in position %d to be of type int, got arg of type %s.", FILE_PRE ".seek", 2, YASL_peektypestr(S));
+		vm_print_err_type((struct VM *)S,"%s expected arg in position %d to be of type int, got arg of type %s.", FILE_PRE ".seek", 2, YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 
