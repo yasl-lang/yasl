@@ -142,6 +142,10 @@ inline void *obj_getuserptr(const struct YASL_Object *const v) {
 	return v->value.pval;
 }
 
+inline const char *obj_typename(const struct YASL_Object *const v) {
+	return YASL_TYPE_NAMES[v->type];
+}
+
 void inc_ref(struct YASL_Object *v);
 void dec_ref(struct YASL_Object *v);
 

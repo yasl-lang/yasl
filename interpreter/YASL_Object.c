@@ -137,3 +137,4 @@ extern inline yasl_int obj_getint(const struct YASL_Object *const v);
 extern inline yasl_float obj_getnum(const struct YASL_Object *const v);
 extern inline struct YASL_String *obj_getstr(const struct YASL_Object *const v);
 extern inline void *obj_getuserptr(const struct YASL_Object *const v);
+extern inline const char *obj_typename(const struct YASL_Object *const v);

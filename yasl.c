@@ -256,7 +256,7 @@ int YASL_peekntype(struct YASL_State *S, unsigned n) {
 }
 
 const char *YASL_peektypename(struct YASL_State *S) {
-	return YASL_TYPE_NAMES[YASL_peektype(S)];
+	return obj_typename(vm_peek_p(&S->vm));
 }
 
 const char *YASL_peektypestr(struct YASL_State *S) {
@@ -264,7 +264,7 @@ const char *YASL_peektypestr(struct YASL_State *S) {
 }
 
 const char *YASL_peekntypename(struct YASL_State *S, unsigned n) {
-	return YASL_TYPE_NAMES[YASL_peekntype(S, n)];
+	return obj_typename(vm_peek_p(&S->vm, S->vm.fp + 1 + n));
 }
 
 const char *YASL_peekntypestr(struct YASL_State *S, unsigned n) {
@@ -527,6 +527,7 @@ void *YASL_popuserdata(struct YASL_State *S) {
 void *YASL_popuserptr(struct YASL_State *S) {
 	return YASL_GETUSERPTR(vm_pop(&S->vm));
 }
+
 
 // TODO: change this to static once we remove all references to it.
 // NOTE: Keep up to date with the YASL_Types
