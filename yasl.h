@@ -230,7 +230,7 @@ bool YASL_isundef(struct YASL_State *S);
  * @param S the YASL_State.
  * @return true if the top of the stack is userdata, else false.
  */
-bool YASL_isuserdata(struct YASL_State *S, int tag);
+bool YASL_isuserdata(struct YASL_State *S, const char *tag);
 
 /**
  * [-0, +0]
@@ -565,7 +565,7 @@ void YASL_pushundef(struct YASL_State *S);
  * @param S the YASL_State onto which to push the user-pointer.
  * @param userpointer the user-pointer to push onto the stack.
  */
-void YASL_pushuserdata(struct YASL_State *S, void *data, int tag, const char *name, void (*destructor)(void *));
+void YASL_pushuserdata(struct YASL_State *S, void *data, const char *name, void (*destructor)(void *));
 
 /**
  * [-0, +1]

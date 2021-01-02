@@ -295,8 +295,8 @@ void YASL_pushcstring(struct YASL_State *S, char *value) {
 	vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized(strlen(value), value)));
 }
 
-void YASL_pushuserdata(struct YASL_State *S, void *data, int tag, const char *name, void (*destructor)(void *)) {
-	vm_push(&S->vm, YASL_USERDATA(ud_new(data, tag, name, NULL, destructor)));
+void YASL_pushuserdata(struct YASL_State *S, void *data, const char *name, void (*destructor)(void *)) {
+	vm_push(&S->vm, YASL_USERDATA(ud_new(data, name, NULL, destructor)));
 }
 
 void YASL_pushuserptr(struct YASL_State *S, void *userpointer) {
@@ -428,8 +428,8 @@ bool YASL_isntable(struct YASL_State *S, unsigned n) {
 	return vm_istable(&S->vm, S->vm.fp + 1 + n);
 }
 
-bool YASL_isuserdata(struct YASL_State *S, int tag) {
-	return vm_isuserdata(&S->vm) && YASL_GETUSERDATA(vm_peek(&S->vm))->tag == tag;
+bool YASL_isuserdata(struct YASL_State *S, const char *name) {
+	return vm_isuserdata(&S->vm) && YASL_GETUSERDATA(vm_peek(&S->vm))->name == name;
 }
 
 bool YASL_peekbool(struct YASL_State *S) {

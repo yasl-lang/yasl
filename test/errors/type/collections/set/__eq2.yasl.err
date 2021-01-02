@@ -1,1 +1,1 @@
-TypeError: collections.set.__eq expected arg in position 0 to be of type set, got arg of type int. (line 1)
+TypeError: collections.set.__eq expected arg in position 0 to be of type collections.set, got arg of type int. (line 1)

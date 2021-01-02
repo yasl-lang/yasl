@@ -44,13 +44,13 @@ void YASL_Table_del(struct YASL_Table *const table) {
 }
 
 struct RC_UserData *rcht_new_sized(const size_t base_size) {
-        struct RC_UserData *ht = (struct RC_UserData *)malloc(sizeof(struct RC_UserData));
-        ht->data = table_new_sized(base_size);
-        ht->rc = rc_new();
-        ht->tag = T_TABLE;
-        ht->destructor = rcht_del_data;
-        ht->mt = NULL;
-        return ht;
+	struct RC_UserData *ht = (struct RC_UserData *) malloc(sizeof(struct RC_UserData));
+	ht->data = table_new_sized(base_size);
+	ht->rc = rc_new();
+	//ht->tag = T_TABLE;
+	ht->destructor = rcht_del_data;
+	ht->mt = NULL;
+	return ht;
 }
 
 struct RC_UserData *rcht_new(void) {
