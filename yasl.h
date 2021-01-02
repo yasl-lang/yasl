@@ -21,22 +21,6 @@ struct YASL_State;
 typedef void (*YASL_cfn)(struct YASL_State *);
 
 /**
- * Initialises a new YASL_State for usage.
- * @param filename the name of the file used to initialize the state.
- * @return the new YASL_State, or NULL on failure.
- */
-struct YASL_State *YASL_newstate(const char *filename);
-
-/**
- * resets S to the same state it would be in if newly created using
- * YASL_newstate.
- * @param S the YASL_State
- * @param filename the name of the file used to initialize S
- * @return YASL_SUCCESS if successful, otherwise an error.
- */
-int YASL_resetstate(struct YASL_State *S, const char *filename);
-
-/**
  * [-0, +0]
  * compiles the source for the given YASL_State, but doesn't
  * run it.
@@ -203,7 +187,7 @@ bool YASL_isnuserptr(struct YASL_State *S, unsigned n);
 /**
  * [-0, +0]
  * checks if the top of the stack is str.
- * @param S the YASL_State to which the stack belongs.
+ * @param S the YASL_State.
  * @return true if the top of the stack is str, else false.
  */
 bool YASL_isstr(struct YASL_State *S);
@@ -211,7 +195,7 @@ bool YASL_isstr(struct YASL_State *S);
 /**
  * [-0, +0]
  * checks if the top of the stack is table.
- * @param S the YASL_State to which the stack belongs.
+ * @param S the YASL_State.
  * @return true if the top of the stack is table, else false.
  */
 bool YASL_istable(struct YASL_State *S);
@@ -219,7 +203,7 @@ bool YASL_istable(struct YASL_State *S);
 /**
  * [-0, +0]
  * Checks if the top of the stack is undef.
- * @param S the YASL_State to which the stack belongs.
+ * @param S the YASL_State.
  * @return true if the top of the stack is undef, else false.
  */
 bool YASL_isundef(struct YASL_State *S);
@@ -269,6 +253,13 @@ int YASL_loadmt(struct YASL_State *S, const char *name);
 void YASL_loadprintout(struct YASL_State *S);
 
 void YASL_loadprinterr(struct YASL_State *S);
+
+/**
+ * Initialises a new YASL_State for usage.
+ * @param filename the name of the file used to initialize the state.
+ * @return the new YASL_State, or NULL on failure.
+ */
+struct YASL_State *YASL_newstate(const char *filename);
 
 /**
  * initialises a new YASL_State for usage, or NULL on failure.
@@ -353,9 +344,9 @@ void *YASL_peeknuserdata(struct YASL_State *S, unsigned n);
 
 /**
  * [-0, +0]
- * returns the type of the top of the stack as a string.
- * @param S the YASL_State to which the stack belongs.
- * @return the string representation of the type on top of the stack.
+ * returns the type of index n as a string.
+ * @param S the YASL_State.
+ * @return the string representation of the type of index n.
  */
 const char *YASL_peekntypename(struct YASL_State *S, unsigned n);
 
@@ -502,10 +493,30 @@ void YASL_pushint(struct YASL_State *S, yasl_int value);
 
 /**
  * [-0, +1]
+ * Pushes a string with length len onto the stack. YASL makes a copy of the
+ * given string, and manages the memory for it. The string may have embedded
+ * 0s.
+ * @param S the YASL_State.
+ * @param value the string to be pushed onto the stack.
+ * @param len the length of value.
+ */
+void YASL_pushlstr(struct YASL_State *S, const char *value, size_t len);
+
+/**
+ * [-0, +1]
  * Pushes an empty list onto the stack.
  * @param S the YASL_State onto which to push the list.
  */
 void YASL_pushlist(struct YASL_State *S);
+
+/**
+ * [-0, +1]
+ * Pushes a nul-terminated string onto the stack. This memory will not
+ * be managed by YASL, and must outlive S.
+ * @param S the YASL_State.
+ * @param value nul-terminated string to be pushed onto the stack.
+ */
+void YASL_pushlit(struct YASL_State *S, const char *value);
 
 /**
  * [-0, +1]
@@ -515,16 +526,16 @@ void YASL_pushlist(struct YASL_State *S);
  * @param value string to be pushed onto the stack.
  * @param size size of string to be pushed onto the stack.
  */
-void YASL_pushlitstring(struct YASL_State *S, const char *value, const size_t size);
+YASL_DEPRECATE void YASL_pushlitstring(struct YASL_State *S, const char *value, const size_t size);
 
 /**
  * [-0, +1]
  * Pushes a null-terminated string onto the stack. This memory will not
  * be managed by YASL.
- * @param S the YASL_State onto which to push the string.
+ * @param S the YASL_State.
  * @param value null-terminated string to be pushed onto the stack.
  */
-void YASL_pushlitszstring(struct YASL_State *S, const char *value);
+YASL_DEPRECATE void YASL_pushlitszstring(struct YASL_State *S, const char *value);
 
 /**
  * [-0, +1]
@@ -533,7 +544,7 @@ void YASL_pushlitszstring(struct YASL_State *S, const char *value);
  * @param value string to be pushed onto the stack.
  * @param size size of string to be pushed onto the stack.
  */
-void YASL_pushstring(struct YASL_State *S, const char *value, const size_t size);
+YASL_DEPRECATE void YASL_pushstring(struct YASL_State *S, const char *value, const size_t size);
 
 /**
  * [-0, +1]
@@ -543,7 +554,7 @@ void YASL_pushstring(struct YASL_State *S, const char *value, const size_t size)
  * @param S the YASL_State onto which to push the string.
  * @param value null-terminated string to be pushed onto the stack.
  */
-void YASL_pushszstring(struct YASL_State *S, const char *value);
+YASL_DEPRECATE void YASL_pushszstring(struct YASL_State *S, const char *value);
 
 /**
  * [-0, +1]
@@ -576,6 +587,15 @@ void YASL_pushuserdata(struct YASL_State *S, void *data, int tag, void (*destruc
 void YASL_pushuserptr(struct YASL_State *S, void *userpointer);
 
 /**
+ * Pushes a nul-terminated string onto the stack. YASL makes a copy of
+ * the given string, and manages the memory for it. The string may not
+ * have embedded 0s; it is assumed to end at the first 0.
+ * @param S the YASL_State.
+ * @param value the string to be pushed onto the stack (nul-terminated).
+ */
+void YASL_pushzstr(struct YASL_State *S, const char *value);
+
+/**
  * [-0, +0]
  * Registers a metatable with name `name`. After this returns, the
  * metatable can be referred to by `name` in other functions dealing
@@ -585,6 +605,15 @@ void YASL_pushuserptr(struct YASL_State *S, void *userpointer);
  * @return YASL_SUCCESS.
  */
 int YASL_registermt(struct YASL_State *S, const char *name);
+
+/**
+ * resets S to the same state it would be in if newly created using
+ * YASL_newstate.
+ * @param S the YASL_State
+ * @param filename the name of the file used to initialize S
+ * @return YASL_SUCCESS if successful, otherwise an error.
+ */
+int YASL_resetstate(struct YASL_State *S, const char *filename);
 
 /**
  * resets S to the same state it would be in if newly created using

@@ -61,7 +61,8 @@ static void testsetglobal_szstr(void) {
 	strcpy(tmp, "hello world");
 	S->vm.out.print = io_print_string;
 	ASSERT_SUCCESS(YASL_declglobal(S, "x"));
-	YASL_pushszstring(S, tmp);
+	YASL_pushzstr(S, tmp);
+	free(tmp);
 	ASSERT_SUCCESS(YASL_setglobal(S, "x"));
 	ASSERT_SUCCESS(YASL_compile(S));
 	ASSERT_SUCCESS(YASL_execute(S));
@@ -72,7 +73,7 @@ static void testsetglobal_litstr(void) {
 	struct YASL_State *S = YASL_newstate_bb("echo x;", strlen("echo x;"));
 	S->vm.out.print = io_print_string;
 	ASSERT_SUCCESS(YASL_declglobal(S, "x"));
-	YASL_pushlitstring(S, "hello world", strlen("hello world"));
+	YASL_pushlit(S, "hello world");
 	ASSERT_SUCCESS(YASL_setglobal(S, "x"));
 	ASSERT_SUCCESS(YASL_compile(S));
 	ASSERT_SUCCESS(YASL_execute(S));

@@ -49,7 +49,7 @@ struct YASL_State *YASL_newstate(const char *filename) {
 	vm_init((struct VM *) S, NULL, -1, 1);
 
 	YASL_declglobal(S, "__VERSION__");
-	YASL_pushlitszstring(S, YASL_VERSION);
+	YASL_pushlit(S, YASL_VERSION);
 	YASL_setglobal(S, "__VERSION__");
 
 	return S;
@@ -65,14 +65,14 @@ void YASL_setprinterr_tostr(struct YASL_State *S) {
 }
 
 void YASL_loadprintout(struct YASL_State *S) {
-	YASL_pushlitstring(S, S->vm.out.string, S->vm.out.len);
+	YASL_pushlstr(S, S->vm.out.string, S->vm.out.len);
 }
 
 void YASL_loadprinterr(struct YASL_State *S) {
 	if (S->compiler.status != YASL_SUCCESS) {
-		YASL_pushlitstring(S, S->compiler.parser.lex.err.string, S->compiler.parser.lex.err.len);
+		YASL_pushlstr(S, S->compiler.parser.lex.err.string, S->compiler.parser.lex.err.len);
 	} else {
-		YASL_pushlitstring(S, S->vm.err.string, S->vm.err.len);
+		YASL_pushlstr(S, S->vm.err.string, S->vm.err.len);
 	}
 }
 
@@ -308,7 +308,21 @@ void YASL_pushszstring(struct YASL_State *S, const char *value) {
 }
 
 void YASL_pushlitszstring(struct YASL_State *S, const char *value) {
+	YASL_pushlit(S, value);
+}
+
+void YASL_pushlit(struct YASL_State *S, const char *value) {
 	vm_pushstr((struct VM *) S, YASL_String_new_sized(strlen(value), value));
+}
+
+void YASL_pushzstr(struct YASL_State *S, const char *value) {
+	YASL_pushlstr(S, value, strlen(value));
+}
+
+void YASL_pushlstr(struct YASL_State *S, const char *value, size_t len) {
+	char *buffer = malloc(len);
+	memcpy(buffer, value, len);
+	vm_pushstr((struct VM *)S, YASL_String_new_sized_heap(0, len, buffer));
 }
 
 void YASL_pushstring(struct YASL_State *S, const char *value, const size_t size) {

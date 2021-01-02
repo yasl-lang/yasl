@@ -42,7 +42,7 @@ static void testpopbool(void) {
 
 static void testpop_userptr_helper(struct YASL_State *S) {
 	char *x = (char *)YASL_popuserptr(S);
-	YASL_pushlitszstring(S, x);
+	YASL_pushlit(S, x);
 }
 
 static void testpopuserptr(void) {

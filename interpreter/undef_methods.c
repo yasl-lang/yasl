@@ -5,7 +5,7 @@
 
 void undef_tostr(struct YASL_State *S) {
 	YASLX_checkundef(S, "undef.tostr", 0);
-	YASL_pushlitszstring(S, "undef");
+	YASL_pushlit(S, "undef");
 }
 
 void undef_tobool(struct YASL_State *S) {

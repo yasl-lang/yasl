@@ -6,7 +6,7 @@
 void bool_tostr(struct YASL_State *S) {
 	bool result = YASLX_checkbool(S, "bool.tostr", 0);
 	const char *str = result ? "true" : "false";
-	YASL_pushlitszstring(S, str);
+	YASL_pushlit(S, str);
 }
 
 void bool_tobool(struct YASL_State *S) {

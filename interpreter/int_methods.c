@@ -25,5 +25,6 @@ void int_tostr(struct YASL_State *S) {
 	int len = snprintf(NULL, 0, "%" PRId64 "", n);
 	char *ptr = (char *)malloc(len + 1);
 	sprintf(ptr, "%" PRId64 "", n);
-	YASL_pushstring(S, ptr, len);
+	YASL_pushlstr(S, ptr, len);
+	free(ptr);
 }

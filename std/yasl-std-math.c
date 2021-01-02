@@ -269,117 +269,117 @@ int YASL_decllib_math(struct YASL_State *S) {
 	YASL_setglobal(S, "math");
 
 	YASL_loadglobal(S, "math");
-	YASL_pushlitszstring(S, "abs");
+	YASL_pushlit(S, "abs");
 	YASL_pushcfunction(S, YASL_math_abs, 1);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
-	YASL_pushlitszstring(S, "exp");
+	YASL_pushlit(S, "exp");
 	YASL_pushcfunction(S, YASL_math_exp, 1);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
-	YASL_pushlitszstring(S, "log");
+	YASL_pushlit(S, "log");
 	YASL_pushcfunction(S, YASL_math_log, 1);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
-	YASL_pushlitszstring(S, "pi");
+	YASL_pushlit(S, "pi");
 	YASL_pushfloat(S, YASL_PI);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
-	YASL_pushlitszstring(S, "nan");
+	YASL_pushlit(S, "nan");
 	YASL_pushfloat(S, YASL_NAN);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
-	YASL_pushlitszstring(S, "inf");
+	YASL_pushlit(S, "inf");
 	YASL_pushfloat(S, YASL_INF);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
-	YASL_pushlitszstring(S, "sqrt");
+	YASL_pushlit(S, "sqrt");
 	YASL_pushcfunction(S, YASL_math_sqrt, 1);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
-	YASL_pushlitszstring(S, "cos");
+	YASL_pushlit(S, "cos");
 	YASL_pushcfunction(S, YASL_math_cos, 1);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
-	YASL_pushlitszstring(S, "sin");
+	YASL_pushlit(S, "sin");
 	YASL_pushcfunction(S, YASL_math_sin, 1);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
-	YASL_pushlitszstring(S, "tan");
+	YASL_pushlit(S, "tan");
 	YASL_pushcfunction(S, YASL_math_tan, 1);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
-	YASL_pushlitszstring(S, "acos");
+	YASL_pushlit(S, "acos");
 	YASL_pushcfunction(S, YASL_math_acos, 1);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
-	YASL_pushlitszstring(S, "asin");
+	YASL_pushlit(S, "asin");
 	YASL_pushcfunction(S, YASL_math_asin, 1);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
-	YASL_pushlitszstring(S, "atan");
+	YASL_pushlit(S, "atan");
 	YASL_pushcfunction(S, YASL_math_atan, 1);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
-	YASL_pushlitszstring(S, "ceil");
+	YASL_pushlit(S, "ceil");
 	YASL_pushcfunction(S, YASL_math_ceil, 1);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
-	YASL_pushlitszstring(S, "floor");
+	YASL_pushlit(S, "floor");
 	YASL_pushcfunction(S, YASL_math_floor, 1);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
-	YASL_pushlitszstring(S, "max");
+	YASL_pushlit(S, "max");
 	YASL_pushcfunction(S, YASL_math_max, -1);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
-	YASL_pushlitszstring(S, "min");
+	YASL_pushlit(S, "min");
 	YASL_pushcfunction(S, YASL_math_min, -1);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
-	YASL_pushlitszstring(S, "deg");
+	YASL_pushlit(S, "deg");
 	YASL_pushcfunction(S, YASL_math_deg, 1);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
-	YASL_pushlitszstring(S, "rad");
+	YASL_pushlit(S, "rad");
 	YASL_pushcfunction(S, YASL_math_rad, 1);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
-	YASL_pushlitszstring(S, "isprime");
+	YASL_pushlit(S, "isprime");
 	YASL_pushcfunction(S, YASL_math_isprime, 1);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
-	YASL_pushlitszstring(S, "gcd");
+	YASL_pushlit(S, "gcd");
 	YASL_pushcfunction(S, YASL_math_gcd, 2);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
-	YASL_pushlitszstring(S, "lcm");
+	YASL_pushlit(S, "lcm");
 	YASL_pushcfunction(S, YASL_math_lcm, 2);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "math");
-	YASL_pushlitszstring(S, "rand");
+	YASL_pushlit(S, "rand");
 	YASL_pushcfunction(S, YASL_math_rand, 1);
 	YASL_tableset(S);
 
