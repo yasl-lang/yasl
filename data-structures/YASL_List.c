@@ -18,7 +18,7 @@ struct RC_UserData* rcls_new_sized(const size_t base_size) {
 	ls->rc = rc_new();
 	ls->mt = NULL;
 	ls->destructor = YASL_List_del_data;
-	ls->tag = T_LIST;
+	//ls->tag = T_LIST;
 	return ls;
 }
 

@@ -3,9 +3,9 @@
 #include "interpreter/refcount.h"
 #include "YASL_Object.h"
 
-struct RC_UserData *ud_new(void *data, int tag, const char *name, struct RC_UserData *mt, void (*destructor)(void *)) {
+struct RC_UserData *ud_new(void *data, const char *name, struct RC_UserData *mt, void (*destructor)(void *)) {
 	struct RC_UserData *ud = (struct RC_UserData *)malloc(sizeof(struct RC_UserData));
-	ud->tag = tag;
+	//ud->tag = tag;
 	ud->name = name;
 	ud->rc = rc_new();
 	ud->mt = mt;
