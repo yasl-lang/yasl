@@ -12,6 +12,25 @@
 
 char *float64_to_str(yasl_float d);
 
+static const char *YASL_TYPE_NAMES[] = {
+	"undef",    // Y_UNDEF,
+	"float",    // Y_FLOAT,
+	"int",      // Y_INT,
+	"bool",     // Y_BOOL,
+	"str",      // Y_STR,
+	"str",      // Y_STR_W,
+	"list",     // Y_LIST,
+	"list",     // Y_LIST_W,
+	"table",    // Y_TABLE,
+	"table",    // Y_TABLE_W,
+	"fn",       // Y_FN,
+	"fn",	    // Y_CLOSURE,
+	"fn",       // Y_CFN,
+	"userptr",  // Y_USERPTR,
+	"userdata", // Y_USERDATA,
+	"userdata", // Y_USERDATA_W
+};
+
 struct CFunction *new_cfn(YASL_cfn value, int num_args) {
 	struct CFunction *fn = (struct CFunction *) malloc(sizeof(struct CFunction));
 	fn->value = value;
@@ -117,6 +136,10 @@ bool isequal(const struct YASL_Object *const a, const struct YASL_Object *const 
 	return false;
 }
 
+const char *obj_typename(const struct YASL_Object *const v) {
+	return YASL_TYPE_NAMES[v->type];
+}
+
 extern inline bool obj_isundef(const struct YASL_Object *const v);
 extern inline bool obj_isfloat(const struct YASL_Object *const v);
 extern inline bool obj_isint(const struct YASL_Object *const v);
@@ -137,4 +160,3 @@ extern inline yasl_int obj_getint(const struct YASL_Object *const v);
 extern inline yasl_float obj_getnum(const struct YASL_Object *const v);
 extern inline struct YASL_String *obj_getstr(const struct YASL_Object *const v);
 extern inline void *obj_getuserptr(const struct YASL_Object *const v);
-extern inline const char *obj_typename(const struct YASL_Object *const v);

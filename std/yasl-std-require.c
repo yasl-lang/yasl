@@ -86,7 +86,7 @@ void YASL_require(struct YASL_State *S) {
 void YASL_require_c(struct YASL_State *S) {
 	// TODO: Do I need anything else here?
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *) S, "require_c", 0, Y_STR, YASL_peektype(S));
+		vm_print_err_bad_arg_type_name((struct VM *) S, "require_c", 0, YASL_STR_NAME, YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 

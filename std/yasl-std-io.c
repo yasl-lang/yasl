@@ -28,13 +28,13 @@ static void YASL_io_open(struct YASL_State *S) {
 	} else if (YASL_isstr(S)) {
 		mode_str = YASL_peekcstr(S);
 	} else {
-		vm_print_err_bad_arg_type((struct VM *)S, "io.open", 1, Y_STR, YASL_peektype(S));
+		vm_print_err_bad_arg_type_name((struct VM *)S, "io.open", 1, YASL_STR_NAME, YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	YASL_pop(S);
 
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, "io.open", 0, Y_STR, YASL_peektype(S));
+		vm_print_err_bad_arg_type_name((struct VM *)S, "io.open", 0, YASL_STR_NAME, YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 
@@ -107,7 +107,7 @@ static void YASL_io_read(struct YASL_State *S) {
 	} else if (YASL_isstr(S)) {
 		mode_str = YASL_peekcstr(S);
 	} else {
-		vm_print_err_bad_arg_type((struct VM *)S, FILE_PRE ".read", 1, Y_STR, YASL_peektype(S));
+		vm_print_err_bad_arg_type_name((struct VM *)S, FILE_PRE ".read", 1, YASL_STR_NAME, YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	YASL_pop(S);
@@ -161,7 +161,7 @@ static void YASL_io_read(struct YASL_State *S) {
 
 static void YASL_io_write(struct YASL_State *S) {
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *)S, FILE_PRE ".write", 1, Y_STR, YASL_peektype(S));
+		vm_print_err_bad_arg_type_name((struct VM *)S, FILE_PRE ".write", 1, YASL_STR_NAME, YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	char *str = YASL_peekcstr(S);
@@ -213,7 +213,7 @@ static void YASL_io_seek(struct YASL_State *S) {
 		}
 		free(tmp);
 	} else {
-		vm_print_err_bad_arg_type((struct VM *)S, FILE_PRE ".seek", 1, Y_STR, YASL_peektype(S));
+		vm_print_err_bad_arg_type_name((struct VM *)S, FILE_PRE ".seek", 1, YASL_STR_NAME, YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 

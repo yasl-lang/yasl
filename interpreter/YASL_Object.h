@@ -65,6 +65,8 @@ bool ishashable(const struct YASL_Object *const v);
 bool isfalsey(const struct YASL_Object *const v);
 bool isequal(const struct YASL_Object *const a, const struct YASL_Object *const b);
 
+const char *obj_typename(const struct YASL_Object *const v);
+
 inline bool obj_isundef(const struct YASL_Object *const v) {
 	return v->type == Y_UNDEF;
 }
@@ -140,10 +142,6 @@ inline struct YASL_String *obj_getstr(const struct YASL_Object *const v) {
 
 inline void *obj_getuserptr(const struct YASL_Object *const v) {
 	return v->value.pval;
-}
-
-inline const char *obj_typename(const struct YASL_Object *const v) {
-	return YASL_TYPE_NAMES[v->type];
 }
 
 void inc_ref(struct YASL_Object *v);

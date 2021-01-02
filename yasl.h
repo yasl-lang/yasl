@@ -9,6 +9,10 @@
 
 #define YASL_VERSION "v0.10.1"
 
+#define YASL_STR_NAME "str"
+#define YASL_FLOAT_NAME "float"
+#define YASL_TABLE_NAME "table"
+
 struct YASL_State;
 
 /**
