@@ -320,7 +320,7 @@ void YASL_pushzstr(struct YASL_State *S, const char *value) {
 }
 
 void YASL_pushlstr(struct YASL_State *S, const char *value, size_t len) {
-	char *buffer = malloc(len);
+	char *buffer = (char *)malloc(len);
 	memcpy(buffer, value, len);
 	vm_pushstr((struct VM *)S, YASL_String_new_sized_heap(0, len, buffer));
 }
