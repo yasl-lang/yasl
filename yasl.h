@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define YASL_VERSION "v0.10.1"
+#define YASL_VERSION "v0.11.0"
 
 #define YASL_STR_NAME "str"
 #define YASL_FLOAT_NAME "float"
