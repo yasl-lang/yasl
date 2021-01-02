@@ -1,5 +1,6 @@
 #include "yasl-std-mt.h"
 
+#include "yasl_aux.h"
 #include "VM.h"
 
 void YASL_mt_getmt(struct YASL_State *S) {
@@ -8,7 +9,7 @@ void YASL_mt_getmt(struct YASL_State *S) {
 
 void YASL_mt_setmt(struct YASL_State *S) {
 	if (!YASL_istable(S)) {
-		vm_print_err_bad_arg_type_name((struct VM*)S,"mt.set", 1, YASL_TABLE_NAME, YASL_peektypename(S));
+		YASLX_print_err_bad_arg_type(S, "mt.set", 1, YASL_TABLE_NAME, YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 

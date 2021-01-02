@@ -9,8 +9,7 @@
 
 static struct YASL_Set *YASLX_checkset(struct YASL_State *S, const char *name, int pos) {
 	if (!YASL_isuserdata(S, T_SET)) {
-		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type set, got arg of type %s.",
-				  name, pos, YASL_peektypename(S));
+		YASLX_print_err_bad_arg_type(S, name, pos, "set", YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	return (struct YASL_Set *)YASL_popuserdata(S);
