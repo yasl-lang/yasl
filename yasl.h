@@ -13,6 +13,11 @@
 #define YASL_FLOAT_NAME "float"
 #define YASL_TABLE_NAME "table"
 
+/**
+ * Opaque structure that keeps track of all state needed for the YASL
+ * interpreter. It is fully re-entrant. Multiple states can be created
+ * and used completely independently.
+ */
 struct YASL_State;
 
 /**
