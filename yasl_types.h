@@ -27,5 +27,3 @@ enum YASL_Types {
 	Y_USERDATA,
 	Y_USERDATA_W,
 };
-
-extern const char *YASL_TYPE_NAMES[16];

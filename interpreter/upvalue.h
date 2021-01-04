@@ -14,5 +14,6 @@ struct Upvalue {
 struct Upvalue *upval_new(struct YASL_Object *const location);
 struct YASL_Object upval_get(const struct Upvalue *const upval);
 void upval_set(struct Upvalue *const upval, const struct YASL_Object v);
+void upval_close(struct Upvalue *const upval);
 
 #endif

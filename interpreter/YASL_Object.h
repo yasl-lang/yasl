@@ -65,6 +65,8 @@ bool ishashable(const struct YASL_Object *const v);
 bool isfalsey(const struct YASL_Object *const v);
 bool isequal(const struct YASL_Object *const a, const struct YASL_Object *const b);
 
+const char *obj_typename(const struct YASL_Object *const v);
+
 inline bool obj_isundef(const struct YASL_Object *const v) {
 	return v->type == Y_UNDEF;
 }

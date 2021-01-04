@@ -575,6 +575,7 @@ int lexertest(void) {
 	test_int();
 	test_hex();
 	test_binary();
+	test_float();
 	test_string();
 	test_division();
 

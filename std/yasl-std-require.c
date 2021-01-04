@@ -86,7 +86,8 @@ void YASL_require(struct YASL_State *S) {
 void YASL_require_c(struct YASL_State *S) {
 	// TODO: Do I need anything else here?
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type((struct VM *) S, "require_c", 0, Y_STR, YASL_peektype(S));
+		// TODO: change error message once `require_c` is removed.
+		YASLX_print_err_bad_arg_type(S, "require_c", 0, YASL_STR_NAME, YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 
@@ -115,12 +116,12 @@ void YASL_require_c(struct YASL_State *S) {
 #elif defined(YASL_USE_UNIX) || defined(YASL_USE_APPLE)
 	void *lib = dlopen(mode_str, RTLD_NOW);
 	if (!lib) {
-		vm_print_err_value((struct VM *) S, "couldn't open shared library: %s.\n", mode_str);
+		vm_print_err_value((struct VM *) S, "%s\n", dlerror());
 		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
 	YASL_cfn fun= (YASL_cfn) dlsym(lib, LOAD_LIB_FUN_NAME);
 	if (!fun) {
-		vm_print_err_value((struct VM *) S, "couldn't load function: %s.\n", LOAD_LIB_FUN_NAME);
+		vm_print_err_value((struct VM *) S, "%s\n", dlerror());
 		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
 	fun(S);
@@ -142,6 +143,10 @@ int YASL_decllib_require_c(struct YASL_State *S) {
 	YASL_declglobal(S, "require_c");
 	YASL_pushcfunction(S, YASL_require_c, 1);
 	YASL_setglobal(S, "require_c");
+
+	YASL_declglobal(S, "__require_c__");
+	YASL_pushcfunction(S, YASL_require_c, 1);
+	YASL_setglobal(S, "__require_c__");
 
 	return YASL_SUCCESS;
 }

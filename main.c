@@ -16,12 +16,6 @@
 		  "|     ||  |  | |    | |     |\n" \
 		  "|_____/|__|__| \\____/ |_____|\n"
 
-static int main_error(int argc, char **argv) {
-	(void) argv;
-	printf("error: Invalid arguments passed (passed %d arguments). Type `yasl -h` for help (without the backticks).\n", argc);
-	return EXIT_FAILURE;
-}
-
 // -b: run bytecode
 // -c: compile to bytecode
 static int main_help(int argc, char **argv) {
@@ -61,7 +55,7 @@ static int main_file(int argc, char **argv) {
 	YASL_declglobal(S, "args");
 	YASL_pushlist(S);
 	for (int i = 1; i < argc; i++) {
-		YASL_pushlitszstring(S, argv[i]);
+		YASL_pushlit(S, argv[i]);
 		YASL_listpush(S);
 	}
 	YASL_setglobal(S, "args");
@@ -89,7 +83,7 @@ static int main_compile(int argc, char **argv) {
 	YASL_declglobal(S, "args");
 	YASL_pushlist(S);
 	for (int i = 1; i < argc; i++) {
-		YASL_pushlitszstring(S, argv[i]);
+		YASL_pushlit(S, argv[i]);
 		YASL_listpush(S);
 	}
 	YASL_setglobal(S, "args");
@@ -139,9 +133,8 @@ static int main_REPL(int argc, char **argv) {
 	(void) argc;
 	(void) argv;
 	int next;
-	size_t size = 8, count = 0;
-	char *buffer = (char *)malloc(size);
-	struct YASL_State *S = YASL_newstate_bb(buffer, 0);
+	struct YASL_ByteBuffer *buffer = YASL_ByteBuffer_new(8);
+	struct YASL_State *S = YASL_newstate_bb((const char *)buffer->bytes, 0);
 	YASLX_decllibs(S);
 	YASL_declglobal(S, "quit");
 	YASL_pushcfunction(S, YASL_quit, 0);
@@ -151,25 +144,17 @@ static int main_REPL(int argc, char **argv) {
 	while (true) {
 		printf("yasl> ");
 		while ((next = getchar()) != '\n') {
-			if (size == count) {
-				size *= 2;
-				buffer = (char *)realloc(buffer, size);
-			}
-			buffer[count++] = next;
+			YASL_ByteBuffer_add_byte(buffer, next);
 		}
-		if (size == count) {
-			size *= 2;
-			buffer = (char *)realloc(buffer, size);
-		}
-		buffer[count++] = '\n';
+		YASL_ByteBuffer_add_byte(buffer, '\n');
 
-		YASL_resetstate_bb(S, buffer, count); 
+		YASL_resetstate_bb(S, (const char *)buffer->bytes, buffer->count);
 
-		count = 0;
+		buffer->count = 0;
 
 		YASL_execute_REPL(S);
 	}
-	free(buffer);
+	YASL_ByteBuffer_del(buffer);
 	YASL_delstate(S);
 	return YASL_SUCCESS;
 }

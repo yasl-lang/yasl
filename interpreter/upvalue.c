@@ -17,7 +17,7 @@ void upval_set(struct Upvalue *const upval, const struct YASL_Object v) {
 	*upval->location = v;
 }
 
-static void upval_close(struct Upvalue *const upval) {
+void upval_close(struct Upvalue *const upval) {
 	upval->closed = upval_get(upval);
 	upval->location = &upval->closed;
 }

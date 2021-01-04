@@ -49,7 +49,7 @@ struct YASL_State *YASL_newstate(const char *filename) {
 	vm_init((struct VM *) S, NULL, -1, 1);
 
 	YASL_declglobal(S, "__VERSION__");
-	YASL_pushlitszstring(S, YASL_VERSION);
+	YASL_pushlit(S, YASL_VERSION);
 	YASL_setglobal(S, "__VERSION__");
 
 	return S;
@@ -65,14 +65,14 @@ void YASL_setprinterr_tostr(struct YASL_State *S) {
 }
 
 void YASL_loadprintout(struct YASL_State *S) {
-	YASL_pushlitstring(S, S->vm.out.string, S->vm.out.len);
+	YASL_pushlstr(S, S->vm.out.string, S->vm.out.len);
 }
 
 void YASL_loadprinterr(struct YASL_State *S) {
 	if (S->compiler.status != YASL_SUCCESS) {
-		YASL_pushlitstring(S, S->compiler.parser.lex.err.string, S->compiler.parser.lex.err.len);
+		YASL_pushlstr(S, S->compiler.parser.lex.err.string, S->compiler.parser.lex.err.len);
 	} else {
-		YASL_pushlitstring(S, S->vm.err.string, S->vm.err.len);
+		YASL_pushlstr(S, S->vm.err.string, S->vm.err.len);
 	}
 }
 
@@ -251,8 +251,24 @@ int YASL_peektype(struct YASL_State *S) {
 	return vm_peek(&S->vm).type;
 }
 
+int YASL_peekntype(struct YASL_State *S, unsigned n) {
+	return vm_peek(&S->vm, S->vm.fp + 1 + n).type;
+}
+
+const char *YASL_peektypename(struct YASL_State *S) {
+	return obj_typename(vm_peek_p(&S->vm));
+}
+
 const char *YASL_peektypestr(struct YASL_State *S) {
-	return YASL_TYPE_NAMES[YASL_peektype(S)];
+	return YASL_peektypename(S);
+}
+
+const char *YASL_peekntypename(struct YASL_State *S, unsigned n) {
+	return obj_typename(vm_peek_p(&S->vm, S->vm.fp + 1 + n));
+}
+
+const char *YASL_peekntypestr(struct YASL_State *S, unsigned n) {
+	return YASL_peekntypename(S, n);
 }
 
 void YASL_pushundef(struct YASL_State *S) {
@@ -292,7 +308,21 @@ void YASL_pushszstring(struct YASL_State *S, const char *value) {
 }
 
 void YASL_pushlitszstring(struct YASL_State *S, const char *value) {
+	YASL_pushlit(S, value);
+}
+
+void YASL_pushlit(struct YASL_State *S, const char *value) {
 	vm_pushstr((struct VM *) S, YASL_String_new_sized(strlen(value), value));
+}
+
+void YASL_pushzstr(struct YASL_State *S, const char *value) {
+	YASL_pushlstr(S, value, strlen(value));
+}
+
+void YASL_pushlstr(struct YASL_State *S, const char *value, size_t len) {
+	char *buffer = (char *)malloc(len);
+	memcpy(buffer, value, len);
+	vm_pushstr((struct VM *)S, YASL_String_new_sized_heap(0, len, buffer));
 }
 
 void YASL_pushstring(struct YASL_State *S, const char *value, const size_t size) {
@@ -360,28 +390,56 @@ bool YASL_isundef(struct YASL_State *S) {
 	return vm_isundef(&S->vm);
 }
 
+bool YASL_isnundef(struct YASL_State *S, unsigned n) {
+	return vm_isundef(&S->vm, S->vm.fp + 1 + n);
+}
+
 bool YASL_isbool(struct YASL_State *S) {
 	return vm_isbool(&S->vm);
+}
+
+bool YASL_isnbool(struct YASL_State *S, unsigned n) {
+	return vm_isbool(&S->vm, S->vm.fp + 1 + n);
 }
 
 bool YASL_isfloat(struct YASL_State *S) {
 	return vm_isfloat(&S->vm);
 }
 
+bool YASL_isnfloat(struct YASL_State *S, unsigned n) {
+	return vm_isfloat(&S->vm, S->vm.fp + 1 + n);
+}
+
 bool YASL_isint(struct YASL_State *S) {
 	return vm_isint(&S->vm);
+}
+
+bool YASL_isnint(struct YASL_State *S, unsigned n) {
+	return vm_isint(&S->vm, S->vm.fp + 1 + n);
 }
 
 bool YASL_isstr(struct YASL_State *S) {
 	return vm_isstr(&S->vm);
 }
 
+bool YASL_isnstr(struct YASL_State *S, unsigned n) {
+	return vm_isstr(&S->vm, S->vm.fp + 1 + n);
+}
+
 bool YASL_islist(struct YASL_State *S) {
 	return vm_islist(&S->vm);
 }
 
+bool YASL_isnlist(struct YASL_State *S, unsigned n) {
+	return vm_islist(&S->vm, S->vm.fp + 1 + n);
+}
+
 bool YASL_istable(struct YASL_State *S) {
 	return vm_istable(&S->vm);
+}
+
+bool YASL_isntable(struct YASL_State *S, unsigned n) {
+	return vm_istable(&S->vm, S->vm.fp + 1 + n);
 }
 
 bool YASL_isuserdata(struct YASL_State *S, int tag) {
@@ -392,6 +450,14 @@ bool YASL_peekbool(struct YASL_State *S) {
 	if (YASL_isbool(S)) {
 		return vm_peekbool(&S->vm);
 	}
+	return false;
+}
+
+bool YASL_peeknbool(struct YASL_State *S, unsigned n) {
+	if (YASL_isnbool(S, n)) {
+		return vm_peekbool(&S->vm, S->vm.fp + 1 + n);
+	}
+
 	return false;
 }
 
@@ -409,6 +475,14 @@ yasl_float YASL_peekfloat(struct YASL_State *S) {
 	return 0.0;
 }
 
+yasl_float YASL_peeknfloat(struct YASL_State *S, unsigned n) {
+	if (YASL_isnfloat(S, n)) {
+		return vm_peekfloat(&S->vm, S->vm.fp + 1 + n);
+	}
+
+	return 0.0;
+}
+
 yasl_float YASL_popfloat(struct YASL_State *S) {
 	if (YASL_isfloat(S)) {
 		return vm_popfloat(&S->vm);
@@ -420,6 +494,14 @@ yasl_int YASL_peekint(struct YASL_State *S) {
 	if (YASL_isint(S)) {
 		return vm_peekint(&S->vm);
 	}
+	return 0;
+}
+
+yasl_int YASL_peeknint(struct YASL_State *S, unsigned n) {
+	if (YASL_isnint(S, n)) {
+		return vm_peekint(&S->vm, S->vm.fp + 1 + n);
+	}
+
 	return 0;
 }
 
@@ -448,6 +530,10 @@ char *YASL_popcstr(struct YASL_State *S) {
 	return tmp;
 }
 
+void *YASL_peeknuserdata(struct YASL_State *S, unsigned n) {
+	return YASL_GETUSERDATA(vm_peek(&S->vm, S->vm.fp + 1 + n))->data;
+}
+
 void *YASL_popuserdata(struct YASL_State *S) {
 	return YASL_GETUSERDATA(vm_pop(&S->vm))->data;
 }
@@ -455,24 +541,3 @@ void *YASL_popuserdata(struct YASL_State *S) {
 void *YASL_popuserptr(struct YASL_State *S) {
 	return YASL_GETUSERPTR(vm_pop(&S->vm));
 }
-
-// TODO: change this to static once we remove all references to it.
-// NOTE: Keep up to date with the YASL_Types
-const char *YASL_TYPE_NAMES[] = {
-	"undef",    // Y_UNDEF,
-	"float",    // Y_FLOAT,
-	"int",      // Y_INT,
-	"bool",     // Y_BOOL,
-	"str",      // Y_STR,
-	"str",      // Y_STR_W,
-	"list",     // Y_LIST,
-	"list",     // Y_LIST_W,
-	"table",    // Y_TABLE,
-	"table",    // Y_TABLE_W,
-	"fn",       // Y_FN,
-	"fn",	    // Y_CLOSURE,
-	"fn",       // Y_CFN,
-	"userptr",  // Y_USERPTR,
-	"userdata", // Y_USERDATA,
-	"userdata", // Y_USERDATA_W
-};

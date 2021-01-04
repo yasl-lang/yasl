@@ -2,14 +2,14 @@
 
 #include "data-structures/YASL_Set.h"
 #include "yasl_state.h"
+#include "yasl_aux.h"
 
 // what to prepend to method names in messages to user
 #define SET_PRE "collections.set"
 
 static struct YASL_Set *YASLX_checkset(struct YASL_State *S, const char *name, int pos) {
 	if (!YASL_isuserdata(S, T_SET)) {
-		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type set, got arg of type %s.",
-				  name, pos, YASL_peektypestr(S));
+		YASLX_print_err_bad_arg_type(S, name, pos, "set", YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	return (struct YASL_Set *)YASL_popuserdata(S);
@@ -21,7 +21,7 @@ static void YASL_collections_set_new(struct YASL_State *S) {
 	while (i-- > 0) {
 		if (!YASL_Set_insert(set, vm_peek((struct VM *) S))) {
 			vm_print_err_type(&S->vm, "unable to use mutable object of type %s as key.",
-					  YASL_peektypestr(S));
+					  YASL_peektypename(S));
 			YASL_throw_err(S, YASL_TYPE_ERROR);
 		}
 		YASL_pop(S);
@@ -56,7 +56,7 @@ static void YASL_collections_table_new(struct YASL_State *S) {
 		struct YASL_Object key = vm_pop((struct VM *)S);
 		if (!YASL_Table_insert((struct YASL_Table *) table->data, key, value)) {
 			vm_print_err_type(&S->vm, "unable to use mutable object of type %s as key.",
-					  YASL_TYPE_NAMES[key.type]);
+					  obj_typename(&key));
 			YASL_throw_err(S, YASL_TYPE_ERROR);
 		}
 		i -= 2;
@@ -74,7 +74,8 @@ static void YASL_collections_set_tostr(struct YASL_State *S) {
 	memcpy(string, "set(", strlen("set("));
 	if (YASL_Set_length(set) == 0) {
 		string[string_count++] = ')';
-		YASL_pushstring(S, string, string_count);
+		YASL_pushlstr(S, string, string_count);
+		free(string);
 		return;
 	}
 	FOR_SET(i, item, set) {
@@ -219,7 +220,7 @@ static void YASL_collections_set_add(struct YASL_State *S) {
 	struct YASL_Set *set = YASLX_checkset(S, SET_PRE ".add", 0);
 
 	if (!YASL_Set_insert(set, val)) {
-		vm_print_err_type(&S->vm, "unable to use mutable object of type %s as key.", YASL_TYPE_NAMES[val.type]);
+		vm_print_err_type(&S->vm, "unable to use mutable object of type %s as key.", obj_typename(&val));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 }
@@ -267,107 +268,106 @@ int YASL_decllib_collections(struct YASL_State *S) {
 	YASL_registermt(S, SET_PRE);
 
 	YASL_loadmt(S, SET_PRE);
-	YASL_pushlitszstring(S, "tostr");
+	YASL_pushlit(S, "tostr");
 	YASL_pushcfunction(S, YASL_collections_set_tostr, 1);
 	YASL_tableset(S);
 
 	YASL_loadmt(S, SET_PRE);
-	YASL_pushlitszstring(S, "tolist");
+	YASL_pushlit(S, "tolist");
 	YASL_pushcfunction(S, YASL_collections_set_tolist, 1);
 	YASL_tableset(S);
 
 	YASL_loadmt(S, SET_PRE);
-	YASL_pushlitszstring(S, "__band");
+	YASL_pushlit(S, "__band");
 	YASL_pushcfunction(S, YASL_collections_set___band, 2);
 	YASL_tableset(S);
 
 	YASL_loadmt(S, SET_PRE);
-	YASL_pushlitszstring(S, "__bor");
+	YASL_pushlit(S, "__bor");
 	YASL_pushcfunction(S, YASL_collections_set___bor, 2);
 	YASL_tableset(S);
 
 	YASL_loadmt(S, SET_PRE);
-	YASL_pushlitszstring(S, "__bxor");
+	YASL_pushlit(S, "__bxor");
 	YASL_pushcfunction(S, YASL_collections_set___bxor, 2);
 	YASL_tableset(S);
 
 	YASL_loadmt(S, SET_PRE);
-	YASL_pushlitszstring(S, "__bandnot");
+	YASL_pushlit(S, "__bandnot");
 	YASL_pushcfunction(S, YASL_collections_set___bandnot, 2);
 	YASL_tableset(S);
 
 	YASL_loadmt(S, SET_PRE);
-	YASL_pushlitszstring(S, "__len");
+	YASL_pushlit(S, "__len");
 	YASL_pushcfunction(S, YASL_collections_set___len, 1);
 	YASL_tableset(S);
 
 	YASL_loadmt(S, SET_PRE);
-	YASL_pushlitszstring(S, "__eq");
+	YASL_pushlit(S, "__eq");
 	YASL_pushcfunction(S, YASL_collections_set___eq, 2);
 	YASL_tableset(S);
 
 	YASL_loadmt(S, SET_PRE);
-	YASL_pushlitszstring(S, "__gt");
+	YASL_pushlit(S, "__gt");
 	YASL_pushcfunction(S, YASL_collections_set___gt, 2);
 	YASL_tableset(S);
 
 	YASL_loadmt(S, SET_PRE);
-	YASL_pushlitszstring(S, "__ge");
+	YASL_pushlit(S, "__ge");
 	YASL_pushcfunction(S, YASL_collections_set___ge, 2);
 	YASL_tableset(S);
 
 	YASL_loadmt(S, SET_PRE);
-	YASL_pushlitszstring(S, "__lt");
+	YASL_pushlit(S, "__lt");
 	YASL_pushcfunction(S, YASL_collections_set___lt, 2);
 	YASL_tableset(S);
 
 	YASL_loadmt(S, SET_PRE);
-	YASL_pushlitszstring(S, "__le");
+	YASL_pushlit(S, "__le");
 	YASL_pushcfunction(S, YASL_collections_set___le, 2);
 	YASL_tableset(S);
 
 	YASL_loadmt(S, SET_PRE);
-	YASL_pushlitszstring(S, "add");
+	YASL_pushlit(S, "add");
 	YASL_pushcfunction(S, YASL_collections_set_add, 2);
 	YASL_tableset(S);
 
 	YASL_loadmt(S, SET_PRE);
-	YASL_pushlitszstring(S, "remove");
+	YASL_pushlit(S, "remove");
 	YASL_pushcfunction(S, YASL_collections_set_remove, 2);
 	YASL_tableset(S);
 
 	YASL_loadmt(S, SET_PRE);
-	YASL_pushlitszstring(S, "copy");
+	YASL_pushlit(S, "copy");
 	YASL_pushcfunction(S, YASL_collections_set_copy, 1);
 	YASL_tableset(S);
 
 	YASL_loadmt(S, SET_PRE);
-	YASL_pushlitszstring(S, "clear");
+	YASL_pushlit(S, "clear");
 	YASL_pushcfunction(S, YASL_collections_set_clear, 1);
 	YASL_tableset(S);
 
 	YASL_loadmt(S, SET_PRE);
-	YASL_pushlitszstring(S, "__get");
+	YASL_pushlit(S, "__get");
 	YASL_pushcfunction(S, YASL_collections_set___get, 2);
 	YASL_tableset(S);
 
 
-	YASL_declglobal(S, "collections");
 	YASL_pushtable(S);
-	YASL_setglobal(S, "collections");
+	YASLX_initglobal(S, "collections");
 
 	YASL_loadglobal(S, "collections");
-	YASL_pushlitszstring(S, "set");
+	YASL_pushlit(S, "set");
 	YASL_pushcfunction(S, YASL_collections_set_new, -1);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "collections");
-	YASL_pushlitszstring(S, "list");
+	YASL_pushlit(S, "list");
 	YASL_pushcfunction(S, YASL_collections_list_new, -1);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "collections");
-	YASL_pushlitszstring(S, "table");
+	YASL_pushlit(S, "table");
 	YASL_pushcfunction(S, YASL_collections_table_new, -1);
 	YASL_tableset(S);
 

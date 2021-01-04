@@ -79,6 +79,7 @@ int main(void) {
 #include "type_errors.inl"
 #include "value_errors.inl"
 #include "divisionbyzero_errors.inl"
+
 	char buffer[MAX_FILE_NAME_LEN];
 	struct YASL_State *S;
 

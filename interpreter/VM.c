@@ -274,6 +274,18 @@ struct YASL_Table *vm_poptable(struct VM *const vm) {
 	return YASL_GETTABLE(vm_pop(vm));
 }
 
+void vm_insert(struct VM *const vm, int index, struct YASL_Object val) {
+	if (vm->sp + 1 >= STACK_SIZE) {
+		vm_print_err(vm, "StackOverflow.");
+		vm_throw_err(vm, YASL_STACK_OVERFLOW_ERROR);
+	}
+
+	dec_ref(vm->stack + vm->sp);
+	memmove(vm->stack + index + 1, vm->stack + index, (vm->sp - index + 1) * sizeof(struct YASL_Object));
+	vm->stack[index] = val;
+	vm->sp++;
+}
+
 void vm_rm_range(struct VM *const vm, int start, int end) {
 	int after = vm->sp - end + 1;
 	int len = end - start;
@@ -294,28 +306,8 @@ static yasl_int vm_read_int(struct VM *const vm) {
     return val;
 }
 
-#define DEFINE_READ_INT(size) \
-	static yasl_int vm_read_int##size(struct VM *const vm) {\
-		int##size##_t val;\
-		memcpy(&val, vm->pc, sizeof(int##size##_t));\
-		vm->pc += sizeof(int##size##_t);\
-		return (yasl_int) val;\
-	}
-
-DEFINE_READ_INT(8)
-DEFINE_READ_INT(16)
-DEFINE_READ_INT(32)
-DEFINE_READ_INT(64)
-
-static yasl_float vm_read_float(struct VM *const vm) {
-    yasl_float val;
-    memcpy(&val, vm->pc, sizeof(yasl_float));
-    vm->pc += sizeof(yasl_float);
-    return val;
-}
-
 static int vm_lookup_method_helper(struct VM *vm, struct YASL_Object obj, struct YASL_Table *mt, struct YASL_Object index);
-static int vm_lookup_method(struct VM *const vm, const char *const method_name);
+// static int vm_lookup_method(struct VM *const vm, const char *const method_name);
 static void vm_GET(struct VM *const vm);
 static void vm_INIT_CALL(struct VM *const vm);
 static void vm_CALL(struct VM *const vm);
@@ -389,8 +381,8 @@ static void vm_int_binop(struct VM *const vm, int_binop op, const char *opstr, c
 	} else {
 		vm_call_method_now_2(vm, left, right, overload_name, "%s not supported for operands of types %s and %s.",
 				     opstr,
-				     YASL_TYPE_NAMES[left.type],
-				     YASL_TYPE_NAMES[right.type]);
+				     obj_typename(&left),
+				     obj_typename(&right));
 	}
 }
 
@@ -416,8 +408,8 @@ static void vm_num_binop(struct VM *const vm, int_binop int_op, float_binop floa
 	} else {
 		vm_call_method_now_2(vm, left, right, overload_name, "%s not supported for operands of types %s and %s.",
 					  opstr,
-					  YASL_TYPE_NAMES[left.type],
-					  YASL_TYPE_NAMES[right.type]);
+					  obj_typename(&left),
+					  obj_typename(&right));
 	}
 }
 
@@ -429,8 +421,8 @@ static void vm_fdiv(struct VM *const vm) {
 		vm_pushfloat(vm, obj_getnum(&left) / obj_getnum(&right));
 	} else {
 		vm_call_method_now_2(vm, left, right, overload_name, "/ not supported for operands of types %s and %s.",
-					  YASL_TYPE_NAMES[left.type],
-					  YASL_TYPE_NAMES[right.type]);
+					  obj_typename(&left),
+					  obj_typename(&right));
 	}
 }
 
@@ -462,7 +454,7 @@ static void vm_int_unop(struct VM *const vm, yasl_int (*op)(yasl_int), const cha
 		struct YASL_Object expr = vm_peek(vm);
 		vm_call_method_now_1(vm, expr, overload_name, "%s not supported for operand of type %s.",
 					  opstr,
-					  YASL_TYPE_NAMES[expr.type]);
+					  obj_typename(&expr));
 	}
 }
 
@@ -475,7 +467,7 @@ static void vm_num_unop(struct VM *const vm, yasl_int (*int_op)(yasl_int), yasl_
 		struct YASL_Object expr = vm_peek(vm);
 		vm_call_method_now_1(vm, expr, overload_name, "%s not supported for operand of type %s.",
 					  opstr,
-					  YASL_TYPE_NAMES[expr.type]);
+					  obj_typename(&expr));
 	}
 }
 
@@ -485,7 +477,7 @@ static void vm_len_unop(struct VM *const vm) {
 	} else {
 		struct YASL_Object expr = vm_peek(vm);
 		vm_call_method_now_1(vm, expr, "__len", "len not supported for operand of type %s.",
-					  YASL_TYPE_NAMES[expr.type]);
+					  obj_typename(&expr));
 	}
 }
 
@@ -495,7 +487,7 @@ void vm_EQ(struct VM *const vm) {
 	if (obj_isuserdata(&a) && obj_isuserdata(&b) ||
 	    obj_istable(&a) && obj_istable(&b) ||
 	    obj_islist(&a) && obj_islist(&b)) {
-		vm_call_method_now_2(vm, a, b, "__eq", "== not supported for operands of types %s and %s.", YASL_TYPE_NAMES[a.type], YASL_TYPE_NAMES[b.type]);
+		vm_call_method_now_2(vm, a, b, "__eq", "== not supported for operands of types %s and %s.", obj_typename(&a), obj_typename(&b));
 	} else {
 		vm_pushbool(vm, isequal(&a, &b));
 	}
@@ -529,8 +521,8 @@ static void vm_##name(struct VM *const vm) {\
 	}\
 	vm_call_method_now_2(vm, left, right, overload_name, "%s not supported for operands of types %s and %s.",\
 		opstr,\
-		YASL_TYPE_NAMES[left.type],\
-		YASL_TYPE_NAMES[right.type]);\
+		obj_typename(&left),\
+		obj_typename(&right));\
 }
 
 DEFINE_COMP(GT, ">", "__gt")
@@ -630,8 +622,8 @@ static void vm_SLICE_list(struct VM *const vm) {
 		if (end > len) end = len;
 	} else {
 		vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
-				  YASL_TYPE_NAMES[vm_peek(vm, vm->sp - 1).type],
-				  YASL_TYPE_NAMES[vm_peek(vm, vm->sp).type]
+				  obj_typename(vm_peek_p(vm, vm->sp - 1)),
+				  obj_typename(vm_peek_p(vm, vm->sp))
 		);
 		vm_throw_err(vm, YASL_TYPE_ERROR);
 	}
@@ -645,8 +637,8 @@ static void vm_SLICE_list(struct VM *const vm) {
 		if (start < 0) start = 0;
 	} else {
 		vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
-				  YASL_TYPE_NAMES[vm_peek(vm, vm->sp - 1).type],
-				  YASL_TYPE_NAMES[vm_peek(vm, vm->sp).type]
+				  obj_typename(vm_peek_p(vm, vm->sp - 1)),
+				  obj_typename(vm_peek_p(vm, vm->sp))
 		);
 		vm_throw_err(vm, YASL_TYPE_ERROR);
 	}
@@ -656,6 +648,7 @@ static void vm_SLICE_list(struct VM *const vm) {
 
 	struct YASL_List *list = vm_poplist(vm);
 	struct RC_UserData *new_ls = rcls_new();
+	ud_setmt(new_ls, vm->builtins_htable[Y_LIST]);
 
 	for (yasl_int i = start; i <end; ++i) {
 		YASL_List_append((struct YASL_List *) new_ls->data, list->items[i]);
@@ -676,8 +669,8 @@ static void vm_SLICE_str(struct VM *const vm){
 		if (end > len) end = len;
 	} else {
 		vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
-				  YASL_TYPE_NAMES[vm_peek(vm, vm->sp - 1).type],
-				  YASL_TYPE_NAMES[vm_peek(vm, vm->sp).type]
+				  obj_typename(vm_peek_p(vm, vm->sp - 1)),
+				  obj_typename(vm_peek_p(vm, vm->sp))
 		);
 		vm_throw_err(vm, YASL_TYPE_ERROR);
 	}
@@ -691,8 +684,8 @@ static void vm_SLICE_str(struct VM *const vm){
 		if (start < 0) start = 0;
 	} else {
 		vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
-				  YASL_TYPE_NAMES[vm_peek(vm, vm->sp - 1).type],
-				  YASL_TYPE_NAMES[vm_peek(vm, vm->sp).type]
+				  obj_typename(vm_peek_p(vm, vm->sp - 1)),
+				  obj_typename(vm_peek_p(vm, vm->sp))
 		);
 		vm_throw_err(vm, YASL_TYPE_ERROR);
 	}
@@ -713,7 +706,7 @@ static void vm_SLICE(struct VM *const vm) {
 	} else {
 		vm_pop(vm);
 		vm_pop(vm);
-		vm_print_err_type(vm,  "slicing is not defined for objects of type %s.", YASL_TYPE_NAMES[vm_pop(vm).type]);
+		vm_print_err_type(vm,  "slicing is not defined for objects of type %s.", obj_typename(vm_pop_p(vm)));
 		vm_throw_err(vm, YASL_TYPE_ERROR);
 	}
 }
@@ -808,13 +801,12 @@ static void vm_SET(struct VM *const vm) {
 		table___set((struct YASL_State *) vm);
 		return;
 	}
-	vm_print_err_type(vm,  "object of type %s is immutable.", YASL_TYPE_NAMES[vm_peek(vm).type]);
+	vm_print_err_type(vm,  "object of type %s is immutable.", obj_typename(vm_peek_p(vm)));
 	vm_throw_err(vm, YASL_TYPE_ERROR);
 }
 
 static void vm_LIT(struct VM *const vm) {
 	unsigned char addr = NCODE(vm);
-	// printf("index: %d\n", addr);
 	vm_push(vm, vm->constants[addr]);
 }
 
@@ -863,7 +855,7 @@ static void vm_ITER_1(struct VM *const vm) {
 		return;
 	}
 	default:
-		vm_print_err_type(vm,  "object of type %s is not iterable.\n", YASL_TYPE_NAMES[frame->iterable.type]);
+		vm_print_err_type(vm,  "object of type %s is not iterable.\n", obj_typename(&frame->iterable));
 		vm_throw_err(vm, YASL_TYPE_ERROR);
 	}
 }
@@ -1100,7 +1092,7 @@ static void vm_exitframe(struct VM *const vm) {
 
 static void vm_INIT_CALL(struct VM *const vm) {
 	if (!vm_isfn(vm) && !vm_iscfn(vm) && !vm_isclosure(vm)) {
-		vm_print_err_type(vm,  "%s is not callable.", YASL_TYPE_NAMES[vm_peek(vm).type]);
+		vm_print_err_type(vm,  "%s is not callable.", obj_typename(vm_peek_p(vm)));
 		vm_throw_err(vm, YASL_TYPE_ERROR);
 	}
 
@@ -1178,8 +1170,7 @@ static struct Upvalue *vm_close_all_helper(struct YASL_Object *const end, struct
 	if (curr == NULL) return NULL;
 	if (curr->location < end) return curr;
 	inc_ref(curr->location);
-	curr->closed = upval_get(curr);
-	curr->location = &curr->closed;
+	upval_close(curr);
 	return (vm_close_all_helper(end, curr->next));
 }
 
@@ -1365,7 +1356,7 @@ void vm_executenext(struct VM *const vm) {
 			struct YASL_Object val = vm_pop(vm);
 			struct YASL_Object key = vm_pop(vm);
 			if (!YASL_Table_insert(ht, key, val)) {
-				vm_print_err_type(vm, "unable to use mutable object of type %s as key.", YASL_TYPE_NAMES[key.type]);
+				vm_print_err_type(vm, "unable to use mutable object of type %s as key.", obj_typename(&key));
 				vm_throw_err(vm, YASL_TYPE_ERROR);
 			}
 		}

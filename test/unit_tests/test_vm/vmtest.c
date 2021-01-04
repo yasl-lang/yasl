@@ -11,6 +11,7 @@ SETUP_YATS();
 void vm_setupconstants(struct VM *const vm);
 void vm_executenext(struct VM *const vm);
 void vm_rm_range(struct VM *const vm, int start, int end);
+void vm_insert(struct VM *const vm, int index, struct YASL_Object val);
 
 #define ASSERT_INC(vm) do {\
 int before = (vm)->sp;\
@@ -162,6 +163,71 @@ static TEST(testrmrangetotop) {
 	return NUM_FAILED;
 }
 
+static TEST(testinsert) {
+	struct VM vm;
+	vm_init(&vm, NULL, 0, 0);
+
+	for (int i = 0; i < 10; i++) {
+		vm_pushint(&vm, i);
+	}
+
+	vm_insert(&vm, 4, YASL_INT(100));
+
+	ASSERT_EQ(vm_popint(&vm), 9);
+	ASSERT_EQ(vm_popint(&vm), 8);
+	ASSERT_EQ(vm_popint(&vm), 7);
+	ASSERT_EQ(vm_popint(&vm), 6);
+	ASSERT_EQ(vm_popint(&vm), 5);
+	ASSERT_EQ(vm_popint(&vm), 4);
+	ASSERT_EQ(vm_popint(&vm), 100);
+	ASSERT_EQ(vm_popint(&vm), 3);
+	ASSERT_EQ(vm_popint(&vm), 2);
+	ASSERT_EQ(vm_popint(&vm), 1);
+	ASSERT_EQ(vm_popint(&vm), 0);
+
+	return NUM_FAILED;
+}
+
+static TEST(testinserttop) {
+	struct VM vm;
+	vm_init(&vm, NULL, 0, 0);
+
+	for (int i = 0; i < 5; i++) {
+		vm_pushint(&vm, i);
+	}
+
+	vm_insert(&vm, 5, YASL_INT(100));
+
+	ASSERT_EQ(vm_popint(&vm), 100);
+	ASSERT_EQ(vm_popint(&vm), 4);
+	ASSERT_EQ(vm_popint(&vm), 3);
+	ASSERT_EQ(vm_popint(&vm), 2);
+	ASSERT_EQ(vm_popint(&vm), 1);
+	ASSERT_EQ(vm_popint(&vm), 0);
+
+	return NUM_FAILED;
+}
+
+static TEST(testinsertbottom) {
+	struct VM vm;
+	vm_init(&vm, NULL, 0, 0);
+
+	for (int i = 0; i < 5; i++) {
+		vm_pushint(&vm, i);
+	}
+
+	vm_insert(&vm, 0, YASL_INT(100));
+
+	ASSERT_EQ(vm_popint(&vm), 4);
+	ASSERT_EQ(vm_popint(&vm), 3);
+	ASSERT_EQ(vm_popint(&vm), 2);
+	ASSERT_EQ(vm_popint(&vm), 1);
+	ASSERT_EQ(vm_popint(&vm), 0);
+	ASSERT_EQ(vm_popint(&vm), 100);
+
+	return NUM_FAILED;
+}
+
 int vmtest(void) {
 	RUN(testpushundef);
 	RUN(testpushbool);
@@ -171,6 +237,9 @@ int vmtest(void) {
 	RUN(testrmrange);
 	RUN(testrmrangetop);
 	RUN(testrmrangetotop);
+	RUN(testinsert);
+	RUN(testinserttop);
+	RUN(testinsertbottom);
 
 	return NUM_FAILED;
 }
