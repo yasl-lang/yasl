@@ -130,7 +130,7 @@ add_library(yaslapi
         std/yasl-std-mt.c std/yasl-std-mt.h)
 
 add_executable(tests
-        test2/integration_tests.c
+        test/integration_tests.c
         test/yats.c
         test/yasl_test.c
         test/unit_tests/test_api/apitest.c

@@ -1,18 +1,18 @@
-echo 'static const char *inputs[] = {' > test2/inputs.inl
+echo 'static const char *inputs[] = {' > test/inputs.inl
 for f in $(find test/inputs -name '*.yasl'); do
-    echo "  \"$f\"," >> test2/inputs.inl;
+    echo "  \"$f\"," >> test/inputs.inl;
 done;
-echo '};' >> test2/inputs.inl
+echo '};' >> test/inputs.inl
 
 shopt -s globstar nullglob dotglob;
 
 make_array () {
     declare name="$1";
-    echo "static const char *${name}_errors[] = {" > test2/${name}_errors.inl
+    echo "static const char *${name}_errors[] = {" > test/${name}_errors.inl
     for f in test/errors/$name/**/*.yasl; do
-        echo "  \"$f\"," >> test2/${name}_errors.inl;
+        echo "  \"$f\"," >> test/${name}_errors.inl;
     done;
-    echo '};' >> test2/${name}_errors.inl
+    echo '};' >> test/${name}_errors.inl
 }
 
 make_array divisionbyzero;
