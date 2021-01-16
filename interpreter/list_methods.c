@@ -48,8 +48,8 @@ void list___get(struct YASL_State *S) {
 
 void list___set(struct YASL_State *S) {
 	struct YASL_Object value = vm_pop((struct VM *) S);
-	yasl_int index = YASLX_checkint(S, "list.__set", 1);
-	struct YASL_List *ls = YASLX_checklist(S, "list.__set", 0);
+	yasl_int index = YASLX_checknint(S, "list.__set", 1);
+	struct YASL_List *ls = YASLX_checknlist(S, "list.__set", 0);
 
 	if (index < -(yasl_int) ls->count || index >= (yasl_int) ls->count) {
 		vm_print_err_value(&S->vm, "unable to index list of length %" PRI_SIZET " with index %" PRId64 ".", ls->count, index);

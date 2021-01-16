@@ -45,7 +45,7 @@ void YASLX_print_err_bad_arg_type(struct YASL_State *S,
  * @param pos the position of the argument, used only for the error message.
  * @return the top of the stack if it's an int, otherwise no return.
  */
-yasl_int YASLX_checkint(struct YASL_State *S, const char *name, int pos);
+YASL_DEPRECATE yasl_int YASLX_checkint(struct YASL_State *S, const char *name, int pos);
 
 yasl_int YASLX_checknint(struct YASL_State *S, const char *name, unsigned pos);
 
@@ -56,7 +56,7 @@ yasl_int YASLX_checknint(struct YASL_State *S, const char *name, unsigned pos);
  * @param pos the position of the argument, used only for the error message.
  * @return the top of the stack if it's a float, otherwise no return.
  */
-yasl_float YASLX_checkfloat(struct YASL_State *S, const char *name, int pos);
+YASL_DEPRECATE yasl_float YASLX_checkfloat(struct YASL_State *S, const char *name, int pos);
 
 yasl_float YASLX_checknfloat(struct YASL_State *S, const char *name, unsigned pos);
 
@@ -67,7 +67,7 @@ yasl_float YASLX_checknfloat(struct YASL_State *S, const char *name, unsigned po
  * @param pos the position of the argument, used only for the error message.
  * @return the top of the stack if it's a bool, otherwise no return.
  */
-bool YASLX_checkbool(struct YASL_State *S, const char *name, int pos);
+YASL_DEPRECATE bool YASLX_checkbool(struct YASL_State *S, const char *name, int pos);
 
 bool YASLX_checknbool(struct YASL_State *S, const char *name, unsigned pos);
 
@@ -77,7 +77,7 @@ bool YASLX_checknbool(struct YASL_State *S, const char *name, unsigned pos);
  * @param name Name of the function in which this is called, used for error message.
  * @param pos the position of the argument, used only for the error message.
  */
-void YASLX_checkundef(struct YASL_State *S, const char *name, int pos);
+YASL_DEPRECATE void YASLX_checkundef(struct YASL_State *S, const char *name, int pos);
 
 /**
  * Pops the top of the stack if it is undef. Otherwise, causes a type error, along with a printed error message.
