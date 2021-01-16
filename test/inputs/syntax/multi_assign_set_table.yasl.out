@@ -1,6 +1,5 @@
 zzzz
-yy
-{a: xxx, b: 2, c: 3}
+{a: xxx, b: yy, c: 3}
 third
 second
-{a: first, b: 2, c: 3}
+{a: first, b: yy, c: 3}

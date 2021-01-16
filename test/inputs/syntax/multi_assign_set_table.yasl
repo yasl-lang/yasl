@@ -1,15 +1,12 @@
 
 const x = { .a: 1, .b: 2, .c: 3 }
-let y = false
 
-let z, y, x.a = .zzzz, .yy, 'xxx'
+let z, x.b, x.a = .zzzz, .yy, 'xxx'
 
 echo z
-echo y
 echo x
 
-
-x.a, y, z = 'first', 'second', 'third'
+x.a, const y, z = 'first', 'second', 'third'
 
 echo z
 echo y
