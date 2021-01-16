@@ -163,7 +163,11 @@ void str_count(struct YASL_State *S) {
 
 static void str_split_default(struct YASL_State *S) {
 	struct YASL_String *haystack = YASLX_checknstr(S, "str.split", 0);
-	vm_push((struct VM *) S, YASL_LIST(string_split_default(haystack)));
+	struct RC_UserData *result = rcls_new();
+	ud_setmt(result, (&S->vm)->builtins_htable[Y_LIST]);
+
+	YASL_String_split_default((struct YASL_List *)result->data, haystack);
+	vm_push((struct VM *) S, YASL_LIST(result));
 }
 
 void str_split(struct YASL_State *S) {
@@ -181,7 +185,11 @@ void str_split(struct YASL_State *S) {
 		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
 
-	vm_push((struct VM *) S, YASL_LIST(YASL_String_split_fast(haystack, needle)));
+	struct RC_UserData *result = rcls_new();
+	ud_setmt(result, (&S->vm)->builtins_htable[Y_LIST]);
+
+	YASL_String_split_fast((struct YASL_List *)result->data, haystack, needle);
+	vm_push((struct VM *) S, YASL_LIST(result));
 }
 
 static void str_ltrim_default(struct YASL_State *S) {

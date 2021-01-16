@@ -531,21 +531,15 @@ DEFINE_COMP(LT, "<", "__lt")
 DEFINE_COMP(LE, "<=", "__le")
 
 void vm_stringify_top(struct VM *const vm) {
-	enum YASL_Types index = vm_peek(vm, vm->sp).type;
+	struct YASL_Object top = vm_peek(vm);
+	//enum YASL_Types index = top.type;
 	if (vm_isfn(vm) || vm_iscfn(vm) || vm_isclosure(vm)) {
 		size_t n = (size_t)snprintf(NULL, 0, "<fn: %p>", vm_peekuserptr(vm)) + 1;
 		char *buffer = (char *)malloc(n);
 		snprintf(buffer, n, "<fn: %d>", (int)vm_popint(vm));
 		vm_pushstr(vm, YASL_String_new_sized_heap(0, strlen(buffer), buffer));
 	} else if (vm_isuserdata(vm)) {
-		struct YASL_Object key = YASL_STR(YASL_String_new_sized(strlen("tostr"), "tostr"));
-		struct YASL_Object result = YASL_Table_search((struct YASL_Table *)vm_peek(vm).value.uval->mt->data, key);
-		str_del(obj_getstr(&key));
-		if (result.type == Y_END) {
-			// TODO: error here
-			exit(EXIT_FAILURE);
-		}
-		YASL_GETCFN(result)->value((struct YASL_State *)vm);
+		vm_call_method_now_1(vm, top, "tostr", "tostr not supported for operand of type %s.", obj_typename(&top));
 	} else if (vm_isuserptr(vm)) {
 		// TODO clean up
 		size_t n = (size_t)snprintf(NULL, 0, "<userptr: %p>", vm_peekuserptr(vm)) + 1;
@@ -553,10 +547,7 @@ void vm_stringify_top(struct VM *const vm) {
 		snprintf(buffer, n, "<userptr: %p>", (void *)vm_popint(vm));
 		vm_pushstr(vm, YASL_String_new_sized_heap(0, strlen(buffer), buffer));
 	} else {
-		struct YASL_Object key = YASL_STR(YASL_String_new_sized(strlen("tostr"), "tostr"));
-		struct YASL_Object result = YASL_Table_search((struct YASL_Table *)vm->builtins_htable[index]->data, key);
-		str_del(obj_getstr(&key));
-		YASL_GETCFN(result)->value((struct YASL_State *)vm);
+		vm_call_method_now_1(vm, top, "tostr", "tostr not supported for operand of type %s.", obj_typename(&top));
 	}
 }
 

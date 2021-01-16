@@ -409,11 +409,10 @@ yasl_int YASL_String_count(struct YASL_String *haystack, struct YASL_String *nee
 	return count;
 }
 
-struct RC_UserData *string_split_default(struct YASL_String *haystack) {
+void YASL_String_split_default(struct YASL_List *data, struct YASL_String *haystack) {
 	const size_t haystack_len = YASL_String_len(haystack);
 	const char *haystack_chars = YASL_String_chars(haystack);
 	size_t end = 0, start = 0;
-	struct RC_UserData *result = rcls_new();
 	while (true) {
 		while (end < haystack_len && iswhitespace(haystack_chars[end])) {
 			end++;
@@ -425,25 +424,22 @@ struct RC_UserData *string_split_default(struct YASL_String *haystack) {
 		}
 		struct YASL_Object to = YASL_STR(
 			YASL_String_new_substring(start + haystack->start, end + haystack->start, haystack));
-		YASL_List_append((struct YASL_List *) result->data, to);
+		YASL_List_append(data, to);
 	}
-
-	return result;
 }
 
 // Caller makes sure needle is not 0 length
-struct RC_UserData *YASL_String_split_fast(struct YASL_String *haystack, struct YASL_String *needle) {
+void YASL_String_split_fast(struct YASL_List *data, struct YASL_String *haystack, struct YASL_String *needle) {
 	YASL_ASSERT(YASL_String_len(needle) != 0, "needle must have non-zero length");
 	const size_t needle_len = YASL_String_len(needle);
 	const char *haystack_chars = YASL_String_chars(haystack);
 	const char *needle_chars = YASL_String_chars(needle);
 	int64_t end = 0, start = 0;
-	struct RC_UserData *result = rcls_new();
 	while (end + needle_len <= YASL_String_len(haystack)) {
 		if (!memcmp(haystack_chars + end, needle_chars, needle_len)) {
 			struct YASL_Object to = YASL_STR(
 				YASL_String_new_substring(start + haystack->start, end + haystack->start, haystack));
-			YASL_List_append((struct YASL_List *) result->data, to);
+			YASL_List_append(data, to);
 			end += needle_len;
 			start = end;
 		} else {
@@ -452,9 +448,7 @@ struct RC_UserData *YASL_String_split_fast(struct YASL_String *haystack, struct 
 	}
 	struct YASL_Object to = YASL_STR(
 		YASL_String_new_substring(start + haystack->start, end + haystack->start, haystack));
-	YASL_List_append((struct YASL_List *) result->data, to);
-
-	return result;
+	YASL_List_append(data, to);
 }
 
 struct YASL_String *YASL_String_ltrim_default(struct YASL_String *haystack) {

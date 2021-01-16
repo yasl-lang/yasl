@@ -61,6 +61,7 @@ void table___bor(struct YASL_State *S) {
 	YASL_pushtable(S);
 
 	struct RC_UserData *new_ht = rcht_new_sized(left->base_size);
+	ud_setmt(new_ht, S->vm.builtins_htable[Y_TABLE]);
 
 	FOR_TABLE(i, litem, left) {
 		YASL_Table_insert_fast((struct YASL_Table *) new_ht->data, litem->key, litem->value);
@@ -207,6 +208,7 @@ void table_tostr(struct YASL_State *S) {
 void table_keys(struct YASL_State *S) {
 	struct YASL_Table *ht = YASLX_checkntable(S, "table.keys", 0);
 	struct RC_UserData *ls = rcls_new();
+	ud_setmt(ls, S->vm.builtins_htable[Y_LIST]);
 	FOR_TABLE(i, item, ht) {
 			YASL_List_append((struct YASL_List *) ls->data, (item->key));
 	}
@@ -217,6 +219,7 @@ void table_keys(struct YASL_State *S) {
 void table_values(struct YASL_State *S) {
 	struct YASL_Table *ht = YASLX_checkntable(S, "table.values", 0);
 	struct RC_UserData *ls = rcls_new();
+	ud_setmt(ls, S->vm.builtins_htable[Y_LIST]);
 	FOR_TABLE(i, item, ht) {
 			YASL_List_append((struct YASL_List *) ls->data, (item->value));
 	}

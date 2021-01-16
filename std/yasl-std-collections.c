@@ -107,6 +107,7 @@ static void YASL_collections_set_tostr(struct YASL_State *S) {
 static void YASL_collections_set_tolist(struct YASL_State *S) {
 	struct YASL_Set *set = YASLX_checkset(S, SET_PRE ".tolist", 0);
 	struct RC_UserData *list = rcls_new();
+	ud_setmt(list, S->vm.builtins_htable[Y_LIST]);
 	struct YASL_List *ls = (struct YASL_List *)list->data;
 	FOR_SET(i, item, set) {
 		YASL_List_append(ls, *item);

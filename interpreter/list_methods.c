@@ -144,6 +144,7 @@ void list_push(struct YASL_State *S) {
 void list_copy(struct YASL_State *S) {
 	struct YASL_List *ls = YASLX_checknlist(S, "list.copy", 0);
 	struct RC_UserData *new_ls = rcls_new_sized(ls->size);
+	ud_setmt(new_ls, S->vm.builtins_htable[Y_LIST]);
 	struct YASL_List *new_list = (struct YASL_List *) new_ls->data;
 	FOR_LIST(i, elmt, ls) {
 		YASL_List_append(new_list, elmt);
@@ -152,9 +153,10 @@ void list_copy(struct YASL_State *S) {
 	vm_pushlist((struct VM *) S, new_ls);
 }
 
-static struct RC_UserData *list_concat(struct YASL_List *a, struct YASL_List *b) {
+static struct RC_UserData *list_concat(struct YASL_State *S, struct YASL_List *a, struct YASL_List *b) {
 	size_t size = a->count + b->count;
 	struct RC_UserData *ptr = rcls_new_sized(size);
+	ud_setmt(ptr, (&S->vm)->builtins_htable[Y_LIST]);
 	for (size_t i = 0; i < a->count; i++) {
 		YASL_List_append((struct YASL_List *) ptr->data, (a)->items[i]);
 	}
@@ -169,7 +171,7 @@ void list___add(struct YASL_State *S) {
 	struct YASL_List *b = YASLX_checknlist(S, "list.__add", 1);
 	struct YASL_List *a = YASLX_checknlist(S, "list.__add", 0);
 
-	vm_pushlist((struct VM *) S, list_concat(a, b));
+	vm_pushlist((struct VM *) S, list_concat(S, a, b));
 }
 
 void list___eq(struct YASL_State *S) {
