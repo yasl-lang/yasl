@@ -324,6 +324,13 @@ static void vm_call_now_2(struct VM *vm, struct YASL_Object a, struct YASL_Objec
 	vm_push(vm, b);
 	vm_CALL(vm);
 }
+static void vm_call_now_3(struct VM *vm, struct YASL_Object a, struct YASL_Object b, struct YASL_Object c) {
+	vm_INIT_CALL(vm);
+	vm_push(vm, a);
+	vm_push(vm, b);
+	vm_push(vm, c);
+	vm_CALL(vm);
+}
 
 #define vm_lookup_method_throwing(vm, method_name, err_str, ...) \
 do {\
@@ -356,6 +363,18 @@ do {\
 	vm_call_now_2(vm, left, right);\
 	dec_ref(&left);\
 	dec_ref(&right);\
+} while (0)
+
+#define vm_call_method_now_3(vm, a, b, c, method_name, ...) do {\
+	inc_ref(&a);\
+	inc_ref(&b);\
+	inc_ref(&c);\
+	vm_push(vm, a);\
+	vm_lookup_method_throwing(vm, method_name, __VA_ARGS__);\
+	vm_call_now_3(vm, a, b, c);\
+	dec_ref(&a);\
+	dec_ref(&b);\
+	dec_ref(&c);\
 } while (0)
 
 #define INT_BINOP(name, op) yasl_int name(yasl_int left, yasl_int right) { return left op right; }
@@ -538,10 +557,7 @@ void vm_stringify_top(struct VM *const vm) {
 		char *buffer = (char *)malloc(n);
 		snprintf(buffer, n, "<fn: %d>", (int)vm_popint(vm));
 		vm_pushstr(vm, YASL_String_new_sized_heap(0, strlen(buffer), buffer));
-	} else if (vm_isuserdata(vm)) {
-		vm_call_method_now_1(vm, top, "tostr", "tostr not supported for operand of type %s.", obj_typename(&top));
 	} else if (vm_isuserptr(vm)) {
-		// TODO clean up
 		size_t n = (size_t)snprintf(NULL, 0, "<userptr: %p>", vm_peekuserptr(vm)) + 1;
 		char *buffer = (char *)malloc(n);
 		snprintf(buffer, n, "<userptr: %p>", (void *)vm_popint(vm));
@@ -785,15 +801,17 @@ static void vm_GET(struct VM *const vm) {
 }
 
 static void vm_SET(struct VM *const vm) {
-	if (vm_islist(vm, vm->sp-2)) {
-		list___set((struct YASL_State *) vm);
-		return;
-	} else if (vm_istable(vm, vm->sp-2)) {
+	// TODO: everything should be looked up rather than hard-coding the path for table.
+	if (vm_istable(vm, vm->sp-2)) {
 		table___set((struct YASL_State *) vm);
-		return;
+	} else {
+		struct YASL_Object value = vm_pop(vm);
+		struct YASL_Object key = vm_pop(vm);
+		struct YASL_Object obj = vm_pop(vm);
+
+		vm_call_method_now_3(vm, obj, key, value, "__set", "object of type %s is immutable.", obj_typename(&obj));
+		vm_pop(vm);
 	}
-	vm_print_err_type(vm,  "object of type %s is immutable.", obj_typename(vm_peek_p(vm)));
-	vm_throw_err(vm, YASL_TYPE_ERROR);
 }
 
 static void vm_LIT(struct VM *const vm) {
