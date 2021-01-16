@@ -1,0 +1,16 @@
+
+const x = { .a: 1, .b: 2, .c: 3 }
+let y = false
+
+let z, y, x.a = .zzzz, .yy, 'xxx'
+
+echo z
+echo y
+echo x
+
+
+x.a, y, z = 'first', 'second', 'third'
+
+echo z
+echo y
+echo x
