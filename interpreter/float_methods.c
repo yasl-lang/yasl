@@ -23,7 +23,7 @@ void float_tofloat(struct YASL_State *S) {
 }
 
 void float_tostr(struct YASL_State *S) {
-	yasl_float val = YASLX_checkfloat(S, "float.tostr", 0);
+	yasl_float val = YASLX_checknfloat(S, "float.tostr", 0);
 	const char *ptr = float64_to_str(val);
 	YASL_pushzstr(S, ptr);
 	free((void *)ptr);
