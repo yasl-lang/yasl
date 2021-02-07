@@ -11,6 +11,7 @@ SETUP_YATS();
 void vm_setupconstants(struct VM *const vm);
 void vm_executenext(struct VM *const vm);
 void vm_rm_range(struct VM *const vm, int start, int end);
+void vm_rm(struct VM *const vm, int index);
 void vm_insert(struct VM *const vm, int index, struct YASL_Object val);
 
 #define ASSERT_INC(vm) do {\
@@ -163,6 +164,30 @@ static TEST(testrmrangetotop) {
 	return NUM_FAILED;
 }
 
+static TEST(testrm) {
+	struct VM vm;
+	vm_init(&vm, NULL, 0, 0);
+
+	for (int i = 0; i < 10; i++) {
+		vm_pushint(&vm, i);
+	}
+
+	vm_rm(&vm, 4);
+
+	ASSERT_EQ(vm_popint(&vm), 9);
+	ASSERT_EQ(vm_popint(&vm), 8);
+	ASSERT_EQ(vm_popint(&vm), 7);
+	ASSERT_EQ(vm_popint(&vm), 6);
+	ASSERT_EQ(vm_popint(&vm), 5);
+	ASSERT_EQ(vm_popint(&vm), 3);
+	ASSERT_EQ(vm_popint(&vm), 2);
+	ASSERT_EQ(vm_popint(&vm), 1);
+	ASSERT_EQ(vm_popint(&vm), 0);
+
+
+	return NUM_FAILED;
+}
+
 static TEST(testinsert) {
 	struct VM vm;
 	vm_init(&vm, NULL, 0, 0);
@@ -237,6 +262,7 @@ int vmtest(void) {
 	RUN(testrmrange);
 	RUN(testrmrangetop);
 	RUN(testrmrangetotop);
+	RUN(testrm);
 	RUN(testinsert);
 	RUN(testinserttop);
 	RUN(testinsertbottom);

@@ -286,6 +286,14 @@ void vm_insert(struct VM *const vm, int index, struct YASL_Object val) {
 	vm->sp++;
 }
 
+void vm_rm(struct VM *const vm, int index) {
+	int after = vm->sp - index;
+	dec_ref(vm->stack + index);
+	memmove(vm->stack + index, vm->stack + index + 1, after * sizeof(struct YASL_Object));
+	inc_ref(vm->stack + index);
+	vm->sp--;
+}
+
 void vm_rm_range(struct VM *const vm, int start, int end) {
 	int after = vm->sp - end + 1;
 	int len = end - start;
@@ -1015,10 +1023,13 @@ static bool vm_MATCH_subpattern(struct VM *const vm, struct YASL_Object *expr) {
 		return MATCH_list(vm, ls, len);
 	}
 	case P_BIND: {
+		/* We offset by +2 instead of +1 here to account for the fact that the expression we are matching on is
+		   still on top of the stack. This is taken care of _after_ a successful match by a O_DEL instruction.
+		  */
 		unsigned char offset = NCODE(vm);
-		dec_ref(&vm_peek(vm, vm->fp + offset + 1));
-		vm_peek(vm, vm->fp + offset + 1) = *expr;
-		inc_ref(&vm_peek(vm, vm->fp + offset + 1));
+		dec_ref(&vm_peek(vm, vm->fp + offset + 2));
+		vm_peek(vm, vm->fp + offset + 2) = *expr;
+		inc_ref(&vm_peek(vm, vm->fp + offset + 2));
 		return true;
 	}
 	case P_ANY:
@@ -1036,26 +1047,24 @@ static bool vm_MATCH_subpattern(struct VM *const vm, struct YASL_Object *expr) {
 }
 
 static bool vm_MATCH_pattern(struct VM *const vm, struct YASL_Object *expr) {
-	unsigned char *start = vm->pc;
-	yasl_int body_start = vm_read_int(vm);
-	yasl_int next_start = vm_read_int(vm);
-
-	if (vm_MATCH_subpattern(vm, expr)) {
-		vm->pc = start + body_start;
-		return true;
-	} else {
-		vm->pc = start + next_start;
-		return false;
-	}
+	return vm_MATCH_subpattern(vm, expr);
 }
 
 static void vm_MATCH(struct VM *const vm) {
 	struct YASL_Object expr = vm_pop(vm);
 	inc_ref(&expr);
 	yasl_int num_pats = vm_read_int(vm);
-	(void) num_pats;
 	while (num_pats-- && !vm_MATCH_pattern(vm, &expr)) {}
 	dec_ref(&expr);
+}
+
+static void vm_MATCH_IF(struct VM *const vm) {
+	struct YASL_Object expr = vm_peek(vm);
+	yasl_int addr = vm_read_int(vm);
+	unsigned char *start = vm->pc;
+	if (!vm_MATCH_pattern(vm, &expr)) {
+		vm->pc = start + addr;
+	}
 }
 
 static void vm_GSTORE_8(struct VM *const vm) {
@@ -1420,6 +1429,9 @@ void vm_executenext(struct VM *const vm) {
 	case O_MATCH:
 		vm_MATCH(vm);
 		break;
+	case O_MATCH_IF:
+		vm_MATCH_IF(vm);
+		break;
 	case O_BR_8:
 		vm->pc += vm_read_int(vm);
 		break;
@@ -1486,6 +1498,10 @@ void vm_executenext(struct VM *const vm) {
 		break;
 	case O_POP:
 		vm_pop(vm);
+		break;
+	case O_DEL:
+		c = NCODE(vm);
+		vm_rm(vm, c);
 		break;
 	case O_INCSP:
 		vm->sp += NCODE(vm);

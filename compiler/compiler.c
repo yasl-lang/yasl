@@ -901,23 +901,27 @@ cleanup:
 }
 
 static void visit_Match_helper(struct Compiler *const compiler, const struct Node *const patterns, const struct Node *const bodies, size_t curr) {
+	compiler_add_byte(compiler, O_MATCH_IF);
 	size_t start = compiler->buffer->count;
 	compiler_add_int(compiler, 0);
-	compiler_add_int(compiler, 0);
 
+	size_t vars = get_scope_in_use(compiler)->vars.count;
 	enter_scope(compiler);
 	compiler->leftmost_pattern = true;
 	visit(compiler, patterns->children[curr]);
-	int64_t body_start = compiler->buffer->count;
 	unsigned char bindings = (unsigned char) get_scope_in_use(compiler)->vars.count;
+	// printf("vars: %ld, bindings: %ld\n", vars, (size_t)bindings);
 	if (bindings) {
 		compiler_add_byte(compiler, O_INCSP);
 		compiler_add_byte(compiler, bindings);
+		compiler_add_byte(compiler, O_DEL);
+		compiler_add_byte(compiler, vars);
+	} else {
+		compiler_add_byte(compiler, O_POP);
 	}
+
 	visit(compiler, bodies->children[curr]);
 	exit_scope(compiler);
-
-	YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, start, body_start - start);
 
 	curr++;
 	size_t body_end = 0;
@@ -925,13 +929,10 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 		enter_jump(compiler, &body_end);
 	}
 
-	YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, start + 8, compiler->buffer->count - start);
-
-	if (patterns->children_len <= curr) return;
-
-	visit_Match_helper(compiler, patterns, bodies, curr);
+	YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, start, compiler->buffer->count - start - 8);
 
 	if (patterns->children_len > curr) {
+		visit_Match_helper(compiler, patterns, bodies, curr);
 		exit_jump(compiler, &body_end);
 	}
 }
@@ -946,8 +947,6 @@ static void visit_Match(struct Compiler *const compiler, const struct Node *cons
 		return;
 	}
 
-	compiler_add_byte(compiler, O_MATCH);
-	compiler_add_int(compiler, patterns->children_len);
 	visit_Match_helper(compiler, patterns, bodies, 0);
 }
 

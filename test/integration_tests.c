@@ -80,6 +80,11 @@ int main(void) {
 #include "value_errors.inl"
 #include "divisionbyzero_errors.inl"
 
+	failed = unit_tests();
+
+	result = result || failed;
+	printf("Failed %d unit tests.\n", failed);
+
 	char buffer[MAX_FILE_NAME_LEN];
 	struct YASL_State *S;
 
@@ -92,11 +97,6 @@ int main(void) {
 
 	result = result || failed;
 	printf("Failed %d (/%d) script tests.\n", failed, ran);
-
-	failed = unit_tests();
-
-	result = result || failed;
-	printf("Failed %d unit tests.\n", failed);
 
 	printf("Tests exited with code %d.\n", result);
 	return result;
