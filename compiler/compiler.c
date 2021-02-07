@@ -915,7 +915,7 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 		compiler_add_byte(compiler, O_INCSP);
 		compiler_add_byte(compiler, bindings);
 		compiler_add_byte(compiler, O_DEL);
-		compiler_add_byte(compiler, vars);
+		compiler_add_byte(compiler, (unsigned char)vars);
 	} else {
 		compiler_add_byte(compiler, O_POP);
 	}
