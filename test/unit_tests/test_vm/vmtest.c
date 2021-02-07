@@ -105,7 +105,7 @@ static TEST(testpushstr) {
 
 static TEST(testrmrange) {
 	struct VM vm;
-	vm_init(&vm, NULL, 0, 0);
+	vm_init(&vm, NULL, 0, 1);
 
 	for (int i = 0; i < 10; i++) {
 		vm_pushint(&vm, i);
@@ -127,7 +127,7 @@ static TEST(testrmrange) {
 
 static TEST(testrmrangetop) {
 	struct VM vm;
-	vm_init(&vm, NULL, 0, 0);
+	vm_init(&vm, NULL, 0, 1);
 
 	for (int i = 0; i < 10; i++) {
 		vm_pushint(&vm, i);
@@ -147,7 +147,7 @@ static TEST(testrmrangetop) {
 
 static TEST(testrmrangetotop) {
 	struct VM vm;
-	vm_init(&vm, NULL, 0, 0);
+	vm_init(&vm, NULL, 0, 1);
 
 	for (int i = 0; i < 10; i++) {
 		vm_pushint(&vm, i);
@@ -166,7 +166,7 @@ static TEST(testrmrangetotop) {
 
 static TEST(testrm) {
 	struct VM vm;
-	vm_init(&vm, NULL, 0, 0);
+	vm_init(&vm, NULL, 0, 1);
 
 	for (int i = 0; i < 10; i++) {
 		vm_pushint(&vm, i);
@@ -190,7 +190,7 @@ static TEST(testrm) {
 
 static TEST(testinsert) {
 	struct VM vm;
-	vm_init(&vm, NULL, 0, 0);
+	vm_init(&vm, NULL, 0, 1);
 
 	for (int i = 0; i < 10; i++) {
 		vm_pushint(&vm, i);
@@ -215,7 +215,7 @@ static TEST(testinsert) {
 
 static TEST(testinserttop) {
 	struct VM vm;
-	vm_init(&vm, NULL, 0, 0);
+	vm_init(&vm, NULL, 0, 1);
 
 	for (int i = 0; i < 5; i++) {
 		vm_pushint(&vm, i);
@@ -235,7 +235,7 @@ static TEST(testinserttop) {
 
 static TEST(testinsertbottom) {
 	struct VM vm;
-	vm_init(&vm, NULL, 0, 0);
+	vm_init(&vm, NULL, 0, 1);
 
 	for (int i = 0; i < 5; i++) {
 		vm_pushint(&vm, i);

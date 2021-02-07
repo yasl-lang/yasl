@@ -1050,14 +1050,6 @@ static bool vm_MATCH_pattern(struct VM *const vm, struct YASL_Object *expr) {
 	return vm_MATCH_subpattern(vm, expr);
 }
 
-static void vm_MATCH(struct VM *const vm) {
-	struct YASL_Object expr = vm_pop(vm);
-	inc_ref(&expr);
-	yasl_int num_pats = vm_read_int(vm);
-	while (num_pats-- && !vm_MATCH_pattern(vm, &expr)) {}
-	dec_ref(&expr);
-}
-
 static void vm_MATCH_IF(struct VM *const vm) {
 	struct YASL_Object expr = vm_peek(vm);
 	yasl_int addr = vm_read_int(vm);
@@ -1427,9 +1419,6 @@ void vm_executenext(struct VM *const vm) {
 		vm->stack[vm->sp] = a;
 		break;
 	case O_MATCH:
-		vm_MATCH(vm);
-		break;
-	case O_MATCH_IF:
 		vm_MATCH_IF(vm);
 		break;
 	case O_BR_8:

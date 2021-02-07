@@ -901,7 +901,7 @@ cleanup:
 }
 
 static void visit_Match_helper(struct Compiler *const compiler, const struct Node *const patterns, const struct Node *const bodies, size_t curr) {
-	compiler_add_byte(compiler, O_MATCH_IF);
+	compiler_add_byte(compiler, O_MATCH);
 	size_t start = compiler->buffer->count;
 	compiler_add_int(compiler, 0);
 

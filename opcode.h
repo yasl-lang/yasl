@@ -10,8 +10,7 @@ enum Opcode {
 
 	O_HALT = 0x0F, // halt
 
-	O_MATCH = 0x30, // pattern matching
-	O_MATCH_IF = 0x31,
+	O_MATCH = 0x31, // pattern matching
 
 	O_BOR = 0x40, // bitwise or
 	O_BXOR = 0x41, // bitwise xor
