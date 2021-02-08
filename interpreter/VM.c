@@ -290,7 +290,7 @@ void vm_rm(struct VM *const vm, int index) {
 	int after = vm->sp - index;
 	dec_ref(vm->stack + index);
 	memmove(vm->stack + index, vm->stack + index + 1, after * sizeof(struct YASL_Object));
-	inc_ref(vm->stack + index);
+	vm->stack[vm->sp] = YASL_END();
 	vm->sp--;
 }
 
@@ -301,6 +301,7 @@ void vm_rm_range(struct VM *const vm, int start, int end) {
 		dec_ref(vm->stack + start + i);
 	}
 	memmove(vm->stack + start, vm->stack + end, after * sizeof(struct YASL_Object));
+	// TODO: this is wrong
 	for (int i = 0; i < after && i < len; i++) {
 		inc_ref(vm->stack + start + i);
 	}
@@ -1490,7 +1491,7 @@ void vm_executenext(struct VM *const vm) {
 		break;
 	case O_DEL:
 		c = NCODE(vm);
-		vm_rm(vm, c);
+		vm_rm(vm, vm->fp + 1 + c);
 		break;
 	case O_INCSP:
 		vm->sp += NCODE(vm);
