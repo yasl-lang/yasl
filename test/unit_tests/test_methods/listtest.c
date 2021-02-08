@@ -24,6 +24,8 @@ static void testlistresizing(void) {
 	YASL_List_append(list, YASL_INT(40));
 	ASSERT_EQ(list->size, 8);
 	ASSERT_EQ(list->count, 5);
+
+	YASL_List_del_data(list);
 }
 
 

@@ -62,6 +62,8 @@ static TEST(testpushint) {
 	vm_setupconstants(&vm);
 
 	ASSERT_INC(&vm);
+
+	vm_cleanup(&vm);
 	return NUM_FAILED;
 }
 
@@ -80,6 +82,8 @@ static TEST(testpushfloat) {
 	vm_setupconstants(&vm);
 
 	ASSERT_INC(&vm);
+
+	vm_cleanup(&vm);
 	return NUM_FAILED;
 }
 
@@ -100,6 +104,8 @@ static TEST(testpushstr) {
 	vm_setupconstants(&vm);
 
 	ASSERT_INC(&vm);
+
+	vm_cleanup(&vm);
 	return NUM_FAILED;
 }
 
@@ -121,7 +127,7 @@ static TEST(testrmrange) {
 	ASSERT_EQ(vm_popint(&vm), 1);
 	ASSERT_EQ(vm_popint(&vm), 0);
 
-
+	vm_cleanup(&vm);
 	return NUM_FAILED;
 }
 
@@ -141,7 +147,7 @@ static TEST(testrmrangetop) {
 	ASSERT_EQ(vm_popint(&vm), 1);
 	ASSERT_EQ(vm_popint(&vm), 0);
 
-
+	vm_cleanup(&vm);
 	return NUM_FAILED;
 }
 
@@ -160,7 +166,7 @@ static TEST(testrmrangetotop) {
 	ASSERT_EQ(vm_popint(&vm), 1);
 	ASSERT_EQ(vm_popint(&vm), 0);
 
-
+	vm_cleanup(&vm);
 	return NUM_FAILED;
 }
 
@@ -184,7 +190,7 @@ static TEST(testrm) {
 	ASSERT_EQ(vm_popint(&vm), 1);
 	ASSERT_EQ(vm_popint(&vm), 0);
 
-
+	vm_cleanup(&vm);
 	return NUM_FAILED;
 }
 
@@ -210,6 +216,7 @@ static TEST(testinsert) {
 	ASSERT_EQ(vm_popint(&vm), 1);
 	ASSERT_EQ(vm_popint(&vm), 0);
 
+	vm_cleanup(&vm);
 	return NUM_FAILED;
 }
 
@@ -230,6 +237,7 @@ static TEST(testinserttop) {
 	ASSERT_EQ(vm_popint(&vm), 1);
 	ASSERT_EQ(vm_popint(&vm), 0);
 
+	vm_cleanup(&vm);
 	return NUM_FAILED;
 }
 
@@ -250,6 +258,7 @@ static TEST(testinsertbottom) {
 	ASSERT_EQ(vm_popint(&vm), 0);
 	ASSERT_EQ(vm_popint(&vm), 100);
 
+	vm_cleanup(&vm);
 	return NUM_FAILED;
 }
 
