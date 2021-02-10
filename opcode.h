@@ -57,7 +57,9 @@ enum Opcode {
 
 	O_END = 0xB0, // indicate end of list on stack.
 	O_DUP = 0xB8, // duplicate top value of stack
-	O_DEL = 0xB9, // deletes an element from the stack. Takes a one-byte index, indicating which byte to delete.
+	O_DEL_FP = 0xB9, // deletes an element from the stack. Takes a one-byte index, indicating which element to delete.
+	O_DEL_RNG_FP = 0xBA, // deletes a range of elements from the stack. Takes two one-byte indices.
+	O_DECSP = 0xBD,
 	O_INCSP = 0xBE,
 	O_POP = 0xBF, // pop top of stack
 

@@ -1025,7 +1025,7 @@ static bool vm_MATCH_subpattern(struct VM *const vm, struct YASL_Object *expr) {
 	}
 	case P_BIND: {
 		/* We offset by +2 instead of +1 here to account for the fact that the expression we are matching on is
-		   still on top of the stack. This is taken care of _after_ a successful match by a O_DEL instruction.
+		   still on top of the stack. This is taken care of _after_ a successful match by a O_DEL_FP instruction.
 		  */
 		unsigned char offset = NCODE(vm);
 		dec_ref(&vm_peek(vm, vm->fp + offset + 2));
@@ -1489,9 +1489,12 @@ void vm_executenext(struct VM *const vm) {
 	case O_POP:
 		vm_pop(vm);
 		break;
-	case O_DEL:
+	case O_DEL_FP:
 		c = NCODE(vm);
 		vm_rm(vm, vm->fp + 1 + c);
+		break;
+	case O_DECSP:
+		vm->sp -= NCODE(vm);
 		break;
 	case O_INCSP:
 		vm->sp += NCODE(vm);

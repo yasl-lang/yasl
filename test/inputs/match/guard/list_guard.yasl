@@ -1,0 +1,30 @@
+
+fn matcher(ls) {
+    match ls {
+    [ 0, 0 ] {
+        return 'origin';
+    }
+    [ 0, const y ] if y > 0 {
+        return 'positive y, on x-axis';
+    }
+    [ 0, const y ] if y < 0 {
+        return 'negative y, on x-axis';
+    }
+    [ const x, 0 ] if x > 0 {
+        return 'positive x, on y-axis';
+    }
+    [ const x, 0 ] if x < 0 {
+        return 'negative x, on y-axis';
+    }
+    * {
+        return '???'
+    }
+    }
+}
+
+
+for i <- [ [ 1, 2 ], [ 0, 1], [ 3, 0 ], [ 0, 0 ] ] {
+
+
+    echo matcher(i)
+}
