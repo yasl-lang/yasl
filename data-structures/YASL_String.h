@@ -1,11 +1,11 @@
 #ifndef YASL_YASL_STRING_H_
 #define YASL_YASL_STRING_H_
 
-// #include "interpreter/refcount.h"
 #include "yasl_conf.h"
 #include "yasl_include.h"
 
 struct RC;
+struct YASL_List;
 
 struct YASL_String {
 	struct RC *rc;      // NOTE: RC MUST BE THE FIRST MEMBER OF THIS STRUCT. DO NOT REARRANGE.
@@ -44,9 +44,9 @@ struct YASL_String *YASL_String_replace_fast_default(struct YASL_String *str, st
 struct YASL_String *YASL_String_replace_fast(struct YASL_String *str, struct YASL_String *search_str,
 					     struct YASL_String *replace_str, yasl_int);
 yasl_int YASL_String_count(struct YASL_String *haystack, struct YASL_String *needle);
-struct RC_UserData *string_split_default(struct YASL_String *haystack);
+void YASL_String_split_default(struct YASL_List *data, struct YASL_String *haystack);
 // Caller makes sure needle is not 0 length
-struct RC_UserData *YASL_String_split_fast(struct YASL_String *haystack, struct YASL_String *needle);
+void YASL_String_split_fast(struct YASL_List *data, struct YASL_String *haystack, struct YASL_String *needle);
 struct YASL_String *YASL_String_ltrim_default(struct YASL_String *haystack);
 struct YASL_String *YASL_String_ltrim(struct YASL_String *haystack, struct YASL_String *needle);
 struct YASL_String *YASL_String_rtrim_default(struct YASL_String *haystack);

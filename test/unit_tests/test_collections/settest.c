@@ -18,6 +18,8 @@ static void testsearchset(void) {
 	ASSERT_EQ((YASL_Set_search(set, YASL_INT(4))), false);
 	ASSERT_EQ((YASL_Set_search(set, YASL_INT(6))), false);
 	ASSERT_EQ(YASL_Set_length(set), 3);
+
+	YASL_Set_del(set);
 }
 
 static void testunionset(void) {
@@ -39,6 +41,10 @@ static void testunionset(void) {
 	ASSERT_EQ((YASL_Set_search(set, YASL_INT(4))), true);
 	ASSERT_EQ((YASL_Set_search(set, YASL_INT(6))), true);
 	ASSERT_EQ(YASL_Set_length(set), 5);
+
+	YASL_Set_del(left);
+	YASL_Set_del(right);
+	YASL_Set_del(set);
 }
 
 static void testintersectionset(void) {
@@ -60,6 +66,10 @@ static void testintersectionset(void) {
 	ASSERT_EQ((YASL_Set_search(set, YASL_INT(4))), false);
 	ASSERT_EQ((YASL_Set_search(set, YASL_INT(6))), false);
 	ASSERT_EQ(YASL_Set_length(set), 1);
+
+	YASL_Set_del(left);
+	YASL_Set_del(right);
+	YASL_Set_del(set);
 }
 
 static void testsymmetricdifferenceset(void) {
@@ -81,6 +91,10 @@ static void testsymmetricdifferenceset(void) {
 	ASSERT_EQ((YASL_Set_search(set, YASL_INT(4))), true);
 	ASSERT_EQ((YASL_Set_search(set, YASL_INT(6))), true);
 	ASSERT_EQ(YASL_Set_length(set), 4);
+
+	YASL_Set_del(left);
+	YASL_Set_del(right);
+	YASL_Set_del(set);
 }
 
 static void testdifferenceset(void) {
@@ -102,6 +116,10 @@ static void testdifferenceset(void) {
 	ASSERT_EQ((YASL_Set_search(set, YASL_INT(4))), false);
 	ASSERT_EQ((YASL_Set_search(set, YASL_INT(6))), false);
 	ASSERT_EQ(YASL_Set_length(set), 2);
+
+	YASL_Set_del(left);
+	YASL_Set_del(right);
+	YASL_Set_del(set);
 }
 
 static void testremoveset(void) {
@@ -112,6 +130,8 @@ static void testremoveset(void) {
 	YASL_Set_rm(set, YASL_INT(1));
 	ASSERT_EQ(YASL_Set_length(set), 0);
 	ASSERT_EQ((YASL_Set_search(set, YASL_INT(1))), false);
+
+	YASL_Set_del(set);
 }
 
 TEST(settest) {

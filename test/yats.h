@@ -73,5 +73,5 @@
 #define ASSERT(expr) ASSERT_EQ((expr), true)
 
 struct Lexer setup_lexer(const char *file_contents);
-unsigned char *setup_compiler(const char *file_contents);
+void setup_compiler(const char *file_contents);
 int64_t getsize(FILE *file);

@@ -15,560 +15,650 @@ SETUP_YATS();
 #define ASSERT_EATTOK(tok, lex) do {\
             gettok(&(lex));\
             ASSERT_TOK_EQ(tok, (lex).type);\
+	    free((lex).value);\
         } while(0)
 
+#define USING_LEX(name, val, ...) do {\
+	struct Lexer name = setup_lexer(val);\
+	__VA_ARGS__\
+	lex_cleanup(&name);\
+} while (0)
+
 static void test_semi(void) {
-	struct Lexer lex = setup_lexer(";");
-	ASSERT_EATTOK(T_SEMI, lex);
-	ASSERT_EATTOK(T_EOF, lex);
+	USING_LEX(lex, ";",
+		ASSERT_EATTOK(T_SEMI, lex);
+		ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_assert(void) {
-	struct Lexer lex = setup_lexer("assert");
-	ASSERT_EATTOK(T_ASS, lex);
-	ASSERT_EATTOK(T_EOF, lex);
+	USING_LEX(lex, "assert",
+		ASSERT_EATTOK(T_ASS, lex);
+		ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_undef(void) {
-	struct Lexer lex = setup_lexer("undef");
-	ASSERT_EATTOK(T_UNDEF, lex);
-	ASSERT_EATTOK(T_EOF, lex);
+	USING_LEX(lex, "undef",
+		ASSERT_EATTOK(T_UNDEF, lex);
+		ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_valid_float(void) {
-	struct Lexer lex = setup_lexer("6.4");
-	ASSERT_EATTOK(T_FLOAT, lex);
-	ASSERT_EATTOK(T_EOF, lex);
+	USING_LEX(lex, "6.4",
+		ASSERT_EATTOK(T_FLOAT, lex);
+		ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_invalid_float_no_leading_digit(void) {
-	struct Lexer lex = setup_lexer(".4");
-	ASSERT_EATTOK(T_DOT, lex);
-	ASSERT_EATTOK(T_INT, lex);
-	ASSERT_EATTOK(T_EOF, lex);
+	USING_LEX(lex, ".4",
+		ASSERT_EATTOK(T_DOT, lex);
+		ASSERT_EATTOK(T_INT, lex);
+		ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_invalid_float_no_trailing_digit(void) {
-	struct Lexer lex = setup_lexer("4.");
-	ASSERT_EATTOK(T_INT, lex);
-	ASSERT_EATTOK(T_DOT, lex);
-	ASSERT_EATTOK(T_EOF, lex);
+	USING_LEX(lex, "4.",
+		ASSERT_EATTOK(T_INT, lex);
+		ASSERT_EATTOK(T_DOT, lex);
+		ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_bool_false(void) {
-	struct Lexer lex = setup_lexer("false");
-	ASSERT_EATTOK(T_BOOL, lex);
-	ASSERT_EATTOK(T_EOF, lex);
+	USING_LEX(lex, "false",
+		ASSERT_EATTOK(T_BOOL, lex);
+		ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_bool_true(void) {
-	struct Lexer lex = setup_lexer("true");
-	ASSERT_EATTOK(T_BOOL, lex);
-	ASSERT_EATTOK(T_EOF, lex);
+	USING_LEX(lex, "true",
+		ASSERT_EATTOK(T_BOOL, lex);
+		ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_if(void) {
-	struct Lexer lex = setup_lexer("if");
-	ASSERT_EATTOK(T_IF, lex);
-	ASSERT_EATTOK(T_EOF, lex);
+	USING_LEX(lex, "if",
+		ASSERT_EATTOK(T_IF, lex);
+		ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_elseif(void) {
-	struct Lexer lex = setup_lexer("elseif");
-	ASSERT_EATTOK(T_ELSEIF, lex);
-	ASSERT_EATTOK(T_EOF, lex);
+	USING_LEX(lex, "elseif",
+		ASSERT_EATTOK(T_ELSEIF, lex);
+		ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_else(void) {
-	struct Lexer lex = setup_lexer("else");
-	ASSERT_EATTOK(T_ELSE, lex);
-	ASSERT_EATTOK(T_EOF, lex);
+	USING_LEX(lex, "else",
+		ASSERT_EATTOK(T_ELSE, lex);
+		ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_while(void) {
-	struct Lexer lex = setup_lexer("while");
-	ASSERT_EATTOK(T_WHILE, lex);
-	ASSERT_EATTOK(T_EOF, lex);
+	USING_LEX(lex, "while",
+		ASSERT_EATTOK(T_WHILE, lex);
+		ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_break(void) {
-	struct Lexer lex = setup_lexer("break");
-	ASSERT_EATTOK(T_BREAK, lex);
-	ASSERT_EATTOK(T_EOF, lex);
+	USING_LEX(lex, "break",
+		ASSERT_EATTOK(T_BREAK, lex);
+		ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_continue(void) {
-	struct Lexer lex = setup_lexer("continue");
-	ASSERT_EATTOK(T_CONT, lex);
-	ASSERT_EATTOK(T_EOF, lex);
+	USING_LEX(lex, "continue",
+		ASSERT_EATTOK(T_CONT, lex);
+		ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_for(void) {
-	struct Lexer lex = setup_lexer("for");
-	ASSERT_EATTOK(T_FOR, lex);
-	ASSERT_EATTOK(T_EOF, lex);
+	USING_LEX(lex, "for",
+		ASSERT_EATTOK(T_FOR, lex);
+		ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_const(void) {
-	struct Lexer lex = setup_lexer("const");
-	ASSERT_EATTOK(T_CONST, lex);
-	ASSERT_EATTOK(T_EOF, lex);
+	USING_LEX(lex, "const",
+		ASSERT_EATTOK(T_CONST, lex);
+		ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_fn(void) {
-	struct Lexer lex = setup_lexer("fn");
-	ASSERT_EATTOK(T_FN, lex);
-	ASSERT_EATTOK(T_EOF, lex);
+	USING_LEX(lex, "fn",
+		ASSERT_EATTOK(T_FN, lex);
+		ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_return(void) {
-	struct Lexer lex = setup_lexer("return");
+	USING_LEX(lex, "return",
 	ASSERT_EATTOK(T_RET, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_export(void) {
-	struct Lexer lex = setup_lexer("export");
+	USING_LEX(lex, "export",
 	ASSERT_EATTOK(T_EXPORT, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_dec(void) {
-	struct Lexer lex = setup_lexer("echo");
+	USING_LEX(lex, "echo",
 	ASSERT_EATTOK(T_ECHO, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_lpar(void) {
-	struct Lexer lex = setup_lexer("(");
+	USING_LEX(lex, "(",
 	ASSERT_EATTOK(T_LPAR, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_rpar(void) {
-	struct Lexer lex = setup_lexer(")");
+	USING_LEX(lex, ")",
 	ASSERT_EATTOK(T_RPAR, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_lsqb(void) {
-	struct Lexer lex = setup_lexer("[");
+	USING_LEX(lex, "[",
 	ASSERT_EATTOK(T_LSQB, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_rsqb(void) {
-	struct Lexer lex = setup_lexer("]");
+	USING_LEX(lex, "]",
 	ASSERT_EATTOK(T_RSQB, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_lbrc(void) {
-	struct Lexer lex = setup_lexer("{");
+	USING_LEX(lex, "{",
 	ASSERT_EATTOK(T_LBRC, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_rbrc(void) {
-	struct Lexer lex = setup_lexer("}");
+	USING_LEX(lex, "}",
 	ASSERT_EATTOK(T_RBRC, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_dot(void) {
-	struct Lexer lex = setup_lexer(".");
+	USING_LEX(lex, ".",
 	ASSERT_EATTOK(T_DOT, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_comma(void) {
-	struct Lexer lex = setup_lexer(",");
+	USING_LEX(lex, ",",
 	ASSERT_EATTOK(T_COMMA, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_caret(void) {
-	struct Lexer lex = setup_lexer("^");
+	USING_LEX(lex, "^",
 	ASSERT_EATTOK(T_CARET, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_careteq(void) {
-	struct Lexer lex = setup_lexer("^=");
+	USING_LEX(lex, "^=",
 	ASSERT_EATTOK(T_CARETEQ, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_plus(void) {
-	struct Lexer lex = setup_lexer("+");
+	USING_LEX(lex, "+",
 	ASSERT_EATTOK(T_PLUS, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_pluseq(void) {
-	struct Lexer lex = setup_lexer("+=");
+	USING_LEX(lex, "+=",
 	ASSERT_EATTOK(T_PLUSEQ, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_minus(void) {
-	struct Lexer lex = setup_lexer("-");
+	USING_LEX(lex, "-",
 	ASSERT_EATTOK(T_MINUS, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_minuseq(void) {
-	struct Lexer lex = setup_lexer("-=");
+	USING_LEX(lex, "-=",
 	ASSERT_EATTOK(T_MINUSEQ, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_at(void) {
-	struct Lexer lex = setup_lexer("len");
+	USING_LEX(lex, "len",
 	ASSERT_EATTOK(T_LEN, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_bang(void) {
-	struct Lexer lex = setup_lexer("!");
+	USING_LEX(lex, "!",
 	ASSERT_EATTOK(T_BANG, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_bangeq(void) {
-	struct Lexer lex = setup_lexer("!=");
+	USING_LEX(lex, "!=",
 	ASSERT_EATTOK(T_BANGEQ, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_bangdeq(void) {
-	struct Lexer lex = setup_lexer("!==");
+	USING_LEX(lex, "!==",
 	ASSERT_EATTOK(T_BANGDEQ, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_tilde(void) {
-	struct Lexer lex = setup_lexer("~");
+	USING_LEX(lex, "~",
 	ASSERT_EATTOK(T_TILDE, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_tildeeq(void) {
-	struct Lexer lex = setup_lexer("~=");
+	USING_LEX(lex, "~=",
 	ASSERT_EATTOK(T_TILDEEQ, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_star(void) {
-	struct Lexer lex = setup_lexer("*");
+	USING_LEX(lex, "*",
 	ASSERT_EATTOK(T_STAR, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_stareq(void) {
-	struct Lexer lex = setup_lexer("*=");
+	USING_LEX(lex, "*=",
 	ASSERT_EATTOK(T_STAREQ, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_dstar(void) {
-	struct Lexer lex = setup_lexer("**");
+	USING_LEX(lex, "**",
 	ASSERT_EATTOK(T_DSTAR, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_dstareq(void) {
-	struct Lexer lex = setup_lexer("**=");
+	USING_LEX(lex, "**=",
 	ASSERT_EATTOK(T_DSTAREQ, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_slash(void) {
-	struct Lexer lex = setup_lexer("/");
+	USING_LEX(lex, "/",
 	ASSERT_EATTOK(T_SLASH, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_slasheq(void) {
-	struct Lexer lex = setup_lexer("/=");
+	USING_LEX(lex, "/=",
 	ASSERT_EATTOK(T_SLASHEQ, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_dslash(void) {
-	struct Lexer lex = setup_lexer("//");
+	USING_LEX(lex, "//",
 	ASSERT_EATTOK(T_DSLASH, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_dslasheq(void) {
-	struct Lexer lex = setup_lexer("//=");
+	USING_LEX(lex, "//=",
 	ASSERT_EATTOK(T_DSLASHEQ, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_mod(void) {
-	struct Lexer lex = setup_lexer("%");
+	USING_LEX(lex, "%",
 	ASSERT_EATTOK(T_MOD, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_modeq(void) {
-	struct Lexer lex = setup_lexer("%=");
+	USING_LEX(lex, "%=",
 	ASSERT_EATTOK(T_MODEQ, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_lt(void) {
-	struct Lexer lex = setup_lexer("<");
+	USING_LEX(lex, "<",
 	ASSERT_EATTOK(T_LT, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_lteq(void) {
-	struct Lexer lex = setup_lexer("<=");
+	USING_LEX(lex, "<=",
 	ASSERT_EATTOK(T_LTEQ, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_dlt(void) {
-	struct Lexer lex = setup_lexer("<<");
+	USING_LEX(lex, "<<",
 	ASSERT_EATTOK(T_DLT, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_dlteq(void) {
-	struct Lexer lex = setup_lexer("<<=");
+	USING_LEX(lex, "<<=",
 	ASSERT_EATTOK(T_DLTEQ, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_gt(void) {
-	struct Lexer lex = setup_lexer(">");
+	USING_LEX(lex, ">",
 	ASSERT_EATTOK(T_GT, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_gteq(void) {
-	struct Lexer lex = setup_lexer(">=");
+	USING_LEX(lex, ">=",
 	ASSERT_EATTOK(T_GTEQ, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_dgt(void) {
-	struct Lexer lex = setup_lexer(">>");
+	USING_LEX(lex, ">>",
 	ASSERT_EATTOK(T_DGT, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_dgteq(void) {
-	struct Lexer lex = setup_lexer(">>=");
+	USING_LEX(lex, ">>=",
 	ASSERT_EATTOK(T_DGTEQ, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_eq(void) {
-	struct Lexer lex = setup_lexer("=");
+	USING_LEX(lex, "=",
 	ASSERT_EATTOK(T_EQ, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_deq(void) {
-	struct Lexer lex = setup_lexer("==");
+	USING_LEX(lex, "==",
 	ASSERT_EATTOK(T_DEQ, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_teq(void) {
-	struct Lexer lex = setup_lexer("===");
+	USING_LEX(lex, "===",
 	ASSERT_EATTOK(T_TEQ, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_amp(void) {
-	struct Lexer lex = setup_lexer("&");
+	USING_LEX(lex, "&",
 	ASSERT_EATTOK(T_AMP, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_ampeq(void) {
-	struct Lexer lex = setup_lexer("&=");
+	USING_LEX(lex, "&=",
 	ASSERT_EATTOK(T_AMPEQ, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_ampcaret(void) {
-	struct Lexer lex = setup_lexer("&^");
+	USING_LEX(lex, "&^",
 	ASSERT_EATTOK(T_AMPCARET, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_ampcareteq(void) {
-	struct Lexer lex = setup_lexer("&^=");
+	USING_LEX(lex, "&^=",
 	ASSERT_EATTOK(T_AMPCARETEQ, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_damp(void) {
-	struct Lexer lex = setup_lexer("&&");
+	USING_LEX(lex, "&&",
 	ASSERT_EATTOK(T_DAMP, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_dampeq(void) {
-	struct Lexer lex = setup_lexer("&&=");
+	USING_LEX(lex, "&&=",
 	ASSERT_EATTOK(T_DAMPEQ, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_bar(void) {
-	struct Lexer lex = setup_lexer("|");
+	USING_LEX(lex, "|",
 	ASSERT_EATTOK(T_BAR, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_bareq(void) {
-	struct Lexer lex = setup_lexer("|=");
+	USING_LEX(lex, "|=",
 	ASSERT_EATTOK(T_BAREQ, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_dbar(void) {
-	struct Lexer lex = setup_lexer("||");
+	USING_LEX(lex, "||",
 	ASSERT_EATTOK(T_DBAR, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_dbareq(void) {
-	struct Lexer lex = setup_lexer("||=");
+	USING_LEX(lex, "||=",
 	ASSERT_EATTOK(T_DBAREQ, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_qmark(void) {
-	struct Lexer lex = setup_lexer("?");
+	USING_LEX(lex, "?",
 	ASSERT_EATTOK(T_QMARK, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_dqmark(void) {
-	struct Lexer lex = setup_lexer("??");
+	USING_LEX(lex, "??",
 	ASSERT_EATTOK(T_DQMARK, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_dqmarkeq(void) {
-	struct Lexer lex = setup_lexer("?\?=");
+	USING_LEX(lex, "?\?=",
 	ASSERT_EATTOK(T_DQMARKEQ, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_colon(void) {
-	struct Lexer lex = setup_lexer(":");
+	USING_LEX(lex, ":",
 	ASSERT_EATTOK(T_COLON, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_colon_eq(void) {
-	struct Lexer lex = setup_lexer(":=");
+	USING_LEX(lex, ":=",
 	ASSERT_EATTOK(T_COLONEQ, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_small_arrow(void) {
-	struct Lexer lex = setup_lexer("->");
+	USING_LEX(lex, "->",
 	ASSERT_EATTOK(T_RIGHT_ARR, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_int(void) {
-	struct Lexer lex = setup_lexer("64;"
-				       "0__10;"
-				       "1_000;"
-				       "10__;"
-				       "1_000__000___;");
-	ASSERT_EATTOK(T_INT, lex);
-	ASSERT_EATTOK(T_SEMI, lex);
-	ASSERT_EATTOK(T_INT, lex);
-	ASSERT_EATTOK(T_SEMI, lex);
-	ASSERT_EATTOK(T_INT, lex);
-	ASSERT_EATTOK(T_SEMI, lex);
-	ASSERT_EATTOK(T_INT, lex);
-	ASSERT_EATTOK(T_SEMI, lex);
-	ASSERT_EATTOK(T_INT, lex);
-	ASSERT_EATTOK(T_SEMI, lex);
-	ASSERT_EATTOK(T_EOF, lex);
+	USING_LEX(lex, "64;"
+		       "0__10;"
+		       "1_000;"
+		       "10__;"
+		       "1_000__000___;",
+		ASSERT_EATTOK(T_INT, lex);
+		ASSERT_EATTOK(T_SEMI, lex);
+		ASSERT_EATTOK(T_INT, lex);
+		ASSERT_EATTOK(T_SEMI, lex);
+		ASSERT_EATTOK(T_INT, lex);
+		ASSERT_EATTOK(T_SEMI, lex);
+		ASSERT_EATTOK(T_INT, lex);
+		ASSERT_EATTOK(T_SEMI, lex);
+		ASSERT_EATTOK(T_INT, lex);
+		ASSERT_EATTOK(T_SEMI, lex);
+		ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_hex(void) {
-	struct Lexer lex = setup_lexer("0x10;"
-				       "0x__10;"
-				       "0x10_AB;"
-				       "0x10__;"
-				       "0x_10__AB_;");
-	ASSERT_EATTOK(T_INT, lex);
-	ASSERT_EATTOK(T_SEMI, lex);
-	ASSERT_EATTOK(T_INT, lex);
-	ASSERT_EATTOK(T_SEMI, lex);
-	ASSERT_EATTOK(T_INT, lex);
-	ASSERT_EATTOK(T_SEMI, lex);
-	ASSERT_EATTOK(T_INT, lex);
-	ASSERT_EATTOK(T_SEMI, lex);
-	ASSERT_EATTOK(T_INT, lex);
-	ASSERT_EATTOK(T_SEMI, lex);
-	ASSERT_EATTOK(T_EOF, lex);
+	USING_LEX(lex, "0x10;"
+		       "0x__10;"
+		       "0x10_AB;"
+		       "0x10__;"
+		       "0x_10__AB_;",
+		ASSERT_EATTOK(T_INT, lex);
+		ASSERT_EATTOK(T_SEMI, lex);
+		ASSERT_EATTOK(T_INT, lex);
+		ASSERT_EATTOK(T_SEMI, lex);
+		ASSERT_EATTOK(T_INT, lex);
+		ASSERT_EATTOK(T_SEMI, lex);
+		ASSERT_EATTOK(T_INT, lex);
+		ASSERT_EATTOK(T_SEMI, lex);
+		ASSERT_EATTOK(T_INT, lex);
+		ASSERT_EATTOK(T_SEMI, lex);
+		ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_binary(void) {
-	struct Lexer lex = setup_lexer("0b10;"
-				       "0b__10;"
-				       "0b10_10;"
-				       "0b10__;"
-				       "0b_10__10_;");
-	ASSERT_EATTOK(T_INT, lex);
-	ASSERT_EATTOK(T_SEMI, lex);
-	ASSERT_EATTOK(T_INT, lex);
-	ASSERT_EATTOK(T_SEMI, lex);
-	ASSERT_EATTOK(T_INT, lex);
-	ASSERT_EATTOK(T_SEMI, lex);
-	ASSERT_EATTOK(T_INT, lex);
-	ASSERT_EATTOK(T_SEMI, lex);
-	ASSERT_EATTOK(T_INT, lex);
-	ASSERT_EATTOK(T_SEMI, lex);
-	ASSERT_EATTOK(T_EOF, lex);
+	USING_LEX(lex, "0b10;"
+		       "0b__10;"
+		       "0b10_10;"
+		       "0b10__;"
+		       "0b_10__10_;",
+		ASSERT_EATTOK(T_INT, lex);
+		ASSERT_EATTOK(T_SEMI, lex);
+		ASSERT_EATTOK(T_INT, lex);
+		ASSERT_EATTOK(T_SEMI, lex);
+		ASSERT_EATTOK(T_INT, lex);
+		ASSERT_EATTOK(T_SEMI, lex);
+		ASSERT_EATTOK(T_INT, lex);
+		ASSERT_EATTOK(T_SEMI, lex);
+		ASSERT_EATTOK(T_INT, lex);
+		ASSERT_EATTOK(T_SEMI, lex);
+		ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_float(void) {
-	struct Lexer lex = setup_lexer("64.50;"
-				       "1_0___.5__;"
-				       "1____.6_7__8;"
-				       "1.5_;");
-	ASSERT_EATTOK(T_FLOAT, lex);
-	ASSERT_EATTOK(T_SEMI, lex);
-	ASSERT_EATTOK(T_FLOAT, lex);
-	ASSERT_EATTOK(T_SEMI, lex);
-	ASSERT_EATTOK(T_FLOAT, lex);
-	ASSERT_EATTOK(T_SEMI, lex);
-	ASSERT_EATTOK(T_FLOAT, lex);
-	ASSERT_EATTOK(T_SEMI, lex);
-	ASSERT_EATTOK(T_EOF, lex);
+	USING_LEX(lex, "64.50;"
+		       "1_0___.5__;"
+		       "1____.6_7__8;"
+		       "1.5_;",
+		ASSERT_EATTOK(T_FLOAT, lex);
+		ASSERT_EATTOK(T_SEMI, lex);
+		ASSERT_EATTOK(T_FLOAT, lex);
+		ASSERT_EATTOK(T_SEMI, lex);
+		ASSERT_EATTOK(T_FLOAT, lex);
+		ASSERT_EATTOK(T_SEMI, lex);
+		ASSERT_EATTOK(T_FLOAT, lex);
+		ASSERT_EATTOK(T_SEMI, lex);
+		ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_string(void) {
-	struct Lexer lex = setup_lexer("x := 'hello world';");
+	USING_LEX(lex, "x := 'hello world';",
 	ASSERT_EATTOK(T_ID, lex);
 	ASSERT_EATTOK(T_COLONEQ, lex);
 	ASSERT_EATTOK(T_STR, lex);
 	ASSERT_EATTOK(T_SEMI, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 static void test_division(void) {
-	struct Lexer lex = setup_lexer("5 / 7.0");
+	USING_LEX(lex, "5 / 7.0",
 	ASSERT_EATTOK(T_INT, lex);
 	ASSERT_EATTOK(T_SLASH, lex);
 	ASSERT_EATTOK(T_FLOAT, lex);
 	ASSERT_EATTOK(T_EOF, lex);
+	);
 }
 
 int lexertest(void) {

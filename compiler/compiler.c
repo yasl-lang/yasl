@@ -900,24 +900,47 @@ cleanup:
 	compiler->seen_bindings = prev;
 }
 
-static void visit_Match_helper(struct Compiler *const compiler, const struct Node *const patterns, const struct Node *const bodies, size_t curr) {
+static void visit_Match_helper(struct Compiler *const compiler, const struct Node *const patterns, const struct Node *const guards, const struct Node *const bodies, size_t curr) {
+	compiler_add_byte(compiler, O_MATCH);
 	size_t start = compiler->buffer->count;
 	compiler_add_int(compiler, 0);
-	compiler_add_int(compiler, 0);
 
+	size_t vars = get_scope_in_use(compiler)->vars.count;
 	enter_scope(compiler);
 	compiler->leftmost_pattern = true;
 	visit(compiler, patterns->children[curr]);
-	int64_t body_start = compiler->buffer->count;
+
+	struct Node *guard = guards->children[curr];
+	size_t start_guard = 0;
+
 	unsigned char bindings = (unsigned char) get_scope_in_use(compiler)->vars.count;
 	if (bindings) {
 		compiler_add_byte(compiler, O_INCSP);
 		compiler_add_byte(compiler, bindings);
+		if (guard) {
+			compiler_add_byte(compiler, O_MOVEUP);
+			compiler_add_byte(compiler, (unsigned char) vars);
+			visit(compiler, guard);
+			compiler_add_byte(compiler, O_BRF_8);
+			start_guard = compiler->buffer->count;
+			compiler_add_int(compiler, 0);
+			compiler_add_byte(compiler, O_POP);
+		} else {
+			compiler_add_byte(compiler, O_DEL_FP);
+			compiler_add_byte(compiler, (unsigned char) vars);
+		}
+	} else {
+		if (guard) {
+			visit(compiler, guard);
+			compiler_add_byte(compiler, O_BRF_8);
+			start_guard = compiler->buffer->count;
+			compiler_add_int(compiler, 0);
+		}
+		compiler_add_byte(compiler, O_POP);
 	}
+
 	visit(compiler, bodies->children[curr]);
 	exit_scope(compiler);
-
-	YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, start, body_start - start);
 
 	curr++;
 	size_t body_end = 0;
@@ -925,13 +948,17 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 		enter_jump(compiler, &body_end);
 	}
 
-	YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, start + 8, compiler->buffer->count - start);
-
-	if (patterns->children_len <= curr) return;
-
-	visit_Match_helper(compiler, patterns, bodies, curr);
+	if (guard) {
+		YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, start_guard, compiler->buffer->count - start_guard - 8);
+		if (bindings) {
+			for (unsigned char i = bindings; i > 0; i--)
+			compiler_add_byte(compiler, O_POP);
+		}
+	}
+	YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, start, compiler->buffer->count - start - 8);
 
 	if (patterns->children_len > curr) {
+		visit_Match_helper(compiler, patterns, guards, bodies, curr);
 		exit_jump(compiler, &body_end);
 	}
 }
@@ -939,6 +966,7 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 static void visit_Match(struct Compiler *const compiler, const struct Node *const node) {
 	struct Node *expr = Match_get_expr(node);
 	struct Node *patterns = Match_get_patterns(node);
+	struct Node *guards = Match_get_guards(node);
 	struct Node *bodies = Match_get_bodies(node);
 	visit(compiler, expr);
 	if (patterns->children_len == 0) {
@@ -946,9 +974,7 @@ static void visit_Match(struct Compiler *const compiler, const struct Node *cons
 		return;
 	}
 
-	compiler_add_byte(compiler, O_MATCH);
-	compiler_add_int(compiler, patterns->children_len);
-	visit_Match_helper(compiler, patterns, bodies, 0);
+	visit_Match_helper(compiler, patterns, guards, bodies, 0);
 }
 
 static void visit_If_true(struct Compiler *const compiler, const struct Node *const then_br, const struct Node *const else_br) {

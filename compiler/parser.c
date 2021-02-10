@@ -629,14 +629,20 @@ static struct Node *parse_match(struct Parser *const parser) {
 	(void)expr;
 	eattok(parser, T_LBRC);
 	struct Node *pats = new_Body(line);
+	struct Node *guards = new_Body(line);
 	struct Node *bodies = new_Body(line);
 	while (curtok(parser) != T_RBRC && curtok(parser) != T_EOF) {
 		body_append(&pats, parse_pattern(parser));
+		if (matcheattok(parser, T_IF)) {
+			body_append(&guards, parse_expr(parser));
+		} else {
+			body_append(&guards, NULL);
+		}
 		body_append(&bodies, parse_body(parser));
 		eattok(parser, T_SEMI);
 	}
 	eattok(parser, T_RBRC);
-	return new_Match(expr, pats, bodies, line);
+	return new_Match(expr, pats, guards, bodies, line);
 }
 
 static struct Node *parse_if(struct Parser *const parser) {

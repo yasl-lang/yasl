@@ -16,7 +16,7 @@ struct Lexer setup_lexer(const char *file_contents) {
 	return NEW_LEXER(lp);
 }
 
-unsigned char *setup_compiler(const char *file_contents) {
+void setup_compiler(const char *file_contents) {
 	FILE *fptr = fopen("dump.ysl", "w");
 	fwrite(file_contents, 1, strlen(file_contents), fptr);
 	fseek(fptr, 0, SEEK_SET);
@@ -33,7 +33,7 @@ unsigned char *setup_compiler(const char *file_contents) {
 	}
 	fclose(f);
 	compiler_cleanup(&compiler);
-	return bytecode;
+	free(bytecode);
 }
 
 int64_t getsize(FILE *file) {

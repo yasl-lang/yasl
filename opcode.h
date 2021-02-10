@@ -10,7 +10,7 @@ enum Opcode {
 
 	O_HALT = 0x0F, // halt
 
-	O_MATCH = 0x30, // pattern matching
+	O_MATCH = 0x31, // pattern matching
 
 	O_BOR = 0x40, // bitwise or
 	O_BXOR = 0x41, // bitwise xor
@@ -49,15 +49,17 @@ enum Opcode {
 	O_EXPORT = 0x90, // export
 
 	O_LIT = 0x9A,
-	O_LIT8 = 0x9B, // make new String and push it onto stack (length (8 bytes), string (length bytes))
-	O_NEWTABLE = 0x9C, // make new HashTable and push it onto stack
-	O_NEWLIST = 0x9D, // make new List and push it onto stack
-	//O_SCONST = 0x9E,  // initialize the constant table with a string literal.
+	O_LIT8 = 0x9B, // make new constant and push it onto stack (index into constant table: 8 bytes)
+	O_NEWTABLE = 0x9C, // make new table and push it onto stack
+	O_NEWLIST = 0x9D, // make new list and push it onto stack
 
 	O_MOVEUP = 0xA0, // move an element from index whatever to top of stack, indexing from fp.
 
 	O_END = 0xB0, // indicate end of list on stack.
 	O_DUP = 0xB8, // duplicate top value of stack
+	O_DEL_FP = 0xB9, // deletes an element from the stack. Takes a one-byte index, indicating which element to delete.
+	O_DEL_RNG_FP = 0xBA, // deletes a range of elements from the stack. Takes two one-byte indices.
+	O_DECSP = 0xBD,
 	O_INCSP = 0xBE,
 	O_POP = 0xBF, // pop top of stack
 

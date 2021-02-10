@@ -33,6 +33,7 @@ static void test_two(void) {
 
 	int64_t a = env_resolve_upval_index(inner, NULL, "a");
 	ASSERT_EQ(a, 0);
+
 	env_del(inner);
 }
 
@@ -69,6 +70,8 @@ static void test_multi(void) {
 
 	ASSERT_EQ(a, 0);
 	ASSERT_EQ(b, 1);
+
+	env_del(inner);
 }
 
 /*
@@ -111,6 +114,8 @@ static void test_multi_reversed(void) {
 	int64_t b_value = env_resolve_upval_value(inner, "b");
 	ASSERT_EQ(a_value, 1);
 	ASSERT_EQ(b_value, 2);
+
+	env_del(inner);
 }
 
 /*
@@ -148,6 +153,8 @@ static void test_deep(void) {
 
 	ASSERT_EQ(env_resolve_upval_index(middle, NULL, "x"), 0);
 	ASSERT_EQ(env_resolve_upval_value(middle, "x"), 0);
+
+	env_del(inner);
 }
 
 static void test_deep_many_vars(void) {
@@ -174,6 +181,8 @@ static void test_deep_many_vars(void) {
 
 	ASSERT_EQ(env_resolve_upval_index(middle, NULL, "z"), 1);
 	ASSERT_EQ(env_resolve_upval_value(middle, "z"), 2);
+
+	env_del(inner);
 }
 
 int envtest(void) {

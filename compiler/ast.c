@@ -66,6 +66,7 @@ static struct Node *new_Node(const enum NodeType nodetype, const size_t line, co
 #define new_Node_1(nodetype, child, name, name_len, line) new_Node(nodetype, line, name_len, name, 1, child)
 #define new_Node_2(nodetype, child1, child2, name, name_len, line) new_Node(nodetype, line, name_len, name, 2, child1, child2)
 #define new_Node_3(nodetype, child1, child2, child3, name, name_len, line) new_Node(nodetype, line, name_len, name, 3, child1, child2, child3)
+#define new_Node_4(nodetype, child1, child2, child3, child4, name, name_len, line) new_Node(nodetype, line, name_len, name, 4, child1, child2, child3, child4)
 
 struct Node *new_ExprStmt(const struct Node *const child, const size_t line) {
 	return new_Node_1(N_EXPRSTMT, child, NULL, 0, line);
@@ -146,8 +147,8 @@ struct Node *new_Continue(size_t line) {
 	return new_Node_0(N_CONT, NULL, 0, line);
 }
 
-struct Node *new_Match(struct Node *cond, struct Node *pats, struct Node *bodies, const size_t line) {
-	return new_Node_3(N_MATCH, cond, pats, bodies, NULL, 0, line);
+struct Node *new_Match(struct Node *cond, struct Node *pats, struct Node *guards, struct Node *bodies, const size_t line) {
+	return new_Node_4(N_MATCH, cond, pats, guards, bodies, NULL, 0, line);
 }
 
 struct Node *new_If(struct Node *cond, struct Node *then_node, struct Node *else_node, const size_t line) {
@@ -344,8 +345,12 @@ struct Node *Match_get_patterns(const struct Node *const node) {
 	return ((node)->children[1]);
 }
 
-struct Node *Match_get_bodies(const struct Node *const node) {
+struct Node *Match_get_guards(const struct Node *const node) {
 	return ((node)->children[2]);
+}
+
+struct Node *Match_get_bodies(const struct Node *const node) {
+	return ((node)->children[3]);
 }
 
 struct Node *Print_get_expr(const struct Node *const node) {

@@ -150,6 +150,7 @@ struct Node *Table_get_values(const struct Node *const node);
 struct Node *While_get_body(const struct Node *const node);
 struct Node *Match_get_expr(const struct Node *const node);
 struct Node *Match_get_patterns(const struct Node *const node);
+struct Node *Match_get_guards(const struct Node *const node);
 struct Node *Match_get_bodies(const struct Node *const node);
 struct Node *Print_get_expr(const struct Node *const node);
 struct Node *Decl_get_expr(const struct Node *const node);
@@ -207,7 +208,7 @@ struct Node *new_ForIter(struct Node *iter, struct Node *body, const size_t line
 struct Node *new_While(struct Node *cond, struct Node *body, struct Node *post, const size_t line);
 struct Node *new_Break(size_t line);
 struct Node *new_Continue(size_t line);
-struct Node *new_Match(struct Node *cond, struct Node *pats, struct Node *bodies, const size_t line);
+struct Node *new_Match(struct Node *cond, struct Node *pats, struct Node *guards, struct Node *bodies, const size_t line);
 struct Node *new_If(struct Node *cond, struct Node *then_node, struct Node *else_node, const size_t line);
 struct Node *new_Print(struct Node *expr, const size_t line);
 struct Node *new_Assert(struct Node *expr, const size_t line);

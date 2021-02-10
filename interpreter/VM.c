@@ -286,6 +286,14 @@ void vm_insert(struct VM *const vm, int index, struct YASL_Object val) {
 	vm->sp++;
 }
 
+void vm_rm(struct VM *const vm, int index) {
+	int after = vm->sp - index;
+	dec_ref(vm->stack + index);
+	memmove(vm->stack + index, vm->stack + index + 1, after * sizeof(struct YASL_Object));
+	vm->stack[vm->sp] = YASL_END();
+	vm->sp--;
+}
+
 void vm_rm_range(struct VM *const vm, int start, int end) {
 	int after = vm->sp - end + 1;
 	int len = end - start;
@@ -293,6 +301,7 @@ void vm_rm_range(struct VM *const vm, int start, int end) {
 		dec_ref(vm->stack + start + i);
 	}
 	memmove(vm->stack + start, vm->stack + end, after * sizeof(struct YASL_Object));
+	// TODO: this is wrong
 	for (int i = 0; i < after && i < len; i++) {
 		inc_ref(vm->stack + start + i);
 	}
@@ -322,6 +331,13 @@ static void vm_call_now_2(struct VM *vm, struct YASL_Object a, struct YASL_Objec
 	vm_INIT_CALL(vm);
 	vm_push(vm, a);
 	vm_push(vm, b);
+	vm_CALL(vm);
+}
+static void vm_call_now_3(struct VM *vm, struct YASL_Object a, struct YASL_Object b, struct YASL_Object c) {
+	vm_INIT_CALL(vm);
+	vm_push(vm, a);
+	vm_push(vm, b);
+	vm_push(vm, c);
 	vm_CALL(vm);
 }
 
@@ -356,6 +372,18 @@ do {\
 	vm_call_now_2(vm, left, right);\
 	dec_ref(&left);\
 	dec_ref(&right);\
+} while (0)
+
+#define vm_call_method_now_3(vm, a, b, c, method_name, ...) do {\
+	inc_ref(&a);\
+	inc_ref(&b);\
+	inc_ref(&c);\
+	vm_push(vm, a);\
+	vm_lookup_method_throwing(vm, method_name, __VA_ARGS__);\
+	vm_call_now_3(vm, a, b, c);\
+	dec_ref(&a);\
+	dec_ref(&b);\
+	dec_ref(&c);\
 } while (0)
 
 #define INT_BINOP(name, op) yasl_int name(yasl_int left, yasl_int right) { return left op right; }
@@ -531,32 +559,20 @@ DEFINE_COMP(LT, "<", "__lt")
 DEFINE_COMP(LE, "<=", "__le")
 
 void vm_stringify_top(struct VM *const vm) {
-	enum YASL_Types index = vm_peek(vm, vm->sp).type;
+	struct YASL_Object top = vm_peek(vm);
+	//enum YASL_Types index = top.type;
 	if (vm_isfn(vm) || vm_iscfn(vm) || vm_isclosure(vm)) {
 		size_t n = (size_t)snprintf(NULL, 0, "<fn: %p>", vm_peekuserptr(vm)) + 1;
 		char *buffer = (char *)malloc(n);
 		snprintf(buffer, n, "<fn: %d>", (int)vm_popint(vm));
 		vm_pushstr(vm, YASL_String_new_sized_heap(0, strlen(buffer), buffer));
-	} else if (vm_isuserdata(vm)) {
-		struct YASL_Object key = YASL_STR(YASL_String_new_sized(strlen("tostr"), "tostr"));
-		struct YASL_Object result = YASL_Table_search((struct YASL_Table *)vm_peek(vm).value.uval->mt->data, key);
-		str_del(obj_getstr(&key));
-		if (result.type == Y_END) {
-			// TODO: error here
-			exit(EXIT_FAILURE);
-		}
-		YASL_GETCFN(result)->value((struct YASL_State *)vm);
 	} else if (vm_isuserptr(vm)) {
-		// TODO clean up
 		size_t n = (size_t)snprintf(NULL, 0, "<userptr: %p>", vm_peekuserptr(vm)) + 1;
 		char *buffer = (char *)malloc(n);
 		snprintf(buffer, n, "<userptr: %p>", (void *)vm_popint(vm));
 		vm_pushstr(vm, YASL_String_new_sized_heap(0, strlen(buffer), buffer));
 	} else {
-		struct YASL_Object key = YASL_STR(YASL_String_new_sized(strlen("tostr"), "tostr"));
-		struct YASL_Object result = YASL_Table_search((struct YASL_Table *)vm->builtins_htable[index]->data, key);
-		str_del(obj_getstr(&key));
-		YASL_GETCFN(result)->value((struct YASL_State *)vm);
+		vm_call_method_now_1(vm, top, "tostr", "tostr not supported for operand of type %s.", obj_typename(&top));
 	}
 }
 
@@ -794,15 +810,17 @@ static void vm_GET(struct VM *const vm) {
 }
 
 static void vm_SET(struct VM *const vm) {
-	if (vm_islist(vm, vm->sp-2)) {
-		list___set((struct YASL_State *) vm);
-		return;
-	} else if (vm_istable(vm, vm->sp-2)) {
+	// TODO: everything should be looked up rather than hard-coding the path for table.
+	if (vm_istable(vm, vm->sp-2)) {
 		table___set((struct YASL_State *) vm);
-		return;
+	} else {
+		struct YASL_Object value = vm_pop(vm);
+		struct YASL_Object key = vm_pop(vm);
+		struct YASL_Object obj = vm_pop(vm);
+
+		vm_call_method_now_3(vm, obj, key, value, "__set", "object of type %s is immutable.", obj_typename(&obj));
+		vm_pop(vm);
 	}
-	vm_print_err_type(vm,  "object of type %s is immutable.", obj_typename(vm_peek_p(vm)));
-	vm_throw_err(vm, YASL_TYPE_ERROR);
 }
 
 static void vm_LIT(struct VM *const vm) {
@@ -1006,10 +1024,13 @@ static bool vm_MATCH_subpattern(struct VM *const vm, struct YASL_Object *expr) {
 		return MATCH_list(vm, ls, len);
 	}
 	case P_BIND: {
+		/* We offset by +2 instead of +1 here to account for the fact that the expression we are matching on is
+		   still on top of the stack. This is taken care of _after_ a successful match by a O_DEL_FP instruction.
+		  */
 		unsigned char offset = NCODE(vm);
-		dec_ref(&vm_peek(vm, vm->fp + offset + 1));
-		vm_peek(vm, vm->fp + offset + 1) = *expr;
-		inc_ref(&vm_peek(vm, vm->fp + offset + 1));
+		dec_ref(&vm_peek(vm, vm->fp + offset + 2));
+		vm_peek(vm, vm->fp + offset + 2) = *expr;
+		inc_ref(&vm_peek(vm, vm->fp + offset + 2));
 		return true;
 	}
 	case P_ANY:
@@ -1027,26 +1048,16 @@ static bool vm_MATCH_subpattern(struct VM *const vm, struct YASL_Object *expr) {
 }
 
 static bool vm_MATCH_pattern(struct VM *const vm, struct YASL_Object *expr) {
-	unsigned char *start = vm->pc;
-	yasl_int body_start = vm_read_int(vm);
-	yasl_int next_start = vm_read_int(vm);
-
-	if (vm_MATCH_subpattern(vm, expr)) {
-		vm->pc = start + body_start;
-		return true;
-	} else {
-		vm->pc = start + next_start;
-		return false;
-	}
+	return vm_MATCH_subpattern(vm, expr);
 }
 
-static void vm_MATCH(struct VM *const vm) {
-	struct YASL_Object expr = vm_pop(vm);
-	inc_ref(&expr);
-	yasl_int num_pats = vm_read_int(vm);
-	(void) num_pats;
-	while (num_pats-- && !vm_MATCH_pattern(vm, &expr)) {}
-	dec_ref(&expr);
+static void vm_MATCH_IF(struct VM *const vm) {
+	struct YASL_Object expr = vm_peek(vm);
+	yasl_int addr = vm_read_int(vm);
+	unsigned char *start = vm->pc;
+	if (!vm_MATCH_pattern(vm, &expr)) {
+		vm->pc = start + addr;
+	}
 }
 
 static void vm_GSTORE_8(struct VM *const vm) {
@@ -1409,7 +1420,7 @@ void vm_executenext(struct VM *const vm) {
 		vm->stack[vm->sp] = a;
 		break;
 	case O_MATCH:
-		vm_MATCH(vm);
+		vm_MATCH_IF(vm);
 		break;
 	case O_BR_8:
 		vm->pc += vm_read_int(vm);
@@ -1477,6 +1488,13 @@ void vm_executenext(struct VM *const vm) {
 		break;
 	case O_POP:
 		vm_pop(vm);
+		break;
+	case O_DEL_FP:
+		c = NCODE(vm);
+		vm_rm(vm, vm->fp + 1 + c);
+		break;
+	case O_DECSP:
+		vm->sp -= NCODE(vm);
 		break;
 	case O_INCSP:
 		vm->sp += NCODE(vm);

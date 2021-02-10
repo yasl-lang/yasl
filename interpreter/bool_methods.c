@@ -4,7 +4,7 @@
 #include "yasl_aux.h"
 
 void bool_tostr(struct YASL_State *S) {
-	bool result = YASLX_checkbool(S, "bool.tostr", 0);
+	bool result = YASLX_checknbool(S, "bool.tostr", 0);
 	const char *str = result ? "true" : "false";
 	YASL_pushlit(S, str);
 }
