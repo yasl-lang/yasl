@@ -15,6 +15,14 @@ static struct YASL_Set *YASLX_checkset(struct YASL_State *S, const char *name, i
 	return (struct YASL_Set *)YASL_popuserdata(S);
 }
 
+static struct YASL_Set *YASLX_checknset(struct YASL_State *S, const char *name, unsigned n) {
+	if (!YASL_isnuserdata(S, T_SET, n)) {
+		YASLX_print_err_bad_arg_type(S, name, n, "set", YASL_peektypename(S));
+		YASL_throw_err(S, YASL_TYPE_ERROR);
+	}
+	return (struct YASL_Set *)YASL_peeknuserdata(S, n);
+}
+
 static void YASL_collections_set_new(struct YASL_State *S) {
 	struct YASL_Set *set = YASL_Set_new();
 	yasl_int i = YASL_popint(S);
@@ -65,7 +73,7 @@ static void YASL_collections_table_new(struct YASL_State *S) {
 }
 
 static void YASL_collections_set_tostr(struct YASL_State *S) {
-	struct YASL_Set *set = YASLX_checkset(S, SET_PRE ".tostr", 0);
+	struct YASL_Set *set = YASLX_checknset(S, SET_PRE ".tostr", 0);
 
 	size_t string_count = 0;
 	size_t string_size = 8;
@@ -105,7 +113,7 @@ static void YASL_collections_set_tostr(struct YASL_State *S) {
 }
 
 static void YASL_collections_set_tolist(struct YASL_State *S) {
-	struct YASL_Set *set = YASLX_checkset(S, SET_PRE ".tolist", 0);
+	struct YASL_Set *set = YASLX_checknset(S, SET_PRE ".tolist", 0);
 	struct RC_UserData *list = rcls_new();
 	ud_setmt(list, S->vm.builtins_htable[Y_LIST]);
 	struct YASL_List *ls = (struct YASL_List *)list->data;

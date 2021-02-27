@@ -315,17 +315,14 @@ static yasl_int vm_read_int(struct VM *const vm) {
     return val;
 }
 
+static void vm_duptop(struct VM *const vm);
+static void vm_swaptop(struct VM *const vm);
 static int vm_lookup_method_helper(struct VM *vm, struct YASL_Object obj, struct YASL_Table *mt, struct YASL_Object index);
 // static int vm_lookup_method(struct VM *const vm, const char *const method_name);
 static void vm_GET(struct VM *const vm);
 static void vm_INIT_CALL(struct VM *const vm);
+static void vm_INIT_CALL_offset(struct VM *const vm, int offset);
 static void vm_CALL(struct VM *const vm);
-
-static void vm_call_now_1(struct VM *vm, struct YASL_Object a) {
-	vm_INIT_CALL(vm);
-	vm_push(vm, a);
-	vm_CALL(vm);
-}
 
 static void vm_call_now_2(struct VM *vm, struct YASL_Object a, struct YASL_Object b) {
 	vm_INIT_CALL(vm);
@@ -357,11 +354,12 @@ do {\
 	}\
 } while (0)
 
-#define vm_call_method_now_1(vm, expr, method_name, ...) do {\
-	inc_ref(&expr);\
-	vm_lookup_method_throwing(vm, method_name, __VA_ARGS__);\
-	vm_call_now_1(vm, expr);\
-	dec_ref(&expr);\
+#define vm_call_method_now_1_top(vm, method_name, ...) do {\
+	vm_duptop(vm);\
+	vm_lookup_method_throwing(vm, method_name, __VA_ARGS__, obj_typename(vm_peek_p(vm)));\
+	vm_swaptop(vm);\
+	vm_INIT_CALL_offset(vm, vm->sp - 1);\
+	vm_CALL(vm);\
 } while (0)
 
 #define vm_call_method_now_2(vm, left, right, method_name, ...) do {\
@@ -479,10 +477,7 @@ static void vm_int_unop(struct VM *const vm, yasl_int (*op)(yasl_int), const cha
 		vm_pushint(vm, op(vm_popint(vm)));
 		return;
 	} else {
-		struct YASL_Object expr = vm_peek(vm);
-		vm_call_method_now_1(vm, expr, overload_name, "%s not supported for operand of type %s.",
-					  opstr,
-					  obj_typename(&expr));
+		vm_call_method_now_1_top(vm, overload_name, "%s not supported for operand of type %s.", opstr);
 	}
 }
 
@@ -492,10 +487,7 @@ static void vm_num_unop(struct VM *const vm, yasl_int (*int_op)(yasl_int), yasl_
 	} else if (vm_isfloat(vm)) {
 		vm_pushfloat(vm, float_op(vm_popfloat(vm)));
 	} else {
-		struct YASL_Object expr = vm_peek(vm);
-		vm_call_method_now_1(vm, expr, overload_name, "%s not supported for operand of type %s.",
-					  opstr,
-					  obj_typename(&expr));
+		vm_call_method_now_1_top(vm, overload_name, "%s not supported for operand of type %s.", opstr);
 	}
 }
 
@@ -503,9 +495,7 @@ static void vm_len_unop(struct VM *const vm) {
 	if (vm_isstr(vm)) {
 		vm_pushint(vm, (yasl_int) YASL_String_len(vm_popstr(vm)));
 	} else {
-		struct YASL_Object expr = vm_peek(vm);
-		vm_call_method_now_1(vm, expr, "__len", "len not supported for operand of type %s.",
-					  obj_typename(&expr));
+		vm_call_method_now_1_top(vm, "__len", "len not supported for operand of type %s.");
 	}
 }
 
@@ -559,8 +549,6 @@ DEFINE_COMP(LT, "<", "__lt")
 DEFINE_COMP(LE, "<=", "__le")
 
 void vm_stringify_top(struct VM *const vm) {
-	struct YASL_Object top = vm_peek(vm);
-	//enum YASL_Types index = top.type;
 	if (vm_isfn(vm) || vm_iscfn(vm) || vm_isclosure(vm)) {
 		size_t n = (size_t)snprintf(NULL, 0, "<fn: %p>", vm_peekuserptr(vm)) + 1;
 		char *buffer = (char *)malloc(n);
@@ -572,7 +560,7 @@ void vm_stringify_top(struct VM *const vm) {
 		snprintf(buffer, n, "<userptr: %p>", (void *)vm_popint(vm));
 		vm_pushstr(vm, YASL_String_new_sized_heap(0, strlen(buffer), buffer));
 	} else {
-		vm_call_method_now_1(vm, top, "tostr", "tostr not supported for operand of type %s.", obj_typename(&top));
+		vm_call_method_now_1_top(vm, "tostr", "tostr not supported for operand of type %s.");
 	}
 }
 
@@ -751,6 +739,18 @@ void vm_get_metatable(struct VM *const vm) {
 	vm_push(vm, mt ? YASL_TABLE(mt) : YASL_UNDEF());
 }
 
+static int vm_lookup_method_helper(struct VM *vm, struct YASL_Object obj, struct YASL_Table *mt, struct YASL_Object index) {
+	(void) obj;
+	if (!mt) return YASL_VALUE_ERROR;
+	struct YASL_Object search = YASL_Table_search(mt, index);
+	if (search.type != Y_END) {
+		vm_push(vm,search);
+		return YASL_SUCCESS;
+	}
+
+	return YASL_VALUE_ERROR;
+}
+
 static int lookup(struct VM *vm, struct YASL_Object obj, struct YASL_Table *mt, struct YASL_Object index) {
 	struct YASL_Object search = YASL_Table_search(mt, index);
 	if (search.type != Y_END) {
@@ -764,18 +764,6 @@ static int lookup(struct VM *vm, struct YASL_Object obj, struct YASL_Table *mt, 
 		vm_call_now_2(vm, obj, index);
 		return YASL_SUCCESS;
 	}
-	return YASL_VALUE_ERROR;
-}
-
-static int vm_lookup_method_helper(struct VM *vm, struct YASL_Object obj, struct YASL_Table *mt, struct YASL_Object index) {
-	(void) obj;
-	if (!mt) return YASL_VALUE_ERROR;
-	struct YASL_Object search = YASL_Table_search(mt, index);
-	if (search.type != Y_END) {
-		vm_push(vm,search);
-		return YASL_SUCCESS;
-	}
-
 	return YASL_VALUE_ERROR;
 }
 
@@ -1074,7 +1062,7 @@ static void vm_GLOAD_8(struct VM *const vm) {
 	YASL_ASSERT(vm_peek(vm).type != Y_END, "global not found");
 }
 
-static void vm_enterframe(struct VM *const vm) {
+static void vm_enterframe_offset(struct VM *const vm, int offset) {
 	if (++vm->frame_num >= NUM_FRAMES) {
 		vm->frame_num--;
 		vm->status = YASL_STACK_OVERFLOW_ERROR;
@@ -1083,7 +1071,7 @@ static void vm_enterframe(struct VM *const vm) {
 	}
 
 	int next_fp = vm->next_fp;
-	vm->next_fp = vm->sp;
+	vm->next_fp = offset;
 	vm->frames[vm->frame_num] = ((struct CallFrame) { vm->pc, vm->fp, next_fp, vm->loopframe_num });
 }
 
@@ -1101,23 +1089,35 @@ static void vm_exitframe(struct VM *const vm) {
 	vm->frame_num--;
 }
 
-static void vm_INIT_CALL(struct VM *const vm) {
-	if (!vm_isfn(vm) && !vm_iscfn(vm) && !vm_isclosure(vm)) {
+static void vm_INIT_CALL_offset(struct VM *const vm, int offset) {
+	if (!vm_isfn(vm, offset) && !vm_iscfn(vm, offset) && !vm_isclosure(vm, offset)) {
 		vm_print_err_type(vm,  "%s is not callable.", obj_typename(vm_peek_p(vm)));
 		vm_throw_err(vm, YASL_TYPE_ERROR);
 	}
 
-	vm_enterframe(vm);
+	vm_enterframe_offset(vm, offset);
+}
+
+static void vm_INIT_CALL(struct VM *const vm) {
+	vm_INIT_CALL_offset(vm, vm->sp);
+}
+
+static void vm_duptop(struct VM *const vm) {
+	vm_push(vm, vm_peek(vm));
+}
+
+static void vm_swaptop(struct VM *const vm) {
+	struct YASL_Object tmp = vm_peek(vm);
+	vm_peek(vm) = vm_peek(vm, vm->sp - 1);
+	vm_peek(vm, vm->sp - 1) = tmp;
 }
 
 static void vm_INIT_MC(struct VM *const vm) {
-	struct YASL_Object top = vm_peek(vm);
-	inc_ref(&top);
+	vm_duptop(vm);
 	yasl_int addr = vm_read_int(vm);
 	vm_GET_helper(vm, vm->constants[addr]);
-	vm_INIT_CALL(vm);
-	vm_push(vm, top);
-	dec_ref(&top);
+	vm_swaptop(vm);
+	vm_INIT_CALL_offset(vm, vm->sp - 1);
 }
 
 static void vm_fill_args(struct VM *const vm, const int num_args) {
