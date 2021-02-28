@@ -43,7 +43,7 @@ static struct RC_UserData **builtins_htable_new(struct VM *const vm) {
 
 void vm_init(struct VM *const vm,
 	     unsigned char *const code,    // pointer to bytecode
-             const size_t pc,              // address of instruction to be executed first -- entrypoint
+             const size_t pc,              // address of instruction to be executed first (entrypoint)
              const size_t datasize) {      // total params size required to perform a program operations
 	vm->code = code;
 	vm->headers = (unsigned char **)calloc(sizeof(unsigned char *), datasize);
@@ -342,11 +342,9 @@ static void vm_call_now_3(struct VM *vm, struct YASL_Object a, struct YASL_Objec
 do {\
 	struct YASL_Object index = YASL_STR(YASL_String_new_sized(strlen(method_name), method_name));\
 	struct YASL_Object val = vm_peek(vm);\
-	inc_ref(&val);\
 	vm_get_metatable(vm);\
 	struct YASL_Table *mt = vm_istable(vm) ? vm_poptable(vm) : NULL;\
 	int result = vm_lookup_method_helper(vm, val, mt, index);\
-	dec_ref(&val);\
 	str_del(obj_getstr(&index));\
 	if (result) {\
 		vm_print_err_type(vm, err_str, __VA_ARGS__);\
@@ -773,9 +771,7 @@ static void vm_GET_helper(struct VM *const vm, struct YASL_Object index) {
 	struct YASL_Table *mt = get_mt(vm, v);
 	int result = YASL_ERROR;
 	if (mt) {
-		inc_ref(&v);
 		result = lookup(vm, v, mt, index);
-		dec_ref(&v);
 	}
 
 	if (result) {
@@ -792,9 +788,12 @@ static void vm_GET_helper(struct VM *const vm, struct YASL_Object index) {
 
 static void vm_GET(struct VM *const vm) {
 	struct YASL_Object index = vm_pop(vm);
+	struct YASL_Object v = vm_peek(vm);
 	inc_ref(&index);
+	inc_ref(&v);
 	vm_GET_helper(vm, index);
 	dec_ref(&index);
+	dec_ref(&v);
 }
 
 static void vm_SET(struct VM *const vm) {
