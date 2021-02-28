@@ -16,6 +16,7 @@ static struct Node *parse_const(struct Parser *const parser);
 static struct Node *parse_let(struct Parser *const parser);
 static struct Node *parse_decl(struct Parser *const parser);
 static struct Node *parse_fn(struct Parser *const parser);
+static struct Node *parse_return(struct Parser *const parser);
 static struct Node *parse_for(struct Parser *const parser);
 static struct Node *parse_while(struct Parser *const parser);
 static struct Node *parse_match(struct Parser *const parser);
@@ -210,8 +211,7 @@ static struct Node *parse_program(struct Parser *const parser) {
 		if (isfndecl(parser)) return parse_fn(parser);
 		else return parse_expr(parser);
 	case T_RET:
-		eattok(parser, T_RET);
-		return new_Return(parse_expr(parser), line);
+		return parse_return(parser);
 	case T_EXPORT:
 		eattok(parser, T_EXPORT);
 		return new_Export(parse_expr(parser), line);
@@ -282,6 +282,24 @@ static struct Node *parse_function_params(struct Parser *const parser) {
 		if (!matcheattok(parser, T_COMMA)) break;
 	}
 	return block;
+}
+
+static struct Node *parse_return(struct Parser *const parser) {
+	size_t line = parser->lex.line;
+	eattok(parser, T_RET);
+	struct Node *expr = parse_expr(parser);
+	/*
+	if (TOKEN_MATCHES(parser, T_COMMA)) {
+		struct Node *block = new_Body(line);
+		body_append(&block, expr);
+		while (matcheattok(parser, T_COMMA)) {
+			expr = parse_expr(parser);
+			body_append(&block, expr);
+		}
+		return new_MultiReturn(block, line);
+	}
+	 */
+	return new_Return(expr, line);
 }
 
 static struct Node *parse_fn(struct Parser *const parser) {

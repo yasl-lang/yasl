@@ -14,6 +14,7 @@ enum NodeType {
 	N_BODY,
 	N_FNDECL,
 	N_RET,
+	N_MULTIRET,
 	N_EXPORT,
 	N_CALL,
 	N_MCALL,
@@ -195,6 +196,7 @@ struct Node *new_Block(const struct Node *const body, const size_t line);
 struct Node *new_Body(const size_t line);
 struct Node *new_FnDecl(const struct Node *const params, const struct Node *const body, char *name, size_t name_len, const size_t line);
 struct Node *new_Return(struct Node *expr, const size_t line);
+struct Node *new_MultiReturn(struct Node *exprs, const size_t line);
 struct Node *new_Export(struct Node *expr, const size_t line);
 struct Node *new_Set(struct Node *collection, struct Node *key, struct Node *value, const size_t line);
 struct Node *new_Get(struct Node *collection, struct Node *value, const size_t line);

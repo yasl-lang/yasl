@@ -94,6 +94,10 @@ struct Node *new_Return(struct Node *expr, const size_t line) {
 	return new_Node_1(N_RET, expr, NULL, 0, line);
 }
 
+struct Node *new_MultiReturn(struct Node *exprs, const size_t line) {
+	return new_Node_1(N_MULTIRET, exprs, NULL, 0, line);
+}
+
 struct Node *new_Export(struct Node *expr, const size_t line) {
 	return new_Node_1(N_EXPORT, expr, NULL, 0, line);
 }

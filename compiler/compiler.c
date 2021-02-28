@@ -463,6 +463,18 @@ static void visit_Return(struct Compiler *const compiler, const struct Node *con
 	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CRET : O_RET);
 }
 
+static void visit_MultiReturn(struct Compiler *const compiler, const struct Node *const node) {
+	if (!in_function(compiler)) {
+		compiler_print_err_syntax(compiler, "`return` outside of function (line %" PRI_SIZET ").\n", node->line);
+		handle_error(compiler);
+		return;
+	}
+
+	visit(compiler, Return_get_expr(node));
+	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CMRET : O_MRET);
+	compiler_add_byte(compiler, node->children[0]->children_len);
+}
+
 static void visit_Export(struct Compiler *const compiler, const struct Node *const node) {
 	if (in_function(compiler) || compiler->stack && compiler->stack->parent) {
 		compiler_print_err_syntax(compiler, "`export` statement must be at top level of module (line %" PRI_SIZET ").\n", node->line);
@@ -1066,6 +1078,8 @@ static void visit_Const(struct Compiler *const compiler, const struct Node *cons
 }
 
 static void visit_Decl(struct Compiler *const compiler, const struct Node *const node) {
+	size_t num_sets = 0;
+
 	FOR_CHILDREN(i, child_expr, node) {
 		if (child_expr->nodetype == N_SET) {
 			continue;
@@ -1082,7 +1096,7 @@ static void visit_Decl(struct Compiler *const compiler, const struct Node *const
 				return;
 			}
 			compiler_add_byte(compiler, O_MOVEUP);
-			compiler_add_byte(compiler, (unsigned char)get_scope_in_use(compiler)->vars.count);
+			compiler_add_byte(compiler, (unsigned char)(get_scope_in_use(compiler)->vars.count + 2*num_sets));
 			store_var(compiler, name, node->line);
 		} else if (child->nodetype == N_SET) {
 			visit_Set(compiler, child);
@@ -1361,6 +1375,9 @@ static void visit(struct Compiler *const compiler, const struct Node *const node
 		break;
 	case N_RET:
 		visit_Return(compiler, node);
+		break;
+	case N_MULTIRET:
+		visit_MultiReturn(compiler, node);
 		break;
 	case N_EXPORT:
 		visit_Export(compiler, node);

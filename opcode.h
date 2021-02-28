@@ -78,6 +78,8 @@ enum Opcode {
 	O_CALL = 0xE9, // function call
 	O_RET = 0xEA, // return from function
 	O_CRET = 0xEB, // return from closure.
+	O_MRET = 0xEC,
+	O_CMRET = 0xED,
 
 	O_GSTORE_8 = 0xF0, // from string
 	O_GLOAD_8 = 0xF1, // from string

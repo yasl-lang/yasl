@@ -1074,6 +1074,20 @@ static void vm_enterframe_offset(struct VM *const vm, int offset) {
 	vm->frames[vm->frame_num] = ((struct CallFrame) { vm->pc, vm->fp, next_fp, vm->loopframe_num });
 }
 
+static void vm_exitframe_multi(struct VM *const vm, unsigned char args) {
+	vm_rm_range(vm, vm->fp, vm->sp - args + 1);
+
+	struct CallFrame frame = vm->frames[vm->frame_num];
+	vm->pc = frame.pc;
+	vm->fp = frame.prev_fp;
+	vm->next_fp = frame.curr_fp;
+	while (vm->loopframe_num > frame.lp) {
+		dec_ref(&vm->loopframes[vm->loopframe_num--].iterable);
+	}
+
+	vm->frame_num--;
+}
+
 static void vm_exitframe(struct VM *const vm) {
 	vm_rm_range(vm, vm->fp, vm->sp);
 
@@ -1174,6 +1188,11 @@ static void vm_CALL(struct VM *const vm) {
 static void vm_RET(struct VM *const vm) {
 	// TODO: handle multiple returns
 	vm_exitframe(vm);
+}
+
+static void vm_MRET(struct VM *const vm) {
+	unsigned char args = NCODE(vm);
+	vm_exitframe_multi(vm, args);
 }
 
 static struct Upvalue *vm_close_all_helper(struct YASL_Object *const end, struct Upvalue *const curr) {
@@ -1475,6 +1494,9 @@ void vm_executenext(struct VM *const vm) {
 		break;
 	case O_CRET:
 		vm_CRET(vm);
+		break;
+	case O_MRET:
+		vm_MRET(vm);
 		break;
 	case O_GET:
 		vm_GET(vm);
