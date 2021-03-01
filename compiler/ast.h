@@ -194,6 +194,7 @@ const char *Var_get_name(const struct Node *const node);
 struct Node *new_ExprStmt(const struct Node *const child, const size_t line);
 struct Node *new_Block(const struct Node *const body, const size_t line);
 struct Node *new_Body(const size_t line);
+struct Node *new_Decl(const struct Node *const lvals, const struct Node *const rvals, const size_t line);
 struct Node *new_FnDecl(const struct Node *const params, const struct Node *const body, char *name, size_t name_len, const size_t line);
 struct Node *new_Return(struct Node *expr, const size_t line);
 struct Node *new_MultiReturn(struct Node *exprs, const size_t line);

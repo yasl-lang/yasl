@@ -86,6 +86,10 @@ void body_append(struct Node **node, struct Node *const child) {
 	(*node)->children[(*node)->children_len - 1] = child;
 }
 
+struct Node *new_Decl(const struct Node *const lvals, const struct Node *const rvals, const size_t line) {
+	return new_Node_2(N_DECL, lvals, rvals, NULL, 0, line);
+}
+
 struct Node *new_FnDecl(const struct Node *const params, const struct Node *const body, char *name, size_t name_len, const size_t line) {
 	return new_Node_2(N_FNDECL, params, body, name, name_len, line);
 }
