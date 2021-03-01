@@ -134,7 +134,7 @@ struct Node *parse(struct Parser *const parser) {
 	return parse_program(parser);
 }
 
-static struct Node *parse_decl_helper(struct Parser *const parser, struct Node *buffer, size_t i);
+static struct Node *parse_decl_helper(struct Parser *const parser, struct Node *lvals, size_t i);
 
 struct Node *parse_assign_or_exprstmt(struct Parser *const parser) {
 	size_t line = parser->lex.line;
@@ -386,27 +386,36 @@ static struct Node *parse_let_const_or_var(struct Parser *const parser) {
 	}
 }
 
-static struct Node *parse_decl_helper(struct Parser *const parser, struct Node *buffer, size_t i) {
+static struct Node *parse_decl_helper(struct Parser *const parser, struct Node *lvals, size_t i) {
 	while (matcheattok(parser, T_COMMA)) {
 		struct Node *lval = parse_let_const_or_var(parser);
-		body_append(&buffer, lval);
+		body_append(&lvals, lval);
 		i++;
 	}
 
 	eattok(parser, T_EQ);
 
+	struct Node *rvals = new_Body(parser->lex.line);
+
 	size_t j = 0;
 	do {
-		struct Node *child = buffer->children[j];
+		body_append(&rvals, parse_expr(parser));
+		/*
+		struct Node *child = lvals->children[j];
 		if (child->nodetype == N_SET) {
 			child->children[2] = parse_expr(parser);
 		} else {
 			child->children[0] = parse_expr(parser);
 		}
+		 */
 	} while (j++ < i && matcheattok(parser, T_COMMA));
 
-	buffer->nodetype = N_DECL;
-	return buffer;
+	while (j++ < i) {
+		body_append(&rvals, new_Undef(parser->lex.line));
+	}
+
+	//lvals->nodetype = N_DECL;
+	return new_Decl(lvals, rvals, lvals->line);
 }
 
 static struct Node *parse_decl(struct Parser *const parser) {

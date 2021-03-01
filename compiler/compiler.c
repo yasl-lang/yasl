@@ -1078,15 +1078,18 @@ static void visit_Const(struct Compiler *const compiler, const struct Node *cons
 }
 
 static void visit_Decl(struct Compiler *const compiler, const struct Node *const node) {
-	FOR_CHILDREN(i, child_expr, node) {
+	FOR_CHILDREN(i, child_expr, node->children[1]) {
+		visit(compiler, child_expr);
+		/*
 		if (child_expr->nodetype == N_SET) {
 			visit(compiler, Set_get_value(child_expr));
 		} else {
 			visit(compiler, child_expr->children[0]);
 		}
+		 */
 	}
 
-	FOR_CHILDREN(i, child, node) {
+	FOR_CHILDREN(i, child, node->children[0]) {
 		const char *name = child->value.sval.str;
 		if (child->nodetype == N_ASSIGN) {
 			if (!contains_var(compiler, name)) {
