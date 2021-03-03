@@ -8,4 +8,7 @@
 // YAPP_EXPAND is mainly to deal with MSVC bullshit.
 #define YAPP_EXPAND(arg) arg
 
+// The YAPP_CHOOSE? macros are for allowing variadic function-like macros to be defined.
+#define YAPP_CHOOSE4(_0, _1, _2, _3, NAME, ...) NAME
+
 #endif
