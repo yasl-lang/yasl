@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "lexer.h"
+#include "yapp.h"
 #include "yasl_conf.h"
 
 // NOTE: _MUST_ keep this up to date with the jumptable in compiler.c and the jumptable in middleend.c
@@ -133,10 +134,8 @@ struct Node *node_clone(const struct Node *const node);
 #define FOR_CHILDREN(i, child, node) struct Node *child;\
 for (size_t i = 0; i < (node)->children_len; i++ ) if (child = (node)->children[i], child != NULL)
 
-// EXPAND is to deal with MSVC bullshit
-#define EXPAND(x) x
 #define GET_MACRO(_0, _1, _2, _3, _4, _5, NAME, ...) NAME
-#define DECL_NODE(...) EXPAND(GET_MACRO(__VA_ARGS__, DECL_NODE4, DECL_NODE3, DECL_NODE2, DECL_NODE1, DECL_NODE0)(__VA_ARGS__))
+#define DECL_NODE(...) YAPP_EXPAND(GET_MACRO(__VA_ARGS__, DECL_NODE4, DECL_NODE3, DECL_NODE2, DECL_NODE1, DECL_NODE0)(__VA_ARGS__))
 
 #define DECL_NODE0(name, E) \
 struct Node *new_##name(size_t line);\
@@ -217,12 +216,12 @@ struct Node *new_Body(const size_t line);
 struct Node *new_FnDecl(const struct Node *const params, const struct Node *const body, char *name, size_t name_len, const size_t line);
 struct Node *new_MethodCall(const struct Node *const params, const struct Node *const object, char *value, size_t len, const size_t line);
 struct Node *new_LetIter(const struct Node *const collection, char *const name, const size_t line);
-struct Node *new_Let(const struct Node *const expr, char *const name, const size_t line);
-struct Node *new_Const(const struct Node *const expr, char *const name, const size_t line);
+struct Node *new_Let(const struct Node *const expr, char *name, const size_t line);
+struct Node *new_Const(const struct Node *const expr, char *name, const size_t line);
 struct Node *new_TriOp(enum Token op, struct Node *left, struct Node *middle, struct Node *right, const size_t line);
 struct Node *new_BinOp(enum Token op, struct Node *left, struct Node *right, const size_t line);
 struct Node *new_UnOp(enum Token op, struct Node *child, const size_t line);
-struct Node *new_Assign(const struct Node *const child, char *const name, const size_t line);
+struct Node *new_Assign(const struct Node *const child, char *name, const size_t line);
 struct Node *new_Var(char *const name, const size_t line);
 struct Node *new_Float(yasl_float val, const size_t line);
 struct Node *new_Integer(yasl_int val, const size_t line);

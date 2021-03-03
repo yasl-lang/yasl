@@ -68,9 +68,9 @@ static struct Node *new_Node(const enum NodeType nodetype, const size_t line, co
 #define new_Node_3(nodetype, child1, child2, child3, name, name_len, line) new_Node(nodetype, line, name_len, name, 3, child1, child2, child3)
 #define new_Node_4(nodetype, child1, child2, child3, child4, name, name_len, line) new_Node(nodetype, line, name_len, name, 4, child1, child2, child3, child4)
 
-#define DEF_NODE(...) EXPAND(GET_MACRO(__VA_ARGS__, DEF_NODE4, DEF_NODE3, DEF_NODE2, DEF_NODE1, DEF_NODE0)(__VA_ARGS__))
-#define DEF_STR_NODE(...) EXPAND(GET_MACRO(__VA_ARGS__, DEF_STR_NODE4, DEF_STR_NODE3, DEF_STR_NODE2, DEF_STR_NODE1, DEF_STR_NODE0)(__VA_ARGS__))
-#define DEF_ZSTR_NODE(...) EXPAND(GET_MACRO(__VA_ARGS__, DEF_ZSTR_NODE4, DEF_ZSTR_NODE3, DEF_ZSTR_NODE2, DEF_ZSTR_NODE1, DEF_ZSTR_NODE0)(__VA_ARGS__))
+#define DEF_NODE(...) YAPP_EXPAND(GET_MACRO(__VA_ARGS__, DEF_NODE4, DEF_NODE3, DEF_NODE2, DEF_NODE1, DEF_NODE0)(__VA_ARGS__))
+#define DEF_STR_NODE(...) YAPP_EXPAND(GET_MACRO(__VA_ARGS__, DEF_STR_NODE4, DEF_STR_NODE3, DEF_STR_NODE2, DEF_STR_NODE1, DEF_STR_NODE0)(__VA_ARGS__))
+#define DEF_ZSTR_NODE(...) YAPP_EXPAND(GET_MACRO(__VA_ARGS__, DEF_ZSTR_NODE4, DEF_ZSTR_NODE3, DEF_ZSTR_NODE2, DEF_ZSTR_NODE1, DEF_ZSTR_NODE0)(__VA_ARGS__))
 #define DEF_GETTER(name, E, a, n) \
 struct Node *name##_get_##a(const struct Node *const node) {\
 	YASL_ASSERT(node->nodetype == E, "Expected " #name);\

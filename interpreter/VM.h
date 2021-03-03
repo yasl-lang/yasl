@@ -10,31 +10,30 @@
 #include "IO.h"
 #include "data-structures/YASL_Table.h"
 #include "data-structures/YASL_List.h"
-#include "yasl_conf.h"
 #include "opcode.h"
+#include "yapp.h"
+#include "yasl_conf.h"
 
 
 #define NUM_FRAMES 1000
 #define NUM_TYPES 13                                     // number of builtin types, each needs a vtable
 
-// EXPAND is to deal with MSVC bullshit
 #define GET_MACRO(_1, _2, NAME, ...) NAME
-#define EXPAND(x) x
 #define vm_peek_offset(vm, offset) ((vm)->stack[offset])
 #define vm_peek_offset_p(vm, offset) ((vm)->stack + (offset))
 #define vm_peek_default(vm) ((vm)->stack[(vm)->sp])
 #define vm_peek_default_p(vm) ((vm)->stack + (vm)->sp)
-#define vm_peek(...) EXPAND(GET_MACRO(__VA_ARGS__, vm_peek_offset, vm_peek_default,)(__VA_ARGS__))
-#define vm_peek_p(...) EXPAND(GET_MACRO(__VA_ARGS__, vm_peek_offset_p, vm_peek_default_p,)(__VA_ARGS__))
+#define vm_peek(...) YAPP_EXPAND(GET_MACRO(__VA_ARGS__, vm_peek_offset, vm_peek_default,)(__VA_ARGS__))
+#define vm_peek_p(...) YAPP_EXPAND(GET_MACRO(__VA_ARGS__, vm_peek_offset_p, vm_peek_default_p,)(__VA_ARGS__))
 
-#define vm_peekbool(...) EXPAND(obj_getbool(vm_peek_p(__VA_ARGS__)))
-#define vm_peekfloat(...) EXPAND(obj_getfloat(vm_peek_p(__VA_ARGS__)))
-#define vm_peekint(...) EXPAND(obj_getint(vm_peek_p(__VA_ARGS__)))
-#define vm_peekstr(...) EXPAND(obj_getstr(vm_peek_p(__VA_ARGS__)))
+#define vm_peekbool(...) YAPP_EXPAND(obj_getbool(vm_peek_p(__VA_ARGS__)))
+#define vm_peekfloat(...) YAPP_EXPAND(obj_getfloat(vm_peek_p(__VA_ARGS__)))
+#define vm_peekint(...) YAPP_EXPAND(obj_getint(vm_peek_p(__VA_ARGS__)))
+#define vm_peekstr(...) YAPP_EXPAND(obj_getstr(vm_peek_p(__VA_ARGS__)))
 #define vm_peeklist(...) (YASL_GETLIST(vm_peek(__VA_ARGS__)))
 #define vm_peektable(...) (YASL_GETTABLE(vm_peek(__VA_ARGS__)))
 #define vm_peekcfn(...) (YASL_GETCFN(vm_peek(__VA_ARGS__)))
-#define vm_peekuserptr(...) EXPAND(obj_getuserptr(vm_peek_p(__VA_ARGS__)))
+#define vm_peekuserptr(...) YAPP_EXPAND(obj_getuserptr(vm_peek_p(__VA_ARGS__)))
 
 #define vm_isend(vm) (YASL_ISEND(vm_peek(vm)))
 #define vm_isundef(...) (obj_isundef(vm_peek_p(__VA_ARGS__)))
