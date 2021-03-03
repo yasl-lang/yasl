@@ -22,7 +22,7 @@
 #define vm_peek_offset_p(vm, offset) ((vm)->stack + (offset))
 #define vm_peek_default(vm) ((vm)->stack[(vm)->sp])
 #define vm_peek_default_p(vm) ((vm)->stack + (vm)->sp)
-#define vm_peek(...) YAPP_CHOOSE2(__VA_ARGS__, vm_peek_offset, vm_peek_default,)(__VA_ARGS__)
+#define vm_peek(...) YAPP_EXPAND(YAPP_CHOOSE2(__VA_ARGS__, vm_peek_offset, vm_peek_default,)(__VA_ARGS__))
 #define vm_peek_p(...) YAPP_EXPAND(YAPP_CHOOSE2(__VA_ARGS__, vm_peek_offset_p, vm_peek_default_p,)(__VA_ARGS__))
 
 #define vm_peekbool(...) YAPP_EXPAND(obj_getbool(vm_peek_p(__VA_ARGS__)))
