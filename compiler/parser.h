@@ -28,12 +28,4 @@ void parser_cleanup(struct Parser *const parser);
 enum Token eattok(struct Parser *const parser, const enum Token token);
 struct Node *parse(struct Parser *const parser);
 
-#ifdef _MSC_VER
-#include <stdarg.h>
-// To avoid MSVC _VA_ARGS_ macro expansion bug
-int token_matches(struct Parser *const parser, ...);
-#undef TOKEN_MATCHES
-#define TOKEN_MATCHES(px, ...) token_matches(parser, __VA_ARGS__, (enum Token)-1)
-#endif
-
 #endif

@@ -1130,22 +1130,3 @@ static struct Node *parse_list(struct Parser *const parser) {
 		return new_List(keys, line);
 	}
 }
-
-#ifdef _MSC_VER
-// To avoid MSVC __VA_ARGS__ macro expansion bug
-int token_matches(struct Parser *const parser, ...) {
-    va_list ap;
-    int ret = 0;
-    va_start(ap, parser);
-    for (;;) {
-        enum Token tok = va_arg(ap, enum Token);
-        if (tok == -1) break;
-        if (curtok(parser) == tok) {
-            ret = 1;
-            break;
- 	}
-    }
-    va_end(ap);
-    return ret;
-}
-#endif
