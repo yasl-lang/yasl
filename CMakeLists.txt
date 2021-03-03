@@ -83,10 +83,11 @@ add_executable(yasl
         std/yasl-std-collections.c
         util/IO.c
         util/varint.c
+        yapp.h
         yasl_conf.h
         yasl_error.h
         yasl_plat.h
-        std/yasl-std-mt.c std/yasl-std-mt.h)
+        std/yasl-std-mt.c)
 
 add_library(yaslapi
         opcode.h

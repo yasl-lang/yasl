@@ -9,6 +9,8 @@
 #define YAPP_EXPAND(arg) arg
 
 // The YAPP_CHOOSE? macros are for allowing variadic function-like macros to be defined.
+#define YAPP_CHOOSE2(_0, _1, NAME, ...) NAME
 #define YAPP_CHOOSE4(_0, _1, _2, _3, NAME, ...) NAME
+#define YAPP_CHOOSE5(_0, _1, _2, _3, _4, NAME, ...) NAME
 
 #endif

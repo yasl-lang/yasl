@@ -9,7 +9,7 @@
 #define T3(p, a, b, c) T2(p, a, b) || T1(p, c)
 #define T4(p, a, b, c, d) T3(p, a, b, c) || T1(p, d)
 
-#define TOKEN_MATCHES(parser, ...)  (YAPP_CHOOSE4(__VA_ARGS__, T4, T3, T2, T1)(parser, __VA_ARGS__))
+#define TOKEN_MATCHES(parser, ...)  (YAPP_EXPAND(YAPP_CHOOSE4(__VA_ARGS__, T4, T3, T2, T1)(parser, __VA_ARGS__)))
 
 #define NEW_PARSER(fp)\
   ((struct Parser) {\
