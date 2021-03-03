@@ -151,10 +151,7 @@ struct Node *new_Block(const struct Node *const body, const size_t line) {
 	return new_Node_1(N_BLOCK, body, NULL, 0, line);
 }
 
-struct Node *new_Body(const size_t line) {
-	return new_Node_0(N_BODY, NULL, 0, line);
-}
-
+DEF_NODE(Body, N_BODY)
 DEF_NODE(Decl, N_DECL, lvals, rvals)
 DEF_STR_NODE(FnDecl, N_FNDECL, params, body)
 DEF_NODE(Return, N_RET, expr)
