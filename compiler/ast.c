@@ -158,7 +158,7 @@ struct Node *new_Body(const size_t line) {
 DEF_NODE(Decl, N_DECL, lvals, rvals)
 DEF_STR_NODE(FnDecl, N_FNDECL, params, body)
 DEF_NODE(Return, N_RET, expr)
-DEF_NODE(MultiReturn, N_MULTIRET, expres)
+DEF_NODE(MultiReturn, N_MULTIRET, exprs)
 DEF_NODE(Export, N_EXPORT, expr)
 DEF_NODE(Call, N_CALL, params, object)
 DEF_STR_NODE(MethodCall, N_MCALL, params, object)

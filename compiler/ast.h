@@ -8,60 +8,13 @@
 #include "yapp.h"
 #include "yasl_conf.h"
 
+#define X(name, E, ...) E,
 // NOTE: _MUST_ keep this up to date with the jumptable in compiler.c and the jumptable in middleend.c
 enum NodeType {
-	N_EXPRSTMT,
-	N_BLOCK,
-	N_BODY,
-	N_FNDECL,
-	N_RET,
-	N_MULTIRET,
-	N_EXPORT,
-	N_CALL,
-	N_MCALL,
-	N_SET,
-	N_GET,
-	N_SLICE,
-	N_LETITER,
-	N_LISTCOMP,
-	N_TABLECOMP,
-	N_FORITER,
-	N_WHILE,
-	N_BREAK,
-	N_CONT,
-	N_MATCH,
-	N_IF,
-	N_PRINT,
-	N_LET,
-	N_CONST,
-	N_DECL,
-	N_TRIOP,
-	N_BINOP,
-	N_UNOP,
-	N_ASSIGN,
-	N_VAR,
-	N_UNDEF,
-	N_FLOAT,
-	N_INT,
-	N_BOOL,
-	N_STR,
-	N_LIST,
-	N_TABLE,
-	N_ASS,
-	N_PATUNDEF,
-	N_PATBOOL,
-	N_PATFL,
-	N_PATINT,
-	N_PATSTR,
-	N_PATTABLE,
-	N_PATLS,
-	N_PATVTABLE,
-	N_PATVLS,
-	N_PATALT,
-	N_PATANY,
-	N_PATLET,
-	N_PATCONST,
+#include "nodetype.x"
 };
+
+#undef X
 
 struct BinOpNode {
 	enum Token op;
@@ -192,8 +145,8 @@ DECL_NODE(Undef, N_UNDEF)
 DECL_NODE(List, N_LIST, values)
 DECL_NODE(Table, N_TABLE, values)
 DECL_NODE(Assert, N_ASS, expr)
+DECL_NODE(Body, N_BODY)
 
-struct Node *new_Body(const size_t line);
 struct Node *new_FnDecl(const struct Node *const params, const struct Node *const body, char *name, size_t name_len, const size_t line);
 struct Node *new_MethodCall(const struct Node *const params, const struct Node *const object, char *value, size_t len, const size_t line);
 

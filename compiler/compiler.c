@@ -382,7 +382,7 @@ static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *c
 	}
 }
 
-static void visit_FunctionDecl(struct Compiler *const compiler, const struct Node *const node) {
+static void visit_FnDecl(struct Compiler *const compiler, const struct Node *const node) {
 	compiler->params = env_new(compiler->params);
 
 	enter_scope(compiler);
@@ -472,7 +472,7 @@ static void visit_MultiReturn(struct Compiler *const compiler, const struct Node
 
 	visit(compiler, Return_get_expr(node));
 	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CMRET : O_MRET);
-	compiler_add_byte(compiler, (unsigned char)node->children[0]->children_len);
+	compiler_add_byte(compiler, (unsigned char)MultiReturn_get_exprs(node)->children_len);
 }
 
 static void visit_Export(struct Compiler *const compiler, const struct Node *const node) {
@@ -823,11 +823,11 @@ static void visit_ListPattern(struct Compiler *const compiler, const struct Node
 	visit_CollectionPattern(compiler, node, P_LS);
 }
 
-static void visit_VarTablePattern(struct Compiler *const compiler, const struct Node *const node) {
+static void visit_VariadicTablePattern(struct Compiler *const compiler, const struct Node *const node) {
 	visit_CollectionPattern(compiler, node, P_VTABLE);
 }
 
-static void visit_VarListPattern(struct Compiler *const compiler, const struct Node *const node) {
+static void visit_VariadicListPattern(struct Compiler *const compiler, const struct Node *const node) {
 	visit_CollectionPattern(compiler, node, P_VLS);
 }
 
@@ -1353,165 +1353,23 @@ static void validate(struct Compiler *compiler, const struct Node *const node) {
 	compiler->line = line;
 }
 
+static void visit_LetIter(struct Compiler *const compiler, const struct Node *const node) {
+	(void) compiler;
+	(void) node;
+	exit(-1);
+}
+
+#define X(name, ...) &visit_##name,
+static void (*jmp_table[])(struct Compiler *const compiler, const struct Node *const node) = {
+#include "nodetype.x"
+};
+#undef X
+
 static void visit(struct Compiler *const compiler, const struct Node *const node) {
 	while (node->line > compiler->line) {
 		YASL_ByteBuffer_add_vint(compiler->lines, compiler->code->count + compiler->buffer->count);
 		compiler->line++;
 	}
 
-	switch (node->nodetype) {
-	case N_EXPRSTMT:
-		visit_ExprStmt(compiler, node);
-		break;
-	case N_BLOCK:
-		visit_Block(compiler, node);
-		break;
-	case N_BODY:
-		visit_Body(compiler, node);
-		break;
-	case N_FNDECL:
-		visit_FunctionDecl(compiler, node);
-		break;
-	case N_RET:
-		visit_Return(compiler, node);
-		break;
-	case N_MULTIRET:
-		visit_MultiReturn(compiler, node);
-		break;
-	case N_EXPORT:
-		visit_Export(compiler, node);
-		break;
-	case N_CALL:
-		visit_Call(compiler, node);
-		break;
-	case N_MCALL:
-		visit_MethodCall(compiler, node);
-		break;
-	case N_SET:
-		visit_Set(compiler, node);
-		break;
-	case N_GET:
-		visit_Get(compiler, node);
-		break;
-	case N_SLICE:
-		visit_Slice(compiler, node);
-		break;
-	case N_LETITER:
-		exit(1);
-		break;
-	case N_LISTCOMP:
-		visit_ListComp(compiler, node);
-		break;
-	case N_TABLECOMP:
-		visit_TableComp(compiler, node);
-		break;
-	case N_FORITER:
-		visit_ForIter(compiler, node);
-		break;
-	case N_WHILE:
-		visit_While(compiler, node);
-		break;
-	case N_BREAK:
-		visit_Break(compiler, node);
-		break;
-	case N_CONT:
-		visit_Continue(compiler, node);
-		break;
-	case N_MATCH:
-		visit_Match(compiler, node);
-		break;
-	case N_PATUNDEF:
-		visit_UndefPattern(compiler, node);
-		break;
-	case N_PATBOOL:
-		visit_BoolPattern(compiler, node);
-		break;
-	case N_PATFL:
-		visit_FloatPattern(compiler, node);
-		break;
-	case N_PATINT:
-		visit_IntPattern(compiler, node);
-		break;
-	case N_PATSTR:
-		visit_StringPattern(compiler, node);
-		break;
-	case N_PATTABLE:
-		visit_TablePattern(compiler, node);
-		break;
-	case N_PATLS:
-		visit_ListPattern(compiler, node);
-		break;
-	case N_PATVTABLE:
-		visit_VarTablePattern(compiler, node);
-		break;
-	case N_PATVLS:
-		visit_VarListPattern(compiler, node);
-		break;
-	case N_PATLET:
-		visit_LetPattern(compiler, node);
-		break;
-	case N_PATCONST:
-		visit_ConstPattern(compiler, node);
-		break;
-	case N_PATANY:
-		visit_AnyPattern(compiler, node);
-		break;
-	case N_PATALT:
-		visit_AltPattern(compiler, node);
-		break;
-	case N_IF:
-		visit_If(compiler, node);
-		break;
-	case N_PRINT:
-		visit_Print(compiler, node);
-		break;
-	case N_LET:
-		visit_Let(compiler, node);
-		break;
-	case N_CONST:
-		visit_Const(compiler, node);
-		break;
-	case N_DECL:
-		visit_Decl(compiler, node);
-		break;
-	case N_TRIOP:
-		visit_TriOp(compiler, node);
-		break;
-	case N_BINOP:
-		visit_BinOp(compiler, node);
-		break;
-	case N_UNOP:
-		visit_UnOp(compiler, node);
-		break;
-	case N_ASSIGN:
-		visit_Assign(compiler, node);
-		break;
-	case N_LIST:
-		visit_List(compiler, node);
-		break;
-	case N_TABLE:
-		visit_Table(compiler, node);
-		break;
-	case N_VAR:
-		visit_Var(compiler, node);
-		break;
-	case N_UNDEF:
-		visit_Undef(compiler, node);
-		break;
-	case N_FLOAT:
-		visit_Float(compiler, node);
-		break;
-	case N_INT:
-		visit_Integer(compiler, node);
-		break;
-	case N_BOOL:
-		visit_Boolean(compiler, node);
-		break;
-	case N_STR:
-		visit_String(compiler, node);
-		break;
-	case N_ASS:
-		visit_Assert(compiler, node);
-		break;
-	}
+	jmp_table[node->nodetype](compiler, node);
 }
