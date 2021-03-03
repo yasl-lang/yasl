@@ -133,8 +133,10 @@ struct Node *node_clone(const struct Node *const node);
 #define FOR_CHILDREN(i, child, node) struct Node *child;\
 for (size_t i = 0; i < (node)->children_len; i++ ) if (child = (node)->children[i], child != NULL)
 
+// EXPAND is to deal with MSVC bullshit
+#define EXPAND(x) x
 #define GET_MACRO(_0, _1, _2, _3, _4, _5, NAME, ...) NAME
-#define DECL_NODE(...) GET_MACRO(__VA_ARGS__, DECL_NODE4, DECL_NODE3, DECL_NODE2, DECL_NODE1, DECL_NODE0)(__VA_ARGS__)
+#define DECL_NODE(...) EXPAND(GET_MACRO(__VA_ARGS__, DECL_NODE4, DECL_NODE3, DECL_NODE2, DECL_NODE1, DECL_NODE0))(__VA_ARGS__)
 
 #define DECL_NODE0(name, E) \
 struct Node *new_##name(size_t line);\

@@ -1132,7 +1132,7 @@ static struct Node *parse_list(struct Parser *const parser) {
 }
 
 #ifdef _MSC_VER
-// To avoid MSVC _VA_ARGS_ macro expansion bug
+// To avoid MSVC __VA_ARGS__ macro expansion bug
 int token_matches(struct Parser *const parser, ...) {
     va_list ap;
     int ret = 0;
