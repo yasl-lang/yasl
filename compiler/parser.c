@@ -332,7 +332,7 @@ static struct Node *parse_fn(struct Parser *const parser) {
 
 	char *name2 = (char *)malloc(name_len + 1);
 	strcpy(name2, name);
-	return new_Let(name, new_FnDecl(block, body, name2, strlen(name2), line), line);
+	return new_Let(new_FnDecl(block, body, name2, strlen(name2), line), name, line);
 	// TODO Fix this ^
 }
 
@@ -352,27 +352,27 @@ static struct Node *parse_const(struct Parser *const parser) {
 		// TODO: clean this up
 		char *name2 = (char *)malloc(name_len + 1);
 		strcpy(name2, name);
-		return new_Const(name, new_FnDecl(block, body, name2, strlen(name2), line), line);
+		return new_Const(new_FnDecl(block, body, name2, strlen(name2), line), name, line);
 	}
 	size_t line = parser->lex.line;
 	char *name = eatname(parser);
 	eattok(parser, T_EQ);
 	struct Node *expr = parse_expr(parser);
-	return new_Const(name, expr, line);
+	return new_Const(expr, name, line);
 }
 
 static struct Node *parse_let_const_or_var(struct Parser *const parser) {
 	size_t line = parser->lex.line;
 	if (matcheattok(parser, T_LET)) {
 		char *name = eatname(parser);
-		return new_Let(name, NULL, line);
+		return new_Let(NULL, name, line);
 	} else if (matcheattok(parser, T_CONST)) {
 		char *name = eatname(parser);
-		return new_Const(name, NULL, line);
+		return new_Const(NULL, name, line);
 	} else {
 		struct Node *node = parse_call(parser);
 		if (node->nodetype == N_VAR) {
-			struct Node *assign = new_Assign(node->value.sval.str, NULL, line);
+			struct Node *assign = new_Assign(NULL, node->value.sval.str, line);
 			free(node);
 			return assign;
 		} else if (node->nodetype == N_GET) {
@@ -400,21 +400,12 @@ static struct Node *parse_decl_helper(struct Parser *const parser, struct Node *
 	size_t j = 0;
 	do {
 		body_append(&rvals, parse_expr(parser));
-		/*
-		struct Node *child = lvals->children[j];
-		if (child->nodetype == N_SET) {
-			child->children[2] = parse_expr(parser);
-		} else {
-			child->children[0] = parse_expr(parser);
-		}
-		 */
 	} while (j++ < i && matcheattok(parser, T_COMMA));
 
 	while (j++ < i) {
 		body_append(&rvals, new_Undef(parser->lex.line));
 	}
 
-	//lvals->nodetype = N_DECL;
 	return new_Decl(lvals, rvals, lvals->line);
 }
 
@@ -437,7 +428,7 @@ static struct Node *parse_let(struct Parser *const parser) {
 	char *name = eatname(parser);
 	eattok(parser, T_EQ);
 	struct Node *expr = parse_expr(parser);
-	return new_Let(name, expr, line);
+	return new_Let(expr, name, line);
 }
 
 static struct Node *parse_iterate(struct Parser *const parser) {
@@ -446,7 +437,7 @@ static struct Node *parse_iterate(struct Parser *const parser) {
 	char *name = eatname(parser);
 	eattok(parser, T_LEFT_ARR);
 	struct Node *collection = parse_expr(parser);
-	return new_LetIter(name, collection, line);
+	return new_LetIter(collection, name, line);
 }
 
 static struct Node *parse_let_iterate_or_let(struct Parser *const parser) {
@@ -565,14 +556,14 @@ static struct Node *parse_patternsingle(struct Parser *const parser) {
 	case T_LET: {
 		eattok(parser, T_LET);
 		char *name = eatname(parser);
-		n = new_Let(name, NULL, line);
+		n = new_Let(NULL, name, line);
 		n->nodetype = N_PATLET;
 		return n;
 	}
 	case T_CONST: {
 		eattok(parser, T_CONST);
 		char *name = eatname(parser);
-		n = new_Const(name, NULL, line);
+		n = new_Const(NULL, name, line);
 		n->nodetype = N_PATCONST;
 		return n;
 	}
@@ -720,7 +711,7 @@ static struct Node *parse_assign(struct Parser *const parser, struct Node *cur_n
 	if (matcheattok(parser, T_EQ)) {
 		switch (cur_node->nodetype) {
 		case N_VAR: {
-			struct Node *assign_node = new_Assign(cur_node->value.sval.str, parse_expr(parser), line);
+			struct Node *assign_node = new_Assign(parse_expr(parser), cur_node->value.sval.str, line);
 			free(cur_node);
 			return assign_node;
 		}
@@ -742,7 +733,7 @@ static struct Node *parse_assign(struct Parser *const parser, struct Node *cur_n
 			char *name = cur_node->value.sval.str;
 			struct Node *tmp = node_clone(cur_node);
 			free(cur_node);
-			return new_Assign(name, new_BinOp(op, tmp, parse_expr(parser), line), line);
+			return new_Assign(new_BinOp(op, tmp, parse_expr(parser), line), name, line);
 		}
 		case N_GET: {
 			struct Node *collection = cur_node->children[0];

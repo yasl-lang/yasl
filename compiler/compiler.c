@@ -440,7 +440,7 @@ static void visit_Call(struct Compiler *const compiler, const struct Node *const
 }
 
 static void visit_MethodCall(struct Compiler *const compiler, const struct Node *const node) {
-	char *str = MCall_get_name(node);
+	char *str = MethodCall_get_name(node);
 	size_t len = strlen(str);
 	visit(compiler, Call_get_object(node));
 
@@ -976,7 +976,7 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 }
 
 static void visit_Match(struct Compiler *const compiler, const struct Node *const node) {
-	struct Node *expr = Match_get_expr(node);
+	struct Node *expr = Match_get_cond(node);
 	struct Node *patterns = Match_get_patterns(node);
 	struct Node *guards = Match_get_guards(node);
 	struct Node *bodies = Match_get_bodies(node);
@@ -1002,7 +1002,7 @@ static void visit_If_false(struct Compiler *const compiler, const struct Node *c
 static void visit_If(struct Compiler *const compiler, const struct Node *const node) {
 	struct Node *cond = If_get_cond(node);
 	struct Node *then_br = If_get_then(node);
-	struct Node *else_br = If_get_else(node);
+	struct Node *else_br = If_get_el(node);
 
 	if (Node_istruthy(cond)) {
 		visit_If_true(compiler, then_br, else_br);
@@ -1078,7 +1078,7 @@ static void visit_Const(struct Compiler *const compiler, const struct Node *cons
 }
 
 static void visit_Decl(struct Compiler *const compiler, const struct Node *const node) {
-	FOR_CHILDREN(i, child_expr, node->children[1]) {
+	FOR_CHILDREN(i, child_expr, Decl_get_rvals(node)) {
 		visit(compiler, child_expr);
 		/*
 		if (child_expr->nodetype == N_SET) {
@@ -1089,7 +1089,7 @@ static void visit_Decl(struct Compiler *const compiler, const struct Node *const
 		 */
 	}
 
-	FOR_CHILDREN(i, child, node->children[0]) {
+	FOR_CHILDREN(i, child, Decl_get_lvals(node)) {
 		const char *name = child->value.sval.str;
 		if (child->nodetype == N_ASSIGN) {
 			if (!contains_var(compiler, name)) {

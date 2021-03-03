@@ -68,9 +68,84 @@ static struct Node *new_Node(const enum NodeType nodetype, const size_t line, co
 #define new_Node_3(nodetype, child1, child2, child3, name, name_len, line) new_Node(nodetype, line, name_len, name, 3, child1, child2, child3)
 #define new_Node_4(nodetype, child1, child2, child3, child4, name, name_len, line) new_Node(nodetype, line, name_len, name, 4, child1, child2, child3, child4)
 
-struct Node *new_ExprStmt(const struct Node *const child, const size_t line) {
-	return new_Node_1(N_EXPRSTMT, child, NULL, 0, line);
+#define DEF_NODE(...) GET_MACRO(__VA_ARGS__, DEF_NODE4, DEF_NODE3, DEF_NODE2, DEF_NODE1, DEF_NODE0)(__VA_ARGS__)
+#define DEF_STR_NODE(...) GET_MACRO(__VA_ARGS__, DEF_STR_NODE4, DEF_STR_NODE3, DEF_STR_NODE2, DEF_STR_NODE1, DEF_STR_NODE0)(__VA_ARGS__)
+#define DEF_ZSTR_NODE(...) GET_MACRO(__VA_ARGS__, DEF_ZSTR_NODE4, DEF_ZSTR_NODE3, DEF_ZSTR_NODE2, DEF_ZSTR_NODE1, DEF_ZSTR_NODE0)(__VA_ARGS__)
+#define DEF_GETTER(name, E, a, n) \
+struct Node *name##_get_##a(const struct Node *const node) {\
+	YASL_ASSERT(node->nodetype == E, "Expected " #name);\
+	return node->children[n];\
 }
+#define DEF_GETNAME(name, E) \
+char *name##_get_name(const struct Node *const node) {\
+	YASL_ASSERT(node->nodetype == E, "Expected " #name);\
+	return node->value.sval.str;\
+}
+
+#define DEF_NODE0(name, E) \
+struct Node *new_##name(size_t line) {\
+	return new_Node_0(E, NULL, 0, line);\
+}
+
+#define DEF_NODE1(name, E, a) \
+struct Node *new_##name(const struct Node *const a, const size_t line) {\
+	return new_Node_1(E, a, NULL, 0, line);\
+}\
+DEF_GETTER(name, E, a, 0)
+
+#define DEF_NODE2(name, E, a, b) \
+struct Node *new_##name(const struct Node *const a, const struct Node *const b, const size_t line) {\
+	return new_Node_2(E, a, b, NULL, 0, line);\
+}\
+DEF_GETTER(name, E, a, 0)\
+DEF_GETTER(name, E, b, 1)
+
+#define DEF_NODE3(name, E, a, b, c) \
+struct Node *new_##name(const struct Node *const a, const struct Node *const b, const struct Node *const c, const size_t line) {\
+	return new_Node_3(E, a, b, c, NULL, 0, line);\
+}\
+DEF_GETTER(name, E, a, 0)\
+DEF_GETTER(name, E, b, 1)\
+DEF_GETTER(name, E, c, 2)
+
+#define DEF_NODE4(name, E, a, b, c, d) \
+struct Node *new_##name(const struct Node *const a, const struct Node *const b, const struct Node *const c, const struct Node *const d, const size_t line) {\
+	return new_Node_4(E, a, b, c, d, NULL, 0, line);\
+}\
+DEF_GETTER(name, E, a, 0)\
+DEF_GETTER(name, E, b, 1)\
+DEF_GETTER(name, E, c, 2)\
+DEF_GETTER(name, E, d, 3)
+
+#define DEF_STR_NODE2(name, E, a, b) \
+struct Node *new_##name(const struct Node *const a, const struct Node *const b, char *name, size_t name_len, const size_t line) {\
+	return new_Node_2(E, a, b, name, name_len, line);\
+}\
+DEF_GETNAME(name, E)\
+DEF_GETTER(name, E, a, 0)\
+DEF_GETTER(name, E, b, 1)
+
+#define DEF_ZSTR_NODE0(name, E) \
+struct Node *new_##name(char *name, const size_t line) {\
+	return new_Node_0(E, name, strlen(name), line);\
+}\
+DEF_GETNAME(name, E)
+
+#define DEF_ZSTR_NODE1(name, E, a) \
+struct Node *new_##name(const struct Node *const a, char *name, const size_t line) {\
+	return new_Node_1(E, a, name, strlen(name), line);\
+}\
+DEF_GETNAME(name, E)\
+DEF_GETTER(name, E, a, 0)
+
+
+void body_append(struct Node **node, struct Node *const child) {
+	YASL_COMPILE_DEBUG_LOG("%s\n", "appending to block");
+	*node = (struct Node*)realloc(*node, sizeof(struct Node) + (++(*node)->children_len) * sizeof(struct Node *));
+	(*node)->children[(*node)->children_len - 1] = child;
+}
+
+DEF_NODE(ExprStmt, N_EXPRSTMT, expr)
 
 struct Node *new_Block(const struct Node *const body, const size_t line) {
 	return new_Node_1(N_BLOCK, body, NULL, 0, line);
@@ -80,104 +155,29 @@ struct Node *new_Body(const size_t line) {
 	return new_Node_0(N_BODY, NULL, 0, line);
 }
 
-void body_append(struct Node **node, struct Node *const child) {
-	YASL_COMPILE_DEBUG_LOG("%s\n", "appending to block");
-	*node = (struct Node*)realloc(*node, sizeof(struct Node) + (++(*node)->children_len) * sizeof(struct Node *));
-	(*node)->children[(*node)->children_len - 1] = child;
-}
-
-struct Node *new_Decl(const struct Node *const lvals, const struct Node *const rvals, const size_t line) {
-	return new_Node_2(N_DECL, lvals, rvals, NULL, 0, line);
-}
-
-struct Node *new_FnDecl(const struct Node *const params, const struct Node *const body, char *name, size_t name_len, const size_t line) {
-	return new_Node_2(N_FNDECL, params, body, name, name_len, line);
-}
-
-struct Node *new_Return(struct Node *expr, const size_t line) {
-	return new_Node_1(N_RET, expr, NULL, 0, line);
-}
-
-struct Node *new_MultiReturn(struct Node *exprs, const size_t line) {
-	return new_Node_1(N_MULTIRET, exprs, NULL, 0, line);
-}
-
-struct Node *new_Export(struct Node *expr, const size_t line) {
-	return new_Node_1(N_EXPORT, expr, NULL, 0, line);
-}
-
-
-struct Node *new_Call(struct Node *params, struct Node *object, const size_t line) {
-	return new_Node_2(N_CALL, params, object, NULL, 0, line);
-}
-
-struct Node *new_MethodCall(struct Node *params, struct Node *object, char *value, size_t len, const size_t line) {
-	return new_Node_2(N_MCALL, params, object, value, len, line);
-}
-
-struct Node *new_Set(struct Node *collection, struct Node *key, struct Node *value, const size_t line) {
-	return new_Node_3(N_SET, collection, key, value, NULL, 0, line);
-}
-
-struct Node *new_Get(struct Node *collection, struct Node *value, const size_t line) {
-	return new_Node_2(N_GET, collection, value, NULL, 0, line);
-}
-
-struct Node *new_Slice(struct Node *collection, struct Node *start, struct Node *end, const size_t line) {
-	return new_Node_3(N_SLICE, collection, start, end, NULL, 0, line);
-}
-
-struct Node *new_ListComp(struct Node *expr, struct Node *iter, struct Node *cond, const size_t line) {
-	return new_Node_3(N_LISTCOMP, expr, iter, cond, NULL, 0, line);
-}
-
-struct Node *new_TableComp(struct Node *expr, struct Node *iter, struct Node *cond, const size_t line) {
-	return new_Node_3(N_TABLECOMP, expr, iter, cond, NULL, 0, line);
-}
-
-struct Node *new_LetIter(char *const name, struct Node *collection, const size_t line) {
-	return new_Node_1(N_LETITER, collection, name, strlen(name), line);
-}
-
-struct Node *new_ForIter(struct Node *iter, struct Node *body, const size_t line) {
-	return new_Node_2(N_FORITER, iter, body, NULL, 0, line);
-}
-
-struct Node *new_While(struct Node *cond, struct Node *body, struct Node *post, const size_t line) {
-	return new_Node_3(N_WHILE, cond, body, post, NULL, 0, line);
-}
-
-struct Node *new_Break(size_t line) {
-	return new_Node_0(N_BREAK, NULL, 0, line);
-}
-
-struct Node *new_Continue(size_t line) {
-	return new_Node_0(N_CONT, NULL, 0, line);
-}
-
-struct Node *new_Match(struct Node *cond, struct Node *pats, struct Node *guards, struct Node *bodies, const size_t line) {
-	return new_Node_4(N_MATCH, cond, pats, guards, bodies, NULL, 0, line);
-}
-
-struct Node *new_If(struct Node *cond, struct Node *then_node, struct Node *else_node, const size_t line) {
-	return new_Node_3(N_IF, cond, then_node, else_node, NULL, 0, line);
-}
-
-struct Node *new_Print(struct Node *expr, const size_t line) {
-	return new_Node_1(N_PRINT, expr, NULL, 0, line);
-}
-
-struct Node *new_Assert(struct Node *expr, const size_t line) {
-	return new_Node_1(N_ASS, expr, NULL, 0, line);
-}
-
-struct Node *new_Let(char *const name, struct Node *expr, const size_t line) {
-	return new_Node_1(N_LET, expr, name, strlen(name), line);
-}
-
-struct Node *new_Const(char *const name, struct Node *expr, const size_t line) {
-	return new_Node_1(N_CONST, expr, name, strlen(name), line);
-}
+DEF_NODE(Decl, N_DECL, lvals, rvals)
+DEF_STR_NODE(FnDecl, N_FNDECL, params, body)
+DEF_NODE(Return, N_RET, expr)
+DEF_NODE(MultiReturn, N_MULTIRET, expres)
+DEF_NODE(Export, N_EXPORT, expr)
+DEF_NODE(Call, N_CALL, params, object)
+DEF_STR_NODE(MethodCall, N_MCALL, params, object)
+DEF_NODE(Set, N_SET, collection, key, value)
+DEF_NODE(Get, N_GET, collection, value)
+DEF_NODE(Slice, N_SLICE, collection, start, end)
+DEF_NODE(ListComp, N_LISTCOMP, expr, iter, cond)
+DEF_NODE(TableComp, N_TABLECOMP, expr, iter, cond)
+DEF_ZSTR_NODE(LetIter, N_LETITER, collection)
+DEF_NODE(ForIter, N_FORITER, iter, body)
+DEF_NODE(While, N_WHILE, cond, body, post)
+DEF_NODE(Break, N_BREAK)
+DEF_NODE(Continue, N_CONT)
+DEF_NODE(Match, N_MATCH, cond, patterns, guards, bodies)
+DEF_NODE(If, N_IF, cond, then, el)
+DEF_NODE(Print, N_PRINT, expr)
+DEF_NODE(Assert, N_ASS, expr)
+DEF_ZSTR_NODE(Let, N_LET, expr)
+DEF_ZSTR_NODE(Const, N_CONST, expr)
 
 struct Node *new_TriOp(enum Token op, struct Node *left, struct Node *middle, struct Node *right, const size_t line) {
 	struct Node *const node = (struct Node *)malloc(sizeof(struct Node) + sizeof(struct Node *) * 3);
@@ -197,8 +197,6 @@ struct Node *new_BinOp(enum Token op, struct Node *left, struct Node *right, con
 	node->children_len = 0;
 	node->value.binop = ((struct BinOpNode) { op, left, right });
 	node->line = line;
-	// node->children[0] = left;
-	// node->children[1] = right;
 	return node;
 }
 
@@ -211,17 +209,9 @@ struct Node *new_UnOp(enum Token op, struct Node *child, const size_t line) {
 	return node;
 }
 
-struct Node *new_Assign(char *const name, struct Node *child, const size_t line) {
-	return new_Node_1(N_ASSIGN, child, name, strlen(name), line);
-}
-
-struct Node *new_Var(char *const name, const size_t line) {
-	return new_Node_0(N_VAR, name, strlen(name), line);
-}
-
-struct Node *new_Undef(size_t line) {
-	return new_Node_0(N_UNDEF, NULL, 0, line);
-}
+DEF_ZSTR_NODE(Assign, N_ASSIGN, expr)
+DEF_ZSTR_NODE(Var, N_VAR)
+DEF_NODE(Undef, N_UNDEF)
 
 struct Node *new_Float(yasl_float val, const size_t line) {
 	struct Node *node = new_Node_0(N_FLOAT, NULL, 0, line);
@@ -245,13 +235,8 @@ struct Node *new_String(char *value, size_t len, const size_t line) {
 	return new_Node_0(N_STR, value, len, line);
 }
 
-struct Node *new_List(struct Node *values, const size_t line) {
-	return new_Node_1(N_LIST, values, NULL, 0, line);
-}
-
-struct Node *new_Table(struct Node *keys, const size_t line) {
-	return new_Node_1(N_TABLE, keys, NULL, 0, line);
-}
+DEF_NODE(List, N_LIST, values)
+DEF_NODE(Table, N_TABLE, values)
 
 void node_del(struct Node *node) {
 	if (!node) return;
@@ -292,76 +277,7 @@ size_t Body_get_len(const struct Node *const node) {
 	return node->children_len;
 }
 
-struct Node *If_get_cond(const struct Node *const node) {
-	YASL_ASSERT(node->nodetype == N_IF, "Expected If");
-	return node->children[0];
-}
-
-struct Node *If_get_then(const struct Node *const node) {
-	YASL_ASSERT(node->nodetype == N_IF, "Expected If");
-	return node->children[1];
-}
-
-struct Node *If_get_else(const struct Node *const node) {
-	YASL_ASSERT(node->nodetype == N_IF, "Expected If");
-	return node->children[2];
-}
-
-struct Node *Assert_get_expr(const struct Node *const node) {
-	YASL_ASSERT(node->nodetype == N_ASS, "Expected Assert");
-	return node->children[0];
-}
-
-struct Node *Const_get_expr(const struct Node *const node) {
-	YASL_ASSERT(node->nodetype == N_CONST, "Expected Const");
-	return node->children[0];
-}
-
 struct Node *Comp_get_expr(const struct Node *const node) {
-	return ((node)->children[0]);
-}
-
-struct Node *ForIter_get_iter(const struct Node *const node) {
-	return ((node)->children[0]);
-}
-
-struct Node *ForIter_get_body(const struct Node *const node) {
-	return ((node)->children[1]);
-}
-
-struct Node *While_get_cond(const struct Node *const node) {
-	return ((node)->children[0]);
-}
-
-struct Node *While_get_post(const struct Node *const node) {
-	return ((node)->children[2]);
-}
-
-struct Node *Table_get_values(const struct Node *const node) {
-	return ((node)->children[0]);
-}
-
-struct Node *While_get_body(const struct Node *const node) {
-	return ((node)->children[1]);
-}
-
-struct Node *Match_get_expr(const struct Node *const node) {
-	return ((node)->children[0]);
-}
-
-struct Node *Match_get_patterns(const struct Node *const node) {
-	return ((node)->children[1]);
-}
-
-struct Node *Match_get_guards(const struct Node *const node) {
-	return ((node)->children[2]);
-}
-
-struct Node *Match_get_bodies(const struct Node *const node) {
-	return ((node)->children[3]);
-}
-
-struct Node *Print_get_expr(const struct Node *const node) {
 	return ((node)->children[0]);
 }
 
@@ -373,74 +289,6 @@ struct Node *Decl_get_expr(const struct Node *const node) {
 char *Decl_get_name(const struct Node *const node) {
 	YASL_ASSERT(node->nodetype == N_LET || node->nodetype == N_CONST || node->nodetype == N_PATLET || node->nodetype == N_PATCONST, "Expected let or const");
 	return node->value.sval.str;
-}
-
-struct Node *List_get_values(const struct Node *const node) {
-	return ((node)->children[0]);
-}
-
-struct Node *ExprStmt_get_expr(const struct Node *const node) {
-	return ((node)->children[0]);
-}
-
-struct Node *FnDecl_get_params(const struct Node *const node) {
-	return ((node)->children[0]);
-}
-
-struct Node *FnDecl_get_body(const struct Node *const node) {
-	return ((node)->children[1]);
-}
-
-char *MCall_get_name(const struct Node *const node) {
-	return node->value.sval.str;
-}
-
-struct Node *Call_get_params(const struct Node *const node) {
-	return (node->children[0]);
-}
-
-struct Node *Call_get_object(const struct Node *const node) {
-	return (node->children[1]);
-}
-
-struct Node *Return_get_expr(const struct Node *const node) {
-	return ((node)->children[0]);
-}
-
-struct Node *Export_get_expr(const struct Node *const node) {
-	return ((node)->children[0]);
-}
-
-struct Node *Set_get_collection(const struct Node *const node) {
-	return ((node)->children[0]);
-}
-
-struct Node *Set_get_key(const struct Node *const node) {
-	return ((node)->children[1]);
-}
-
-struct Node *Set_get_value(const struct Node *const node) {
-	return ((node)->children[2]);
-}
-
-struct Node *Get_get_collection(const struct Node *const node) {
-	return (node->children[0]);
-}
-
-struct Node *Get_get_value(const struct Node *const node) {
-	return (node->children[1]);
-}
-
-struct Node *Slice_get_collection(const struct Node *const node) {
-	return ((node)->children[0]);
-}
-
-struct Node *Slice_get_start(const struct Node *const node) {
-	return ((node)->children[1]);
-}
-
-struct Node *Slice_get_end(const struct Node *const node) {
-	return ((node)->children[2]);
 }
 
 struct Node *UnOp_get_expr(const struct Node *const node) {
@@ -467,10 +315,6 @@ struct Node *TriOp_get_right(const struct Node *const node) {
 	return ((node)->children[2]);
 }
 
-struct Node *Assign_get_expr(const struct Node *const node) {
-	return ((node)->children[0]);
-}
-
 struct Node *Comp_get_iter(const struct Node *const node) {
 	YASL_ASSERT(node->nodetype == N_LISTCOMP || node->nodetype == N_TABLECOMP, "Expected Comp");
 	return node->children[1];
@@ -479,10 +323,6 @@ struct Node *Comp_get_iter(const struct Node *const node) {
 struct Node *Comp_get_cond(const struct Node *const node) {
 	YASL_ASSERT(node->nodetype == N_LISTCOMP || node->nodetype == N_TABLECOMP, "Expected Comp");
 	return node->children[2];
-}
-
-struct Node *LetIter_get_collection(const struct Node *const node) {
-	return node->children[0];
 }
 
 const char *String_get_str(const struct Node *const node) {
@@ -506,9 +346,4 @@ yasl_int Integer_get_int(const struct Node *const node) {
 bool Boolean_get_bool(const struct Node *const node) {
 	YASL_ASSERT(node->nodetype == N_BOOL, "Expected Boolean");
 	return (bool)node->value.ival;
-}
-
-const char *Var_get_name(const struct Node *const node) {
-	YASL_ASSERT(node->nodetype == N_VAR, "Expected Var");
-	return node->value.sval.str;
 }
