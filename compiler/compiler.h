@@ -21,9 +21,9 @@
 	.globals = scope_new(NULL),\
 	.stack = NULL,\
 	.params = NULL,\
+	.expected_returns = 1,\
 	.leftmost_pattern = true,\
 	.seen_bindings = NEW_TABLE(),\
-	.expected_returns = 1,\
 	.strings = YASL_Table_new(),\
 	.buffer = YASL_ByteBuffer_new(16),\
 	.header = YASL_ByteBuffer_new(24),\
@@ -54,8 +54,8 @@ struct Compiler {
 	struct Scope *globals;
 	struct Scope *stack;
 	struct Env *params;
-	bool leftmost_pattern;
 	int expected_returns;
+	bool leftmost_pattern;
 	struct YASL_Table seen_bindings;
 	struct YASL_Table *strings;
 	struct YASL_ByteBuffer *buffer;    // temporary buffer during code-gen
