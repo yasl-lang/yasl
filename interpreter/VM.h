@@ -80,6 +80,7 @@ struct CallFrame {
 	int prev_fp;                // Where to reset the fp to after returning
 	int curr_fp;
 	int lp;
+	int num_returns;
 };
 
 struct LoopFrame {

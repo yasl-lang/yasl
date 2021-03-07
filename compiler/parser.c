@@ -12,7 +12,7 @@
 
 
 static struct Node *parse_program(struct Parser *const parser);
-static struct Node *parse_const(struct Parser *const parser);
+static struct Node *parse_const_fn(struct Parser *const parser);
 static struct Node *parse_let(struct Parser *const parser);
 static struct Node *parse_decl(struct Parser *const parser);
 static struct Node *parse_fn(struct Parser *const parser);
@@ -216,7 +216,7 @@ static struct Node *parse_program(struct Parser *const parser) {
 		eattok(parser, T_EXPORT);
 		return new_Export(parse_expr(parser), line);
 	case T_CONST:
-		if (isconstfndecl(parser)) return parse_const(parser);
+		if (isconstfndecl(parser)) return parse_const_fn(parser);
 		else return parse_decl(parser);
 	case T_LET:
 		return parse_decl(parser);
@@ -288,7 +288,6 @@ static struct Node *parse_return(struct Parser *const parser) {
 	size_t line = parser->lex.line;
 	eattok(parser, T_RET);
 	struct Node *expr = parse_expr(parser);
-	/*
 	if (TOKEN_MATCHES(parser, T_COMMA)) {
 		struct Node *block = new_Body(line);
 		body_append(&block, expr);
@@ -298,7 +297,6 @@ static struct Node *parse_return(struct Parser *const parser) {
 		}
 		return new_MultiReturn(block, line);
 	}
-	 */
 	return new_Return(expr, line);
 }
 
@@ -336,29 +334,23 @@ static struct Node *parse_fn(struct Parser *const parser) {
 	// TODO Fix this ^
 }
 
-static struct Node *parse_const(struct Parser *const parser) {
-	YASL_PARSE_DEBUG_LOG("parsing const in line %" PRI_SIZET "\n", parser->lex.line);
+static struct Node *parse_const_fn(struct Parser *const parser) {
+	YASL_PARSE_DEBUG_LOG("parsing const fn in line %" PRI_SIZET "\n", parser->lex.line);
 	eattok(parser, T_CONST);
-	if (matcheattok(parser, T_FN)) {
-		size_t line = parser->lex.line;
-		char *name = eatname(parser);
-		size_t name_len = strlen(name);
-		eattok(parser, T_LPAR);
-		struct Node *block = parse_function_params(parser);
-		eattok(parser, T_RPAR);
-
-		struct Node *body = parse_body(parser);
-
-		// TODO: clean this up
-		char *name2 = (char *)malloc(name_len + 1);
-		strcpy(name2, name);
-		return new_Const(new_FnDecl(block, body, name2, strlen(name2), line), name, line);
-	}
+	eattok(parser, T_FN);
 	size_t line = parser->lex.line;
 	char *name = eatname(parser);
-	eattok(parser, T_EQ);
-	struct Node *expr = parse_expr(parser);
-	return new_Const(expr, name, line);
+	size_t name_len = strlen(name);
+	eattok(parser, T_LPAR);
+	struct Node *block = parse_function_params(parser);
+	eattok(parser, T_RPAR);
+
+	struct Node *body = parse_body(parser);
+
+	// TODO: clean this up
+	char *name2 = (char *)malloc(name_len + 1);
+	strcpy(name2, name);
+	return new_Const(new_FnDecl(block, body, name2, strlen(name2), line), name, line);
 }
 
 static struct Node *parse_let_const_or_var(struct Parser *const parser) {
@@ -386,6 +378,26 @@ static struct Node *parse_let_const_or_var(struct Parser *const parser) {
 	}
 }
 
+static struct Node *parse_var_pack(struct Parser *const parser, int expected) {
+	struct Node *rvals = new_Body(parser->lex.line);
+
+	int j = 0;
+	do {
+		body_append(&rvals, parse_expr(parser));
+	} while (j++ < expected && matcheattok(parser, T_COMMA));
+
+	struct Node *last = body_last(rvals);
+	if (!will_var_expand(last)) {
+		while (j++ < expected) {
+			body_append(&rvals, new_Undef(parser->lex.line));
+		}
+	} else {
+		rvals->children[rvals->children_len - 1] = new_VariadicContext(last, expected - j + 1, last->line);
+	}
+
+	return rvals;
+}
+
 static struct Node *parse_decl_helper(struct Parser *const parser, struct Node *lvals, size_t i) {
 	while (matcheattok(parser, T_COMMA)) {
 		struct Node *lval = parse_let_const_or_var(parser);
@@ -395,16 +407,7 @@ static struct Node *parse_decl_helper(struct Parser *const parser, struct Node *
 
 	eattok(parser, T_EQ);
 
-	struct Node *rvals = new_Body(parser->lex.line);
-
-	size_t j = 0;
-	do {
-		body_append(&rvals, parse_expr(parser));
-	} while (j++ < i && matcheattok(parser, T_COMMA));
-
-	while (j++ < i) {
-		body_append(&rvals, new_Undef(parser->lex.line));
-	}
+	struct Node *rvals = parse_var_pack(parser, (int)i);
 
 	return new_Decl(lvals, rvals, lvals->line);
 }
@@ -845,6 +848,12 @@ static struct Node *parse_call(struct Parser *const parser) {
 				eattok(parser, T_COMMA);
 			}
 			eattok(parser, T_RPAR);
+
+			struct Node *body = cur_node->children[0];
+			struct Node *last = body_last(body);
+			if (last && will_var_expand(last)) {
+				body->children[body->children_len - 1] = new_VariadicContext(last, -1, last->line);
+			}
 		} else if (matcheattok(parser, T_DOT)) {
 			struct Node *right = parse_constant(parser);
 			if (right->nodetype == N_CALL) {
@@ -883,6 +892,12 @@ static struct Node *parse_call(struct Parser *const parser) {
 				eattok(parser, T_COMMA);
 			}
 			eattok(parser, T_RPAR);
+
+			struct Node *body = cur_node->children[0];
+			struct Node *last = body_last(body);
+			if (last && will_var_expand(last)) {
+				body->children[body->children_len - 1] = new_VariadicContext(last, -1, last->line);
+			}
 		}
 	}
 	return cur_node;

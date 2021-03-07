@@ -27,6 +27,7 @@ struct Node *node_clone(const struct Node *const node) {
 	case N_TRIOP:
 		clone->value.type = node->value.type;
 		break;
+	case N_VARCONT:
 	case N_INT:
 	case N_BOOL:
 	case N_FLOAT:
@@ -69,8 +70,8 @@ static struct Node *new_Node(const enum NodeType nodetype, const size_t line, co
 #define new_Node_4(nodetype, child1, child2, child3, child4, name, name_len, line) new_Node(nodetype, line, name_len, name, 4, child1, child2, child3, child4)
 
 #define DEF_NODE(...) YAPP_EXPAND(YAPP_CHOOSE6(__VA_ARGS__, DEF_NODE4, DEF_NODE3, DEF_NODE2, DEF_NODE1, DEF_NODE0)(__VA_ARGS__))
-#define DEF_STR_NODE(...) YAPP_EXPAND(YAPP_CHOOSE6(__VA_ARGS__, DEF_STR_NODE4, DEF_STR_NODE3, DEF_STR_NODE2, DEF_STR_NODE1, DEF_STR_NODE0)(__VA_ARGS__))
-#define DEF_ZSTR_NODE(...) YAPP_EXPAND(YAPP_CHOOSE6(__VA_ARGS__, DEF_ZSTR_NODE4, DEF_ZSTR_NODE3, DEF_ZSTR_NODE2, DEF_ZSTR_NODE1, DEF_ZSTR_NODE0)(__VA_ARGS__))
+#define DEF_NODE_STR(...) YAPP_EXPAND(YAPP_CHOOSE6(__VA_ARGS__, DEF_NODE_STR4, DEF_NODE_STR3, DEF_NODE_STR2, DEF_NODE_STR1, DEF_NODE_STR0)(__VA_ARGS__))
+#define DEF_NODE_ZSTR(...) YAPP_EXPAND(YAPP_CHOOSE6(__VA_ARGS__, DEF_NODE_ZSTR4, DEF_NODE_ZSTR3, DEF_NODE_ZSTR2, DEF_NODE_ZSTR1, DEF_NODE_ZSTR0)(__VA_ARGS__))
 #define DEF_GETTER(name, E, a, n) \
 struct Node *name##_get_##a(const struct Node *const node) {\
 	YASL_ASSERT(node->nodetype == E, "Expected " #name);\
@@ -117,7 +118,7 @@ DEF_GETTER(name, E, b, 1)\
 DEF_GETTER(name, E, c, 2)\
 DEF_GETTER(name, E, d, 3)
 
-#define DEF_STR_NODE2(name, E, a, b) \
+#define DEF_NODE_STR2(name, E, a, b) \
 struct Node *new_##name(const struct Node *const a, const struct Node *const b, char *name, size_t name_len, const size_t line) {\
 	return new_Node_2(E, a, b, name, name_len, line);\
 }\
@@ -125,13 +126,13 @@ DEF_GETNAME(name, E)\
 DEF_GETTER(name, E, a, 0)\
 DEF_GETTER(name, E, b, 1)
 
-#define DEF_ZSTR_NODE0(name, E) \
+#define DEF_NODE_ZSTR0(name, E) \
 struct Node *new_##name(char *name, const size_t line) {\
 	return new_Node_0(E, name, strlen(name), line);\
 }\
 DEF_GETNAME(name, E)
 
-#define DEF_ZSTR_NODE1(name, E, a) \
+#define DEF_NODE_ZSTR1(name, E, a) \
 struct Node *new_##name(const struct Node *const a, char *name, const size_t line) {\
 	return new_Node_1(E, a, name, strlen(name), line);\
 }\
@@ -145,6 +146,14 @@ void body_append(struct Node **node, struct Node *const child) {
 	(*node)->children[(*node)->children_len - 1] = child;
 }
 
+struct Node *body_last(struct Node *body) {
+	return body->children[body->children_len - 1];
+}
+
+bool will_var_expand(struct Node *node) {
+	return node->nodetype == N_CALL || node->nodetype == N_MCALL;
+}
+
 DEF_NODE(ExprStmt, N_EXPRSTMT, expr)
 
 struct Node *new_Block(const struct Node *const body, const size_t line) {
@@ -153,18 +162,18 @@ struct Node *new_Block(const struct Node *const body, const size_t line) {
 
 DEF_NODE(Body, N_BODY)
 DEF_NODE(Decl, N_DECL, lvals, rvals)
-DEF_STR_NODE(FnDecl, N_FNDECL, params, body)
+DEF_NODE_STR(FnDecl, N_FNDECL, params, body)
 DEF_NODE(Return, N_RET, expr)
 DEF_NODE(MultiReturn, N_MULTIRET, exprs)
 DEF_NODE(Export, N_EXPORT, expr)
 DEF_NODE(Call, N_CALL, params, object)
-DEF_STR_NODE(MethodCall, N_MCALL, params, object)
+DEF_NODE_STR(MethodCall, N_MCALL, params, object)
 DEF_NODE(Set, N_SET, collection, key, value)
 DEF_NODE(Get, N_GET, collection, value)
 DEF_NODE(Slice, N_SLICE, collection, start, end)
 DEF_NODE(ListComp, N_LISTCOMP, expr, iter, cond)
 DEF_NODE(TableComp, N_TABLECOMP, expr, iter, cond)
-DEF_ZSTR_NODE(LetIter, N_LETITER, collection)
+DEF_NODE_ZSTR(LetIter, N_LETITER, collection)
 DEF_NODE(ForIter, N_FORITER, iter, body)
 DEF_NODE(While, N_WHILE, cond, body, post)
 DEF_NODE(Break, N_BREAK)
@@ -173,8 +182,8 @@ DEF_NODE(Match, N_MATCH, cond, patterns, guards, bodies)
 DEF_NODE(If, N_IF, cond, then, el)
 DEF_NODE(Print, N_PRINT, expr)
 DEF_NODE(Assert, N_ASS, expr)
-DEF_ZSTR_NODE(Let, N_LET, expr)
-DEF_ZSTR_NODE(Const, N_CONST, expr)
+DEF_NODE_ZSTR(Let, N_LET, expr)
+DEF_NODE_ZSTR(Const, N_CONST, expr)
 
 struct Node *new_TriOp(enum Token op, struct Node *left, struct Node *middle, struct Node *right, const size_t line) {
 	struct Node *const node = (struct Node *)malloc(sizeof(struct Node) + sizeof(struct Node *) * 3);
@@ -206,8 +215,8 @@ struct Node *new_UnOp(enum Token op, struct Node *child, const size_t line) {
 	return node;
 }
 
-DEF_ZSTR_NODE(Assign, N_ASSIGN, expr)
-DEF_ZSTR_NODE(Var, N_VAR)
+DEF_NODE_ZSTR(Assign, N_ASSIGN, expr)
+DEF_NODE_ZSTR(Var, N_VAR)
 DEF_NODE(Undef, N_UNDEF)
 
 struct Node *new_Float(yasl_float val, const size_t line) {
@@ -235,6 +244,12 @@ struct Node *new_String(char *value, size_t len, const size_t line) {
 DEF_NODE(List, N_LIST, values)
 DEF_NODE(Table, N_TABLE, values)
 
+struct Node *new_VariadicContext(const struct Node *const expr, const int expected, const size_t line) {
+	struct Node *node = new_Node_1(N_VARCONT, expr, NULL, 0, line);
+	node->value.ival = expected;
+	return node;
+}
+
 void node_del(struct Node *node) {
 	if (!node) return;
 	while (node->children_len-- > 0) {
@@ -250,6 +265,7 @@ void node_del(struct Node *node) {
 	case N_UNOP:
 		node_del(node->value.unop.expr);
 		break;
+	case N_VARCONT:
 	case N_TRIOP:
 	case N_BOOL:
 	case N_INT:

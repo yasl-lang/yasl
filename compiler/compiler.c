@@ -404,7 +404,8 @@ static void visit_FnDecl(struct Compiler *const compiler, const struct Node *con
 	visit_Body(compiler, FnDecl_get_body(node));
 	// TODO: remove this when it's not required.
 	compiler_add_byte(compiler, O_NCONST);
-	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CRET : O_RET);
+	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CMRET : O_MRET);
+	compiler_add_byte(compiler, (unsigned char)1);
 	exit_scope(compiler);
 
 	size_t new_size = compiler->buffer->count;
@@ -432,9 +433,17 @@ static void visit_FnDecl(struct Compiler *const compiler, const struct Node *con
 	compiler->params = tmp;
 }
 
+static void visit_VariadicContext(struct Compiler *const compiler, const struct Node *const node) {
+	int old_returns = compiler->expected_returns;
+	compiler->expected_returns = node->value.ival;
+	visit(compiler, node->children[0]);
+	compiler->expected_returns = old_returns;
+}
+
 static void visit_Call(struct Compiler *const compiler, const struct Node *const node) {
 	visit(compiler, Call_get_object(node));
 	compiler_add_byte(compiler, O_INIT_CALL);
+	compiler_add_byte(compiler, (unsigned char)compiler->expected_returns);
 	visit_Body(compiler, Call_get_params(node));
 	compiler_add_byte(compiler, O_CALL);
 }
@@ -447,6 +456,7 @@ static void visit_MethodCall(struct Compiler *const compiler, const struct Node 
 	yasl_int index = compiler_intern_string(compiler, str, len);
 
 	compiler_add_byte(compiler, O_INIT_MC);
+	compiler_add_byte(compiler, (unsigned char)compiler->expected_returns);
 	compiler_add_int(compiler, index);
 
 	visit_Body(compiler, Call_get_params(node));
@@ -460,7 +470,8 @@ static void visit_Return(struct Compiler *const compiler, const struct Node *con
 		return;
 	}
 	visit(compiler, Return_get_expr(node));
-	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CRET : O_RET);
+	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CMRET : O_MRET);
+	compiler_add_byte(compiler, (unsigned char)1);
 }
 
 static void visit_MultiReturn(struct Compiler *const compiler, const struct Node *const node) {
@@ -1078,9 +1089,22 @@ static void visit_Const(struct Compiler *const compiler, const struct Node *cons
 }
 
 static void visit_Decl(struct Compiler *const compiler, const struct Node *const node) {
+	// struct Node *rvals = Decl_get_rvals(node);
+	//struct Node *lvals = Decl_get_lvals(node);
+
+//	int old_expected_returns = compiler->expected_returns;
+
+	//size_t rvals_len = rvals->children_len;
 	FOR_CHILDREN(i, child_expr, Decl_get_rvals(node)) {
+		/*
+		if (i + 1 == rvals->children_len) {
+			compiler->expected_returns = lvals->children_len - rvals_len +1;
+			// printf("%d\n", compiler->expected_returns);
+
+		}*/
 		visit(compiler, child_expr);
 	}
+//	compiler->expected_returns = old_expected_returns;
 
 	FOR_CHILDREN(i, child, Decl_get_lvals(node)) {
 		const char *name = child->value.sval.str;
@@ -1341,13 +1365,11 @@ static void visit_Table(struct Compiler *const compiler, const struct Node *cons
  */
 static void validate(struct Compiler *compiler, const struct Node *const node) {
 	const size_t buffer_count = compiler->buffer->count;
-	// size_t header_count = compiler->header->count;
 	const size_t code_count = compiler->code->count;
 	const size_t line_count = compiler->lines->count;
 	const size_t line = compiler->line;
 	visit(compiler, node);
 	compiler->buffer->count = buffer_count;
-	// compiler->header->count = header_count;
 	compiler->code->count = code_count;
 	compiler->lines->count = line_count;
 	compiler->line = line;

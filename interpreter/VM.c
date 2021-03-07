@@ -300,11 +300,11 @@ void vm_rm_range(struct VM *const vm, int start, int end) {
 	for (int i = 0; i < after && i < len; i++) {
 		dec_ref(vm->stack + start + i);
 	}
-	memmove(vm->stack + start, vm->stack + end, after * sizeof(struct YASL_Object));
-	// TODO: this is wrong
+
 	for (int i = 0; i < after && i < len; i++) {
-		inc_ref(vm->stack + start + i);
+		inc_ref(vm->stack + vm->sp - i);
 	}
+	memmove(vm->stack + start, vm->stack + end, after * sizeof(struct YASL_Object));
 	vm->sp -= len;
 }
 
@@ -318,20 +318,19 @@ static yasl_int vm_read_int(struct VM *const vm) {
 static void vm_duptop(struct VM *const vm);
 static void vm_swaptop(struct VM *const vm);
 static int vm_lookup_method_helper(struct VM *vm, struct YASL_Object obj, struct YASL_Table *mt, struct YASL_Object index);
-// static int vm_lookup_method(struct VM *const vm, const char *const method_name);
 static void vm_GET(struct VM *const vm);
-static void vm_INIT_CALL(struct VM *const vm);
-static void vm_INIT_CALL_offset(struct VM *const vm, int offset);
+static void vm_INIT_CALL(struct VM *const vm, int expected_returns);
+static void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns);
 static void vm_CALL(struct VM *const vm);
 
 static void vm_call_now_2(struct VM *vm, struct YASL_Object a, struct YASL_Object b) {
-	vm_INIT_CALL(vm);
+	vm_INIT_CALL(vm, 1);
 	vm_push(vm, a);
 	vm_push(vm, b);
 	vm_CALL(vm);
 }
 static void vm_call_now_3(struct VM *vm, struct YASL_Object a, struct YASL_Object b, struct YASL_Object c) {
-	vm_INIT_CALL(vm);
+	vm_INIT_CALL(vm, 1);
 	vm_push(vm, a);
 	vm_push(vm, b);
 	vm_push(vm, c);
@@ -356,7 +355,7 @@ do {\
 	vm_duptop(vm);\
 	vm_lookup_method_throwing(vm, method_name, __VA_ARGS__, obj_typename(vm_peek_p(vm)));\
 	vm_swaptop(vm);\
-	vm_INIT_CALL_offset(vm, vm->sp - 1);\
+	vm_INIT_CALL_offset(vm, vm->sp - 1, 1);\
 	vm_CALL(vm);\
 } while (0)
 
@@ -1061,7 +1060,7 @@ static void vm_GLOAD_8(struct VM *const vm) {
 	YASL_ASSERT(vm_peek(vm).type != Y_END, "global not found");
 }
 
-static void vm_enterframe_offset(struct VM *const vm, int offset) {
+static void vm_enterframe_offset(struct VM *const vm, int offset, int num_returns) {
 	if (++vm->frame_num >= NUM_FRAMES) {
 		vm->frame_num--;
 		vm->status = YASL_STACK_OVERFLOW_ERROR;
@@ -1071,13 +1070,27 @@ static void vm_enterframe_offset(struct VM *const vm, int offset) {
 
 	int next_fp = vm->next_fp;
 	vm->next_fp = offset;
-	vm->frames[vm->frame_num] = ((struct CallFrame) { vm->pc, vm->fp, next_fp, vm->loopframe_num });
+	vm->frames[vm->frame_num] = ((struct CallFrame) { vm->pc, vm->fp, next_fp, vm->loopframe_num, num_returns });
 }
+
+static void vm_fill_args(struct VM *const vm, const int num_args);
 
 static void vm_exitframe_multi(struct VM *const vm, unsigned char args) {
 	vm_rm_range(vm, vm->fp, vm->sp - args + 1);
 
 	struct CallFrame frame = vm->frames[vm->frame_num];
+	int num_returns = frame.num_returns;
+
+	if (vm->sp + 1 - vm->fp < num_returns) {
+		while (vm->sp + 1 - vm->fp < num_returns) {
+			vm_pushundef(vm);
+		}
+	} else if (vm->sp + 1 - vm->fp > num_returns) {
+		while (vm->sp + 1 - vm->fp > num_returns) {
+			vm_pop(vm);
+		}
+	}
+
 	vm->pc = frame.pc;
 	vm->fp = frame.prev_fp;
 	vm->next_fp = frame.curr_fp;
@@ -1102,17 +1115,17 @@ static void vm_exitframe(struct VM *const vm) {
 	vm->frame_num--;
 }
 
-static void vm_INIT_CALL_offset(struct VM *const vm, int offset) {
+static void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns) {
 	if (!vm_isfn(vm, offset) && !vm_iscfn(vm, offset) && !vm_isclosure(vm, offset)) {
 		vm_print_err_type(vm,  "%s is not callable.", obj_typename(vm_peek_p(vm)));
 		vm_throw_err(vm, YASL_TYPE_ERROR);
 	}
 
-	vm_enterframe_offset(vm, offset);
+	vm_enterframe_offset(vm, offset, expected_returns);
 }
 
-static void vm_INIT_CALL(struct VM *const vm) {
-	vm_INIT_CALL_offset(vm, vm->sp);
+static void vm_INIT_CALL(struct VM *const vm, int expected_returns) {
+	vm_INIT_CALL_offset(vm, vm->sp, expected_returns);
 }
 
 static void vm_duptop(struct VM *const vm) {
@@ -1126,11 +1139,12 @@ static void vm_swaptop(struct VM *const vm) {
 }
 
 static void vm_INIT_MC(struct VM *const vm) {
+	int expected_returns = NCODE(vm);
 	vm_duptop(vm);
 	yasl_int addr = vm_read_int(vm);
 	vm_GET_helper(vm, vm->constants[addr]);
 	vm_swaptop(vm);
-	vm_INIT_CALL_offset(vm, vm->sp - 1);
+	vm_INIT_CALL_offset(vm, vm->sp - 1, expected_returns);
 }
 
 static void vm_fill_args(struct VM *const vm, const int num_args) {
@@ -1210,6 +1224,12 @@ void vm_close_all(struct VM *const vm) {
 static void vm_CRET(struct VM *const vm) {
 	vm_close_all(vm);
 	vm_exitframe(vm);
+}
+
+static void vm_CMRET(struct VM *const vm) {
+	unsigned char args = NCODE(vm);
+	vm_close_all(vm);
+	vm_exitframe_multi(vm, args);
 }
 
 static void vm_PRINT(struct VM *const vm) {
@@ -1484,7 +1504,7 @@ void vm_executenext(struct VM *const vm) {
 		vm_INIT_MC(vm);
 		break;
 	case O_INIT_CALL:
-		vm_INIT_CALL(vm);
+		vm_INIT_CALL(vm, NCODE(vm));
 		break;
 	case O_CALL:
 		vm_CALL(vm);
@@ -1494,6 +1514,9 @@ void vm_executenext(struct VM *const vm) {
 		break;
 	case O_CRET:
 		vm_CRET(vm);
+		break;
+	case O_CMRET:
+		vm_CMRET(vm);
 		break;
 	case O_MRET:
 		vm_MRET(vm);

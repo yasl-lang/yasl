@@ -81,8 +81,11 @@ struct Node {
 };
 
 void body_append(struct Node **node, struct Node *const child);
+struct Node *body_last(struct Node *node);
 
 struct Node *node_clone(const struct Node *const node);
+
+bool will_var_expand(struct Node *node);
 
 #define FOR_CHILDREN(i, child, node) struct Node *child;\
 for (size_t i = 0; i < (node)->children_len; i++ ) if (child = (node)->children[i], child != NULL)
@@ -147,6 +150,7 @@ DECL_NODE(Table, N_TABLE, values)
 DECL_NODE(Assert, N_ASS, expr)
 DECL_NODE(Body, N_BODY)
 
+struct Node *new_VariadicContext(const struct Node *const expr, const int expected, const size_t line);
 struct Node *new_FnDecl(const struct Node *const params, const struct Node *const body, char *name, size_t name_len, const size_t line);
 struct Node *new_MethodCall(const struct Node *const params, const struct Node *const object, char *value, size_t len, const size_t line);
 
