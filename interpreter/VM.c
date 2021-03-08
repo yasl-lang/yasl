@@ -1081,13 +1081,15 @@ static void vm_exitframe_multi(struct VM *const vm, unsigned char args) {
 	struct CallFrame frame = vm->frames[vm->frame_num];
 	int num_returns = frame.num_returns;
 
-	if (vm->sp + 1 - vm->fp < num_returns) {
-		while (vm->sp + 1 - vm->fp < num_returns) {
-			vm_pushundef(vm);
-		}
-	} else if (vm->sp + 1 - vm->fp > num_returns) {
-		while (vm->sp + 1 - vm->fp > num_returns) {
-			vm_pop(vm);
+	if (num_returns >= 0) {
+		if (vm->sp + 1 - vm->fp < num_returns) {
+			while (vm->sp + 1 - vm->fp < num_returns) {
+				vm_pushundef(vm);
+			}
+		} else if (vm->sp + 1 - vm->fp > num_returns) {
+			while (vm->sp + 1 - vm->fp > num_returns) {
+				vm_pop(vm);
+			}
 		}
 	}
 
@@ -1139,7 +1141,7 @@ static void vm_swaptop(struct VM *const vm) {
 }
 
 static void vm_INIT_MC(struct VM *const vm) {
-	int expected_returns = NCODE(vm);
+	int expected_returns = (signed char)NCODE(vm);
 	vm_duptop(vm);
 	yasl_int addr = vm_read_int(vm);
 	vm_GET_helper(vm, vm->constants[addr]);
@@ -1185,7 +1187,7 @@ static void vm_CALL_cfn(struct VM *const vm) {
 	}
 	vm_peekcfn(vm, vm->fp)->value((struct YASL_State *) vm);
 
-	vm_exitframe(vm);
+	vm_exitframe_multi(vm, 1);
 }
 
 static void vm_CALL(struct VM *const vm) {
@@ -1504,7 +1506,7 @@ void vm_executenext(struct VM *const vm) {
 		vm_INIT_MC(vm);
 		break;
 	case O_INIT_CALL:
-		vm_INIT_CALL(vm, NCODE(vm));
+		vm_INIT_CALL(vm, (signed char)NCODE(vm));
 		break;
 	case O_CALL:
 		vm_CALL(vm);
