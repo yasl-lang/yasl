@@ -1185,6 +1185,7 @@ static void vm_CALL_cfn(struct VM *const vm) {
 	} else {
 		vm_fill_args(vm, vm_peekcfn(vm, vm->fp)->num_args);
 	}
+	// TODO: allow multiple returns from C functions.
 	vm_peekcfn(vm, vm->fp)->value((struct YASL_State *) vm);
 
 	vm_exitframe_multi(vm, 1);
