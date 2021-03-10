@@ -404,7 +404,7 @@ static void visit_FnDecl(struct Compiler *const compiler, const struct Node *con
 	visit_Body(compiler, FnDecl_get_body(node));
 	// TODO: remove this when it's not required.
 	compiler_add_byte(compiler, O_NCONST);
-	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CMRET : O_MRET);
+	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CRET : O_RET);
 	compiler_add_byte(compiler, (unsigned char)1);
 	exit_scope(compiler);
 
@@ -470,7 +470,7 @@ static void visit_Return(struct Compiler *const compiler, const struct Node *con
 		return;
 	}
 	visit(compiler, Return_get_expr(node));
-	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CMRET : O_MRET);
+	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CRET : O_RET);
 	compiler_add_byte(compiler, (unsigned char)1);
 }
 
@@ -482,7 +482,7 @@ static void visit_MultiReturn(struct Compiler *const compiler, const struct Node
 	}
 
 	visit(compiler, Return_get_expr(node));
-	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CMRET : O_MRET);
+	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CRET : O_RET);
 	compiler_add_byte(compiler, (unsigned char)MultiReturn_get_exprs(node)->children_len);
 }
 
@@ -941,7 +941,7 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 		compiler_add_byte(compiler, O_INCSP);
 		compiler_add_byte(compiler, bindings);
 		if (guard) {
-			compiler_add_byte(compiler, O_MOVEUP);
+			compiler_add_byte(compiler, O_MOVEUP_FP);
 			compiler_add_byte(compiler, (unsigned char) vars);
 			visit(compiler, guard);
 			compiler_add_byte(compiler, O_BRF_8);
@@ -1114,13 +1114,13 @@ static void visit_Decl(struct Compiler *const compiler, const struct Node *const
 				handle_error(compiler);
 				return;
 			}
-			compiler_add_byte(compiler, O_MOVEUP);
+			compiler_add_byte(compiler, O_MOVEUP_FP);
 			compiler_add_byte(compiler, (unsigned char)(get_scope_in_use(compiler)->vars.count));
 			store_var(compiler, name, node->line);
 		} else if (child->nodetype == N_SET) {
 			visit(compiler, Set_get_collection(child));
 			visit(compiler, Set_get_key(child));
-			compiler_add_byte(compiler, O_MOVEUP);
+			compiler_add_byte(compiler, O_MOVEUP_FP);
 			compiler_add_byte(compiler, (unsigned char)(get_scope_in_use(compiler)->vars.count));
 			compiler_add_byte(compiler, O_SET);
 		} else {
@@ -1131,7 +1131,7 @@ static void visit_Decl(struct Compiler *const compiler, const struct Node *const
 			}
 			decl_var(compiler, name, child->line);
 			if (!in_function(compiler) && !compiler->stack) {
-				compiler_add_byte(compiler, O_MOVEUP);
+				compiler_add_byte(compiler, O_MOVEUP_FP);
 				compiler_add_byte(compiler, (unsigned char)0);
 				store_var(compiler, name, node->line);
 			}

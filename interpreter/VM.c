@@ -1202,11 +1202,6 @@ static void vm_CALL(struct VM *const vm) {
 }
 
 static void vm_RET(struct VM *const vm) {
-	// TODO: handle multiple returns
-	vm_exitframe(vm);
-}
-
-static void vm_MRET(struct VM *const vm) {
 	unsigned char args = NCODE(vm);
 	vm_exitframe_multi(vm, args);
 }
@@ -1223,12 +1218,8 @@ void vm_close_all(struct VM *const vm) {
 	vm->pending = vm_close_all_helper(vm->stack + vm->fp, vm->pending);
 }
 
+// TODO: add tests for this
 static void vm_CRET(struct VM *const vm) {
-	vm_close_all(vm);
-	vm_exitframe(vm);
-}
-
-static void vm_CMRET(struct VM *const vm) {
 	unsigned char args = NCODE(vm);
 	vm_close_all(vm);
 	vm_exitframe_multi(vm, args);
@@ -1453,7 +1444,7 @@ void vm_executenext(struct VM *const vm) {
 		a = vm_peek(vm);
 		vm_push(vm, a);
 		break;
-	case O_MOVEUP:
+	case O_MOVEUP_FP:
 		offset = NCODE(vm);
 		a = vm_peek(vm, vm->fp + offset + 1);
 		memmove(vm->stack + vm->fp + offset + 1, vm->stack + vm->fp + offset + 2, (vm->sp - (vm->fp + offset + 1)) * sizeof(struct YASL_Object));
@@ -1511,17 +1502,11 @@ void vm_executenext(struct VM *const vm) {
 	case O_CALL:
 		vm_CALL(vm);
 		break;
-	case O_RET:
-		vm_RET(vm);
-		break;
 	case O_CRET:
 		vm_CRET(vm);
 		break;
-	case O_CMRET:
-		vm_CMRET(vm);
-		break;
-	case O_MRET:
-		vm_MRET(vm);
+	case O_RET:
+		vm_RET(vm);
 		break;
 	case O_GET:
 		vm_GET(vm);

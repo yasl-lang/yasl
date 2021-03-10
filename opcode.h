@@ -53,12 +53,11 @@ enum Opcode {
 	O_NEWTABLE = 0x9C, // make new table and push it onto stack
 	O_NEWLIST = 0x9D, // make new list and push it onto stack
 
-	O_MOVEUP = 0xA0, // move an element from index whatever to top of stack, indexing from fp.
+	O_MOVEUP_FP = 0xA0, // move an element from index whatever to top of stack, indexing from fp.
 
 	O_END = 0xB0, // indicate end of list on stack.
 	O_DUP = 0xB8, // duplicate top value of stack
 	O_DEL_FP = 0xB9, // deletes an element from the stack. Takes a one-byte index, indicating which element to delete.
-	O_DEL_RNG_FP = 0xBA, // deletes a range of elements from the stack. Takes two one-byte indices.
 	O_DECSP = 0xBD,
 	O_INCSP = 0xBE,
 	O_POP = 0xBF, // pop top of stack
@@ -76,10 +75,8 @@ enum Opcode {
 	O_INIT_MC = 0xE7,
 	O_INIT_CALL = 0xE8, // set up function call
 	O_CALL = 0xE9, // function call
-	O_RET = 0xEA, // return from function
-	O_CRET = 0xEB, // return from closure.
-	O_MRET = 0xEC,
-	O_CMRET = 0xED,
+	O_RET = 0xEC,  // return from function
+	O_CRET = 0xED, // return from closure.
 
 	O_GSTORE_8 = 0xF0, // from string
 	O_GLOAD_8 = 0xF1, // from string

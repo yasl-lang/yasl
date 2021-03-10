@@ -328,7 +328,7 @@ static void test_guard_bind() {
 		P_BIND, 0x01,
 		P_BIND, 0x02,
 		O_INCSP, 0x02,
-		O_MOVEUP, 0x01,
+		O_MOVEUP_FP, 0x01,
 		O_LLOAD, 0x01,
 		O_LIT, 0x02,
 		O_GT,
