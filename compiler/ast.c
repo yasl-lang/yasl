@@ -358,6 +358,6 @@ yasl_int Integer_get_int(const struct Node *const node) {
 }
 
 bool Boolean_get_bool(const struct Node *const node) {
-	YASL_ASSERT(node->nodetype == N_BOOL, "Expected Boolean");
+	YASL_ASSERT(node->nodetype == N_BOOL || node->nodetype == N_PATBOOL, "Expected Boolean");
 	return (bool)node->value.ival;
 }
