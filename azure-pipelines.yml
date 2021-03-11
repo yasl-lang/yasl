@@ -128,7 +128,7 @@ jobs:
       set -e
       export CC=clang
       export CXX=clang++
-      cmake . -D=YASL_DEBUG
+      cmake . -DYASL_DEBUG
       make yasl
       make yaslapi
       make tests
