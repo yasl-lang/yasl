@@ -116,6 +116,29 @@ jobs:
   - script:
       ./tests.sh
     displayName: "Run Interpreter Tests"
+- job:
+  displayName: "C Clang Ubuntu [Debug]"
+  pool:
+    vmImage: 'ubuntu-16.04'
+  steps:
+  - script:
+      sudo apt install valgrind
+    displayName: "Install Valgrind"
+  - script: |
+      set -e
+      export CC=clang
+      export CXX=clang++
+      cmake . -D=YASL_DEBUG
+      make yasl
+      make yaslapi
+      make tests
+    displayName: "Compile"
+  - script:
+      ./tests
+    displayName: "Run API Tests"
+  - script:
+      ./tests.sh
+    displayName: "Run Interpreter Tests"
 - job: 
   displayName: "C++ GCC Ubuntu"
   pool:
