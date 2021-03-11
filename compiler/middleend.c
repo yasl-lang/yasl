@@ -21,7 +21,7 @@ void fold_Call(struct Node *const node) {
 
 void fold_MethodCall(struct Node *const node) {
 	fold(node->children[1]);
-	fold_Body(Call_get_params(node));
+	fold_Body(MethodCall_get_params(node));
 }
 
 void fold_Set(struct Node *const node) {

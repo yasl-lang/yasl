@@ -348,12 +348,12 @@ size_t String_get_len(const struct Node *const node) {
 }
 
 yasl_float Float_get_float(const struct Node *const node) {
-	YASL_ASSERT(node->nodetype == N_FLOAT, "Expected Float");
+	YASL_ASSERT(node->nodetype == N_FLOAT || node->nodetype == N_PATFL, "Expected Float");
 	return node->value.dval;
 }
 
 yasl_int Integer_get_int(const struct Node *const node) {
-	YASL_ASSERT(node->nodetype == N_INT, "Expected Integer");
+	YASL_ASSERT(node->nodetype == N_INT || node->nodetype == N_PATINT, "Expected Integer");
 	return node->value.ival;
 }
 

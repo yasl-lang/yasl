@@ -1538,7 +1538,7 @@ void vm_executenext(struct VM *const vm) {
 		vm_pop(vm);
 		break;
 	default:
-		vm_print_err(vm, "ERROR UNKNOWN OPCODE: %x\n", opcode);
+		vm_print_err(vm, "Error: Unknown Opcode: %x\n", opcode);
 		vm_throw_err(vm, YASL_ERROR);
 	}
 }

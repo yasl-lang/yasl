@@ -451,7 +451,7 @@ static void visit_Call(struct Compiler *const compiler, const struct Node *const
 static void visit_MethodCall(struct Compiler *const compiler, const struct Node *const node) {
 	char *str = MethodCall_get_name(node);
 	size_t len = strlen(str);
-	visit(compiler, Call_get_object(node));
+	visit(compiler, MethodCall_get_object(node));
 
 	yasl_int index = compiler_intern_string(compiler, str, len);
 
@@ -459,7 +459,7 @@ static void visit_MethodCall(struct Compiler *const compiler, const struct Node 
 	compiler_add_byte(compiler, (unsigned char)compiler->expected_returns);
 	compiler_add_int(compiler, index);
 
-	visit_Body(compiler, Call_get_params(node));
+	visit_Body(compiler, MethodCall_get_params(node));
 	compiler_add_byte(compiler, O_CALL);
 }
 
@@ -481,7 +481,7 @@ static void visit_MultiReturn(struct Compiler *const compiler, const struct Node
 		return;
 	}
 
-	visit(compiler, Return_get_expr(node));
+	visit(compiler, MultiReturn_get_exprs(node));
 	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CRET : O_RET);
 	compiler_add_byte(compiler, (unsigned char)MultiReturn_get_exprs(node)->children_len);
 }
@@ -1159,13 +1159,13 @@ static void visit_BinOp_shortcircuit(struct Compiler *const compiler, const stru
 
 static void visit_BinOp(struct Compiler *const compiler, const struct Node *const node) {
 	// complicated bin ops are handled on their own.
-	if (node->value.type == T_DQMARK) {     // ?? operator
+	if (node->value.type == T_DQMARK) {        // ?? operator
 		visit_BinOp_shortcircuit(compiler, node, O_BRN_8);
 		return;
-	} else if (node->value.type == T_DBAR) {  // or operator
+	} else if (node->value.type == T_DBAR) {   // || operator
 		visit_BinOp_shortcircuit(compiler, node, O_BRT_8);
 		return;
-	} else if (node->value.type == T_DAMP) {   // and operator
+	} else if (node->value.type == T_DAMP) {   // && operator
 		visit_BinOp_shortcircuit(compiler, node, O_BRF_8);
 		return;
 	}
@@ -1243,8 +1243,8 @@ static void visit_BinOp(struct Compiler *const compiler, const struct Node *cons
 		compiler_add_byte(compiler, O_EXP);
 		break;
 	default:
-		puts("error in visit_BinOp");
-		exit(EXIT_FAILURE);
+		YASL_UNREACHED();
+		break;
 	}
 }
 
@@ -1267,7 +1267,7 @@ static void visit_UnOp(struct Compiler *const compiler, const struct Node *const
 		compiler_add_byte(compiler, O_LEN);
 		break;
 	default:
-		YASL_ASSERT(false, "Error in visit_UnOp");
+		YASL_UNREACHED();
 		break;
 	}
 }
@@ -1363,7 +1363,7 @@ static void validate(struct Compiler *compiler, const struct Node *const node) {
 static void visit_LetIter(struct Compiler *const compiler, const struct Node *const node) {
 	(void) compiler;
 	(void) node;
-	exit(-1);
+	YASL_UNREACHED();
 }
 
 #define X(name, ...) &visit_##name,

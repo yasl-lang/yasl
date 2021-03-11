@@ -176,6 +176,8 @@ char *Decl_get_name(const struct Node *const node);
 struct Node *FnDecl_get_params(const struct Node *const node);
 struct Node *FnDecl_get_body(const struct Node *const node);
 char *MethodCall_get_name(const struct Node *const node);
+struct Node *MethodCall_get_params(const struct Node *const node);
+struct Node *MethodCall_get_object(const struct Node *const node);
 struct Node *UnOp_get_expr(const struct Node *const node);
 struct Node *BinOp_get_left(const struct Node *const node);
 struct Node *BinOp_get_right(const struct Node *const node);
