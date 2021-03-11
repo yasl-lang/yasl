@@ -27,7 +27,7 @@ enum LogLevel {
 
 #define YASL_UNREACHED() YASL_ASSERT(false, "This code should never be reached")
 
-// #define YASL_DEBUG
+#define YASL_DEBUG
 #ifdef YASL_DEBUG
 #define YASL_ASSERT(expr, msg) do { if (!(expr)) { printf(msg " (" __FILE__ ":%d)", __LINE__ ); abort(); } } while(0)
 #else
