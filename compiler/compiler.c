@@ -1089,22 +1089,9 @@ static void visit_Const(struct Compiler *const compiler, const struct Node *cons
 }
 
 static void visit_Decl(struct Compiler *const compiler, const struct Node *const node) {
-	// struct Node *rvals = Decl_get_rvals(node);
-	//struct Node *lvals = Decl_get_lvals(node);
-
-//	int old_expected_returns = compiler->expected_returns;
-
-	//size_t rvals_len = rvals->children_len;
 	FOR_CHILDREN(i, child_expr, Decl_get_rvals(node)) {
-		/*
-		if (i + 1 == rvals->children_len) {
-			compiler->expected_returns = lvals->children_len - rvals_len +1;
-			// printf("%d\n", compiler->expected_returns);
-
-		}*/
 		visit(compiler, child_expr);
 	}
-//	compiler->expected_returns = old_expected_returns;
 
 	FOR_CHILDREN(i, child, Decl_get_lvals(node)) {
 		const char *name = child->value.sval.str;
