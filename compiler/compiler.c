@@ -787,7 +787,7 @@ static void visit_UndefPattern(struct Compiler *const compiler, const struct Nod
 }
 
 static void visit_BoolPattern(struct Compiler *const compiler, const struct Node *const node) {
-	compiler_add_byte(compiler, P_BOOL);''
+	compiler_add_byte(compiler, P_BOOL);
 	compiler_add_byte(compiler, (unsigned char)(Boolean_get_bool(node)));
 }
 
