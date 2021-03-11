@@ -53,7 +53,6 @@ void compiler_cleanup(struct Compiler *const compiler) {
 	parser_cleanup(&compiler->parser);
 	compiler_buffers_del(compiler);
 	free(compiler->checkpoints.items);
-	free(compiler->locals);
 }
 
 static void handle_error(struct Compiler *const compiler) {

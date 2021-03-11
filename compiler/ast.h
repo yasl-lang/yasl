@@ -50,18 +50,6 @@ struct BodyNode {
 	struct Node *children[];
 };
 
-/*
-struct Node {
-	enum NodeType tag;
-	void (*visit)(struct Compiler *compiler, struct Node *node);
-	union {
-		struct UnOpNode unop;
-		struct BinOpNode binop;
-		struct TriOpNode triop;
-	} val;
-};
-*/
-
 struct Node {
 	enum NodeType nodetype;
 	union {

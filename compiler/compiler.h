@@ -31,9 +31,6 @@
 	.lines = YASL_ByteBuffer_new(16),\
 	.line = 0,\
 	.checkpoints = NEW_SIZEBUFFER(4),\
-	.locals = (struct Frame *)malloc(sizeof(struct Frame) * 4),\
-	.locals_count = 0,\
-	.locals_size = 4,\
 	.status = YASL_SUCCESS,\
 	.num = 0,\
 })
@@ -42,11 +39,6 @@ struct SizeBuffer {
 	size_t count;
 	size_t size;
 	size_t *items;
-};
-
-struct Frame {
-	size_t num_upvals;
-	signed char *upvals;
 };
 
 struct Compiler {
@@ -64,9 +56,6 @@ struct Compiler {
 	struct YASL_ByteBuffer *lines;     // keeps track of current line number
 	size_t line;
 	struct SizeBuffer checkpoints;
-	struct Frame *locals;
-	size_t locals_count;
-	size_t locals_size;
 	int status;
 	int64_t num;
 };

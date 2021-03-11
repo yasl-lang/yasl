@@ -3,6 +3,7 @@
 
 #include "lexer.h"
 #include "yapp.h"
+#include "ast.h"
 
 #define T1(p, a) (curtok(p) == a)
 #define T2(p, a, b) T1(p, a) || T1(p, b)
@@ -23,7 +24,7 @@ struct Parser {
 };
 
 int peof(const struct Parser *const parser);
-// struct Parser *parser_new(FILE *prev_fp);
+size_t parserline(const struct Parser *const parser);
 void parser_cleanup(struct Parser *const parser);
 enum Token eattok(struct Parser *const parser, const enum Token token);
 struct Node *parse(struct Parser *const parser);
