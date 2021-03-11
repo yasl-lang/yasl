@@ -206,7 +206,7 @@ static struct Node *parse_program(struct Parser *const parser) {
 	switch (curtok(parser)) {
 	case T_ECHO:
 		eattok(parser, T_ECHO);
-		return new_Print(parse_expr(parser), line);
+		return new_Echo(parse_expr(parser), line);
 	case T_FN:
 		if (isfndecl(parser)) return parse_fn(parser);
 		else return parse_expr(parser);

@@ -1219,14 +1219,7 @@ void vm_close_all(struct VM *const vm) {
 	vm->pending = vm_close_all_helper(vm->stack + vm->fp, vm->pending);
 }
 
-// TODO: add tests for this
-static void vm_CRET(struct VM *const vm) {
-	unsigned char args = NCODE(vm);
-	vm_close_all(vm);
-	vm_exitframe_multi(vm, args);
-}
-
-static void vm_PRINT(struct VM *const vm) {
+static void vm_ECHO(struct VM *const vm) {
 	vm_stringify_top(vm);
 	struct YASL_String *v = vm_popstr(vm);
 	vm_print_out(vm, "%.*s\n", (int)YASL_String_len(v), v->start + v->str);
@@ -1504,7 +1497,8 @@ void vm_executenext(struct VM *const vm) {
 		vm_CALL(vm);
 		break;
 	case O_CRET:
-		vm_CRET(vm);
+		vm_close_all(vm);
+		vm_RET(vm);
 		break;
 	case O_RET:
 		vm_RET(vm);
@@ -1532,7 +1526,7 @@ void vm_executenext(struct VM *const vm) {
 		vm->sp += NCODE(vm);
 		break;
 	case O_ECHO:
-		vm_PRINT(vm);
+		vm_ECHO(vm);
 		break;
 	case O_ASS:
 		if (isfalsey(vm_peek_p(vm))) {

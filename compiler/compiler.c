@@ -347,7 +347,7 @@ unsigned char *compile_REPL(struct Compiler *const compiler) {
 		compiler->status |= compiler->parser.status;
 		if (!compiler->parser.status) {
 			if (peof(&compiler->parser) && node->nodetype == N_EXPRSTMT) {
-				node->nodetype = N_PRINT;
+				node->nodetype = N_ECHO;
 			}
 			visit(compiler, node);
 			YASL_ByteBuffer_extend(compiler->code, compiler->buffer->bytes, compiler->buffer->count);
@@ -1046,8 +1046,8 @@ static void visit_If(struct Compiler *const compiler, const struct Node *const n
 	}
 }
 
-static void visit_Print(struct Compiler *const compiler, const struct Node *const node) {
-	visit(compiler, Print_get_expr(node));
+static void visit_Echo(struct Compiler *const compiler, const struct Node *const node) {
+	visit(compiler, Echo_get_expr(node));
 	compiler_add_byte(compiler, O_ECHO);
 }
 
@@ -1089,9 +1089,7 @@ static void visit_Const(struct Compiler *const compiler, const struct Node *cons
 }
 
 static void visit_Decl(struct Compiler *const compiler, const struct Node *const node) {
-	FOR_CHILDREN(i, child_expr, Decl_get_rvals(node)) {
-		visit(compiler, child_expr);
-	}
+	visit(compiler, Decl_get_rvals(node));
 
 	FOR_CHILDREN(i, child, Decl_get_lvals(node)) {
 		const char *name = child->value.sval.str;
