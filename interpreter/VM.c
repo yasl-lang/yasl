@@ -66,47 +66,9 @@ void vm_init(struct VM *const vm,
 	vm->constants = NULL;
 	vm->stack = (struct YASL_Object *)calloc(sizeof(struct YASL_Object), STACK_SIZE);
 
-#define DEF_SPECIAL_STR(enum_val, str) vm->special_strings[enum_val] = YASL_String_new_sized(strlen(str), str)
-
-	DEF_SPECIAL_STR(S___ADD, "__add");
-	DEF_SPECIAL_STR(S___BOR, "__bor");
-	DEF_SPECIAL_STR(S___EQ, "__eq");
-	DEF_SPECIAL_STR(S___GET, "__get");
-	DEF_SPECIAL_STR(S___LEN, "__len");
-	DEF_SPECIAL_STR(S___SET, "__set");
-	// DEF_SPECIAL_STR(S___SLICE, "__slice");
-	DEF_SPECIAL_STR(S_CLEAR, "clear");
-	DEF_SPECIAL_STR(S_COPY, "copy");
-	DEF_SPECIAL_STR(S_COUNT, "count");
-	DEF_SPECIAL_STR(S_ENDSWITH, "endswith");
-	DEF_SPECIAL_STR(S_ISAL, "isal");
-	DEF_SPECIAL_STR(S_ISALNUM, "isalnum");
-	DEF_SPECIAL_STR(S_ISNUM, "isnum");
-	DEF_SPECIAL_STR(S_ISSPACE, "isspace");
-	DEF_SPECIAL_STR(S_JOIN, "join");
-	DEF_SPECIAL_STR(S_SORT, "sort");
-	DEF_SPECIAL_STR(S_KEYS, "keys");
-	DEF_SPECIAL_STR(S_LTRIM, "ltrim");
-	DEF_SPECIAL_STR(S_POP, "pop");
-	DEF_SPECIAL_STR(S_PUSH, "push");
-	DEF_SPECIAL_STR(S_REMOVE, "remove");
-	DEF_SPECIAL_STR(S_REP, "rep");
-	DEF_SPECIAL_STR(S_REPLACE, "replace");
-	DEF_SPECIAL_STR(S_REVERSE, "reverse");
-	DEF_SPECIAL_STR(S_RTRIM, "rtrim");
-	DEF_SPECIAL_STR(S_SEARCH, "search");
-	DEF_SPECIAL_STR(S_SPLIT, "split");
-	DEF_SPECIAL_STR(S_STARTSWITH, "startswith");
-	DEF_SPECIAL_STR(S_TOBOOL, "tobool");
-	DEF_SPECIAL_STR(S_TOFLOAT, "tofloat");
-	DEF_SPECIAL_STR(S_TOINT, "toint");
-	DEF_SPECIAL_STR(S_TOLOWER, "tolower");
-	DEF_SPECIAL_STR(S_TOSTR, "tostr");
-	DEF_SPECIAL_STR(S_TOUPPER, "toupper");
-	DEF_SPECIAL_STR(S_TRIM, "trim");
-	DEF_SPECIAL_STR(S_VALUES, "values");
-
-#undef DEF_SPECIAL_STR
+#define X(E, S, ...) vm->special_strings[E] = YASL_String_new_sized(strlen(S), S);
+#include "specialstrings.x"
+#undef X
 
 	vm->builtins_htable = builtins_htable_new(vm);
 	vm->pending = NULL;

@@ -88,54 +88,9 @@ enum Opcode {
 };
 
 enum SpecialStrings {
-	S___ADD,      // __add
-	S___BOR,      // __bor
-	S___EQ,       // __eq
-	S___GET,      // __get
-	S___LEN,      // __len
-	S___SET,      // __set
-	S___SLICE,    // __slice
-
-	S_CLEAR,      // clear
-	S_COPY,       // copy
-	S_COUNT,      // count
-
-	S_ENDSWITH,   // endswith
-
-	S_ISAL,       // isal
-	S_ISALNUM,    // isalnum
-	S_ISNUM,      // isnum
-	S_ISSPACE,    // isspace
-
-	S_JOIN,       // join
-
-	S_KEYS,       // keys
-
-	S_LTRIM,      // ltrim
-
-	S_POP,        // pop
-	S_PUSH,       // push
-
-	S_REMOVE,     // remove
-	S_REP,        // repeat
-	S_REPLACE,    // replace
-	S_REVERSE,    // reverse
-	S_RTRIM,      // rtrim
-
-	S_SEARCH,     // search
-	S_SORT,       // sort
-	S_SPLIT,      // split
-	S_STARTSWITH, // startswith
-
-	S_TOBOOL,     // tobool
-	S_TOFLOAT,    // tofloat
-	S_TOINT,      // toint
-	S_TOLOWER,    // tolower
-	S_TOSTR,      // tostr
-	S_TOUPPER,    // toupper
-	S_TRIM,       // trim
-
-	S_VALUES,     // values
+#define X(E, S, ...) E,
+#include "specialstrings.x"
+#undef X
 
 	NUM_SPECIAL_STRINGS // don't treat this as a member
 };
