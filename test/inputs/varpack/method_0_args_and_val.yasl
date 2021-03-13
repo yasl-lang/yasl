@@ -1,0 +1,32 @@
+
+const obj = {}
+
+fn obj.f() {
+    return 1, 2
+}
+
+fn obj.g() {
+    return .a, .b, .c
+}
+
+fn obj.h() {
+    return 'first', 'second'
+}
+
+let a, let b, let c = false, obj->f()
+
+echo a
+echo b
+echo c
+
+a, b, c = true, obj->g()
+
+echo a
+echo b
+echo c
+
+a, b, c = undef, obj->h()
+
+echo a
+echo b
+echo c

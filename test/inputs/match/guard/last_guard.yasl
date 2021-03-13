@@ -1,0 +1,16 @@
+
+fn matcher(n) {
+    match n {
+    0 {
+        echo 'zero';
+    }
+    * if n > 0 {
+        echo 'positive';
+    }
+    }
+}
+
+for i <- [ 0, 10, -5, 6 ] {
+    matcher(i)
+}
+

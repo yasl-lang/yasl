@@ -58,9 +58,8 @@ void table___bor(struct YASL_State *S) {
 	struct YASL_Table *right = YASLX_checkntable(S, "table.__bor", 1);
 	struct YASL_Table *left = YASLX_checkntable(S, "table.__bor", 0);
 
-	YASL_pushtable(S);
-
 	struct RC_UserData *new_ht = rcht_new_sized(left->base_size);
+	ud_setmt(new_ht, S->vm.builtins_htable[Y_TABLE]);
 
 	FOR_TABLE(i, litem, left) {
 		YASL_Table_insert_fast((struct YASL_Table *) new_ht->data, litem->key, litem->value);
@@ -98,14 +97,6 @@ void table___eq(struct YASL_State *S) {
 	}
 
 	YASL_pushbool(S, true);
-}
-
-void object_tostr(struct YASL_State *S) {
-	enum YASL_Types index = vm_peek((struct VM *) S, S->vm.sp).type;
-	struct YASL_Object key = YASL_STR(YASL_String_new_sized(strlen("tostr"), "tostr"));
-	struct YASL_Object result = YASL_Table_search((struct YASL_Table *)S->vm.builtins_htable[index]->data, key);
-	str_del(obj_getstr(&key));
-	YASL_GETCFN(result)->value(S);
 }
 
 int list_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, size_t buffer_count);
@@ -147,7 +138,7 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 	FOR_TABLE(i, item, table) {
 		vm_push((struct VM *) S, item->key);
 
-		object_tostr(S);
+		vm_stringify_top(&S->vm);
 
 		struct YASL_String *str = vm_popstr((struct VM *) S);
 		YASL_ByteBuffer_extend(&bb, (unsigned char *)str->str + str->start, YASL_String_len(str));
@@ -207,6 +198,7 @@ void table_tostr(struct YASL_State *S) {
 void table_keys(struct YASL_State *S) {
 	struct YASL_Table *ht = YASLX_checkntable(S, "table.keys", 0);
 	struct RC_UserData *ls = rcls_new();
+	ud_setmt(ls, S->vm.builtins_htable[Y_LIST]);
 	FOR_TABLE(i, item, ht) {
 			YASL_List_append((struct YASL_List *) ls->data, (item->key));
 	}
@@ -217,6 +209,7 @@ void table_keys(struct YASL_State *S) {
 void table_values(struct YASL_State *S) {
 	struct YASL_Table *ht = YASLX_checkntable(S, "table.values", 0);
 	struct RC_UserData *ls = rcls_new();
+	ud_setmt(ls, S->vm.builtins_htable[Y_LIST]);
 	FOR_TABLE(i, item, ht) {
 			YASL_List_append((struct YASL_List *) ls->data, (item->value));
 	}

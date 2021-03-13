@@ -1,10 +1,16 @@
 cmake_minimum_required(VERSION 3.5.0)
 project(YASL)
 
+OPTION(DEBUG "Debug Asserts On" OFF)
+
 if(cpp)
     message(STATUS "COMPILING AS C++")
     file(GLOB_RECURSE CFILES "${CMAKE_SOURCE_DIR}/*.c")
     SET_SOURCE_FILES_PROPERTIES(${CFILES} PROPERTIES LANGUAGE CXX )
+endif()
+
+if(DEBUG)
+    ADD_DEFINITIONS(-DYASL_DEBUG)
 endif()
 
 set(CMAKE_BUILD_TYPE Debug)
@@ -83,10 +89,11 @@ add_executable(yasl
         std/yasl-std-collections.c
         util/IO.c
         util/varint.c
+        yapp.h
         yasl_conf.h
         yasl_error.h
         yasl_plat.h
-        std/yasl-std-mt.c std/yasl-std-mt.h)
+        std/yasl-std-mt.c)
 
 add_library(yaslapi
         opcode.h

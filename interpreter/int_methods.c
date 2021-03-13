@@ -21,7 +21,7 @@ void int_tofloat(struct YASL_State *S) {
 }
 
 void int_tostr(struct YASL_State *S) {
-	yasl_int n = YASLX_checkint(S, "int.tostr", 0);
+	yasl_int n = YASLX_checknint(S, "int.tostr", 0);
 	int len = snprintf(NULL, 0, "%" PRId64 "", n);
 	char *ptr = (char *)malloc(len + 1);
 	sprintf(ptr, "%" PRId64 "", n);

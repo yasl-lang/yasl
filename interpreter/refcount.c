@@ -30,7 +30,7 @@ static void inc_weak_ref(struct YASL_Object *v) {
 		v->value.uval->rc->weak_refs++;
 		break;
 	default:
-		puts("NOt Implemented");
+		/* do nothing */
 		break;
 	}
 }
@@ -52,7 +52,7 @@ static void inc_strong_ref(struct YASL_Object *v) {
 		v->value.lval->rc->refs++;
 		break;
 	default:
-		puts("NOt Implemented");
+		/* do nothing */
 		break;
 	}
 }
@@ -72,7 +72,8 @@ void inc_ref(struct YASL_Object *v) {
 	case Y_TABLE_W:
 		inc_weak_ref(v);
 		break;
-	default:break;
+	default:
+		break;
 	}
 }
 
@@ -94,8 +95,8 @@ static void dec_weak_ref(struct YASL_Object *v) {
 		v->type = Y_UNDEF;
 		break;
 	default:
-		puts("NoT IMPELemented");
-		exit(EXIT_FAILURE);
+		/* do nothing */
+		break;
 	}
 }
 
@@ -132,8 +133,8 @@ void dec_strong_ref(struct YASL_Object *v) {
 		v->type = Y_UNDEF;
 		break;
 	default:
-		puts("NoT IMPELemented");
-		exit(EXIT_FAILURE);
+		/* do nothing */
+		break;
 	}
 }
 

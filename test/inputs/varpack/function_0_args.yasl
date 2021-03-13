@@ -1,0 +1,30 @@
+
+fn f() {
+    return 1, 2
+}
+
+fn g() {
+    return .a, .b, .c, .d
+}
+
+fn h() {
+    return 'first', 'second', 'third'
+}
+
+let a, let b, let c = f()
+
+echo a
+echo b
+echo c
+
+a, b, c = g()
+
+echo a
+echo b
+echo c
+
+a, b, c = h()
+
+echo a
+echo b
+echo c

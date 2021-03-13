@@ -1,0 +1,31 @@
+
+
+const obj = {
+    .f: fn() {
+        return 1, 2
+    },
+    .g: fn() {
+        return .a, .b, .c, .d
+    },
+    .h: fn() {
+        return '1st', '2nd', '3rd', '4th'
+    }
+}
+
+let a, let b, let c = obj->f()
+
+echo a
+echo b
+echo c
+
+a, b, c = obj->g()
+
+echo a
+echo b
+echo c
+
+a, b, c = obj->h()
+
+echo a
+echo b
+echo c

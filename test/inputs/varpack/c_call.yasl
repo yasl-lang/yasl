@@ -1,0 +1,9 @@
+
+
+
+
+let a, let b = collections.set(1, 2, 3)
+
+
+echo a
+echo b

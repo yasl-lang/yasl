@@ -1,0 +1,11 @@
+
+fn cycle(x, y, z) {
+    return y, z, x
+}
+
+
+const a, const b, const c = cycle('x', 'y', 'z')
+
+echo a
+echo b
+echo c

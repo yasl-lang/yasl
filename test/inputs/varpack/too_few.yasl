@@ -1,0 +1,10 @@
+
+
+
+
+
+const a, const b, const c = 1, 2
+
+echo a
+echo b
+echo c

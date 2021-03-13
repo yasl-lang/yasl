@@ -1,0 +1,32 @@
+
+const obj = { .x: 10, .y: 1, .z: 100, .extra: 20 }
+
+fn obj.f(self) {
+    return self.x, self.y
+}
+
+fn obj.g(self) {
+    return self.x, self.y, self.z
+}
+
+fn obj.h(self) {
+    return self.x, self.y, self.z, self.extra
+}
+
+let a, let b, let c = obj->f()
+
+echo a
+echo b
+echo c
+
+a, b, c = obj->g()
+
+echo a
+echo b
+echo c
+
+a, b, c = obj->h()
+
+echo a
+echo b
+echo c

@@ -13,7 +13,7 @@ Python 3.7.0 (default, Jun 28 2018, 13:15:42)
 [GCC 7.2.0] :: Anaconda, Inc. on linux
 
 YASL:
-v0.8.4, built from source
+v0.10.3, built from source
 
 Benchmark Results:
 
@@ -22,5 +22,5 @@ YASL: 3.6492
 Python: 3.2944
 
 list_push:
-YASL: 2.257
+YASL: 2.125
 Python: 1.453

@@ -1,0 +1,19 @@
+
+const obj = {}
+
+fn obj.f(a, b, c) {
+    return a, b, c
+}
+
+fn obj.g(x, y, z) {
+    return x + y + z
+}
+
+# at the end, expand f's return values
+echo obj.g(obj.f(1, 2, 3))
+
+# even when we have params before
+echo obj.g(1, obj.f(1, 2, 3))
+
+# if f is not at end, don't expand
+echo obj.g(1, obj.f(1, 2, 3), 3)

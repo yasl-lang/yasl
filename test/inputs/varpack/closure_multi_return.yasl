@@ -1,0 +1,14 @@
+fn f(a) {
+    fn op(b) {
+        return a + b, a - b;
+    }
+
+    return op
+}
+
+let op = f(2);
+let add, let sub = op(3)
+
+echo add
+echo sub
+

@@ -1,0 +1,23 @@
+
+
+/*
+ * Taken from https://leetcode.com/problems/count-primes/
+ *
+ * The problem is, given a non-negative integer n, count the number of primes that are less than n.
+ */
+fn count_primes(n) {
+    assert n >= 0
+
+    let tmp = 0
+    for let i = 0; i < n; i += 1 {
+        if math.isprime(i) {
+            tmp += 1
+        }
+    }
+
+    return tmp
+}
+
+for i <- [ 0, 1, 10, 100 ] {
+    echo count_primes(i)
+}

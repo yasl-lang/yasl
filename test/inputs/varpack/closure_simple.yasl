@@ -1,0 +1,15 @@
+fn f(a) {
+    fn g(b) {
+        return a + b;
+    }
+
+    fn h(b) {
+        return a * b
+    }
+    return g, h
+}
+
+let add2, let mul2 = f(2);
+echo add2(3)
+echo mul2(3)
+

@@ -1,0 +1,21 @@
+
+fn matcher(k) {
+    match k {
+    0 {
+        return 'zero';
+    }
+    let n if n > 0 {
+        return 'positive';
+    }
+    let n if n < 0 {
+        return 'negative'
+    }
+    * {
+        return '???'
+    }
+    }
+}
+
+for i <- [ 0, 10, -5, 6 ] {
+    echo matcher(i)
+}
