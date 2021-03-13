@@ -349,13 +349,13 @@ void YASL_pushlist(struct YASL_State *S) {
 	vm_push(&S->vm, YASL_LIST(list));
 }
 
-int YASL_pop(struct YASL_State *S) {
-	// TODO: check the stack pointer?
+void YASL_pop(struct YASL_State *S) {
+	YASL_ASSERT(&S->vm.sp >= 0, "Cannot pop from empty stack.");
 	vm_pop(&S->vm);
-	return YASL_SUCCESS;
 }
 
 int YASL_duptop(struct YASL_State *S) {
+	YASL_ASSERT(&S->vm.sp >= 0, "Cannot duplicate top of empty stack.");
 	vm_push(&S->vm, vm_peek(&S->vm));
 	return YASL_SUCCESS;
 }

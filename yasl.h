@@ -406,9 +406,8 @@ void *YASL_peekuserptr(struct YASL_State *S);
  * [-1, +0]
  * Removes the top of the stack.
  * @param S the YASL_State the stack belongs to.
- * @return YASL_SUCCESS on success, otherwise an error code.
  */
-int YASL_pop(struct YASL_State *S);
+void YASL_pop(struct YASL_State *S);
 
 /**
  * [-1, +0]
