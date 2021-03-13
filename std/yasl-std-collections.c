@@ -7,8 +7,10 @@
 // what to prepend to method names in messages to user
 #define SET_PRE "collections.set"
 
+static const char *const SET_NAME = "set";
+
 static struct YASL_Set *YASLX_checkset(struct YASL_State *S, const char *name, int pos) {
-	if (!YASL_isuserdata(S, T_SET)) {
+	if (!YASL_isuserdata(S, SET_NAME)) {
 		YASLX_print_err_bad_arg_type(S, name, pos, "set", YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
@@ -16,7 +18,7 @@ static struct YASL_Set *YASLX_checkset(struct YASL_State *S, const char *name, i
 }
 
 static struct YASL_Set *YASLX_checknset(struct YASL_State *S, const char *name, unsigned n) {
-	if (!YASL_isnuserdata(S, T_SET, n)) {
+	if (!YASL_isnuserdata(S, SET_NAME, n)) {
 		YASLX_print_err_bad_arg_type(S, name, n, "set", YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
@@ -35,7 +37,7 @@ static int YASL_collections_set_new(struct YASL_State *S) {
 		YASL_pop(S);
 	}
 
-	YASL_pushuserdata(S, set, T_SET, YASL_Set_del);
+	YASL_pushuserdata(S, set, SET_NAME, YASL_Set_del);
 	YASL_loadmt(S, SET_PRE);
 	YASL_setmt(S);
 	return 1;
@@ -136,7 +138,7 @@ static int YASL_collections_set_##name(struct YASL_State *S) {\
 \
 	struct YASL_Set *tmp = fn(left, right);\
 \
-	YASL_pushuserdata(S, tmp, T_SET, YASL_Set_del);\
+	YASL_pushuserdata(S, tmp, SET_NAME, YASL_Set_del);\
 	YASL_loadmt(S, SET_PRE);\
 	YASL_setmt(S);\
 	return 1;\
@@ -266,7 +268,7 @@ static int YASL_collections_set_copy(struct YASL_State *S) {
 		YASL_Set_insert(tmp, *item);
 	}
 
-	YASL_pushuserdata(S, tmp, T_SET, YASL_Set_del);
+	YASL_pushuserdata(S, tmp, SET_NAME, YASL_Set_del);
 	YASL_loadmt(S, SET_PRE);
 	YASL_setmt(S);
 	return 1;

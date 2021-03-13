@@ -7,6 +7,9 @@ enum YASL_Tags {
 	T_SET = -4
 };
 
+extern const char *const TABLE_NAME;
+extern const char *const LIST_NAME;
+
 //Keep up to date with the YASL_TYPE_NAMES
 enum YASL_Types {
 	Y_END = -1,

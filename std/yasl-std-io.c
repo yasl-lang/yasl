@@ -11,8 +11,10 @@
 // what to prepend to method names in messages to user
 #define FILE_PRE "io.file"
 
+static const char *const FILE_NAME = "file";
+
 static FILE *YASLX_checkfile(struct YASL_State *S, const char *name, int pos) {
-	if (!YASL_isuserdata(S, T_FILE)) {
+	if (!YASL_isuserdata(S, FILE_NAME)) {
 		YASLX_print_err_bad_arg_type(S, name, pos, "file", YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
@@ -87,7 +89,7 @@ static int YASL_io_open(struct YASL_State *S) {
 		}
 	}
 	if (f) {
-		YASL_pushuserdata(S, f, T_FILE, NULL);
+		YASL_pushuserdata(S, f, FILE_NAME, NULL);
 		YASL_loadmt(S, FILE_PRE);
 		YASL_setmt(S);
 	} else {
@@ -277,21 +279,21 @@ int YASL_decllib_io(struct YASL_State *S) {
 
 	YASL_loadglobal(S, "io");
 	YASL_pushlit(S, "stdin");
-	YASL_pushuserdata(S, stdin, T_FILE, NULL);
+	YASL_pushuserdata(S, stdin, FILE_NAME, NULL);
 	YASL_loadmt(S, FILE_PRE);
 	YASL_setmt(S);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "io");
 	YASL_pushlit(S, "stdout");
-	YASL_pushuserdata(S, stdout, T_FILE, NULL);
+	YASL_pushuserdata(S, stdout, FILE_NAME, NULL);
 	YASL_loadmt(S, FILE_PRE);
 	YASL_setmt(S);
 	YASL_tableset(S);
 
 	YASL_loadglobal(S, "io");
 	YASL_pushlit(S, "stderr");
-	YASL_pushuserdata(S, stderr, T_FILE, NULL);
+	YASL_pushuserdata(S, stderr, FILE_NAME, NULL);
 	YASL_loadmt(S, FILE_PRE);
 	YASL_setmt(S);
 	YASL_tableset(S);

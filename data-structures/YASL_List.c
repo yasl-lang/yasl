@@ -3,6 +3,8 @@
 #include "interpreter/YASL_Object.h"
 #include "data-structures/YASL_Table.h"
 
+const char *const LIST_NAME = "list";
+
 struct YASL_List *YASL_List_new_sized(const size_t base_size) {
 	struct YASL_List *list = (struct YASL_List *)malloc(sizeof(struct YASL_List));
 	list->size = base_size;
@@ -18,7 +20,7 @@ struct RC_UserData* rcls_new_sized(const size_t base_size) {
 	ls->rc = rc_new();
 	ls->mt = NULL;
 	ls->destructor = YASL_List_del_data;
-	ls->tag = T_LIST;
+	ls->tag = LIST_NAME;
 	return ls;
 }
 

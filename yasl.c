@@ -295,7 +295,7 @@ void YASL_pushcstring(struct YASL_State *S, char *value) {
 	vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized(strlen(value), value)));
 }
 
-void YASL_pushuserdata(struct YASL_State *S, void *data, int tag, void (*destructor)(void *)) {
+void YASL_pushuserdata(struct YASL_State *S, void *data, const char *tag, void (*destructor)(void *)) {
 	vm_push(&S->vm, YASL_USERDATA(ud_new(data, tag, NULL, destructor)));
 }
 
@@ -418,7 +418,7 @@ bool YASL_isnint(struct YASL_State *S, unsigned n) {
 	return vm_isint(&S->vm, S->vm.fp + 1 + n);
 }
 
-bool YASL_isnuserdata(struct YASL_State *S, int tag, unsigned n) {
+bool YASL_isnuserdata(struct YASL_State *S, const char *tag, unsigned n) {
 	return vm_isuserdata(&S->vm, S->vm.fp + 1 + n) &&
 	       YASL_GETUSERDATA(vm_peek(&S->vm, S->vm.fp + 1 + n))->tag == tag;
 }
@@ -447,7 +447,7 @@ bool YASL_isntable(struct YASL_State *S, unsigned n) {
 	return vm_istable(&S->vm, S->vm.fp + 1 + n);
 }
 
-bool YASL_isuserdata(struct YASL_State *S, int tag) {
+bool YASL_isuserdata(struct YASL_State *S, const char *tag) {
 	return vm_isuserdata(&S->vm) && YASL_GETUSERDATA(vm_peek(&S->vm))->tag == tag;
 }
 
