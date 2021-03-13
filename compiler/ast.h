@@ -5,61 +5,16 @@
 #include <string.h>
 
 #include "lexer.h"
+#include "yapp.h"
 #include "yasl_conf.h"
 
+#define X(name, E, ...) E,
 // NOTE: _MUST_ keep this up to date with the jumptable in compiler.c and the jumptable in middleend.c
 enum NodeType {
-	N_EXPRSTMT,
-	N_BLOCK,
-	N_BODY,
-	N_FNDECL,
-	N_RET,
-	N_EXPORT,
-	N_CALL,
-	N_MCALL,
-	N_SET,
-	N_GET,
-	N_SLICE,
-	N_LETITER,
-	N_LISTCOMP,
-	N_TABLECOMP,
-	N_FORITER,
-	N_WHILE,
-	N_BREAK,
-	N_CONT,
-	N_MATCH,
-	N_IF,
-	N_PRINT,
-	N_LET,
-	N_CONST,
-	N_DECL,
-	N_TRIOP,
-	N_BINOP,
-	N_UNOP,
-	N_ASSIGN,
-	N_VAR,
-	N_UNDEF,
-	N_FLOAT,
-	N_INT,
-	N_BOOL,
-	N_STR,
-	N_LIST,
-	N_TABLE,
-	N_ASS,
-	N_PATUNDEF,
-	N_PATBOOL,
-	N_PATFL,
-	N_PATINT,
-	N_PATSTR,
-	N_PATTABLE,
-	N_PATLS,
-	N_PATVTABLE,
-	N_PATVLS,
-	N_PATALT,
-	N_PATANY,
-	N_PATLET,
-	N_PATCONST,
+#include "nodetype.x"
 };
+
+#undef X
 
 struct BinOpNode {
 	enum Token op;
@@ -95,18 +50,6 @@ struct BodyNode {
 	struct Node *children[];
 };
 
-/*
-struct Node {
-	enum NodeType tag;
-	void (*visit)(struct Compiler *compiler, struct Node *node);
-	union {
-		struct UnOpNode unop;
-		struct BinOpNode binop;
-		struct TriOpNode triop;
-	} val;
-};
-*/
-
 struct Node {
 	enum NodeType nodetype;
 	union {
@@ -121,57 +64,108 @@ struct Node {
 		struct BinOpNode binop;
 	} value;
 	size_t line;
-	// void (*visit)(struct Compiler *compiler, struct Node *node);
 	size_t children_len;
 	struct Node *children[];
 };
 
 void body_append(struct Node **node, struct Node *const child);
+struct Node *body_last(struct Node *node);
 
 struct Node *node_clone(const struct Node *const node);
+
+bool will_var_expand(struct Node *node);
 
 #define FOR_CHILDREN(i, child, node) struct Node *child;\
 for (size_t i = 0; i < (node)->children_len; i++ ) if (child = (node)->children[i], child != NULL)
 
-struct Node *Assert_get_expr(const struct Node *const node);
-struct Node *Const_get_expr(const struct Node *const node);
-struct Node *If_get_cond(const struct Node *const node);
-struct Node *If_get_then(const struct Node *const node);
-struct Node *If_get_else(const struct Node *const node);
-struct Node *Block_get_block(const struct Node *const node);
+#define DECL_NODE(...) YAPP_EXPAND(YAPP_CHOOSE6(__VA_ARGS__, DECL_NODE4, DECL_NODE3, DECL_NODE2, DECL_NODE1, DECL_NODE0)(__VA_ARGS__))
+#define DECL_STR_NODE(...) YAPP_EXPAND(YAPP_CHOOSE6(__VA_ARGS__, DECL_STR_NODE4, DECL_STR_NODE3, DECL_STR_NODE2, DECL_STR_NODE1, DECL_STR_NODE0)(__VA_ARGS__))
+#define DECL_ZSTR_NODE(...) YAPP_EXPAND(YAPP_CHOOSE6(__VA_ARGS__, DECL_ZSTR_NODE4, DECL_ZSTR_NODE3, DECL_ZSTR_NODE2, DECL_ZSTR_NODE1, DECL_ZSTR_NODE0)(__VA_ARGS__))
+
+#define DECL_NODE0(name, E) \
+struct Node *new_##name(size_t line);\
+
+#define DECL_NODE1(name, E, a) \
+struct Node *new_##name(const struct Node *const a, const size_t line);\
+struct Node *name##_get_##a(const struct Node *const node);
+
+#define DECL_NODE2(name, E, a, b) \
+struct Node *new_##name(const struct Node *const a, const struct Node *const b, const size_t line);\
+struct Node *name##_get_##a(const struct Node *const node);\
+struct Node *name##_get_##b(const struct Node *const node);
+
+#define DECL_NODE3(name, E, a, b, c) \
+struct Node *new_##name(const struct Node *const a, const struct Node *const b, const struct Node *const c, const size_t line);\
+struct Node *name##_get_##a(const struct Node *const node);\
+struct Node *name##_get_##b(const struct Node *const node);\
+struct Node *name##_get_##c(const struct Node *const node);
+
+#define DECL_NODE4(name, E, a, b, c, d) \
+struct Node *new_##name(const struct Node *const a, const struct Node *const b, const struct Node *const c, const struct Node *const d, const size_t line);\
+struct Node *name##_get_##a(const struct Node *const node);\
+struct Node *name##_get_##b(const struct Node *const node);\
+struct Node *name##_get_##c(const struct Node *const node);\
+struct Node *name##_get_##d(const struct Node *const node);
+
+#define DECL_ZSTR_NODE0(name, E) \
+struct Node *new_##name(char *str, const size_t line);
+
+#define DECL_ZSTR_NODE1(name, E, a) \
+struct Node *new_##name(const struct Node *const a, char *str, const size_t line);
+
+DECL_NODE(ExprStmt, N_EXPRSTMT, expr)
+DECL_NODE(Block, N_BLOCK, block)
+DECL_NODE(Return, N_RET, expr)
+DECL_NODE(MultiReturn, N_MULTIRET, exprs)
+DECL_NODE(Export, N_EXPORT, expr)
+DECL_NODE(Call, N_CALL, params, object)
+DECL_NODE(Set, N_SET, collection, key, value)
+DECL_NODE(Get, N_GET, collection, value)
+DECL_NODE(Slice, N_SLICE, collection, start, end)
+DECL_NODE(ListComp, N_LISTCOMP, expr, iter, cond)
+DECL_NODE(TableComp, N_TABLECOMP, expr, iter, cond)
+DECL_NODE(ForIter, N_FORITER, iter, body)
+DECL_NODE(While, N_WHILE, cond, body, post)
+DECL_NODE(Break, N_BREAK)
+DECL_NODE(Continue, N_CONT)
+DECL_NODE(Match, N_MATCH, cond, patterns, guards, bodies)
+DECL_NODE(If, N_IF, cond, then, el)
+
+DECL_NODE(Echo, N_ECHO, expr)
+DECL_NODE(Decl, N_DECL, lvals, rvals)
+DECL_NODE(Undef, N_UNDEF)
+DECL_NODE(List, N_LIST, values)
+DECL_NODE(Table, N_TABLE, values)
+DECL_NODE(Assert, N_ASS, expr)
+DECL_NODE(Body, N_BODY)
+
+struct Node *new_VariadicContext(const struct Node *const expr, const int expected, const size_t line);
+struct Node *new_FnDecl(const struct Node *const params, const struct Node *const body, char *name, size_t name_len, const size_t line);
+struct Node *new_MethodCall(const struct Node *const params, const struct Node *const object, char *value, size_t len, const size_t line);
+
+DECL_ZSTR_NODE(LetIter, N_LETITER, collection)
+DECL_ZSTR_NODE(Let, N_LET, expr)
+DECL_ZSTR_NODE(Const, N_CONST, expr)
+DECL_ZSTR_NODE(Assign, N_ASSIGN, expr)
+DECL_ZSTR_NODE(Var, N_VAR)
+
+struct Node *new_TriOp(enum Token op, struct Node *left, struct Node *middle, struct Node *right, const size_t line);
+struct Node *new_BinOp(enum Token op, struct Node *left, struct Node *right, const size_t line);
+struct Node *new_UnOp(enum Token op, struct Node *child, const size_t line);
+struct Node *new_Float(yasl_float val, const size_t line);
+struct Node *new_Integer(yasl_int val, const size_t line);
+struct Node *new_Boolean(int value, const size_t line);
+struct Node *new_String(char *value, size_t len, const size_t line);
+
 size_t Body_get_len(const struct Node *const node);
 struct Node *Comp_get_expr(const struct Node *const node);
-struct Node *ForIter_get_iter(const struct Node *const node);
-struct Node *ForIter_get_body(const struct Node *const node);
-struct Node *While_get_cond(const struct Node *const node);
-struct Node *While_get_body(const struct Node *const node);
-struct Node *While_get_post(const struct Node *const node);
-struct Node *Table_get_values(const struct Node *const node);
-struct Node *While_get_body(const struct Node *const node);
-struct Node *Match_get_expr(const struct Node *const node);
-struct Node *Match_get_patterns(const struct Node *const node);
-struct Node *Match_get_guards(const struct Node *const node);
-struct Node *Match_get_bodies(const struct Node *const node);
-struct Node *Print_get_expr(const struct Node *const node);
 struct Node *Decl_get_expr(const struct Node *const node);
 char *Decl_get_name(const struct Node *const node);
-struct Node *List_get_values(const struct Node *const node);
-struct Node *ExprStmt_get_expr(const struct Node *const node);
 struct Node *FnDecl_get_params(const struct Node *const node);
 struct Node *FnDecl_get_body(const struct Node *const node);
-char *MCall_get_name(const struct Node *const node);
-struct Node *Call_get_params(const struct Node *const node);
-struct Node *Call_get_object(const struct Node *const node);
-struct Node *Return_get_expr(const struct Node *const node);
-struct Node *Export_get_expr(const struct Node *const node);
-struct Node *Set_get_collection(const struct Node *const node);
-struct Node *Set_get_key(const struct Node *const node);
-struct Node *Set_get_value(const struct Node *const node);
-struct Node *Get_get_collection(const struct Node *const node);
-struct Node *Get_get_value(const struct Node *const node);
-struct Node *Slice_get_collection(const struct Node *const node);
-struct Node *Slice_get_start(const struct Node *const node);
-struct Node *Slice_get_end(const struct Node *const node);
+char *MethodCall_get_name(const struct Node *const node);
+struct Node *MethodCall_get_params(const struct Node *const node);
+struct Node *MethodCall_get_object(const struct Node *const node);
 struct Node *UnOp_get_expr(const struct Node *const node);
 struct Node *BinOp_get_left(const struct Node *const node);
 struct Node *BinOp_get_right(const struct Node *const node);
@@ -181,51 +175,13 @@ struct Node *TriOp_get_right(const struct Node *const node);
 struct Node *Assign_get_expr(const struct Node *const node);
 struct Node *Comp_get_iter(const struct Node *const node);
 struct Node *Comp_get_cond(const struct Node *const node);
-struct Node *LetIter_get_var(const struct Node *const node);
 struct Node *LetIter_get_collection(const struct Node *const node);
 const char *String_get_str(const struct Node *const node);
 size_t String_get_len(const struct Node *const node);
 yasl_int Integer_get_int(const struct Node *const node);
 yasl_float Float_get_float(const struct Node *const node);
 bool Boolean_get_bool(const struct Node *const node);
-const char *Var_get_name(const struct Node *const node);
-
-struct Node *new_ExprStmt(const struct Node *const child, const size_t line);
-struct Node *new_Block(const struct Node *const body, const size_t line);
-struct Node *new_Body(const size_t line);
-struct Node *new_FnDecl(const struct Node *const params, const struct Node *const body, char *name, size_t name_len, const size_t line);
-struct Node *new_Return(struct Node *expr, const size_t line);
-struct Node *new_Export(struct Node *expr, const size_t line);
-struct Node *new_Set(struct Node *collection, struct Node *key, struct Node *value, const size_t line);
-struct Node *new_Get(struct Node *collection, struct Node *value, const size_t line);
-struct Node *new_Slice(struct Node *collection, struct Node *start, struct Node *end, const size_t line);
-struct Node *new_Call(struct Node *params, struct Node *object, const size_t line);
-struct Node *new_MethodCall(struct Node *params, struct Node *object, char *value, size_t len, const size_t line);
-struct Node *new_LetIter(char *const name, struct Node *collection, const size_t line);
-struct Node *new_ListComp(struct Node *expr, struct Node *iter, struct Node *cond, const size_t line);
-struct Node *new_TableComp(struct Node *expr, struct Node *iter, struct Node *cond, const size_t line);
-struct Node *new_ForIter(struct Node *iter, struct Node *body, const size_t line);
-struct Node *new_While(struct Node *cond, struct Node *body, struct Node *post, const size_t line);
-struct Node *new_Break(size_t line);
-struct Node *new_Continue(size_t line);
-struct Node *new_Match(struct Node *cond, struct Node *pats, struct Node *guards, struct Node *bodies, const size_t line);
-struct Node *new_If(struct Node *cond, struct Node *then_node, struct Node *else_node, const size_t line);
-struct Node *new_Print(struct Node *expr, const size_t line);
-struct Node *new_Assert(struct Node *expr, const size_t line);
-struct Node *new_Let(char *const name, struct Node *expr, const size_t line);
-struct Node *new_Const(char *const name, struct Node *expr, const size_t line);
-struct Node *new_TriOp(enum Token op, struct Node *left, struct Node *middle, struct Node *right, const size_t line);
-struct Node *new_BinOp(enum Token op, struct Node *left, struct Node *right, const size_t line);
-struct Node *new_UnOp(enum Token op, struct Node *child, const size_t line);
-struct Node *new_Assign(char *const name, struct Node *child, const size_t line);
-struct Node *new_Var(char *const name, const size_t line);
-struct Node *new_Undef(size_t line);
-struct Node *new_Float(yasl_float val, const size_t line);
-struct Node *new_Integer(yasl_int val, const size_t line);
-struct Node *new_Boolean(int value, const size_t line);
-struct Node *new_String(char *value, size_t len, const size_t line);
-struct Node *new_List(struct Node *values, const size_t line);
-struct Node *new_Table(struct Node *keys, const size_t line);
+char *Var_get_name(const struct Node *const node);
 
 void node_del(struct Node *node);
 

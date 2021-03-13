@@ -1,0 +1,12 @@
+
+fn cycle(x, y, z) {
+    return y, z, x
+}
+
+const ls = [ .first, .second, .third ]
+
+const a, ls[1], const c = 'extra', cycle('x', 'y', 'z')
+
+echo a
+echo c
+echo ls

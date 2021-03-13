@@ -364,6 +364,8 @@ bool YASL_String_endswith(struct YASL_String *haystack, struct YASL_String *need
 // Caller makes sure search_str is at least length 1.
 struct YASL_String *YASL_String_replace_fast_default(struct YASL_String *str, struct YASL_String *search_str,
 					     struct YASL_String *replace_str) {
+	YASL_ASSERT(YASL_String_len(search_str) >= 1, "`search_str` must be at least length 1");
+
 	STR_REPLACE_START
 	while (i < str_len) {
 		if (search_len <= str_len - i && memcmp(str_ptr + i, search_str_ptr, search_len) == 0) {
@@ -380,6 +382,8 @@ struct YASL_String *YASL_String_replace_fast_default(struct YASL_String *str, st
 // Caller makes sure search_str is at least length 1.
 struct YASL_String *YASL_String_replace_fast(struct YASL_String *str, struct YASL_String *search_str,
 					     struct YASL_String *replace_str, yasl_int max) {
+	YASL_ASSERT(YASL_String_len(search_str) >= 1, "`search_str` must be at least length 1");
+
 	STR_REPLACE_START
 	while (i < str_len) {
 		if (search_len <= str_len - i && memcmp(str_ptr + i, search_str_ptr, search_len) == 0 && max > 0) {

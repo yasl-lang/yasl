@@ -107,6 +107,8 @@ bool isequal_typed(const struct YASL_Object *const a, const struct YASL_Object *
 }
 
 void YASL_Table_insert_fast(struct YASL_Table *const table, const struct YASL_Object key, const struct YASL_Object value) {
+	YASL_ASSERT(ishashable(&key), "`key` must be hashable");
+
 	const size_t load = table->count * 100 / table->size;
 	if (load > 70) table_resize_up(table);
 	struct YASL_Table_Item item = new_item(key, value);

@@ -58,8 +58,6 @@ void table___bor(struct YASL_State *S) {
 	struct YASL_Table *right = YASLX_checkntable(S, "table.__bor", 1);
 	struct YASL_Table *left = YASLX_checkntable(S, "table.__bor", 0);
 
-	YASL_pushtable(S);
-
 	struct RC_UserData *new_ht = rcht_new_sized(left->base_size);
 	ud_setmt(new_ht, S->vm.builtins_htable[Y_TABLE]);
 

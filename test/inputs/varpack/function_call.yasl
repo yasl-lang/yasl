@@ -1,0 +1,17 @@
+
+const fn f(a, b, c) {
+    return a, b, c
+}
+
+const fn g(x, y, z) {
+    return x + y + z
+}
+
+# at the end, expand f's return values
+echo g(f(1, 2, 3))
+
+# even when we have params before
+echo g(1, f(1, 2, 3))
+
+# if f is not at end, don't expand
+echo g(1, f(1, 2, 3), 3)

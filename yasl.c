@@ -418,6 +418,11 @@ bool YASL_isnint(struct YASL_State *S, unsigned n) {
 	return vm_isint(&S->vm, S->vm.fp + 1 + n);
 }
 
+bool YASL_isnuserdata(struct YASL_State *S, int tag, unsigned n) {
+	return vm_isuserdata(&S->vm, S->vm.fp + 1 + n) &&
+	       YASL_GETUSERDATA(vm_peek(&S->vm, S->vm.fp + 1 + n))->tag == tag;
+}
+
 bool YASL_isstr(struct YASL_State *S) {
 	return vm_isstr(&S->vm);
 }

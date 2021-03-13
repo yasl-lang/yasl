@@ -53,7 +53,6 @@ void compiler_cleanup(struct Compiler *const compiler) {
 	parser_cleanup(&compiler->parser);
 	compiler_buffers_del(compiler);
 	free(compiler->checkpoints.items);
-	free(compiler->locals);
 }
 
 static void handle_error(struct Compiler *const compiler) {
@@ -347,7 +346,7 @@ unsigned char *compile_REPL(struct Compiler *const compiler) {
 		compiler->status |= compiler->parser.status;
 		if (!compiler->parser.status) {
 			if (peof(&compiler->parser) && node->nodetype == N_EXPRSTMT) {
-				node->nodetype = N_PRINT;
+				node->nodetype = N_ECHO;
 			}
 			visit(compiler, node);
 			YASL_ByteBuffer_extend(compiler->code, compiler->buffer->bytes, compiler->buffer->count);
@@ -382,7 +381,7 @@ static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *c
 	}
 }
 
-static void visit_FunctionDecl(struct Compiler *const compiler, const struct Node *const node) {
+static void visit_FnDecl(struct Compiler *const compiler, const struct Node *const node) {
 	compiler->params = env_new(compiler->params);
 
 	enter_scope(compiler);
@@ -405,6 +404,7 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	// TODO: remove this when it's not required.
 	compiler_add_byte(compiler, O_NCONST);
 	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CRET : O_RET);
+	compiler_add_byte(compiler, (unsigned char)1);
 	exit_scope(compiler);
 
 	size_t new_size = compiler->buffer->count;
@@ -432,24 +432,33 @@ static void visit_FunctionDecl(struct Compiler *const compiler, const struct Nod
 	compiler->params = tmp;
 }
 
+static void visit_VariadicContext(struct Compiler *const compiler, const struct Node *const node) {
+	int old_returns = compiler->expected_returns;
+	compiler->expected_returns = node->value.ival;
+	visit(compiler, node->children[0]);
+	compiler->expected_returns = old_returns;
+}
+
 static void visit_Call(struct Compiler *const compiler, const struct Node *const node) {
 	visit(compiler, Call_get_object(node));
 	compiler_add_byte(compiler, O_INIT_CALL);
+	compiler_add_byte(compiler, (unsigned char)compiler->expected_returns);
 	visit_Body(compiler, Call_get_params(node));
 	compiler_add_byte(compiler, O_CALL);
 }
 
 static void visit_MethodCall(struct Compiler *const compiler, const struct Node *const node) {
-	char *str = MCall_get_name(node);
+	char *str = MethodCall_get_name(node);
 	size_t len = strlen(str);
-	visit(compiler, Call_get_object(node));
+	visit(compiler, MethodCall_get_object(node));
 
 	yasl_int index = compiler_intern_string(compiler, str, len);
 
 	compiler_add_byte(compiler, O_INIT_MC);
+	compiler_add_byte(compiler, (unsigned char)compiler->expected_returns);
 	compiler_add_int(compiler, index);
 
-	visit_Body(compiler, Call_get_params(node));
+	visit_Body(compiler, MethodCall_get_params(node));
 	compiler_add_byte(compiler, O_CALL);
 }
 
@@ -461,6 +470,19 @@ static void visit_Return(struct Compiler *const compiler, const struct Node *con
 	}
 	visit(compiler, Return_get_expr(node));
 	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CRET : O_RET);
+	compiler_add_byte(compiler, (unsigned char)1);
+}
+
+static void visit_MultiReturn(struct Compiler *const compiler, const struct Node *const node) {
+	if (!in_function(compiler)) {
+		compiler_print_err_syntax(compiler, "`return` outside of function (line %" PRI_SIZET ").\n", node->line);
+		handle_error(compiler);
+		return;
+	}
+
+	visit(compiler, MultiReturn_get_exprs(node));
+	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CRET : O_RET);
+	compiler_add_byte(compiler, (unsigned char)MultiReturn_get_exprs(node)->children_len);
 }
 
 static void visit_Export(struct Compiler *const compiler, const struct Node *const node) {
@@ -765,7 +787,7 @@ static void visit_UndefPattern(struct Compiler *const compiler, const struct Nod
 
 static void visit_BoolPattern(struct Compiler *const compiler, const struct Node *const node) {
 	compiler_add_byte(compiler, P_BOOL);
-	compiler_add_byte(compiler, (unsigned char)((bool)node->value.ival ? 1 : 0));
+	compiler_add_byte(compiler, (unsigned char)(Boolean_get_bool(node)));
 }
 
 static void compiler_add_literal_pattern(struct Compiler *const compiler, const yasl_int index) {
@@ -811,11 +833,11 @@ static void visit_ListPattern(struct Compiler *const compiler, const struct Node
 	visit_CollectionPattern(compiler, node, P_LS);
 }
 
-static void visit_VarTablePattern(struct Compiler *const compiler, const struct Node *const node) {
+static void visit_VariadicTablePattern(struct Compiler *const compiler, const struct Node *const node) {
 	visit_CollectionPattern(compiler, node, P_VTABLE);
 }
 
-static void visit_VarListPattern(struct Compiler *const compiler, const struct Node *const node) {
+static void visit_VariadicListPattern(struct Compiler *const compiler, const struct Node *const node) {
 	visit_CollectionPattern(compiler, node, P_VLS);
 }
 
@@ -918,7 +940,7 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 		compiler_add_byte(compiler, O_INCSP);
 		compiler_add_byte(compiler, bindings);
 		if (guard) {
-			compiler_add_byte(compiler, O_MOVEUP);
+			compiler_add_byte(compiler, O_MOVEUP_FP);
 			compiler_add_byte(compiler, (unsigned char) vars);
 			visit(compiler, guard);
 			compiler_add_byte(compiler, O_BRF_8);
@@ -964,7 +986,7 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 }
 
 static void visit_Match(struct Compiler *const compiler, const struct Node *const node) {
-	struct Node *expr = Match_get_expr(node);
+	struct Node *expr = Match_get_cond(node);
 	struct Node *patterns = Match_get_patterns(node);
 	struct Node *guards = Match_get_guards(node);
 	struct Node *bodies = Match_get_bodies(node);
@@ -990,7 +1012,7 @@ static void visit_If_false(struct Compiler *const compiler, const struct Node *c
 static void visit_If(struct Compiler *const compiler, const struct Node *const node) {
 	struct Node *cond = If_get_cond(node);
 	struct Node *then_br = If_get_then(node);
-	struct Node *else_br = If_get_else(node);
+	struct Node *else_br = If_get_el(node);
 
 	if (Node_istruthy(cond)) {
 		visit_If_true(compiler, then_br, else_br);
@@ -1023,8 +1045,8 @@ static void visit_If(struct Compiler *const compiler, const struct Node *const n
 	}
 }
 
-static void visit_Print(struct Compiler *const compiler, const struct Node *const node) {
-	visit(compiler, Print_get_expr(node));
+static void visit_Echo(struct Compiler *const compiler, const struct Node *const node) {
+	visit(compiler, Echo_get_expr(node));
 	compiler_add_byte(compiler, O_ECHO);
 }
 
@@ -1066,14 +1088,9 @@ static void visit_Const(struct Compiler *const compiler, const struct Node *cons
 }
 
 static void visit_Decl(struct Compiler *const compiler, const struct Node *const node) {
-	FOR_CHILDREN(i, child_expr, node) {
-		if (child_expr->nodetype == N_SET) {
-			continue;
-		}
-		visit(compiler, child_expr->children[0]);
-	}
+	visit(compiler, Decl_get_rvals(node));
 
-	FOR_CHILDREN(i, child, node) {
+	FOR_CHILDREN(i, child, Decl_get_lvals(node)) {
 		const char *name = child->value.sval.str;
 		if (child->nodetype == N_ASSIGN) {
 			if (!contains_var(compiler, name)) {
@@ -1081,11 +1098,15 @@ static void visit_Decl(struct Compiler *const compiler, const struct Node *const
 				handle_error(compiler);
 				return;
 			}
-			compiler_add_byte(compiler, O_MOVEUP);
-			compiler_add_byte(compiler, (unsigned char)get_scope_in_use(compiler)->vars.count);
+			compiler_add_byte(compiler, O_MOVEUP_FP);
+			compiler_add_byte(compiler, (unsigned char)(get_scope_in_use(compiler)->vars.count));
 			store_var(compiler, name, node->line);
 		} else if (child->nodetype == N_SET) {
-			visit_Set(compiler, child);
+			visit(compiler, Set_get_collection(child));
+			visit(compiler, Set_get_key(child));
+			compiler_add_byte(compiler, O_MOVEUP_FP);
+			compiler_add_byte(compiler, (unsigned char)(get_scope_in_use(compiler)->vars.count));
+			compiler_add_byte(compiler, O_SET);
 		} else {
 			if (contains_var_in_current_scope(compiler, name)) {
 				compiler_print_err_syntax(compiler, "Illegal redeclaration of %s (line %" PRI_SIZET ").\n", name, node->line);
@@ -1094,7 +1115,7 @@ static void visit_Decl(struct Compiler *const compiler, const struct Node *const
 			}
 			decl_var(compiler, name, child->line);
 			if (!in_function(compiler) && !compiler->stack) {
-				compiler_add_byte(compiler, O_MOVEUP);
+				compiler_add_byte(compiler, O_MOVEUP_FP);
 				compiler_add_byte(compiler, (unsigned char)0);
 				store_var(compiler, name, node->line);
 			}
@@ -1137,13 +1158,13 @@ static void visit_BinOp_shortcircuit(struct Compiler *const compiler, const stru
 
 static void visit_BinOp(struct Compiler *const compiler, const struct Node *const node) {
 	// complicated bin ops are handled on their own.
-	if (node->value.type == T_DQMARK) {     // ?? operator
+	if (node->value.type == T_DQMARK) {        // ?? operator
 		visit_BinOp_shortcircuit(compiler, node, O_BRN_8);
 		return;
-	} else if (node->value.type == T_DBAR) {  // or operator
+	} else if (node->value.type == T_DBAR) {   // || operator
 		visit_BinOp_shortcircuit(compiler, node, O_BRT_8);
 		return;
-	} else if (node->value.type == T_DAMP) {   // and operator
+	} else if (node->value.type == T_DAMP) {   // && operator
 		visit_BinOp_shortcircuit(compiler, node, O_BRF_8);
 		return;
 	}
@@ -1221,8 +1242,8 @@ static void visit_BinOp(struct Compiler *const compiler, const struct Node *cons
 		compiler_add_byte(compiler, O_EXP);
 		break;
 	default:
-		puts("error in visit_BinOp");
-		exit(EXIT_FAILURE);
+		YASL_UNREACHED();
+		break;
 	}
 }
 
@@ -1245,7 +1266,7 @@ static void visit_UnOp(struct Compiler *const compiler, const struct Node *const
 		compiler_add_byte(compiler, O_LEN);
 		break;
 	default:
-		YASL_ASSERT(false, "Error in visit_UnOp");
+		YASL_UNREACHED();
 		break;
 	}
 }
@@ -1328,17 +1349,27 @@ static void visit_Table(struct Compiler *const compiler, const struct Node *cons
  */
 static void validate(struct Compiler *compiler, const struct Node *const node) {
 	const size_t buffer_count = compiler->buffer->count;
-	// size_t header_count = compiler->header->count;
 	const size_t code_count = compiler->code->count;
 	const size_t line_count = compiler->lines->count;
 	const size_t line = compiler->line;
 	visit(compiler, node);
 	compiler->buffer->count = buffer_count;
-	// compiler->header->count = header_count;
 	compiler->code->count = code_count;
 	compiler->lines->count = line_count;
 	compiler->line = line;
 }
+
+static void visit_LetIter(struct Compiler *const compiler, const struct Node *const node) {
+	(void) compiler;
+	(void) node;
+	YASL_UNREACHED();
+}
+
+#define X(name, ...) &visit_##name,
+static void (*jmp_table[])(struct Compiler *const compiler, const struct Node *const node) = {
+#include "nodetype.x"
+};
+#undef X
 
 static void visit(struct Compiler *const compiler, const struct Node *const node) {
 	while (node->line > compiler->line) {
@@ -1346,156 +1377,5 @@ static void visit(struct Compiler *const compiler, const struct Node *const node
 		compiler->line++;
 	}
 
-	switch (node->nodetype) {
-	case N_EXPRSTMT:
-		visit_ExprStmt(compiler, node);
-		break;
-	case N_BLOCK:
-		visit_Block(compiler, node);
-		break;
-	case N_BODY:
-		visit_Body(compiler, node);
-		break;
-	case N_FNDECL:
-		visit_FunctionDecl(compiler, node);
-		break;
-	case N_RET:
-		visit_Return(compiler, node);
-		break;
-	case N_EXPORT:
-		visit_Export(compiler, node);
-		break;
-	case N_CALL:
-		visit_Call(compiler, node);
-		break;
-	case N_MCALL:
-		visit_MethodCall(compiler, node);
-		break;
-	case N_SET:
-		visit_Set(compiler, node);
-		break;
-	case N_GET:
-		visit_Get(compiler, node);
-		break;
-	case N_SLICE:
-		visit_Slice(compiler, node);
-		break;
-	case N_LETITER:
-		exit(1);
-		break;
-	case N_LISTCOMP:
-		visit_ListComp(compiler, node);
-		break;
-	case N_TABLECOMP:
-		visit_TableComp(compiler, node);
-		break;
-	case N_FORITER:
-		visit_ForIter(compiler, node);
-		break;
-	case N_WHILE:
-		visit_While(compiler, node);
-		break;
-	case N_BREAK:
-		visit_Break(compiler, node);
-		break;
-	case N_CONT:
-		visit_Continue(compiler, node);
-		break;
-	case N_MATCH:
-		visit_Match(compiler, node);
-		break;
-	case N_PATUNDEF:
-		visit_UndefPattern(compiler, node);
-		break;
-	case N_PATBOOL:
-		visit_BoolPattern(compiler, node);
-		break;
-	case N_PATFL:
-		visit_FloatPattern(compiler, node);
-		break;
-	case N_PATINT:
-		visit_IntPattern(compiler, node);
-		break;
-	case N_PATSTR:
-		visit_StringPattern(compiler, node);
-		break;
-	case N_PATTABLE:
-		visit_TablePattern(compiler, node);
-		break;
-	case N_PATLS:
-		visit_ListPattern(compiler, node);
-		break;
-	case N_PATVTABLE:
-		visit_VarTablePattern(compiler, node);
-		break;
-	case N_PATVLS:
-		visit_VarListPattern(compiler, node);
-		break;
-	case N_PATLET:
-		visit_LetPattern(compiler, node);
-		break;
-	case N_PATCONST:
-		visit_ConstPattern(compiler, node);
-		break;
-	case N_PATANY:
-		visit_AnyPattern(compiler, node);
-		break;
-	case N_PATALT:
-		visit_AltPattern(compiler, node);
-		break;
-	case N_IF:
-		visit_If(compiler, node);
-		break;
-	case N_PRINT:
-		visit_Print(compiler, node);
-		break;
-	case N_LET:
-		visit_Let(compiler, node);
-		break;
-	case N_CONST:
-		visit_Const(compiler, node);
-		break;
-	case N_DECL:
-		visit_Decl(compiler, node);
-		break;
-	case N_TRIOP:
-		visit_TriOp(compiler, node);
-		break;
-	case N_BINOP:
-		visit_BinOp(compiler, node);
-		break;
-	case N_UNOP:
-		visit_UnOp(compiler, node);
-		break;
-	case N_ASSIGN:
-		visit_Assign(compiler, node);
-		break;
-	case N_LIST:
-		visit_List(compiler, node);
-		break;
-	case N_TABLE:
-		visit_Table(compiler, node);
-		break;
-	case N_VAR:
-		visit_Var(compiler, node);
-		break;
-	case N_UNDEF:
-		visit_Undef(compiler, node);
-		break;
-	case N_FLOAT:
-		visit_Float(compiler, node);
-		break;
-	case N_INT:
-		visit_Integer(compiler, node);
-		break;
-	case N_BOOL:
-		visit_Boolean(compiler, node);
-		break;
-	case N_STR:
-		visit_String(compiler, node);
-		break;
-	case N_ASS:
-		visit_Assert(compiler, node);
-		break;
-	}
+	jmp_table[node->nodetype](compiler, node);
 }
