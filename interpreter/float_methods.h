@@ -3,12 +3,12 @@
 
 struct YASL_State;
 
-void float_toint(struct YASL_State *S);
+int float_toint(struct YASL_State *S);
 
-void float_tobool(struct YASL_State *S);
+int float_tobool(struct YASL_State *S);
 
-void float_tofloat(struct YASL_State *S);
+int float_tofloat(struct YASL_State *S);
 
-void float_tostr(struct YASL_State *S);
+int float_tostr(struct YASL_State *S);
 
 #endif

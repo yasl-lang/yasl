@@ -15,12 +15,13 @@ static struct YASL_String *YASLX_checknstr(struct YASL_State *S, const char *nam
 	return vm_peekstr((struct VM *)S, ((struct VM *)S)->fp + 1 + pos);
 }
 
-void str___len(struct YASL_State *S) {
+int str___len(struct YASL_State *S) {
 	struct YASL_String *str = YASLX_checknstr(S, "str.__len", 0);
 	YASL_pushint(S, YASL_String_len(str));
+	return 1;
 }
 
-void str___get(struct YASL_State *S) {
+int str___get(struct YASL_State *S) {
 	struct YASL_String *str = YASLX_checknstr(S, "str.__get", 0);
 	yasl_int index = YASLX_checknint(S, "str.__get", 1);
 
@@ -42,72 +43,85 @@ void str___get(struct YASL_State *S) {
 					str->start + index + YASL_String_len(str) + 1,
 					str)));
 	}
+	return 1;
 }
 
-void str_tofloat(struct YASL_State *S) {
+int str_tofloat(struct YASL_State *S) {
 	struct YASL_String *str = YASLX_checknstr(S, "str.tofloat", 0);
 	YASL_pushfloat(S, YASL_String_tofloat(str));
+	return 1;
 }
 
-void str_toint(struct YASL_State *S) {
+int str_toint(struct YASL_State *S) {
 	struct YASL_String *str = YASLX_checknstr(S, "str.toint", 0);
 	YASL_pushint(S, YASL_String_toint(str));
+	return 1;
 }
 
-void str_tobool(struct YASL_State* S) {
+int str_tobool(struct YASL_State* S) {
 	struct YASL_String *a = YASLX_checknstr(S, "str.tobool", 0);
 	YASL_pushbool(S, YASL_String_len(a) != 0);
+	return 1;
 }
 
-void str_tostr(struct YASL_State *S) {
+int str_tostr(struct YASL_State *S) {
 	if (!YASL_isstr(S)) {
 		YASLX_print_err_bad_arg_type(S, "str.tostr", 0, "str", YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
+	return 1;
 }
 
-void str_toupper(struct YASL_State *S) {
+int str_toupper(struct YASL_State *S) {
 	struct YASL_String *a = YASLX_checknstr(S, "str.toupper", 0);
 	vm_push((struct VM *) S, YASL_STR(YASL_String_toupper(a)));
+	return 1;
 }
 
-void str_tolower(struct YASL_State *S) {
+int str_tolower(struct YASL_State *S) {
 	struct YASL_String *a = YASLX_checknstr(S, "str.tolower", 0);
 	vm_push((struct VM *) S, YASL_STR(YASL_String_tolower(a)));
+	return 1;
 }
 
-void str_isalnum(struct YASL_State *S) {
+int str_isalnum(struct YASL_State *S) {
 	struct YASL_String *a = YASLX_checknstr(S, "str.isalnum", 0);
 	YASL_pushbool(S, YASL_String_isalnum(a));
+	return 1;
 }
 
-void str_isal(struct YASL_State *S) {
+int str_isal(struct YASL_State *S) {
 	struct YASL_String *a = YASLX_checknstr(S, "str.isal", 0);
 	YASL_pushbool(S, YASL_String_isal(a));
+	return 1;
 }
 
-void str_isnum(struct YASL_State *S) {
+int str_isnum(struct YASL_State *S) {
 	struct YASL_String *a = YASLX_checknstr(S, "str.isnum", 0);
 	YASL_pushbool(S, YASL_String_isnum(a));
+	return 1;
 }
 
-void str_isspace(struct YASL_State *S) {
+int str_isspace(struct YASL_State *S) {
 	struct YASL_String *a = YASLX_checknstr(S, "str.isspace", 0);
 	YASL_pushbool(S, YASL_String_isspace(a));
+	return 1;
 }
 
-void str_startswith(struct YASL_State *S) {
+int str_startswith(struct YASL_State *S) {
 	struct YASL_String *haystack = YASLX_checknstr(S, "str.startswith", 0);
 	struct YASL_String *needle = YASLX_checknstr(S, "str.startswith", 1);
 
 	YASL_pushbool(S, YASL_String_startswith(haystack, needle));
+	return 1;
 }
 
-void str_endswith(struct YASL_State *S) {
+int str_endswith(struct YASL_State *S) {
 	struct YASL_String *haystack = YASLX_checknstr(S, "str.endswith", 0);
 	struct YASL_String *needle = YASLX_checknstr(S, "str.endswith", 1);
 
 	YASL_pushbool(S, YASL_String_endswith(haystack, needle));
+	return 1;
 }
 
 static void str_replace_default(struct YASL_State *S) {
@@ -125,10 +139,10 @@ static void str_replace_default(struct YASL_State *S) {
 	vm_push((struct VM *) S, YASL_STR(YASL_String_replace_fast_default(str, search_str, replace_str)));
 }
 
-void str_replace(struct YASL_State *S) {
+int str_replace(struct YASL_State *S) {
 	if (YASL_isundef(S)) {
 		str_replace_default(S);
-		return;
+		return 1;
 	}
 
 	yasl_int max = YASLX_checknint(S, "str.replace", 3);
@@ -144,21 +158,25 @@ void str_replace(struct YASL_State *S) {
 	}
 
 	vm_push((struct VM *) S, YASL_STR(YASL_String_replace_fast(str, search_str, replace_str, max)));
+	return 1;
 }
 
-void str_search(struct YASL_State *S) {
+int str_search(struct YASL_State *S) {
 	struct YASL_String *needle = YASLX_checknstr(S, "str.search", 1);
 	struct YASL_String *haystack = YASLX_checknstr(S, "str.search", 0);
 
 	int64_t index = str_find_index(haystack, needle);
 	if (index != -1) YASL_pushint(S, index);
 	else YASL_pushundef(S);
+
+	return 1;
 }
 
-void str_count(struct YASL_State *S) {
+int str_count(struct YASL_State *S) {
 	struct YASL_String *needle = YASLX_checknstr(S, "str.count", 1);
 	struct YASL_String *haystack = YASLX_checknstr(S, "str.count", 0);
 	YASL_pushint(S, YASL_String_count(haystack, needle));
+	return 1;
 }
 
 static void str_split_default(struct YASL_State *S) {
@@ -170,11 +188,11 @@ static void str_split_default(struct YASL_State *S) {
 	vm_push((struct VM *) S, YASL_LIST(result));
 }
 
-void str_split(struct YASL_State *S) {
+int str_split(struct YASL_State *S) {
 	if (YASL_isundef(S)) {
 		YASL_pop(S);
 		str_split_default(S);
-		return;
+		return 1;
 	}
 
 	struct YASL_String *needle = YASLX_checknstr(S, "str.split", 1);
@@ -190,6 +208,7 @@ void str_split(struct YASL_State *S) {
 
 	YASL_String_split_fast((struct YASL_List *)result->data, haystack, needle);
 	vm_push((struct VM *) S, YASL_LIST(result));
+	return 1;
 }
 
 static void str_ltrim_default(struct YASL_State *S) {
@@ -198,10 +217,10 @@ static void str_ltrim_default(struct YASL_State *S) {
 	vm_push((struct VM *) S, YASL_STR(YASL_String_ltrim_default(haystack)));
 }
 
-void str_ltrim(struct YASL_State *S) {
+int str_ltrim(struct YASL_State *S) {
 	if (YASL_isundef(S)) {
 		str_ltrim_default(S);
-		return;
+		return 1;
 	}
 
 	struct YASL_String *needle = YASLX_checknstr(S, "str.ltrim", 1);
@@ -209,6 +228,7 @@ void str_ltrim(struct YASL_State *S) {
 
 	vm_push((struct VM *) S,
 		YASL_STR(YASL_String_ltrim(haystack, needle)));
+	return 1;
 }
 
 static void str_rtrim_default(struct YASL_State *S) {
@@ -217,16 +237,17 @@ static void str_rtrim_default(struct YASL_State *S) {
 	vm_push((struct VM *) S, YASL_STR(YASL_String_rtrim_default(haystack)));
 }
 
-void str_rtrim(struct YASL_State *S) {
+int str_rtrim(struct YASL_State *S) {
 	if (YASL_isundef(S)) {
 		str_rtrim_default(S);
-		return;
+		return 1;
 	}
 
 	struct YASL_String *needle = YASLX_checknstr(S, "str.rtrim", 1);
 	struct YASL_String *haystack = YASLX_checknstr(S, "str.rtrim", 0);
 
 	vm_push((struct VM *) S, YASL_STR(YASL_String_rtrim(haystack, needle)));
+	return 1;
 }
 
 static void str_trim_default(struct YASL_State *S) {
@@ -234,19 +255,20 @@ static void str_trim_default(struct YASL_State *S) {
 	vm_push((struct VM *) S, YASL_STR(YASL_String_trim_default(haystack)));
 }
 
-void str_trim(struct YASL_State *S) {
+int str_trim(struct YASL_State *S) {
 	if (YASL_isundef(S)) {
 		str_trim_default(S);
-		return;
+		return 1;
 	}
 
 	struct YASL_String *needle = YASLX_checknstr(S, "str.trim", 1);
 	struct YASL_String *haystack = YASLX_checknstr(S, "str.trim", 0);
 
 	vm_push((struct VM *) S, YASL_STR(YASL_String_trim(haystack, needle)));
+	return 1;
 }
 
-void str_repeat(struct YASL_State *S) {
+int str_repeat(struct YASL_State *S) {
 	yasl_int num = YASLX_checknint(S, "str.rep", 1);
 	struct YASL_String *string = YASLX_checknstr(S, "str.rep", 0);
 
@@ -256,4 +278,5 @@ void str_repeat(struct YASL_State *S) {
 	}
 
 	vm_push((struct VM *) S, YASL_STR(YASL_String_rep_fast(string, num)));
+	return 1;
 }

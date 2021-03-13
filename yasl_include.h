@@ -38,6 +38,8 @@
 #define K_WHT "\x1B[37m"
 #endif
 
+#define YASL_UNUSED(x) (void)x
+
 #if defined __GNUC__ || defined __clang__
 #define YASL_WARN_UNUSED __attribute((warn_unused_result))
 #else

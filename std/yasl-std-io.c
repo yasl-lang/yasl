@@ -20,7 +20,7 @@ static FILE *YASLX_checkfile(struct YASL_State *S, const char *name, int pos) {
 }
 
 // TODO: fix mem leak in here.
-static void YASL_io_open(struct YASL_State *S) {
+static int YASL_io_open(struct YASL_State *S) {
 	const char *mode_str = NULL;
 	if (YASL_isundef(S)) {
 		mode_str = "r";
@@ -94,9 +94,10 @@ static void YASL_io_open(struct YASL_State *S) {
 		YASL_pushundef(S);
 	}
 	free(filename_str);
+	return 1;
 }
 
-static void YASL_io_read(struct YASL_State *S) {
+static int YASL_io_read(struct YASL_State *S) {
 	char *mode_str;
 
 	if (YASL_isundef(S)) {
@@ -134,7 +135,7 @@ static void YASL_io_read(struct YASL_State *S) {
 		YASL_pushlstr(S, string, fsize);
 		free(string);
 		free(mode_str);
-		return;
+		return 1;
 	}
 	case 'l': {
 		size_t size = 16;
@@ -152,7 +153,7 @@ static void YASL_io_read(struct YASL_State *S) {
 		YASL_pushlstr(S, string, i);
 		free(string);
 		free(mode_str);
-		return;
+		return 1;
 	}
 	default:
 		vm_print_err_value((struct VM *)S, FILE_PRE ".read was passed invalid mode: %c.", mode_str[0]);
@@ -161,7 +162,7 @@ static void YASL_io_read(struct YASL_State *S) {
 	}
 }
 
-static void YASL_io_write(struct YASL_State *S) {
+static int YASL_io_write(struct YASL_State *S) {
 	if (!YASL_isstr(S)) {
 		vm_print_err_bad_arg_type_name((struct VM *)S, FILE_PRE ".write", 1, YASL_STR_NAME, YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
@@ -177,17 +178,19 @@ static void YASL_io_write(struct YASL_State *S) {
 
 	YASL_pushint(S, write_len);
 	free(str);
+	return 1;
 }
 
-static void YASL_io_flush(struct YASL_State *S) {
+static int YASL_io_flush(struct YASL_State *S) {
 	FILE *f = YASLX_checkfile(S, FILE_PRE ".flush", 0);
 
 	int success = fflush(f);
 
 	YASL_pushbool(S, success == 0);
+	return 1;
 }
 
-static void YASL_io_seek(struct YASL_State *S) {
+static int YASL_io_seek(struct YASL_State *S) {
 	yasl_int offset;
 	if (YASL_isundef(S)) {
 		offset = 0;
@@ -223,13 +226,15 @@ static void YASL_io_seek(struct YASL_State *S) {
 
 	int success = fseek(f, offset, whence);
 	YASL_pushbool(S, success == 0);
+	return 1;
 }
 
-static void YASL_io_close(struct YASL_State *S) {
+static int YASL_io_close(struct YASL_State *S) {
 	FILE *f = YASLX_checkfile(S, FILE_PRE ".close", 0);
 
 	int success = fclose(f);
 	YASL_pushbool(S, success == 0);
+	return 1;
 }
 
 int YASL_decllib_io(struct YASL_State *S) {

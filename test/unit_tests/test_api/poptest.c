@@ -40,9 +40,10 @@ static void testpopbool(void) {
 	YASL_delstate(S);
 }
 
-static void testpop_userptr_helper(struct YASL_State *S) {
+static int testpop_userptr_helper(struct YASL_State *S) {
 	char *x = (char *)YASL_popuserptr(S);
 	YASL_pushlit(S, x);
+	return 1;
 }
 
 static void testpopuserptr(void) {

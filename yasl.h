@@ -18,7 +18,7 @@ struct YASL_State;
 /**
  * Typedef for YASL functions defined through the C API.
  */
-typedef void (*YASL_cfn)(struct YASL_State *);
+typedef int (*YASL_cfn)(struct YASL_State *);
 
 /**
  * [-0, +0]
