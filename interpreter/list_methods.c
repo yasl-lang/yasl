@@ -230,7 +230,7 @@ int list_search(struct YASL_State *S) {
 int list_reverse(struct YASL_State *S) {
 	struct YASL_List *ls = YASLX_checknlist(S, "list.reverse", 0);
 	YASL_reverse(ls);
-	
+
 	return 0;
 }
 
@@ -309,9 +309,20 @@ int list_join(struct YASL_State *S) {
 	return 1;
 }
 
-const int SORT_TYPE_EMPTY = 0;
-const int SORT_TYPE_STR = -1;
-const int SORT_TYPE_NUM = 1;
+int list_spread(struct YASL_State *S) {
+	struct YASL_List *ls = YASLX_checknlist(S, "list.reverse", 0);
+	const yasl_int len = YASL_List_length(ls);
+
+	FOR_LIST(i, elmt, ls) {
+		vm_push((struct VM *)S, elmt);
+	}
+
+	return (int)len;
+}
+
+static const int SORT_TYPE_EMPTY = 0;
+static const int SORT_TYPE_STR = -1;
+static const int SORT_TYPE_NUM = 1;
 void sort(struct YASL_Object *list, const size_t len) {
 	// Base cases
 	struct YASL_Object tmpObj;

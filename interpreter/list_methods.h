@@ -31,4 +31,6 @@ int list_join(struct YASL_State *S);
 
 int list_sort(struct YASL_State *S);
 
+int list_spread(struct YASL_State *S);
+
 #endif

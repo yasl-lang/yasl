@@ -1037,7 +1037,7 @@ static void vm_enterframe_offset(struct VM *const vm, int offset, int num_return
 
 static void vm_fill_args(struct VM *const vm, const int num_args);
 
-static void vm_exitframe_multi(struct VM *const vm, unsigned char args) {
+static void vm_exitframe_multi(struct VM *const vm, int args) {
 	vm_rm_range(vm, vm->fp, vm->sp - args + 1);
 
 	struct CallFrame frame = vm->frames[vm->frame_num];
@@ -1148,9 +1148,9 @@ static void vm_CALL_cfn(struct VM *const vm) {
 		vm_fill_args(vm, vm_peekcfn(vm, vm->fp)->num_args);
 	}
 	// TODO: allow multiple returns from C functions.
-	vm_peekcfn(vm, vm->fp)->value((struct YASL_State *) vm);
+	int num_returns = vm_peekcfn(vm, vm->fp)->value((struct YASL_State *) vm);
 
-	vm_exitframe_multi(vm, 1);
+	vm_exitframe_multi(vm, num_returns);
 }
 
 static void vm_CALL(struct VM *const vm) {
