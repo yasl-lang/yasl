@@ -52,6 +52,7 @@ static const char *type_errors[] = {
   "test/errors/type/collections/set/__lt2.yasl",
   "test/errors/type/collections/set/__lt3.yasl",
   "test/errors/type/collections/set/__lt.yasl",
+  "test/errors/type/collections/set/missing_op.yasl",
   "test/errors/type/collections/set/remove.yasl",
   "test/errors/type/collections/set/set.yasl",
   "test/errors/type/collections/set/tolist.yasl",

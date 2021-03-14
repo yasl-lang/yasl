@@ -1,1 +1,1 @@
-TypeError: collections.set.__eq expected arg in position 1 to be of type set, got arg of type bool. (line 1)
+TypeError: collections.set.__eq expected arg in position 1 to be of type collections.set, got arg of type bool. (line 1)

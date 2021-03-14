@@ -1,0 +1,5 @@
+
+
+const left = collections.set()
+
+echo left + 0
