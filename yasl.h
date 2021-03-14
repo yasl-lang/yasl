@@ -352,15 +352,6 @@ const char *YASL_peekntypename(struct YASL_State *S, unsigned n);
 
 /**
  * [-0, +0]
- * returns the type of the top of the stack as a string.
- * @param S the YASL_State to which the stack belongs.
- * @return the string representation of the type on top of the stack.
- * @deprecated use YASL_peekntypename instead.
- */
-YASL_DEPRECATE const char *YASL_peekntypestr(struct YASL_State *S, unsigned n);
-
-/**
- * [-0, +0]
  * returns the type of the top of the stack.
  * @param S the YASL_State.
  * @return the type on top of the stack.
@@ -374,15 +365,6 @@ int YASL_peektype(struct YASL_State *S);
  * @return the string representation of the type on top of the stack.
  */
 const char *YASL_peektypename(struct YASL_State *S);
-
-/**
- * [-0, +0]
- * returns the type of the top of the stack as a string.
- * @param S the YASL_State to which the stack belongs.
- * @return the string representation of the type on top of the stack.
- * @deprecated use YASL_peektypename instead.
- */
-YASL_DEPRECATE const char *YASL_peektypestr(struct YASL_State *S);
 
 /**
  * [-0, +0]
@@ -516,44 +498,6 @@ void YASL_pushlist(struct YASL_State *S);
  * @param value nul-terminated string to be pushed onto the stack.
  */
 void YASL_pushlit(struct YASL_State *S, const char *value);
-
-/**
- * [-0, +1]
- * Pushes a string of given size onto the stack. This memory will not
- * be managed by YASL.
- * @param S the YASL_State onto which to push the string.
- * @param value string to be pushed onto the stack.
- * @param size size of string to be pushed onto the stack.
- */
-YASL_DEPRECATE void YASL_pushlitstring(struct YASL_State *S, const char *value, const size_t size);
-
-/**
- * [-0, +1]
- * Pushes a null-terminated string onto the stack. This memory will not
- * be managed by YASL.
- * @param S the YASL_State.
- * @param value null-terminated string to be pushed onto the stack.
- */
-YASL_DEPRECATE void YASL_pushlitszstring(struct YASL_State *S, const char *value);
-
-/**
- * [-0, +1]
- * Pushes a string of given size onto the stack.
- * @param S the YASL_State onto which to push the string.
- * @param value string to be pushed onto the stack.
- * @param size size of string to be pushed onto the stack.
- */
-YASL_DEPRECATE void YASL_pushstring(struct YASL_State *S, const char *value, const size_t size);
-
-/**
- * [-0, +1]
- * Pushes a null-terminated string onto the stack. YASL takes ownership
- * of the memory for the string. If this is not desired, see also
- * YASL_pushlitszstring.
- * @param S the YASL_State onto which to push the string.
- * @param value null-terminated string to be pushed onto the stack.
- */
-YASL_DEPRECATE void YASL_pushszstring(struct YASL_State *S, const char *value);
 
 /**
  * [-0, +1]

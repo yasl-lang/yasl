@@ -363,7 +363,7 @@ int YASL_duptop(struct YASL_State *S) {
 int YASL_tableset(struct YASL_State *S) {
 	struct YASL_Object value = vm_pop(&S->vm);
 	struct YASL_Object key = vm_pop(&S->vm);
-	struct YASL_Object table = vm_pop(&S->vm);
+	struct YASL_Object table = vm_peek(&S->vm);
 
 	if (!obj_istable(&table))
 		return YASL_TYPE_ERROR;

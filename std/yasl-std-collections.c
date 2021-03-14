@@ -300,85 +300,70 @@ int YASL_decllib_collections(struct YASL_State *S) {
 	YASL_pushcfunction(S, YASL_collections_set_tostr, 1);
 	YASL_tableset(S);
 
-	YASL_loadmt(S, SET_NAME);
 	YASL_pushlit(S, "tolist");
 	YASL_pushcfunction(S, YASL_collections_set_tolist, 1);
 	YASL_tableset(S);
 
-	YASL_loadmt(S, SET_NAME);
 	YASL_pushlit(S, "__band");
 	YASL_pushcfunction(S, YASL_collections_set___band, 2);
 	YASL_tableset(S);
 
-	YASL_loadmt(S, SET_NAME);
 	YASL_pushlit(S, "__bor");
 	YASL_pushcfunction(S, YASL_collections_set___bor, 2);
 	YASL_tableset(S);
 
-	YASL_loadmt(S, SET_NAME);
 	YASL_pushlit(S, "__bxor");
 	YASL_pushcfunction(S, YASL_collections_set___bxor, 2);
 	YASL_tableset(S);
 
-	YASL_loadmt(S, SET_NAME);
 	YASL_pushlit(S, "__bandnot");
 	YASL_pushcfunction(S, YASL_collections_set___bandnot, 2);
 	YASL_tableset(S);
 
-	YASL_loadmt(S, SET_NAME);
 	YASL_pushlit(S, "__len");
 	YASL_pushcfunction(S, YASL_collections_set___len, 1);
 	YASL_tableset(S);
 
-	YASL_loadmt(S, SET_NAME);
 	YASL_pushlit(S, "__eq");
 	YASL_pushcfunction(S, YASL_collections_set___eq, 2);
 	YASL_tableset(S);
 
-	YASL_loadmt(S, SET_NAME);
 	YASL_pushlit(S, "__gt");
 	YASL_pushcfunction(S, YASL_collections_set___gt, 2);
 	YASL_tableset(S);
 
-	YASL_loadmt(S, SET_NAME);
 	YASL_pushlit(S, "__ge");
 	YASL_pushcfunction(S, YASL_collections_set___ge, 2);
 	YASL_tableset(S);
 
-	YASL_loadmt(S, SET_NAME);
 	YASL_pushlit(S, "__lt");
 	YASL_pushcfunction(S, YASL_collections_set___lt, 2);
 	YASL_tableset(S);
 
-	YASL_loadmt(S, SET_NAME);
 	YASL_pushlit(S, "__le");
 	YASL_pushcfunction(S, YASL_collections_set___le, 2);
 	YASL_tableset(S);
 
-	YASL_loadmt(S, SET_NAME);
 	YASL_pushlit(S, "add");
 	YASL_pushcfunction(S, YASL_collections_set_add, 2);
 	YASL_tableset(S);
 
-	YASL_loadmt(S, SET_NAME);
 	YASL_pushlit(S, "remove");
 	YASL_pushcfunction(S, YASL_collections_set_remove, 2);
 	YASL_tableset(S);
 
-	YASL_loadmt(S, SET_NAME);
 	YASL_pushlit(S, "copy");
 	YASL_pushcfunction(S, YASL_collections_set_copy, 1);
 	YASL_tableset(S);
 
-	YASL_loadmt(S, SET_NAME);
 	YASL_pushlit(S, "clear");
 	YASL_pushcfunction(S, YASL_collections_set_clear, 1);
 	YASL_tableset(S);
 
-	YASL_loadmt(S, SET_NAME);
 	YASL_pushlit(S, "__get");
 	YASL_pushcfunction(S, YASL_collections_set___get, 2);
 	YASL_tableset(S);
+	YASL_pop(S);
 
 
 	YASL_pushtable(S);
@@ -389,15 +374,14 @@ int YASL_decllib_collections(struct YASL_State *S) {
 	YASL_pushcfunction(S, YASL_collections_set_new, -1);
 	YASL_tableset(S);
 
-	YASL_loadglobal(S, "collections");
 	YASL_pushlit(S, "list");
 	YASL_pushcfunction(S, YASL_collections_list_new, -1);
 	YASL_tableset(S);
 
-	YASL_loadglobal(S, "collections");
 	YASL_pushlit(S, "table");
 	YASL_pushcfunction(S, YASL_collections_table_new, -1);
 	YASL_tableset(S);
+	YASL_pop(S);
 
 	return YASL_SUCCESS;
 }
