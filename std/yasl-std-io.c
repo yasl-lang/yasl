@@ -15,7 +15,7 @@ static const char *const FILE_NAME = "io.file";
 
 static FILE *YASLX_checkfile(struct YASL_State *S, const char *name, int pos) {
 	if (!YASL_isuserdata(S, FILE_NAME)) {
-		YASLX_print_err_bad_arg_type(S, name, pos, "file", YASL_peektypename(S));
+		YASLX_print_err_bad_arg_type(S, name, pos, FILE_NAME, YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	return (FILE *)YASL_popuserdata(S);

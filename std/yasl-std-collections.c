@@ -11,7 +11,7 @@ static const char *const SET_NAME = "collections.set";
 
 static struct YASL_Set *YASLX_checkset(struct YASL_State *S, const char *name, int pos) {
 	if (!YASL_isuserdata(S, SET_NAME)) {
-		YASLX_print_err_bad_arg_type(S, name, pos, "set", YASL_peektypename(S));
+		YASLX_print_err_bad_arg_type(S, name, pos, SET_NAME, YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	return (struct YASL_Set *)YASL_popuserdata(S);
@@ -19,7 +19,7 @@ static struct YASL_Set *YASLX_checkset(struct YASL_State *S, const char *name, i
 
 static struct YASL_Set *YASLX_checknset(struct YASL_State *S, const char *name, unsigned n) {
 	if (!YASL_isnuserdata(S, SET_NAME, n)) {
-		YASLX_print_err_bad_arg_type(S, name, n, "set", YASL_peektypename(S));
+		YASLX_print_err_bad_arg_type(S, name, n, SET_NAME, YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	return (struct YASL_Set *)YASL_peeknuserdata(S, n);
