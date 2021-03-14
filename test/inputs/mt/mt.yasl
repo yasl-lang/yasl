@@ -1,14 +1,18 @@
 let ls = [ 1, 2, 3, 4, 5 ]
 
-let mtlist = mt.get(ls)
+const extend = {}.__bor
 
-mtlist.first = fn(self) {
+const ops = {}
+
+ops.first = fn(self) {
     return self[0]
 }
 
-mtlist.rest = fn(self) {
+ops.rest = fn(self) {
     return self[1:]
 }
+
+mt.set(ls, extend(mt.get(ls), ops))
 
 echo ls->first()
 echo ls->rest()

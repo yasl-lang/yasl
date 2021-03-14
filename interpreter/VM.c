@@ -758,17 +758,12 @@ static void vm_GET(struct VM *const vm) {
 }
 
 static void vm_SET(struct VM *const vm) {
-	// TODO: everything should be looked up rather than hard-coding the path for table.
-	if (vm_istable(vm, vm->sp-2)) {
-		table___set((struct YASL_State *) vm);
-	} else {
-		struct YASL_Object value = vm_pop(vm);
-		struct YASL_Object key = vm_pop(vm);
-		struct YASL_Object obj = vm_pop(vm);
+	struct YASL_Object value = vm_pop(vm);
+	struct YASL_Object key = vm_pop(vm);
+	struct YASL_Object obj = vm_pop(vm);
 
-		vm_call_method_now_3(vm, obj, key, value, "__set", "object of type %s is immutable.", obj_typename(&obj));
-		vm_pop(vm);
-	}
+	vm_call_method_now_3(vm, obj, key, value, "__set", "object of type %s is immutable.", obj_typename(&obj));
+	vm_pop(vm);
 }
 
 static void vm_LIT(struct VM *const vm) {

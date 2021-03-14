@@ -56,16 +56,15 @@ add_executable(yasl
         main.c
         compiler/ast.c
         data-structures/YASL_ByteBuffer.c
+        data-structures/YASL_Table.c
         compiler/compiler.c
         compiler/env.c
         compiler/lexer.c
         compiler/lexinput.c
-        compiler/parser.c
         compiler/middleend.c
+        compiler/parser.c
         interpreter/upvalue.c
         interpreter/closure.c
-        util/hash_function.c
-        data-structures/YASL_Table.c
         interpreter/bool_methods.c
         interpreter/builtins.c
         interpreter/float_methods.c
@@ -81,14 +80,15 @@ add_executable(yasl
         data-structures/YASL_String.c
         interpreter/userdata.c
         interpreter/undef_methods.c
-        util/prime.c
         std/yasl-std-io.c
         std/yasl-std-math.c
         std/yasl-std-require.c
         data-structures/YASL_Set.c
         std/yasl-std-collections.c
         std/yasl-std-mt.c
+        util/hash_function.c
         util/IO.c
+        util/prime.c
         util/varint.c
         yapp.h
         yasl_conf.h
