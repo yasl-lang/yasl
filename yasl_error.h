@@ -1,4 +1,5 @@
-#pragma once
+#ifndef YASL_YASL_ERROR_H_
+#define YASL_YASL_ERROR_H_
 
 /*
  * Definition of all YASL error codes.
@@ -18,3 +19,5 @@ enum YASL_Error {
 	YASL_ASSERT_ERROR,         // Assertion failed.
 	YASL_STACK_OVERFLOW_ERROR  // Stack overflow happened.
 };
+
+#endif

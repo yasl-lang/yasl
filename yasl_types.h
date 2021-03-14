@@ -1,4 +1,5 @@
-#pragma once
+#ifndef YASL_YASL_TYPES_H_
+#define YASL_YASL_TYPES_H_
 
 enum YASL_Tags {
 	T_TABLE = -1,
@@ -27,3 +28,5 @@ enum YASL_Types {
 	Y_USERDATA,
 	Y_USERDATA_W,
 };
+
+#endif
