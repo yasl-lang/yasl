@@ -9,20 +9,8 @@
 
 static const char *const SET_NAME = "collections.set";
 
-static struct YASL_Set *YASLX_checkset(struct YASL_State *S, const char *name, int pos) {
-	if (!YASL_isuserdata(S, SET_NAME)) {
-		YASLX_print_err_bad_arg_type(S, name, pos, SET_NAME, YASL_peektypename(S));
-		YASL_throw_err(S, YASL_TYPE_ERROR);
-	}
-	return (struct YASL_Set *)YASL_popuserdata(S);
-}
-
 static struct YASL_Set *YASLX_checknset(struct YASL_State *S, const char *name, unsigned n) {
-	if (!YASL_isnuserdata(S, SET_NAME, n)) {
-		YASLX_print_err_bad_arg_type(S, name, n, SET_NAME, YASL_peektypename(S));
-		YASL_throw_err(S, YASL_TYPE_ERROR);
-	}
-	return (struct YASL_Set *)YASL_peeknuserdata(S, n);
+	return (struct YASL_Set *)YASLX_checknuserdata(S, SET_NAME, name, n);
 }
 
 static int YASL_collections_set_new(struct YASL_State *S) {
@@ -133,8 +121,8 @@ static int YASL_collections_set_tolist(struct YASL_State *S) {
 
 #define YASL_COLLECTIONS_SET_BINOP(name, fn) \
 static int YASL_collections_set_##name(struct YASL_State *S) {\
-	struct YASL_Set *right = YASLX_checkset(S, SET_PRE "." #name, 1);\
-	struct YASL_Set *left = YASLX_checkset(S, SET_PRE "." #name, 0);\
+	struct YASL_Set *right = YASLX_checknset(S, SET_PRE "." #name, 1);\
+	struct YASL_Set *left = YASLX_checknset(S, SET_PRE "." #name, 0);\
 \
 	struct YASL_Set *tmp = fn(left, right);\
 \
@@ -151,8 +139,8 @@ YASL_COLLECTIONS_SET_BINOP(__bxor, YASL_Set_symmetric_difference)
 YASL_COLLECTIONS_SET_BINOP(__bandnot, YASL_Set_difference)
 
 static int YASL_collections_set___eq(struct YASL_State *S) {
-	struct YASL_Set *right = YASLX_checkset(S, SET_PRE ".__eq", 1);
-	struct YASL_Set *left = YASLX_checkset(S, SET_PRE ".__eq", 0);
+	struct YASL_Set *right = YASLX_checknset(S, SET_PRE ".__eq", 1);
+	struct YASL_Set *left = YASLX_checknset(S, SET_PRE ".__eq", 0);
 
 	if (YASL_Set_length(left) != YASL_Set_length(right)) {
 		YASL_pushbool(S, false);
@@ -171,8 +159,8 @@ static int YASL_collections_set___eq(struct YASL_State *S) {
 }
 
 static int YASL_collections_set___gt(struct YASL_State *S) {
-	struct YASL_Set *right = YASLX_checkset(S, SET_PRE ".__gt", 1);
-	struct YASL_Set *left = YASLX_checkset(S, SET_PRE ".__gt", 0);
+	struct YASL_Set *right = YASLX_checknset(S, SET_PRE ".__gt", 1);
+	struct YASL_Set *left = YASLX_checknset(S, SET_PRE ".__gt", 0);
 
 	FOR_SET(i, item, right) {
 		if (!YASL_Set_search(left, *item)) {
@@ -186,8 +174,8 @@ static int YASL_collections_set___gt(struct YASL_State *S) {
 }
 
 static int YASL_collections_set___ge(struct YASL_State *S) {
-	struct YASL_Set *right = YASLX_checkset(S, SET_PRE ".__ge", 1);
-	struct YASL_Set *left = YASLX_checkset(S, SET_PRE ".__ge", 0);
+	struct YASL_Set *right = YASLX_checknset(S, SET_PRE ".__ge", 1);
+	struct YASL_Set *left = YASLX_checknset(S, SET_PRE ".__ge", 0);
 
 	FOR_SET(i, item, right) {
 		if (!YASL_Set_search(left, *item)) {
@@ -201,8 +189,8 @@ static int YASL_collections_set___ge(struct YASL_State *S) {
 }
 
 static int YASL_collections_set___lt(struct YASL_State *S) {
-	struct YASL_Set *right = YASLX_checkset(S, SET_PRE ".__lt", 1);
-	struct YASL_Set *left = YASLX_checkset(S, SET_PRE ".__lt", 0);
+	struct YASL_Set *right = YASLX_checknset(S, SET_PRE ".__lt", 1);
+	struct YASL_Set *left = YASLX_checknset(S, SET_PRE ".__lt", 0);
 
 	FOR_SET(i, item, left) {
 		if (!YASL_Set_search(right, *item)) {
@@ -216,8 +204,8 @@ static int YASL_collections_set___lt(struct YASL_State *S) {
 }
 
 static int YASL_collections_set___le(struct YASL_State *S) {
-	struct YASL_Set *right = YASLX_checkset(S, SET_PRE ".__le", 1);
-	struct YASL_Set *left = YASLX_checkset(S, SET_PRE ".__le", 0);
+	struct YASL_Set *right = YASLX_checknset(S, SET_PRE ".__le", 1);
+	struct YASL_Set *left = YASLX_checknset(S, SET_PRE ".__le", 0);
 
 	FOR_SET(i, item, left) {
 		if (!YASL_Set_search(right, *item)) {
@@ -231,7 +219,7 @@ static int YASL_collections_set___le(struct YASL_State *S) {
 }
 
 static int YASL_collections_set___len(struct YASL_State *S) {
-	struct YASL_Set *set = YASLX_checkset(S, SET_PRE ".__len", 0);
+	struct YASL_Set *set = YASLX_checknset(S, SET_PRE ".__len", 0);
 
 	YASL_pushint(S, YASL_Set_length(set));
 	return 1;
@@ -240,7 +228,7 @@ static int YASL_collections_set___len(struct YASL_State *S) {
 static int YASL_collections_set_add(struct YASL_State *S) {
 	struct YASL_Object val = vm_pop(&S->vm);
 
-	struct YASL_Set *set = YASLX_checkset(S, SET_PRE ".add", 0);
+	struct YASL_Set *set = YASLX_checknset(S, SET_PRE ".add", 0);
 
 	if (!YASL_Set_insert(set, val)) {
 		vm_print_err_type(&S->vm, "unable to use mutable object of type %s as key.", obj_typename(&val));
@@ -252,7 +240,7 @@ static int YASL_collections_set_add(struct YASL_State *S) {
 static int YASL_collections_set_remove(struct YASL_State *S) {
 	struct YASL_Object val =  vm_pop((struct VM *)S);
 
-	struct YASL_Set *set = YASLX_checkset(S, SET_PRE ".remove", 0);
+	struct YASL_Set *set = YASLX_checknset(S, SET_PRE ".remove", 0);
 
 	YASL_Set_rm(set, val);
 
@@ -261,7 +249,7 @@ static int YASL_collections_set_remove(struct YASL_State *S) {
 }
 
 static int YASL_collections_set_copy(struct YASL_State *S) {
-	struct YASL_Set *set = YASLX_checkset(S, SET_PRE ".copy", 0);
+	struct YASL_Set *set = YASLX_checknset(S, SET_PRE ".copy", 0);
 
 	struct YASL_Set *tmp = YASL_Set_new();
 	FOR_SET(i, item, set) {
@@ -275,7 +263,7 @@ static int YASL_collections_set_copy(struct YASL_State *S) {
 }
 
 static int YASL_collections_set_clear(struct YASL_State *S) {
-	struct YASL_Set *set = YASLX_checkset(S, SET_PRE ".clear", 0);
+	struct YASL_Set *set = YASLX_checknset(S, SET_PRE ".clear", 0);
 
 	FOR_SET(i, item, set) {
 		YASL_Set_rm(set, *item);
@@ -285,7 +273,7 @@ static int YASL_collections_set_clear(struct YASL_State *S) {
 
 static int YASL_collections_set___get(struct YASL_State *S) {
 	struct YASL_Object object = vm_pop(&S->vm);
-	struct YASL_Set *set = YASLX_checkset(S, SET_PRE ".__get", 0);
+	struct YASL_Set *set = YASLX_checknset(S, SET_PRE ".__get", 0);
 
 	YASL_pushbool(S, YASL_Set_search(set, object));
 	return 1;
@@ -385,4 +373,3 @@ int YASL_decllib_collections(struct YASL_State *S) {
 
 	return YASL_SUCCESS;
 }
-

@@ -5,15 +5,6 @@
 #include "yasl_error.h"
 #include "yasl_state.h"
 
-static struct YASL_Table *YASLX_checktable(struct YASL_State *S, const char *name, int pos) {
-	if (!YASL_istable(S)) {
-		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type table, got arg of type %s.",
-				  name, pos, YASL_peektypename(S));
-		YASL_throw_err(S, YASL_TYPE_ERROR);
-	}
-	return (struct YASL_Table *)YASL_popuserdata(S);
-}
-
 static struct YASL_Table *YASLX_checkntable(struct YASL_State *S, const char *name, unsigned pos) {
 	if (!YASL_isntable(S, pos)) {
 		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type table, got arg of type %s.",
@@ -31,7 +22,7 @@ int table___len(struct YASL_State *S) {
 
 int table___get(struct YASL_State *S) {
 	struct YASL_Object key = vm_pop((struct VM *) S);
-	struct YASL_Table *ht = YASLX_checktable(S, "table.__get", 0);
+	struct YASL_Table *ht = YASLX_checkntable(S, "table.__get", 0);
 	struct YASL_Object result = YASL_Table_search(ht, key);
 	if (result.type == Y_END) {
 		vm_pushundef(&S->vm);
@@ -44,7 +35,7 @@ int table___get(struct YASL_State *S) {
 int table___set(struct YASL_State *S) {
 	struct YASL_Object val = vm_pop((struct VM *) S);
 	struct YASL_Object key = vm_pop((struct VM *) S);
-	struct YASL_Table *ht = YASLX_checktable(S, "table.__set", 0);
+	struct YASL_Table *ht = YASLX_checkntable(S, "table.__set", 0);
 	if (obj_isundef(&val)) {
 		YASL_Table_rm(ht, key);
 		return 1;

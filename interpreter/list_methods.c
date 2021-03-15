@@ -6,16 +6,6 @@
 #include "yasl_error.h"
 #include "yasl_state.h"
 
-static struct YASL_List *YASLX_checklist(struct YASL_State *S, const char *name, int pos) {
-	if (!YASL_islist(S)) {
-		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type list, got arg of type %s.",
-				  name, pos, YASL_peektypename(S));
-		YASL_throw_err(S, YASL_TYPE_ERROR);
-	}
-	return (struct YASL_List *)YASL_popuserdata(S);
-}
-
-
 static struct YASL_List *YASLX_checknlist(struct YASL_State *S, const char *name, unsigned pos) {
 	if (!YASL_isnlist(S, pos)) {
 		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type list, got arg of type %s.",
@@ -182,8 +172,10 @@ int list___add(struct YASL_State *S) {
 }
 
 int list___eq(struct YASL_State *S) {
-	struct YASL_List *right = YASLX_checklist(S, "list.__eq", 1);
-	struct YASL_List *left = YASLX_checklist(S, "list.__eq", 0);
+	struct YASL_List *right = YASLX_checknlist(S, "list.__eq", 1);
+	struct YASL_List *left = YASLX_checknlist(S, "list.__eq", 0);
+	YASL_pop(S);
+	YASL_pop(S);
 
 	if (left->count != right->count) {
 		YASL_pushbool(S, false);
@@ -199,6 +191,7 @@ int list___eq(struct YASL_State *S) {
 			return 1;
 		}
 	}
+
 	YASL_pushbool(S, true);
 	return 1;
 }
