@@ -242,7 +242,7 @@ void vm_insert(struct VM *const vm, int index, struct YASL_Object val) {
 		vm_throw_err(vm, YASL_STACK_OVERFLOW_ERROR);
 	}
 
-	dec_ref(vm->stack + vm->sp);
+	dec_ref(vm->stack + vm->sp + 1);
 	memmove(vm->stack + index + 1, vm->stack + index, (vm->sp - index + 1) * sizeof(struct YASL_Object));
 	vm->stack[index] = val;
 	vm->sp++;
@@ -1137,12 +1137,14 @@ static void vm_CALL_fn(struct VM *const vm) {
 static void vm_CALL_cfn(struct VM *const vm) {
 	vm->frames[vm->frame_num].pc = vm->pc;
 	if (vm_peekcfn(vm, vm->fp)->num_args == -1) {
-		YASL_VM_DEBUG_LOG("vm->sp - vm->prev_fp: %d\n", vm->sp - (vm->fp));
-		vm_pushint(vm, vm->sp - (vm->fp));
+		yasl_int diff = vm->sp - vm->fp;
+		YASL_VM_DEBUG_LOG("vm->sp - vm->prev_fp: %d\n", (int)diff);
+		vm_insert(vm, vm->fp + 1, YASL_INT(diff));
+		// vm_pushint(vm, diff);
 	} else {
 		vm_fill_args(vm, vm_peekcfn(vm, vm->fp)->num_args);
 	}
-	// TODO: allow multiple returns from C functions.
+
 	int num_returns = vm_peekcfn(vm, vm->fp)->value((struct YASL_State *) vm);
 
 	vm_exitframe_multi(vm, num_returns);

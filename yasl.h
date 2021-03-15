@@ -384,6 +384,8 @@ void *YASL_peekuserdata(struct YASL_State *S);
  */
 void *YASL_peekuserptr(struct YASL_State *S);
 
+yasl_int YASL_peekvargscount(struct YASL_State *S);
+
 /**
  * [-1, +0]
  * Removes the top of the stack.

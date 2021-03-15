@@ -27,7 +27,7 @@ static struct YASL_Set *YASLX_checknset(struct YASL_State *S, const char *name, 
 
 static int YASL_collections_set_new(struct YASL_State *S) {
 	struct YASL_Set *set = YASL_Set_new();
-	yasl_int i = YASL_popint(S);
+	yasl_int i = YASL_peekvargscount(S);
 	while (i-- > 0) {
 		if (!YASL_Set_insert(set, vm_peek((struct VM *) S))) {
 			vm_print_err_type(&S->vm, "unable to use mutable object of type %s as key.",
@@ -44,7 +44,7 @@ static int YASL_collections_set_new(struct YASL_State *S) {
 }
 
 static int YASL_collections_list_new(struct YASL_State *S) {
-	yasl_int i = YASL_popint(S);
+	yasl_int i = YASL_peekvargscount(S);
 	struct RC_UserData *list = rcls_new();
 	ud_setmt(list, S->vm.builtins_htable[Y_LIST]);
 	while (i-- > 0) {
@@ -56,7 +56,7 @@ static int YASL_collections_list_new(struct YASL_State *S) {
 }
 
 static int YASL_collections_table_new(struct YASL_State *S) {
-	yasl_int i = YASL_popint(S);
+	yasl_int i = YASL_peekvargscount(S);
 	// If we have an odd number of args, we just add an undef to balance it out.
 	if (i % 2 != 0) {
 		YASL_pushundef(S);

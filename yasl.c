@@ -349,6 +349,13 @@ void YASL_pushlist(struct YASL_State *S) {
 	vm_push(&S->vm, YASL_LIST(list));
 }
 
+yasl_int YASL_peekvargscount(struct YASL_State *S) {
+	struct VM *vm = (struct VM *)S;
+	yasl_int num_args = vm_peek(vm, vm->fp).value.cval->num_args;
+
+	return vm_peekint(vm, vm->fp + 1 + ~num_args);
+}
+
 void YASL_pop(struct YASL_State *S) {
 	YASL_ASSERT(&S->vm.sp >= 0, "Cannot pop from empty stack.");
 	vm_pop(&S->vm);

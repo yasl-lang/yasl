@@ -88,7 +88,7 @@ DEFINE_MATH_UN_FLOAT_FUN(floor);
 static int YASL_math_max(struct YASL_State *S) {
 	struct YASL_Object max = YASL_FLOAT(-YASL_INF);
 
-	yasl_int num_va_args = YASL_popint(S);
+	yasl_int num_va_args = YASL_peekvargscount(S);
 	if (num_va_args == 0) {
 		YASL_pushfloat(S, -YASL_INF);
 		return 1;
@@ -120,7 +120,7 @@ static int YASL_math_max(struct YASL_State *S) {
 static int YASL_math_min(struct YASL_State *S) {
 	struct YASL_Object max = YASL_FLOAT(YASL_INF);
 
-	yasl_int num_va_args = YASL_popint(S);
+	yasl_int num_va_args = YASL_peekvargscount(S);
 	if (num_va_args == 0) {
 		YASL_pushfloat(S, YASL_INF);
 		return 1;
