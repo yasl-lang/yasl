@@ -15,7 +15,7 @@ static struct YASL_Table *YASLX_checkntable(struct YASL_State *S, const char *na
 }
 
 int table___len(struct YASL_State *S) {
-	struct YASL_Table *ht = YASLX_checkntable(S, "table.__get", 0);
+	struct YASL_Table *ht = YASLX_checkntable(S, "table.__len", 0);
 	YASL_pushint(S, YASL_Table_length(ht));
 	return 1;
 }

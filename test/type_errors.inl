@@ -178,6 +178,7 @@ static const char *type_errors[] = {
   "test/errors/type/table/clear.yasl",
   "test/errors/type/table/copy.yasl",
   "test/errors/type/table/keys.yasl",
+  "test/errors/type/table/__len.yasl",
   "test/errors/type/table/mutable_key2.yasl",
   "test/errors/type/table/mutable_key.yasl",
   "test/errors/type/table/remove.yasl",
