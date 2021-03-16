@@ -74,8 +74,15 @@ void vm_init(struct VM *const vm,
 	vm->pending = NULL;
 }
 
+void vm_close_all(struct VM *const vm);
+
 void vm_cleanup(struct VM *const vm) {
-	for (size_t i = 0; i < STACK_SIZE; i++) dec_ref(vm->stack + i);
+	// If we've exited early somehow, without closing over some upvalues, we need to do that first.
+	vm_close_all(vm);
+
+	for (size_t i = 0; i < STACK_SIZE; i++) {
+		dec_ref(vm->stack + i);
+	}
 	free(vm->stack);
 
 	for (int64_t i = 0; i < vm->num_constants; i++) {
@@ -1350,6 +1357,9 @@ void vm_executenext(struct VM *const vm) {
 		while (vm_peek(vm).type != Y_END) {
 			struct YASL_Object val = vm_pop(vm);
 			struct YASL_Object key = vm_pop(vm);
+			if (obj_isundef(&val)) {
+				continue;
+			}
 			if (!YASL_Table_insert(ht, key, val)) {
 				vm_print_err_type(vm, "unable to use mutable object of type %s as key.", obj_typename(&key));
 				vm_throw_err(vm, YASL_TYPE_ERROR);
