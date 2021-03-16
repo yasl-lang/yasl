@@ -174,6 +174,7 @@ static const char *inputs[] = {
   "test/inputs/scripts/LC-2.yasl",
   "test/inputs/scripts/fib_match.yasl",
   "test/inputs/scripts/LC-4.yasl",
+  "test/inputs/scripts/str_to_json.yasl",
   "test/inputs/float.yasl",
   "test/inputs/ternary.yasl",
   "test/inputs/version.yasl",

@@ -927,7 +927,7 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 	size_t start = compiler->buffer->count;
 	compiler_add_int(compiler, 0);
 
-	size_t vars = get_scope_in_use(compiler)->vars.count;
+	size_t vars = scope_len(get_scope_in_use(compiler));
 	enter_scope(compiler);
 	compiler->leftmost_pattern = true;
 	visit(compiler, patterns->children[curr]);
@@ -1099,13 +1099,13 @@ static void visit_Decl(struct Compiler *const compiler, const struct Node *const
 				return;
 			}
 			compiler_add_byte(compiler, O_MOVEUP_FP);
-			compiler_add_byte(compiler, (unsigned char)(get_scope_in_use(compiler)->vars.count));
+			compiler_add_byte(compiler, (unsigned char)scope_len(get_scope_in_use(compiler)));
 			store_var(compiler, name, node->line);
 		} else if (child->nodetype == N_SET) {
 			visit(compiler, Set_get_collection(child));
 			visit(compiler, Set_get_key(child));
 			compiler_add_byte(compiler, O_MOVEUP_FP);
-			compiler_add_byte(compiler, (unsigned char)(get_scope_in_use(compiler)->vars.count));
+			compiler_add_byte(compiler, (unsigned char)scope_len(get_scope_in_use(compiler)));
 			compiler_add_byte(compiler, O_SET);
 		} else {
 			if (contains_var_in_current_scope(compiler, name)) {
