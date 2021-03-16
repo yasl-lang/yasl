@@ -535,9 +535,11 @@ static struct Upvalue *add_upvalue(struct VM *const vm, struct YASL_Object *cons
 		return (vm->pending = upval_new(location));
 	}
 
+	struct Upvalue *prev = NULL;
 	struct Upvalue *curr = vm->pending;
 	while (curr) {
 		if (curr->location > location) {
+			prev = curr;
 			curr = curr->next;
 			continue;
 		}
@@ -552,7 +554,7 @@ static struct Upvalue *add_upvalue(struct VM *const vm, struct YASL_Object *cons
 		}
 		return (curr->next = upval_new(location));
 	}
-	return NULL;
+	return (prev->next = upval_new(location));
 }
 
 static void vm_CCONST(struct VM *const vm) {

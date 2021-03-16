@@ -42,7 +42,7 @@ const fn gettoken(const str, n) {
         }
 
         if n >= len str {
-                return Token(.EOF), n
+                return T_EOF, n
         }
 
         match str[n] {
