@@ -720,6 +720,11 @@ static void YASLKeywords(struct Lexer *const lex) {
 				     lex->line);
 		lex_error(lex);
 		return;
+	} else if (matches_keyword(lex, "typename")) {
+		lex_print_err_syntax(lex,  "`typename` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n",
+				     lex->line);
+		lex_error(lex);
+		return;
 	}
 
 	if (matches_keyword(lex, "break")) set_keyword(lex, T_BREAK);
