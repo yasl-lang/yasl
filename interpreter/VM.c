@@ -24,19 +24,19 @@
 
 static struct RC_UserData **builtins_htable_new(struct VM *const vm) {
 	struct RC_UserData **ht = (struct RC_UserData **) malloc(sizeof(struct RC_UserData *) * NUM_TYPES);
-	ht[Y_UNDEF] = ud_new(undef_builtins(vm), T_TABLE, NULL, rcht_del_data);
+	ht[Y_UNDEF] = ud_new(undef_builtins(vm), TABLE_NAME, NULL, rcht_del_data);
 	ht[Y_UNDEF]->rc->refs++;
-	ht[Y_FLOAT] = ud_new(float_builtins(vm), T_TABLE, NULL, rcht_del_data);
+	ht[Y_FLOAT] = ud_new(float_builtins(vm), TABLE_NAME, NULL, rcht_del_data);
 	ht[Y_FLOAT]->rc->refs++;
-	ht[Y_INT] = ud_new(int_builtins(vm), T_TABLE, NULL, rcht_del_data);
+	ht[Y_INT] = ud_new(int_builtins(vm), TABLE_NAME, NULL, rcht_del_data);
 	ht[Y_INT]->rc->refs++;
-	ht[Y_BOOL] = ud_new(bool_builtins(vm), T_TABLE, NULL, rcht_del_data);
+	ht[Y_BOOL] = ud_new(bool_builtins(vm), TABLE_NAME, NULL, rcht_del_data);
 	ht[Y_BOOL]->rc->refs++;
-	ht[Y_STR] = ud_new(str_builtins(vm), T_TABLE, NULL, rcht_del_data);
+	ht[Y_STR] = ud_new(str_builtins(vm), TABLE_NAME, NULL, rcht_del_data);
 	ht[Y_STR]->rc->refs++;
-	ht[Y_LIST] = ud_new(list_builtins(vm), T_TABLE, NULL, rcht_del_data);
+	ht[Y_LIST] = ud_new(list_builtins(vm), TABLE_NAME, NULL, rcht_del_data);
 	ht[Y_LIST]->rc->refs++;
-	ht[Y_TABLE] = ud_new(table_builtins(vm), T_TABLE, NULL, rcht_del_data);
+	ht[Y_TABLE] = ud_new(table_builtins(vm), TABLE_NAME, NULL, rcht_del_data);
 	ht[Y_TABLE]->rc->refs++;
 	return ht;
 }
@@ -74,8 +74,15 @@ void vm_init(struct VM *const vm,
 	vm->pending = NULL;
 }
 
+void vm_close_all(struct VM *const vm);
+
 void vm_cleanup(struct VM *const vm) {
-	for (size_t i = 0; i < STACK_SIZE; i++) dec_ref(vm->stack + i);
+	// If we've exited early somehow, without closing over some upvalues, we need to do that first.
+	vm_close_all(vm);
+
+	for (size_t i = 0; i < STACK_SIZE; i++) {
+		dec_ref(vm->stack + i);
+	}
 	free(vm->stack);
 
 	for (int64_t i = 0; i < vm->num_constants; i++) {
@@ -242,7 +249,7 @@ void vm_insert(struct VM *const vm, int index, struct YASL_Object val) {
 		vm_throw_err(vm, YASL_STACK_OVERFLOW_ERROR);
 	}
 
-	dec_ref(vm->stack + vm->sp);
+	dec_ref(vm->stack + vm->sp + 1);
 	memmove(vm->stack + index + 1, vm->stack + index, (vm->sp - index + 1) * sizeof(struct YASL_Object));
 	vm->stack[index] = val;
 	vm->sp++;
@@ -528,9 +535,11 @@ static struct Upvalue *add_upvalue(struct VM *const vm, struct YASL_Object *cons
 		return (vm->pending = upval_new(location));
 	}
 
+	struct Upvalue *prev = NULL;
 	struct Upvalue *curr = vm->pending;
 	while (curr) {
 		if (curr->location > location) {
+			prev = curr;
 			curr = curr->next;
 			continue;
 		}
@@ -545,7 +554,7 @@ static struct Upvalue *add_upvalue(struct VM *const vm, struct YASL_Object *cons
 		}
 		return (curr->next = upval_new(location));
 	}
-	return NULL;
+	return (prev->next = upval_new(location));
 }
 
 static void vm_CCONST(struct VM *const vm) {
@@ -758,17 +767,12 @@ static void vm_GET(struct VM *const vm) {
 }
 
 static void vm_SET(struct VM *const vm) {
-	// TODO: everything should be looked up rather than hard-coding the path for table.
-	if (vm_istable(vm, vm->sp-2)) {
-		table___set((struct YASL_State *) vm);
-	} else {
-		struct YASL_Object value = vm_pop(vm);
-		struct YASL_Object key = vm_pop(vm);
-		struct YASL_Object obj = vm_pop(vm);
+	struct YASL_Object value = vm_pop(vm);
+	struct YASL_Object key = vm_pop(vm);
+	struct YASL_Object obj = vm_pop(vm);
 
-		vm_call_method_now_3(vm, obj, key, value, "__set", "object of type %s is immutable.", obj_typename(&obj));
-		vm_pop(vm);
-	}
+	vm_call_method_now_3(vm, obj, key, value, "__set", "object of type %s is immutable.", obj_typename(&obj));
+	vm_pop(vm);
 }
 
 static void vm_LIT(struct VM *const vm) {
@@ -1037,7 +1041,7 @@ static void vm_enterframe_offset(struct VM *const vm, int offset, int num_return
 
 static void vm_fill_args(struct VM *const vm, const int num_args);
 
-static void vm_exitframe_multi(struct VM *const vm, unsigned char args) {
+static void vm_exitframe_multi(struct VM *const vm, int args) {
 	vm_rm_range(vm, vm->fp, vm->sp - args + 1);
 
 	struct CallFrame frame = vm->frames[vm->frame_num];
@@ -1142,15 +1146,17 @@ static void vm_CALL_fn(struct VM *const vm) {
 static void vm_CALL_cfn(struct VM *const vm) {
 	vm->frames[vm->frame_num].pc = vm->pc;
 	if (vm_peekcfn(vm, vm->fp)->num_args == -1) {
-		YASL_VM_DEBUG_LOG("vm->sp - vm->prev_fp: %d\n", vm->sp - (vm->fp));
-		vm_pushint(vm, vm->sp - (vm->fp));
+		yasl_int diff = vm->sp - vm->fp;
+		YASL_VM_DEBUG_LOG("vm->sp - vm->prev_fp: %d\n", (int)diff);
+		vm_insert(vm, vm->fp + 1, YASL_INT(diff));
+		// vm_pushint(vm, diff);
 	} else {
 		vm_fill_args(vm, vm_peekcfn(vm, vm->fp)->num_args);
 	}
-	// TODO: allow multiple returns from C functions.
-	vm_peekcfn(vm, vm->fp)->value((struct YASL_State *) vm);
 
-	vm_exitframe_multi(vm, 1);
+	int num_returns = vm_peekcfn(vm, vm->fp)->value((struct YASL_State *) vm);
+
+	vm_exitframe_multi(vm, num_returns);
 }
 
 static void vm_CALL(struct VM *const vm) {
@@ -1353,6 +1359,9 @@ void vm_executenext(struct VM *const vm) {
 		while (vm_peek(vm).type != Y_END) {
 			struct YASL_Object val = vm_pop(vm);
 			struct YASL_Object key = vm_pop(vm);
+			if (obj_isundef(&val)) {
+				continue;
+			}
 			if (!YASL_Table_insert(ht, key, val)) {
 				vm_print_err_type(vm, "unable to use mutable object of type %s as key.", obj_typename(&key));
 				vm_throw_err(vm, YASL_TYPE_ERROR);

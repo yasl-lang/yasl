@@ -1,11 +1,8 @@
-#pragma once
+#ifndef YASL_YASL_TYPES_H_
+#define YASL_YASL_TYPES_H_
 
-enum YASL_Tags {
-	T_TABLE = -1,
-	T_LIST = -2,
-	T_FILE = -3,
-	T_SET = -4
-};
+extern const char *const TABLE_NAME;
+extern const char *const LIST_NAME;
 
 //Keep up to date with the YASL_TYPE_NAMES
 enum YASL_Types {
@@ -27,3 +24,5 @@ enum YASL_Types {
 	Y_USERDATA,
 	Y_USERDATA_W,
 };
+
+#endif

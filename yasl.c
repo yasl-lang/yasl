@@ -295,7 +295,7 @@ void YASL_pushcstring(struct YASL_State *S, char *value) {
 	vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized(strlen(value), value)));
 }
 
-void YASL_pushuserdata(struct YASL_State *S, void *data, int tag, void (*destructor)(void *)) {
+void YASL_pushuserdata(struct YASL_State *S, void *data, const char *tag, void (*destructor)(void *)) {
 	vm_push(&S->vm, YASL_USERDATA(ud_new(data, tag, NULL, destructor)));
 }
 
@@ -349,13 +349,20 @@ void YASL_pushlist(struct YASL_State *S) {
 	vm_push(&S->vm, YASL_LIST(list));
 }
 
-int YASL_pop(struct YASL_State *S) {
-	// TODO: check the stack pointer?
+yasl_int YASL_peekvargscount(struct YASL_State *S) {
+	struct VM *vm = (struct VM *)S;
+	yasl_int num_args = vm_peek(vm, vm->fp).value.cval->num_args;
+
+	return vm_peekint(vm, vm->fp + 1 + ~num_args);
+}
+
+void YASL_pop(struct YASL_State *S) {
+	YASL_ASSERT(&S->vm.sp >= 0, "Cannot pop from empty stack.");
 	vm_pop(&S->vm);
-	return YASL_SUCCESS;
 }
 
 int YASL_duptop(struct YASL_State *S) {
+	YASL_ASSERT(&S->vm.sp >= 0, "Cannot duplicate top of empty stack.");
 	vm_push(&S->vm, vm_peek(&S->vm));
 	return YASL_SUCCESS;
 }
@@ -363,7 +370,7 @@ int YASL_duptop(struct YASL_State *S) {
 int YASL_tableset(struct YASL_State *S) {
 	struct YASL_Object value = vm_pop(&S->vm);
 	struct YASL_Object key = vm_pop(&S->vm);
-	struct YASL_Object table = vm_pop(&S->vm);
+	struct YASL_Object table = vm_peek(&S->vm);
 
 	if (!obj_istable(&table))
 		return YASL_TYPE_ERROR;
@@ -418,7 +425,7 @@ bool YASL_isnint(struct YASL_State *S, unsigned n) {
 	return vm_isint(&S->vm, S->vm.fp + 1 + n);
 }
 
-bool YASL_isnuserdata(struct YASL_State *S, int tag, unsigned n) {
+bool YASL_isnuserdata(struct YASL_State *S, const char *tag, unsigned n) {
 	return vm_isuserdata(&S->vm, S->vm.fp + 1 + n) &&
 	       YASL_GETUSERDATA(vm_peek(&S->vm, S->vm.fp + 1 + n))->tag == tag;
 }
@@ -447,7 +454,7 @@ bool YASL_isntable(struct YASL_State *S, unsigned n) {
 	return vm_istable(&S->vm, S->vm.fp + 1 + n);
 }
 
-bool YASL_isuserdata(struct YASL_State *S, int tag) {
+bool YASL_isuserdata(struct YASL_State *S, const char *tag) {
 	return vm_isuserdata(&S->vm) && YASL_GETUSERDATA(vm_peek(&S->vm))->tag == tag;
 }
 

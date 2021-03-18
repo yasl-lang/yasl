@@ -38,53 +38,49 @@ void YASLX_print_err_bad_arg_type(struct YASL_State *S,
 				 const char *const act);
 
 /**
- * Returns the top of the stack if it is an int. Otherwise, causes a type error,
+ * Returns the nth position of the stack if it is an int. Otherwise, causes a type error,
  * along with a printed error message.
  * @param S The YASL_State.
  * @param name Name of the function in which this is called, used for error message.
- * @param pos the position of the argument, used only for the error message.
- * @return the top of the stack if it's an int, otherwise no return.
+ * @param pos the position of the argument.
+ * @return the nth position of the stack if it's an int, otherwise no return.
  */
-YASL_DEPRECATE yasl_int YASLX_checkint(struct YASL_State *S, const char *name, int pos);
-
-yasl_int YASLX_checknint(struct YASL_State *S, const char *name, unsigned pos);
+yasl_int YASLX_checknint(struct YASL_State *S, const char *name, unsigned n);
 
 /**
- * Returns the top of the stack if it is a float. Otherwise, causes a type error, along with a printed error message.
+ * Returns the nth position of the stack if it is a float. Otherwise, causes a type error, along with a printed error message.
  * @param S The YASL_State.
  * @param name Name of the function in which this is called, used for error message.
- * @param pos the position of the argument, used only for the error message.
- * @return the top of the stack if it's a float, otherwise no return.
+ * @param pos the position of the argument.
+ * @return the nth position of the stack if it's a float, otherwise no return.
  */
-YASL_DEPRECATE yasl_float YASLX_checkfloat(struct YASL_State *S, const char *name, int pos);
-
-yasl_float YASLX_checknfloat(struct YASL_State *S, const char *name, unsigned pos);
+yasl_float YASLX_checknfloat(struct YASL_State *S, const char *name, unsigned n);
 
 /**
- * Returns the top of the stack if it is a bool. Otherwise, causes a type error, along with a printed error message.
+ * Returns the nth position of the stack if it is a bool. Otherwise, causes a type error, along with a printed error message.
  * @param S The YASL_State.
  * @param name Name of the function in which this is called, used for error message.
- * @param pos the position of the argument, used only for the error message.
- * @return the top of the stack if it's a bool, otherwise no return.
+ * @param pos the position of the argument.
+ * @return the nth position of the stack if it's a bool, otherwise no return.
  */
-YASL_DEPRECATE bool YASLX_checkbool(struct YASL_State *S, const char *name, int pos);
-
-bool YASLX_checknbool(struct YASL_State *S, const char *name, unsigned pos);
+bool YASLX_checknbool(struct YASL_State *S, const char *name, unsigned n);
 
 /**
- * Pops the top of the stack if it is undef. Otherwise, causes a type error, along with a printed error message.
+ * Checks that the nth position of the stack if it is undef. Otherwise, causes a type error, along with a printed error message.
  * @param S The YASL_State.
  * @param name Name of the function in which this is called, used for error message.
- * @param pos the position of the argument, used only for the error message.
+ * @param pos the position of the argument.
  */
-YASL_DEPRECATE void YASLX_checkundef(struct YASL_State *S, const char *name, int pos);
+void YASLX_checknundef(struct YASL_State *S, const char *name, unsigned n);
 
 /**
- * Pops the top of the stack if it is undef. Otherwise, causes a type error, along with a printed error message.
+ * Returns the nth position of the stack if it is a userdata with a matching tag. Otherwise, causes a type error, along with a printed error message.
  * @param S The YASL_State.
+ * @param tag The tag of the userdata.
  * @param name Name of the function in which this is called, used for error message.
  * @param pos the position of the argument, used only for the error message.
+ * @return the nth position of the stack if it's a userdata, otherwise no return.
  */
-void YASLX_checknundef(struct YASL_State *S, const char *name, unsigned pos);
+void *YASLX_checknuserdata(struct YASL_State *S, const char *tag, const char *name, unsigned n);
 
 #endif

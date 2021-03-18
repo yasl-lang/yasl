@@ -1,0 +1,1 @@
+{glossary: {GlossDiv: {GlossList: {GlossEntry: {ID: SGML, Abbrev: ISO 8879:1986, SortAs: SGML, Acronym: SGML, GlossSee: markup, GlossDef: {GlossSeeAlso: [GML, XML], para: A meta-markup language, used to create markup languages such as DocBook.}, GlossTerm: Standard Generalized Markup Language}}, title: S}, title: example glossary}}

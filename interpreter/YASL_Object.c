@@ -137,6 +137,10 @@ bool isequal(const struct YASL_Object *const a, const struct YASL_Object *const 
 }
 
 const char *obj_typename(const struct YASL_Object *const v) {
+	if (obj_isuserdata(v)) {
+		return v->value.uval->tag;
+	}
+
 	return YASL_TYPE_NAMES[v->type];
 }
 

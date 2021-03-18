@@ -1,0 +1,164 @@
+const str = `
+{
+    "glossary": {
+        "title": "example glossary",
+		"GlossDiv": {
+            "title": "S",
+			"GlossList": {
+                "GlossEntry": {
+                    "ID": "SGML",
+					"SortAs": "SGML",
+					"GlossTerm": "Standard Generalized Markup Language",
+					"Acronym": "SGML",
+					"Abbrev": "ISO 8879:1986",
+					"GlossDef": {
+                        "para": "A meta-markup language, used to create markup languages such as DocBook.",
+						"GlossSeeAlso": ["GML", "XML"]
+                    },
+					"GlossSee": "markup"
+                }
+            }
+        }
+    }
+}
+`
+const fn Token(const type, const value) {
+        return {
+                .type: type, .value: value
+        }
+}
+
+const T_EOF = Token(.EOF)
+const T_LBRC = Token(.LBR)
+const T_RBRC = Token(.RBR)
+const T_LSQB = Token(.LSQ)
+const T_RSQB = Token(.RSQ)
+const T_COLON = Token(.COLON)
+const T_COMMA = Token(.COMMA)
+
+const fn gettoken(const str, n) {
+        while n < len str && str[n]->isspace() {
+                n += 1
+        }
+
+        if n >= len str {
+                return T_EOF, n
+        }
+
+        match str[n] {
+        '"' {
+                const start = n + 1
+                n += 1
+                while str[n] != '"' {
+                    n += 1
+                }
+                return Token(.STR, str[start:n]), n + 1
+        }
+        '{' {
+                return T_LBRC, n + 1
+        }
+        '}' {
+                return T_RBRC, n + 1
+        }
+        '[' {
+                return T_LSQB, n + 1
+        }
+        ']' {
+                return T_RSQB, n + 1
+        }
+        ':' {
+                return T_COLON, n + 1
+        }
+        ',' {
+                return T_COMMA, n + 1
+        }
+        * {
+                assert false
+        }
+        }
+}
+
+const fn Lex(const str) {
+    const lex = {
+        .str: str,
+        .n: 0,
+        .gettoken: fn(self) {
+            const curr, const n = gettoken(self.str, self.n)
+            self.curr = curr
+            self.n = n
+            return self.curr
+        },
+        .eattok: fn(self, token) {
+            if self.curr.type != token.type {
+                echo "expected: #{token}, got: #{self.curr}"
+                assert false
+            }
+            const value = self.curr.value
+            self->gettoken()
+            return value
+        }
+    }
+    lex->gettoken()
+    return lex
+}
+
+const fn Parser(const lex) {
+    return {
+        .lex: lex,
+        .parse_value: fn(self) {
+                if self.lex.curr == T_LBRC {
+                        return self->parse_table()
+                } elseif self.lex.curr.type == .STR {
+                        return self->parse_str()
+                } elseif self.lex.curr == T_LSQB {
+                        return self->parse_list()
+                } else {
+                        assert false
+                }
+        },
+        .parse_list: fn(self) {
+                const tmp = []
+                self.lex->eattok(T_LSQB)
+                while self.lex.curr != T_RSQB {
+                        const value = self->parse_value()
+                        tmp->push(value)
+                        if self.lex.curr == T_COMMA {
+                                # echo 'before comma'
+                                self.lex->eattok(T_COMMA)
+                                # echo 'after comma'
+                        }
+                }
+                self.lex->eattok(T_RSQB)
+                return tmp
+        },
+        .parse_table: fn(self) {
+                const tmp = {}
+                self.lex->eattok(T_LBRC)
+                while self.lex.curr != T_RBRC {
+                        const key = self->parse_str()
+                        self.lex->eattok(T_COLON)
+                        const value = self->parse_value()
+                        tmp[key] = value
+
+                        if self.lex.curr == T_COMMA {
+                                self.lex->eattok(T_COMMA)
+
+                        }
+                }
+                self.lex->eattok(T_RBRC)
+                return tmp
+        },
+        .parse_str: fn(self) {
+                const value = self.lex->eattok({.type: .STR})
+                # echo value
+                return value
+        }
+    }
+}
+
+const fn parse(str) {
+        const parser = Parser(Lex(str))
+        return parser->parse_table()
+}
+
+echo parse(str)

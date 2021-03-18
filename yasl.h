@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define YASL_VERSION "v0.10.3"
+#define YASL_VERSION "v0.11.0"
 
 #define YASL_STR_NAME "str"
 #define YASL_FLOAT_NAME "float"
@@ -18,7 +18,7 @@ struct YASL_State;
 /**
  * Typedef for YASL functions defined through the C API.
  */
-typedef void (*YASL_cfn)(struct YASL_State *);
+typedef int (*YASL_cfn)(struct YASL_State *);
 
 /**
  * [-0, +0]
@@ -174,7 +174,7 @@ bool YASL_isnundef(struct YASL_State *S, unsigned n);
  * @param S the YASL_State.
  * @return true if the object at index n is userdata, else false.
  */
-bool YASL_isnuserdata(struct YASL_State *S, int tag, unsigned n);
+bool YASL_isnuserdata(struct YASL_State *S, const char *tag, unsigned n);
 
 /**
  * [-0, +0]
@@ -214,7 +214,7 @@ bool YASL_isundef(struct YASL_State *S);
  * @param S the YASL_State.
  * @return true if the top of the stack is userdata, else false.
  */
-bool YASL_isuserdata(struct YASL_State *S, int tag);
+bool YASL_isuserdata(struct YASL_State *S, const char *tag);
 
 /**
  * [-0, +0]
@@ -352,15 +352,6 @@ const char *YASL_peekntypename(struct YASL_State *S, unsigned n);
 
 /**
  * [-0, +0]
- * returns the type of the top of the stack as a string.
- * @param S the YASL_State to which the stack belongs.
- * @return the string representation of the type on top of the stack.
- * @deprecated use YASL_peekntypename instead.
- */
-YASL_DEPRECATE const char *YASL_peekntypestr(struct YASL_State *S, unsigned n);
-
-/**
- * [-0, +0]
  * returns the type of the top of the stack.
  * @param S the YASL_State.
  * @return the type on top of the stack.
@@ -374,15 +365,6 @@ int YASL_peektype(struct YASL_State *S);
  * @return the string representation of the type on top of the stack.
  */
 const char *YASL_peektypename(struct YASL_State *S);
-
-/**
- * [-0, +0]
- * returns the type of the top of the stack as a string.
- * @param S the YASL_State to which the stack belongs.
- * @return the string representation of the type on top of the stack.
- * @deprecated use YASL_peektypename instead.
- */
-YASL_DEPRECATE const char *YASL_peektypestr(struct YASL_State *S);
 
 /**
  * [-0, +0]
@@ -402,13 +384,14 @@ void *YASL_peekuserdata(struct YASL_State *S);
  */
 void *YASL_peekuserptr(struct YASL_State *S);
 
+yasl_int YASL_peekvargscount(struct YASL_State *S);
+
 /**
  * [-1, +0]
  * Removes the top of the stack.
  * @param S the YASL_State the stack belongs to.
- * @return YASL_SUCCESS on success, otherwise an error code.
  */
-int YASL_pop(struct YASL_State *S);
+void YASL_pop(struct YASL_State *S);
 
 /**
  * [-1, +0]
@@ -520,44 +503,6 @@ void YASL_pushlit(struct YASL_State *S, const char *value);
 
 /**
  * [-0, +1]
- * Pushes a string of given size onto the stack. This memory will not
- * be managed by YASL.
- * @param S the YASL_State onto which to push the string.
- * @param value string to be pushed onto the stack.
- * @param size size of string to be pushed onto the stack.
- */
-YASL_DEPRECATE void YASL_pushlitstring(struct YASL_State *S, const char *value, const size_t size);
-
-/**
- * [-0, +1]
- * Pushes a null-terminated string onto the stack. This memory will not
- * be managed by YASL.
- * @param S the YASL_State.
- * @param value null-terminated string to be pushed onto the stack.
- */
-YASL_DEPRECATE void YASL_pushlitszstring(struct YASL_State *S, const char *value);
-
-/**
- * [-0, +1]
- * Pushes a string of given size onto the stack.
- * @param S the YASL_State onto which to push the string.
- * @param value string to be pushed onto the stack.
- * @param size size of string to be pushed onto the stack.
- */
-YASL_DEPRECATE void YASL_pushstring(struct YASL_State *S, const char *value, const size_t size);
-
-/**
- * [-0, +1]
- * Pushes a null-terminated string onto the stack. YASL takes ownership
- * of the memory for the string. If this is not desired, see also
- * YASL_pushlitszstring.
- * @param S the YASL_State onto which to push the string.
- * @param value null-terminated string to be pushed onto the stack.
- */
-YASL_DEPRECATE void YASL_pushszstring(struct YASL_State *S, const char *value);
-
-/**
- * [-0, +1]
  * Pushes an empty table onto the stack.
  * @param S the YASL_State onto which to push the table.
  */
@@ -576,7 +521,7 @@ void YASL_pushundef(struct YASL_State *S);
  * @param S the YASL_State onto which to push the user-pointer.
  * @param userpointer the user-pointer to push onto the stack.
  */
-void YASL_pushuserdata(struct YASL_State *S, void *data, int tag, void (*destructor)(void *));
+void YASL_pushuserdata(struct YASL_State *S, void *data, const char *tag, void (*destructor)(void *));
 
 /**
  * [-0, +1]

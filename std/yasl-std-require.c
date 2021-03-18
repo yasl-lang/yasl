@@ -11,7 +11,7 @@ struct YASL_State *YASL_newstate_num(char *filename, size_t num);
 
 // TODO: rewrite this whole fucking mess. I'm not even sure if it works properly honestly.
 
-void YASL_require(struct YASL_State *S) {
+int YASL_require(struct YASL_State *S) {
 	if (!YASL_isstr(S)) {
 		// TODO error message
 		YASL_throw_err(S, YASL_TYPE_ERROR);
@@ -81,13 +81,13 @@ void YASL_require(struct YASL_State *S) {
 	dec_ref(&vm_peek(&S->vm));
 
 	free(mode_str);
+	return 1;
 }
 
-void YASL_require_c(struct YASL_State *S) {
+int YASL_require_c(struct YASL_State *S) {
 	// TODO: Do I need anything else here?
 	if (!YASL_isstr(S)) {
-		// TODO: change error message once `require_c` is removed.
-		YASLX_print_err_bad_arg_type(S, "require_c", 0, YASL_STR_NAME, YASL_peektypename(S));
+		YASLX_print_err_bad_arg_type(S, "__require_c__", 0, YASL_STR_NAME, YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 
@@ -129,6 +129,7 @@ void YASL_require_c(struct YASL_State *S) {
 	(void) mode_str;
 	YASL_throw_err(S, YASL_PLATFORM_NOT_SUPP);
 #endif
+	return 1;
 }
 
 int YASL_decllib_require(struct YASL_State *S) {
@@ -140,10 +141,6 @@ int YASL_decllib_require(struct YASL_State *S) {
 }
 
 int YASL_decllib_require_c(struct YASL_State *S) {
-	YASL_declglobal(S, "require_c");
-	YASL_pushcfunction(S, YASL_require_c, 1);
-	YASL_setglobal(S, "require_c");
-
 	YASL_declglobal(S, "__require_c__");
 	YASL_pushcfunction(S, YASL_require_c, 1);
 	YASL_setglobal(S, "__require_c__");
