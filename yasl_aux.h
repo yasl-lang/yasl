@@ -79,7 +79,7 @@ void YASLX_checknundef(struct YASL_State *S, const char *name, unsigned n);
  * @param tag The tag of the userdata.
  * @param name Name of the function in which this is called, used for error message.
  * @param pos the position of the argument, used only for the error message.
- * @return the nth position of the stack if it's a bool, otherwise no return.
+ * @return the nth position of the stack if it's a userdata, otherwise no return.
  */
 void *YASLX_checknuserdata(struct YASL_State *S, const char *tag, const char *name, unsigned n);
 
