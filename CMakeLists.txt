@@ -137,6 +137,8 @@ add_library(yaslapi
         data-structures/YASL_Set.c
         std/yasl-std-mt.c std/yasl-std-mt.h)
 
+set_property(TARGET yaslapi PROPERTY POSITION_INDEPENDENT_CODE ON)
+
 add_executable(tests
         test/integration_tests.c
         test/yats.c
