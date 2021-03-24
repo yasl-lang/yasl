@@ -84,6 +84,30 @@ int YASL_require(struct YASL_State *S) {
 	return 1;
 }
 
+static void *search_on_path(const char *path, const char *name, const char sep, const char dirmark) {
+	const char *start = path;
+	const char *end = strchr(start, dirmark);
+	while (end != NULL) {
+		char *buffer = malloc(end - start + strlen(name) + 1);
+		const char *split = strchr(start, sep);
+		memcpy(buffer, start, split - start);
+		memcpy(buffer + (split - start), name, strlen(name));
+		memcpy(buffer + (split - start) + strlen(name), split + 1, end - split - 1);
+		buffer[end - start + strlen(name) - 1] = '\0';
+		printf("%s\n", buffer);
+
+		void *lib = dlopen(buffer, RTLD_NOW);
+		free(buffer);
+		if (lib)
+			return lib;
+
+		start = end + 1;
+		end = strchr(start, dirmark);
+	}
+
+	return dlopen(name, RTLD_NOW);
+}
+
 int YASL_require_c(struct YASL_State *S) {
 	// TODO: Do I need anything else here?
 	if (!YASL_isstr(S)) {
@@ -91,7 +115,7 @@ int YASL_require_c(struct YASL_State *S) {
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 
-	char *mode_str = YASL_peekcstr(S);
+	char *path = YASL_peekcstr(S);
 	YASL_pop(S);
 
 #if defined(YASL_USE_WIN)
@@ -99,9 +123,9 @@ int YASL_require_c(struct YASL_State *S) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-function-type"
 #endif
-	void *lib = LoadLibrary(TEXT(mode_str));
+	void *lib = LoadLibrary(TEXT(path));
 	if (!lib) {
-	    vm_print_err_value((struct VM *)S, "couldn't open shared library: %s.\n", mode_str);
+	    vm_print_err_value((struct VM *)S, "couldn't open shared library: %s.\n", path);
 	    YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
 	YASL_cfn fun = (YASL_cfn)GetProcAddress(lib, LOAD_LIB_FUN_NAME);
@@ -114,7 +138,7 @@ int YASL_require_c(struct YASL_State *S) {
 #endif
 	fun(S);
 #elif defined(YASL_USE_UNIX) || defined(YASL_USE_APPLE)
-	void *lib = dlopen(mode_str, RTLD_NOW);
+	void *lib = search_on_path(YASL_DEFAULT_CPATH, path, YASL_PATH_MARK, YASL_PATH_SEP);
 	if (!lib) {
 		vm_print_err_value((struct VM *) S, "%s\n", dlerror());
 		YASL_throw_err(S, YASL_VALUE_ERROR);
@@ -126,7 +150,7 @@ int YASL_require_c(struct YASL_State *S) {
 	}
 	fun(S);
 #else
-	(void) mode_str;
+	(void) path;
 	YASL_throw_err(S, YASL_PLATFORM_NOT_SUPP);
 #endif
 	return 1;
