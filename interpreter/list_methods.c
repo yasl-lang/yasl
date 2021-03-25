@@ -257,8 +257,8 @@ int list_join(struct YASL_State *S) {
 
 	if (list->count == 0) {
 		vm_pushstr((struct VM *) S, YASL_String_new_sized(0, ""));
-		vm_pop((struct VM *) S);
-		vm_pop((struct VM *) S);
+		//vm_pop((struct VM *) S);
+		//vm_pop((struct VM *) S);
 		return 1;
 	}
 
