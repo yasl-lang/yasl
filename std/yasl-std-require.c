@@ -88,13 +88,12 @@ static void *search_on_path(const char *path, const char *name, const char sep, 
 	const char *start = path;
 	const char *end = strchr(start, dirmark);
 	while (end != NULL) {
-		char *buffer = malloc(end - start + strlen(name) + 1);
+		char *buffer = (char *)malloc(end - start + strlen(name) + 1);
 		const char *split = strchr(start, sep);
 		memcpy(buffer, start, split - start);
 		memcpy(buffer + (split - start), name, strlen(name));
 		memcpy(buffer + (split - start) + strlen(name), split + 1, end - split - 1);
 		buffer[end - start + strlen(name) - 1] = '\0';
-		printf("%s\n", buffer);
 
 		void *lib = dlopen(buffer, RTLD_NOW);
 		free(buffer);
