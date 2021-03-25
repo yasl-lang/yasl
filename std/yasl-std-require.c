@@ -95,7 +95,13 @@ static void *search_on_path(const char *path, const char *name, const char sep, 
 		memcpy(buffer + (split - start) + strlen(name), split + 1, end - split - 1);
 		buffer[end - start + strlen(name) - 1] = '\0';
 
+#if defined(YASL_USE_WIN)
+		void *lib = LoadLibrary(TEXT(buffer));
+#elif defined(YASL_USE_UNIX) || defined(YASL_USE_APPLE)
 		void *lib = dlopen(buffer, RTLD_NOW);
+#else
+		void *lib = NULL;
+#endif
 		free(buffer);
 		if (lib)
 			return lib;
@@ -103,8 +109,13 @@ static void *search_on_path(const char *path, const char *name, const char sep, 
 		start = end + 1;
 		end = strchr(start, dirmark);
 	}
-
+#if defined(YASL_USE_WIN)
+	return LoadLibrary(TEXT(path));
+#elif defined(YASL_USE_UNIX) || defined(YASL_USE_APPLE)
 	return dlopen(name, RTLD_NOW);
+#else
+	return NULL;
+#endif
 }
 
 int YASL_require_c(struct YASL_State *S) {
@@ -122,7 +133,7 @@ int YASL_require_c(struct YASL_State *S) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-function-type"
 #endif
-	void *lib = LoadLibrary(TEXT(path));
+	void *lib = search_on_path(YASL_DEFAULT_CPATH, path, YASL_PATH_MARK, YASL_PATH_SEP);
 	if (!lib) {
 	    vm_print_err_value((struct VM *)S, "couldn't open shared library: %s.\n", path);
 	    YASL_throw_err(S, YASL_VALUE_ERROR);

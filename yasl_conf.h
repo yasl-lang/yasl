@@ -57,6 +57,8 @@
 // Where to search for C modules.
 #if defined(YASL_USE_UNIX) || defined(YASL_USE_APPLE)
 #define YASL_DEFAULT_CPATH "/usr/local/lib/yasl/?.so;" "./?.so;"
+#else
+#define YASL_DEFAULT_CPATH ""
 #endif
 
 #endif
