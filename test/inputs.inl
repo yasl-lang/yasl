@@ -81,6 +81,7 @@ static const char *inputs[] = {
   "test/inputs/syntax/while_continue.yasl",
   "test/inputs/syntax/list_comprehensions.yasl",
   "test/inputs/syntax/for_break.yasl",
+  "test/inputs/syntax/foreach_listcomp.yasl",
   "test/inputs/syntax/multi_assign_set_table.yasl",
   "test/inputs/match/guard/last_guard.yasl",
   "test/inputs/match/guard/list_guard.yasl",

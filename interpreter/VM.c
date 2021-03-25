@@ -1405,6 +1405,11 @@ void vm_executenext(struct VM *const vm) {
 	case O_END:
 		vm_pushend(vm);
 		break;
+	case O_SWAP:
+		a = vm_peek(vm);
+		vm_peek(vm) = vm_peek(vm, vm->sp - 1);
+		vm_peek(vm, vm->sp - 1) = a;
+		break;
 	case O_DUP:
 		a = vm_peek(vm);
 		vm_push(vm, a);

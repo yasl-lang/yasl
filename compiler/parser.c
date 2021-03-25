@@ -463,7 +463,7 @@ static struct Node *parse_for(struct Parser *const parser) {
 
 	if (iter->nodetype == N_LETITER) {
 		struct Node *body = parse_body(parser);
-		return new_ForIter(iter, body, line);
+		return new_ForIter(iter, new_Block(body, line), line);
 	} else {
 		eattok(parser, T_SEMI);
 		struct Node *cond = parse_expr(parser);
