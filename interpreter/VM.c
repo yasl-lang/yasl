@@ -836,6 +836,12 @@ static void vm_ff_subpatterns_multiple(struct VM *const vm, const size_t n);
 static void vm_ff_subpattern(struct VM *const vm) {
 	switch((enum Pattern)NCODE(vm)) {
 	case P_UNDEF:
+	case P_TYPE_BOOL:
+	case P_TYPE_INT:
+	case P_TYPE_FLOAT:
+	case P_TYPE_STR:
+	case P_TYPE_LS:
+	case P_TYPE_TABLE:
 	case P_ANY:
 		break;
 	case P_BIND:
@@ -908,6 +914,18 @@ static bool vm_MATCH_subpattern(struct VM *const vm, struct YASL_Object *expr) {
 	switch ((enum Pattern)next) {
 	case P_UNDEF:
 		return obj_isundef(expr);
+	case P_TYPE_BOOL:
+		return obj_isbool(expr);
+	case P_TYPE_INT:
+		return obj_isint(expr);
+	case P_TYPE_FLOAT:
+		return obj_isfloat(expr);
+	case P_TYPE_STR:
+		return obj_isstr(expr);
+	case P_TYPE_LS:
+		return obj_islist(expr);
+	case P_TYPE_TABLE:
+		return obj_istable(expr);
 	case P_BOOL: {
 		bool tmp = (bool)NCODE(vm);
 		return obj_isbool(expr) && obj_getbool(expr) == tmp;

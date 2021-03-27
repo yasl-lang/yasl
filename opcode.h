@@ -105,6 +105,12 @@ enum Constants {
 
 enum Pattern {
 	P_UNDEF = 0x01,
+	P_TYPE_BOOL = 0x02,
+	P_TYPE_INT = 0x03,
+	P_TYPE_FLOAT = 0x04,
+	P_TYPE_STR = 0x05,
+	P_TYPE_LS = 0x06,
+	P_TYPE_TABLE = 0x07,
 	P_BOOL = 0x08,
 	P_ANY = 0x0F,
 	P_LIT = 0x9A,
