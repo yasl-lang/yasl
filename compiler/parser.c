@@ -2,6 +2,7 @@
 
 #include <inttypes.h>
 #include <stdarg.h>
+#include <opcode.h>
 
 #include "ast.h"
 #include "debug.h"
@@ -539,6 +540,28 @@ static struct Node *parse_primitivepattern(struct Parser *const parser) {
 		n = parse_id(parser);
 		n->nodetype = N_PATSTR;
 		return n;
+	case T_ID: {
+		char *name = eatname(parser);
+		n = new_Undef(line);
+		if (!strcmp(name, "bool")) {
+			n->nodetype = N_PATBOOLTYPE;
+		} else if (!strcmp(name, "int")) {
+			n->nodetype = N_PATINTTYPE;
+		} else if (!strcmp(name, "float")) {
+			n->nodetype = N_PATFLOATTYPE;
+		} else if (!strcmp(name, "str")) {
+			n->nodetype = N_PATSTRTYPE;
+		} else if (!strcmp(name, "list")) {
+			n->nodetype = N_PATLSTYPE;
+		} else if (!strcmp(name, "table")) {
+			n->nodetype = N_PATTABLETYPE;
+		} else {
+			node_del(n);
+			parser_print_err_syntax(parser, "Invalid pattern: %s (line %" PRI_SIZET ").\n", name, line);
+			return handle_error(parser);
+		}
+		return n;
+	}
 	default:
 		parser_print_err_syntax(parser, "Invalid pattern starting in %s (line %" PRI_SIZET ").\n", YASL_TOKEN_NAMES[curtok(parser)], line);
 		return handle_error(parser);
