@@ -23,7 +23,7 @@ int YASL_require(struct YASL_State *S) {
 	struct YASL_State *Ss = YASL_newstate_num(mode_str, S->vm.headers_size);
 
 	if (!Ss) {
-		// TODO error message
+		YASL_print_err(S, "could not open package %s.", mode_str);
 		YASL_throw_err(S, YASL_ERROR);
 	}
 
