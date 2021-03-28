@@ -7,9 +7,32 @@
 
 #define LOAD_LIB_FUN_NAME "YASL_load_dyn_lib"
 
-struct YASL_State *YASL_newstate_num(char *filename, size_t num);
+struct YASL_State *YASL_newstate_num(const char *filename, size_t num);
 
 // TODO: rewrite this whole fucking mess. I'm not even sure if it works properly honestly.
+
+static struct YASL_State *open_on_path(const char *path, const char *name, const char sep, const char dirmark, const size_t num) {
+	const char *start = path;
+	const char *end = strchr(start, dirmark);
+	while (end != NULL) {
+		char *buffer = (char *)malloc(end - start + strlen(name) + 1);
+		const char *split = strchr(start, sep);
+		memcpy(buffer, start, split - start);
+		memcpy(buffer + (split - start), name, strlen(name));
+		memcpy(buffer + (split - start) + strlen(name), split + 1, end - split - 1);
+		buffer[end - start + strlen(name) - 1] = '\0';
+
+		struct YASL_State *S = YASL_newstate_num(buffer, num);
+		free(buffer);
+		if (S)
+			return S;
+
+		start = end + 1;
+		end = strchr(start, dirmark);
+	}
+
+	return YASL_newstate_num(name, num);
+}
 
 int YASL_require(struct YASL_State *S) {
 	if (!YASL_isstr(S)) {
@@ -20,7 +43,7 @@ int YASL_require(struct YASL_State *S) {
 	char *mode_str = YASL_peekcstr(S);
 	YASL_pop(S);
 
-	struct YASL_State *Ss = YASL_newstate_num(mode_str, S->vm.headers_size);
+	struct YASL_State *Ss = open_on_path(YASL_DEFAULT_PATH, mode_str, YASL_PATH_MARK, YASL_PATH_SEP, S->vm.headers_size);
 
 	if (!Ss) {
 		YASL_print_err(S, "could not open package %s.", mode_str);
@@ -37,6 +60,8 @@ int YASL_require(struct YASL_State *S) {
 
 	// Load Standard Libraries
 	YASLX_decllibs(Ss);
+
+	Ss->vm.metatables = S->vm.metatables;
 
 	// Ss->vm.globals[Ss->vm.headers_size - 1] = Ss->vm.globals[0];
 	// Ss->vm.globals[0] = NULL;
@@ -61,6 +86,7 @@ int YASL_require(struct YASL_State *S) {
 	}
 
 	Ss->vm.globals = NULL;
+	Ss->vm.metatables = NULL;
 
 	Ss->vm.code = NULL;
 	S->vm.headers_size = S->vm.num_globals = new_headers_size;

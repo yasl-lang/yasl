@@ -10,7 +10,7 @@
 #include "interpreter/VM.h"
 #include "compiler/lexinput.h"
 
-struct YASL_State *YASL_newstate_num(char *filename, size_t num) {
+struct YASL_State *YASL_newstate_num(const char *filename, size_t num) {
 	struct YASL_State *S = (struct YASL_State *)malloc(sizeof(struct YASL_State));
 
 	FILE *fp = fopen(filename, "r");
