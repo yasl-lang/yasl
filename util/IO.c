@@ -11,14 +11,6 @@ void io_print_none(struct IO *const io, const char *const format, va_list args)
 	(void)args;
 }
 
-/**
- * To avoid mucking about with the build process
- */
-void nop(void *val)
-{
-	asm("nop"::"r"(val));
-}
-
 void io_print_file(struct IO *const io, const char *const format, va_list args)
 {
 	vfprintf(io->file, format, args);
