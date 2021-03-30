@@ -29,9 +29,6 @@ void io_print_string(struct IO *const io, const char *const format, va_list args
 
 inline size_t io_str_strip_char(char *dest, const char *src, size_t n, char rem)
 {
-	char *swap = malloc(n);
-	if (swap == NULL)
-		return -1;
 	size_t ct = 0;
 	size_t src_caret = 0;
 	size_t dest_caret = 0;
