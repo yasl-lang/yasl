@@ -1191,7 +1191,7 @@ static void vm_ECHO(struct VM *const vm) {
 	vm_stringify_top(vm);
 	struct YASL_String *v = vm_popstr(vm);
 	size_t strlen = (int)YASL_String_len(v);
-	char *dest = malloc(strlen);
+	char *dest = (char *) malloc(strlen);
 	size_t copied = io_str_strip_char(dest, v->str, strlen, 0);
 	vm_print_out(vm, "%.*s\n", (int)copied, dest);
 	free(dest);
