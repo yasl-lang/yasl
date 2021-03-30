@@ -27,7 +27,7 @@ void io_print_string(struct IO *const io, const char *const format, va_list args
 	vsprintf(io->string + io->len - len, format, args);
 }
 
-inline size_t io_str_strip_char(char *dest, const char *src, size_t n, char rem)
+size_t io_str_strip_char(char *dest, const char *src, size_t n, char rem)
 {
 	size_t ct = 0;
 	size_t src_caret = 0;
