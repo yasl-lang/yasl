@@ -1208,7 +1208,11 @@ void vm_close_all(struct VM *const vm) {
 static void vm_ECHO(struct VM *const vm) {
 	vm_stringify_top(vm);
 	struct YASL_String *v = vm_popstr(vm);
-	vm_print_out(vm, "%.*s\n", (int)YASL_String_len(v), v->start + v->str);
+	size_t strlen = (int)YASL_String_len(v);
+	char *dest = (char *) malloc(strlen);
+	size_t copied = io_str_strip_char(dest, v->str + v->start, strlen, 0);
+	vm_print_out(vm, "%.*s\n", (int)copied, dest);
+	free(dest);
 }
 
 void vm_setupconstants(struct VM *const vm) {
@@ -1225,7 +1229,8 @@ void vm_setupconstants(struct VM *const vm) {
 			vm->constants[i] = YASL_STR(YASL_String_new_sized_heap(0, (size_t) len, str));
 			inc_ref(vm->constants + i);
 			tmp += len;
-			break;
+			break
+			;
 		}
 		case C_INT_1: {
 			vm->constants[i] = YASL_INT((signed char)*tmp++);
