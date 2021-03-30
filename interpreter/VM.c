@@ -1190,12 +1190,11 @@ void vm_close_all(struct VM *const vm) {
 static void vm_ECHO(struct VM *const vm) {
 	vm_stringify_top(vm);
 	struct YASL_String *v = vm_popstr(vm);
-	if (v->on_heap) {
-		size_t strlen = (int)YASL_String_len(v);
-		size_t copied = io_str_strip_char(v->str, v->str, strlen, 0);
-		v->end = copied;
-	}
-	vm_print_out(vm, "%.*s\n", (int)YASL_String_len(v), v->start + v->str);
+	size_t strlen = (int)YASL_String_len(v);
+	char *dest = malloc(strlen);
+	size_t copied = io_str_strip_char(dest, v->str, strlen, 0);
+	vm_print_out(vm, "%.*s\n", (int)copied, dest);
+	free(dest);
 }
 
 void vm_setupconstants(struct VM *const vm) {
