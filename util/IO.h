@@ -20,5 +20,6 @@ struct IO {
 void io_print_none(struct IO *const io, const char *const format, va_list args);
 void io_print_file(struct IO *const io, const char *const format, va_list);
 void io_print_string(struct IO *const io, const char *const format, va_list);
+size_t io_str_strip_char(char *dest, const char *src, size_t n, char rem);
 
 #endif
