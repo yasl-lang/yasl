@@ -128,13 +128,13 @@ DEF_GETTER(name, E, b, 1)
 
 #define DEF_NODE_ZSTR0(name, E) \
 struct Node *new_##name(char *name, const size_t line) {\
-	return new_Node_0(E, name, strlen(name), line);\
+	return new_Node_0(E, name, name ? strlen(name) : 0, line);\
 }\
 DEF_GETNAME(name, E)
 
 #define DEF_NODE_ZSTR1(name, E, a) \
 struct Node *new_##name(const struct Node *const a, char *name, const size_t line) {\
-	return new_Node_1(E, a, name, strlen(name), line);\
+	return new_Node_1(E, a, name, name ? strlen(name) : 0, line);\
 }\
 DEF_GETNAME(name, E)\
 DEF_GETTER(name, E, a, 0)

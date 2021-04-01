@@ -392,12 +392,12 @@ static struct Node *parse_var_pack(struct Parser *const parser, int expected) {
 	} while (j++ < expected && matcheattok(parser, T_COMMA));
 
 	struct Node *last = body_last(rvals);
-	if (!will_var_expand(last)) {
+	if (last && !will_var_expand(last)) {
 		while (j++ < expected) {
 			body_append(&rvals, new_Undef(parserline(parser)));
 		}
 	} else {
-		rvals->children[rvals->children_len - 1] = new_VariadicContext(last, expected - j + 1, last->line);
+		rvals->children[rvals->children_len - 1] = new_VariadicContext(last, expected - j + 1, last ? last->line : 0);
 	}
 
 	return rvals;

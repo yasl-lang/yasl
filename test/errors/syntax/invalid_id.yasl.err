@@ -1,0 +1,3 @@
+SyntaxError: Expected ID, got echo (line 2).
+SyntaxError: Expected =, got ; (line 3).
+SyntaxError: Invalid expression `;` (line 3).
