@@ -127,12 +127,10 @@ int list_tostr(struct YASL_State *S) {
 }
 
 int list_push(struct YASL_State *S) {
+	struct YASL_List *ls = YASLX_checknlist(S, "list.push", 0);
 	struct YASL_Object val = vm_pop((struct VM *) S);
-	if (!YASL_islist(S)) {
-		YASLX_print_err_bad_arg_type(S, "list.push", 0, "list", YASL_peektypename(S));
-		YASL_throw_err(S, YASL_TYPE_ERROR);
-	}
-	YASL_List_append(YASL_GETLIST(vm_peek((struct VM *) S)), val);
+
+	YASL_List_append(ls, val);
 	return 1;
 }
 
