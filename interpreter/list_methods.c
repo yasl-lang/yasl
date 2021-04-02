@@ -127,14 +127,32 @@ int list_tostr(struct YASL_State *S) {
 }
 
 int list_push(struct YASL_State *S) {
+	struct YASL_List *ls = YASLX_checknlist(S, "list.push", 0);
 	struct YASL_Object val = vm_pop((struct VM *) S);
-	if (!YASL_islist(S)) {
-		YASLX_print_err_bad_arg_type(S, "list.push", 0, "list", YASL_peektypename(S));
-		YASL_throw_err(S, YASL_TYPE_ERROR);
-	}
-	YASL_List_append(YASL_GETLIST(vm_peek((struct VM *) S)), val);
+
+	YASL_List_append(ls, val);
 	return 1;
 }
+
+/*
+int list_pushv(struct YASL_State *S) {
+	struct YASL_List *ls = YASLX_checknlist(S, "list.pushv", 0);
+	yasl_int num_va_args = YASL_peekvargscount(S);
+
+	for (yasl_int i = 0; i < num_va_args; i++) {
+		struct YASL_Object val = vm_peek((struct VM *)S, ((struct VM *)S)->fp + 2 + i);
+		YASL_List_append(ls, val);
+	}
+
+	for (yasl_int i = 0; i < num_va_args; i++) {
+		YASL_pop(S);
+	}
+
+	YASL_pop(S);
+
+	return 1;
+}
+*/
 
 int list_copy(struct YASL_State *S) {
 	struct YASL_List *ls = YASLX_checknlist(S, "list.copy", 0);
@@ -257,8 +275,8 @@ int list_join(struct YASL_State *S) {
 
 	if (list->count == 0) {
 		vm_pushstr((struct VM *) S, YASL_String_new_sized(0, ""));
-		vm_pop((struct VM *) S);
-		vm_pop((struct VM *) S);
+		//vm_pop((struct VM *) S);
+		//vm_pop((struct VM *) S);
 		return 1;
 	}
 

@@ -45,4 +45,27 @@
 // How big the stack is for the YASL VM
 #define STACK_SIZE 1024
 
+// @@ YASL_PATH_SEP
+// What to use to separate paths.
+#define YASL_PATH_SEP ';'
+
+// @@ YASL_PATH_MARK
+// What to use to use to mark the substitution in the path.
+#define YASL_PATH_MARK '?'
+
+// @@ YASL_DEFAULT_CPATH
+// Where to search for C modules.
+#if defined(YASL_USE_UNIX) || defined(YASL_USE_APPLE)
+#define YASL_DEFAULT_CPATH "/usr/local/lib/yasl/lib?.so;" "./?.so;"
+#define YASL_DEFAULT_PATH "/usr/local/lib/yasl/?.yasl;" "./?.yasl;"
+#endif
+
+#ifndef YASL_DEFAULT_CPATH
+#define YASL_DEFAULT_CPATH ""
+#endif
+
+#ifndef YASL_DEFAULT_PATH
+#define YASL_DEFAULT_PATH ""
+#endif
+
 #endif

@@ -836,6 +836,12 @@ static void vm_ff_subpatterns_multiple(struct VM *const vm, const size_t n);
 static void vm_ff_subpattern(struct VM *const vm) {
 	switch((enum Pattern)NCODE(vm)) {
 	case P_UNDEF:
+	case P_TYPE_BOOL:
+	case P_TYPE_INT:
+	case P_TYPE_FLOAT:
+	case P_TYPE_STR:
+	case P_TYPE_LS:
+	case P_TYPE_TABLE:
 	case P_ANY:
 		break;
 	case P_BIND:
@@ -908,6 +914,18 @@ static bool vm_MATCH_subpattern(struct VM *const vm, struct YASL_Object *expr) {
 	switch ((enum Pattern)next) {
 	case P_UNDEF:
 		return obj_isundef(expr);
+	case P_TYPE_BOOL:
+		return obj_isbool(expr);
+	case P_TYPE_INT:
+		return obj_isint(expr);
+	case P_TYPE_FLOAT:
+		return obj_isfloat(expr);
+	case P_TYPE_STR:
+		return obj_isstr(expr);
+	case P_TYPE_LS:
+		return obj_islist(expr);
+	case P_TYPE_TABLE:
+		return obj_istable(expr);
 	case P_BOOL: {
 		bool tmp = (bool)NCODE(vm);
 		return obj_isbool(expr) && obj_getbool(expr) == tmp;
@@ -1145,16 +1163,16 @@ static void vm_CALL_fn(struct VM *const vm) {
 
 static void vm_CALL_cfn(struct VM *const vm) {
 	vm->frames[vm->frame_num].pc = vm->pc;
-	if (vm_peekcfn(vm, vm->fp)->num_args == -1) {
-		yasl_int diff = vm->sp - vm->fp;
-		YASL_VM_DEBUG_LOG("vm->sp - vm->prev_fp: %d\n", (int)diff);
-		vm_insert(vm, vm->fp + 1, YASL_INT(diff));
-		// vm_pushint(vm, diff);
+	struct CFunction *f = vm_peekcfn(vm, vm->fp);
+	if (f->num_args < 0) {
+		yasl_int diff = vm->sp - vm->fp - ~f->num_args;
+		YASL_VM_DEBUG_LOG("diff: %d\n", (int)diff);
+		vm_insert(vm, vm->fp + 1 + ~f->num_args, YASL_INT(diff));
 	} else {
-		vm_fill_args(vm, vm_peekcfn(vm, vm->fp)->num_args);
+		vm_fill_args(vm, f->num_args);
 	}
 
-	int num_returns = vm_peekcfn(vm, vm->fp)->value((struct YASL_State *) vm);
+	int num_returns = f->value((struct YASL_State *) vm);
 
 	vm_exitframe_multi(vm, num_returns);
 }
@@ -1190,7 +1208,11 @@ void vm_close_all(struct VM *const vm) {
 static void vm_ECHO(struct VM *const vm) {
 	vm_stringify_top(vm);
 	struct YASL_String *v = vm_popstr(vm);
-	vm_print_out(vm, "%.*s\n", (int)YASL_String_len(v), v->start + v->str);
+	size_t strlen = (int)YASL_String_len(v);
+	char *dest = (char *) malloc(strlen);
+	size_t copied = io_str_strip_char(dest, v->str + v->start, strlen, 0);
+	vm_print_out(vm, "%.*s\n", (int)copied, dest);
+	free(dest);
 }
 
 void vm_setupconstants(struct VM *const vm) {
@@ -1207,7 +1229,8 @@ void vm_setupconstants(struct VM *const vm) {
 			vm->constants[i] = YASL_STR(YASL_String_new_sized_heap(0, (size_t) len, str));
 			inc_ref(vm->constants + i);
 			tmp += len;
-			break;
+			break
+			;
 		}
 		case C_INT_1: {
 			vm->constants[i] = YASL_INT((signed char)*tmp++);
@@ -1404,6 +1427,11 @@ void vm_executenext(struct VM *const vm) {
 		break;
 	case O_END:
 		vm_pushend(vm);
+		break;
+	case O_SWAP:
+		a = vm_peek(vm);
+		vm_peek(vm) = vm_peek(vm, vm->sp - 1);
+		vm_peek(vm, vm->sp - 1) = a;
 		break;
 	case O_DUP:
 		a = vm_peek(vm);

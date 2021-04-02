@@ -1,0 +1,11 @@
+const x = 'abc\0def'
+
+echo len x
+
+echo x
+
+echo len x
+
+echo x[4:]
+
+echo len x

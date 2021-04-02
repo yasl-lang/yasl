@@ -2,6 +2,7 @@
 
 #include <inttypes.h>
 #include <stdarg.h>
+#include <opcode.h>
 
 #include "ast.h"
 #include "debug.h"
@@ -391,12 +392,12 @@ static struct Node *parse_var_pack(struct Parser *const parser, int expected) {
 	} while (j++ < expected && matcheattok(parser, T_COMMA));
 
 	struct Node *last = body_last(rvals);
-	if (!will_var_expand(last)) {
+	if (last && !will_var_expand(last)) {
 		while (j++ < expected) {
 			body_append(&rvals, new_Undef(parserline(parser)));
 		}
 	} else {
-		rvals->children[rvals->children_len - 1] = new_VariadicContext(last, expected - j + 1, last->line);
+		rvals->children[rvals->children_len - 1] = new_VariadicContext(last, expected - j + 1, last ? last->line : 0);
 	}
 
 	return rvals;
@@ -463,7 +464,7 @@ static struct Node *parse_for(struct Parser *const parser) {
 
 	if (iter->nodetype == N_LETITER) {
 		struct Node *body = parse_body(parser);
-		return new_ForIter(iter, body, line);
+		return new_ForIter(iter, new_Block(body, line), line);
 	} else {
 		eattok(parser, T_SEMI);
 		struct Node *cond = parse_expr(parser);
@@ -539,6 +540,28 @@ static struct Node *parse_primitivepattern(struct Parser *const parser) {
 		n = parse_id(parser);
 		n->nodetype = N_PATSTR;
 		return n;
+	case T_ID: {
+		char *name = eatname(parser);
+		n = new_Undef(line);
+		if (!strcmp(name, "bool")) {
+			n->nodetype = N_PATBOOLTYPE;
+		} else if (!strcmp(name, "int")) {
+			n->nodetype = N_PATINTTYPE;
+		} else if (!strcmp(name, "float")) {
+			n->nodetype = N_PATFLOATTYPE;
+		} else if (!strcmp(name, "str")) {
+			n->nodetype = N_PATSTRTYPE;
+		} else if (!strcmp(name, "list")) {
+			n->nodetype = N_PATLSTYPE;
+		} else if (!strcmp(name, "table")) {
+			n->nodetype = N_PATTABLETYPE;
+		} else {
+			node_del(n);
+			parser_print_err_syntax(parser, "Invalid pattern: %s (line %" PRI_SIZET ").\n", name, line);
+			return handle_error(parser);
+		}
+		return n;
+	}
 	default:
 		parser_print_err_syntax(parser, "Invalid pattern starting in %s (line %" PRI_SIZET ").\n", YASL_TOKEN_NAMES[curtok(parser)], line);
 		return handle_error(parser);
