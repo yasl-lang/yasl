@@ -134,6 +134,26 @@ int list_push(struct YASL_State *S) {
 	return 1;
 }
 
+/*
+int list_pushv(struct YASL_State *S) {
+	struct YASL_List *ls = YASLX_checknlist(S, "list.pushv", 0);
+	yasl_int num_va_args = YASL_peekvargscount(S);
+
+	for (yasl_int i = 0; i < num_va_args; i++) {
+		struct YASL_Object val = vm_peek((struct VM *)S, ((struct VM *)S)->fp + 2 + i);
+		YASL_List_append(ls, val);
+	}
+
+	for (yasl_int i = 0; i < num_va_args; i++) {
+		YASL_pop(S);
+	}
+
+	YASL_pop(S);
+
+	return 1;
+}
+*/
+
 int list_copy(struct YASL_State *S) {
 	struct YASL_List *ls = YASLX_checknlist(S, "list.copy", 0);
 	struct RC_UserData *new_ls = rcls_new_sized(ls->size);
