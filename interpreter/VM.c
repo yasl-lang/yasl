@@ -752,6 +752,7 @@ static void vm_GET_helper(struct VM *const vm, struct YASL_Object index) {
 				return;
 			}
 		}
+		vm_print_err_value(vm, "Could not find value for index%s", "");
 		vm_throw_err(vm, YASL_VALUE_ERROR);
 	}
 }
