@@ -437,8 +437,8 @@ int list_insert(struct YASL_State *S) {
 	struct YASL_List *ls = YASLX_checknlist(S, "list.insert", 0);
 	const yasl_int len = YASL_List_length(ls);
 
-	if (index > len) {
-		vm_print_err((struct VM *)S, "ValueError: %s index %d is out of bounds", "list.insert", index);
+	if (index > len || index < 0) {
+		vm_print_err((struct VM *)S, "ValueError: unable to insert item at index %d into list of length %d.", index, len);
 		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
 	struct RC_UserData *new_list = rcls_new_sized(ls->size);

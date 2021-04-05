@@ -6,6 +6,7 @@ static const char *value_errors[] = {
   "test/errors/value/io/read2.yasl",
   "test/errors/value/io/seek.yasl",
   "test/errors/value/list/__get.yasl",
+  "test/errors/value/list/insert.yasl",
   "test/errors/value/list/pop.yasl",
   "test/errors/value/list/__set.yasl",
   "test/errors/value/list/sort.yasl",
