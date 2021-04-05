@@ -1209,10 +1209,19 @@ static void vm_ECHO(struct VM *const vm) {
 	vm_stringify_top(vm);
 	struct YASL_String *v = vm_popstr(vm);
 	size_t strlen = (int)YASL_String_len(v);
-	char *dest = (char *) malloc(strlen);
+	bool alloc = false;
+	char *dest;
+	if (strlen > SCRATCH_SIZE) {
+		dest = (char *) malloc(strlen);
+		alloc = true;
+	} else {
+		dest = (char *) &vm->scratch;
+	}
 	size_t copied = io_str_strip_char(dest, v->str + v->start, strlen, 0);
 	vm_print_out(vm, "%.*s\n", (int)copied, dest);
-	free(dest);
+	if (alloc) {
+		free(dest);
+	}
 }
 
 void vm_setupconstants(struct VM *const vm) {

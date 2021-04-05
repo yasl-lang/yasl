@@ -17,6 +17,7 @@
 
 #define NUM_FRAMES 1000
 #define NUM_TYPES 13                                     // number of builtin types, each needs a vtable
+#define SCRATCH_SIZE 1024								// scratchspace size (needs tuning)
 
 #define vm_peek_offset(vm, offset) ((vm)->stack[offset])
 #define vm_peek_offset_p(vm, offset) ((vm)->stack + (offset))
@@ -113,6 +114,7 @@ struct VM {
 	struct Upvalue *pending;
 	jmp_buf buf;
 	int status;
+	uint8_t scratch[SCRATCH_SIZE];
 };
 
 void vm_init(struct VM *const vm, unsigned char *const code, const size_t pc, const size_t datasize);
