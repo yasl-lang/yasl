@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.5.0)
 project(YASL)
 
 OPTION(DEBUG "Debug Asserts On" OFF)
+OPTION(SECURE_SCRATCH "memset scratch to 0 after use" OFF)
 
 if(cpp)
     message(STATUS "COMPILING AS C++")

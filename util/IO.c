@@ -48,9 +48,11 @@ size_t io_str_strip_char(char *dest, const char *src, size_t n, char rem)
 		dest_caret++;
 		ct++;
 	}
+	#ifdef SECURE_SCRATCH
 	/**
 	 * zero out the rest of the string to avoid garbage being left in the vm string
 	 */
 	memset(&dest[ct], 0, n - ct);
+	#endif
 	return ct;
 }
