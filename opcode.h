@@ -56,6 +56,7 @@ enum Opcode {
 	O_MOVEUP_FP = 0xA0, // move an element from index whatever to top of stack, indexing from fp.
 
 	O_END = 0xB0, // indicate end of list on stack.
+	O_SWAP = 0xB7, // swap the top two elements of the stack.
 	O_DUP = 0xB8, // duplicate top value of stack
 	O_DEL_FP = 0xB9, // deletes an element from the stack. Takes a one-byte index, indicating which element to delete.
 	O_DECSP = 0xBD,
@@ -104,6 +105,12 @@ enum Constants {
 
 enum Pattern {
 	P_UNDEF = 0x01,
+	P_TYPE_BOOL = 0x02,
+	P_TYPE_INT = 0x03,
+	P_TYPE_FLOAT = 0x04,
+	P_TYPE_STR = 0x05,
+	P_TYPE_LS = 0x06,
+	P_TYPE_TABLE = 0x07,
 	P_BOOL = 0x08,
 	P_ANY = 0x0F,
 	P_LIT = 0x9A,

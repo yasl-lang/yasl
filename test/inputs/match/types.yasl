@@ -1,0 +1,33 @@
+
+const fn typeof(const v) {
+    match v {
+        undef {
+            return 'undef'
+        }
+        bool {
+            return 'bool'
+        }
+        int {
+            return 'int'
+        }
+        float {
+            return 'float'
+        }
+        str {
+            return 'str'
+        }
+        list {
+            return 'list'
+        }
+        table {
+            return 'table'
+        }
+        * {
+            return undef
+        }
+    }
+}
+
+for v <- [ undef, true, 10, 11.4, 'string', [], {} ] {
+    echo typeof(v)
+}

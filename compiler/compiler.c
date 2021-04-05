@@ -781,7 +781,7 @@ static yasl_int intern_string(struct Compiler *const compiler, const struct Node
 }
 
 static void visit_UndefPattern(struct Compiler *const compiler, const struct Node *const node) {
-	(void) node;
+	YASL_UNUSED(node);
 	compiler_add_byte(compiler, P_UNDEF);
 }
 
@@ -880,7 +880,7 @@ static void visit_ConstPattern(struct Compiler *const compiler, const struct Nod
 }
 
 static void visit_AnyPattern(struct Compiler *const compiler, const struct Node *const node) {
-	(void) node;
+	YASL_UNUSED(node);
 	compiler_add_byte(compiler, P_ANY);
 }
 
@@ -896,7 +896,6 @@ static void visit_AltPattern(struct Compiler *const compiler, const struct Node 
 	}
 
 	struct YASL_Table old = compiler->seen_bindings;
-	(void) old;
 	compiler->seen_bindings = NEW_TABLE();
 	compiler->leftmost_pattern = false;
 
@@ -920,6 +919,36 @@ cleanup:
 	DEL_TABLE(&old);
 	DEL_TABLE(&compiler->seen_bindings);
 	compiler->seen_bindings = prev;
+}
+
+static void visit_BoolTypePattern(struct Compiler *const compiler, const struct Node *const node) {
+	YASL_UNUSED(node);
+	compiler_add_byte(compiler, P_TYPE_BOOL);
+}
+
+static void visit_IntTypePattern(struct Compiler *const compiler, const struct Node *const node) {
+	YASL_UNUSED(node);
+	compiler_add_byte(compiler, P_TYPE_INT);
+}
+
+static void visit_FloatTypePattern(struct Compiler *const compiler, const struct Node *const node) {
+	YASL_UNUSED(node);
+	compiler_add_byte(compiler, P_TYPE_FLOAT);
+}
+
+static void visit_StringTypePattern(struct Compiler *const compiler, const struct Node *const node) {
+	YASL_UNUSED(node);
+	compiler_add_byte(compiler, P_TYPE_STR);
+}
+
+static void visit_ListTypePattern(struct Compiler *const compiler, const struct Node *const node) {
+	YASL_UNUSED(node);
+	compiler_add_byte(compiler, P_TYPE_LS);
+}
+
+static void visit_TableTypePattern(struct Compiler *const compiler, const struct Node *const node) {
+	YASL_UNUSED(node);
+	compiler_add_byte(compiler, P_TYPE_TABLE);
 }
 
 static void visit_Match_helper(struct Compiler *const compiler, const struct Node *const patterns, const struct Node *const guards, const struct Node *const bodies, size_t curr) {
@@ -1360,8 +1389,8 @@ static void validate(struct Compiler *compiler, const struct Node *const node) {
 }
 
 static void visit_LetIter(struct Compiler *const compiler, const struct Node *const node) {
-	(void) compiler;
-	(void) node;
+	YASL_UNUSED(compiler);
+	YASL_UNUSED(node);
 	YASL_UNREACHED();
 }
 

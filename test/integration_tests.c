@@ -79,6 +79,7 @@ int main(void) {
 #include "type_errors.inl"
 #include "value_errors.inl"
 #include "divisionbyzero_errors.inl"
+#include "syntax_errors.inl"
 
 	char buffer[MAX_FILE_NAME_LEN];
 	struct YASL_State *S;
@@ -89,6 +90,7 @@ int main(void) {
 	ERROR_TEST(type_errors, YASL_TYPE_ERROR);
 	ERROR_TEST(value_errors, YASL_VALUE_ERROR);
 	ERROR_TEST(divisionbyzero_errors, YASL_DIVIDE_BY_ZERO_ERROR);
+	ERROR_TEST(syntax_errors, YASL_SYNTAX_ERROR);
 
 	result = result || failed;
 	printf("Failed %d (/%d) script tests.\n", failed, ran);
