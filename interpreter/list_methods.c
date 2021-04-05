@@ -438,7 +438,7 @@ int list_insert(struct YASL_State *S) {
 	const yasl_int len = YASL_List_length(ls);
 
 	if (index > len || index < 0) {
-		vm_print_err((struct VM *)S, "ValueError: unable to insert item at index %d into list of length %d.", index, len);
+		vm_print_err((struct VM *)S, "ValueError: unable to insert item at index %" PRId64 "into list of length %" PRId64 ".", index, len);
 		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
 	struct RC_UserData *new_list = rcls_new_sized(ls->size);
