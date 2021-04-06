@@ -1,0 +1,34 @@
+#include "yats.h"
+#include "yasl.h"
+#include "yasl_state.h"
+
+SETUP_YATS();
+
+static void testtablenext(void) {
+	const char *code = "x = { 1: 1.0, 2: 2.0, 3: 3.0 };";
+	struct YASL_State *S = YASL_newstate_bb(code, strlen(code));
+	ASSERT_SUCCESS(YASL_declglobal(S, "x"));
+	ASSERT_SUCCESS(YASL_compile(S));
+	ASSERT_SUCCESS(YASL_execute(S));
+	ASSERT_SUCCESS(YASL_loadglobal(S, "x"));
+	ASSERT(YASL_istable(S));
+
+	int i = 0;
+	YASL_pushundef(S);
+	while (YASL_tablenext(S)) {
+		ASSERT(YASL_isfloat(S));
+		YASL_pop(S);
+		ASSERT(YASL_isint(S));
+		i++;
+	}
+
+	ASSERT(YASL_istable(S));
+	ASSERT_EQ(i, 3);
+
+	YASL_delstate(S);
+}
+
+TEST(tablenexttest) {
+	testtablenext();
+	return NUM_FAILED;
+}
