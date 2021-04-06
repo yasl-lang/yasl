@@ -8,3 +8,6 @@ ls->insert(1, 1.5)
 
 echo ls
 
+ls->insert(-1, 2.5)
+
+echo ls
