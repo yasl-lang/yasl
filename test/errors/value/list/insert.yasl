@@ -1,0 +1,3 @@
+const x = [ .a, .b, .c ]
+
+x->insert(4, .d)
