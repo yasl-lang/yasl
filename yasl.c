@@ -393,6 +393,16 @@ int YASL_listpush(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
+int YASL_functioncall(struct YASL_State *S, int n) {
+	struct VM *vm = &S->vm;
+	vm_INIT_CALL_offset(vm, vm->sp - n, -1);
+
+	const int old_sp = vm->sp;
+	vm_CALL(vm);
+
+	return old_sp - vm->sp - 1;
+}
+
 bool YASL_isundef(struct YASL_State *S) {
 	return vm_isundef(&S->vm);
 }
