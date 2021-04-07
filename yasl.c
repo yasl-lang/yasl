@@ -367,21 +367,6 @@ int YASL_duptop(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
-/*
- * 		struct YASL_Table *table = YASL_GETTABLE(frame->iterable);
-		while (table->size > (size_t) frame->iter &&
-		       (table->items[frame->iter].key.type == Y_END || table->items[frame->iter].key.type == Y_UNDEF)) {
-			frame->iter++;
-		}
-		if (table->size <= (size_t) frame->iter) {
-			vm_pushbool(vm, false);
-			return;
-		}
-		vm_push(vm, table->items[frame->iter++].key);
-		vm_pushbool(vm, true);
-		return;
- */
-
 bool YASL_tablenext(struct YASL_State *S) {
 	struct YASL_Object key = vm_pop(&S->vm);
 	if (!YASL_istable(S)) {
@@ -390,23 +375,6 @@ bool YASL_tablenext(struct YASL_State *S) {
 
 	struct YASL_Table *table = vm_peektable(&S->vm);
 
-	/*
-	if (obj_isundef(&key)) {
-		size_t index = 0;
-		while (table->size > index &&
-		       table->items[index].key.type == Y_END || table->items[index].key.type == Y_UNDEF) {
-			index++;
-		}
-
-		if (table->size <= index) {
-			return false;
-		}
-
-		vm_push(&S->vm, table->items[index].key);
-		vm_push(&S->vm, table->items[index].value);
-		return true;
-	}
-*/
 	size_t index = obj_isundef(&key) ? 0 : YASL_Table_getindex(table, key) + 1;
 
 	while (table->size > index &&
@@ -433,6 +401,19 @@ int YASL_tableset(struct YASL_State *S) {
 	if (!YASL_Table_insert(YASL_GETTABLE(table), key, value)) {
 		return YASL_TYPE_ERROR;
 	}
+	return YASL_SUCCESS;
+}
+
+int list___get(struct YASL_State *S);
+
+int YASL_listget(struct YASL_State *S, yasl_int n) {
+	if (!YASL_islist(S)) {
+		return YASL_TYPE_ERROR;
+	}
+
+	YASL_pushint(S, n);
+	list___get(S);
+
 	return YASL_SUCCESS;
 }
 

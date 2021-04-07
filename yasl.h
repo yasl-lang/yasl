@@ -225,6 +225,15 @@ bool YASL_isuserdata(struct YASL_State *S, const char *tag);
 bool YASL_isuserptr(struct YASL_State *S);
 
 /**
+ * [+1, -0]
+ * Indexes the list on top of the stack and pushes the result on top of the stack.
+ * @param S the YASL_State.
+ * @param n the index to use on the list.
+ * @return YASL_SUCCESS on
+ */
+int YASL_listget(struct YASL_State *S, yasl_int n);
+
+/**
  * [-1, +0]
  * Pops the top of the stack and appends it to a list (which should be located directly below the top of the stack).
  * @param S the YASL_State.
