@@ -597,8 +597,20 @@ void YASL_setprintout_tostr(struct YASL_State *S);
 void YASL_setprinterr_tostr(struct YASL_State *S);
 
 /**
+ * [-1, +2]
+ * Iterates over a table. The topmost item of the stack should be the previous index in
+ * the table, followed by the table itself. The index is popped, and then if there are
+ * more elements in the table, the next index and value are pushed. No values are pushed
+ * if we are already at the end of the table.
+ * @param S the YASL_State.
+ * @return true if there was a next element, otherwise false.
+ */
+bool YASL_tablenext(struct YASL_State *S);
+
+/**
+ * [-2, +0]
  * inserts a key-value pair into the table. The topmost
- * items is value, then key, then table. All 3 are popped from the stack.
+ * items is value, then key, then table. The key and value are popped from the stack.
  * @param S the YASL_State which has the 3 items on top of the stack.
  * @return 0 on success, else error code
  */

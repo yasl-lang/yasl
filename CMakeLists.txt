@@ -171,7 +171,8 @@ add_executable(tests
         test/unit_tests/test_vm/vmtest.c
         test/unit_tests/test_util/utiltest.c
         test/unit_tests/test_api/fntest.c
-        test/unit_tests/test_api/deltest.c)
+        test/unit_tests/test_api/deltest.c
+        test/unit_tests/test_api/tablenexttest.c)
 
 if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
     target_link_libraries(yasl m)
