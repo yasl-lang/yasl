@@ -406,6 +406,12 @@ int YASL_tableset(struct YASL_State *S) {
 
 int list___get(struct YASL_State *S);
 
+void vm_len_unop(struct VM *const vm);
+
+void YASL_len(struct YASL_State *S) {
+	vm_len_unop(&S->vm);
+}
+
 int YASL_listget(struct YASL_State *S, yasl_int n) {
 	if (!YASL_islist(S)) {
 		return YASL_TYPE_ERROR;

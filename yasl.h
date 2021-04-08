@@ -225,6 +225,14 @@ bool YASL_isuserdata(struct YASL_State *S, const char *tag);
 bool YASL_isuserptr(struct YASL_State *S);
 
 /**
+ * [+1, -1]
+ * Pops the top of the stack, the evalutes `len x`, where `x` is the popped value. The result is pushed on top
+ * of the stack.
+ * @param S the YASL_State.
+ */
+void YASL_len(struct YASL_State *S);
+
+/**
  * [+1, -0]
  * Indexes the list on top of the stack and pushes the result on top of the stack.
  * @param S the YASL_State.
