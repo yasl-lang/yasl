@@ -130,6 +130,9 @@ void vm_get_metatable(struct VM *const vm);
 void vm_stringify_top(struct VM *const vm);
 void vm_EQ(struct VM *const vm);
 
+void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns);
+void vm_CALL(struct VM *const vm);
+
 struct YASL_Object vm_pop(struct VM *const vm);
 bool vm_popbool(struct VM *const vm);
 yasl_float vm_popfloat(struct VM *const vm);

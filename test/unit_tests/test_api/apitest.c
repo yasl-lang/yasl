@@ -2,6 +2,7 @@
 #include "pushtest.h"
 #include "poptest.h"
 #include "deltest.h"
+#include "fntest.h"
 #include "tablenexttest.h"
 
 SETUP_YATS();
@@ -9,9 +10,10 @@ SETUP_YATS();
 ////////////////////////////////////////////////////////////////////////////////
 
 int apitest() {
-	RUN(pushtest);
-	RUN(poptest);
 	RUN(deltest);
+	RUN(fntest);
+	RUN(poptest);
+	RUN(pushtest);
 	RUN(tablenexttest);
 	return NUM_FAILED;
 }

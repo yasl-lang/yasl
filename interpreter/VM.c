@@ -289,8 +289,8 @@ static void vm_swaptop(struct VM *const vm);
 static int vm_lookup_method_helper(struct VM *vm, struct YASL_Object obj, struct YASL_Table *mt, struct YASL_Object index);
 static void vm_GET(struct VM *const vm);
 static void vm_INIT_CALL(struct VM *const vm, int expected_returns);
-static void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns);
-static void vm_CALL(struct VM *const vm);
+void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns);
+void vm_CALL(struct VM *const vm);
 
 static void vm_call_now_2(struct VM *vm, struct YASL_Object a, struct YASL_Object b) {
 	vm_INIT_CALL(vm, 1);
@@ -1102,7 +1102,7 @@ static void vm_exitframe(struct VM *const vm) {
 	vm->frame_num--;
 }
 
-static void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns) {
+void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns) {
 	if (!vm_isfn(vm, offset) && !vm_iscfn(vm, offset) && !vm_isclosure(vm, offset)) {
 		vm_print_err_type(vm,  "%s is not callable.", obj_typename(vm_peek_p(vm)));
 		vm_throw_err(vm, YASL_TYPE_ERROR);
@@ -1178,7 +1178,7 @@ static void vm_CALL_cfn(struct VM *const vm) {
 	vm_exitframe_multi(vm, num_returns);
 }
 
-static void vm_CALL(struct VM *const vm) {
+void vm_CALL(struct VM *const vm) {
 	vm->fp = vm->next_fp;
 	if (vm_isfn(vm, vm->fp)) {
 		vm_CALL_fn(vm);
