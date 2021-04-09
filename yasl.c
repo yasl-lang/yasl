@@ -357,14 +357,38 @@ yasl_int YASL_peekvargscount(struct YASL_State *S) {
 }
 
 void YASL_pop(struct YASL_State *S) {
-	YASL_ASSERT(&S->vm.sp >= 0, "Cannot pop from empty stack.");
+	YASL_ASSERT(S->vm.sp >= 0, "Cannot pop from empty stack.");
 	vm_pop(&S->vm);
 }
 
 int YASL_duptop(struct YASL_State *S) {
-	YASL_ASSERT(&S->vm.sp >= 0, "Cannot duplicate top of empty stack.");
+	YASL_ASSERT(S->vm.sp >= 0, "Cannot duplicate top of empty stack.");
 	vm_push(&S->vm, vm_peek(&S->vm));
 	return YASL_SUCCESS;
+}
+
+bool YASL_tablenext(struct YASL_State *S) {
+	struct YASL_Object key = vm_pop(&S->vm);
+	if (!YASL_istable(S)) {
+		return false;
+	}
+
+	struct YASL_Table *table = vm_peektable(&S->vm);
+
+	size_t index = obj_isundef(&key) ? 0 : YASL_Table_getindex(table, key) + 1;
+
+	while (table->size > index &&
+	       table->items[index].key.type == Y_END || table->items[index].key.type == Y_UNDEF) {
+		index++;
+	}
+
+	if (table->size <= index) {
+		return false;
+	}
+
+	vm_push(&S->vm, table->items[index].key);
+	vm_push(&S->vm, table->items[index].value);
+	return true;
 }
 
 int YASL_tableset(struct YASL_State *S) {
@@ -380,6 +404,25 @@ int YASL_tableset(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
+int list___get(struct YASL_State *S);
+
+void vm_len_unop(struct VM *const vm);
+
+void YASL_len(struct YASL_State *S) {
+	vm_len_unop(&S->vm);
+}
+
+int YASL_listget(struct YASL_State *S, yasl_int n) {
+	if (!YASL_islist(S)) {
+		return YASL_TYPE_ERROR;
+	}
+
+	YASL_pushint(S, n);
+	list___get(S);
+
+	return YASL_SUCCESS;
+}
+
 int YASL_listpush(struct YASL_State *S) {
 	struct YASL_Object value = vm_pop(&S->vm);
 	if (!YASL_islist(S)) {
@@ -391,6 +434,16 @@ int YASL_listpush(struct YASL_State *S) {
 	YASL_List_append(list, value);
 
 	return YASL_SUCCESS;
+}
+
+int YASL_functioncall(struct YASL_State *S, int n) {
+	struct VM *vm = &S->vm;
+	vm_INIT_CALL_offset(vm, vm->sp - n, -1);
+
+	const int old_sp = vm->sp;
+	vm_CALL(vm);
+
+	return old_sp - vm->sp - 1;
 }
 
 bool YASL_isundef(struct YASL_State *S) {

@@ -289,8 +289,8 @@ static void vm_swaptop(struct VM *const vm);
 static int vm_lookup_method_helper(struct VM *vm, struct YASL_Object obj, struct YASL_Table *mt, struct YASL_Object index);
 static void vm_GET(struct VM *const vm);
 static void vm_INIT_CALL(struct VM *const vm, int expected_returns);
-static void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns);
-static void vm_CALL(struct VM *const vm);
+void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns);
+void vm_CALL(struct VM *const vm);
 
 static void vm_call_now_2(struct VM *vm, struct YASL_Object a, struct YASL_Object b) {
 	vm_INIT_CALL(vm, 1);
@@ -457,7 +457,7 @@ static void vm_num_unop(struct VM *const vm, yasl_int (*int_op)(yasl_int), yasl_
 	}
 }
 
-static void vm_len_unop(struct VM *const vm) {
+void vm_len_unop(struct VM *const vm) {
 	if (vm_isstr(vm)) {
 		vm_pushint(vm, (yasl_int) YASL_String_len(vm_popstr(vm)));
 	} else {
@@ -752,6 +752,7 @@ static void vm_GET_helper(struct VM *const vm, struct YASL_Object index) {
 				return;
 			}
 		}
+		vm_print_err_value(vm, "Could not find value for index%s", "");
 		vm_throw_err(vm, YASL_VALUE_ERROR);
 	}
 }
@@ -1101,7 +1102,7 @@ static void vm_exitframe(struct VM *const vm) {
 	vm->frame_num--;
 }
 
-static void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns) {
+void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns) {
 	if (!vm_isfn(vm, offset) && !vm_iscfn(vm, offset) && !vm_isclosure(vm, offset)) {
 		vm_print_err_type(vm,  "%s is not callable.", obj_typename(vm_peek_p(vm)));
 		vm_throw_err(vm, YASL_TYPE_ERROR);
@@ -1177,7 +1178,7 @@ static void vm_CALL_cfn(struct VM *const vm) {
 	vm_exitframe_multi(vm, num_returns);
 }
 
-static void vm_CALL(struct VM *const vm) {
+void vm_CALL(struct VM *const vm) {
 	vm->fp = vm->next_fp;
 	if (vm_isfn(vm, vm->fp)) {
 		vm_CALL_fn(vm);
@@ -1209,10 +1210,19 @@ static void vm_ECHO(struct VM *const vm) {
 	vm_stringify_top(vm);
 	struct YASL_String *v = vm_popstr(vm);
 	size_t strlen = (int)YASL_String_len(v);
-	char *dest = (char *) malloc(strlen);
+	bool alloc = false;
+	char *dest;
+	if (strlen > SCRATCH_SIZE) {
+		dest = (char *) malloc(strlen);
+		alloc = true;
+	} else {
+		dest = (char *) &vm->scratch;
+	}
 	size_t copied = io_str_strip_char(dest, v->str + v->start, strlen, 0);
 	vm_print_out(vm, "%.*s\n", (int)copied, dest);
-	free(dest);
+	if (alloc) {
+		free(dest);
+	}
 }
 
 void vm_setupconstants(struct VM *const vm) {

@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define YASL_VERSION "v0.11.2"
+#define YASL_VERSION "v0.11.3"
 
 #define YASL_STR_NAME "str"
 #define YASL_FLOAT_NAME "float"
@@ -77,6 +77,17 @@ int YASL_execute(struct YASL_State *S);
  * @return 0 on successful execution, else an error code.
  */
 int YASL_execute_REPL(struct YASL_State *S);
+
+/**
+ * [-(n+1), +r]
+ * Calls a function with n parameters. The function should be located below all n
+ * parameters it will be called with. The left-most parameter is placed directly above
+ * the function, the right-most paramter at the top of the stack.
+ * @param S the YASL_State
+ * @param n
+ * @return r, the number of return values of the called functions
+ */
+int YASL_functioncall(struct YASL_State *S, int n);
 
 /**
  * [-0, +0]
@@ -223,6 +234,23 @@ bool YASL_isuserdata(struct YASL_State *S, const char *tag);
  * @return true if the top of the stack is userpointer, else false.
  */
 bool YASL_isuserptr(struct YASL_State *S);
+
+/**
+ * [+1, -1]
+ * Pops the top of the stack, the evalutes `len x`, where `x` is the popped value. The result is pushed on top
+ * of the stack.
+ * @param S the YASL_State.
+ */
+void YASL_len(struct YASL_State *S);
+
+/**
+ * [+1, -0]
+ * Indexes the list on top of the stack and pushes the result on top of the stack.
+ * @param S the YASL_State.
+ * @param n the index to use on the list.
+ * @return YASL_SUCCESS on
+ */
+int YASL_listget(struct YASL_State *S, yasl_int n);
 
 /**
  * [-1, +0]
@@ -586,8 +614,20 @@ void YASL_setprintout_tostr(struct YASL_State *S);
 void YASL_setprinterr_tostr(struct YASL_State *S);
 
 /**
+ * [-1, +2]
+ * Iterates over a table. The topmost item of the stack should be the previous index in
+ * the table, followed by the table itself. The index is popped, and then if there are
+ * more elements in the table, the next index and value are pushed. No values are pushed
+ * if we are already at the end of the table.
+ * @param S the YASL_State.
+ * @return true if there was a next element, otherwise false.
+ */
+bool YASL_tablenext(struct YASL_State *S);
+
+/**
+ * [-2, +0]
  * inserts a key-value pair into the table. The topmost
- * items is value, then key, then table. All 3 are popped from the stack.
+ * items is value, then key, then table. The key and value are popped from the stack.
  * @param S the YASL_State which has the 3 items on top of the stack.
  * @return 0 on success, else error code
  */

@@ -275,8 +275,6 @@ int list_join(struct YASL_State *S) {
 
 	if (list->count == 0) {
 		vm_pushstr((struct VM *) S, YASL_String_new_sized(0, ""));
-		//vm_pop((struct VM *) S);
-		//vm_pop((struct VM *) S);
 		return 1;
 	}
 
@@ -429,4 +427,39 @@ int list_sort(struct YASL_State *S) {
 	}
 
 	return 0;
+}
+
+int list_insert(struct YASL_State *S) {
+	struct YASL_Object value = vm_pop((struct VM *) S);
+	yasl_int index = YASLX_checknint(S, "list.insert", 1);
+	struct YASL_List *ls = YASLX_checknlist(S, "list.insert", 0);
+	const yasl_int len = YASL_List_length(ls);
+
+	if (index == len) {
+		YASL_List_append(ls, value);
+		YASL_pop(S);
+		return 1;
+	}
+
+	if (index >= len || index < -len) {
+		vm_print_err((struct VM *)S, "ValueError: unable to insert item at index %" PRId64 " into list of length %" PRId64 ".", index, len);
+		YASL_throw_err(S, YASL_VALUE_ERROR);
+	}
+
+	if (index < 0) index += len;
+
+	struct RC_UserData *new_list = rcls_new_sized(ls->size);
+	ud_setmt(new_list, S->vm.builtins_htable[Y_LIST]);
+	struct YASL_List *new_ls = (struct YASL_List *) new_list->data;
+	// Mutate the list mostly in place
+	ls->count += 1;
+	FOR_LIST(i, elmt, ls) {
+		if (i == (size_t) index) {
+			YASL_List_append(new_ls, value);
+		}
+		YASL_List_append(new_ls, elmt);
+	}
+	ls->items = new_ls->items;
+	vm_pushint((struct VM *) S, len + 1);
+	return 1;
 }

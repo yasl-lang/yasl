@@ -108,28 +108,37 @@ bool isequal_typed(const struct YASL_Object *const a, const struct YASL_Object *
 	return a->type == b->type && isequal(a, b);
 }
 
+size_t YASL_Table_getindex(struct YASL_Table *const table, const struct YASL_Object key) {
+	size_t index = get_hash(key, table->size, 0);
+	struct YASL_Table_Item curr_item = table->items[index];
+	size_t i = 1;
+	while (curr_item.value.type != Y_UNDEF) {
+		if (curr_item.key.type != Y_END) {
+			if (isequal_typed(&curr_item.key, &key)) {
+				return index;
+			}
+		}
+		index = get_hash(key, table->size, i++);
+		curr_item = table->items[index];
+	}
+	return index;
+}
+
 void YASL_Table_insert_fast(struct YASL_Table *const table, const struct YASL_Object key, const struct YASL_Object value) {
 	YASL_ASSERT(ishashable(&key), "`key` must be hashable");
 
 	const size_t load = table->count * 100 / table->size;
 	if (load > 70) table_resize_up(table);
 	struct YASL_Table_Item item = new_item(key, value);
-	size_t index = get_hash(item.key, table->size, 0);
+	const size_t index = YASL_Table_getindex(table, key);
 	struct YASL_Table_Item curr_item = table->items[index];
-	size_t i = 1;
-	while (curr_item.value.type != Y_UNDEF) {
-		if (curr_item.key.type != Y_END) {
-			if (isequal_typed(&curr_item.key, &item.key)) {
-				del_item(&curr_item);
-				table->items[index] = item;
-				return;
-			}
-		}
-		index = get_hash(item.key, table->size, i++);
-		curr_item = table->items[index];
+	if (isequal_typed(&curr_item.key, &key)) {
+		del_item(&curr_item);
+	} else {
+		table->count++;
 	}
+	
 	table->items[index] = item;
-	table->count++;
 }
 
 bool YASL_Table_insert(struct YASL_Table *const table, const struct YASL_Object key, const struct YASL_Object value) {
