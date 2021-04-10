@@ -1,0 +1,27 @@
+
+fn f(a, b) {
+    return a, b
+}
+
+fn g(a, b) {
+    # return f(-a, -b)
+    const c = a - b
+    if (a + b > 0) {
+        const c = a + b
+        return 10, f(a, b)
+    } else {
+        return 20, f(-a, -b)
+    }
+}
+
+let a, let b, let c = g(1, -2)
+
+echo a
+echo b
+echo c
+
+a, b, c= g(3, 4)
+
+echo a
+echo b
+echo c

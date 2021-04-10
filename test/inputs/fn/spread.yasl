@@ -1,0 +1,6 @@
+
+const fn spread(const ls) {
+    return ls->spread()
+}
+
+echo collections.list(spread([ .a, .b, .c ]))
