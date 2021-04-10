@@ -329,6 +329,19 @@ int list_spread(struct YASL_State *S) {
 	return (int)len;
 }
 
+int list_count(struct YASL_State *S) {
+	struct YASL_List *ls = YASLX_checknlist(S, "list.count", 0);
+	struct YASL_Object v = vm_pop(&S->vm);
+
+	yasl_int count = 0;
+	FOR_LIST(i, elmt, ls) {
+		count += (int)isequal(&elmt, &v);
+	}
+
+	YASL_pushint(S, count);
+	return 1;
+}
+
 static const int SORT_TYPE_EMPTY = 0;
 static const int SORT_TYPE_STR = -1;
 static const int SORT_TYPE_NUM = 1;

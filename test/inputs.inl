@@ -133,6 +133,7 @@ static const char *inputs[] = {
   "test/inputs/list/clear.yasl",
   "test/inputs/list/insert.yasl",
   "test/inputs/list/pop.yasl",
+  "test/inputs/list/count.yasl",
   "test/inputs/list/sort.yasl",
   "test/inputs/list/join_empty.yasl",
   "test/inputs/list/slice.yasl",
