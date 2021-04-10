@@ -227,7 +227,7 @@ int table_remove(struct YASL_State *S) {
 	return 1;
 }
 
-int table_clone(struct YASL_State *S) {
+int table_copy(struct YASL_State *S) {
 	struct YASL_Table *ht = YASLX_checkntable(S, "table.copy", 0);
 	struct RC_UserData *new_ht = rcht_new_sized(ht->base_size);
 

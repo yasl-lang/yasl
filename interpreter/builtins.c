@@ -112,7 +112,7 @@ struct YASL_Table* table_builtins(struct VM *vm) {
 	table_insert_specialstring_cfunction(vm, table, S_REMOVE, &table_remove, 2);
 	table_insert_specialstring_cfunction(vm, table, S_KEYS, &table_keys, 1);
 	table_insert_specialstring_cfunction(vm, table, S_VALUES, &table_values, 1);
-	table_insert_specialstring_cfunction(vm, table, S_COPY, &table_clone, 1);
+	table_insert_specialstring_cfunction(vm, table, S_COPY, &table_copy, 1);
 	table_insert_specialstring_cfunction(vm, table, S_TOSTR, &table_tostr, 1);
 	table_insert_specialstring_cfunction(vm, table, S___GET, &table___get, 2);
 	table_insert_specialstring_cfunction(vm, table, S___SET, &table___set, 3);
