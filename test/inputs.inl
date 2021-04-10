@@ -127,6 +127,7 @@ static const char *inputs[] = {
   "test/inputs/varpack/method_call.yasl",
   "test/inputs/varpack/index_call.yasl",
   "test/inputs/varpack/function_call.yasl",
+  "test/inputs/__call.yasl",
   "test/inputs/smallints.yasl",
   "test/inputs/math/min-max.yasl",
   "test/inputs/math/math.yasl",
