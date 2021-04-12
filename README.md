@@ -23,7 +23,7 @@ YASL can be compiled from source with the following commands:
 ```bash
 git clone https://github.com/yasl-lang/yasl.git
 cd yasl
-cmake --configure .
+cmake .
 cmake --build .
 ```
 
