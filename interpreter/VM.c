@@ -1060,8 +1060,8 @@ static void vm_enterframe_offset(struct VM *const vm, int offset, int num_return
 
 static void vm_fill_args(struct VM *const vm, const int num_args);
 
-static void vm_exitframe_multi(struct VM *const vm, int args) {
-	vm_rm_range(vm, vm->fp, vm->sp - args + 1);
+static void vm_exitframe_multi(struct VM *const vm, int len) {
+	vm_rm_range(vm, vm->fp, vm->fp + len + 1);
 
 	struct CallFrame frame = vm->frames[vm->frame_num];
 	int num_returns = frame.num_returns;
@@ -1104,8 +1104,9 @@ static void vm_exitframe(struct VM *const vm) {
 
 void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns) {
 	if (!vm_isfn(vm, offset) && !vm_iscfn(vm, offset) && !vm_isclosure(vm, offset)) {
-		vm_print_err_type(vm,  "%s is not callable.", obj_typename(vm_peek_p(vm)));
-		vm_throw_err(vm, YASL_TYPE_ERROR);
+		vm_push(vm, vm_peek(vm, offset));
+		vm_lookup_method_throwing(vm, "__call", "%s is not callable.", obj_typename(vm_peek_p(vm, offset)));
+		vm_peek(vm, offset) = vm_pop(vm);
 	}
 
 	vm_enterframe_offset(vm, offset, expected_returns);
@@ -1175,7 +1176,7 @@ static void vm_CALL_cfn(struct VM *const vm) {
 
 	int num_returns = f->value((struct YASL_State *) vm);
 
-	vm_exitframe_multi(vm, num_returns);
+	vm_exitframe_multi(vm, vm->sp - num_returns - vm->fp);
 }
 
 void vm_CALL(struct VM *const vm) {
@@ -1190,8 +1191,8 @@ void vm_CALL(struct VM *const vm) {
 }
 
 static void vm_RET(struct VM *const vm) {
-	unsigned char args = NCODE(vm);
-	vm_exitframe_multi(vm, args);
+	unsigned char len = NCODE(vm);
+	vm_exitframe_multi(vm, len);
 }
 
 static struct Upvalue *vm_close_all_helper(struct YASL_Object *const end, struct Upvalue *const curr) {

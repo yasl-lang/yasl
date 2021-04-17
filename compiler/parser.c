@@ -300,9 +300,13 @@ static struct Node *parse_return(struct Parser *const parser) {
 			expr = parse_expr(parser);
 			body_append(&block, expr);
 		}
+		struct Node *last = body_last(block);
+		if (last && will_var_expand(last)) {
+			block->children[block->children_len - 1] = new_VariadicContext(last, -1, last->line);
+		}
 		return new_MultiReturn(block, line);
 	}
-	return new_Return(expr, line);
+	return new_Return(new_VariadicContext(expr, -1, line), line);
 }
 
 static struct Node *parse_fn(struct Parser *const parser) {

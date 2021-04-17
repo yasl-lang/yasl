@@ -404,7 +404,9 @@ static void visit_FnDecl(struct Compiler *const compiler, const struct Node *con
 	// TODO: remove this when it's not required.
 	compiler_add_byte(compiler, O_NCONST);
 	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CRET : O_RET);
-	compiler_add_byte(compiler, (unsigned char)1);
+	//compiler_add_byte(compiler, (unsigned char)1);
+	compiler_add_byte(compiler, (unsigned char)scope_len(get_scope_in_use(compiler)));
+
 	exit_scope(compiler);
 
 	size_t new_size = compiler->buffer->count;
@@ -470,7 +472,8 @@ static void visit_Return(struct Compiler *const compiler, const struct Node *con
 	}
 	visit(compiler, Return_get_expr(node));
 	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CRET : O_RET);
-	compiler_add_byte(compiler, (unsigned char)1);
+	//compiler_add_byte(compiler, (unsigned char)1);
+	compiler_add_byte(compiler, (unsigned char)scope_len(get_scope_in_use(compiler)));
 }
 
 static void visit_MultiReturn(struct Compiler *const compiler, const struct Node *const node) {
@@ -482,7 +485,8 @@ static void visit_MultiReturn(struct Compiler *const compiler, const struct Node
 
 	visit(compiler, MultiReturn_get_exprs(node));
 	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CRET : O_RET);
-	compiler_add_byte(compiler, (unsigned char)MultiReturn_get_exprs(node)->children_len);
+	//compiler_add_byte(compiler, (unsigned char)MultiReturn_get_exprs(node)->children_len);
+	compiler_add_byte(compiler, (unsigned char)scope_len(get_scope_in_use(compiler)));
 }
 
 static void visit_Export(struct Compiler *const compiler, const struct Node *const node) {

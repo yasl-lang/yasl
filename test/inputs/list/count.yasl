@@ -1,0 +1,8 @@
+
+
+const ls = [ 1, 1.0, '1', '1', 1.1, '1' ]
+
+echo ls->count(1)
+echo ls->count(1.0)
+echo ls->count(1.1)
+echo ls->count('1')

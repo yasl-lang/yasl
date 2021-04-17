@@ -1,0 +1,10 @@
+
+
+const m = { .__call: fn(a, b) { return a ~ b; } }
+const table = {}
+
+mt.set(table, m | mt.get(table))
+
+
+echo table('hello', 'world')
+echo table.__call('hello', 'world')
