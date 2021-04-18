@@ -192,8 +192,8 @@ int list___add(struct YASL_State *S) {
 int list___eq(struct YASL_State *S) {
 	struct YASL_List *right = YASLX_checknlist(S, "list.__eq", 1);
 	struct YASL_List *left = YASLX_checknlist(S, "list.__eq", 0);
-	YASL_pop(S);
-	YASL_pop(S);
+	//YASL_pop(S);
+	//YASL_pop(S);
 
 	if (left->count != right->count) {
 		YASL_pushbool(S, false);
@@ -269,14 +269,14 @@ int list_join(struct YASL_State *S) {
 	struct YASL_List *list = vm_peeklist((struct VM *) S, S->vm.sp);
 	S->vm.sp++;
 
-	size_t buffer_count = 0;
-	size_t buffer_size = 8;
-	char *buffer = (char *) malloc(buffer_size);
-
 	if (list->count == 0) {
 		vm_pushstr((struct VM *) S, YASL_String_new_sized(0, ""));
 		return 1;
 	}
+
+	size_t buffer_count = 0;
+	size_t buffer_size = 8;
+	char *buffer = (char *) malloc(buffer_size);
 
 	vm_push((struct VM *)S, list->items[0]);
 	vm_stringify_top((struct VM *)S);

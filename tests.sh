@@ -30,7 +30,7 @@ run_mem_tests () {
     for f in test/$folder/**/*.yasl; do
         valgrind --error-exitcode=-1 --leak-check=full --exit-on-first-error=yes ./yasl $f > /dev/null 2>&1;
         declare exit_code=$?;
-        if (( exit_code == -1 )); then
+        if (( exit_code == 255 )); then
             >&2 echo "Memory Error in $f";
             (( ++failed ));
         fi;

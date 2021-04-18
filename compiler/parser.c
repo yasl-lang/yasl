@@ -564,6 +564,7 @@ static struct Node *parse_primitivepattern(struct Parser *const parser) {
 			parser_print_err_syntax(parser, "Invalid pattern: %s (line %" PRI_SIZET ").\n", name, line);
 			return handle_error(parser);
 		}
+		free(name);
 		return n;
 	}
 	default:
