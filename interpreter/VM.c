@@ -304,13 +304,6 @@ static void vm_call_now_2(struct VM *vm, struct YASL_Object a, struct YASL_Objec
 	vm_push(vm, b);
 	vm_CALL(vm);
 }
-static void vm_call_now_3(struct VM *vm, struct YASL_Object a, struct YASL_Object b, struct YASL_Object c) {
-	vm_INIT_CALL(vm, 1);
-	vm_push(vm, a);
-	vm_push(vm, b);
-	vm_push(vm, c);
-	vm_CALL(vm);
-}
 
 #define vm_lookup_method_throwing(vm, method_name, err_str, ...) \
 do {\
@@ -318,6 +311,9 @@ do {\
 	struct YASL_Object val = vm_peek(vm);\
 	vm_get_metatable(vm);\
 	struct YASL_Table *mt = vm_istable(vm) ? vm_poptable(vm) : NULL;\
+	if (!mt) {\
+		vm_pop(vm);\
+	}\
 	int result = vm_lookup_method_helper(vm, val, mt, index);\
 	str_del(obj_getstr(&index));\
 	if (result) {\
@@ -342,18 +338,6 @@ do {\
 	vm_call_now_2(vm, left, right);\
 	dec_ref(&left);\
 	dec_ref(&right);\
-} while (0)
-
-#define vm_call_method_now_3(vm, a, b, c, method_name, ...) do {\
-	inc_ref(&a);\
-	inc_ref(&b);\
-	inc_ref(&c);\
-	vm_push(vm, a);\
-	vm_lookup_method_throwing(vm, method_name, __VA_ARGS__);\
-	vm_call_now_3(vm, a, b, c);\
-	dec_ref(&a);\
-	dec_ref(&b);\
-	dec_ref(&c);\
 } while (0)
 
 #define INT_BINOP(name, op) yasl_int name(yasl_int left, yasl_int right) { return left op right; }
@@ -566,7 +550,11 @@ void vm_stringify_top(struct VM *const vm) {
 		snprintf(buffer, n, "<userptr: %p>", (void *)vm_popint(vm));
 		vm_pushstr(vm, YASL_String_new_sized_heap(0, strlen(buffer), buffer));
 	} else {
-		vm_call_method_now_1_top(vm, "tostr", "tostr not supported for operand of type %s.");
+		vm_duptop(vm);
+		vm_lookup_method_throwing(vm, "tostr", "tostr not supported for operand of type %s.", obj_typename(vm_peek_p(vm)));
+		vm_swaptop(vm);
+		vm_INIT_CALL_offset(vm, vm->sp - 1, 1);
+		vm_CALL(vm);
 	}
 }
 
@@ -855,12 +843,13 @@ static void vm_GET(struct VM *const vm) {
 }
 
 static void vm_SET(struct VM *const vm) {
-	struct YASL_Object value = vm_pop(vm);
-	struct YASL_Object key = vm_pop(vm);
-	struct YASL_Object obj = vm_pop(vm);
+	struct YASL_Object obj = vm_peek(vm, vm->sp - 2);
 
-	vm_call_method_now_3(vm, obj, key, value, "__set", "object of type %s is immutable.", obj_typename(&obj));
-	vm_pop(vm);
+	vm_push(vm, obj);
+	vm_lookup_method_throwing(vm, "__set", "object of type %s is immutable.", obj_typename(&obj));
+	vm_shifttopdown(vm, 3);
+	vm_INIT_CALL_offset(vm, vm->sp - 3, 0);
+	vm_CALL(vm);
 }
 
 static void vm_LIT(struct VM *const vm) {
@@ -1191,9 +1180,10 @@ static void vm_exitframe(struct VM *const vm) {
 
 void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns) {
 	if (!vm_isfn(vm, offset) && !vm_iscfn(vm, offset) && !vm_isclosure(vm, offset)) {
-		vm_push(vm, vm_peek(vm, offset));
-		vm_lookup_method_throwing(vm, "__call", "%s is not callable.", obj_typename(vm_peek_p(vm, offset)));
-		vm_peek(vm, offset) = vm_pop(vm);
+		//vm_push(vm, vm_peek(vm, offset));
+		const char *typename = obj_typename(vm_peek_p(vm, offset));
+		vm_lookup_method_throwing(vm, "__call", "%s is not callable.", typename);
+		//vm_peek(vm, offset) = vm_pop(vm);
 	}
 
 	vm_enterframe_offset(vm, offset, expected_returns);

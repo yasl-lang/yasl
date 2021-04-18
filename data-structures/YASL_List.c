@@ -3,6 +3,8 @@
 #include "interpreter/YASL_Object.h"
 #include "data-structures/YASL_Table.h"
 
+#include <string.h>
+
 const char *const LIST_NAME = "list";
 
 struct YASL_List *YASL_List_new_sized(const size_t base_size) {
@@ -51,6 +53,14 @@ static void ls_resize_up(struct YASL_List *const ls) {
 void YASL_List_append(struct YASL_List *const ls, struct YASL_Object value) {
 	if (ls->count >= ls->size) ls_resize_up(ls);
 	ls->items[ls->count++] = value;
+	inc_ref(&value);
+}
+
+void YASL_List_insert(struct YASL_List *const ls, size_t index, struct YASL_Object value) {
+	if (ls->count >= ls->size) ls_resize_up(ls);
+	memmove(ls->items + index + 1, ls->items + index, (ls->count - index) * sizeof(struct YASL_Object));
+	ls->items[index] = value;
+	ls->count++;
 	inc_ref(&value);
 }
 

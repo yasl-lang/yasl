@@ -77,7 +77,6 @@ static const char *type_errors[] = {
   "test/errors/type/io/read4.yasl",
   "test/errors/type/io/read5.yasl",
   "test/errors/type/io/write1.yasl",
-  "test/errors/type/io/write2.yasl",
   "test/errors/type/io/write3.yasl",
   "test/errors/type/io/write4.yasl",
   "test/errors/type/list/__add1.yasl",

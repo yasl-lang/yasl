@@ -21,11 +21,18 @@ static FILE *YASLX_checkfile(struct YASL_State *S, const char *name, int pos) {
 	return (FILE *)YASL_popuserdata(S);
 }
 
+static FILE *YASLX_checknfile(struct YASL_State *S, const char *name, unsigned pos) {
+	if (!YASL_isnuserdata(S, FILE_NAME, pos)) {
+		YASLX_print_err_bad_arg_type(S, name, pos, FILE_NAME, YASL_peekntypename(S, pos));
+		YASL_throw_err(S, YASL_TYPE_ERROR);
+	}
+	return (FILE *)YASL_peeknuserdata(S, pos);
+}
+
 static void close_file(void *ptr) {
 	fclose(ptr);
 }
 
-// TODO: fix mem leak in here.
 static int YASL_io_open(struct YASL_State *S) {
 	char mode_str[3] = { '\0', '\0', '\0'};
 	if (YASL_isundef(S)) {
@@ -164,14 +171,14 @@ static int YASL_io_read(struct YASL_State *S) {
 }
 
 static int YASL_io_write(struct YASL_State *S) {
+	FILE *f = YASLX_checknfile(S, FILE_PRE ".write", 0);
+
 	if (!YASL_isstr(S)) {
 		vm_print_err_bad_arg_type_name((struct VM *)S, FILE_PRE ".write", 1, YASL_STR_NAME, YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	char *str = YASL_peekcstr(S);
 	YASL_pop(S);
-
-	FILE *f = YASLX_checkfile(S, FILE_PRE ".write", 0);
 
 	size_t len = strlen(str);
 

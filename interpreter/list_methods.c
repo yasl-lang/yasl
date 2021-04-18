@@ -192,8 +192,6 @@ int list___add(struct YASL_State *S) {
 int list___eq(struct YASL_State *S) {
 	struct YASL_List *right = YASLX_checknlist(S, "list.__eq", 1);
 	struct YASL_List *left = YASLX_checknlist(S, "list.__eq", 0);
-	//YASL_pop(S);
-	//YASL_pop(S);
 
 	if (left->count != right->count) {
 		YASL_pushbool(S, false);
@@ -461,18 +459,8 @@ int list_insert(struct YASL_State *S) {
 
 	if (index < 0) index += len;
 
-	struct RC_UserData *new_list = rcls_new_sized(ls->size);
-	ud_setmt(new_list, S->vm.builtins_htable[Y_LIST]);
-	struct YASL_List *new_ls = (struct YASL_List *) new_list->data;
-	// Mutate the list mostly in place
-	ls->count += 1;
-	FOR_LIST(i, elmt, ls) {
-		if (i == (size_t) index) {
-			YASL_List_append(new_ls, value);
-		}
-		YASL_List_append(new_ls, elmt);
-	}
-	ls->items = new_ls->items;
-	vm_pushint((struct VM *) S, len + 1);
+	YASL_List_insert(ls, index, value);
+
+	YASL_pop(S);
 	return 1;
 }
