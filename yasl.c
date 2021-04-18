@@ -11,12 +11,12 @@
 #include "compiler/lexinput.h"
 
 struct YASL_State *YASL_newstate_num(const char *filename, size_t num) {
-	struct YASL_State *S = (struct YASL_State *)malloc(sizeof(struct YASL_State));
-
 	FILE *fp = fopen(filename, "r");
 	if (!fp) {
 		return NULL;  // Can't open file.
 	}
+
+	struct YASL_State *S = (struct YASL_State *)malloc(sizeof(struct YASL_State));
 
 	fseek(fp, 0, SEEK_SET);
 

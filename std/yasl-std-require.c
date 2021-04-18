@@ -61,10 +61,9 @@ int YASL_require(struct YASL_State *S) {
 	// Load Standard Libraries
 	YASLX_decllibs(Ss);
 
+	YASL_Table_del(Ss->vm.metatables);
 	Ss->vm.metatables = S->vm.metatables;
 
-	// Ss->vm.globals[Ss->vm.headers_size - 1] = Ss->vm.globals[0];
-	// Ss->vm.globals[0] = NULL;
 	int status = YASL_execute(Ss);
 
 	if (status != YASL_MODULE_SUCCESS) {
