@@ -28,7 +28,7 @@ run_mem_tests () {
     declare folder="$1";
     echo "Running memory tests in $folder...";
     for f in test/$folder/**/*.yasl; do
-        valgrind --error-exitcode=-1 --leak-check=full ./yasl $f > /dev/null 2>&1;
+        valgrind --error-exitcode=-1 --leak-check=full --exit-on-first-error=yes ./yasl $f > /dev/null 2>&1;
         declare exit_code=$?;
         if (( exit_code == -1 )); then
             >&2 echo "Memory Error in $f";
