@@ -30,7 +30,7 @@ static FILE *YASLX_checknfile(struct YASL_State *S, const char *name, unsigned p
 }
 
 static void close_file(void *ptr) {
-	fclose(ptr);
+	fclose((FILE *)ptr);
 }
 
 static int YASL_io_open(struct YASL_State *S) {
