@@ -315,6 +315,7 @@ do {\
 	int result = vm_lookup_method_helper(vm, val, mt, index);\
 	str_del(obj_getstr(&index));\
 	if (result) {\
+		vm_pop(vm);\
 		vm_print_err_type(vm, err_str, __VA_ARGS__);\
 		vm_throw_err(vm, YASL_TYPE_ERROR);\
 	}\
