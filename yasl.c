@@ -227,7 +227,7 @@ int YASL_setmt(struct YASL_State *S) {
 
 	struct RC_UserData *mt = YASL_istable(S) ? YASL_GETUSERDATA(vm_pop(&S->vm)) : NULL;
 
-	if (!vm_isuserdata(&S->vm)) {
+	if (!vm_isuserdata(&S->vm) && !vm_istable(&S->vm)) {
 		return YASL_TYPE_ERROR;
 	}
 
