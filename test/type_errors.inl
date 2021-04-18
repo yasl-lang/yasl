@@ -124,6 +124,7 @@ static const char *type_errors[] = {
   "test/errors/type/math/tan.yasl",
   "test/errors/type/mt/setmt1.yasl",
   "test/errors/type/mt/setmt2.yasl",
+  "test/errors/type/nomt.yasl",
   "test/errors/type/str/count1.yasl",
   "test/errors/type/str/count2.yasl",
   "test/errors/type/str/count3.yasl",
