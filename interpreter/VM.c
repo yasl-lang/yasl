@@ -1180,10 +1180,8 @@ static void vm_exitframe(struct VM *const vm) {
 
 void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns) {
 	if (!vm_isfn(vm, offset) && !vm_iscfn(vm, offset) && !vm_isclosure(vm, offset)) {
-		//vm_push(vm, vm_peek(vm, offset));
-		const char *typename = obj_typename(vm_peek_p(vm, offset));
-		vm_lookup_method_throwing(vm, "__call", "%s is not callable.", typename);
-		//vm_peek(vm, offset) = vm_pop(vm);
+		const char *name = obj_typename(vm_peek_p(vm, offset));
+		vm_lookup_method_throwing(vm, "__call", "%s is not callable.", name);
 	}
 
 	vm_enterframe_offset(vm, offset, expected_returns);
