@@ -472,7 +472,6 @@ static void visit_Return(struct Compiler *const compiler, const struct Node *con
 	}
 	visit(compiler, Return_get_expr(node));
 	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CRET : O_RET);
-	//compiler_add_byte(compiler, (unsigned char)1);
 	compiler_add_byte(compiler, (unsigned char)scope_len(get_scope_in_use(compiler)));
 }
 
@@ -485,7 +484,6 @@ static void visit_MultiReturn(struct Compiler *const compiler, const struct Node
 
 	visit(compiler, MultiReturn_get_exprs(node));
 	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CRET : O_RET);
-	//compiler_add_byte(compiler, (unsigned char)MultiReturn_get_exprs(node)->children_len);
 	compiler_add_byte(compiler, (unsigned char)scope_len(get_scope_in_use(compiler)));
 }
 
