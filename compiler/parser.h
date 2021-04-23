@@ -1,6 +1,7 @@
 #ifndef YASL_PARSER_H_
 #define YASL_PARSER_H_
 
+#include <setjmp.h>
 #include "lexer.h"
 #include "yapp.h"
 #include "ast.h"
@@ -19,8 +20,9 @@
   })
 
 struct Parser {
-    struct Lexer lex; /* OWN */
-    int status;
+	struct Lexer lex; /* OWN */
+	int status;
+	jmp_buf env;
 };
 
 int peof(const struct Parser *const parser);

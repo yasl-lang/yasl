@@ -109,6 +109,6 @@ run_tests errors/divisionbyzero 6;
 run_tests errors/value 7;
 run_cli_tests;
 
-echo "Passed $(( ran - failed ))/$(( ran )) script tests. (Skipped $skipped.)";
+echo "Passed $(( ran - failed ))/$(( ran )) script tests. (Skipped $((skipped)).)";
 
 exit $failed;

@@ -98,6 +98,8 @@ static struct Node *handle_error(struct Parser *const parser) {
 	while (parser->lex.c != '\n' && !lxeof(parser->lex.file)) {
 		lex_getchar(&parser->lex);
 	}
+
+	longjmp(parser->env, 1);
 	return NULL;
 }
 
@@ -136,6 +138,9 @@ bool matcheattok(struct Parser *const parser, const enum Token token) {
 }
 
 struct Node *parse(struct Parser *const parser) {
+	if (setjmp(parser->env)) {
+		return NULL;
+	}
 	return parse_program(parser);
 }
 
@@ -982,8 +987,7 @@ static struct Node *parse_constant(struct Parser *const parser) {
 					YASL_TOKEN_NAMES[curtok(parser)], parserline(parser));
 		return handle_error(parser);
 	case T_UNKNOWN:
-		parser->status = parser->lex.status;
-		return NULL;
+		return handle_error(parser);
 	default:
 		parser_print_err_syntax(parser, "Invalid expression `%s` (line %"
 			PRI_SIZET
