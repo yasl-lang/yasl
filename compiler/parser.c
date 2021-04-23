@@ -126,6 +126,8 @@ enum Token eattok(struct Parser *const parser, const enum Token token) {
 static char *eatname(struct Parser *const parser) {
 	char *tmp = parser->lex.value;
 	eattok(parser, T_ID);
+	if (parser->status)
+		handle_error(parser);
 	return tmp;
 }
 
@@ -944,8 +946,10 @@ static struct Node *parse_constant(struct Parser *const parser) {
 	switch (curtok(parser)) {
 	case T_DOT: {
 		eattok(parser, T_DOT);
-		struct Node *cur_node = new_String(parser->lex.value, strlen(parser->lex.value), parserline(parser));
-		eattok(parser, T_ID);
+		size_t line = parserline(parser);
+		const char *name = eatname(parser);
+		struct Node *cur_node = new_String((char *)name, strlen(name), line);
+		// eattok(parser, T_ID);
 		return cur_node;
 	}
 	case T_ID:
