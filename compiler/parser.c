@@ -431,9 +431,9 @@ static struct Node *parse_decl_helper(struct Parser *const parser, struct Node *
 static struct Node *parse_decl(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("parsing let in line %" PRI_SIZET "\n", parserline(parser));
 	size_t i = 0;
-	struct Node *buffer = new_Body(parserline(parser));
 
 	struct Node *lval = parse_let_const_or_var(parser);
+	struct Node *buffer = new_Body(parserline(parser));
 	body_append(&buffer, lval);
 	i++;
 

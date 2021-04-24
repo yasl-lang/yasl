@@ -106,6 +106,7 @@ run_tests errors/assert 10;
 run_tests errors/stackoverflow 11;
 run_tests errors/type 5;
 run_tests errors/divisionbyzero 6;
+run_tests errors/syntax 4;
 run_tests errors/value 7;
 run_cli_tests;
 
