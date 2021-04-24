@@ -503,6 +503,8 @@ void vm_EQ(struct VM *const vm) {
 
 static void vm_CNCT(struct VM *const vm) {
 		vm_stringify_top(vm);
+		struct YASL_Object top = vm_peek(vm);
+		inc_ref(&top);
 		struct YASL_String *b = vm_popstr(vm);
 		vm_stringify_top(vm);
 		struct YASL_String *a = vm_popstr(vm);
@@ -512,6 +514,7 @@ static void vm_CNCT(struct VM *const vm) {
 		memcpy(ptr, a->str + a->start, YASL_String_len(a));
 		memcpy(ptr + YASL_String_len(a), b->str + b->start, YASL_String_len(b));
 		vm_pushstr(vm, YASL_String_new_sized_heap(0, size, ptr));
+		dec_ref(&top);
 }
 
 #define DEFINE_COMP(name, opstr, overload_name) \
