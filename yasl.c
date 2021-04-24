@@ -583,7 +583,7 @@ char *YASL_peekcstr(struct YASL_State *S) {
 	struct YASL_Object obj = vm_peek(&S->vm);
 	char *tmp = (char *) malloc(YASL_String_len(obj.value.sval) + 1);
 
-	memcpy(tmp, obj.value.sval->str + obj.value.sval->start, YASL_String_len(obj.value.sval));
+	memcpy(tmp, YASL_String_chars(obj.value.sval), YASL_String_len(obj.value.sval));
 	tmp[YASL_String_len(obj.value.sval)] = '\0';
 
 	return tmp;

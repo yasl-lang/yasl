@@ -24,8 +24,6 @@ static void inc_weak_ref(struct YASL_Object *v) {
 		v->value.sval->rc->weak_refs++;
 		break;
 	case Y_LIST_W:
-		v->value.uval->rc->weak_refs++;
-		break;
 	case Y_TABLE_W:
 		v->value.uval->rc->weak_refs++;
 		break;

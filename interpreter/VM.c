@@ -511,8 +511,8 @@ static void vm_CNCT(struct VM *const vm) {
 
 		size_t size = YASL_String_len(a) + YASL_String_len(b);
 		char *ptr = (char *)malloc(size);
-		memcpy(ptr, a->str + a->start, YASL_String_len(a));
-		memcpy(ptr + YASL_String_len(a), b->str + b->start, YASL_String_len(b));
+		memcpy(ptr, YASL_String_chars(a), YASL_String_len(a));
+		memcpy(ptr + YASL_String_len(a), YASL_String_chars(b), YASL_String_len(b));
 		vm_pushstr(vm, YASL_String_new_sized_heap(0, size, ptr));
 		dec_ref(&top);
 }
@@ -1297,7 +1297,7 @@ static void vm_ECHO(struct VM *const vm) {
 	} else {
 		dest = (char *) &vm->scratch;
 	}
-	size_t copied = io_str_strip_char(dest, v->str + v->start, strlen, 0);
+	size_t copied = io_str_strip_char(dest, YASL_String_chars(v), strlen, 0);
 	vm_print_out(vm, "%.*s\n", (int)copied, dest);
 	if (alloc) {
 		free(dest);
@@ -1621,7 +1621,7 @@ void vm_executenext(struct VM *const vm) {
 	case O_ASS:
 		if (isfalsey(vm_peek_p(vm))) {
 			vm_stringify_top(vm);
-			vm_print_err(vm, "AssertError: %.*s.", (int)YASL_String_len(vm_peekstr(vm)), vm_peekstr(vm)->str + vm_peekstr(vm)->start);
+			vm_print_err(vm, "AssertError: %.*s.", (int)YASL_String_len(vm_peekstr(vm)), YASL_String_chars(vm_peekstr(vm)));
 			vm_pop(vm);
 			vm_throw_err(vm, YASL_ASSERT_ERROR);
 		}

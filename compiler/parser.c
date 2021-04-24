@@ -90,7 +90,7 @@ void parser_cleanup(struct Parser *const parser) {
 	lex_cleanup(&parser->lex);
 }
 
-static struct Node *handle_error(struct Parser *const parser) {
+YASL_NORETURN static struct Node *handle_error(struct Parser *const parser) {
 	parser->status = YASL_SYNTAX_ERROR;
 	free(parser->lex.value);
 	parser->lex.value = NULL;
@@ -100,7 +100,6 @@ static struct Node *handle_error(struct Parser *const parser) {
 	}
 
 	longjmp(parser->env, 1);
-	return NULL;
 }
 
 enum Token eattok(struct Parser *const parser, const enum Token token) {
@@ -769,13 +768,13 @@ static struct Node *parse_assign(struct Parser *const parser, struct Node *cur_n
 			return handle_error(parser);
 		}
 	} else if (tok_isaugmented(curtok(parser))) {
-	  enum Token op = (enum Token)(eattok(parser, curtok(parser)) - 1); // relies on enum in lexer.h
+	  enum Token op = (enum Token)(eattok(parser, curtok(parser)) - 1);  // relies on enum in lexer.h
 		switch (cur_node->nodetype) {
 		case N_VAR: {
-			char *name = cur_node->value.sval.str;
-			struct Node *tmp = node_clone(cur_node);
-			free(cur_node);
-			return new_Assign(new_BinOp(op, tmp, parse_expr(parser), line), name, line);
+			struct Node *tmp = new_BinOp(op, cur_node, parse_expr(parser), line);
+			char *name = malloc(strlen(cur_node->value.sval.str) + 1);
+			strcpy(name, cur_node->value.sval.str);
+			return new_Assign(tmp, name, line);
 		}
 		case N_GET: {
 			struct Node *collection = cur_node->children[0];

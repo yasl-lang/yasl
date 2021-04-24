@@ -910,7 +910,7 @@ static void visit_AltPattern(struct Compiler *const compiler, const struct Node 
 	FOR_TABLE(i, item, &old) {
 		struct YASL_Object val = YASL_Table_search(&compiler->seen_bindings, item->key);
 		if (val.type == Y_END) {
-			compiler_print_err_syntax(compiler, "%.*s not bound on right side of | (line %" PRI_SIZET ").\n", (int)YASL_String_len(item->key.value.sval), item->key.value.sval->str, node->line);
+			compiler_print_err_syntax(compiler, "%.*s not bound on right side of | (line %" PRI_SIZET ").\n", (int)YASL_String_len(item->key.value.sval), YASL_String_chars(item->key.value.sval), node->line);
 			handle_error(compiler);
 			goto cleanup;
 		}
