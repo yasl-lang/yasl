@@ -18,6 +18,7 @@ static int YASL_collections_set_new(struct YASL_State *S) {
 	yasl_int i = YASL_peekvargscount(S);
 	while (i-- > 0) {
 		if (!YASL_Set_insert(set, vm_peek((struct VM *) S))) {
+			YASL_Set_del(set);
 			vm_print_err_type(&S->vm, "unable to use mutable object of type %s as key.",
 					  YASL_peektypename(S));
 			YASL_throw_err(S, YASL_TYPE_ERROR);
@@ -50,17 +51,18 @@ static int YASL_collections_table_new(struct YASL_State *S) {
 		YASL_pushundef(S);
 	}
 	struct RC_UserData *table = rcht_new();
-	ud_setmt(table, S->vm.builtins_htable[Y_TABLE]);
 	while (i > 0) {
 		struct YASL_Object value = vm_pop((struct VM *)S);
 		struct YASL_Object key = vm_pop((struct VM *)S);
 		if (!YASL_Table_insert((struct YASL_Table *) table->data, key, value)) {
+			rcht_del(table);
 			vm_print_err_type(&S->vm, "unable to use mutable object of type %s as key.",
 					  obj_typename(&key));
 			YASL_throw_err(S, YASL_TYPE_ERROR);
 		}
 		i -= 2;
 	}
+	ud_setmt(table, S->vm.builtins_htable[Y_TABLE]);
 	vm_pushtable((struct VM *)S, table);
 	return 1;
 }

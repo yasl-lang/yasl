@@ -137,7 +137,7 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 		vm_stringify_top(&S->vm);
 
 		struct YASL_String *str = vm_popstr((struct VM *) S);
-		YASL_ByteBuffer_extend(&bb, (unsigned char *)str->str + str->start, YASL_String_len(str));
+		YASL_ByteBuffer_extend(&bb, (unsigned char *)YASL_String_chars(str), YASL_String_len(str));
 		YASL_ByteBuffer_extend(&bb, (unsigned char *)": ", strlen(": "));
 
 		vm_push((struct VM *) S, item->value);
@@ -165,7 +165,7 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 		}
 
 		str = vm_popstr((struct VM *) S);
-		YASL_ByteBuffer_extend(&bb, (unsigned char *)str->str + str->start, YASL_String_len(str));
+		YASL_ByteBuffer_extend(&bb, (unsigned char *)YASL_String_chars(str), YASL_String_len(str));
 		YASL_ByteBuffer_extend(&bb, (unsigned char *)", ", strlen(", "));
 	}
 

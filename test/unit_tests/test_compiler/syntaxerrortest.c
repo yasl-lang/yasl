@@ -19,9 +19,12 @@ SETUP_YATS();
 
 TEST(syntaxerrortest) {
 	ASSERT_SYNTAX_ERR("for let x = 0; x < 5; x += 1 { };\necho x;", "Undeclared variable x (line 2)");
+
 	ASSERT_SYNTAX_ERR("const x = 10; x = 11;", "Cannot assign to constant x (line 1)");
 	ASSERT_SYNTAX_ERR("const x = 10; let x = 11;", "Illegal redeclaration of x (line 1)");
 	ASSERT_SYNTAX_ERR("let x = 10; let x = 11;", "Illegal redeclaration of x (line 1)");
+	ASSERT_SYNTAX_ERR("let x = 10; const x = 11;", "Illegal redeclaration of x (line 1)");
+	ASSERT_SYNTAX_ERR("const x = 10; const x = 11;", "Illegal redeclaration of x (line 1)");
 	ASSERT_SYNTAX_ERR("let x = [b for b <- [1, 2, 3, 4] if b % 2 == 0]; echo b;", "Undeclared variable b (line 1)");
 	ASSERT_SYNTAX_ERR("echo if;", "Expected expression, got `if` (line 1)");
 	ASSERT_SYNTAX_ERR("else { echo true };", "`else` without previous `if` (line 1)");
@@ -98,6 +101,7 @@ TEST(syntaxerrortest) {
 	ASSERT_SYNTAX_ERR("continue;", "`continue` outside of loop (line 1)");
 	ASSERT_SYNTAX_ERR("break;", "`break` outside of loop (line 1)");
 	ASSERT_SYNTAX_ERR("return 10;", "`return` outside of function (line 1)");
+	ASSERT_SYNTAX_ERR("return 10, 11;", "`return` outside of function (line 1)");
 
 	ASSERT_SYNTAX_ERR("echo if;", "Expected expression, got `if` (line 1)");
 	ASSERT_SYNTAX_ERR("assert false", "Expected ;, got END OF FILE (line 1)");

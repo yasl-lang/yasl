@@ -11,12 +11,12 @@
 #include "compiler/lexinput.h"
 
 struct YASL_State *YASL_newstate_num(const char *filename, size_t num) {
-	struct YASL_State *S = (struct YASL_State *)malloc(sizeof(struct YASL_State));
-
 	FILE *fp = fopen(filename, "r");
 	if (!fp) {
 		return NULL;  // Can't open file.
 	}
+
+	struct YASL_State *S = (struct YASL_State *)malloc(sizeof(struct YASL_State));
 
 	fseek(fp, 0, SEEK_SET);
 
@@ -227,7 +227,7 @@ int YASL_setmt(struct YASL_State *S) {
 
 	struct RC_UserData *mt = YASL_istable(S) ? YASL_GETUSERDATA(vm_pop(&S->vm)) : NULL;
 
-	if (!vm_isuserdata(&S->vm)) {
+	if (!vm_isuserdata(&S->vm) && !vm_istable(&S->vm) && !vm_islist(&S->vm)) {
 		return YASL_TYPE_ERROR;
 	}
 
@@ -583,7 +583,7 @@ char *YASL_peekcstr(struct YASL_State *S) {
 	struct YASL_Object obj = vm_peek(&S->vm);
 	char *tmp = (char *) malloc(YASL_String_len(obj.value.sval) + 1);
 
-	memcpy(tmp, obj.value.sval->str + obj.value.sval->start, YASL_String_len(obj.value.sval));
+	memcpy(tmp, YASL_String_chars(obj.value.sval), YASL_String_len(obj.value.sval));
 	tmp[YASL_String_len(obj.value.sval)] = '\0';
 
 	return tmp;

@@ -472,7 +472,6 @@ static void visit_Return(struct Compiler *const compiler, const struct Node *con
 	}
 	visit(compiler, Return_get_expr(node));
 	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CRET : O_RET);
-	//compiler_add_byte(compiler, (unsigned char)1);
 	compiler_add_byte(compiler, (unsigned char)scope_len(get_scope_in_use(compiler)));
 }
 
@@ -485,7 +484,6 @@ static void visit_MultiReturn(struct Compiler *const compiler, const struct Node
 
 	visit(compiler, MultiReturn_get_exprs(node));
 	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CRET : O_RET);
-	//compiler_add_byte(compiler, (unsigned char)MultiReturn_get_exprs(node)->children_len);
 	compiler_add_byte(compiler, (unsigned char)scope_len(get_scope_in_use(compiler)));
 }
 
@@ -912,7 +910,7 @@ static void visit_AltPattern(struct Compiler *const compiler, const struct Node 
 	FOR_TABLE(i, item, &old) {
 		struct YASL_Object val = YASL_Table_search(&compiler->seen_bindings, item->key);
 		if (val.type == Y_END) {
-			compiler_print_err_syntax(compiler, "%.*s not bound on right side of | (line %" PRI_SIZET ").\n", (int)YASL_String_len(item->key.value.sval), item->key.value.sval->str, node->line);
+			compiler_print_err_syntax(compiler, "%.*s not bound on right side of | (line %" PRI_SIZET ").\n", (int)YASL_String_len(item->key.value.sval), YASL_String_chars(item->key.value.sval), node->line);
 			handle_error(compiler);
 			goto cleanup;
 		}
