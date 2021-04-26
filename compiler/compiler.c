@@ -317,11 +317,13 @@ unsigned char *compile(struct Compiler *const compiler) {
 		if (peof(&compiler->parser)) break;
 		node = parse(&compiler->parser);
 		if (compiler->parser.status) {
+			node_del(node);
 			compiler->status |= compiler->parser.status;
 			return NULL;
 		}
 		eattok(&compiler->parser, T_SEMI);
 		if (compiler->parser.status) {
+			node_del(node);
 			compiler->status |= compiler->parser.status;
 			return NULL;
 		}
