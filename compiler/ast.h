@@ -51,6 +51,7 @@ struct BodyNode {
 };
 
 struct Node {
+	struct Node *next;
 	enum NodeType nodetype;
 	union {
 		struct {
@@ -68,7 +69,9 @@ struct Node {
 	struct Node *children[];
 };
 
-void body_append(struct Node **node, struct Node *const child);
+struct Parser;
+
+void body_append(struct Parser *parser, struct Node **node, struct Node *const child);
 struct Node *body_last(struct Node *node);
 
 struct Node *node_clone(const struct Node *const node);
@@ -83,35 +86,35 @@ for (size_t i = 0; i < (node)->children_len; i++ ) if (child = (node)->children[
 #define DECL_ZSTR_NODE(...) YAPP_EXPAND(YAPP_CHOOSE6(__VA_ARGS__, DECL_ZSTR_NODE4, DECL_ZSTR_NODE3, DECL_ZSTR_NODE2, DECL_ZSTR_NODE1, DECL_ZSTR_NODE0)(__VA_ARGS__))
 
 #define DECL_NODE0(name, E) \
-struct Node *new_##name(size_t line);\
+struct Node *new_##name(struct Parser *parser, size_t line);\
 
 #define DECL_NODE1(name, E, a) \
-struct Node *new_##name(const struct Node *const a, const size_t line);\
+struct Node *new_##name(struct Parser *parser, const struct Node *const a, const size_t line);\
 struct Node *name##_get_##a(const struct Node *const node);
 
 #define DECL_NODE2(name, E, a, b) \
-struct Node *new_##name(const struct Node *const a, const struct Node *const b, const size_t line);\
+struct Node *new_##name(struct Parser *parser, const struct Node *const a, const struct Node *const b, const size_t line);\
 struct Node *name##_get_##a(const struct Node *const node);\
 struct Node *name##_get_##b(const struct Node *const node);
 
 #define DECL_NODE3(name, E, a, b, c) \
-struct Node *new_##name(const struct Node *const a, const struct Node *const b, const struct Node *const c, const size_t line);\
+struct Node *new_##name(struct Parser *parser, const struct Node *const a, const struct Node *const b, const struct Node *const c, const size_t line);\
 struct Node *name##_get_##a(const struct Node *const node);\
 struct Node *name##_get_##b(const struct Node *const node);\
 struct Node *name##_get_##c(const struct Node *const node);
 
 #define DECL_NODE4(name, E, a, b, c, d) \
-struct Node *new_##name(const struct Node *const a, const struct Node *const b, const struct Node *const c, const struct Node *const d, const size_t line);\
+struct Node *new_##name(struct Parser *parser, const struct Node *const a, const struct Node *const b, const struct Node *const c, const struct Node *const d, const size_t line);\
 struct Node *name##_get_##a(const struct Node *const node);\
 struct Node *name##_get_##b(const struct Node *const node);\
 struct Node *name##_get_##c(const struct Node *const node);\
 struct Node *name##_get_##d(const struct Node *const node);
 
 #define DECL_ZSTR_NODE0(name, E) \
-struct Node *new_##name(char *str, const size_t line);
+struct Node *new_##name(struct Parser *parser, char *str, const size_t line);
 
 #define DECL_ZSTR_NODE1(name, E, a) \
-struct Node *new_##name(const struct Node *const a, char *str, const size_t line);
+struct Node *new_##name(struct Parser *parser, const struct Node *const a, char *str, const size_t line);
 
 DECL_NODE(ExprStmt, N_EXPRSTMT, expr)
 DECL_NODE(Block, N_BLOCK, block)
@@ -139,9 +142,9 @@ DECL_NODE(Table, N_TABLE, values)
 DECL_NODE(Assert, N_ASS, expr)
 DECL_NODE(Body, N_BODY)
 
-struct Node *new_VariadicContext(const struct Node *const expr, const int expected, const size_t line);
-struct Node *new_FnDecl(const struct Node *const params, const struct Node *const body, char *name, size_t name_len, const size_t line);
-struct Node *new_MethodCall(const struct Node *const params, const struct Node *const object, char *value, size_t len, const size_t line);
+struct Node *new_VariadicContext(struct Parser *parser, const struct Node *const expr, const int expected, const size_t line);
+struct Node *new_FnDecl(struct Parser *parser, const struct Node *const params, const struct Node *const body, char *name, size_t name_len, const size_t line);
+struct Node *new_MethodCall(struct Parser *parser, const struct Node *const params, const struct Node *const object, char *value, size_t len, const size_t line);
 
 DECL_ZSTR_NODE(LetIter, N_LETITER, collection)
 DECL_ZSTR_NODE(Let, N_LET, expr)
@@ -149,13 +152,13 @@ DECL_ZSTR_NODE(Const, N_CONST, expr)
 DECL_ZSTR_NODE(Assign, N_ASSIGN, expr)
 DECL_ZSTR_NODE(Var, N_VAR)
 
-struct Node *new_TriOp(enum Token op, struct Node *left, struct Node *middle, struct Node *right, const size_t line);
-struct Node *new_BinOp(enum Token op, struct Node *left, struct Node *right, const size_t line);
-struct Node *new_UnOp(enum Token op, struct Node *child, const size_t line);
-struct Node *new_Float(yasl_float val, const size_t line);
-struct Node *new_Integer(yasl_int val, const size_t line);
-struct Node *new_Boolean(int value, const size_t line);
-struct Node *new_String(char *value, size_t len, const size_t line);
+struct Node *new_TriOp(struct Parser *parser, enum Token op, struct Node *left, struct Node *middle, struct Node *right, const size_t line);
+struct Node *new_BinOp(struct Parser *parser, enum Token op, struct Node *left, struct Node *right, const size_t line);
+struct Node *new_UnOp(struct Parser *parser, enum Token op, struct Node *child, const size_t line);
+struct Node *new_Float(struct Parser *parser, yasl_float val, const size_t line);
+struct Node *new_Integer(struct Parser *parser, yasl_int val, const size_t line);
+struct Node *new_Boolean(struct Parser *parser, int value, const size_t line);
+struct Node *new_String(struct Parser *parser, char *value, size_t len, const size_t line);
 
 size_t Body_get_len(const struct Node *const node);
 struct Node *Comp_get_expr(const struct Node *const node);
@@ -184,5 +187,7 @@ bool Boolean_get_bool(const struct Node *const node);
 char *Var_get_name(const struct Node *const node);
 
 void node_del(struct Node *node);
+
+void node_del2(struct Node *node);
 
 #endif

@@ -317,7 +317,6 @@ unsigned char *compile(struct Compiler *const compiler) {
 		if (peof(&compiler->parser)) break;
 		node = parse(&compiler->parser);
 		if (compiler->parser.status) {
-			node_del(node);
 			compiler->status |= compiler->parser.status;
 			return NULL;
 		}
@@ -1080,7 +1079,6 @@ static void visit_If(struct Compiler *const compiler, const struct Node *const n
 
 static void visit_Echo(struct Compiler *const compiler, const struct Node *const node) {
 	visit(compiler, Echo_get_expr(node));
-	//printf("%d\n", (int)scope_len(get_scope_in_use(compiler)));
 	compiler_add_byte(compiler, O_ECHO);
 	compiler_add_byte(compiler, (char)scope_len(get_scope_in_use(compiler)));
 }

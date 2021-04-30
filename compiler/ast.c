@@ -5,6 +5,9 @@
 #include "debug.h"
 #include "yasl_conf.h"
 
+void parser_register_node(struct Parser *parser, struct Node *node);
+void parser_unregister_node(struct Parser *parser, struct Node *node);
+
 struct Node *node_clone(const struct Node *const node) {
 	if (node == NULL) return NULL;
 	struct Node *clone = (struct Node *)malloc(sizeof(struct Node) + node->children_len * sizeof(struct Node *));
@@ -44,9 +47,10 @@ struct Node *node_clone(const struct Node *const node) {
 	return clone;
 }
 
-static struct Node *new_Node(const enum NodeType nodetype, const size_t line, const size_t name_len,
+static struct Node *new_Node(struct Parser *parser, const enum NodeType nodetype, const size_t line, const size_t name_len,
 		char *const name /* OWN */, const size_t n, ... /* OWN */) {
 	struct Node *const node = (struct Node *)malloc(sizeof(struct Node) + sizeof(struct Node *) * n);
+	node->next = NULL;
 	node->nodetype = nodetype;
 	node->children_len = n;
 
@@ -60,14 +64,16 @@ static struct Node *new_Node(const enum NodeType nodetype, const size_t line, co
 		node->children[i] = va_arg(children, struct Node*);
 	}
 	va_end(children);
+
+	parser_register_node(parser, node);
 	return node;
 }
 
-#define new_Node_0(nodetype, name, name_len, line) new_Node(nodetype, line, name_len, name, 0)
-#define new_Node_1(nodetype, child, name, name_len, line) new_Node(nodetype, line, name_len, name, 1, child)
-#define new_Node_2(nodetype, child1, child2, name, name_len, line) new_Node(nodetype, line, name_len, name, 2, child1, child2)
-#define new_Node_3(nodetype, child1, child2, child3, name, name_len, line) new_Node(nodetype, line, name_len, name, 3, child1, child2, child3)
-#define new_Node_4(nodetype, child1, child2, child3, child4, name, name_len, line) new_Node(nodetype, line, name_len, name, 4, child1, child2, child3, child4)
+#define new_Node_0(parser, nodetype, name, name_len, line) new_Node(parser, nodetype, line, name_len, name, 0)
+#define new_Node_1(parser, nodetype, child, name, name_len, line) new_Node(parser, nodetype, line, name_len, name, 1, child)
+#define new_Node_2(parser, nodetype, child1, child2, name, name_len, line) new_Node(parser, nodetype, line, name_len, name, 2, child1, child2)
+#define new_Node_3(parser, nodetype, child1, child2, child3, name, name_len, line) new_Node(parser, nodetype, line, name_len, name, 3, child1, child2, child3)
+#define new_Node_4(parser, nodetype, child1, child2, child3, child4, name, name_len, line) new_Node(parser, nodetype, line, name_len, name, 4, child1, child2, child3, child4)
 
 #define DEF_NODE(...) YAPP_EXPAND(YAPP_CHOOSE6(__VA_ARGS__, DEF_NODE4, DEF_NODE3, DEF_NODE2, DEF_NODE1, DEF_NODE0)(__VA_ARGS__))
 #define DEF_NODE_STR(...) YAPP_EXPAND(YAPP_CHOOSE6(__VA_ARGS__, DEF_NODE_STR4, DEF_NODE_STR3, DEF_NODE_STR2, DEF_NODE_STR1, DEF_NODE_STR0)(__VA_ARGS__))
@@ -84,34 +90,34 @@ char *name##_get_name(const struct Node *const node) {\
 }
 
 #define DEF_NODE0(name, E) \
-struct Node *new_##name(size_t line) {\
-	return new_Node_0(E, NULL, 0, line);\
+struct Node *new_##name(struct Parser *parser, size_t line) {\
+	return new_Node_0(parser, E, NULL, 0, line);\
 }
 
 #define DEF_NODE1(name, E, a) \
-struct Node *new_##name(const struct Node *const a, const size_t line) {\
-	return new_Node_1(E, a, NULL, 0, line);\
+struct Node *new_##name(struct Parser *parser, const struct Node *const a, const size_t line) {\
+	return new_Node_1(parser, E, a, NULL, 0, line);\
 }\
 DEF_GETTER(name, E, a, 0)
 
 #define DEF_NODE2(name, E, a, b) \
-struct Node *new_##name(const struct Node *const a, const struct Node *const b, const size_t line) {\
-	return new_Node_2(E, a, b, NULL, 0, line);\
+struct Node *new_##name(struct Parser *parser, const struct Node *const a, const struct Node *const b, const size_t line) {\
+	return new_Node_2(parser, E, a, b, NULL, 0, line);\
 }\
 DEF_GETTER(name, E, a, 0)\
 DEF_GETTER(name, E, b, 1)
 
 #define DEF_NODE3(name, E, a, b, c) \
-struct Node *new_##name(const struct Node *const a, const struct Node *const b, const struct Node *const c, const size_t line) {\
-	return new_Node_3(E, a, b, c, NULL, 0, line);\
+struct Node *new_##name(struct Parser *parser, const struct Node *const a, const struct Node *const b, const struct Node *const c, const size_t line) {\
+	return new_Node_3(parser, E, a, b, c, NULL, 0, line);\
 }\
 DEF_GETTER(name, E, a, 0)\
 DEF_GETTER(name, E, b, 1)\
 DEF_GETTER(name, E, c, 2)
 
 #define DEF_NODE4(name, E, a, b, c, d) \
-struct Node *new_##name(const struct Node *const a, const struct Node *const b, const struct Node *const c, const struct Node *const d, const size_t line) {\
-	return new_Node_4(E, a, b, c, d, NULL, 0, line);\
+struct Node *new_##name(struct Parser *parser, const struct Node *const a, const struct Node *const b, const struct Node *const c, const struct Node *const d, const size_t line) {\
+	return new_Node_4(parser, E, a, b, c, d, NULL, 0, line);\
 }\
 DEF_GETTER(name, E, a, 0)\
 DEF_GETTER(name, E, b, 1)\
@@ -119,30 +125,32 @@ DEF_GETTER(name, E, c, 2)\
 DEF_GETTER(name, E, d, 3)
 
 #define DEF_NODE_STR2(name, E, a, b) \
-struct Node *new_##name(const struct Node *const a, const struct Node *const b, char *name, size_t name_len, const size_t line) {\
-	return new_Node_2(E, a, b, name, name_len, line);\
+struct Node *new_##name(struct Parser *parser, const struct Node *const a, const struct Node *const b, char *name, size_t name_len, const size_t line) {\
+	return new_Node_2(parser, E, a, b, name, name_len, line);\
 }\
 DEF_GETNAME(name, E)\
 DEF_GETTER(name, E, a, 0)\
 DEF_GETTER(name, E, b, 1)
 
 #define DEF_NODE_ZSTR0(name, E) \
-struct Node *new_##name(char *name, const size_t line) {\
-	return new_Node_0(E, name, name ? strlen(name) : 0, line);\
+struct Node *new_##name(struct Parser *parser, char *name, const size_t line) {\
+	return new_Node_0(parser, E, name, name ? strlen(name) : 0, line);\
 }\
 DEF_GETNAME(name, E)
 
 #define DEF_NODE_ZSTR1(name, E, a) \
-struct Node *new_##name(const struct Node *const a, char *name, const size_t line) {\
-	return new_Node_1(E, a, name, name ? strlen(name) : 0, line);\
+struct Node *new_##name(struct Parser *parser, const struct Node *const a, char *name, const size_t line) {\
+	return new_Node_1(parser, E, a, name, name ? strlen(name) : 0, line);\
 }\
 DEF_GETNAME(name, E)\
 DEF_GETTER(name, E, a, 0)
 
 
-void body_append(struct Node **node, struct Node *const child) {
+void body_append(struct Parser *parser, struct Node **node, struct Node *const child) {
 	YASL_COMPILE_DEBUG_LOG("%s\n", "appending to block");
+	parser_unregister_node(parser, *node);
 	*node = (struct Node*)realloc(*node, sizeof(struct Node) + (++(*node)->children_len) * sizeof(struct Node *));
+	parser_register_node(parser, *node);
 	(*node)->children[(*node)->children_len - 1] = child;
 }
 
@@ -156,8 +164,8 @@ bool will_var_expand(struct Node *node) {
 
 DEF_NODE(ExprStmt, N_EXPRSTMT, expr)
 
-struct Node *new_Block(const struct Node *const body, const size_t line) {
-	return new_Node_1(N_BLOCK, body, NULL, 0, line);
+struct Node *new_Block(struct Parser *parser, const struct Node *const body, const size_t line) {
+	return new_Node_1(parser, N_BLOCK, body, NULL, 0, line);
 }
 
 DEF_NODE(Body, N_BODY)
@@ -186,8 +194,9 @@ DEF_NODE(Assert, N_ASS, expr)
 DEF_NODE_ZSTR(Let, N_LET, expr)
 DEF_NODE_ZSTR(Const, N_CONST, expr)
 
-struct Node *new_TriOp(enum Token op, struct Node *left, struct Node *middle, struct Node *right, const size_t line) {
+struct Node *new_TriOp(struct Parser *parser, enum Token op, struct Node *left, struct Node *middle, struct Node *right, const size_t line) {
 	struct Node *const node = (struct Node *)malloc(sizeof(struct Node) + sizeof(struct Node *) * 3);
+	node->next = NULL;
 	node->nodetype = N_TRIOP;
 	node->children_len = 3;
 	node->value.type = op;
@@ -195,24 +204,32 @@ struct Node *new_TriOp(enum Token op, struct Node *left, struct Node *middle, st
 	node->children[0] = left;
 	node->children[1] = middle;
 	node->children[2] = right;
+
+	parser_register_node(parser, node);
 	return node;
 }
 
-struct Node *new_BinOp(enum Token op, struct Node *left, struct Node *right, const size_t line) {
+struct Node *new_BinOp(struct Parser *parser, enum Token op, struct Node *left, struct Node *right, const size_t line) {
 	struct Node *const node = (struct Node *)malloc(sizeof(struct Node) + sizeof(struct Node *) * 2);
+	node->next = NULL;
 	node->nodetype = N_BINOP;
 	node->children_len = 0;
 	node->value.binop = ((struct BinOpNode) { op, left, right });
 	node->line = line;
+
+	parser_register_node(parser, node);
 	return node;
 }
 
-struct Node *new_UnOp(enum Token op, struct Node *child, const size_t line) {
+struct Node *new_UnOp(struct Parser *parser, enum Token op, struct Node *child, const size_t line) {
 	struct Node *const node = (struct Node *)malloc(sizeof(struct Node) + sizeof(struct Node *) * 1);
+	node->next = NULL;
 	node->nodetype = N_UNOP;
 	node->children_len = 0;
 	node->value.unop = ((struct UnOpNode) { op, child });
 	node->line = line;
+
+	parser_register_node(parser, node);
 	return node;
 }
 
@@ -220,38 +237,40 @@ DEF_NODE_ZSTR(Assign, N_ASSIGN, expr)
 DEF_NODE_ZSTR(Var, N_VAR)
 DEF_NODE(Undef, N_UNDEF)
 
-struct Node *new_Float(yasl_float val, const size_t line) {
-	struct Node *node = new_Node_0(N_FLOAT, NULL, 0, line);
+struct Node *new_Float(struct Parser *parser, yasl_float val, const size_t line) {
+	struct Node *node = new_Node_0(parser, N_FLOAT, NULL, 0, line);
 	node->value.dval = val;
 	return node;
 }
 
-struct Node *new_Integer(yasl_int val, const size_t line) {
-	struct Node *node = new_Node_0(N_INT, NULL, 0, line);
+struct Node *new_Integer(struct Parser *parser, yasl_int val, const size_t line) {
+	struct Node *node = new_Node_0(parser, N_INT, NULL, 0, line);
 	node->value.ival = val;
 	return node;
 }
 
-struct Node *new_Boolean(int val, const size_t line) {
-	struct Node *node = new_Node_0(N_BOOL, NULL, 0, line);
+struct Node *new_Boolean(struct Parser *parser, int val, const size_t line) {
+	struct Node *node = new_Node_0(parser, N_BOOL, NULL, 0, line);
 	node->value.ival = val;
 	return node;
 }
 
-struct Node *new_String(char *value, size_t len, const size_t line) {
-	return new_Node_0(N_STR, value, len, line);
+struct Node *new_String(struct Parser *parser, char *value, size_t len, const size_t line) {
+	return new_Node_0(parser, N_STR, value, len, line);
 }
 
 DEF_NODE(List, N_LIST, values)
 DEF_NODE(Table, N_TABLE, values)
 
-struct Node *new_VariadicContext(const struct Node *const expr, const int expected, const size_t line) {
-	struct Node *node = new_Node_1(N_VARCONT, expr, NULL, 0, line);
+struct Node *new_VariadicContext(struct Parser *parser, const struct Node *const expr, const int expected, const size_t line) {
+	struct Node *node = new_Node_1(parser, N_VARCONT, expr, NULL, 0, line);
 	node->value.ival = expected;
 	return node;
 }
 
 void node_del(struct Node *node) {
+	YASL_UNUSED(node);
+	/*
 	if (!node) return;
 	while (node->children_len-- > 0) {
 		if (node->children[node->children_len] != NULL)
@@ -277,6 +296,51 @@ void node_del(struct Node *node) {
 		break;
 	default:
 		free(node->value.sval.str);
+	}
+	free(node);
+	 */
+}
+
+void node_del2(struct Node *node) {
+	if (!node) return;
+	node_del2(node->next);
+	/*
+	while (node->children_len-- > 0) {
+		if (node->children[node->children_len] != NULL)
+			node_del(node->children[node->children_len]);
+	}
+	 */
+	switch (node->nodetype) {
+	case N_PATALT:
+	case N_BINOP:
+		//node_del(node->value.binop.left);
+		//node_del(node->value.binop.right);
+		break;
+	case N_UNOP:
+		//node_del(node->value.unop.expr);
+		break;
+	case N_VARCONT:
+	case N_TRIOP:
+	case N_BOOL:
+	case N_INT:
+	case N_FLOAT:
+	case N_PATBOOL:
+	case N_PATINT:
+	case N_PATFL:
+		break;
+	case N_VAR:
+	case N_LET:
+	case N_STR:
+	case N_CONST:
+	case N_LETITER:
+	case N_FNDECL:
+	case N_PATCONST:
+	case N_PATLET:
+	case N_PATSTR:
+		free(node->value.sval.str);
+	default:
+		//free(node->value.sval.str);
+		break;
 	}
 	free(node);
 }

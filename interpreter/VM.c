@@ -1286,11 +1286,9 @@ void vm_close_all(struct VM *const vm) {
 }
 
 static void vm_ECHO(struct VM *const vm) {
-	//(void)NCODE(vm);
 	unsigned char top = NCODE(vm);
 	YASL_UNUSED(top);
-	//YASL_ASSERT(NCODE(vm) == vm->sp - vm->fp - 1, "wrong value for top of stack.");
-	//printf("%d\n", vm->sp-1);
+	YASL_ASSERT(top == vm->sp - vm->fp - 1, "wrong value for top of stack.");
 	vm_stringify_top(vm);
 	struct YASL_String *v = vm_popstr(vm);
 	size_t strlen = (int)YASL_String_len(v);
