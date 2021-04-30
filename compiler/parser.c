@@ -364,6 +364,7 @@ static struct Node *parse_fn(struct Parser *const parser) {
 	size_t line = parserline(parser);
 	char *name = eatname(parser);
 	size_t name_len = strlen(name);
+	struct Node *id = new_Let(parser, NULL, name, line);
 	if (matcheattok(parser, T_DOT)) {
 		struct Node *collection = new_Var(parser, name, line);
 		size_t line = parserline(parser);
@@ -388,7 +389,8 @@ static struct Node *parse_fn(struct Parser *const parser) {
 
 	char *name2 = (char *)malloc(name_len + 1);
 	strcpy(name2, name);
-	return new_Let(parser, new_FnDecl(parser, block, body, name2, strlen(name2), line), name, line);
+	id->children[0] = new_FnDecl(parser, block, body, name2, strlen(name2), line);
+	return id;
 	// TODO Fix this ^
 }
 
