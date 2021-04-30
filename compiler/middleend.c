@@ -82,24 +82,16 @@ static void make_bool(struct Node *const node, int val) {
 }
 
 #define FOLD_BINOP_INT_INT(left, right, op, type) \
-make_##type(node, (left)->value.ival op (right)->value.ival);\
-node_del(left);\
-node_del(right);
+make_##type(node, (left)->value.ival op (right)->value.ival);
 
 #define FOLD_BINOP_FLOAT_INT(left, right, op, type) \
-make_##type(node, (left)->value.dval op (yasl_float)(right)->value.ival);\
-node_del(left);\
-node_del(right);
+make_##type(node, (left)->value.dval op (yasl_float)(right)->value.ival);
 
 #define FOLD_BINOP_INT_FLOAT(left, right, op, type) \
-make_##type(node, (yasl_float)(left)->value.ival op (right)->value.dval);\
-node_del(left);\
-node_del(right);
+make_##type(node, (yasl_float)(left)->value.ival op (right)->value.dval);
 
 #define FOLD_BINOP_FLOAT_FLOAT(left, right, op, type) \
-make_##type(node, (left)->value.dval op (right)->value.dval);\
-node_del(left);\
-node_del(right);
+make_##type(node, (left)->value.dval op (right)->value.dval);
 
 static void fold_BinOp(struct Node *const node) {
 	fold(BinOp_get_left(node));
@@ -160,8 +152,6 @@ static void fold_BinOp(struct Node *const node) {
 			break;
 		case T_SLASH:
 			make_float(node, (yasl_float)left->value.ival / (yasl_float)right->value.ival);
-			node_del(left);
-			node_del(right);
 			break;
 		case T_DSLASH:
 			if (right->value.ival != 0) {
@@ -315,19 +305,15 @@ void fold_UnOp(struct Node *const node) {
 		switch (node->value.type) {
 		case T_PLUS:
 			make_int(node, +expr->value.ival);
-			node_del(expr);
 			break;
 		case T_MINUS:
 			make_int(node, -expr->value.ival);
-			node_del(expr);
 			break;
 		case T_BANG:
 			make_bool(node, 0);
-			node_del(expr);
 			break;
 		case T_CARET:
 			make_int(node, ~expr->value.ival);
-			node_del(expr);
 			break;
 		default:
 			break;
@@ -337,7 +323,6 @@ void fold_UnOp(struct Node *const node) {
 		switch (node->value.type) {
 		case T_BANG:
 			make_bool(node, !expr->value.ival);
-			node_del(expr);
 			break;
 		default:
 			break;
@@ -347,15 +332,12 @@ void fold_UnOp(struct Node *const node) {
 		switch (node->value.type) {
 		case T_PLUS:
 			make_float(node, +expr->value.dval);
-			node_del(expr);
 			break;
 		case T_MINUS:
 			make_float(node, -expr->value.dval);
-			node_del(expr);
 			break;
 		case T_BANG:
 			make_bool(node, 0);  // NOTE: safe because we don't have NaN literals
-			node_del(expr);
 			break;
 		default:
 			break;

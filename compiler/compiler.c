@@ -322,15 +322,12 @@ unsigned char *compile(struct Compiler *const compiler) {
 		}
 		eattok(&compiler->parser, T_SEMI);
 		if (compiler->parser.status) {
-			node_del(node);
 			compiler->status |= compiler->parser.status;
 			return NULL;
 		}
 		visit(compiler, node);
 		YASL_ByteBuffer_extend(compiler->code, compiler->buffer->bytes, compiler->buffer->count);
 		compiler->buffer->count = 0;
-
-		node_del(node);
 	}
 	exit_scope(compiler);
 
@@ -353,8 +350,6 @@ unsigned char *compile_REPL(struct Compiler *const compiler) {
 			YASL_ByteBuffer_extend(compiler->code, compiler->buffer->bytes, compiler->buffer->count);
 			compiler->buffer->count = 0;
 		}
-
-		node_del(node);
 	}
 
 	return return_bytes(compiler);

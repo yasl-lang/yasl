@@ -609,7 +609,6 @@ static struct Node *parse_primitivepattern(struct Parser *const parser) {
 		} else if (!strcmp(name, "table")) {
 			n->nodetype = N_PATTABLETYPE;
 		} else {
-			node_del(n);
 			parser_print_err_syntax(parser, "Invalid pattern: %s (line %" PRI_SIZET ").\n", name, line);
 			handle_error(parser);
 		}
@@ -1131,12 +1130,10 @@ static struct Node *parse_string(struct Parser *const parser) {
 			parser->lex.c = lxgetc(parser->lex.file);
 		} else {
 			parser_print_err_syntax(parser, "Expected } in line %" PRI_SIZET ".\n", parserline(parser));
-			node_del(cur_node);
 			handle_error(parser);
 		}
 		lex_eatinterpstringbody(&parser->lex);
 		if (parser->lex.status) {
-			node_del(cur_node);
 			handle_error(parser);
 		};
 		struct Node *str = new_String(parser, parser->lex.value, parser->lex.val_len, parserline(parser));
