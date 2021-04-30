@@ -188,6 +188,4 @@ char *Var_get_name(const struct Node *const node);
 
 void node_del(struct Node *node);
 
-void node_del2(struct Node *node);
-
 #endif

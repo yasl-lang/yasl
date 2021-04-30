@@ -268,9 +268,9 @@ struct Node *new_VariadicContext(struct Parser *parser, const struct Node *const
 	return node;
 }
 
-void node_del2(struct Node *node) {
+void node_del(struct Node *node) {
 	if (!node) return;
-	node_del2(node->next);
+	node_del(node->next);
 	/*
 	while (node->children_len-- > 0) {
 		if (node->children[node->children_len] != NULL)

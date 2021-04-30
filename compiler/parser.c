@@ -126,7 +126,7 @@ static inline enum Token curtok(const struct Parser *const parser) {
 }
 
 void parser_cleanup(struct Parser *const parser) {
-	node_del2(parser->head);
+	node_del(parser->head);
 	lex_cleanup(&parser->lex);
 }
 
