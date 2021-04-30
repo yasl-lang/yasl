@@ -271,21 +271,10 @@ struct Node *new_VariadicContext(struct Parser *parser, const struct Node *const
 void node_del(struct Node *node) {
 	if (!node) return;
 	node_del(node->next);
-	/*
-	while (node->children_len-- > 0) {
-		if (node->children[node->children_len] != NULL)
-			node_del(node->children[node->children_len]);
-	}
-	 */
 	switch (node->nodetype) {
 	case N_PATALT:
 	case N_BINOP:
-		//node_del(node->value.binop.left);
-		//node_del(node->value.binop.right);
-		break;
 	case N_UNOP:
-		//node_del(node->value.unop.expr);
-		break;
 	case N_VARCONT:
 	case N_TRIOP:
 	case N_BOOL:
