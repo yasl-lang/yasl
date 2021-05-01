@@ -1004,6 +1004,9 @@ static struct Node *parse_constant(struct Parser *const parser) {
 		// handle invalid expressions with sensible error messages.
 	case T_ECHO:
 	case T_WHILE:
+	case T_FOR:
+	case T_LET:
+	case T_CONST:
 	case T_BREAK:
 	case T_RET:
 	case T_CONT:
