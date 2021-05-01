@@ -19,7 +19,6 @@ static int YASL_collections_set_fromlist(struct YASL_State *S) {
 	YASL_duptop(S);
 	YASL_len(S);
 	yasl_int len = YASL_popint(S);
-	printf("%ld\n", len);
 
 	for (yasl_int i = 0; i < len; i++) {
 		YASL_listget(S, i);
