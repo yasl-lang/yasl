@@ -27,6 +27,7 @@ static const char *inputs[] = {
   "test/inputs/table/tables.yasl",
   "test/inputs/int/operators.yasl",
   "test/inputs/int/literals.yasl",
+  "test/inputs/int/concat_3.yasl",
   "test/inputs/int/decimal.yasl",
   "test/inputs/int/tobool.yasl",
   "test/inputs/int/hex.yasl",

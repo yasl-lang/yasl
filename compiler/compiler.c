@@ -317,21 +317,17 @@ unsigned char *compile(struct Compiler *const compiler) {
 		if (peof(&compiler->parser)) break;
 		node = parse(&compiler->parser);
 		if (compiler->parser.status) {
-			node_del(node);
 			compiler->status |= compiler->parser.status;
 			return NULL;
 		}
 		eattok(&compiler->parser, T_SEMI);
 		if (compiler->parser.status) {
-			node_del(node);
 			compiler->status |= compiler->parser.status;
 			return NULL;
 		}
 		visit(compiler, node);
 		YASL_ByteBuffer_extend(compiler->code, compiler->buffer->bytes, compiler->buffer->count);
 		compiler->buffer->count = 0;
-
-		node_del(node);
 	}
 	exit_scope(compiler);
 
@@ -354,8 +350,6 @@ unsigned char *compile_REPL(struct Compiler *const compiler) {
 			YASL_ByteBuffer_extend(compiler->code, compiler->buffer->bytes, compiler->buffer->count);
 			compiler->buffer->count = 0;
 		}
-
-		node_del(node);
 	}
 
 	return return_bytes(compiler);
@@ -1080,7 +1074,6 @@ static void visit_If(struct Compiler *const compiler, const struct Node *const n
 
 static void visit_Echo(struct Compiler *const compiler, const struct Node *const node) {
 	visit(compiler, Echo_get_expr(node));
-	//printf("%d\n", (int)scope_len(get_scope_in_use(compiler)));
 	compiler_add_byte(compiler, O_ECHO);
 	compiler_add_byte(compiler, (char)scope_len(get_scope_in_use(compiler)));
 }
