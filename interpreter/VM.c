@@ -1286,6 +1286,9 @@ void vm_close_all(struct VM *const vm) {
 }
 
 static void vm_ECHO(struct VM *const vm) {
+	unsigned char top = NCODE(vm);
+	YASL_UNUSED(top);
+	YASL_ASSERT(top == vm->sp - vm->fp - 1, "wrong value for top of stack.");
 	vm_stringify_top(vm);
 	struct YASL_String *v = vm_popstr(vm);
 	size_t strlen = (int)YASL_String_len(v);
@@ -1488,11 +1491,14 @@ void vm_executenext(struct VM *const vm) {
 	case O_NEWLIST: {
 		struct RC_UserData *ls = rcls_new();
 		ud_setmt(ls, vm->builtins_htable[Y_LIST]);
-		while (vm_peek(vm).type != Y_END) {
-			YASL_List_append((struct YASL_List *) ls->data, vm_pop(vm));
+		int len = 0;
+		while (vm_peek(vm, vm->sp - len).type != Y_END) {
+			len++;
 		}
-		YASL_reverse((struct YASL_List *) ls->data);
-		vm_pop(vm);
+		for (int i = 0; i < len; i++) {
+			YASL_List_append((struct YASL_List *) ls->data, vm_peek(vm, vm->sp - len + i + 1));
+		}
+		vm->sp -= len + 1;
 		vm_push(vm, YASL_LIST(ls));
 		break;
 	}

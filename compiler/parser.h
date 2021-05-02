@@ -14,14 +14,18 @@
 #define TOKEN_MATCHES(parser, ...)  (YAPP_EXPAND(YAPP_CHOOSE4(__VA_ARGS__, T4, T3, T2, T1)(parser, __VA_ARGS__)))
 
 #define NEW_PARSER(fp)\
-  ((struct Parser) {\
+((struct Parser) {\
 	.lex = NEW_LEXER(fp),\
-	.status = YASL_SUCCESS\
-  })
+	.status = YASL_SUCCESS,\
+	.head = NULL,\
+	.tail = NULL,\
+})
 
 struct Parser {
 	struct Lexer lex; /* OWN */
 	int status;
+	struct Node *head;
+	struct Node *tail;
 	jmp_buf env;
 };
 

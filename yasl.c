@@ -404,7 +404,7 @@ int YASL_tableset(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
-int list___get(struct YASL_State *S);
+void list___get_helper(struct YASL_State *S, struct YASL_List *ls, yasl_int index);
 
 void vm_len_unop(struct VM *const vm);
 
@@ -417,8 +417,8 @@ int YASL_listget(struct YASL_State *S, yasl_int n) {
 		return YASL_TYPE_ERROR;
 	}
 
-	YASL_pushint(S, n);
-	list___get(S);
+	struct YASL_List *ls = vm_peeklist(&S->vm);
+	list___get_helper(S, ls, n);
 
 	return YASL_SUCCESS;
 }

@@ -1,0 +1,6 @@
+
+const x = [ 1, 2, 3, .a, .b, .c ]
+
+const s = collections.set(x)
+
+echo s
