@@ -47,7 +47,7 @@ void vm_init(struct VM *const vm,
              const size_t datasize) {      // total params size required to perform a program operations
 	vm->code = code;
 	vm->headers = (unsigned char **)calloc(sizeof(unsigned char *), datasize);
-	vm->headers_size = datasize;
+	vm->headers_size = 1;
 	vm->num_globals = datasize;
 	vm->frame_num = -1;
 	vm->loopframe_num = -1;
@@ -87,7 +87,7 @@ void vm_cleanup(struct VM *const vm) {
 	}
 
 	for (size_t i = 0; i < STACK_SIZE; i++) {
-		dec_ref(vm->stack + i);
+ 		dec_ref(vm->stack + i);
 	}
 	free(vm->stack);
 
@@ -121,6 +121,9 @@ void vm_cleanup(struct VM *const vm) {
 	v = YASL_TABLE(vm->builtins_htable[Y_TABLE]);
 	dec_ref(&v);
 	free(vm->builtins_htable);
+
+	io_cleanup(&vm->out);
+	io_cleanup(&vm->err);
 }
 
 YASL_FORMAT_CHECK static void vm_print_err_wrapper(struct VM *vm, const char *const fmt, ...) {

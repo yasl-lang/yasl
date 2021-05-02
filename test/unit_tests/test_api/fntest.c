@@ -15,10 +15,8 @@ static int TEST_FN(struct YASL_State *S) {
 static void testfncall(void) {
 	const char *code = "";
 	struct YASL_State *S = YASL_newstate_bb(code, strlen(code));
-	//ASSERT_SUCCESS(YASL_declglobal(S, "x"));
 	ASSERT_SUCCESS(YASL_compile(S));
 	ASSERT_SUCCESS(YASL_execute(S));
-	//ASSERT_SUCCESS(YASL_loadglobal(S, "x"));
 	YASL_pushcfunction(S, TEST_FN, 2);
 	YASL_pushint(S, 2);
 	YASL_pushint(S, 5);
