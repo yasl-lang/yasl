@@ -46,7 +46,7 @@ static TEST(testpushbool) {
 	ASSERT_INC(&vm);
 	ASSERT_INC(&vm);
 
-	vm_cleanup(&vm);
+	//vm_cleanup(&vm);
 	return NUM_FAILED;
 }
 
@@ -66,7 +66,7 @@ static TEST(testpushint) {
 
 	ASSERT_INC(&vm);
 
-	vm_cleanup(&vm);
+	//vm_cleanup(&vm);
 	return NUM_FAILED;
 }
 
@@ -86,7 +86,7 @@ static TEST(testpushfloat) {
 
 	ASSERT_INC(&vm);
 
-	vm_cleanup(&vm);
+	//vm_cleanup(&vm);
 	return NUM_FAILED;
 }
 
@@ -108,7 +108,7 @@ static TEST(testpushstr) {
 
 	ASSERT_INC(&vm);
 
-	vm_cleanup(&vm);
+	//vm_cleanup(&vm);
 	return NUM_FAILED;
 }
 

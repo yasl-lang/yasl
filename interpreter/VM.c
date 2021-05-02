@@ -47,8 +47,7 @@ void vm_init(struct VM *const vm,
              const size_t datasize) {      // total params size required to perform a program operations
 	vm->code = code;
 	vm->headers = (unsigned char **)calloc(sizeof(unsigned char *), datasize);
-	vm->headers_size = 1;
-	vm->num_globals = datasize;
+	vm->headers_size = datasize;
 	vm->frame_num = -1;
 	vm->loopframe_num = -1;
 	vm->out = NEW_IO(stdout);
