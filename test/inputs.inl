@@ -37,6 +37,7 @@ static const char *inputs[] = {
   "test/inputs/binops.yasl",
   "test/inputs/collections/set.yasl",
   "test/inputs/collections/contains.yasl",
+  "test/inputs/collections/set_fromlist.yasl",
   "test/inputs/collections/table.yasl",
   "test/inputs/collections/list.yasl",
   "test/inputs/str/operators.yasl",

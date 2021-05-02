@@ -21,10 +21,7 @@ int list___len(struct YASL_State *S) {
 	return 1;
 }
 
-int list___get(struct YASL_State *S) {
-	yasl_int index = YASLX_checknint(S, "list.__get", 1);
-	struct YASL_List *ls = YASLX_checknlist(S, "list.__get", 0);
-
+void list___get_helper(struct YASL_State *S, struct YASL_List *ls, yasl_int index) {
 	if (index < -(int64_t) ls->count || index >= (int64_t) ls->count) {
 		vm_print_err_value(&S->vm, "unable to index list of length %" PRI_SIZET " with index %" PRI_SIZET ".", ls->count, index);
 		YASL_throw_err(S, YASL_VALUE_ERROR);
@@ -35,6 +32,13 @@ int list___get(struct YASL_State *S) {
 			vm_push((struct VM *) S, ls->items[index + ls->count]);
 		}
 	}
+}
+
+int list___get(struct YASL_State *S) {
+	yasl_int index = YASLX_checknint(S, "list.__get", 1);
+	struct YASL_List *ls = YASLX_checknlist(S, "list.__get", 0);
+
+	list___get_helper(S, ls, index);
 	return 1;
 }
 
