@@ -133,6 +133,7 @@ YASL_FORMAT_CHECK static void vm_print_err_wrapper(struct VM *vm, const char *co
 }
 
 static void vm_exitframe(struct VM *const vm);
+void vm_executenext(struct VM *const vm);
 
 static size_t vm_getcurrline(struct VM *vm) {
 	size_t start = ((int64_t *)vm->code)[0];
@@ -299,6 +300,7 @@ static void vm_GET(struct VM *const vm);
 static void vm_INIT_CALL(struct VM *const vm, int expected_returns);
 void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns);
 void vm_CALL(struct VM *const vm);
+void vm_CALL_now(struct VM *const vm);
 
 static void vm_call_now_2(struct VM *vm, struct YASL_Object a, struct YASL_Object b) {
 	vm_INIT_CALL(vm, 1);
@@ -559,7 +561,7 @@ void vm_stringify_top(struct VM *const vm) {
 		vm_lookup_method_throwing(vm, "tostr", "tostr not supported for operand of type %s.", obj_typename(vm_peek_p(vm)));
 		vm_swaptop(vm);
 		vm_INIT_CALL_offset(vm, vm->sp - 1, 1);
-		vm_CALL(vm);
+		vm_CALL_now(vm);
 	}
 }
 
@@ -784,7 +786,6 @@ static int lookup2(struct VM *vm, struct YASL_Table *mt) {
 		vm_shifttopdown(vm, 2);
 		vm_INIT_CALL_offset(vm, vm->sp - 2, 1);
 		vm_CALL(vm);
-		//vm_call_now_2(vm, obj, index);
 		return YASL_SUCCESS;
 	}
 	return YASL_VALUE_ERROR;
@@ -1267,6 +1268,14 @@ void vm_CALL(struct VM *const vm) {
 		vm_CALL_cfn(vm);
 	} else if (vm_isclosure(vm, vm->fp)) {
 		vm_CALL_closure(vm);
+	}
+}
+
+void vm_CALL_now(struct VM *const vm) {
+	int fp = vm->fp;
+	vm_CALL(vm);
+	while (fp < vm->fp) {
+		vm_executenext(vm);
 	}
 }
 
