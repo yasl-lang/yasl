@@ -1,0 +1,49 @@
+
+const multisetmt = {} | mt.get({}) | {
+        .__get: fn(self, k) {
+                return {}.__get(self, k) ?? 0;
+        },
+        .__set: fn(self, k, v) {
+                match v {
+                0 {
+                        {}.__set(self, k, undef)
+                }
+                int {
+                    if v > 0 {
+                            return {}.__set(self, k, v)
+                    } else {
+                            assert false
+                    }
+                }
+                * {
+                    assert false
+                }
+                }
+        },
+        .tostr: fn(self) {
+                const buffer = []
+                for k <- self {
+                        buffer->push("#{k}: #{self[k]}")
+                }
+                return "multiset(#{buffer->join(', ')})"
+        }
+}
+
+const fn multiset() {
+        const tmp = {}
+        mt.set(tmp, multisetmt)
+
+        return tmp
+}
+
+const m = multiset()
+
+m['k'] = 10
+m['j'] += 5
+
+echo m
+
+m.k -= 1
+m.j = 0
+
+echo m
