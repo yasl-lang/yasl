@@ -563,6 +563,10 @@ void vm_stringify_top(struct VM *const vm) {
 		vm_INIT_CALL_offset(vm, vm->sp - 1, 1);
 		vm_CALL_now(vm);
 	}
+	if (!vm_isstr(vm)) {
+		vm_print_err_type(vm, "Could not stringify value, got: %s", obj_typename(vm_peek_p(vm)));
+		vm_throw_err(vm, YASL_TYPE_ERROR);
+	}
 }
 
 static struct Upvalue *add_upvalue(struct VM *const vm, struct YASL_Object *const location) {
