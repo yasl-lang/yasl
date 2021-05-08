@@ -328,7 +328,7 @@ do {\
 
 #define vm_call_method_now_1_top(vm, method_name, ...) do {\
 	vm_duptop(vm);\
-	vm_lookup_method_throwing(vm, method_name, __VA_ARGS__, obj_typename(vm_peek_p(vm)));\
+	vm_lookup_method_throwing(vm, method_name, __VA_ARGS__, vm_peektypename(vm));\
 	vm_swaptop(vm);\
 	vm_INIT_CALL_offset(vm, vm->sp - 1, 1);\
 	vm_CALL(vm);\
@@ -558,13 +558,13 @@ void vm_stringify_top(struct VM *const vm) {
 		vm_pushstr(vm, YASL_String_new_sized_heap(0, strlen(buffer), buffer));
 	} else {
 		vm_duptop(vm);
-		vm_lookup_method_throwing(vm, "tostr", "tostr not supported for operand of type %s.", obj_typename(vm_peek_p(vm)));
+		vm_lookup_method_throwing(vm, "tostr", "tostr not supported for operand of type %s.", vm_peektypename(vm));
 		vm_swaptop(vm);
 		vm_INIT_CALL_offset(vm, vm->sp - 1, 1);
 		vm_CALL_now(vm);
 	}
 	if (!vm_isstr(vm)) {
-		vm_print_err_type(vm, "Could not stringify value, got: %s", obj_typename(vm_peek_p(vm)));
+		vm_print_err_type(vm, "Could not stringify value, got: %s", vm_peektypename(vm));
 		vm_throw_err(vm, YASL_TYPE_ERROR);
 	}
 }
@@ -633,8 +633,8 @@ static void vm_SLICE_list(struct VM *const vm) {
 		if (end > len) end = len;
 	} else {
 		vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
-				  obj_typename(vm_peek_p(vm, vm->sp - 1)),
-				  obj_typename(vm_peek_p(vm, vm->sp))
+				  (vm_peektypename(vm, vm->sp - 1)),
+				  (vm_peektypename(vm, vm->sp))
 		);
 		vm_throw_err(vm, YASL_TYPE_ERROR);
 	}
@@ -648,8 +648,8 @@ static void vm_SLICE_list(struct VM *const vm) {
 		if (start < 0) start = 0;
 	} else {
 		vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
-				  obj_typename(vm_peek_p(vm, vm->sp - 1)),
-				  obj_typename(vm_peek_p(vm, vm->sp))
+				  (vm_peektypename(vm, vm->sp - 1)),
+				  (vm_peektypename(vm, vm->sp))
 		);
 		vm_throw_err(vm, YASL_TYPE_ERROR);
 	}
@@ -680,8 +680,8 @@ static void vm_SLICE_str(struct VM *const vm){
 		if (end > len) end = len;
 	} else {
 		vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
-				  obj_typename(vm_peek_p(vm, vm->sp - 1)),
-				  obj_typename(vm_peek_p(vm, vm->sp))
+				  (vm_peektypename(vm, vm->sp - 1)),
+				  (vm_peektypename(vm, vm->sp))
 		);
 		vm_throw_err(vm, YASL_TYPE_ERROR);
 	}
@@ -695,8 +695,8 @@ static void vm_SLICE_str(struct VM *const vm){
 		if (start < 0) start = 0;
 	} else {
 		vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
-				  obj_typename(vm_peek_p(vm, vm->sp - 1)),
-				  obj_typename(vm_peek_p(vm, vm->sp))
+				  (vm_peektypename(vm, vm->sp - 1)),
+				  (vm_peektypename(vm, vm->sp))
 		);
 		vm_throw_err(vm, YASL_TYPE_ERROR);
 	}
@@ -1190,7 +1190,7 @@ static void vm_exitframe(struct VM *const vm) {
 
 void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns) {
 	if (!vm_isfn(vm, offset) && !vm_iscfn(vm, offset) && !vm_isclosure(vm, offset)) {
-		const char *name = obj_typename(vm_peek_p(vm, offset));
+		const char *name = (vm_peektypename(vm, offset));
 		vm_lookup_method_throwing(vm, "__call", "%s is not callable.", name);
 	}
 

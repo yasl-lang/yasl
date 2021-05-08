@@ -26,6 +26,8 @@
 #define vm_peek(...) YAPP_EXPAND(YAPP_CHOOSE2(__VA_ARGS__, vm_peek_offset, vm_peek_default,)(__VA_ARGS__))
 #define vm_peek_p(...) YAPP_EXPAND(YAPP_CHOOSE2(__VA_ARGS__, vm_peek_offset_p, vm_peek_default_p,)(__VA_ARGS__))
 
+#define vm_peektypename(...) obj_typename(vm_peek_p(__VA_ARGS__))
+
 #define vm_peekbool(...) YAPP_EXPAND(obj_getbool(vm_peek_p(__VA_ARGS__)))
 #define vm_peekfloat(...) YAPP_EXPAND(obj_getfloat(vm_peek_p(__VA_ARGS__)))
 #define vm_peekint(...) YAPP_EXPAND(obj_getint(vm_peek_p(__VA_ARGS__)))
