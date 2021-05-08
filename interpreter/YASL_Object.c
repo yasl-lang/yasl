@@ -35,7 +35,7 @@ struct CFunction *new_cfn(YASL_cfn value, int num_args) {
 	struct CFunction *fn = (struct CFunction *) malloc(sizeof(struct CFunction));
 	fn->value = value;
 	fn->num_args = num_args;
-	fn->rc = rc_new();
+	fn->rc = NEW_RC();
 	return fn;
 }
 
@@ -44,7 +44,7 @@ void cfn_del_data(struct CFunction *cfn) {
 }
 
 void cfn_del_rc(struct CFunction *cfn) {
-	rc_del(cfn->rc);
+	// rc_del(cfn->rc);
 	free(cfn);
 }
 

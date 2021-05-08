@@ -601,7 +601,7 @@ static void vm_CCONST(struct VM *const vm) {
 	struct Closure *closure = (struct Closure *)malloc(sizeof(struct Closure) + num_upvalues*sizeof(struct Upvalue *));
 	closure->f = start;
 	closure->num_upvalues = num_upvalues;
-	closure->rc = rc_new();
+	closure->rc = NEW_RC();
 
 	for (size_t i = 0; i < num_upvalues; i++) {
 		unsigned char u = NCODE(vm);
@@ -610,7 +610,7 @@ static void vm_CCONST(struct VM *const vm) {
 		} else {
 			closure->upvalues[i] = vm->stack[vm->fp].value.lval->upvalues[~(signed char)u];
 		}
-		closure->upvalues[i]->rc->refs++;
+		closure->upvalues[i]->rc.refs++;
 	}
 
 	vm_push(vm, ((struct YASL_Object){.type = Y_CLOSURE, .value = {.lval = closure}}));

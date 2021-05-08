@@ -44,10 +44,10 @@ static void inc_strong_ref(struct YASL_Object *v) {
 		v->value.uval->rc.refs++;
 		break;
 	case Y_CFN:
-		v->value.cval->rc->refs++;
+		v->value.cval->rc.refs++;
 		break;
 	case Y_CLOSURE:
-		v->value.lval->rc->refs++;
+		v->value.lval->rc.refs++;
 		break;
 	default:
 		/* do nothing */
@@ -117,16 +117,16 @@ void dec_strong_ref(struct YASL_Object *v) {
 		v->type = Y_UNDEF;
 		break;
 	case Y_CFN:
-		if (--(v->value.cval->rc->refs)) return;
+		if (--(v->value.cval->rc.refs)) return;
 		cfn_del_data(v->value.cval);
-		if (v->value.cval->rc->weak_refs) return;
+		if (v->value.cval->rc.weak_refs) return;
 		cfn_del_rc(v->value.cval);
 		v->type = Y_UNDEF;
 		break;
 	case Y_CLOSURE:
-		if (--(v->value.lval->rc->refs)) return;
+		if (--(v->value.lval->rc.refs)) return;
 		closure_del_data(v->value.lval);
-		if (v->value.lval->rc->weak_refs) return;
+		if (v->value.lval->rc.weak_refs) return;
 		closure_del_rc(v->value.lval);
 		v->type = Y_UNDEF;
 		break;

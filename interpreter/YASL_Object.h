@@ -44,7 +44,7 @@ struct YASL_Object {
 };
 
 struct CFunction {
-	struct RC *rc;
+	struct RC rc;
 	int num_args;
 	YASL_cfn value;
 };
