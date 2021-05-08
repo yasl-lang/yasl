@@ -10,6 +10,8 @@ struct RC {
     size_t weak_refs;
 };
 
+#define NEW_RC() ((struct RC) { 0, 0 })
+
 struct RC *rc_new(void);
 void rc_del(struct RC *rc);
 

@@ -19,7 +19,7 @@ struct RC_UserData* rcls_new_sized(const size_t base_size) {
 	struct RC_UserData *ls = (struct RC_UserData *)malloc(sizeof(struct RC_UserData));
 
 	ls->data = YASL_List_new_sized(base_size);
-	ls->rc = rc_new();
+	ls->rc = NEW_RC();
 	ls->mt = NULL;
 	ls->destructor = YASL_List_del_data;
 	ls->tag = LIST_NAME;

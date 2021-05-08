@@ -1,11 +1,12 @@
 #ifndef YASL_USERDATA_H_
 #define YASL_USERDATA_H_
 
+#include "refcount.h"
+
 struct YASL_Table;
-struct RC;
 
 struct RC_UserData {
-	struct RC *rc;        // DO NOT REARRANGE. RC MUST BE THE FIRST MEMBER OF THIS STRUCT.
+	struct RC rc;        // DO NOT REARRANGE. RC MUST BE THE FIRST MEMBER OF THIS STRUCT.
 	const char *tag;
 	void (*destructor)(void *);
 	struct RC_UserData *mt;

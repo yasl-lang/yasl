@@ -25,19 +25,19 @@
 static struct RC_UserData **builtins_htable_new(struct VM *const vm) {
 	struct RC_UserData **ht = (struct RC_UserData **) malloc(sizeof(struct RC_UserData *) * NUM_TYPES);
 	ht[Y_UNDEF] = ud_new(undef_builtins(vm), TABLE_NAME, NULL, rcht_del_data);
-	ht[Y_UNDEF]->rc->refs++;
+	ht[Y_UNDEF]->rc.refs++;
 	ht[Y_FLOAT] = ud_new(float_builtins(vm), TABLE_NAME, NULL, rcht_del_data);
-	ht[Y_FLOAT]->rc->refs++;
+	ht[Y_FLOAT]->rc.refs++;
 	ht[Y_INT] = ud_new(int_builtins(vm), TABLE_NAME, NULL, rcht_del_data);
-	ht[Y_INT]->rc->refs++;
+	ht[Y_INT]->rc.refs++;
 	ht[Y_BOOL] = ud_new(bool_builtins(vm), TABLE_NAME, NULL, rcht_del_data);
-	ht[Y_BOOL]->rc->refs++;
+	ht[Y_BOOL]->rc.refs++;
 	ht[Y_STR] = ud_new(str_builtins(vm), TABLE_NAME, NULL, rcht_del_data);
-	ht[Y_STR]->rc->refs++;
+	ht[Y_STR]->rc.refs++;
 	ht[Y_LIST] = ud_new(list_builtins(vm), TABLE_NAME, NULL, rcht_del_data);
-	ht[Y_LIST]->rc->refs++;
+	ht[Y_LIST]->rc.refs++;
 	ht[Y_TABLE] = ud_new(table_builtins(vm), TABLE_NAME, NULL, rcht_del_data);
-	ht[Y_TABLE]->rc->refs++;
+	ht[Y_TABLE]->rc.refs++;
 	return ht;
 }
 

@@ -48,7 +48,7 @@ void YASL_Table_del(struct YASL_Table *const table) {
 struct RC_UserData *rcht_new_sized(const size_t base_size) {
         struct RC_UserData *ht = (struct RC_UserData *)malloc(sizeof(struct RC_UserData));
         ht->data = table_new_sized(base_size);
-        ht->rc = rc_new();
+        ht->rc = NEW_RC();
         ht->tag = TABLE_NAME;
         ht->destructor = rcht_del_data;
         ht->mt = NULL;
@@ -61,7 +61,7 @@ struct RC_UserData *rcht_new(void) {
 
 void rcht_del(struct RC_UserData *const hashtable) {
 	YASL_Table_del((struct YASL_Table *) hashtable->data);
-	rc_del(hashtable->rc);
+	// rc_del(hashtable->rc);
 	free(hashtable);
 }
 
@@ -70,7 +70,7 @@ void rcht_del_data(void *hashtable) {
 }
 
 void rcht_del_rc(struct RC_UserData *const hashtable) {
-	rc_del(hashtable->rc);
+	// rc_del(hashtable->rc);
 	free(hashtable);
 }
 

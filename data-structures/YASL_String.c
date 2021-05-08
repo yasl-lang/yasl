@@ -55,7 +55,7 @@ struct YASL_String *YASL_String_new_substring(const size_t start, const size_t e
 		str->end = end;
 		str->str = string->str;
 	}
-	str->rc = rc_new();
+	str->rc = NEW_RC();
 	return str;
 }
 
@@ -65,7 +65,7 @@ struct YASL_String *YASL_String_new_sized(const size_t base_size, const char *co
 	str->end = base_size;
 	str->str = (char *) ptr;
 	str->on_heap = false;
-	str->rc = rc_new();
+	str->rc = NEW_RC();
 	return str;
 }
 
@@ -75,7 +75,7 @@ struct YASL_String* YASL_String_new_sized_heap(const size_t start, const size_t 
 	str->end = end;
 	str->str = (char *) mem;
 	str->on_heap = true;
-	str->rc = rc_new();
+	str->rc = NEW_RC();
 	return str;
 }
 
@@ -84,13 +84,13 @@ void str_del_data(struct YASL_String *const str) {
 }
 
 void str_del_rc(struct YASL_String *const str) {
-	rc_del(str->rc);
+	//rc_del(str->rc);
 	free(str);
 }
 
 void str_del(struct YASL_String *const str) {
 	if (str->on_heap) free((void *) str->str);
-	rc_del(str->rc);
+	//rc_del(str->rc);
 	free(str);
 }
 
