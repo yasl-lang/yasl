@@ -6,8 +6,8 @@
 struct YASL_Object;
 
 struct RC {
-    size_t refs;
-    size_t weak_refs;
+	size_t refs;
+	size_t weak_refs;
 };
 
 #define NEW_RC() ((struct RC) { 0, 0 })
