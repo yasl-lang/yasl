@@ -84,13 +84,11 @@ void str_del_data(struct YASL_String *const str) {
 }
 
 void str_del_rc(struct YASL_String *const str) {
-	//rc_del(str->rc);
 	free(str);
 }
 
 void str_del(struct YASL_String *const str) {
 	if (str->on_heap) free((void *) str->str);
-	//rc_del(str->rc);
 	free(str);
 }
 

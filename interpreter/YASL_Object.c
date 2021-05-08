@@ -44,7 +44,6 @@ void cfn_del_data(struct CFunction *cfn) {
 }
 
 void cfn_del_rc(struct CFunction *cfn) {
-	// rc_del(cfn->rc);
 	free(cfn);
 }
 

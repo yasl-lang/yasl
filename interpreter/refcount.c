@@ -7,17 +7,6 @@
 #include "YASL_Object.h"
 #include "interpreter/closure.h"
 
-struct RC *rc_new(void) {
-	struct RC *rc = (struct RC *)malloc(sizeof(struct RC));
-	rc->refs = 0;
-	rc->weak_refs = 0;
-	return rc;
-}
-
-void rc_del(struct RC *rc) {
-	free(rc);
-}
-
 static void inc_weak_ref(struct YASL_Object *v) {
 	switch (v->type) {
 	case Y_STR_W:

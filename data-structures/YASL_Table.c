@@ -61,17 +61,11 @@ struct RC_UserData *rcht_new(void) {
 
 void rcht_del(struct RC_UserData *const hashtable) {
 	YASL_Table_del((struct YASL_Table *) hashtable->data);
-	// rc_del(hashtable->rc);
 	free(hashtable);
 }
 
 void rcht_del_data(void *hashtable) {
 	YASL_Table_del((struct YASL_Table *) hashtable);
-}
-
-void rcht_del_rc(struct RC_UserData *const hashtable) {
-	// rc_del(hashtable->rc);
-	free(hashtable);
 }
 
 static void table_resize(struct YASL_Table *const table, const size_t base_size) {

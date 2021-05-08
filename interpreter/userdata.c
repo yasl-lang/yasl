@@ -23,13 +23,11 @@ void ud_del_data(struct RC_UserData *ud) {
 }
 
 void ud_del_rc(struct RC_UserData *ud) {
-	// rc_del(ud->rc);
 	free(ud);
 }
 
 void ud_del(struct RC_UserData *ud) {
 	ud->destructor(ud->data);
-	// rc_del(ud->rc);
 	free(ud);
 }
 
