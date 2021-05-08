@@ -1,14 +1,14 @@
 #ifndef YASL_YASL_STRING_H_
 #define YASL_YASL_STRING_H_
 
+#include "refcount.h"
 #include "yasl_conf.h"
 #include "yasl_include.h"
 
-struct RC;
 struct YASL_List;
 
 struct YASL_String {
-	struct RC *rc;      // NOTE: RC MUST BE THE FIRST MEMBER OF THIS STRUCT. DO NOT REARRANGE.
+	struct RC rc;      // NOTE: RC MUST BE THE FIRST MEMBER OF THIS STRUCT. DO NOT REARRANGE.
 	char *str;
 	size_t start;
 	size_t end;

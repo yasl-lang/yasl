@@ -64,7 +64,6 @@ static void testsetglobal_szstr(void) {
 	YASL_pushzstr(S, tmp);
 	free(tmp);
 	ASSERT_SUCCESS(YASL_setglobal(S, "x"));
-	ASSERT_SUCCESS(YASL_compile(S));
 	ASSERT_SUCCESS(YASL_execute(S));
 	YASL_delstate(S);
 }
@@ -75,7 +74,6 @@ static void testsetglobal_litstr(void) {
 	ASSERT_SUCCESS(YASL_declglobal(S, "x"));
 	YASL_pushlit(S, "hello world");
 	ASSERT_SUCCESS(YASL_setglobal(S, "x"));
-	ASSERT_SUCCESS(YASL_compile(S));
 	ASSERT_SUCCESS(YASL_execute(S));
 	YASL_delstate(S);
 }
@@ -86,7 +84,6 @@ static void testsetglobal_list(void) {
 	ASSERT_SUCCESS(YASL_declglobal(S, "x"));
 	YASL_pushlist(S);
 	ASSERT_SUCCESS(YASL_setglobal(S, "x"));
-	ASSERT_SUCCESS(YASL_compile(S));
 	ASSERT_SUCCESS(YASL_execute(S));
 	YASL_delstate(S);
 }

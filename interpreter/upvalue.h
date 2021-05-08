@@ -5,7 +5,7 @@
 #include "refcount.h"
 
 struct Upvalue {
-	struct RC *rc;                 // NOTE: RC MUST BE THE FIRST MEMBER OF THIS STRUCT. DO NOT REARRANGE.
+	struct RC rc;                 // NOTE: RC MUST BE THE FIRST MEMBER OF THIS STRUCT. DO NOT REARRANGE.
 	struct YASL_Object *location;
 	struct YASL_Object closed;
 	struct Upvalue *next;

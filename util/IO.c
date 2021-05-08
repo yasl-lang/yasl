@@ -56,3 +56,9 @@ size_t io_str_strip_char(char *dest, const char *src, size_t n, char rem)
 	#endif
 	return ct;
 }
+
+void io_cleanup(struct IO *const io) {
+	free(io->string);
+	//fclose(io->file);
+
+}

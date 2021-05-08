@@ -25,19 +25,19 @@
 static struct RC_UserData **builtins_htable_new(struct VM *const vm) {
 	struct RC_UserData **ht = (struct RC_UserData **) malloc(sizeof(struct RC_UserData *) * NUM_TYPES);
 	ht[Y_UNDEF] = ud_new(undef_builtins(vm), TABLE_NAME, NULL, rcht_del_data);
-	ht[Y_UNDEF]->rc->refs++;
+	ht[Y_UNDEF]->rc.refs++;
 	ht[Y_FLOAT] = ud_new(float_builtins(vm), TABLE_NAME, NULL, rcht_del_data);
-	ht[Y_FLOAT]->rc->refs++;
+	ht[Y_FLOAT]->rc.refs++;
 	ht[Y_INT] = ud_new(int_builtins(vm), TABLE_NAME, NULL, rcht_del_data);
-	ht[Y_INT]->rc->refs++;
+	ht[Y_INT]->rc.refs++;
 	ht[Y_BOOL] = ud_new(bool_builtins(vm), TABLE_NAME, NULL, rcht_del_data);
-	ht[Y_BOOL]->rc->refs++;
+	ht[Y_BOOL]->rc.refs++;
 	ht[Y_STR] = ud_new(str_builtins(vm), TABLE_NAME, NULL, rcht_del_data);
-	ht[Y_STR]->rc->refs++;
+	ht[Y_STR]->rc.refs++;
 	ht[Y_LIST] = ud_new(list_builtins(vm), TABLE_NAME, NULL, rcht_del_data);
-	ht[Y_LIST]->rc->refs++;
+	ht[Y_LIST]->rc.refs++;
 	ht[Y_TABLE] = ud_new(table_builtins(vm), TABLE_NAME, NULL, rcht_del_data);
-	ht[Y_TABLE]->rc->refs++;
+	ht[Y_TABLE]->rc.refs++;
 	return ht;
 }
 
@@ -48,7 +48,6 @@ void vm_init(struct VM *const vm,
 	vm->code = code;
 	vm->headers = (unsigned char **)calloc(sizeof(unsigned char *), datasize);
 	vm->headers_size = datasize;
-	vm->num_globals = datasize;
 	vm->frame_num = -1;
 	vm->loopframe_num = -1;
 	vm->out = NEW_IO(stdout);
@@ -87,7 +86,7 @@ void vm_cleanup(struct VM *const vm) {
 	}
 
 	for (size_t i = 0; i < STACK_SIZE; i++) {
-		dec_ref(vm->stack + i);
+ 		dec_ref(vm->stack + i);
 	}
 	free(vm->stack);
 
@@ -121,6 +120,9 @@ void vm_cleanup(struct VM *const vm) {
 	v = YASL_TABLE(vm->builtins_htable[Y_TABLE]);
 	dec_ref(&v);
 	free(vm->builtins_htable);
+
+	io_cleanup(&vm->out);
+	io_cleanup(&vm->err);
 }
 
 YASL_FORMAT_CHECK static void vm_print_err_wrapper(struct VM *vm, const char *const fmt, ...) {
@@ -131,6 +133,7 @@ YASL_FORMAT_CHECK static void vm_print_err_wrapper(struct VM *vm, const char *co
 }
 
 static void vm_exitframe(struct VM *const vm);
+void vm_executenext(struct VM *const vm);
 
 static size_t vm_getcurrline(struct VM *vm) {
 	size_t start = ((int64_t *)vm->code)[0];
@@ -297,6 +300,7 @@ static void vm_GET(struct VM *const vm);
 static void vm_INIT_CALL(struct VM *const vm, int expected_returns);
 void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns);
 void vm_CALL(struct VM *const vm);
+void vm_CALL_now(struct VM *const vm);
 
 static void vm_call_now_2(struct VM *vm, struct YASL_Object a, struct YASL_Object b) {
 	vm_INIT_CALL(vm, 1);
@@ -324,7 +328,7 @@ do {\
 
 #define vm_call_method_now_1_top(vm, method_name, ...) do {\
 	vm_duptop(vm);\
-	vm_lookup_method_throwing(vm, method_name, __VA_ARGS__, obj_typename(vm_peek_p(vm)));\
+	vm_lookup_method_throwing(vm, method_name, __VA_ARGS__, vm_peektypename(vm));\
 	vm_swaptop(vm);\
 	vm_INIT_CALL_offset(vm, vm->sp - 1, 1);\
 	vm_CALL(vm);\
@@ -554,10 +558,14 @@ void vm_stringify_top(struct VM *const vm) {
 		vm_pushstr(vm, YASL_String_new_sized_heap(0, strlen(buffer), buffer));
 	} else {
 		vm_duptop(vm);
-		vm_lookup_method_throwing(vm, "tostr", "tostr not supported for operand of type %s.", obj_typename(vm_peek_p(vm)));
+		vm_lookup_method_throwing(vm, "tostr", "tostr not supported for operand of type %s.", vm_peektypename(vm));
 		vm_swaptop(vm);
 		vm_INIT_CALL_offset(vm, vm->sp - 1, 1);
-		vm_CALL(vm);
+		vm_CALL_now(vm);
+	}
+	if (!vm_isstr(vm)) {
+		vm_print_err_type(vm, "Could not stringify value, got: %s", vm_peektypename(vm));
+		vm_throw_err(vm, YASL_TYPE_ERROR);
 	}
 }
 
@@ -597,7 +605,7 @@ static void vm_CCONST(struct VM *const vm) {
 	struct Closure *closure = (struct Closure *)malloc(sizeof(struct Closure) + num_upvalues*sizeof(struct Upvalue *));
 	closure->f = start;
 	closure->num_upvalues = num_upvalues;
-	closure->rc = rc_new();
+	closure->rc = NEW_RC();
 
 	for (size_t i = 0; i < num_upvalues; i++) {
 		unsigned char u = NCODE(vm);
@@ -606,7 +614,7 @@ static void vm_CCONST(struct VM *const vm) {
 		} else {
 			closure->upvalues[i] = vm->stack[vm->fp].value.lval->upvalues[~(signed char)u];
 		}
-		closure->upvalues[i]->rc->refs++;
+		closure->upvalues[i]->rc.refs++;
 	}
 
 	vm_push(vm, ((struct YASL_Object){.type = Y_CLOSURE, .value = {.lval = closure}}));
@@ -625,8 +633,8 @@ static void vm_SLICE_list(struct VM *const vm) {
 		if (end > len) end = len;
 	} else {
 		vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
-				  obj_typename(vm_peek_p(vm, vm->sp - 1)),
-				  obj_typename(vm_peek_p(vm, vm->sp))
+				  (vm_peektypename(vm, vm->sp - 1)),
+				  (vm_peektypename(vm, vm->sp))
 		);
 		vm_throw_err(vm, YASL_TYPE_ERROR);
 	}
@@ -640,8 +648,8 @@ static void vm_SLICE_list(struct VM *const vm) {
 		if (start < 0) start = 0;
 	} else {
 		vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
-				  obj_typename(vm_peek_p(vm, vm->sp - 1)),
-				  obj_typename(vm_peek_p(vm, vm->sp))
+				  (vm_peektypename(vm, vm->sp - 1)),
+				  (vm_peektypename(vm, vm->sp))
 		);
 		vm_throw_err(vm, YASL_TYPE_ERROR);
 	}
@@ -672,8 +680,8 @@ static void vm_SLICE_str(struct VM *const vm){
 		if (end > len) end = len;
 	} else {
 		vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
-				  obj_typename(vm_peek_p(vm, vm->sp - 1)),
-				  obj_typename(vm_peek_p(vm, vm->sp))
+				  (vm_peektypename(vm, vm->sp - 1)),
+				  (vm_peektypename(vm, vm->sp))
 		);
 		vm_throw_err(vm, YASL_TYPE_ERROR);
 	}
@@ -687,8 +695,8 @@ static void vm_SLICE_str(struct VM *const vm){
 		if (start < 0) start = 0;
 	} else {
 		vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
-				  obj_typename(vm_peek_p(vm, vm->sp - 1)),
-				  obj_typename(vm_peek_p(vm, vm->sp))
+				  (vm_peektypename(vm, vm->sp - 1)),
+				  (vm_peektypename(vm, vm->sp))
 		);
 		vm_throw_err(vm, YASL_TYPE_ERROR);
 	}
@@ -782,7 +790,6 @@ static int lookup2(struct VM *vm, struct YASL_Table *mt) {
 		vm_shifttopdown(vm, 2);
 		vm_INIT_CALL_offset(vm, vm->sp - 2, 1);
 		vm_CALL(vm);
-		//vm_call_now_2(vm, obj, index);
 		return YASL_SUCCESS;
 	}
 	return YASL_VALUE_ERROR;
@@ -1183,7 +1190,7 @@ static void vm_exitframe(struct VM *const vm) {
 
 void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns) {
 	if (!vm_isfn(vm, offset) && !vm_iscfn(vm, offset) && !vm_isclosure(vm, offset)) {
-		const char *name = obj_typename(vm_peek_p(vm, offset));
+		const char *name = (vm_peektypename(vm, offset));
 		vm_lookup_method_throwing(vm, "__call", "%s is not callable.", name);
 	}
 
@@ -1265,6 +1272,14 @@ void vm_CALL(struct VM *const vm) {
 		vm_CALL_cfn(vm);
 	} else if (vm_isclosure(vm, vm->fp)) {
 		vm_CALL_closure(vm);
+	}
+}
+
+void vm_CALL_now(struct VM *const vm) {
+	int fp = vm->fp;
+	vm_CALL(vm);
+	while (fp < vm->fp) {
+		vm_executenext(vm);
 	}
 }
 

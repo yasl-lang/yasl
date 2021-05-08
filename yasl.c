@@ -378,7 +378,7 @@ bool YASL_tablenext(struct YASL_State *S) {
 	size_t index = obj_isundef(&key) ? 0 : YASL_Table_getindex(table, key) + 1;
 
 	while (table->size > index &&
-	       table->items[index].key.type == Y_END || table->items[index].key.type == Y_UNDEF) {
+		(table->items[index].key.type == Y_END || table->items[index].key.type == Y_UNDEF)) {
 		index++;
 	}
 

@@ -88,7 +88,6 @@ int YASL_require(struct YASL_State *S) {
 	Ss->vm.metatables = NULL;
 
 	Ss->vm.code = NULL;
-	S->vm.headers_size = S->vm.num_globals = new_headers_size;
 	Ss->compiler.strings = NULL;
 	Ss->compiler.header = YASL_ByteBuffer_new(0);
 	for (int i = 0; i < S->vm.num_constants; i++) {

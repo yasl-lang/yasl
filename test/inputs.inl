@@ -162,6 +162,7 @@ static const char *inputs[] = {
   "test/inputs/float/floats.yasl",
   "test/inputs/empty.yasl",
   "test/inputs/require/require.yasl",
+  "test/inputs/multiset.yasl",
   "test/inputs/mt/setmt.yasl",
   "test/inputs/mt/mt.yasl",
   "test/inputs/refcount.yasl",

@@ -2,7 +2,7 @@
 
 struct Upvalue *upval_new(struct YASL_Object *const location) {
 	struct Upvalue *upval = (struct Upvalue *)malloc(sizeof(struct Upvalue));
-	upval->rc = rc_new();
+	upval->rc = NEW_RC();
 	upval->location = location;
 	upval->next = NULL;
 	return upval;

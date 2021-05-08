@@ -6,12 +6,11 @@
 struct YASL_Object;
 
 struct RC {
-    size_t refs;
-    size_t weak_refs;
+	size_t refs;
+	size_t weak_refs;
 };
 
-struct RC *rc_new(void);
-void rc_del(struct RC *rc);
+#define NEW_RC() ((struct RC) { 0, 0 })
 
 void dec_ref(struct YASL_Object *v);
 

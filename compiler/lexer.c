@@ -769,4 +769,5 @@ struct Lexer *lex_new(FILE *file /* OWN */) {
 
 void lex_cleanup(struct Lexer *const lex) {
 	lxclose(lex->file);
+	io_cleanup(&lex->err);
 }

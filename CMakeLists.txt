@@ -26,7 +26,7 @@ if(MSVC)
 endif()
 
 if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
-    set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-vla -Wno-logical-op-parentheses -Wno-parentheses -Werror")
+    set(CMAKE_C_FLAGS "-Wall -Wextra -Werror=vla -Wno-logical-op-parentheses -Wno-parentheses -Werror")
 endif()
 if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
     set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-function -Wno-unused-variable -Wno-vla -Wno-deprecated -Wno-logical-op-parentheses -Wno-parentheses -Wno-missing-field-initializers -Werror")
@@ -172,7 +172,8 @@ add_executable(tests
         test/unit_tests/test_util/utiltest.c
         test/unit_tests/test_api/fntest.c
         test/unit_tests/test_api/deltest.c
-        test/unit_tests/test_api/tablenexttest.c)
+        test/unit_tests/test_api/tablenexttest.c
+        test/unit_tests/test_api/listitertest.c)
 
 if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
     target_link_libraries(yasl m)
