@@ -27,10 +27,12 @@ static TEST(testpushundef) {
 	};
 
 	struct VM vm;
-	vm_init(&vm, code, 0, sizeof(code));
+	vm_init(&vm, code, 0, 1);
 
 	ASSERT_INC(&vm);
 
+	vm.headers_size = 0;
+	vm_cleanup(&vm);
 	return NUM_FAILED;
 }
 
@@ -41,12 +43,13 @@ static TEST(testpushbool) {
 	};
 
 	struct VM vm;
-	vm_init(&vm, code, 0, sizeof(code));
+	vm_init(&vm, code, 0, 1);
 
 	ASSERT_INC(&vm);
 	ASSERT_INC(&vm);
 
-	//vm_cleanup(&vm);
+	vm.headers_size = 0;
+	vm_cleanup(&vm);
 	return NUM_FAILED;
 }
 
@@ -61,12 +64,13 @@ static TEST(testpushint) {
 
 	struct VM vm;
 
-	vm_init(&vm, code, 0x1A, sizeof(code));
+	vm_init(&vm, code, 0x1A, 1);
 	vm_setupconstants(&vm);
 
 	ASSERT_INC(&vm);
 
-	//vm_cleanup(&vm);
+	vm.headers_size = 0;
+	vm_cleanup(&vm);
 	return NUM_FAILED;
 }
 
@@ -81,12 +85,13 @@ static TEST(testpushfloat) {
 
 	struct VM vm;
 
-	vm_init(&vm, code, 0x21, sizeof(code));
+	vm_init(&vm, code, 0x21, 1);
 	vm_setupconstants(&vm);
 
 	ASSERT_INC(&vm);
 
-	//vm_cleanup(&vm);
+	vm.headers_size = 0;
+	vm_cleanup(&vm);
 	return NUM_FAILED;
 }
 
@@ -103,12 +108,13 @@ static TEST(testpushstr) {
 
 	struct VM vm;
 
-	vm_init(&vm, code, 0x25, sizeof(code));
+	vm_init(&vm, code, 0x25, 1);
 	vm_setupconstants(&vm);
 
 	ASSERT_INC(&vm);
 
-	//vm_cleanup(&vm);
+	vm.headers_size = 0;
+	vm_cleanup(&vm);
 	return NUM_FAILED;
 }
 
