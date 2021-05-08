@@ -27,7 +27,7 @@ static TEST(testpushundef) {
 	};
 
 	struct VM vm;
-	vm_init(&vm, code, 0, sizeof(code));
+	vm_init(&vm, code, 0, 0);
 
 	ASSERT_INC(&vm);
 
