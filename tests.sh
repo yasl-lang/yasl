@@ -103,6 +103,7 @@ run_cli_tests () {
 
 run_tests inputs 0;
 run_tests errors/assert 10;
+run_tests errors/error 2;
 run_tests errors/stackoverflow 11;
 run_tests errors/type 5;
 run_tests errors/divisionbyzero 6;

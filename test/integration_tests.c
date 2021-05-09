@@ -79,6 +79,7 @@ int main(void) {
 #include "type_errors.inl"
 #include "value_errors.inl"
 #include "divisionbyzero_errors.inl"
+#include "error_errors.inl"
 #include "syntax_errors.inl"
 
 	char buffer[MAX_FILE_NAME_LEN];
@@ -87,6 +88,7 @@ int main(void) {
 	INPUT_TEST(inputs);
 	ERROR_TEST(assert_errors, YASL_ASSERT_ERROR);
 	ERROR_TEST(stackoverflow_errors, YASL_STACK_OVERFLOW_ERROR);
+	ERROR_TEST(error_errors, YASL_ERROR);
 	ERROR_TEST(type_errors, YASL_TYPE_ERROR);
 	ERROR_TEST(value_errors, YASL_VALUE_ERROR);
 	ERROR_TEST(divisionbyzero_errors, YASL_DIVIDE_BY_ZERO_ERROR);

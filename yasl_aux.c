@@ -3,6 +3,7 @@
 
 int YASLX_decllibs(struct YASL_State *S) {
 	YASL_decllib_collections(S);
+	YASL_decllib_error(S);
 	YASL_decllib_io(S);
 	YASL_decllib_math(S);
 	YASL_decllib_require(S);
