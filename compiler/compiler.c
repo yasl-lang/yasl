@@ -430,17 +430,10 @@ static void visit_FnDecl(struct Compiler *const compiler, const struct Node *con
 	compiler->params = tmp;
 }
 
-static void visit_VariadicContext(struct Compiler *const compiler, const struct Node *const node) {
-	int old_returns = compiler->expected_returns;
-	compiler->expected_returns = node->value.ival;
-	visit(compiler, node->children[0]);
-	compiler->expected_returns = old_returns;
-}
-
 static void visit_Call(struct Compiler *const compiler, const struct Node *const node) {
 	visit(compiler, Call_get_object(node));
 	compiler_add_byte(compiler, O_INIT_CALL);
-	compiler_add_byte(compiler, (unsigned char)compiler->expected_returns);
+	compiler_add_byte(compiler, (unsigned char)node->value.ival);
 	visit_Body(compiler, Call_get_params(node));
 	compiler_add_byte(compiler, O_CALL);
 }
@@ -453,7 +446,7 @@ static void visit_MethodCall(struct Compiler *const compiler, const struct Node 
 	yasl_int index = compiler_intern_string(compiler, str, len);
 
 	compiler_add_byte(compiler, O_INIT_MC);
-	compiler_add_byte(compiler, (unsigned char)compiler->expected_returns);
+	compiler_add_byte(compiler, node->value.sval.str_len);
 	compiler_add_int(compiler, index);
 
 	visit_Body(compiler, MethodCall_get_params(node));

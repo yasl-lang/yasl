@@ -30,10 +30,10 @@ struct Node *node_clone(const struct Node *const node) {
 	case N_TRIOP:
 		clone->value.type = node->value.type;
 		break;
-	case N_VARCONT:
 	case N_INT:
 	case N_BOOL:
 	case N_FLOAT:
+	case N_CALL:
 		clone->value.ival = node->value.ival;
 		break;
 	default:
@@ -77,6 +77,7 @@ static struct Node *new_Node(struct Parser *parser, const enum NodeType nodetype
 
 #define DEF_NODE(...) YAPP_EXPAND(YAPP_CHOOSE6(__VA_ARGS__, DEF_NODE4, DEF_NODE3, DEF_NODE2, DEF_NODE1, DEF_NODE0)(__VA_ARGS__))
 #define DEF_NODE_STR(...) YAPP_EXPAND(YAPP_CHOOSE6(__VA_ARGS__, DEF_NODE_STR4, DEF_NODE_STR3, DEF_NODE_STR2, DEF_NODE_STR1, DEF_NODE_STR0)(__VA_ARGS__))
+#define DEF_NODE_INT(...) YAPP_EXPAND(YAPP_CHOOSE6(__VA_ARGS__, DEF_NODE_INT4, DEF_NODE_INT3, DEF_NODE_INT2, DEF_NODE_INT1, DEF_NODE_INT0)(__VA_ARGS__))
 #define DEF_NODE_ZSTR(...) YAPP_EXPAND(YAPP_CHOOSE6(__VA_ARGS__, DEF_NODE_ZSTR4, DEF_NODE_ZSTR3, DEF_NODE_ZSTR2, DEF_NODE_ZSTR1, DEF_NODE_ZSTR0)(__VA_ARGS__))
 #define DEF_GETTER(name, E, a, n) \
 struct Node *name##_get_##a(const struct Node *const node) {\
@@ -132,6 +133,16 @@ DEF_GETNAME(name, E)\
 DEF_GETTER(name, E, a, 0)\
 DEF_GETTER(name, E, b, 1)
 
+#define DEF_NODE_INT2(name, E, a, b) \
+struct Node *new_##name(struct Parser *parser, const struct Node *const a, const struct Node *const b, size_t n, const size_t line) {\
+	struct Node *node = new_Node_2(parser, E, a, b, (char *)NULL, 0, line);\
+	node->value.ival = n;\
+	return node;\
+}\
+DEF_GETNAME(name, E)\
+DEF_GETTER(name, E, a, 0)\
+DEF_GETTER(name, E, b, 1)
+
 #define DEF_NODE_ZSTR0(name, E) \
 struct Node *new_##name(struct Parser *parser, char *name, const size_t line) {\
 	return new_Node_0(parser, E, name, name ? strlen(name) : 0, line);\
@@ -144,6 +155,14 @@ struct Node *new_##name(struct Parser *parser, const struct Node *const a, char 
 }\
 DEF_GETNAME(name, E)\
 DEF_GETTER(name, E, a, 0)
+
+#define DEF_NODE_ZSTR2(name, E, a, b) \
+struct Node *new_##name(struct Parser *parser, const struct Node *const a, const struct Node *const b, char *name, const size_t line) {\
+	return new_Node_2(parser, E, a, b, name, name ? strlen(name) : 0, line);\
+}\
+DEF_GETNAME(name, E)\
+DEF_GETTER(name, E, a, 0)\
+DEF_GETTER(name, E, b, 1)
 
 
 void body_append(struct Parser *parser, struct Node **node, struct Node *const child) {
@@ -170,11 +189,11 @@ struct Node *new_Block(struct Parser *parser, const struct Node *const body, con
 
 DEF_NODE(Body, N_BODY)
 DEF_NODE(Decl, N_DECL, lvals, rvals)
-DEF_NODE_STR(FnDecl, N_FNDECL, params, body)
+DEF_NODE_ZSTR(FnDecl, N_FNDECL, params, body)
 DEF_NODE(Return, N_RET, expr)
 DEF_NODE(MultiReturn, N_MULTIRET, exprs)
 DEF_NODE(Export, N_EXPORT, expr)
-DEF_NODE(Call, N_CALL, params, object)
+DEF_NODE_INT(Call, N_CALL, params, object)
 DEF_NODE_STR(MethodCall, N_MCALL, params, object)
 DEF_NODE(Set, N_SET, collection, key, value)
 DEF_NODE(Get, N_GET, collection, value)
@@ -262,10 +281,16 @@ struct Node *new_String(struct Parser *parser, char *value, size_t len, const si
 DEF_NODE(List, N_LIST, values)
 DEF_NODE(Table, N_TABLE, values)
 
-struct Node *new_VariadicContext(struct Parser *parser, const struct Node *const expr, const int expected, const size_t line) {
-	struct Node *node = new_Node_1(parser, N_VARCONT, expr, NULL, 0, line);
-	node->value.ival = expected;
-	return node;
+struct Node *new_VariadicContext(struct Node *const expr, const int expected) {
+	if (expr->nodetype == N_CALL) {
+		expr->value.ival = expected;
+		return expr;
+	} else if (expr->nodetype == N_MCALL) {
+		expr->value.sval.str_len = expected;
+		return expr;
+	} else {
+		return expr;
+	}
 }
 
 void node_del(struct Node *node) {
@@ -275,7 +300,6 @@ void node_del(struct Node *node) {
 	case N_PATALT:
 	case N_BINOP:
 	case N_UNOP:
-	case N_VARCONT:
 	case N_TRIOP:
 	case N_BOOL:
 	case N_INT:
@@ -283,13 +307,13 @@ void node_del(struct Node *node) {
 	case N_PATBOOL:
 	case N_PATINT:
 	case N_PATFL:
+	case N_CALL:
 		break;
 	case N_VAR:
 	case N_LET:
 	case N_STR:
 	case N_CONST:
 	case N_LETITER:
-	case N_FNDECL:
 	case N_PATCONST:
 	case N_PATLET:
 	case N_PATSTR:

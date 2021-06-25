@@ -344,11 +344,11 @@ static struct Node *parse_return(struct Parser *const parser) {
 		}
 		struct Node *last = body_last(block);
 		if (last && will_var_expand(last)) {
-			block->children[block->children_len - 1] = new_VariadicContext(parser, last, -1, last->line);
+			block->children[block->children_len - 1] = new_VariadicContext(last, -1);
 		}
 		return new_MultiReturn(parser, block, line);
 	}
-	return new_Return(parser, new_VariadicContext(parser, expr, -1, line), line);
+	return new_Return(parser, new_VariadicContext(expr, -1), line);
 }
 
 static struct Node *parse_fn(struct Parser *const parser) {
@@ -371,7 +371,7 @@ static struct Node *parse_fn(struct Parser *const parser) {
 
 		struct Node *body = parse_body(parser);
 
-		return new_Set(parser, collection, index, new_FnDecl(parser, block, body, NULL, 0, line), line);
+		return new_Set(parser, collection, index, new_FnDecl(parser, block, body, NULL, line), line);
 	}
 	eattok(parser, T_LPAR);
 	struct Node *block = parse_function_params(parser);
@@ -381,7 +381,7 @@ static struct Node *parse_fn(struct Parser *const parser) {
 
 	char *name2 = (char *)malloc(name_len + 1);
 	strcpy(name2, name);
-	return new_Let(parser, new_FnDecl(parser, block, body, name2, strlen(name2), line), name, line);
+	return new_Let(parser, new_FnDecl(parser, block, body, name2, line), name, line);
 	// TODO Fix this ^
 }
 
@@ -401,7 +401,7 @@ static struct Node *parse_const_fn(struct Parser *const parser) {
 	// TODO: clean this up
 	char *name2 = (char *)malloc(name_len + 1);
 	strcpy(name2, name);
-	return new_Const(parser, new_FnDecl(parser, block, body, name2, strlen(name2), line), name, line);
+	return new_Const(parser, new_FnDecl(parser, block, body, name2, line), name, line);
 }
 
 static struct Node *parse_let_const_or_var(struct Parser *const parser) {
@@ -441,7 +441,7 @@ static struct Node *parse_var_pack(struct Parser *const parser, int expected) {
 			body_append(parser, &rvals, new_Undef(parser, parserline(parser)));
 		}
 	} else {
-		rvals->children[rvals->children_len - 1] = new_VariadicContext(parser, last, expected - j + 1, last ? last->line : 0);
+		rvals->children[rvals->children_len - 1] = new_VariadicContext(last, expected - j + 1);
 	}
 
 	return rvals;
@@ -905,7 +905,7 @@ static struct Node *parse_call(struct Parser *const parser) {
 
 			struct Node *block = new_Body(parser, parserline(parser));
 
-			cur_node = new_MethodCall(parser, block, cur_node, right->value.sval.str, right->value.sval.str_len,
+			cur_node = new_MethodCall(parser, block, cur_node, right->value.sval.str, 1,
 						  parserline(parser));
 			eattok(parser, T_LPAR);
 			while (!TOKEN_MATCHES(parser, T_RPAR, T_EOF)) {
@@ -918,7 +918,7 @@ static struct Node *parse_call(struct Parser *const parser) {
 			struct Node *body = cur_node->children[0];
 			struct Node *last = body_last(body);
 			if (last && will_var_expand(last)) {
-				body->children[body->children_len - 1] = new_VariadicContext(parser, last, -1, last->line);
+				body->children[body->children_len - 1] = new_VariadicContext(last, -1);
 			}
 		} else if (matcheattok(parser, T_DOT)) {
 			struct Node *right = parse_constant(parser);
@@ -950,7 +950,7 @@ static struct Node *parse_call(struct Parser *const parser) {
 			eattok(parser, T_RSQB);
 		} else if (matcheattok(parser, T_LPAR)) {
 			YASL_PARSE_DEBUG_LOG("%s\n", "Parsing function call");
-			cur_node = new_Call(parser, new_Body(parser, parserline(parser)), cur_node, parserline(parser));
+			cur_node = new_Call(parser, new_Body(parser, parserline(parser)), cur_node, 1, parserline(parser));
 			while (!TOKEN_MATCHES(parser, T_RPAR, T_EOF)) {
 				body_append(parser, &cur_node->children[0], parse_expr(parser));
 				if (curtok(parser) != T_COMMA) break;
@@ -961,7 +961,7 @@ static struct Node *parse_call(struct Parser *const parser) {
 			struct Node *body = cur_node->children[0];
 			struct Node *last = body_last(body);
 			if (last && will_var_expand(last)) {
-				body->children[body->children_len - 1] = new_VariadicContext(parser, last, -1, last->line);
+				body->children[body->children_len - 1] = new_VariadicContext(last, -1);
 			}
 		}
 	}
@@ -1053,9 +1053,8 @@ static struct Node *parse_lambda(struct Parser *const parser) {
 	eattok(parser, T_RPAR);
 	struct Node *body = parse_body(parser);
 
-	return new_FnDecl(parser, block, body, NULL, 0, line);
+	return new_FnDecl(parser, block, body, NULL, line);
 }
-
 
 static yasl_float get_float(char *buffer) {
 	return strtod(buffer, (char **) NULL);
