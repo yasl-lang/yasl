@@ -446,7 +446,7 @@ static void visit_MethodCall(struct Compiler *const compiler, const struct Node 
 	yasl_int index = compiler_intern_string(compiler, str, len);
 
 	compiler_add_byte(compiler, O_INIT_MC);
-	compiler_add_byte(compiler, node->value.sval.str_len);
+	compiler_add_byte(compiler, (unsigned char)node->value.sval.str_len);
 	compiler_add_int(compiler, index);
 
 	visit_Body(compiler, MethodCall_get_params(node));

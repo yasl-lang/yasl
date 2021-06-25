@@ -134,7 +134,7 @@ DEF_GETTER(name, E, a, 0)\
 DEF_GETTER(name, E, b, 1)
 
 #define DEF_NODE_INT2(name, E, a, b) \
-struct Node *new_##name(struct Parser *parser, const struct Node *const a, const struct Node *const b, size_t n, const size_t line) {\
+struct Node *new_##name(struct Parser *parser, const struct Node *const a, const struct Node *const b, const size_t n, const size_t line) {\
 	struct Node *node = new_Node_2(parser, E, a, b, (char *)NULL, 0, line);\
 	node->value.ival = n;\
 	return node;\
