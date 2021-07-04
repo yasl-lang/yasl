@@ -65,6 +65,11 @@ void lex_eatinterpstringbody(struct Lexer *const lex);
 void lex_error(struct Lexer *const lex);
 int lex_getchar(struct Lexer *const lex);
 
+void lex_val_setnull(struct Lexer *const lex);
+void lex_val_free(struct Lexer *const lex);
+char *lex_val_get(struct Lexer *const lex);
+void lex_val_set(struct Lexer *const lex, char *val);
+
 extern const char *YASL_TOKEN_NAMES[84];
 
 #endif

@@ -127,8 +127,8 @@ void parser_cleanup(struct Parser *const parser) {
 
 static YASL_NORETURN void handle_error(struct Parser *const parser) {
 	parser->status = YASL_SYNTAX_ERROR;
-	free(parser->lex.value);
-	parser->lex.value = NULL;
+	lex_val_free(&parser->lex);
+	lex_val_setnull(&parser->lex);
 
 	while (parser->lex.c != '\n' && !lxeof(parser->lex.file)) {
 		lex_getchar(&parser->lex);
@@ -147,7 +147,7 @@ enum Token eattok(struct Parser *const parser, const enum Token token) {
 			parser->status = YASL_SYNTAX_ERROR;
 		}
 		while (!TOKEN_MATCHES(parser, T_SEMI, T_EOF)) {
-			free(parser->lex.value);
+			lex_val_free(&parser->lex);
 			gettok(&parser->lex);
 		}
 		return T_UNKNOWN;
@@ -158,7 +158,7 @@ enum Token eattok(struct Parser *const parser, const enum Token token) {
 }
 
 static char *eatname(struct Parser *const parser) {
-	char *tmp = parser->lex.value;
+	char *tmp = lex_val_get(&parser->lex);
 	eattok(parser, T_ID);
 	if (parser->status)
 		handle_error(parser);
@@ -209,8 +209,8 @@ struct Node *parse_assign_or_exprstmt(struct Parser *const parser) {
 static bool isfndecl(struct Parser *const parser) {
 	long curr = lxtell(parser->lex.file);
 	eattok(parser, T_FN);
-	free(parser->lex.value);
-	parser->lex.value = NULL;
+	lex_val_free(&parser->lex);
+	lex_val_setnull(&parser->lex);
 	bool result = TOKEN_MATCHES(parser, T_ID);
 	lxseek(parser->lex.file, curr, SEEK_SET);
 	parser->lex.type = T_FN;
@@ -223,7 +223,7 @@ static bool isfndecl(struct Parser *const parser) {
 static bool isconstfndecl(struct Parser *const parser) {
 	long curr = lxtell(parser->lex.file);
 	eattok(parser, T_CONST);
-	free(parser->lex.value);
+	lex_val_free(&parser->lex);
 	bool result = TOKEN_MATCHES(parser, T_FN);
 	lxseek(parser->lex.file, curr, SEEK_SET);
 	parser->lex.type = T_CONST;
@@ -235,14 +235,14 @@ static bool isconstfndecl(struct Parser *const parser) {
  */
 static bool ismultiassign(struct Parser *const parser) {
 	long curr = lxtell(parser->lex.file);
-	char *name = parser->lex.value;
-	parser->lex.value = NULL;
+	char *name = lex_val_get(&parser->lex);
+	lex_val_setnull(&parser->lex);
 	eattok(parser, T_ID);
 	bool result = TOKEN_MATCHES(parser, T_COMMA);
 	lxseek(parser->lex.file, curr, SEEK_SET);
-	free(parser->lex.value);
+	lex_val_free(&parser->lex);
 	parser->lex.type = T_ID;
-	parser->lex.value = name;
+	lex_val_set(&parser->lex, name);
 	return result;
 }
 
@@ -1062,8 +1062,8 @@ static yasl_float get_float(char *buffer) {
 
 static struct Node *parse_float(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("%s\n", "Parsing float");
-	struct Node *cur_node = new_Float(parser, get_float(parser->lex.value), parserline(parser));
-	free(parser->lex.value);
+	struct Node *cur_node = new_Float(parser, get_float(lex_val_get(&parser->lex)), parserline(parser));
+	lex_val_free(&parser->lex);
 	eattok(parser, T_FLOAT);
 	return cur_node;
 }
@@ -1081,23 +1081,23 @@ static yasl_int get_int(char *buffer) {
 
 static struct Node *parse_integer(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("%s\n", "Parsing int");
-	struct Node *cur_node = new_Integer(parser, get_int(parser->lex.value), parserline(parser));
-	free(parser->lex.value);
+	struct Node *cur_node = new_Integer(parser, get_int(lex_val_get(&parser->lex)), parserline(parser));
+	lex_val_free(&parser->lex);
 	eattok(parser, T_INT);
 	return cur_node;
 }
 
 static struct Node *parse_boolean(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("%s\n", "Parsing bool");
-	struct Node *cur_node = new_Boolean(parser, !strcmp(parser->lex.value, "true"), parserline(parser));
-	free(parser->lex.value);
+	struct Node *cur_node = new_Boolean(parser, !strcmp(lex_val_get(&parser->lex), "true"), parserline(parser));
+	lex_val_free(&parser->lex);
 	eattok(parser, T_BOOL);
 	return cur_node;
 }
 
 static struct Node *parse_string(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("%s\n", "Parsing str");
-	struct Node *cur_node = new_String(parser, parser->lex.value, parser->lex.val_len, parserline(parser));
+	struct Node *cur_node = new_String(parser, lex_val_get(&parser->lex), parser->lex.val_len, parserline(parser));
 
 	// interpolated strings
 	while (parser->lex.mode == L_INTERP) {
@@ -1117,7 +1117,7 @@ static struct Node *parse_string(struct Parser *const parser) {
 		if (parser->lex.status) {
 			handle_error(parser);
 		};
-		struct Node *str = new_String(parser, parser->lex.value, parser->lex.val_len, parserline(parser));
+		struct Node *str = new_String(parser, lex_val_get(&parser->lex), parser->lex.val_len, parserline(parser));
 		cur_node = new_BinOp(parser, T_TILDE, cur_node, str, parserline(parser));
 	}
 

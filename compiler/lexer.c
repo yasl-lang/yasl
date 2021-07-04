@@ -38,29 +38,45 @@ YASL_FORMAT_CHECK static void lex_print_err(struct Lexer *lex, const char *const
 #define isyaslidstart(c) (isalpha(c) || (c) == '_' || (c) == '$')
 #define isyaslid(c) (isalnum(c) || (c) == '_' || (c) == '$')
 
-void lex_error(struct Lexer *const lex) {
-	free(lex->value);
+void lex_val_setnull(struct Lexer *const lex) {
 	lex->value = NULL;
+}
+
+static void lex_val_init(struct Lexer *const lex) {
+	lex->val_cap = 8;
+	lex->val_len = 0;
+	lex->value = (char *)realloc(lex->value, lex->val_cap);
+}
+
+void lex_val_free(struct Lexer *const lex) {
+	free(lex->value);
+}
+
+static void lex_val_append(struct Lexer *const lex, char c) {
+	if (lex->val_len == lex->val_cap) {
+		lex->val_cap *= 2;
+		lex->value = (char *)realloc(lex->value, lex->val_cap);
+	}
+	lex->value[lex->val_len++] = c;
+}
+
+char *lex_val_get(struct Lexer *const lex) {
+	return lex->value;
+}
+
+void lex_val_set(struct Lexer *const lex, char *val) {
+	lex->value = val;
+}
+
+void lex_error(struct Lexer *const lex) {
+	lex_val_free(lex);
+	lex_val_setnull(lex);
 	lex->type = T_UNKNOWN;
 	lex->status = YASL_SYNTAX_ERROR;
 }
 
 int lex_getchar(struct Lexer *const lex) {
 	return lex->c = (char)lxgetc(lex->file);
-}
-
-void lex_val_init(struct Lexer *const lex) {
-	lex->val_cap = 8;
-	lex->val_len = 0;
-	lex->value = (char *)realloc(lex->value, lex->val_cap);
-}
-
-void lex_val_append(struct Lexer *const lex, char c) {
-	if (lex->val_len == lex->val_cap) {
-		lex->val_cap *= 2;
-		lex->value = (char *)realloc(lex->value, lex->val_cap);
-	}
-	lex->value[lex->val_len++] = c;
 }
 
 static bool lex_eatwhitespace(struct Lexer *const lex) {
@@ -147,7 +163,7 @@ static bool lex_eatop(struct Lexer *const lex) {
 	last = YASLToken_ThreeChars(c1, c2, c3);
 	if (last != T_UNKNOWN) {
 		lex->type = last;
-		free(lex->value);
+		lex_val_free(lex);
 		return true;
 	}
 	lxseek(lex->file, cur_two, SEEK_SET);
@@ -156,7 +172,7 @@ static bool lex_eatop(struct Lexer *const lex) {
 	last = YASLToken_TwoChars(c1, c2);
 	if (last != T_UNKNOWN) {
 		lex->type = last;
-		free(lex->value);
+		lex_val_free(lex);
 		return true;
 	}
 	lxseek(lex->file, cur_one, SEEK_SET);
@@ -165,7 +181,7 @@ static bool lex_eatop(struct Lexer *const lex) {
 	last = YASLToken_OneChar(c1);
 	if (last != T_UNKNOWN) {
 		lex->type = last;
-		free(lex->value);
+		lex_val_free(lex);
 		return true;
 	}
 	return false;
@@ -475,7 +491,7 @@ static bool lex_eatrawstring(struct Lexer *const lex) {
 
 void gettok(struct Lexer *const lex) {
 	YASL_LEX_DEBUG_LOG("getting token from line %" PRI_SIZET "\n", lex->line);
-	lex->value = NULL;
+	lex_val_setnull(lex);
 	lex_getchar(lex);
 
 	// whitespace and comments.
@@ -484,7 +500,7 @@ void gettok(struct Lexer *const lex) {
 	// EOF
 	if (lxeof(lex->file)) {
 		lex->type = T_EOF;
-		lex->value = NULL;
+		lex_val_setnull(lex);
 		return;
 	}
 
@@ -616,13 +632,13 @@ static enum Token YASLToken_OneChar(char c1) {
 }
 
 static bool matches_keyword(struct Lexer *const lex, const char *string) {
-	return !strcmp(lex->value, string);
+	return !strcmp(lex_val_get(lex), string);
 }
 
 static void set_keyword(struct Lexer *const lex, enum Token type) {
 	lex->type = type;
-	free(lex->value);
-	lex->value = NULL;
+	lex_val_free(lex);
+	lex_val_setnull(lex);
 }
 
 static void YASLKeywords(struct Lexer *const lex) {
@@ -757,7 +773,7 @@ const char *YASL_TOKEN_NAMES[] = {
 struct Lexer *lex_new(FILE *file /* OWN */) {
 	struct Lexer *const lex = (struct Lexer *) malloc(sizeof(struct Lexer));
 	lex->line = 1;
-	lex->value = NULL;
+	lex_val_setnull(lex);
 	lex->val_cap = 0;
 	lex->val_len = 0;
 	lex->file = lexinput_new_file(file);
