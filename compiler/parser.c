@@ -235,14 +235,15 @@ static bool isconstfndecl(struct Parser *const parser) {
  */
 static bool ismultiassign(struct Parser *const parser) {
 	long curr = lxtell(parser->lex.file);
-	char *name = lex_val_get(&parser->lex);
+	struct YASL_ByteBuffer buffer;
+	lex_val_save(&parser->lex, &buffer);
 	lex_val_setnull(&parser->lex);
 	eattok(parser, T_ID);
 	bool result = TOKEN_MATCHES(parser, T_COMMA);
 	lxseek(parser->lex.file, curr, SEEK_SET);
 	lex_val_free(&parser->lex);
 	parser->lex.type = T_ID;
-	lex_val_set(&parser->lex, name);
+	lex_val_restore(&parser->lex, &buffer);
 	return result;
 }
 
@@ -356,7 +357,7 @@ static struct Node *parse_fn(struct Parser *const parser) {
 	eattok(parser, T_FN);
 	size_t line = parserline(parser);
 	char *name = eatname(parser);
-	size_t name_len = strlen(name);
+	//size_t name_len = strlen(name);
 	if (matcheattok(parser, T_DOT)) {
 		struct Node *collection = new_Var(parser, name, line);
 		size_t line = parserline(parser);
@@ -379,9 +380,9 @@ static struct Node *parse_fn(struct Parser *const parser) {
 
 	struct Node *body = parse_body(parser);
 
-	char *name2 = (char *)malloc(name_len + 1);
-	strcpy(name2, name);
-	return new_Let(parser, new_FnDecl(parser, block, body, name2, line), name, line);
+	//char *name2 = (char *)malloc(name_len + 1);
+	//strcpy(name2, name);
+	return new_Let(parser, new_FnDecl(parser, block, body, name, line), name, line);
 	// TODO Fix this ^
 }
 
@@ -391,7 +392,7 @@ static struct Node *parse_const_fn(struct Parser *const parser) {
 	eattok(parser, T_FN);
 	size_t line = parserline(parser);
 	char *name = eatname(parser);
-	size_t name_len = strlen(name);
+	//size_t name_len = strlen(name);
 	eattok(parser, T_LPAR);
 	struct Node *block = parse_function_params(parser);
 	eattok(parser, T_RPAR);
@@ -399,9 +400,9 @@ static struct Node *parse_const_fn(struct Parser *const parser) {
 	struct Node *body = parse_body(parser);
 
 	// TODO: clean this up
-	char *name2 = (char *)malloc(name_len + 1);
-	strcpy(name2, name);
-	return new_Const(parser, new_FnDecl(parser, block, body, name2, line), name, line);
+	//char *name2 = (char *)malloc(name_len + 1);
+	//strcpy(name2, name);
+	return new_Const(parser, new_FnDecl(parser, block, body, name, line), name, line);
 }
 
 static struct Node *parse_let_const_or_var(struct Parser *const parser) {

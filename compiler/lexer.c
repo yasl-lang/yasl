@@ -62,8 +62,12 @@ char *lex_val_get(struct Lexer *const lex) {
 	return (char *)lex->buffer.bytes;
 }
 
-void lex_val_set(struct Lexer *const lex, char *val) {
-	lex->buffer.bytes = (unsigned char *)val;
+void lex_val_save(const struct Lexer *const lex, struct YASL_ByteBuffer *const buffer) {
+	*buffer = lex->buffer;
+}
+
+void lex_val_restore(struct Lexer *const lex, const struct YASL_ByteBuffer *const buffer) {
+	lex->buffer = *buffer;
 }
 
 void lex_error(struct Lexer *const lex) {

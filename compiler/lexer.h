@@ -69,7 +69,8 @@ int lex_getchar(struct Lexer *const lex);
 void lex_val_setnull(struct Lexer *const lex);
 void lex_val_free(struct Lexer *const lex);
 char *lex_val_get(struct Lexer *const lex);
-void lex_val_set(struct Lexer *const lex, char *val);
+void lex_val_save(const struct Lexer *const lex, struct YASL_ByteBuffer *const buffer);
+void lex_val_restore(struct Lexer *const lex, const struct YASL_ByteBuffer *const buffer);
 
 extern const char *YASL_TOKEN_NAMES[84];
 
