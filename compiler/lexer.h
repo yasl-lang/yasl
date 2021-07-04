@@ -16,9 +16,11 @@
         .file = (f),\
         .c = 0,\
         .type = T_UNKNOWN,\
-        .buffer.size = 0,\
-        .buffer.count = 0,\
-        .buffer.bytes = NULL,\
+        .buffer = (struct YASL_ByteBuffer) {\
+                .size = 0,\
+                .count = 0,\
+                .bytes = NULL\
+	},\
         .line = 1,\
         .status = YASL_SUCCESS,\
         .mode = L_NORMAL,\
