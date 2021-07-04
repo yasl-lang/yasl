@@ -319,7 +319,7 @@ void node_del(struct Node *node) {
 	case N_PATSTR:
 		free(node->value.sval.str);
 	default:
-		//free(node->value.sval.str);
+		//free(node->bytes.sval.str);
 		break;
 	}
 	free(node);

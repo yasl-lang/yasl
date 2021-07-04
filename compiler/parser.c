@@ -795,7 +795,7 @@ static struct Node *parse_assign(struct Parser *const parser, struct Node *cur_n
 			return new_Set(parser, left, key, val, line);
 		}
 		default:
-			parser_print_err_syntax(parser, "Invalid l-value (line %" PRI_SIZET ").\n", line);
+			parser_print_err_syntax(parser, "Invalid l-bytes (line %" PRI_SIZET ").\n", line);
 			handle_error(parser);
 		}
 	} else if (tok_isaugmented(curtok(parser))) {
@@ -803,8 +803,8 @@ static struct Node *parse_assign(struct Parser *const parser, struct Node *cur_n
 		switch (cur_node->nodetype) {
 		case N_VAR: {
 			struct Node *tmp = new_BinOp(parser, op, cur_node, parse_expr(parser), line);
-			//char *name = (char *)malloc(strlen(cur_node->value.sval.str) + 1);
-			//strcpy(name, cur_node->value.sval.str);
+			//char *name = (char *)malloc(strlen(cur_node->bytes.sval.str) + 1);
+			//strcpy(name, cur_node->bytes.sval.str);
 			return new_Assign(parser, tmp, cur_node->value.sval.str, line);
 		}
 		case N_GET: {
@@ -814,7 +814,7 @@ static struct Node *parse_assign(struct Parser *const parser, struct Node *cur_n
 			return new_Set(parser, collection, key, value, line);
 		}
 		default:
-			parser_print_err_syntax(parser, "Invalid l-value (line %" PRI_SIZET ").\n", line);
+			parser_print_err_syntax(parser, "Invalid l-bytes (line %" PRI_SIZET ").\n", line);
 			handle_error(parser);
 		}
 	}
@@ -1097,7 +1097,7 @@ static struct Node *parse_boolean(struct Parser *const parser) {
 
 static struct Node *parse_string(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("%s\n", "Parsing str");
-	struct Node *cur_node = new_String(parser, lex_val_get(&parser->lex), parser->lex.val_len, parserline(parser));
+	struct Node *cur_node = new_String(parser, lex_val_get(&parser->lex), parser->lex.buffer.count, parserline(parser));
 
 	// interpolated strings
 	while (parser->lex.mode == L_INTERP) {
@@ -1117,7 +1117,7 @@ static struct Node *parse_string(struct Parser *const parser) {
 		if (parser->lex.status) {
 			handle_error(parser);
 		};
-		struct Node *str = new_String(parser, lex_val_get(&parser->lex), parser->lex.val_len, parserline(parser));
+		struct Node *str = new_String(parser, lex_val_get(&parser->lex), parser->lex.buffer.count, parserline(parser));
 		cur_node = new_BinOp(parser, T_TILDE, cur_node, str, parserline(parser));
 	}
 

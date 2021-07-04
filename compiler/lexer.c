@@ -39,33 +39,31 @@ YASL_FORMAT_CHECK static void lex_print_err(struct Lexer *lex, const char *const
 #define isyaslid(c) (isalnum(c) || (c) == '_' || (c) == '$')
 
 void lex_val_setnull(struct Lexer *const lex) {
-	lex->value = NULL;
+	lex->buffer.bytes = NULL;
+	lex->buffer.size = 0;
+	lex->buffer.count = 0;
 }
 
 static void lex_val_init(struct Lexer *const lex) {
-	lex->val_cap = 8;
-	lex->val_len = 0;
-	lex->value = (char *)realloc(lex->value, lex->val_cap);
+	lex->buffer.size = 8;
+	lex->buffer.count = 0;
+	lex->buffer.bytes = (unsigned char *)realloc(lex->buffer.bytes, lex->buffer.size);
 }
 
 void lex_val_free(struct Lexer *const lex) {
-	free(lex->value);
+	free(lex->buffer.bytes);
 }
 
 static void lex_val_append(struct Lexer *const lex, char c) {
-	if (lex->val_len == lex->val_cap) {
-		lex->val_cap *= 2;
-		lex->value = (char *)realloc(lex->value, lex->val_cap);
-	}
-	lex->value[lex->val_len++] = c;
+	YASL_ByteBuffer_add_byte(&lex->buffer, (unsigned char)c);
 }
 
 char *lex_val_get(struct Lexer *const lex) {
-	return lex->value;
+	return (char *)lex->buffer.bytes;
 }
 
 void lex_val_set(struct Lexer *const lex, char *val) {
-	lex->value = val;
+	lex->buffer.bytes = (unsigned char *)val;
 }
 
 void lex_error(struct Lexer *const lex) {
@@ -225,7 +223,7 @@ static bool lex_eatint(struct Lexer *const lex, char separator, int (*isvaliddig
 			return true;
 		}
 	}
-	lex->val_len = 0;
+	lex->buffer.count = 0;
 	lex->c = curr_char;
 	lxseek(lex->file, curr_pos, SEEK_SET);
 	return false;
@@ -244,7 +242,7 @@ static bool lex_eatfloat(struct Lexer *const lex) {
 			lxseek(lex->file, cur - 1, SEEK_SET);
 			return true;
 		}
-		lex->val_len--;
+		lex->buffer.count--;
 		lex_val_append(lex, '.');
 		lex_eatnumber_fill(lex, &isddigit);
 
@@ -774,8 +772,8 @@ struct Lexer *lex_new(FILE *file /* OWN */) {
 	struct Lexer *const lex = (struct Lexer *) malloc(sizeof(struct Lexer));
 	lex->line = 1;
 	lex_val_setnull(lex);
-	lex->val_cap = 0;
-	lex->val_len = 0;
+	lex->buffer.size = 0;
+	lex->buffer.count = 0;
 	lex->file = lexinput_new_file(file);
 	lex->type = T_UNKNOWN;
 	lex->status = YASL_SUCCESS;

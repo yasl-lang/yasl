@@ -1,1 +1,1 @@
-TypeError: cannot set metatable for value of type int. (line 1)
+TypeError: cannot set metatable for bytes of type int. (line 1)

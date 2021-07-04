@@ -18,7 +18,7 @@ make_array () {
 make_array divisionbyzero;
 make_array error;
 make_array assert;
-make_array value;
+make_array bytes;
 make_array stackoverflow;
 make_array type;
 make_array syntax;

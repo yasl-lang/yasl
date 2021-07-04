@@ -5,6 +5,7 @@
 
 #include "IO.h"
 #include "lexinput.h"
+#include "data-structures/YASL_ByteBuffer.h"
 
 #define  ispotentialend(l) ((l)->type == T_ID || (l)->type == T_STR || \
             (l)->type == T_INT || (l)->type == T_FLOAT || (l)->type == T_BREAK || \
@@ -15,9 +16,9 @@
         .file = (f),\
         .c = 0,\
         .type = T_UNKNOWN,\
-        .value = NULL,\
-        .val_cap = 0,\
-        .val_len = 0,\
+        .buffer.size = 0,\
+        .buffer.count = 0,\
+        .buffer.bytes = NULL,\
         .line = 1,\
         .status = YASL_SUCCESS,\
         .mode = L_NORMAL,\
@@ -50,9 +51,7 @@ struct Lexer {
 	struct LEXINPUT *file;   // OWN
 	int c;                   // current character
 	enum Token type;         // type of current token
-	char *value;             // NOT OWN
-	size_t val_cap;
-	size_t val_len;
+	struct YASL_ByteBuffer buffer;
 	size_t line;
 	int status;
 	int mode;

@@ -413,7 +413,7 @@ static void visit_FnDecl(struct Compiler *const compiler, const struct Node *con
 		const size_t count = compiler->params->upval_indices.count;
 		compiler_add_byte(compiler, (unsigned char) count);
 		const size_t start = compiler->buffer->count;
-		// TODO what's below is wrong. We need to get the right value for the upvals.
+		// TODO what's below is wrong. We need to get the right bytes for the upvals.
 		for (size_t i = 0; i < count; i++) {
 			compiler_add_byte(compiler, 0);
 		}
