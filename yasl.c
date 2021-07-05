@@ -162,7 +162,9 @@ int YASL_execute(struct YASL_State *S) {
 	S->vm.code = bc;
 	S->vm.headers[S->compiler.num] = bc;
 
-	return vm_run((struct VM *) S);  // TODO: error handling for runtime errors.
+	int result = vm_run((struct VM *) S);  // TODO: error handling for runtime errors.
+
+	return result;
 }
 
 int YASL_declglobal(struct YASL_State *S, const char *name) {
