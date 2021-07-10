@@ -26,7 +26,6 @@ bool scope_contains_cur_only(const struct Scope *const scope, const char *const 
 bool scope_contains(const struct Scope *const scope, const char *const name);
 int64_t scope_get(const struct Scope *const scope, const char *const name);
 int64_t scope_decl_var(struct Scope *const scope, const char *const name);
-bool scope_used_in_closure(const struct Scope *const scope);
 void scope_make_const(struct Scope *const scope, const char *const name);
 
 bool env_contains(const struct Env *env, const char *const name);

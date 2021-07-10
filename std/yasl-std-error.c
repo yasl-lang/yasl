@@ -19,7 +19,6 @@ int YASL_error(struct YASL_State *S) {
 	YASL_throw_err(S, YASL_ERROR);
 }
 
-
 int YASL_decllib_error(struct YASL_State *S) {
 	YASL_declglobal(S, "error");
 	YASL_pushcfunction(S, YASL_error, 1);

@@ -125,6 +125,16 @@ void vm_cleanup(struct VM *const vm) {
 	io_cleanup(&vm->err);
 }
 
+void *vm_alloc_cyclic(struct VM *vm, size_t size) {
+	YASL_UNUSED(vm);
+	return malloc(size);
+}
+
+void vm_free_cyclic(struct VM *vm, void *ptr) {
+	YASL_UNUSED(vm);
+	free(ptr);
+}
+
 YASL_FORMAT_CHECK static void vm_print_err_wrapper(struct VM *vm, const char *const fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
