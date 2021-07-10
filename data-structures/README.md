@@ -1,6 +1,6 @@
 # ByteBuffer
 
-Dynamically sized array of bytes
+Dynamically sized array of items
 
 # List
 

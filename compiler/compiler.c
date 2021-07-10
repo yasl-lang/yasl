@@ -81,7 +81,7 @@ static void exit_scope(struct Compiler *const compiler) {
 	struct Scope *tmp = *lval;
 	 *lval = tmp->parent;
 	size_t num_locals = tmp->vars.count;
-	scope_del_current_only(tmp);
+	scope_del_cur_only(tmp);
 	while (num_locals-- > 0) {
 		compiler_add_byte(compiler, O_POP);
 	}
@@ -97,24 +97,12 @@ static inline void exit_conditional_false(const struct Compiler *const compiler,
 	YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, (size_t) *index, compiler->buffer->count - *index - 8);
 }
 
-static void sizebuffer_push(struct SizeBuffer *sb, const size_t item) {
-	if (sb->count >= sb->size) {
-		sb->size *= 2;
-		sb->items = (size_t *)realloc(sb->items, sizeof(size_t) * sb->size);
-	}
-	sb->items[sb->count++] = item;
-}
-
-static void sizebuffer_pop(struct SizeBuffer *sb) {
-	sb->count--;
-}
-
 static void add_checkpoint(struct Compiler *const compiler, const size_t cp) {
-	sizebuffer_push(&compiler->checkpoints, cp);
+	BUFFER_PUSH(size_t)(&compiler->checkpoints, cp);
 }
 
 static void rm_checkpoint(struct Compiler *const compiler) {
-	sizebuffer_pop(&compiler->checkpoints);
+	BUFFER_POP(size_t)(&compiler->checkpoints);
 }
 
 static void visit(struct Compiler *const compiler, const struct Node *const node);
@@ -278,34 +266,34 @@ static unsigned char *return_bytes(const struct Compiler *const compiler) {
 	YASL_BYTECODE_DEBUG_LOG("%s\n", "header");
 	for (size_t i = 0; i < compiler->header->count; i++) {
 		if (i % 16 == 15)
-			YASL_BYTECODE_DEBUG_LOG("%02x\n", compiler->header->bytes[i]);
+			YASL_BYTECODE_DEBUG_LOG("%02x\n", compiler->header->items[i]);
 		else
-			YASL_BYTECODE_DEBUG_LOG("%02x ", compiler->header->bytes[i]);
+			YASL_BYTECODE_DEBUG_LOG("%02x ", compiler->header->items[i]);
 	}
 	YASL_BYTECODE_DEBUG_LOG("\n%s\n", "entry point");
 	for (size_t i = 0; i < compiler->code->count; i++) {
 		if (i % 16 == 15)
-			YASL_BYTECODE_DEBUG_LOG("%02x\n", compiler->code->bytes[i]);
+			YASL_BYTECODE_DEBUG_LOG("%02x\n", compiler->code->items[i]);
 		else
-			YASL_BYTECODE_DEBUG_LOG("%02x ", compiler->code->bytes[i]);
+			YASL_BYTECODE_DEBUG_LOG("%02x ", compiler->code->items[i]);
 	}
 	YASL_BYTECODE_DEBUG_LOG("%02x\n", O_HALT);
 	YASL_BYTECODE_DEBUG_LOG("%s\n", "lines");
 	for (size_t i = 0; i < compiler->lines->count; i++) {
 		if (i % 16 == 15)
-			YASL_BYTECODE_DEBUG_LOG("%02x\n", compiler->lines->bytes[i]);
+			YASL_BYTECODE_DEBUG_LOG("%02x\n", compiler->lines->items[i]);
 		else
-			YASL_BYTECODE_DEBUG_LOG("%02x ", compiler->lines->bytes[i]);
+			YASL_BYTECODE_DEBUG_LOG("%02x ", compiler->lines->items[i]);
 	}
 	YASL_BYTECODE_DEBUG_LOG("%s", "\n");
 
 	fflush(stdout);
 	unsigned char *bytecode = (unsigned char *) malloc(
 		compiler->code->count + compiler->header->count + 1 + compiler->lines->count);    // NOT OWN
-	memcpy(bytecode, compiler->header->bytes, compiler->header->count);
-	memcpy(bytecode + compiler->header->count, compiler->code->bytes, compiler->code->count);
+	memcpy(bytecode, compiler->header->items, compiler->header->count);
+	memcpy(bytecode + compiler->header->count, compiler->code->items, compiler->code->count);
 	bytecode[compiler->code->count + compiler->header->count] = O_HALT;
-	memcpy(bytecode + compiler->code->count + 1 + compiler->header->count, compiler->lines->bytes, compiler->lines->count);
+	memcpy(bytecode + compiler->code->count + 1 + compiler->header->count, compiler->lines->items, compiler->lines->count);
 	return bytecode;
 }
 
@@ -326,7 +314,7 @@ unsigned char *compile(struct Compiler *const compiler) {
 			return NULL;
 		}
 		visit(compiler, node);
-		YASL_ByteBuffer_extend(compiler->code, compiler->buffer->bytes, compiler->buffer->count);
+		YASL_ByteBuffer_extend(compiler->code, compiler->buffer->items, compiler->buffer->count);
 		compiler->buffer->count = 0;
 	}
 	exit_scope(compiler);
@@ -347,7 +335,7 @@ unsigned char *compile_REPL(struct Compiler *const compiler) {
 				node->nodetype = N_ECHO;
 			}
 			visit(compiler, node);
-			YASL_ByteBuffer_extend(compiler->code, compiler->buffer->bytes, compiler->buffer->count);
+			YASL_ByteBuffer_extend(compiler->code, compiler->buffer->items, compiler->buffer->count);
 			compiler->buffer->count = 0;
 		}
 	}
@@ -409,18 +397,18 @@ static void visit_FnDecl(struct Compiler *const compiler, const struct Node *con
 	YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, old_size - sizeof(yasl_int), new_size - old_size);
 
 	if (compiler->params->isclosure) {
-		compiler->buffer->bytes[old_size - sizeof(yasl_int) - 1] = O_CCONST;
+		compiler->buffer->items[old_size - sizeof(yasl_int) - 1] = O_CCONST;
 		const size_t count = compiler->params->upval_indices.count;
 		compiler_add_byte(compiler, (unsigned char) count);
 		const size_t start = compiler->buffer->count;
-		// TODO what's below is wrong. We need to get the right bytes for the upvals.
+		// TODO what's below is wrong. We need to get the right items for the upvals.
 		for (size_t i = 0; i < count; i++) {
 			compiler_add_byte(compiler, 0);
 		}
 		FOR_TABLE(i, item, &compiler->params->upval_indices) {
 			int64_t index = item->value.value.ival;
 			int64_t value = YASL_Table_search(&compiler->params->upval_values, item->key).value.ival;
-			compiler->buffer->bytes[start + index] = value;
+			compiler->buffer->items[start + index] = value;
 		}
 	}
 

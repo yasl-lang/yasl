@@ -3,13 +3,16 @@
 
 #include <inttypes.h>
 
+#include "data-structures/YASL_Buffer.h"
 #include "data-structures/YASL_ByteBuffer.h"
 #include "debug.h"
 #include "env.h"
 #include "parser.h"
 
+DECL_BUFFER(size_t)
+
 #define NEW_SIZEBUFFER(s)\
-	((struct SizeBuffer){\
+	((BUFFER(size_t)){\
 		.count = 0,\
 		.size = (s),\
 		.items = (size_t *)malloc(sizeof(size_t)*(s)),\
@@ -35,12 +38,6 @@
 	.num = 0,\
 })
 
-struct SizeBuffer {
-	size_t count;
-	size_t size;
-	size_t *items;
-};
-
 struct Compiler {
 	struct Parser parser;
 	struct Scope *globals;
@@ -50,12 +47,12 @@ struct Compiler {
 	bool leftmost_pattern;
 	struct YASL_Table seen_bindings;
 	struct YASL_Table *strings;
-	struct YASL_ByteBuffer *buffer;    // temporary buffer during code-gen
-	struct YASL_ByteBuffer *header;    // header includes things like string constants
-	struct YASL_ByteBuffer *code;      // bytecode generated
-	struct YASL_ByteBuffer *lines;     // keeps track of current line number
+	YASL_ByteBuffer *buffer;    // temporary buffer during code-gen
+	YASL_ByteBuffer *header;    // header includes things like string constants
+	YASL_ByteBuffer *code;      // bytecode generated
+	YASL_ByteBuffer *lines;     // keeps track of current line number
 	size_t line;
-	struct SizeBuffer checkpoints;
+	BUFFER(size_t) checkpoints;
 	int status;
 	int64_t num;
 };

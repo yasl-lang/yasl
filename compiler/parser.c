@@ -235,7 +235,7 @@ static bool isconstfndecl(struct Parser *const parser) {
  */
 static bool ismultiassign(struct Parser *const parser) {
 	long curr = lxtell(parser->lex.file);
-	struct YASL_ByteBuffer buffer;
+	YASL_ByteBuffer buffer;
 	lex_val_save(&parser->lex, &buffer);
 	lex_val_setnull(&parser->lex);
 	eattok(parser, T_ID);
@@ -796,7 +796,7 @@ static struct Node *parse_assign(struct Parser *const parser, struct Node *cur_n
 			return new_Set(parser, left, key, val, line);
 		}
 		default:
-			parser_print_err_syntax(parser, "Invalid l-bytes (line %" PRI_SIZET ").\n", line);
+			parser_print_err_syntax(parser, "Invalid l-items (line %" PRI_SIZET ").\n", line);
 			handle_error(parser);
 		}
 	} else if (tok_isaugmented(curtok(parser))) {
@@ -804,8 +804,8 @@ static struct Node *parse_assign(struct Parser *const parser, struct Node *cur_n
 		switch (cur_node->nodetype) {
 		case N_VAR: {
 			struct Node *tmp = new_BinOp(parser, op, cur_node, parse_expr(parser), line);
-			//char *name = (char *)malloc(strlen(cur_node->bytes.sval.str) + 1);
-			//strcpy(name, cur_node->bytes.sval.str);
+			//char *name = (char *)malloc(strlen(cur_node->items.sval.str) + 1);
+			//strcpy(name, cur_node->items.sval.str);
 			return new_Assign(parser, tmp, cur_node->value.sval.str, line);
 		}
 		case N_GET: {
@@ -815,7 +815,7 @@ static struct Node *parse_assign(struct Parser *const parser, struct Node *cur_n
 			return new_Set(parser, collection, key, value, line);
 		}
 		default:
-			parser_print_err_syntax(parser, "Invalid l-bytes (line %" PRI_SIZET ").\n", line);
+			parser_print_err_syntax(parser, "Invalid l-items (line %" PRI_SIZET ").\n", line);
 			handle_error(parser);
 		}
 	}

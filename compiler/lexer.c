@@ -39,7 +39,7 @@ YASL_FORMAT_CHECK static void lex_print_err(struct Lexer *lex, const char *const
 #define isyaslid(c) (isalnum(c) || (c) == '_' || (c) == '$')
 
 void lex_val_setnull(struct Lexer *const lex) {
-	lex->buffer.bytes = NULL;
+	lex->buffer.items = NULL;
 	lex->buffer.size = 0;
 	lex->buffer.count = 0;
 }
@@ -47,11 +47,11 @@ void lex_val_setnull(struct Lexer *const lex) {
 static void lex_val_init(struct Lexer *const lex) {
 	lex->buffer.size = 8;
 	lex->buffer.count = 0;
-	lex->buffer.bytes = (unsigned char *)realloc(lex->buffer.bytes, lex->buffer.size);
+	lex->buffer.items = (unsigned char *)realloc(lex->buffer.items, lex->buffer.size);
 }
 
 void lex_val_free(struct Lexer *const lex) {
-	free(lex->buffer.bytes);
+	free(lex->buffer.items);
 }
 
 static void lex_val_append(struct Lexer *const lex, char c) {
@@ -59,14 +59,14 @@ static void lex_val_append(struct Lexer *const lex, char c) {
 }
 
 char *lex_val_get(struct Lexer *const lex) {
-	return (char *)lex->buffer.bytes;
+	return (char *)lex->buffer.items;
 }
 
-void lex_val_save(const struct Lexer *const lex, struct YASL_ByteBuffer *const buffer) {
+void lex_val_save(const struct Lexer *const lex, YASL_ByteBuffer *const buffer) {
 	*buffer = lex->buffer;
 }
 
-void lex_val_restore(struct Lexer *const lex, const struct YASL_ByteBuffer *const buffer) {
+void lex_val_restore(struct Lexer *const lex, const YASL_ByteBuffer *const buffer) {
 	lex->buffer = *buffer;
 }
 

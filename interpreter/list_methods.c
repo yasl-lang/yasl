@@ -68,14 +68,14 @@ void rec_call(struct YASL_State *S, void **buffer, const size_t buffer_count, co
 #define FOUND_TABLE "{...}, "
 
 int list_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, size_t buffer_count) {
-	struct YASL_ByteBuffer bb = NEW_BB(8);
+	YASL_ByteBuffer bb = NEW_BB(8);
 
 	YASL_ByteBuffer_add_byte(&bb, '[');
 	struct YASL_List *list = vm_peeklist((struct VM *) S);
 	if (list->count == 0) {
 		vm_pop((struct VM *) S);
 		YASL_ByteBuffer_add_byte(&bb, ']');
-		vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, bb.count, (char *)bb.bytes)));
+		vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, bb.count, (char *)bb.items)));
 		return YASL_SUCCESS;
 	}
 
@@ -113,7 +113,7 @@ int list_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, s
 	bb.count -= 2;
 	YASL_ByteBuffer_add_byte(&bb, ']');
 
-	vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, bb.count, (char *)bb.bytes)));
+	vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, bb.count, (char *)bb.items)));
 
 	return YASL_SUCCESS;
 }

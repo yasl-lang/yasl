@@ -3,29 +3,29 @@
 
 #include <stdlib.h>
 
+#include "YASL_Buffer.h"
 #include "yasl_conf.h"
 
-struct YASL_ByteBuffer {
-	size_t size;
-	size_t count;
-	unsigned char *bytes;
-};
+DECL_BUFFER(byte)
 
-#define NEW_BB(s) ((struct YASL_ByteBuffer){\
+typedef BUFFER(byte) YASL_ByteBuffer;
+
+#define NEW_BB(s) ((YASL_ByteBuffer){\
 	.size = (s),\
 	.count = 0,\
-	.bytes = (unsigned char *)malloc(s)\
+	.items = (byte *)malloc(s)\
 })
 
-struct YASL_ByteBuffer *YASL_ByteBuffer_new(const size_t size);
-void YASL_ByteBuffer_del(struct YASL_ByteBuffer *const bb);
+YASL_ByteBuffer *YASL_ByteBuffer_new(const size_t size);
+void YASL_ByteBuffer_del(YASL_ByteBuffer *const bb);
 
-void YASL_ByteBuffer_extend(struct YASL_ByteBuffer *const bb, const unsigned char *const bytes, const size_t bytes_len);
-void YASL_ByteBuffer_add_byte(struct YASL_ByteBuffer *const bb, const unsigned char byte);
-void YASL_ByteBuffer_add_vint(struct YASL_ByteBuffer *const bb, size_t val);
-void YASL_ByteBuffer_add_float(struct YASL_ByteBuffer *const bb, const yasl_float value);
-void YASL_ByteBuffer_add_int(struct YASL_ByteBuffer *const bb, const yasl_int value);
+void YASL_ByteBuffer_extend(YASL_ByteBuffer *const bb, const byte *const bytes, const size_t bytes_len);
+#define YASL_ByteBuffer_add_byte BUFFER_PUSH(byte)
+// void YASL_ByteBuffer_add_byte(YASL_ByteBuffer *const buffer, const byte v);
+void YASL_ByteBuffer_add_vint(YASL_ByteBuffer *const bb, size_t val);
+void YASL_ByteBuffer_add_float(YASL_ByteBuffer *const bb, const yasl_float value);
+void YASL_ByteBuffer_add_int(YASL_ByteBuffer *const bb, const yasl_int value);
 /* Caller must check that index is within range */
-void YASL_ByteBuffer_rewrite_int_fast(struct YASL_ByteBuffer *const bb, const size_t index, const yasl_int value);
+void YASL_ByteBuffer_rewrite_int_fast(YASL_ByteBuffer *const bb, const size_t index, const yasl_int value);
 
 #endif

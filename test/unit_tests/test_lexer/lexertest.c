@@ -15,7 +15,7 @@ SETUP_YATS();
 #define ASSERT_EATTOK(tok, lex) do {\
             gettok(&(lex));\
             ASSERT_TOK_EQ(tok, (lex).type);\
-	    free((lex).buffer.bytes);\
+	    free((lex).buffer.items);\
         } while(0)
 
 #define USING_LEX(name, val, ...) do {\
