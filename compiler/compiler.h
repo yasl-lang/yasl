@@ -13,8 +13,8 @@ DECL_BUFFER(size_t)
 
 #define NEW_SIZEBUFFER(s)\
 	((BUFFER(size_t)){\
-		.count = 0,\
 		.size = (s),\
+		.count = 0,\
 		.items = (size_t *)malloc(sizeof(size_t)*(s)),\
 	})
 
