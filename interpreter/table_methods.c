@@ -95,31 +95,30 @@ int table___eq(struct YASL_State *S) {
 	return 1;
 }
 
-int list_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, size_t buffer_count);
+int list_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer);
 
 #define FOUND_LIST "[...], "
 #define FOUND_TABLE "{...}, "
 
-bool buffer_contains(void **buffer, size_t buffer_count, void *val) {
-	for (size_t j = 0; j < buffer_count; j++) {
-		if (buffer[j] == val) {
+bool buffer_contains(BUFFER(ptr) buffer, void *val) {
+	for (size_t j = 0; j < buffer.count; j++) {
+		if (buffer.items[j] == val) {
 			return true;
 		}
 	}
 	return false;
 }
 
-void rec_call(struct YASL_State *S, void **buffer, const size_t buffer_count, const size_t buffer_size, int (*f)(struct YASL_State *, void **, size_t, size_t)) {
-	size_t tmp_buffer_size =
-		buffer_count == buffer_size ? buffer_size * 2 : buffer_size;
-	void **tmp_buffer = (void **) malloc(tmp_buffer_size * sizeof(void *));
-	memcpy(tmp_buffer, buffer, sizeof(void *) * buffer_count);
-	tmp_buffer[buffer_count] = vm_peeklist((struct VM *) S);
-	f(S, tmp_buffer, tmp_buffer_size, buffer_count + 1);
-	free(tmp_buffer);
+void rec_call(struct YASL_State *S, BUFFER(ptr) buffer, int (*f)(struct YASL_State *, BUFFER(ptr))) {
+	BUFFER(ptr) tmp = BUFFER_COPY(ptr)(&buffer);
+	BUFFER_PUSH(ptr)(&tmp, vm_peeklist((struct VM *)S));
+
+	f(S, tmp);
+
+	BUFFER_CLEANUP(ptr)(&tmp);
 }
 
-int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, size_t buffer_count) {
+int table_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer) {
 	YASL_ByteBuffer bb = NEW_BB(8);
 
 	YASL_ByteBuffer_add_byte(&bb, '{');
@@ -143,22 +142,22 @@ int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, 
 		vm_push((struct VM *) S, item->value);
 
 		if (vm_islist((struct VM *) S)) {
-			bool found = buffer_contains(buffer, buffer_count, vm_peeklist((struct VM *) S));
+			bool found = buffer_contains(buffer, vm_peeklist((struct VM *) S));
 			if (found) {
 				YASL_ByteBuffer_extend(&bb, (unsigned char *)FOUND_LIST, strlen(FOUND_LIST));
 				vm_pop((struct VM *) S);
 				continue;
 			} else {
-				rec_call(S, buffer, buffer_count, buffer_size, &list_tostr_helper);
+				rec_call(S, buffer, &list_tostr_helper);
 			}
 		} else if (vm_istable((struct VM *) S, S->vm.sp)) {
-			bool found = buffer_contains(buffer, buffer_count, vm_peeklist((struct VM *) S));
+			bool found = buffer_contains(buffer, vm_peeklist((struct VM *) S));
 			if (found) {
 				YASL_ByteBuffer_extend(&bb, (unsigned char *)FOUND_TABLE, strlen(FOUND_TABLE));
 				vm_pop((struct VM *) S);
 				continue;
 			} else {
-				rec_call(S, buffer, buffer_count, buffer_size, &table_tostr_helper);
+				rec_call(S, buffer, &table_tostr_helper);
 			}
 		} else {
 			vm_stringify_top((struct VM *) S);
@@ -185,10 +184,12 @@ int table_tostr(struct YASL_State *S) {
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 
-	void **buffer = (void **) malloc(8 * sizeof(void *));
-	buffer[0] = vm_peektable((struct VM *) S, S->vm.sp);
-	table_tostr_helper(S, buffer, 8, 1);
-	free(buffer);
+	BUFFER(ptr) buffer;
+	BUFFER_INIT(ptr)(&buffer, 8);
+	BUFFER_PUSH(ptr)(&buffer, vm_peektable((struct VM *) S));
+	table_tostr_helper(S, buffer);
+	BUFFER_CLEANUP(ptr)(&buffer);
+
 	return 1;
 }
 

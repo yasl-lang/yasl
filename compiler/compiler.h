@@ -13,9 +13,9 @@ DECL_BUFFER(size_t)
 
 #define NEW_SIZEBUFFER(s)\
 	((BUFFER(size_t)){\
-		.size = (s),\
+		.size = s,\
 		.count = 0,\
-		.items = (size_t *)malloc(sizeof(size_t)*(s)),\
+		.items = (size_t *)malloc(sizeof(size_t)*s),\
 	})
 
 #define NEW_COMPILER(fp)\
