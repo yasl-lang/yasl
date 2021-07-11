@@ -49,7 +49,7 @@ enum Opcode {
 	O_EXPORT = 0x90, // export
 
 	O_LIT = 0x9A,
-	O_LIT8 = 0x9B, // make new constant and push it onto stack (index into constant table: 8 items)
+	O_LIT8 = 0x9B, // make new constant and push it onto stack (index into constant table: 8 bytes)
 	O_NEWTABLE = 0x9C, // make new table and push it onto stack
 	O_NEWLIST = 0x9D, // make new list and push it onto stack
 
@@ -57,16 +57,16 @@ enum Opcode {
 
 	O_END = 0xB0, // indicate end of list on stack.
 	O_SWAP = 0xB7, // swap the top two elements of the stack.
-	O_DUP = 0xB8, // duplicate top items of stack
+	O_DUP = 0xB8, // duplicate top values of stack
 	O_DEL_FP = 0xB9, // deletes an element from the stack. Takes a one-byte index, indicating which element to delete.
 	O_DECSP = 0xBD,
 	O_INCSP = 0xBE,
 	O_POP = 0xBF, // pop top of stack
 
-	O_BR_8 = 0xC0, // branch unconditionally (takes next 8 items as jump length)
-	O_BRF_8 = 0xC1, // branch if condition is falsey (takes next 8 items as jump length)
-	O_BRT_8 = 0xC2, // branch if condition is truthy (takes next 8 items as jump length)
-	O_BRN_8 = 0xC3, // branch if condition is not undef (takes next 8 items as jump length)
+	O_BR_8 = 0xC0, // branch unconditionally (takes next 8 bytes as jump length)
+	O_BRF_8 = 0xC1, // branch if condition is falsey (takes next 8 bytes as jump length)
+	O_BRT_8 = 0xC2, // branch if condition is truthy (takes next 8 bytes as jump length)
+	O_BRN_8 = 0xC3, // branch if condition is not undef (takes next 8 bytes as jump length)
 
 	O_INITFOR = 0xD0, // initialises for-loop in VM
 	O_ENDCOMP = 0xD1, // end list / table comprehension
