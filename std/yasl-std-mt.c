@@ -25,7 +25,7 @@ int YASL_mt_setmt(struct YASL_State *S) {
 		ud_setmt(YASL_GETUSERDATA(vm_peek((struct VM *)S)), YASL_GETUSERDATA(mt));
 		break;
 	default:
-		vm_print_err_type((struct VM *)S, "cannot set metatable for bytes of type %s.", YASL_peektypename(S));
+		vm_print_err_type((struct VM *)S, "cannot set metatable for value of type %s.", YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	return 1;

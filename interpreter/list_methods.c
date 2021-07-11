@@ -60,22 +60,22 @@ int list___set(struct YASL_State *S) {
 	return 1;
 }
 
-int table_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, size_t buffer_count);
-bool buffer_contains(void **buffer, size_t buffer_count, void *val);
-void rec_call(struct YASL_State *S, void **buffer, const size_t buffer_count, const size_t buffer_size, int (*f)(struct YASL_State *, void **, size_t, size_t));
+int table_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer);
+bool buffer_contains(BUFFER(ptr) buffer, void *val);
+void rec_call(struct YASL_State *S, BUFFER(ptr) buffer, int (*f)(struct YASL_State *, BUFFER(ptr)));
 
 #define FOUND_LIST "[...], "
 #define FOUND_TABLE "{...}, "
 
-int list_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, size_t buffer_count) {
-	struct YASL_ByteBuffer bb = NEW_BB(8);
+int list_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer) {
+	YASL_ByteBuffer bb = NEW_BB(8);
 
 	YASL_ByteBuffer_add_byte(&bb, '[');
 	struct YASL_List *list = vm_peeklist((struct VM *) S);
 	if (list->count == 0) {
 		vm_pop((struct VM *) S);
 		YASL_ByteBuffer_add_byte(&bb, ']');
-		vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, bb.count, (char *)bb.bytes)));
+		vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, bb.count, (char *)bb.items)));
 		return YASL_SUCCESS;
 	}
 
@@ -83,22 +83,22 @@ int list_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, s
 		vm_push((struct VM *) S, obj);
 
 		if (vm_islist((struct VM *) S)) {
-			bool found = buffer_contains(buffer, buffer_count, vm_peeklist((struct VM *) S));
+			bool found = buffer_contains(buffer, vm_peeklist((struct VM *) S));
 			if (found) {
 				YASL_ByteBuffer_extend(&bb, (unsigned char *)FOUND_LIST, strlen(FOUND_LIST));
 				vm_pop((struct VM *) S);
 				continue;
 			} else {
-				rec_call(S, buffer, buffer_count, buffer_size, &list_tostr_helper);
+				rec_call(S, buffer, &list_tostr_helper);
 			}
 		} else if (vm_istable((struct VM *) S)) {
-			bool found = buffer_contains(buffer, buffer_count, vm_peeklist((struct VM *) S));
+			bool found = buffer_contains(buffer, vm_peeklist((struct VM *) S));
 			if (found) {
 				YASL_ByteBuffer_extend(&bb, (unsigned char *)FOUND_TABLE, strlen(FOUND_TABLE));
 				vm_pop((struct VM *) S);
 				continue;
 			} else {
-				rec_call(S, buffer, buffer_count, buffer_size, &table_tostr_helper);
+				rec_call(S, buffer, &table_tostr_helper);
 			}
 		} else {
 			vm_stringify_top((struct VM *) S);
@@ -113,7 +113,7 @@ int list_tostr_helper(struct YASL_State *S, void **buffer, size_t buffer_size, s
 	bb.count -= 2;
 	YASL_ByteBuffer_add_byte(&bb, ']');
 
-	vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, bb.count, (char *)bb.bytes)));
+	vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, bb.count, (char *)bb.items)));
 
 	return YASL_SUCCESS;
 }
@@ -123,10 +123,13 @@ int list_tostr(struct YASL_State *S) {
 		YASLX_print_err_bad_arg_type(S, "list.tostr", 0, "list", YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
-	void **buffer = (void **) malloc(8 * sizeof(void *));
-	buffer[0] = vm_peeklist((struct VM *) S, S->vm.sp);
-	list_tostr_helper(S, buffer, 8, 1);
-	free(buffer);
+
+	BUFFER(ptr) buffer;
+	BUFFER_INIT(ptr)(&buffer, 8);
+	BUFFER_PUSH(ptr)(&buffer, vm_peeklist((struct VM *) S));
+	list_tostr_helper(S, buffer);
+	BUFFER_CLEANUP(ptr)(&buffer);
+
 	return 1;
 }
 

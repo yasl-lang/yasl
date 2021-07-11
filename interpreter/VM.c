@@ -574,7 +574,7 @@ void vm_stringify_top(struct VM *const vm) {
 		vm_CALL_now(vm);
 	}
 	if (!vm_isstr(vm)) {
-		vm_print_err_type(vm, "Could not stringify bytes, got: %s", vm_peektypename(vm));
+		vm_print_err_type(vm, "Could not stringify items, got: %s", vm_peektypename(vm));
 		vm_throw_err(vm, YASL_TYPE_ERROR);
 	}
 }
@@ -822,7 +822,7 @@ static void vm_GET_helper(struct VM *const vm, struct YASL_Object index) {
 				return;
 			}
 		}
-		vm_print_err_value(vm, "Could not find bytes for index%s", "");
+		vm_print_err_value(vm, "Could not find value for index%s", "");
 		vm_throw_err(vm, YASL_VALUE_ERROR);
 	}
 }
@@ -847,7 +847,7 @@ static void vm_GET_helper2(struct VM *const vm) {
 				return;
 			}
 		}
-		vm_print_err_value(vm, "Could not find bytes for index%s", "");
+		vm_print_err_value(vm, "Could not find value for index%s", "");
 		vm_throw_err(vm, YASL_VALUE_ERROR);
 	}
 }
@@ -1313,7 +1313,7 @@ void vm_close_all(struct VM *const vm) {
 static void vm_ECHO(struct VM *const vm) {
 	unsigned char top = NCODE(vm);
 	YASL_UNUSED(top);
-	YASL_ASSERT(top == vm->sp - vm->fp - 1, "wrong bytes for top of stack.");
+	YASL_ASSERT(top == vm->sp - vm->fp - 1, "wrong value for top of stack.");
 	vm_stringify_top(vm);
 	struct YASL_String *v = vm_popstr(vm);
 	size_t strlen = (int)YASL_String_len(v);

@@ -133,8 +133,8 @@ static int main_REPL(int argc, char **argv) {
 	(void) argc;
 	(void) argv;
 	int next;
-	struct YASL_ByteBuffer *buffer = YASL_ByteBuffer_new(8);
-	struct YASL_State *S = YASL_newstate_bb((const char *)buffer->bytes, 0);
+	YASL_ByteBuffer *buffer = YASL_ByteBuffer_new(8);
+	struct YASL_State *S = YASL_newstate_bb((const char *)buffer->items, 0);
 	YASLX_decllibs(S);
 	YASL_declglobal(S, "quit");
 	YASL_pushcfunction(S, YASL_quit, 0);
@@ -148,7 +148,7 @@ static int main_REPL(int argc, char **argv) {
 		}
 		YASL_ByteBuffer_add_byte(buffer, '\n');
 
-		YASL_resetstate_bb(S, (const char *)buffer->bytes, buffer->count);
+		YASL_resetstate_bb(S, (const char *)buffer->items, buffer->count);
 
 		buffer->count = 0;
 

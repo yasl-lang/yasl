@@ -51,10 +51,10 @@ void scope_del(struct Scope *const scope) {
 	if (scope == NULL) return;
 	scope_del(scope->parent);
 	free(scope->parent);
-	scope_del_current_only(scope);
+	scope_del_cur_only(scope);
 }
 
-void scope_del_current_only(struct Scope *const scope) {
+void scope_del_cur_only(struct Scope *const scope) {
 	for (size_t i = 0; i < scope->vars.size; i++) {
 		struct YASL_Table_Item *item = &scope->vars.items[i];
 		if (item->key.type != Y_END && item->key.type != Y_UNDEF) {
@@ -73,7 +73,7 @@ size_t scope_len(const struct Scope *const scope) {
 bool scope_contains_cur_only(const struct Scope *const scope, const char *const name) {
 	const size_t name_len = strlen(name);
 	struct YASL_String *string = YASL_String_new_sized_heap(0, name_len, copy_char_buffer(name_len, name));
-	struct YASL_Object key = YASL_STR(string); // (struct YASL_Object) { .bytes.sval = string, .type = Y_STR };
+	struct YASL_Object key = YASL_STR(string);
 
 	struct YASL_Object value = YASL_Table_search(&scope->vars, key);
 	str_del(key.value.sval);

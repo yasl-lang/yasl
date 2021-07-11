@@ -16,10 +16,10 @@
         .file = (f),\
         .c = 0,\
         .type = T_UNKNOWN,\
-        .buffer = (struct YASL_ByteBuffer) {\
+        .buffer = (YASL_ByteBuffer) {\
                 .size = 0,\
                 .count = 0,\
-                .bytes = NULL\
+                .items = NULL\
 	},\
         .line = 1,\
         .status = YASL_SUCCESS,\
@@ -53,7 +53,7 @@ struct Lexer {
 	struct LEXINPUT *file;   // OWN
 	int c;                   // current character
 	enum Token type;         // type of current token
-	struct YASL_ByteBuffer buffer;
+	YASL_ByteBuffer buffer;
 	size_t line;
 	int status;
 	int mode;
@@ -69,8 +69,8 @@ int lex_getchar(struct Lexer *const lex);
 void lex_val_setnull(struct Lexer *const lex);
 void lex_val_free(struct Lexer *const lex);
 char *lex_val_get(struct Lexer *const lex);
-void lex_val_save(const struct Lexer *const lex, struct YASL_ByteBuffer *const buffer);
-void lex_val_restore(struct Lexer *const lex, const struct YASL_ByteBuffer *const buffer);
+void lex_val_save(const struct Lexer *const lex, YASL_ByteBuffer *const buffer);
+void lex_val_restore(struct Lexer *const lex, const YASL_ByteBuffer *const buffer);
 
 extern const char *YASL_TOKEN_NAMES[84];
 
