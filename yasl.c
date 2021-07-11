@@ -179,7 +179,6 @@ static inline int is_const(int64_t value) {
 }
 
 int YASL_setglobal(struct YASL_State *S, const char *name) {
-
 	if (!scope_contains(S->compiler.globals, name)) return YASL_ERROR;
 
 	int64_t index = scope_get(S->compiler.globals, name);

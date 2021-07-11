@@ -12,17 +12,15 @@ enum YASL_Types {
 	Y_INT,
 	Y_BOOL,
 	Y_STR,
-	Y_STR_W,
+	//Y_STR_W,
 	Y_LIST,
-	Y_LIST_W,
+	//Y_LIST_W,
 	Y_TABLE,
-	Y_TABLE_W,
 	Y_FN,
 	Y_CLOSURE,
 	Y_CFN,
 	Y_USERPTR,
 	Y_USERDATA,
-	Y_USERDATA_W,
 };
 
 #endif

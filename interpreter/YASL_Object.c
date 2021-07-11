@@ -18,17 +18,13 @@ static const char *YASL_TYPE_NAMES[] = {
 	"int",      // Y_INT,
 	"bool",     // Y_BOOL,
 	"str",      // Y_STR,
-	"str",      // Y_STR_W,
 	"list",     // Y_LIST,
-	"list",     // Y_LIST_W,
 	"table",    // Y_TABLE,
-	"table",    // Y_TABLE_W,
 	"fn",       // Y_FN,
 	"fn",	    // Y_CLOSURE,
 	"fn",       // Y_CFN,
 	"userptr",  // Y_USERPTR,
 	"userdata", // Y_USERDATA,
-	"userdata", // Y_USERDATA_W
 };
 
 struct CFunction *new_cfn(YASL_cfn value, int num_args) {

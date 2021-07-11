@@ -735,11 +735,8 @@ static void vm_SLICE(struct VM *const vm) {
 struct RC_UserData *obj_get_metatable(const struct VM *const vm, struct YASL_Object v) {
 	switch (v.type) {
 	case Y_USERDATA:
-	case Y_USERDATA_W:
 	case Y_LIST:
-	case Y_LIST_W:
 	case Y_TABLE:
-	case Y_TABLE_W:
 		return YASL_GETUSERDATA(v)->mt;
 	default:
 		return vm->builtins_htable[v.type];
