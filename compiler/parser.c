@@ -357,7 +357,6 @@ static struct Node *parse_fn(struct Parser *const parser) {
 	eattok(parser, T_FN);
 	size_t line = parserline(parser);
 	char *name = eatname(parser);
-	//size_t name_len = strlen(name);
 	if (matcheattok(parser, T_DOT)) {
 		struct Node *collection = new_Var(parser, name, line);
 		size_t line = parserline(parser);
@@ -380,8 +379,6 @@ static struct Node *parse_fn(struct Parser *const parser) {
 
 	struct Node *body = parse_body(parser);
 
-	//char *name2 = (char *)malloc(name_len + 1);
-	//strcpy(name2, name);
 	return new_Let(parser, new_FnDecl(parser, block, body, name, line), name, line);
 	// TODO Fix this ^
 }
@@ -392,16 +389,13 @@ static struct Node *parse_const_fn(struct Parser *const parser) {
 	eattok(parser, T_FN);
 	size_t line = parserline(parser);
 	char *name = eatname(parser);
-	//size_t name_len = strlen(name);
 	eattok(parser, T_LPAR);
 	struct Node *block = parse_function_params(parser);
 	eattok(parser, T_RPAR);
 
 	struct Node *body = parse_body(parser);
 
-	// TODO: clean this up
-	//char *name2 = (char *)malloc(name_len + 1);
-	//strcpy(name2, name);
+	// TODO fix this
 	return new_Const(parser, new_FnDecl(parser, block, body, name, line), name, line);
 }
 
@@ -796,7 +790,7 @@ static struct Node *parse_assign(struct Parser *const parser, struct Node *cur_n
 			return new_Set(parser, left, key, val, line);
 		}
 		default:
-			parser_print_err_syntax(parser, "Invalid l-items (line %" PRI_SIZET ").\n", line);
+			parser_print_err_syntax(parser, "Invalid l-value (line %" PRI_SIZET ").\n", line);
 			handle_error(parser);
 		}
 	} else if (tok_isaugmented(curtok(parser))) {
@@ -804,8 +798,6 @@ static struct Node *parse_assign(struct Parser *const parser, struct Node *cur_n
 		switch (cur_node->nodetype) {
 		case N_VAR: {
 			struct Node *tmp = new_BinOp(parser, op, cur_node, parse_expr(parser), line);
-			//char *name = (char *)malloc(strlen(cur_node->items.sval.str) + 1);
-			//strcpy(name, cur_node->items.sval.str);
 			return new_Assign(parser, tmp, cur_node->value.sval.str, line);
 		}
 		case N_GET: {
@@ -815,7 +807,7 @@ static struct Node *parse_assign(struct Parser *const parser, struct Node *cur_n
 			return new_Set(parser, collection, key, value, line);
 		}
 		default:
-			parser_print_err_syntax(parser, "Invalid l-items (line %" PRI_SIZET ").\n", line);
+			parser_print_err_syntax(parser, "Invalid l-value (line %" PRI_SIZET ").\n", line);
 			handle_error(parser);
 		}
 	}

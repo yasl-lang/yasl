@@ -29,8 +29,8 @@ TEST(syntaxerrortest) {
 	ASSERT_SYNTAX_ERR("echo if;", "Expected expression, got `if` (line 1)");
 	ASSERT_SYNTAX_ERR("else { echo true };", "`else` without previous `if` (line 1)");
 	ASSERT_SYNTAX_ERR("elseif { echo true };", "`elseif` without previous `if` (line 1)");
-	ASSERT_SYNTAX_ERR("5 = 10;", "Invalid l-items (line 1)");
-	ASSERT_SYNTAX_ERR("5 += 10;", "Invalid l-items (line 1)");
+	ASSERT_SYNTAX_ERR("5 = 10;", "Invalid l-value (line 1)");
+	ASSERT_SYNTAX_ERR("5 += 10;", "Invalid l-value (line 1)");
 	ASSERT_SYNTAX_ERR("x->5();", "Invalid method call (line 1)");
 	ASSERT_SYNTAX_ERR("x.5;", "Invalid member access (line 1)");
 	ASSERT_SYNTAX_ERR("fn outer() {\n"
