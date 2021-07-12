@@ -71,12 +71,8 @@ size_t scope_len(const struct Scope *const scope) {
 }
 
 bool scope_contains_cur_only(const struct Scope *const scope, const char *const name) {
-	const size_t name_len = strlen(name);
-	struct YASL_String *string = YASL_String_new_sized_heap(0, name_len, copy_char_buffer(name_len, name));
-	struct YASL_Object key = YASL_STR(string);
+	struct YASL_Object value = YASL_Table_search_string_int(&scope->vars, name, strlen(name));
 
-	struct YASL_Object value = YASL_Table_search(&scope->vars, key);
-	str_del(key.value.sval);
 	if (value.type == Y_END) {
 		return false;
 	}
@@ -84,13 +80,9 @@ bool scope_contains_cur_only(const struct Scope *const scope, const char *const 
 }
 
 bool scope_contains(const struct Scope *const scope, const char *const name) {
-	const size_t name_len = strlen(name);
 	if (scope == NULL) return false;
-	struct YASL_String *string = YASL_String_new_sized_heap(0, name_len, copy_char_buffer(name_len, name));
-	struct YASL_Object key = YASL_STR(string);
 
-	struct YASL_Object value = YASL_Table_search(&scope->vars, key);
-	str_del(key.value.sval);
+	struct YASL_Object value = YASL_Table_search_string_int(&scope->vars, name, strlen(name));
 	if (value.type == Y_END && scope->parent == NULL) {
 		return false;
 	}
@@ -119,55 +111,45 @@ static inline int64_t get_index(const int64_t value) {
 	return is_const(value) ? ~value : value;
 }
 
-static int64_t env_add_upval(struct Env *env, struct Scope *stack, const char *const name) {
-	struct YASL_String *string = YASL_String_new_sized_heap(0, strlen(name), copy_char_buffer(strlen(name), name));
-	struct YASL_Object key = YASL_STR(string);
-	struct YASL_Object res;
+static int64_t env_add_upval_kv(struct Env *env, const char *const name, yasl_int value) {
+	YASL_Table_insert_string_int(&env->upval_values, name, strlen(name), value);
+	int64_t index = env->upval_indices.count;
+	YASL_Table_insert_string_int(&env->upval_indices, name, strlen(name), index);
+	return index;
+}
 
+static int64_t env_add_upval(struct Env *env, struct Scope *stack, const char *const name) {
 	env->isclosure = true;
 
 	if (!env->parent && scope_contains(stack, name)) {
 		yasl_int value = get_index(scope_get(stack, name));
-		(void)value;
-		YASL_Table_insert(&env->upval_values, key, YASL_INT(value));
-		int64_t index = env->upval_indices.count;
-		YASL_Table_insert(&env->upval_indices, key, YASL_INT(index));
-		return index;
+		return env_add_upval_kv(env, name, value);
 	}
 
 	YASL_ASSERT(env->parent, "Parent cannot be null.");
 
-	if (!env_contains_cur_only(env->parent, name) && (YASL_Table_search(&env->parent->upval_indices, key)).type != Y_INT) {
+	if (!env_contains_cur_only(env->parent, name) && (YASL_Table_search_string_int(&env->parent->upval_indices, name, strlen(name))).type != Y_INT) {
 		env_add_upval(env->parent, stack, name);
 	}
 
 	if (env_contains_cur_only(env->parent, name)) {
 		env->parent->usedinclosure = true;
 		yasl_int value = get_index(scope_get(env->parent->scope, name));
-		YASL_Table_insert(&env->upval_values, key, YASL_INT(value));
-		int64_t index = env->upval_indices.count;
-		YASL_Table_insert(&env->upval_indices, key, YASL_INT(index));
-		return index;
+		return env_add_upval_kv(env, name, value);
 	}
 
-	if ((res = YASL_Table_search(&env->parent->upval_indices, key)).type == Y_INT) {
-		yasl_int value = res.value.ival;
-		YASL_Table_insert(&env->upval_values, key, YASL_INT(value < 0 ? value : ~value));
-		int64_t index = env->upval_indices.count;
-		YASL_Table_insert(&env->upval_indices, key, YASL_INT(index));
-		return index;
+	struct YASL_Object res;
+	if ((res = YASL_Table_search_string_int(&env->parent->upval_indices, name, strlen(name))).type == Y_INT) {
+		yasl_int value = obj_getint(&res);
+		return env_add_upval_kv(env, name, value < 0 ? value : ~value);;
 	}
 
-	YASL_ASSERT(false, "shouldn't reach here.");
+	YASL_UNREACHED();
 	return 0;
 }
 
 int64_t env_resolve_upval_index(struct Env *const env, struct Scope *stack, const char *const name) {
-	struct YASL_String *string = YASL_String_new_sized_heap(0, strlen(name), copy_char_buffer(strlen(name), name));
-	struct YASL_Object key = YASL_STR(string);
-
-	struct YASL_Object value = YASL_Table_search(&env->upval_indices, key);
-	str_del(key.value.sval);
+	struct YASL_Object value = YASL_Table_search_string_int(&env->upval_indices, name, strlen(name));
 
 	if (value.type == Y_INT) {
 		return value.value.ival;
@@ -178,24 +160,15 @@ int64_t env_resolve_upval_index(struct Env *const env, struct Scope *stack, cons
 
 // Assumes that the upval in question is already in the upvals for env.
 int64_t env_resolve_upval_value(struct Env *const env, const char *const name) {
-	struct YASL_String *string = YASL_String_new_sized_heap(0, strlen(name), copy_char_buffer(strlen(name), name));
-	struct YASL_Object key = YASL_STR(string);
-
-	struct YASL_Object value = YASL_Table_search(&env->upval_values, key);
+	struct YASL_Object value = YASL_Table_search_string_int(&env->upval_values, name, strlen(name));
 
 	YASL_ASSERT(value.type == Y_INT, "Value must be found in upvals for env.");
 
-	str_del(key.value.sval);
 	return obj_getint(&value);
 }
 
 int64_t scope_get(const struct Scope *const scope, const char *const name) {
-	const size_t name_len = strlen(name);
-	struct YASL_String *string = YASL_String_new_sized_heap(0, name_len, copy_char_buffer(name_len + 1, name));
-	struct YASL_Object key = YASL_STR(string);
-
-	struct YASL_Object value = YASL_Table_search(&scope->vars, key);
-	str_del(key.value.sval);
+	struct YASL_Object value = YASL_Table_search_string_int(&scope->vars, name, strlen(name));
 	if (value.type == Y_END && scope->parent == NULL) {
 		YASL_ASSERT(false, "Lookup should not fail.");
 	}
@@ -204,11 +177,7 @@ int64_t scope_get(const struct Scope *const scope, const char *const name) {
 }
 
 int64_t scope_decl_var(struct Scope *const scope, const char *const name) {
-	const size_t name_len = strlen(name);
-	struct YASL_String *string = YASL_String_new_sized_heap(0, name_len, copy_char_buffer(name_len, name));
-	struct YASL_Object key = YASL_STR(string);
-	struct YASL_Object value = YASL_INT((long) scope_len(scope));
-	YASL_Table_insert(&scope->vars, key, value);
+	YASL_Table_insert_string_int(&scope->vars, name, strlen(name), scope_len(scope));
 	return scope_len(scope);
 }
 
