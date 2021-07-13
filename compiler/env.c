@@ -19,23 +19,21 @@ struct Env *env_new(struct Env *const parent) {
 	return env;
 }
 
+static void YASL_Table_string_int_cleanup(struct YASL_Table *const table) {
+	for (size_t i = 0; i < table->size; i++) {
+		struct YASL_Table_Item *item = &table->items[i];
+		if (item->key.type != Y_END && item->key.type != Y_UNDEF) {
+			str_del(item->key.value.sval);
+		}
+	}
+	free(table->items);
+}
+
 void env_del(struct Env *const env) {
 	if (env == NULL) return;
 	scope_del(env->scope);
-	for (size_t i = 0; i < env->upval_indices.size; i++) {
-		struct YASL_Table_Item *item = &env->upval_indices.items[i];
-		if (item->key.type != Y_END && item->key.type != Y_UNDEF) {
-			dec_ref(&item->key);
-		}
-	}
-	free(env->upval_indices.items);
-	for (size_t i = 0; i < env->upval_values.size; i++) {
-		struct YASL_Table_Item *item = &env->upval_values.items[i];
-		if (item->key.type != Y_END && item->key.type != Y_UNDEF) {
-			dec_ref(&item->key);
-		}
-	}
-	free(env->upval_values.items);
+	YASL_Table_string_int_cleanup(&env->upval_indices);
+	YASL_Table_string_int_cleanup(&env->upval_values);
 	env_del(env->parent);
 	free(env);
 }
@@ -55,13 +53,7 @@ void scope_del(struct Scope *const scope) {
 }
 
 void scope_del_cur_only(struct Scope *const scope) {
-	for (size_t i = 0; i < scope->vars.size; i++) {
-		struct YASL_Table_Item *item = &scope->vars.items[i];
-		if (item->key.type != Y_END && item->key.type != Y_UNDEF) {
-			str_del(item->key.value.sval);
-		}
-	}
-	free(scope->vars.items);
+	YASL_Table_string_int_cleanup(&scope->vars);
 	free(scope);
 }
 
