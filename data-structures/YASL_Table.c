@@ -143,6 +143,11 @@ bool YASL_Table_insert(struct YASL_Table *const table, const struct YASL_Object 
 	return true;
 }
 
+void YASL_Table_insert_zstring_int(struct YASL_Table *const table, const char *const key,
+				   const int64_t val) {
+	YASL_Table_insert_string_int(table, key, strlen(key), val);
+}
+
 void YASL_Table_insert_string_int(struct YASL_Table *const table, const char *const key, const size_t key_len,
 				  const int64_t val) {
 	struct YASL_String *string = YASL_String_new_sized_heap(0, key_len, copy_char_buffer(key_len, key));
