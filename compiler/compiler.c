@@ -80,7 +80,7 @@ static void exit_scope(struct Compiler *const compiler) {
 	struct Scope **lval = in_function(compiler) ? &compiler->params->scope : &compiler->stack;
 	struct Scope *tmp = *lval;
 	 *lval = tmp->parent;
-	size_t num_locals = tmp->vars.count;
+	size_t num_locals = scope_num_vars_cur_only(tmp); // ->vars.count;
 	scope_del_cur_only(tmp);
 	while (num_locals-- > 0) {
 		compiler_add_byte(compiler, O_POP);
@@ -147,7 +147,6 @@ static void load_var_from_upval(struct Compiler *const compiler, const char *con
 }
 
 static void load_var(struct Compiler *const compiler, const char *const name, const size_t line) {
-	const size_t name_len = strlen(name);
 	if (in_function(compiler) && env_contains_cur_only(compiler->params, name)) {   // fn-local var
 		load_var_local(compiler, compiler->params->scope, name);
 	} else if (env_contains(compiler->params, name)) {                         // closure over fn-local variable
@@ -160,7 +159,7 @@ static void load_var(struct Compiler *const compiler, const char *const name, co
 		load_var_local(compiler, compiler->stack, name);
 	} else if (scope_contains(compiler->globals, name)) {                      // global vars
 		compiler_add_byte(compiler, O_GLOAD_8);
-		compiler_add_int(compiler, YASL_Table_search_string_int(compiler->strings, name, name_len).value.ival);
+		compiler_add_int(compiler, YASL_Table_search_zstring_int(compiler->strings, name).value.ival);
 	} else {
 		compiler_print_err_undeclared_var(compiler, name, line);
 		handle_error(compiler);
@@ -186,7 +185,6 @@ static void store_var_in_upval(struct Compiler *const compiler, const char *cons
 }
 
 static void store_var(struct Compiler *const compiler, const char *const name, const size_t line) {
-	const size_t name_len = strlen(name);
 	if (in_function(compiler) && env_contains_cur_only(compiler->params, name)) { // fn-local variable
 		store_var_cur_scope(compiler, compiler->params->scope, name, line);
 	} else if (env_contains(compiler->params, name)) {                            // closure over fn-local variable
@@ -208,7 +206,7 @@ static void store_var(struct Compiler *const compiler, const char *const name, c
 		if (is_const(index))
 			goto handle_const_err;
 		compiler_add_byte(compiler, O_GSTORE_8);
-		compiler_add_int(compiler, YASL_Table_search_string_int(compiler->strings, name, name_len).value.ival);
+		compiler_add_int(compiler, YASL_Table_search_zstring_int(compiler->strings, name).value.ival);
 	} else {
 		compiler_print_err_undeclared_var(compiler, name, line);
 		handle_error(compiler);
@@ -822,7 +820,7 @@ static void visit_VariadicListPattern(struct Compiler *const compiler, const str
 
 static void visit_DeclPattern(struct Compiler *const compiler, const struct Node *const node, const bool isconst) {
 	char *name = Decl_get_name(node);
-	YASL_Table_insert_string_int(&compiler->seen_bindings, name, strlen(name), 1);
+	YASL_Table_insert_zstring_int(&compiler->seen_bindings, name, 1);
 	if (!compiler->leftmost_pattern) {
 		if (!contains_var_in_current_scope(compiler, name)) {
 			compiler_print_err_syntax(compiler, "%s not bound on left side of | (line %" PRI_SIZET ").\n", name, node->line);
@@ -943,7 +941,7 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 	struct Node *guard = guards->children[curr];
 	size_t start_guard = 0;
 
-	unsigned char bindings = (unsigned char) get_scope_in_use(compiler)->vars.count;
+	unsigned char bindings = (unsigned char) scope_num_vars_cur_only(get_scope_in_use(compiler));
 	if (bindings) {
 		compiler_add_byte(compiler, O_INCSP);
 		compiler_add_byte(compiler, bindings);

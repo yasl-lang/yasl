@@ -171,6 +171,10 @@ struct YASL_Object YASL_Table_search(const struct YASL_Table *const table, const
 	return YASL_END();
 }
 
+struct YASL_Object YASL_Table_search_zstring_int(const struct YASL_Table *const table, const char *const key) {
+	return YASL_Table_search_string_int(table, key, strlen(key));
+}
+
 struct YASL_Object YASL_Table_search_string_int(const struct YASL_Table *const table, const char *const key,
 						const size_t key_len) {
 	struct YASL_String *string = YASL_String_new_sized_heap(0, key_len, copy_char_buffer(key_len, key));

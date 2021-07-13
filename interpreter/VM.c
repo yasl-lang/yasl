@@ -772,7 +772,7 @@ static int lookup(struct VM *vm, struct YASL_Object obj, struct YASL_Table *mt, 
 		return YASL_SUCCESS;
 	}
 
-	search = YASL_Table_search_string_int(mt, "__get", strlen("__get"));
+	search = YASL_Table_search_zstring_int(mt, "__get");
 	if (search.type != Y_END) {
 		vm_push(vm, search);
 		vm_call_now_2(vm, obj, index);
@@ -791,7 +791,7 @@ static int lookup2(struct VM *vm, struct YASL_Table *mt) {
 		return YASL_SUCCESS;
 	}
 
-	search = YASL_Table_search_string_int(mt, "__get", strlen("__get"));
+	search = YASL_Table_search_zstring_int(mt, "__get");
 	if (search.type != Y_END) {
 		vm_push(vm, search);
 		vm_shifttopdown(vm, 2);

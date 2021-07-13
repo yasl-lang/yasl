@@ -21,6 +21,7 @@ struct Scope *scope_new(struct Scope *const scope);
 void scope_del(struct Scope *const scope);
 void scope_del_cur_only(struct Scope *const scope);
 
+size_t scope_num_vars_cur_only(const struct Scope *const scope);
 size_t scope_len(const struct Scope *const scope);
 bool scope_contains_cur_only(const struct Scope *const scope, const char *const name);
 bool scope_contains(const struct Scope *const scope, const char *const name);
