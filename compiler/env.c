@@ -68,22 +68,18 @@ size_t scope_len(const struct Scope *const scope) {
 }
 
 bool scope_contains_cur_only(const struct Scope *const scope, const char *const name) {
-	struct YASL_Object value = YASL_Table_search_zstring_int(&scope->vars, name);
-
-	if (value.type == Y_END) {
-		return false;
-	}
-	return true;
+	return YASL_Table_contains_zstring_int(&scope->vars, name);
 }
 
 bool scope_contains(const struct Scope *const scope, const char *const name) {
 	if (scope == NULL) return false;
 
-	struct YASL_Object value = YASL_Table_search_zstring_int(&scope->vars, name);
-	if (value.type == Y_END && scope->parent == NULL) {
+	const bool contains = scope_contains_cur_only(scope, name);
+	if (!contains && scope->parent == NULL) {
 		return false;
 	}
-	if (value.type == Y_END) return scope_contains(scope->parent, name);
+	if (!contains)
+		return scope_contains(scope->parent, name);
 	return true;
 }
 
@@ -125,7 +121,7 @@ static int64_t env_add_upval(struct Env *env, struct Scope *stack, const char *c
 
 	YASL_ASSERT(env->parent, "Parent cannot be null.");
 
-	if (!env_contains_cur_only(env->parent, name) && (YASL_Table_search_zstring_int(&env->parent->upval_indices, name)).type != Y_INT) {
+	if (!env_contains_cur_only(env->parent, name) && !YASL_Table_contains_zstring_int(&env->parent->upval_indices, name)) {
 		env_add_upval(env->parent, stack, name);
 	}
 
@@ -135,8 +131,8 @@ static int64_t env_add_upval(struct Env *env, struct Scope *stack, const char *c
 		return env_add_upval_kv(env, name, value);
 	}
 
-	struct YASL_Object res;
-	if ((res = YASL_Table_search_zstring_int(&env->parent->upval_indices, name)).type == Y_INT) {
+	const struct YASL_Object res = YASL_Table_search_zstring_int(&env->parent->upval_indices, name);
+	if (obj_isint(&res)) {
 		yasl_int value = obj_getint(&res);
 		return env_add_upval_kv(env, name, value < 0 ? value : ~value);;
 	}
@@ -179,8 +175,7 @@ int64_t scope_decl_var(struct Scope *const scope, const char *const name) {
 }
 
 static struct YASL_Table *get_closest_scope_with_var(struct Scope *const scope, const char *const name) {
-	struct YASL_Object key = YASL_Table_search_zstring_int(&scope->vars, name);
-	return key.type != Y_END ? &scope->vars : get_closest_scope_with_var(scope->parent, name);
+	return YASL_Table_contains_zstring_int(&scope->vars, name) ? &scope->vars : get_closest_scope_with_var(scope->parent, name);
 }
 
 void scope_make_const(struct Scope *const scope, const char *const name) {

@@ -176,6 +176,10 @@ struct YASL_Object YASL_Table_search(const struct YASL_Table *const table, const
 	return YASL_END();
 }
 
+bool YASL_Table_contains_zstring_int(const struct YASL_Table *const table, const char *const key) {
+	return YASL_Table_search_zstring_int(table, key).type == Y_INT;
+}
+
 struct YASL_Object YASL_Table_search_zstring_int(const struct YASL_Table *const table, const char *const key) {
 	return YASL_Table_search_string_int(table, key, strlen(key));
 }

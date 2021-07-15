@@ -44,6 +44,7 @@ int YASL_require(struct YASL_State *S) {
 
 	if (!Ss) {
 		YASL_print_err(S, "could not open package %s.", mode_str);
+		free(mode_str);
 		YASL_throw_err(S, YASL_ERROR);
 	}
 
@@ -170,6 +171,7 @@ int YASL_require_c(struct YASL_State *S) {
 	fun(S);
 #elif defined(YASL_USE_UNIX) || defined(YASL_USE_APPLE)
 	void *lib = search_on_path(YASL_DEFAULT_CPATH, path, YASL_PATH_MARK, YASL_PATH_SEP);
+	free(path);
 	if (!lib) {
 		vm_print_err_value((struct VM *) S, "%s\n", dlerror());
 		YASL_throw_err(S, YASL_VALUE_ERROR);

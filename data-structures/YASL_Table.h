@@ -50,6 +50,7 @@ size_t YASL_Table_getindex(struct YASL_Table *const table, const struct YASL_Obj
 void YASL_Table_insert_fast(struct YASL_Table *const table, const struct YASL_Object key, const struct YASL_Object value);
 void YASL_Table_insert_string_int(struct YASL_Table *const table, const char *const key, const size_t key_len,
 				  const int64_t val);
+bool YASL_Table_contains_zstring_int(const struct YASL_Table *const table, const char *const key);
 void YASL_Table_insert_zstring_int(struct YASL_Table *const table, const char *const key, const int64_t val);
 
 yasl_int YASL_Table_length(const struct YASL_Table *const ht);
