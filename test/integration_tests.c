@@ -35,6 +35,7 @@ for (size_t i = 0; i < sizeof(inputs) / sizeof(char *); i++) {\
 		failed++;\
 	}\
 	ran++;\
+	free(actual_output);\
 	free(expected_output);\
 	YASL_delstate(S);\
 }
@@ -65,6 +66,7 @@ for (size_t i = 0; i < sizeof(errors) / sizeof(char *); i++) {\
 		failed++;\
 	}\
 	ran++;\
+	free(actual_output);\
 	free(expected_output);\
 	YASL_delstate(S);\
 }
