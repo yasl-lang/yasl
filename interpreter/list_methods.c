@@ -252,7 +252,7 @@ int list_reverse(struct YASL_State *S) {
 
 int list_clear(struct YASL_State *S) {
 	struct YASL_List *list = YASLX_checknlist(S, "list.clear", 0);
-	FOR_LIST(i, obj, list) dec_ref(&obj);
+	FOR_LIST(i, obj, list) vm_dec_ref(&S->vm, &obj);
 	list->count = 0;
 	list->size = LIST_BASESIZE;
 	list->items = (struct YASL_Object *) realloc(list->items, sizeof(struct YASL_Object) * list->size);

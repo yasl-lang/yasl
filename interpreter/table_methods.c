@@ -255,8 +255,8 @@ int table_clear(struct YASL_State *S) {
 	ht->size = TABLE_BASESIZE;
 	free(ht->items);
 	ht->items = (struct YASL_Table_Item *) calloc((size_t) ht->size, sizeof(struct YASL_Table_Item));
-	dec_ref(&vm_peek((struct VM *) S));
-	vm_pop((struct VM *) S);
+	vm_dec_ref(&S->vm, &vm_peek((struct VM *) S));
+	YASL_pop(S);
 
 	return 0;
 }

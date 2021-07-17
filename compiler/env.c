@@ -142,10 +142,10 @@ static int64_t env_add_upval(struct Env *env, struct Scope *stack, const char *c
 }
 
 int64_t env_resolve_upval_index(struct Env *const env, struct Scope *stack, const char *const name) {
-	struct YASL_Object value = YASL_Table_search_zstring_int(&env->upval_indices, name);
+	const struct YASL_Object res = YASL_Table_search_zstring_int(&env->upval_indices, name);
 
-	if (value.type == Y_INT) {
-		return value.value.ival;
+	if (obj_isint(&res)) {
+		return res.value.ival;
 	}
 
 	return env_add_upval(env, stack, name);

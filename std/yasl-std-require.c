@@ -89,7 +89,7 @@ int YASL_require(struct YASL_State *S) {
 	Ss->compiler.strings = NULL;
 	Ss->compiler.header = YASL_ByteBuffer_new(0);
 	for (int i = 0; i < S->vm.num_constants; i++) {
-		dec_ref(S->vm.constants + i);
+		vm_dec_ref(&S->vm, S->vm.constants + i);
 	}
 	free(S->vm.constants);
 	S->vm.constants = Ss->vm.constants;
@@ -100,7 +100,7 @@ int YASL_require(struct YASL_State *S) {
 	YASL_delstate(Ss);
 
 	vm_push(&S->vm, exported);
-	dec_ref(&vm_peek(&S->vm));
+	vm_dec_ref(&S->vm, &vm_peek(&S->vm));
 
 	free(mode_str);
 	return 1;
