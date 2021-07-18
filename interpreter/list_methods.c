@@ -15,12 +15,6 @@ static struct YASL_List *YASLX_checknlist(struct YASL_State *S, const char *name
 	return (struct YASL_List *)YASL_peeknuserdata(S, pos);
 }
 
-int list___len(struct YASL_State *S) {
-	struct YASL_List *ls = YASLX_checknlist(S, "list.__len", 0);
-	YASL_pushint(S, YASL_List_length(ls));
-	return 1;
-}
-
 void list___get_helper(struct YASL_State *S, struct YASL_List *ls, yasl_int index) {
 	if (index < -(int64_t) ls->count || index >= (int64_t) ls->count) {
 		vm_print_err_value(&S->vm, "unable to index list of length %" PRI_SIZET " with index %" PRI_SIZET ".", ls->count, index);
@@ -39,6 +33,12 @@ int list___get(struct YASL_State *S) {
 	struct YASL_List *ls = YASLX_checknlist(S, "list.__get", 0);
 
 	list___get_helper(S, ls, index);
+	return 1;
+}
+
+int list___len(struct YASL_State *S) {
+	struct YASL_List *ls = YASLX_checknlist(S, "list.__len", 0);
+	YASL_pushint(S, YASL_List_length(ls));
 	return 1;
 }
 
@@ -73,7 +73,8 @@ int list_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer) {
 	YASL_ByteBuffer_add_byte(&bb, '[');
 	struct YASL_List *list = vm_peeklist((struct VM *) S);
 	if (list->count == 0) {
-		vm_pop((struct VM *) S);
+		YASL_pop(S);
+		// vm_pop((struct VM *) S);
 		YASL_ByteBuffer_add_byte(&bb, ']');
 		vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, bb.count, (char *)bb.items)));
 		return YASL_SUCCESS;
@@ -86,7 +87,7 @@ int list_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer) {
 			bool found = buffer_contains(buffer, vm_peeklist((struct VM *) S));
 			if (found) {
 				YASL_ByteBuffer_extend(&bb, (unsigned char *)FOUND_LIST, strlen(FOUND_LIST));
-				vm_pop((struct VM *) S);
+				YASL_pop(S);
 				continue;
 			} else {
 				rec_call(S, buffer, &list_tostr_helper);
@@ -95,7 +96,7 @@ int list_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer) {
 			bool found = buffer_contains(buffer, vm_peeklist((struct VM *) S));
 			if (found) {
 				YASL_ByteBuffer_extend(&bb, (unsigned char *)FOUND_TABLE, strlen(FOUND_TABLE));
-				vm_pop((struct VM *) S);
+				YASL_pop(S);
 				continue;
 			} else {
 				rec_call(S, buffer, &table_tostr_helper);
@@ -108,7 +109,7 @@ int list_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer) {
 		YASL_ByteBuffer_extend(&bb, (unsigned char *)YASL_String_chars(str), YASL_String_len(str));
 		YASL_ByteBuffer_extend(&bb, (unsigned char *)", ", strlen(", "));
 	}
-	vm_pop((struct VM *) S);
+	YASL_pop(S);
 
 	bb.count -= 2;
 	YASL_ByteBuffer_add_byte(&bb, ']');
@@ -222,7 +223,7 @@ int list___eq(struct YASL_State *S) {
 int list_pop(struct YASL_State *S) {
 	struct YASL_List *ls = YASLX_checknlist(S, "list.pop", 0);
 	if (ls->count == 0) {
-		vm_print_err((struct VM *)S, "ValueError: %s expected nonempty list as arg 0.", "list.pop");
+		vm_print_err_value((struct VM *)S, "%s expected nonempty list as arg 0.", "list.pop");
 		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
 	vm_push((struct VM *) S, ls->items[--ls->count]);
@@ -317,8 +318,8 @@ int list_join(struct YASL_State *S) {
 		memcpy(buffer + buffer_count, YASL_String_chars(str), YASL_String_len(str));
 		buffer_count += YASL_String_len(str);
 	}
-	vm_pop((struct VM *) S);
-	vm_pop((struct VM *) S);
+	YASL_pop(S);
+	YASL_pop(S);
 	vm_pushstr((struct VM *) S, YASL_String_new_sized_heap(0, buffer_count, buffer));
 	return 1;
 }
@@ -435,7 +436,7 @@ int list_sort(struct YASL_State *S) {
 		}
 
 		if (err != 0) {
-			vm_print_err((struct VM *)S, "ValueError: %s expected a list of all numbers or all strings.", "list.sort");
+			vm_print_err_value((struct VM *)S, "%s expected a list of all numbers or all strings.", "list.sort");
 			YASL_throw_err(S, YASL_VALUE_ERROR);
 		}
 	}
@@ -460,7 +461,7 @@ int list_insert(struct YASL_State *S) {
 	}
 
 	if (index >= len || index < -len) {
-		vm_print_err((struct VM *)S, "ValueError: unable to insert item at index %" PRId64 " into list of length %" PRId64 ".", index, len);
+		vm_print_err_value((struct VM *)S, "unable to insert item at index %" PRId64 " into list of length %" PRId64 ".", index, len);
 		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
 
