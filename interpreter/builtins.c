@@ -97,6 +97,7 @@ struct YASL_Table* list_builtins(struct VM *vm) {
 	table_insert_specialstring_cfunction(vm, table, S_TOSTR, &list_tostr, 1);
 	table_insert_specialstring_cfunction(vm, table, S_SEARCH, &list_search, 2);
 	table_insert_specialstring_cfunction(vm, table, S_REVERSE, &list_reverse, 1);
+	table_insert_specialstring_cfunction(vm, table, S_REMOVE, &list_remove, 2);
 	table_insert_specialstring_cfunction(vm, table, S_CLEAR, &list_clear, 1);
 	table_insert_specialstring_cfunction(vm, table, S_JOIN, &list_join, 2);
 	table_insert_specialstring_cfunction(vm, table, S_SORT, &list_sort, 1);

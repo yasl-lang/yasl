@@ -25,6 +25,8 @@ int list_search(struct YASL_State *S);
 
 int list_reverse(struct YASL_State *S);
 
+int list_remove(struct YASL_State *S);
+
 int list_clear(struct YASL_State *S);
 
 int list_join(struct YASL_State *S);

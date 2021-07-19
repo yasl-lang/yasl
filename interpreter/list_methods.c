@@ -60,6 +60,143 @@ int list___set(struct YASL_State *S) {
 	return 1;
 }
 
+int list_copy(struct YASL_State *S) {
+	struct YASL_List *ls = YASLX_checknlist(S, "list.copy", 0);
+	struct RC_UserData *new_ls = rcls_new_sized(ls->size);
+	ud_setmt(new_ls, S->vm.builtins_htable[Y_LIST]);
+	struct YASL_List *new_list = (struct YASL_List *) new_ls->data;
+	FOR_LIST(i, elmt, ls) {
+		YASL_List_append(new_list, elmt);
+	}
+
+	vm_pushlist((struct VM *) S, new_ls);
+	return 1;
+}
+
+int list_push(struct YASL_State *S) {
+	struct YASL_List *ls = YASLX_checknlist(S, "list.push", 0);
+	struct YASL_Object val = vm_pop((struct VM *) S);
+
+	YASL_List_append(ls, val);
+	return 1;
+}
+
+/*
+int list_pushv(struct YASL_State *S) {
+	struct YASL_List *ls = YASLX_checknlist(S, "list.pushv", 0);
+	yasl_int num_va_args = YASL_peekvargscount(S);
+
+	for (yasl_int i = 0; i < num_va_args; i++) {
+		struct YASL_Object val = vm_peek((struct VM *)S, ((struct VM *)S)->fp + 2 + i);
+		YASL_List_append(ls, val);
+	}
+
+	for (yasl_int i = 0; i < num_va_args; i++) {
+		YASL_pop(S);
+	}
+
+	YASL_pop(S);
+
+	return 1;
+}
+*/
+
+static struct RC_UserData *list_concat(struct YASL_State *S, struct YASL_List *a, struct YASL_List *b) {
+	size_t size = a->count + b->count;
+	struct RC_UserData *ptr = rcls_new_sized(size);
+	ud_setmt(ptr, (&S->vm)->builtins_htable[Y_LIST]);
+	for (size_t i = 0; i < a->count; i++) {
+		YASL_List_append((struct YASL_List *) ptr->data, (a)->items[i]);
+	}
+	for (size_t i = 0; i < (b)->count; i++) {
+		YASL_List_append((struct YASL_List *) ptr->data, (b)->items[i]);
+	}
+
+	return ptr;
+}
+
+int list___add(struct YASL_State *S) {
+	struct YASL_List *b = YASLX_checknlist(S, "list.__add", 1);
+	struct YASL_List *a = YASLX_checknlist(S, "list.__add", 0);
+
+	vm_pushlist((struct VM *) S, list_concat(S, a, b));
+	return 1;
+}
+
+int list___eq(struct YASL_State *S) {
+	struct YASL_List *right = YASLX_checknlist(S, "list.__eq", 1);
+	struct YASL_List *left = YASLX_checknlist(S, "list.__eq", 0);
+
+	if (left->count != right->count) {
+		YASL_pushbool(S, false);
+		return 1;
+	}
+
+	for (size_t i = 0; i < left->count; i++) {
+		vm_push((struct VM *)S, left->items[i]);
+		vm_push((struct VM *)S, right->items[i]);
+		vm_EQ((struct VM *)S);
+		if (!YASL_popbool(S)) {
+			YASL_pushbool(S, false);
+			return 1;
+		}
+	}
+
+	YASL_pushbool(S, true);
+	return 1;
+}
+
+int list_pop(struct YASL_State *S) {
+	struct YASL_List *ls = YASLX_checknlist(S, "list.pop", 0);
+	if (ls->count == 0) {
+		vm_print_err_value((struct VM *)S, "%s expected nonempty list as arg 0.", "list.pop");
+		YASL_throw_err(S, YASL_VALUE_ERROR);
+	}
+	vm_push((struct VM *) S, ls->items[--ls->count]);
+	return 1;
+}
+
+int list_reverse(struct YASL_State *S) {
+	struct YASL_List *ls = YASLX_checknlist(S, "list.reverse", 0);
+	YASL_reverse(ls);
+
+	return 0;
+}
+
+int list_remove(struct YASL_State *S) {
+	struct YASL_List *ls = YASLX_checknlist(S, "list.remove", 0);
+
+	FOR_LIST(i, name, ls) {
+		YASL_duptop(S);
+		vm_push(&S->vm, name);
+		vm_EQ(&S->vm);
+		if (YASL_popbool(S)) {
+			dec_ref(&name);
+			size_t remaining = ls->count - i;
+			memmove(ls->items + i, ls->items + i + 1, remaining * sizeof(struct YASL_Object));
+			ls->count--;
+			break;
+		}
+	}
+
+	YASL_pop(S);
+	return 1;
+}
+
+int list_search(struct YASL_State *S) {
+	struct YASL_Object needle = vm_pop((struct VM *) S);
+	struct YASL_List *haystack = YASLX_checknlist(S, "list.search", 0);
+	struct YASL_Object index = YASL_UNDEF();
+
+	FOR_LIST(i, obj, haystack) {
+		if ((isequal(&obj, &needle)))
+			index = YASL_INT((yasl_int) i);
+	}
+
+	vm_push((struct VM *) S, index);
+	return 1;
+}
+
 int table_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer);
 bool buffer_contains(BUFFER(ptr) buffer, void *val);
 void rec_call(struct YASL_State *S, BUFFER(ptr) buffer, int (*f)(struct YASL_State *, BUFFER(ptr)));
@@ -74,7 +211,6 @@ int list_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer) {
 	struct YASL_List *list = vm_peeklist((struct VM *) S);
 	if (list->count == 0) {
 		YASL_pop(S);
-		// vm_pop((struct VM *) S);
 		YASL_ByteBuffer_add_byte(&bb, ']');
 		vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, bb.count, (char *)bb.items)));
 		return YASL_SUCCESS;
@@ -132,123 +268,6 @@ int list_tostr(struct YASL_State *S) {
 	BUFFER_CLEANUP(ptr)(&buffer);
 
 	return 1;
-}
-
-int list_push(struct YASL_State *S) {
-	struct YASL_List *ls = YASLX_checknlist(S, "list.push", 0);
-	struct YASL_Object val = vm_pop((struct VM *) S);
-
-	YASL_List_append(ls, val);
-	return 1;
-}
-
-/*
-int list_pushv(struct YASL_State *S) {
-	struct YASL_List *ls = YASLX_checknlist(S, "list.pushv", 0);
-	yasl_int num_va_args = YASL_peekvargscount(S);
-
-	for (yasl_int i = 0; i < num_va_args; i++) {
-		struct YASL_Object val = vm_peek((struct VM *)S, ((struct VM *)S)->fp + 2 + i);
-		YASL_List_append(ls, val);
-	}
-
-	for (yasl_int i = 0; i < num_va_args; i++) {
-		YASL_pop(S);
-	}
-
-	YASL_pop(S);
-
-	return 1;
-}
-*/
-
-int list_copy(struct YASL_State *S) {
-	struct YASL_List *ls = YASLX_checknlist(S, "list.copy", 0);
-	struct RC_UserData *new_ls = rcls_new_sized(ls->size);
-	ud_setmt(new_ls, S->vm.builtins_htable[Y_LIST]);
-	struct YASL_List *new_list = (struct YASL_List *) new_ls->data;
-	FOR_LIST(i, elmt, ls) {
-		YASL_List_append(new_list, elmt);
-	}
-
-	vm_pushlist((struct VM *) S, new_ls);
-	return 1;
-}
-
-static struct RC_UserData *list_concat(struct YASL_State *S, struct YASL_List *a, struct YASL_List *b) {
-	size_t size = a->count + b->count;
-	struct RC_UserData *ptr = rcls_new_sized(size);
-	ud_setmt(ptr, (&S->vm)->builtins_htable[Y_LIST]);
-	for (size_t i = 0; i < a->count; i++) {
-		YASL_List_append((struct YASL_List *) ptr->data, (a)->items[i]);
-	}
-	for (size_t i = 0; i < (b)->count; i++) {
-		YASL_List_append((struct YASL_List *) ptr->data, (b)->items[i]);
-	}
-
-	return ptr;
-}
-
-int list___add(struct YASL_State *S) {
-	struct YASL_List *b = YASLX_checknlist(S, "list.__add", 1);
-	struct YASL_List *a = YASLX_checknlist(S, "list.__add", 0);
-
-	vm_pushlist((struct VM *) S, list_concat(S, a, b));
-	return 1;
-}
-
-int list___eq(struct YASL_State *S) {
-	struct YASL_List *right = YASLX_checknlist(S, "list.__eq", 1);
-	struct YASL_List *left = YASLX_checknlist(S, "list.__eq", 0);
-
-	if (left->count != right->count) {
-		YASL_pushbool(S, false);
-		return 1;
-	}
-
-	for (size_t i = 0; i < left->count; i++) {
-		vm_push((struct VM *)S, left->items[i]);
-		vm_push((struct VM *)S, right->items[i]);
-		vm_EQ((struct VM *)S);
-		if (!YASL_popbool(S)) {
-			YASL_pushbool(S, false);
-			return 1;
-		}
-	}
-
-	YASL_pushbool(S, true);
-	return 1;
-}
-
-int list_pop(struct YASL_State *S) {
-	struct YASL_List *ls = YASLX_checknlist(S, "list.pop", 0);
-	if (ls->count == 0) {
-		vm_print_err_value((struct VM *)S, "%s expected nonempty list as arg 0.", "list.pop");
-		YASL_throw_err(S, YASL_VALUE_ERROR);
-	}
-	vm_push((struct VM *) S, ls->items[--ls->count]);
-	return 1;
-}
-
-int list_search(struct YASL_State *S) {
-	struct YASL_Object needle = vm_pop((struct VM *) S);
-	struct YASL_List *haystack = YASLX_checknlist(S, "list.search", 0);
-	struct YASL_Object index = YASL_UNDEF();
-
-	FOR_LIST(i, obj, haystack) {
-		if ((isequal(&obj, &needle)))
-			index = YASL_INT((yasl_int) i);
-	}
-
-	vm_push((struct VM *) S, index);
-	return 1;
-}
-
-int list_reverse(struct YASL_State *S) {
-	struct YASL_List *ls = YASLX_checknlist(S, "list.reverse", 0);
-	YASL_reverse(ls);
-
-	return 0;
 }
 
 int list_clear(struct YASL_State *S) {
