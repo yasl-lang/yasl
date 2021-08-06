@@ -347,16 +347,16 @@ bool YASL_String_endswith(struct YASL_String *haystack, struct YASL_String *need
 	const size_t search_len = YASL_String_len(search_str);\
 	unsigned char *replace_str_ptr = (unsigned char *) replace_str->str + replace_str->start;\
 	\
-	struct YASL_ByteBuffer *buff = YASL_ByteBuffer_new(str_len);\
+	YASL_ByteBuffer *buff = YASL_ByteBuffer_new(str_len);\
 	size_t i = 0;
 
 #define STR_REPLACE_END \
-	char *bytes = (char *)buff->bytes;\
-	buff->bytes = NULL;\
+	char *items = (char *)buff->items;\
+	buff->items = NULL;\
 	size_t count = buff->count;\
 	\
 	YASL_ByteBuffer_del(buff);\
-	return YASL_String_new_sized_heap(0, count, bytes);
+	return YASL_String_new_sized_heap(0, count, items);
 
 
 // Caller makes sure search_str is at least length 1.

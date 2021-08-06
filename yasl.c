@@ -162,7 +162,9 @@ int YASL_execute(struct YASL_State *S) {
 	S->vm.code = bc;
 	S->vm.headers[S->compiler.num] = bc;
 
-	return vm_run((struct VM *) S);  // TODO: error handling for runtime errors.
+	int result = vm_run((struct VM *) S);  // TODO: error handling for runtime errors.
+
+	return result;
 }
 
 int YASL_declglobal(struct YASL_State *S, const char *name) {
@@ -177,7 +179,6 @@ static inline int is_const(int64_t value) {
 }
 
 int YASL_setglobal(struct YASL_State *S, const char *name) {
-
 	if (!scope_contains(S->compiler.globals, name)) return YASL_ERROR;
 
 	int64_t index = scope_get(S->compiler.globals, name);

@@ -17,11 +17,8 @@ int YASL_mt_setmt(struct YASL_State *S) {
 	struct YASL_Object mt = vm_pop((struct VM *)S);
 	switch (YASL_peektype(S)) {
 	case Y_USERDATA:
-	case Y_USERDATA_W:
 	case Y_LIST:
-	case Y_LIST_W:
 	case Y_TABLE:
-	case Y_TABLE_W:
 		ud_setmt(YASL_GETUSERDATA(vm_peek((struct VM *)S)), YASL_GETUSERDATA(mt));
 		break;
 	default:

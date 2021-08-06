@@ -34,3 +34,7 @@ echo math.isprime(15485869.1)
 const x = 18408990
 echo math.isprime(x-1) && math.isprime(x+1)
 
+echo math.clamp(50.5, 0, 100);
+echo math.clamp(20.1, 50, 100);
+echo math.clamp(100.9, 0, 100.5);
+echo math.clamp(20.8, 50.2, 100.9);

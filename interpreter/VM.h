@@ -122,6 +122,15 @@ void vm_init(struct VM *const vm, unsigned char *const code, const size_t pc, co
 
 void vm_cleanup(struct VM *const vm);
 
+/*
+ * These functions are used for declaring and freeing memory that may be used in a cycle, for example the memory for
+ * list items (since a list could contain a reference to itself, creating a cycle).
+ *
+ * They support the same API as malloc/free.
+ */
+void *vm_alloc_cyclic(struct VM *vm, size_t size);
+void vm_free_cyclic(struct VM *vm, void *ptr);
+
 void vvm_print_err(struct VM *vm, const char *const fmt, va_list args);
 void vm_print_err(struct VM *vm, const char *const fmt, ...);
 
@@ -133,6 +142,8 @@ void vm_EQ(struct VM *const vm);
 
 void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns);
 void vm_CALL(struct VM *const vm);
+
+void vm_dec_ref(struct VM *const vm, struct YASL_Object *val);
 
 struct YASL_Object vm_pop(struct VM *const vm);
 bool vm_popbool(struct VM *const vm);

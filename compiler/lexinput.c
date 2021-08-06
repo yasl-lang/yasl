@@ -6,7 +6,7 @@
 
 struct LEXINPUT {
   FILE *fp;
-  struct YASL_ByteBuffer *bb;
+  YASL_ByteBuffer *bb;
   int pos;
   int iseof;
   int (*getc)(struct LEXINPUT *const lp);
@@ -82,7 +82,7 @@ static  int lexinput_bb_getc(struct LEXINPUT *const lp) {
 		lp->iseof = 1;
 		return -1;
 	}
-	return lp->bb->bytes[lp->pos++];
+	return lp->bb->items[lp->pos++];
 }
 
 static  int lexinput_bb_tell(struct LEXINPUT *const lp) {

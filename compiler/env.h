@@ -4,8 +4,8 @@
 #include "data-structures/YASL_Table.h"
 
 struct Scope {
-    struct Scope *parent;
-    struct YASL_Table vars;
+	struct Scope *parent;
+	struct YASL_Table vars;
 };
 
 struct Env {
@@ -19,14 +19,14 @@ struct Env {
 
 struct Scope *scope_new(struct Scope *const scope);
 void scope_del(struct Scope *const scope);
-void scope_del_current_only(struct Scope *const scope);
+void scope_del_cur_only(struct Scope *const scope);
 
+size_t scope_num_vars_cur_only(const struct Scope *const scope);
 size_t scope_len(const struct Scope *const scope);
 bool scope_contains_cur_only(const struct Scope *const scope, const char *const name);
 bool scope_contains(const struct Scope *const scope, const char *const name);
 int64_t scope_get(const struct Scope *const scope, const char *const name);
 int64_t scope_decl_var(struct Scope *const scope, const char *const name);
-bool scope_used_in_closure(const struct Scope *const scope);
 void scope_make_const(struct Scope *const scope, const char *const name);
 
 bool env_contains(const struct Env *env, const char *const name);

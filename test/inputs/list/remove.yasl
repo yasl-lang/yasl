@@ -1,0 +1,14 @@
+
+const ls = [ .a, .b, .c, .d, .e, .f, .g ]
+
+ls->remove(.c)
+
+echo ls
+
+ls->remove(.g)
+
+echo ls
+
+ls->remove(.a)
+
+echo ls

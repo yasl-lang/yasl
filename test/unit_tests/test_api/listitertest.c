@@ -8,7 +8,6 @@ static void testlistiter(void) {
 	const char *code = "x = [ 10, 9, 8, 7, 6 ];";
 	struct YASL_State *S = YASL_newstate_bb(code, strlen(code));
 	ASSERT_SUCCESS(YASL_declglobal(S, "x"));
-	ASSERT_SUCCESS(YASL_compile(S));
 	ASSERT_SUCCESS(YASL_execute(S));
 	ASSERT_SUCCESS(YASL_loadglobal(S, "x"));
 	ASSERT(YASL_islist(S));

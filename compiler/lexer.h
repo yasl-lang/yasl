@@ -5,6 +5,7 @@
 
 #include "IO.h"
 #include "lexinput.h"
+#include "data-structures/YASL_ByteBuffer.h"
 
 #define  ispotentialend(l) ((l)->type == T_ID || (l)->type == T_STR || \
             (l)->type == T_INT || (l)->type == T_FLOAT || (l)->type == T_BREAK || \
@@ -15,9 +16,11 @@
         .file = (f),\
         .c = 0,\
         .type = T_UNKNOWN,\
-        .value = NULL,\
-        .val_cap = 0,\
-        .val_len = 0,\
+        .buffer = (YASL_ByteBuffer) {\
+                .size = 0,\
+                .count = 0,\
+                .items = NULL\
+	},\
         .line = 1,\
         .status = YASL_SUCCESS,\
         .mode = L_NORMAL,\
@@ -50,9 +53,7 @@ struct Lexer {
 	struct LEXINPUT *file;   // OWN
 	int c;                   // current character
 	enum Token type;         // type of current token
-	char *value;             // NOT OWN
-	size_t val_cap;
-	size_t val_len;
+	YASL_ByteBuffer buffer;
 	size_t line;
 	int status;
 	int mode;
@@ -64,6 +65,12 @@ void gettok(struct Lexer *const lex);
 void lex_eatinterpstringbody(struct Lexer *const lex);
 void lex_error(struct Lexer *const lex);
 int lex_getchar(struct Lexer *const lex);
+
+void lex_val_setnull(struct Lexer *const lex);
+void lex_val_free(struct Lexer *const lex);
+char *lex_val_get(struct Lexer *const lex);
+void lex_val_save(const struct Lexer *const lex, YASL_ByteBuffer *const buffer);
+void lex_val_restore(struct Lexer *const lex, const YASL_ByteBuffer *const buffer);
 
 extern const char *YASL_TOKEN_NAMES[84];
 

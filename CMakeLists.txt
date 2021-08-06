@@ -57,6 +57,7 @@ add_executable(yasl
         main.c
         compiler/ast.c
         data-structures/YASL_ByteBuffer.c
+        data-structures/YASL_Buffer.c
         data-structures/YASL_Table.c
         compiler/compiler.c
         compiler/env.c
@@ -84,6 +85,7 @@ add_executable(yasl
         std/yasl-std-io.c
         std/yasl-std-math.c
         std/yasl-std-require.c
+        std/yasl-std-error.c
         data-structures/YASL_Set.c
         std/yasl-std-collections.c
         std/yasl-std-mt.c
@@ -103,6 +105,7 @@ add_library(yaslapi
         yasl_aux.c
         compiler/ast.c
         data-structures/YASL_ByteBuffer.c
+        data-structures/YASL_Buffer.c
         compiler/compiler.c
         compiler/env.c
         compiler/lexer.c
@@ -132,11 +135,12 @@ add_library(yaslapi
         util/IO.c
         util/varint.c
         std/yasl-std-collections.c
+        std/yasl-std-error.c
         std/yasl-std-io.c
         std/yasl-std-math.c
         std/yasl-std-require.c
         data-structures/YASL_Set.c
-        std/yasl-std-mt.c std/yasl-std-mt.h)
+        std/yasl-std-mt.c)
 
 set_property(TARGET yaslapi PROPERTY POSITION_INDEPENDENT_CODE ON)
 

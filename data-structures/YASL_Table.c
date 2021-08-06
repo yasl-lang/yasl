@@ -143,6 +143,11 @@ bool YASL_Table_insert(struct YASL_Table *const table, const struct YASL_Object 
 	return true;
 }
 
+void YASL_Table_insert_zstring_int(struct YASL_Table *const table, const char *const key,
+				   const int64_t val) {
+	YASL_Table_insert_string_int(table, key, strlen(key), val);
+}
+
 void YASL_Table_insert_string_int(struct YASL_Table *const table, const char *const key, const size_t key_len,
 				  const int64_t val) {
 	struct YASL_String *string = YASL_String_new_sized_heap(0, key_len, copy_char_buffer(key_len, key));
@@ -169,6 +174,14 @@ struct YASL_Object YASL_Table_search(const struct YASL_Table *const table, const
 		item = table->items[index];
 	}
 	return YASL_END();
+}
+
+bool YASL_Table_contains_zstring_int(const struct YASL_Table *const table, const char *const key) {
+	return YASL_Table_search_zstring_int(table, key).type == Y_INT;
+}
+
+struct YASL_Object YASL_Table_search_zstring_int(const struct YASL_Table *const table, const char *const key) {
+	return YASL_Table_search_string_int(table, key, strlen(key));
 }
 
 struct YASL_Object YASL_Table_search_string_int(const struct YASL_Table *const table, const char *const key,

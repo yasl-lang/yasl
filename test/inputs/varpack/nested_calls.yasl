@@ -1,0 +1,13 @@
+
+const fn f(const a, const b, const c) {
+    echo a
+    echo b
+    echo c
+}
+
+const fn g(const e, const f, const g) {
+    return e, f, g
+}
+
+# 2, a, 4
+f(g(2, g(.a, .b, .c), 4))

@@ -127,8 +127,8 @@ void parser_cleanup(struct Parser *const parser) {
 
 static YASL_NORETURN void handle_error(struct Parser *const parser) {
 	parser->status = YASL_SYNTAX_ERROR;
-	free(parser->lex.value);
-	parser->lex.value = NULL;
+	lex_val_free(&parser->lex);
+	lex_val_setnull(&parser->lex);
 
 	while (parser->lex.c != '\n' && !lxeof(parser->lex.file)) {
 		lex_getchar(&parser->lex);
@@ -147,7 +147,7 @@ enum Token eattok(struct Parser *const parser, const enum Token token) {
 			parser->status = YASL_SYNTAX_ERROR;
 		}
 		while (!TOKEN_MATCHES(parser, T_SEMI, T_EOF)) {
-			free(parser->lex.value);
+			lex_val_free(&parser->lex);
 			gettok(&parser->lex);
 		}
 		return T_UNKNOWN;
@@ -158,7 +158,7 @@ enum Token eattok(struct Parser *const parser, const enum Token token) {
 }
 
 static char *eatname(struct Parser *const parser) {
-	char *tmp = parser->lex.value;
+	char *tmp = lex_val_get(&parser->lex);
 	eattok(parser, T_ID);
 	if (parser->status)
 		handle_error(parser);
@@ -209,8 +209,8 @@ struct Node *parse_assign_or_exprstmt(struct Parser *const parser) {
 static bool isfndecl(struct Parser *const parser) {
 	long curr = lxtell(parser->lex.file);
 	eattok(parser, T_FN);
-	free(parser->lex.value);
-	parser->lex.value = NULL;
+	lex_val_free(&parser->lex);
+	lex_val_setnull(&parser->lex);
 	bool result = TOKEN_MATCHES(parser, T_ID);
 	lxseek(parser->lex.file, curr, SEEK_SET);
 	parser->lex.type = T_FN;
@@ -223,7 +223,7 @@ static bool isfndecl(struct Parser *const parser) {
 static bool isconstfndecl(struct Parser *const parser) {
 	long curr = lxtell(parser->lex.file);
 	eattok(parser, T_CONST);
-	free(parser->lex.value);
+	lex_val_free(&parser->lex);
 	bool result = TOKEN_MATCHES(parser, T_FN);
 	lxseek(parser->lex.file, curr, SEEK_SET);
 	parser->lex.type = T_CONST;
@@ -235,14 +235,15 @@ static bool isconstfndecl(struct Parser *const parser) {
  */
 static bool ismultiassign(struct Parser *const parser) {
 	long curr = lxtell(parser->lex.file);
-	char *name = parser->lex.value;
-	parser->lex.value = NULL;
+	YASL_ByteBuffer buffer;
+	lex_val_save(&parser->lex, &buffer);
+	lex_val_setnull(&parser->lex);
 	eattok(parser, T_ID);
 	bool result = TOKEN_MATCHES(parser, T_COMMA);
 	lxseek(parser->lex.file, curr, SEEK_SET);
-	free(parser->lex.value);
+	lex_val_free(&parser->lex);
 	parser->lex.type = T_ID;
-	parser->lex.value = name;
+	lex_val_restore(&parser->lex, &buffer);
 	return result;
 }
 
@@ -344,11 +345,11 @@ static struct Node *parse_return(struct Parser *const parser) {
 		}
 		struct Node *last = body_last(block);
 		if (last && will_var_expand(last)) {
-			block->children[block->children_len - 1] = new_VariadicContext(parser, last, -1, last->line);
+			block->children[block->children_len - 1] = new_VariadicContext(last, -1);
 		}
 		return new_MultiReturn(parser, block, line);
 	}
-	return new_Return(parser, new_VariadicContext(parser, expr, -1, line), line);
+	return new_Return(parser, new_VariadicContext(expr, -1), line);
 }
 
 static struct Node *parse_fn(struct Parser *const parser) {
@@ -356,7 +357,6 @@ static struct Node *parse_fn(struct Parser *const parser) {
 	eattok(parser, T_FN);
 	size_t line = parserline(parser);
 	char *name = eatname(parser);
-	size_t name_len = strlen(name);
 	if (matcheattok(parser, T_DOT)) {
 		struct Node *collection = new_Var(parser, name, line);
 		size_t line = parserline(parser);
@@ -371,7 +371,7 @@ static struct Node *parse_fn(struct Parser *const parser) {
 
 		struct Node *body = parse_body(parser);
 
-		return new_Set(parser, collection, index, new_FnDecl(parser, block, body, NULL, 0, line), line);
+		return new_Set(parser, collection, index, new_FnDecl(parser, block, body, NULL, line), line);
 	}
 	eattok(parser, T_LPAR);
 	struct Node *block = parse_function_params(parser);
@@ -379,9 +379,7 @@ static struct Node *parse_fn(struct Parser *const parser) {
 
 	struct Node *body = parse_body(parser);
 
-	char *name2 = (char *)malloc(name_len + 1);
-	strcpy(name2, name);
-	return new_Let(parser, new_FnDecl(parser, block, body, name2, strlen(name2), line), name, line);
+	return new_Let(parser, new_FnDecl(parser, block, body, name, line), name, line);
 	// TODO Fix this ^
 }
 
@@ -391,17 +389,14 @@ static struct Node *parse_const_fn(struct Parser *const parser) {
 	eattok(parser, T_FN);
 	size_t line = parserline(parser);
 	char *name = eatname(parser);
-	size_t name_len = strlen(name);
 	eattok(parser, T_LPAR);
 	struct Node *block = parse_function_params(parser);
 	eattok(parser, T_RPAR);
 
 	struct Node *body = parse_body(parser);
 
-	// TODO: clean this up
-	char *name2 = (char *)malloc(name_len + 1);
-	strcpy(name2, name);
-	return new_Const(parser, new_FnDecl(parser, block, body, name2, strlen(name2), line), name, line);
+	// TODO fix this
+	return new_Const(parser, new_FnDecl(parser, block, body, name, line), name, line);
 }
 
 static struct Node *parse_let_const_or_var(struct Parser *const parser) {
@@ -441,7 +436,7 @@ static struct Node *parse_var_pack(struct Parser *const parser, int expected) {
 			body_append(parser, &rvals, new_Undef(parser, parserline(parser)));
 		}
 	} else {
-		rvals->children[rvals->children_len - 1] = new_VariadicContext(parser, last, expected - j + 1, last ? last->line : 0);
+		rvals->children[rvals->children_len - 1] = new_VariadicContext(last, expected - j + 1);
 	}
 
 	return rvals;
@@ -803,8 +798,6 @@ static struct Node *parse_assign(struct Parser *const parser, struct Node *cur_n
 		switch (cur_node->nodetype) {
 		case N_VAR: {
 			struct Node *tmp = new_BinOp(parser, op, cur_node, parse_expr(parser), line);
-			//char *name = (char *)malloc(strlen(cur_node->value.sval.str) + 1);
-			//strcpy(name, cur_node->value.sval.str);
 			return new_Assign(parser, tmp, cur_node->value.sval.str, line);
 		}
 		case N_GET: {
@@ -905,7 +898,7 @@ static struct Node *parse_call(struct Parser *const parser) {
 
 			struct Node *block = new_Body(parser, parserline(parser));
 
-			cur_node = new_MethodCall(parser, block, cur_node, right->value.sval.str, right->value.sval.str_len,
+			cur_node = new_MethodCall(parser, block, cur_node, right->value.sval.str, 1,
 						  parserline(parser));
 			eattok(parser, T_LPAR);
 			while (!TOKEN_MATCHES(parser, T_RPAR, T_EOF)) {
@@ -918,7 +911,7 @@ static struct Node *parse_call(struct Parser *const parser) {
 			struct Node *body = cur_node->children[0];
 			struct Node *last = body_last(body);
 			if (last && will_var_expand(last)) {
-				body->children[body->children_len - 1] = new_VariadicContext(parser, last, -1, last->line);
+				body->children[body->children_len - 1] = new_VariadicContext(last, -1);
 			}
 		} else if (matcheattok(parser, T_DOT)) {
 			struct Node *right = parse_constant(parser);
@@ -950,7 +943,7 @@ static struct Node *parse_call(struct Parser *const parser) {
 			eattok(parser, T_RSQB);
 		} else if (matcheattok(parser, T_LPAR)) {
 			YASL_PARSE_DEBUG_LOG("%s\n", "Parsing function call");
-			cur_node = new_Call(parser, new_Body(parser, parserline(parser)), cur_node, parserline(parser));
+			cur_node = new_Call(parser, new_Body(parser, parserline(parser)), cur_node, 1, parserline(parser));
 			while (!TOKEN_MATCHES(parser, T_RPAR, T_EOF)) {
 				body_append(parser, &cur_node->children[0], parse_expr(parser));
 				if (curtok(parser) != T_COMMA) break;
@@ -961,7 +954,7 @@ static struct Node *parse_call(struct Parser *const parser) {
 			struct Node *body = cur_node->children[0];
 			struct Node *last = body_last(body);
 			if (last && will_var_expand(last)) {
-				body->children[body->children_len - 1] = new_VariadicContext(parser, last, -1, last->line);
+				body->children[body->children_len - 1] = new_VariadicContext(last, -1);
 			}
 		}
 	}
@@ -1053,9 +1046,8 @@ static struct Node *parse_lambda(struct Parser *const parser) {
 	eattok(parser, T_RPAR);
 	struct Node *body = parse_body(parser);
 
-	return new_FnDecl(parser, block, body, NULL, 0, line);
+	return new_FnDecl(parser, block, body, NULL, line);
 }
-
 
 static yasl_float get_float(char *buffer) {
 	return strtod(buffer, (char **) NULL);
@@ -1063,8 +1055,8 @@ static yasl_float get_float(char *buffer) {
 
 static struct Node *parse_float(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("%s\n", "Parsing float");
-	struct Node *cur_node = new_Float(parser, get_float(parser->lex.value), parserline(parser));
-	free(parser->lex.value);
+	struct Node *cur_node = new_Float(parser, get_float(lex_val_get(&parser->lex)), parserline(parser));
+	lex_val_free(&parser->lex);
 	eattok(parser, T_FLOAT);
 	return cur_node;
 }
@@ -1082,23 +1074,23 @@ static yasl_int get_int(char *buffer) {
 
 static struct Node *parse_integer(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("%s\n", "Parsing int");
-	struct Node *cur_node = new_Integer(parser, get_int(parser->lex.value), parserline(parser));
-	free(parser->lex.value);
+	struct Node *cur_node = new_Integer(parser, get_int(lex_val_get(&parser->lex)), parserline(parser));
+	lex_val_free(&parser->lex);
 	eattok(parser, T_INT);
 	return cur_node;
 }
 
 static struct Node *parse_boolean(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("%s\n", "Parsing bool");
-	struct Node *cur_node = new_Boolean(parser, !strcmp(parser->lex.value, "true"), parserline(parser));
-	free(parser->lex.value);
+	struct Node *cur_node = new_Boolean(parser, !strcmp(lex_val_get(&parser->lex), "true"), parserline(parser));
+	lex_val_free(&parser->lex);
 	eattok(parser, T_BOOL);
 	return cur_node;
 }
 
 static struct Node *parse_string(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("%s\n", "Parsing str");
-	struct Node *cur_node = new_String(parser, parser->lex.value, parser->lex.val_len, parserline(parser));
+	struct Node *cur_node = new_String(parser, lex_val_get(&parser->lex), parser->lex.buffer.count, parserline(parser));
 
 	// interpolated strings
 	while (parser->lex.mode == L_INTERP) {
@@ -1118,7 +1110,7 @@ static struct Node *parse_string(struct Parser *const parser) {
 		if (parser->lex.status) {
 			handle_error(parser);
 		};
-		struct Node *str = new_String(parser, parser->lex.value, parser->lex.val_len, parserline(parser));
+		struct Node *str = new_String(parser, lex_val_get(&parser->lex), parser->lex.buffer.count, parserline(parser));
 		cur_node = new_BinOp(parser, T_TILDE, cur_node, str, parserline(parser));
 	}
 

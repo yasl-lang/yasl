@@ -1,7 +1,4 @@
 #include <yasl_state.h>
-#include "yasl-std-require.h"
-#include "yasl-std-math.h"
-#include "yasl-std-io.h"
 #include "yasl_plat.h"
 #include "yasl_aux.h"
 
@@ -47,6 +44,7 @@ int YASL_require(struct YASL_State *S) {
 
 	if (!Ss) {
 		YASL_print_err(S, "could not open package %s.", mode_str);
+		free(mode_str);
 		YASL_throw_err(S, YASL_ERROR);
 	}
 
@@ -56,7 +54,6 @@ int YASL_require(struct YASL_State *S) {
 	Ss->compiler.header = S->compiler.header;
 	YASL_Table_del(Ss->vm.globals);
 	Ss->vm.globals = S->vm.globals;
-	// Ss->vm.constants = S->vm.constants;
 
 	// Load Standard Libraries
 	YASLX_decllibs(Ss);
@@ -83,6 +80,7 @@ int YASL_require(struct YASL_State *S) {
 		S->vm.headers[i] = Ss->vm.headers[i];
 		Ss->vm.headers[i] = NULL;
 	}
+	S->vm.headers_size = new_headers_size;
 
 	Ss->vm.globals = NULL;
 	Ss->vm.metatables = NULL;
@@ -91,7 +89,7 @@ int YASL_require(struct YASL_State *S) {
 	Ss->compiler.strings = NULL;
 	Ss->compiler.header = YASL_ByteBuffer_new(0);
 	for (int i = 0; i < S->vm.num_constants; i++) {
-		dec_ref(S->vm.constants + i);
+		vm_dec_ref(&S->vm, S->vm.constants + i);
 	}
 	free(S->vm.constants);
 	S->vm.constants = Ss->vm.constants;
@@ -102,7 +100,7 @@ int YASL_require(struct YASL_State *S) {
 	YASL_delstate(Ss);
 
 	vm_push(&S->vm, exported);
-	dec_ref(&vm_peek(&S->vm));
+	vm_dec_ref(&S->vm, &vm_peek(&S->vm));
 
 	free(mode_str);
 	return 1;
@@ -173,6 +171,7 @@ int YASL_require_c(struct YASL_State *S) {
 	fun(S);
 #elif defined(YASL_USE_UNIX) || defined(YASL_USE_APPLE)
 	void *lib = search_on_path(YASL_DEFAULT_CPATH, path, YASL_PATH_MARK, YASL_PATH_SEP);
+	free(path);
 	if (!lib) {
 		vm_print_err_value((struct VM *) S, "%s\n", dlerror());
 		YASL_throw_err(S, YASL_VALUE_ERROR);

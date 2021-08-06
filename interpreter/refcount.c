@@ -7,21 +7,6 @@
 #include "YASL_Object.h"
 #include "interpreter/closure.h"
 
-static void inc_weak_ref(struct YASL_Object *v) {
-	switch (v->type) {
-	case Y_STR_W:
-		v->value.sval->rc.weak_refs++;
-		break;
-	case Y_LIST_W:
-	case Y_TABLE_W:
-		v->value.uval->rc.weak_refs++;
-		break;
-	default:
-		/* do nothing */
-		break;
-	}
-}
-
 static void inc_strong_ref(struct YASL_Object *v) {
 	switch (v->type) {
 	case Y_STR:
@@ -54,33 +39,6 @@ void inc_ref(struct YASL_Object *v) {
 	case Y_CLOSURE:
 		inc_strong_ref(v);
 		break;
-	case Y_STR_W:
-	case Y_LIST_W:
-	case Y_TABLE_W:
-		inc_weak_ref(v);
-		break;
-	default:
-		break;
-	}
-}
-
-static void dec_weak_ref(struct YASL_Object *v) {
-	switch (v->type) {
-	case Y_STR_W:
-		if (--(v->value.sval->rc.weak_refs) || v->value.sval->rc.refs) return;
-		str_del_rc(v->value.sval);
-		v->type = Y_UNDEF;
-		break;
-	case Y_LIST_W:
-		if (--(v->value.uval->rc.weak_refs) || v->value.uval->rc.refs) return;
-		ud_del_rc(v->value.uval);
-		v->type = Y_UNDEF;
-		break;
-	case Y_TABLE_W:
-		if (--(v->value.uval->rc.weak_refs) || v->value.uval->rc.refs) return;
-		ud_del_rc(v->value.uval);
-		v->type = Y_UNDEF;
-		break;
 	default:
 		/* do nothing */
 		break;
@@ -92,7 +50,6 @@ void dec_strong_ref(struct YASL_Object *v) {
 	case Y_STR:
 		if (--(v->value.sval->rc.refs)) return;
 		str_del_data(v->value.sval);
-		if (v->value.sval->rc.weak_refs) return;
 		str_del_rc(v->value.sval);
 		v->type = Y_UNDEF;
 		break;
@@ -101,21 +58,18 @@ void dec_strong_ref(struct YASL_Object *v) {
 	case Y_TABLE:
 		if (--(v->value.uval->rc.refs)) return;
 		ud_del_data(v->value.uval);
-		if (v->value.uval->rc.weak_refs) return;
 		ud_del_rc(v->value.uval);
 		v->type = Y_UNDEF;
 		break;
 	case Y_CFN:
 		if (--(v->value.cval->rc.refs)) return;
 		cfn_del_data(v->value.cval);
-		if (v->value.cval->rc.weak_refs) return;
 		cfn_del_rc(v->value.cval);
 		v->type = Y_UNDEF;
 		break;
 	case Y_CLOSURE:
 		if (--(v->value.lval->rc.refs)) return;
 		closure_del_data(v->value.lval);
-		if (v->value.lval->rc.weak_refs) return;
 		closure_del_rc(v->value.lval);
 		v->type = Y_UNDEF;
 		break;
@@ -135,11 +89,8 @@ void dec_ref(struct YASL_Object *v) {
 	case Y_CLOSURE:
 		dec_strong_ref(v);
 		break;
-	case Y_STR_W:
-	case Y_LIST_W:
-	case Y_TABLE_W:
-		dec_weak_ref(v);
+	default:
+		/* do nothing */
 		break;
-	default:break;
 	}
 }

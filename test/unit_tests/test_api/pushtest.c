@@ -6,7 +6,6 @@ SETUP_YATS();
 
 static void testrun(void) {
 	struct YASL_State *S = YASL_newstate_bb("", 0);
-	// ASSERT_SUCCESS(YASL_compile(S));
 	ASSERT_SUCCESS(YASL_execute(S));
 	YASL_delstate(S);
 }
@@ -17,7 +16,6 @@ static void testsetglobal_undef(void) {
 	ASSERT_SUCCESS(YASL_declglobal(S, "x"));
 	YASL_pushundef(S);
 	ASSERT_SUCCESS(YASL_setglobal(S, "x"));
-	//ASSERT_SUCCESS(YASL_compile(S));
 	ASSERT_SUCCESS(YASL_execute(S));
 	YASL_delstate(S);
 }
@@ -28,7 +26,6 @@ static void testsetglobal_float(void) {
 	ASSERT_SUCCESS(YASL_declglobal(S, "x"));
 	YASL_pushfloat(S, 12.5);
 	ASSERT_SUCCESS(YASL_setglobal(S, "x"));
-	ASSERT_SUCCESS(YASL_compile(S));
 	ASSERT_SUCCESS(YASL_execute(S));
 	YASL_delstate(S);
 }
@@ -39,7 +36,6 @@ static void testsetglobal_bool(void) {
 	ASSERT_SUCCESS(YASL_declglobal(S, "x"));
 	YASL_pushbool(S, true);
 	ASSERT_SUCCESS(YASL_setglobal(S, "x"));
-	ASSERT_SUCCESS(YASL_compile(S));
 	ASSERT_SUCCESS(YASL_execute(S));
 	YASL_delstate(S);
 }
@@ -50,7 +46,6 @@ static void testsetglobal_int(void) {
 	ASSERT_SUCCESS(YASL_declglobal(S, "x"));
 	YASL_pushint(S, 12);
 	ASSERT_SUCCESS(YASL_setglobal(S, "x"));
-	ASSERT_SUCCESS(YASL_compile(S));
 	ASSERT_SUCCESS(YASL_execute(S));
 	YASL_delstate(S);
 }

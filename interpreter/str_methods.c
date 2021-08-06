@@ -130,8 +130,8 @@ static void str_replace_default(struct YASL_State *S) {
 	struct YASL_String *str = YASLX_checknstr(S, "str.replace", 0);
 
 	if (YASL_String_len(search_str) < 1) {
-		vm_print_err((struct VM *)S,
-			"ValueError: %s expected a nonempty str as arg 1.",
+		vm_print_err_value((struct VM *)S,
+			"%s expected a nonempty str as arg 1.",
 			"str.replace");
 		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
@@ -151,8 +151,8 @@ int str_replace(struct YASL_State *S) {
 	struct YASL_String *str = YASLX_checknstr(S, "str.replace", 0);
 
 	if (YASL_String_len(search_str) < 1) {
-		vm_print_err((struct VM *)S,
-			     "ValueError: %s expected a nonempty str as arg 1.",
+		vm_print_err_value((struct VM *)S,
+			     "%s expected a nonempty str as arg 1.",
 			     "str.replace");
 		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
@@ -199,7 +199,7 @@ int str_split(struct YASL_State *S) {
 	struct YASL_String *haystack = YASLX_checknstr(S, "str.split", 0);
 
 	if (YASL_String_len(needle) == 0) {
-		vm_print_err((struct VM *)S, "ValueError: %s expected a nonempty str as arg 1.", "str.split");
+		vm_print_err_value((struct VM *)S, "%s expected a nonempty str as arg 1.", "str.split");
 		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
 
@@ -273,7 +273,7 @@ int str_repeat(struct YASL_State *S) {
 	struct YASL_String *string = YASLX_checknstr(S, "str.rep", 0);
 
 	if (num < 0) {
-		vm_print_err((struct VM *)S, "ValueError: %s expected non-negative int as arg 1.", "str.rep");
+		vm_print_err_value((struct VM *)S, "%s expected non-negative int as arg 1.", "str.rep");
 		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
 

@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define YASL_VERSION "v0.11.7"
+#define YASL_VERSION "v0.11.8"
 
 #define YASL_STR_NAME "str"
 #define YASL_FLOAT_NAME "float"
@@ -39,6 +39,7 @@ int YASL_compile(struct YASL_State *S);
 int YASL_declglobal(struct YASL_State *S, const char *name);
 
 int YASL_decllib_collections(struct YASL_State *S);
+int YASL_decllib_error(struct YASL_State *S);
 int YASL_decllib_io(struct YASL_State *S);
 int YASL_decllib_math(struct YASL_State *S);
 int YASL_decllib_require(struct YASL_State *S);
