@@ -265,6 +265,53 @@ static int YASL_math_lcm(struct YASL_State *S) {
 	return 1;
 }
 
+static int YASL_math_clamp(struct YASL_State *S) {
+	if (!YASL_isnum(S)) {
+		vm_print_err_bad_arg_type_name((struct VM*)S,"math.clamp", 2, YASL_FLOAT_NAME, YASL_peektypename(S));
+		YASL_throw_err(S, YASL_TYPE_ERROR);
+	}
+
+	yasl_float h;
+	if (YASL_isint(S)) {
+		h = (yasl_float)YASL_popint(S);
+	} else {
+		h = YASL_popfloat(S);
+	}
+
+	if (!YASL_isnum(S)) {
+		vm_print_err_bad_arg_type_name((struct VM*)S,"math.clamp", 1, YASL_FLOAT_NAME, YASL_peektypename(S));
+		YASL_throw_err(S, YASL_TYPE_ERROR);
+	}
+
+	yasl_float l;
+	if (YASL_isint(S)) {
+		l = (yasl_float)YASL_popint(S);
+	} else {
+		l = YASL_popfloat(S);
+	}
+
+	if (!YASL_isnum(S)) {
+		vm_print_err_bad_arg_type_name((struct VM*)S,"math.clamp", 0, YASL_FLOAT_NAME, YASL_peektypename(S));
+		YASL_throw_err(S, YASL_TYPE_ERROR);
+	}
+
+	yasl_float v;
+	if (YASL_isint(S)) {
+		v = (yasl_float)YASL_popint(S);
+	} else {
+		v = YASL_popfloat(S);
+	}
+
+	if(v < l) {
+		YASL_pushfloat(S, l);
+	} else if (v > h) {
+		YASL_pushfloat(S, h);
+	} else {
+		YASL_pushfloat(S, v);
+	}
+	return 1;
+}
+
 static int YASL_math_rand(struct YASL_State *S) {
 	// rand() is only guarenteed to return a maximum of ~32000. Ensure all 64 bits are used
 	yasl_int r = (yasl_int) rand() ^((yasl_int) rand() << 16) ^((yasl_int) rand() << 32) ^((yasl_int) rand() << 48);
@@ -365,6 +412,10 @@ int YASL_decllib_math(struct YASL_State *S) {
 
 	YASL_pushlit(S, "lcm");
 	YASL_pushcfunction(S, YASL_math_lcm, 2);
+	YASL_tableset(S);
+
+	YASL_pushlit(S, "clamp");
+	YASL_pushcfunction(S, YASL_math_clamp, 3);
 	YASL_tableset(S);
 
 	YASL_pushlit(S, "rand");
