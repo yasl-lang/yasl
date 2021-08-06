@@ -1,0 +1,1 @@
+TypeError: math.clamp expected arg in position 2 to be of type float, got arg of type str. (line 1)

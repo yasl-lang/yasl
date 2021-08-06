@@ -1,0 +1,1 @@
+math.clamp(2, 1, .s)

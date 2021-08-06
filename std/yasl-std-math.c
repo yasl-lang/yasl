@@ -265,6 +265,66 @@ static int YASL_math_lcm(struct YASL_State *S) {
 	return 1;
 }
 
+static int YASL_math_clamp(struct YASL_State *S) {
+	if (!YASL_isnum(S)) {
+		vm_print_err_bad_arg_type_name((struct VM*)S,"math.clamp", 2, YASL_FLOAT_NAME, YASL_peektypename(S));
+		YASL_throw_err(S, YASL_TYPE_ERROR);
+	}
+
+	yasl_float h;
+	bool is_h_int; 
+	if (YASL_isint(S)) {
+		h = (yasl_float)YASL_popint(S);
+		is_h_int = true;
+	} else {
+		h = YASL_popfloat(S);
+		is_h_int = false;
+	}
+
+	if (!YASL_isnum(S)) {
+		vm_print_err_bad_arg_type_name((struct VM*)S,"math.clamp", 1, YASL_FLOAT_NAME, YASL_peektypename(S));
+		YASL_throw_err(S, YASL_TYPE_ERROR);
+	}
+
+	yasl_float l;
+	bool is_l_int;
+	if (YASL_isint(S)) {
+		l = (yasl_float)YASL_popint(S);
+		is_l_int = true;
+	} else {
+		l = YASL_popfloat(S);
+		is_l_int = false;
+	}
+
+	if (!YASL_isnum(S)) {
+		vm_print_err_bad_arg_type_name((struct VM*)S,"math.clamp", 0, YASL_FLOAT_NAME, YASL_peektypename(S));
+		YASL_throw_err(S, YASL_TYPE_ERROR);
+	}
+
+	yasl_float v;
+	bool is_v_int;
+	if (YASL_isint(S)) {
+		v = (yasl_float)YASL_popint(S);
+		is_v_int = true;
+	} else {
+		v = YASL_popfloat(S);
+		is_v_int = false;
+	}
+
+	if(v < l) {
+		is_l_int ? YASL_pushint(S, (yasl_int)l) : YASL_pushfloat(S, l);
+	} else if (v > h) {
+		is_h_int ? YASL_pushint(S, (yasl_int)h) : YASL_pushfloat(S, h);
+	} else {
+		is_v_int ? YASL_pushint(S, (yasl_int)v) : YASL_pushfloat(S, v);
+	}
+	// the statement: is_*_int ? YASL_pushint(S, (yasl_int)*) : YASL_pushfloat(S, *);
+	// Checks if the above variables v, l, h are ints, 
+	// so as to avoid pushing something like 10.0 instead of 10
+
+	return 1;
+}
+
 static int YASL_math_rand(struct YASL_State *S) {
 	// rand() is only guarenteed to return a maximum of ~32000. Ensure all 64 bits are used
 	yasl_int r = (yasl_int) rand() ^((yasl_int) rand() << 16) ^((yasl_int) rand() << 32) ^((yasl_int) rand() << 48);
@@ -365,6 +425,10 @@ int YASL_decllib_math(struct YASL_State *S) {
 
 	YASL_pushlit(S, "lcm");
 	YASL_pushcfunction(S, YASL_math_lcm, 2);
+	YASL_tableset(S);
+
+	YASL_pushlit(S, "clamp");
+	YASL_pushcfunction(S, YASL_math_clamp, 3);
 	YASL_tableset(S);
 
 	YASL_pushlit(S, "rand");
