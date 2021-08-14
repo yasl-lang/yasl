@@ -1,10 +1,6 @@
 const functional = {
-    .map: fn(list, f) {
-        return [ f(e) for e <- list ]
-    },
-    .filter: fn(list, p) {
-        return [ e for e <- list if p(e) ]
-    },
+    .map: fn(list, f) -> [ f(e) for e <- list ],
+    .filter: fn(list, p) -> [ e for e <- list if p(e) ],
     .reduce: fn(list, f, i) {
         let tmp = i
         for e <- list {
@@ -16,7 +12,9 @@ const functional = {
 
 let ls = [ 1, 2, 3, 4, 5, 6 ]
 
-ls = functional.map(ls, fn(a) -> a * a)
+fn square(a) -> a * a
+
+ls = functional.map(ls, square)
 
 echo ls
 
