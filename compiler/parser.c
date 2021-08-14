@@ -994,7 +994,7 @@ static struct Node *parse_constant(struct Parser *const parser) {
 		return parse_undef(parser);
 	case T_FN:
 		return parse_lambda(parser);
-		// handle invalid expressions with sensible error messages.
+	// handle invalid expressions with sensible error messages.
 	case T_ECHO:
 	case T_WHILE:
 	case T_FOR:
@@ -1044,7 +1044,15 @@ static struct Node *parse_lambda(struct Parser *const parser) {
 	eattok(parser, T_LPAR);
 	struct Node *block = parse_function_params(parser);
 	eattok(parser, T_RPAR);
-	struct Node *body = parse_body(parser);
+	struct Node *body;
+	if (matcheattok(parser, T_RIGHT_ARR)) {
+		size_t line = parserline(parser);
+		struct Node *expr = parse_expr(parser);
+		body = new_Body(parser, line);
+		body_append(parser, &body, new_Return(parser, expr, line));
+	} else {
+		body = parse_body(parser);
+	}
 
 	return new_FnDecl(parser, block, body, NULL, line);
 }

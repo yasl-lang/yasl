@@ -7,6 +7,7 @@ static const char *inputs[] = {
   "test/inputs/fn/cvarfn.yasl",
   "test/inputs/fn/spread.yasl",
   "test/inputs/fn/nested.yasl",
+  "test/inputs/fn/functional2.yasl",
   "test/inputs/fn/forward.yasl",
   "test/inputs/fn/functional.yasl",
   "test/inputs/fn/add.yasl",
