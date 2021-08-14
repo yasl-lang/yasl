@@ -1,6 +1,7 @@
 #include "userdata.h"
 
 #include "interpreter/refcount.h"
+#include "VM.h"
 #include "YASL_Object.h"
 
 struct RC_UserData *ud_new(void *data, const char *tag, struct RC_UserData *mt, void (*destructor)(void *)) {
@@ -14,10 +15,10 @@ struct RC_UserData *ud_new(void *data, const char *tag, struct RC_UserData *mt, 
 	return ud;
 }
 
-void ud_del_data(struct RC_UserData *ud) {
+void ud_del_data(struct VM *vm, struct RC_UserData *ud) {
 	if (ud->mt) {
 		struct YASL_Object v = YASL_TABLE(ud->mt);
-		dec_ref(&v);
+		vm_dec_ref(vm, &v);
 	}
 	if (ud->destructor) ud->destructor(ud->data);
 }
@@ -31,11 +32,11 @@ void ud_del(struct RC_UserData *ud) {
 	free(ud);
 }
 
-void ud_setmt(struct RC_UserData *ud, struct RC_UserData *mt) {
+void ud_setmt(struct VM *vm, struct RC_UserData *ud, struct RC_UserData *mt) {
 	if (mt) mt->rc.refs++;
 	if (ud->mt) {
 		struct YASL_Object v = YASL_TABLE(ud->mt);
-		dec_ref(&v);
+		vm_dec_ref(vm, &v);
 	}
 	ud->mt = mt;
 }

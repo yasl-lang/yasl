@@ -55,7 +55,7 @@ int list___set(struct YASL_State *S) {
 	if (index < 0) index += ls->count;
 
 	inc_ref(&value);
-	dec_ref(ls->items + index);
+	vm_dec_ref(&S->vm, ls->items + index);
 	ls->items[index] = value;
 	return 1;
 }
@@ -63,7 +63,7 @@ int list___set(struct YASL_State *S) {
 int list_copy(struct YASL_State *S) {
 	struct YASL_List *ls = YASLX_checknlist(S, "list.copy", 0);
 	struct RC_UserData *new_ls = rcls_new_sized(ls->size);
-	ud_setmt(new_ls, S->vm.builtins_htable[Y_LIST]);
+	ud_setmt(&S->vm, new_ls, S->vm.builtins_htable[Y_LIST]);
 	struct YASL_List *new_list = (struct YASL_List *) new_ls->data;
 	FOR_LIST(i, elmt, ls) {
 		YASL_List_append(new_list, elmt);
@@ -104,7 +104,7 @@ int list_pushv(struct YASL_State *S) {
 static struct RC_UserData *list_concat(struct YASL_State *S, struct YASL_List *a, struct YASL_List *b) {
 	size_t size = a->count + b->count;
 	struct RC_UserData *ptr = rcls_new_sized(size);
-	ud_setmt(ptr, (&S->vm)->builtins_htable[Y_LIST]);
+	ud_setmt(&S->vm, ptr, (&S->vm)->builtins_htable[Y_LIST]);
 	for (size_t i = 0; i < a->count; i++) {
 		YASL_List_append((struct YASL_List *) ptr->data, (a)->items[i]);
 	}
@@ -171,7 +171,7 @@ int list_remove(struct YASL_State *S) {
 		vm_push(&S->vm, name);
 		vm_EQ(&S->vm);
 		if (YASL_popbool(S)) {
-			dec_ref(&name);
+			vm_dec_ref(&S->vm, &name);
 			size_t remaining = ls->count - i;
 			memmove(ls->items + i, ls->items + i + 1, remaining * sizeof(struct YASL_Object));
 			ls->count--;

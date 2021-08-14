@@ -674,7 +674,7 @@ static void vm_SLICE_list(struct VM *const vm) {
 
 	struct YASL_List *list = vm_poplist(vm);
 	struct RC_UserData *new_ls = rcls_new();
-	ud_setmt(new_ls, vm->builtins_htable[Y_LIST]);
+	ud_setmt(vm, new_ls, vm->builtins_htable[Y_LIST]);
 
 	for (yasl_int i = start; i <end; ++i) {
 		YASL_List_append((struct YASL_List *) new_ls->data, list->items[i]);
@@ -1503,7 +1503,7 @@ void vm_executenext(struct VM *const vm) {
 				vm_throw_err(vm, YASL_TYPE_ERROR);
 			}
 		}
-		ud_setmt(table, vm->builtins_htable[Y_TABLE]);
+		ud_setmt(vm, table, vm->builtins_htable[Y_TABLE]);
 
 		vm_pop(vm);
 		vm_push(vm, YASL_TABLE(table));
@@ -1511,7 +1511,7 @@ void vm_executenext(struct VM *const vm) {
 	}
 	case O_NEWLIST: {
 		struct RC_UserData *ls = rcls_new();
-		ud_setmt(ls, vm->builtins_htable[Y_LIST]);
+		ud_setmt(vm, ls, vm->builtins_htable[Y_LIST]);
 		int len = 0;
 		while (vm_peek(vm, vm->sp - len).type != Y_END) {
 			len++;

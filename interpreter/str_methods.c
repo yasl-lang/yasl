@@ -182,7 +182,7 @@ int str_count(struct YASL_State *S) {
 static void str_split_default(struct YASL_State *S) {
 	struct YASL_String *haystack = YASLX_checknstr(S, "str.split", 0);
 	struct RC_UserData *result = rcls_new();
-	ud_setmt(result, (&S->vm)->builtins_htable[Y_LIST]);
+	ud_setmt(&S->vm, result, (&S->vm)->builtins_htable[Y_LIST]);
 
 	YASL_String_split_default((struct YASL_List *)result->data, haystack);
 	vm_push((struct VM *) S, YASL_LIST(result));
@@ -204,7 +204,7 @@ int str_split(struct YASL_State *S) {
 	}
 
 	struct RC_UserData *result = rcls_new();
-	ud_setmt(result, (&S->vm)->builtins_htable[Y_LIST]);
+	ud_setmt(&S->vm, result, (&S->vm)->builtins_htable[Y_LIST]);
 
 	YASL_String_split_fast((struct YASL_List *)result->data, haystack, needle);
 	vm_push((struct VM *) S, YASL_LIST(result));
