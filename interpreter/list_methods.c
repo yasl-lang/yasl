@@ -281,6 +281,10 @@ int list_clear(struct YASL_State *S) {
 }
 
 int list_join(struct YASL_State *S) {
+	if (YASL_isundef(S)) {
+		YASL_pop(S);
+		vm_pushstr((struct VM *)S, YASL_String_new_sized(0, ""));
+	}
 	if (!vm_isstr((struct VM *) S)) {
 		YASLX_print_err_bad_arg_type(S, "list.join", 1, "str", YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
