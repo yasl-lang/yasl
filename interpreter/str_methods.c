@@ -15,12 +15,6 @@ static struct YASL_String *YASLX_checknstr(struct YASL_State *S, const char *nam
 	return vm_peekstr((struct VM *)S, ((struct VM *)S)->fp + 1 + pos);
 }
 
-int str___len(struct YASL_State *S) {
-	struct YASL_String *str = YASLX_checknstr(S, "str.__len", 0);
-	YASL_pushint(S, YASL_String_len(str));
-	return 1;
-}
-
 int str___get(struct YASL_State *S) {
 	struct YASL_String *str = YASLX_checknstr(S, "str.__get", 0);
 	yasl_int index = YASLX_checknint(S, "str.__get", 1);
@@ -46,6 +40,18 @@ int str___get(struct YASL_State *S) {
 	return 1;
 }
 
+int str___len(struct YASL_State *S) {
+	struct YASL_String *str = YASLX_checknstr(S, "str.__len", 0);
+	YASL_pushint(S, YASL_String_len(str));
+	return 1;
+}
+
+int str_tobool(struct YASL_State* S) {
+	struct YASL_String *a = YASLX_checknstr(S, "str.tobool", 0);
+	YASL_pushbool(S, YASL_String_len(a) != 0);
+	return 1;
+}
+
 int str_tofloat(struct YASL_State *S) {
 	struct YASL_String *str = YASLX_checknstr(S, "str.tofloat", 0);
 	YASL_pushfloat(S, YASL_String_tofloat(str));
@@ -55,12 +61,6 @@ int str_tofloat(struct YASL_State *S) {
 int str_toint(struct YASL_State *S) {
 	struct YASL_String *str = YASLX_checknstr(S, "str.toint", 0);
 	YASL_pushint(S, YASL_String_toint(str));
-	return 1;
-}
-
-int str_tobool(struct YASL_State* S) {
-	struct YASL_String *a = YASLX_checknstr(S, "str.tobool", 0);
-	YASL_pushbool(S, YASL_String_len(a) != 0);
 	return 1;
 }
 

@@ -6,12 +6,6 @@
 #include "yasl_aux.h"
 #include "yasl_include.h"
 
-int int_toint(struct YASL_State *S) {
-	yasl_int n = YASLX_checknint(S, "int.toint", 0);
-	YASL_pushint(S, n);
-	return 1;
-}
-
 int int_tobool(struct YASL_State *S) {
 	YASL_UNUSED(YASLX_checknint(S, "int.tobool", 0));
 	YASL_pushbool(S, true);
@@ -21,6 +15,12 @@ int int_tobool(struct YASL_State *S) {
 int int_tofloat(struct YASL_State *S) {
 	yasl_int n = YASLX_checknint(S, "int.tofloat", 0);
 	YASL_pushfloat(S, (yasl_float) n);
+	return 1;
+}
+
+int int_toint(struct YASL_State *S) {
+	yasl_int n = YASLX_checknint(S, "int.toint", 0);
+	YASL_pushint(S, n);
 	return 1;
 }
 
