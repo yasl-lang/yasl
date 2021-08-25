@@ -314,6 +314,36 @@ static struct Node *parse_body(struct Parser *const parser) {
 	return body;
 }
 
+static struct Node *parse_fn_body(struct Parser *const parser) {
+	struct Node *body;
+	if (matcheattok(parser, T_RIGHT_ARR)) {
+		size_t line = parserline(parser);
+		body = new_Body(parser, line);
+		if (matcheattok(parser, T_LPAR)) {
+			struct Node *expr = parse_expr(parser);
+			struct Node *block = new_Body(parser, line);
+			body_append(parser, &block, expr);
+			while (matcheattok(parser, T_COMMA)) {
+				expr = parse_expr(parser);
+				body_append(parser, &block, expr);
+			}
+			eattok(parser, T_RPAR);
+			struct Node *last = body_last(block);
+			if (last && will_var_expand(last)) {
+				block->children[block->children_len - 1] = new_VariadicContext(last, -1);
+			}
+			body_append(parser, &body, new_MultiReturn(parser, block, line));
+		} else {
+			struct Node *expr = parse_expr(parser);
+			body_append(parser, &body, new_Return(parser, expr, line));
+		}
+	} else {
+		body = parse_body(parser);
+	}
+
+	return body;
+}
+
 static struct Node *parse_function_params(struct Parser *const parser) {
 	struct Node *block = new_Body(parser, parserline(parser));
 	while (TOKEN_MATCHES(parser, T_ID, T_CONST)) {
@@ -369,7 +399,7 @@ static struct Node *parse_fn(struct Parser *const parser) {
 		struct Node *block = parse_function_params(parser);
 		eattok(parser, T_RPAR);
 
-		struct Node *body = parse_body(parser);
+		struct Node *body = parse_fn_body(parser);
 
 		return new_Set(parser, collection, index, new_FnDecl(parser, block, body, NULL, line), line);
 	}
@@ -377,7 +407,7 @@ static struct Node *parse_fn(struct Parser *const parser) {
 	struct Node *block = parse_function_params(parser);
 	eattok(parser, T_RPAR);
 
-	struct Node *body = parse_body(parser);
+	struct Node *body = parse_fn_body(parser);
 
 	return new_Let(parser, new_FnDecl(parser, block, body, name, line), name, line);
 	// TODO Fix this ^
@@ -994,7 +1024,7 @@ static struct Node *parse_constant(struct Parser *const parser) {
 		return parse_undef(parser);
 	case T_FN:
 		return parse_lambda(parser);
-		// handle invalid expressions with sensible error messages.
+	// handle invalid expressions with sensible error messages.
 	case T_ECHO:
 	case T_WHILE:
 	case T_FOR:
@@ -1044,7 +1074,7 @@ static struct Node *parse_lambda(struct Parser *const parser) {
 	eattok(parser, T_LPAR);
 	struct Node *block = parse_function_params(parser);
 	eattok(parser, T_RPAR);
-	struct Node *body = parse_body(parser);
+	struct Node *body = parse_fn_body(parser);
 
 	return new_FnDecl(parser, block, body, NULL, line);
 }

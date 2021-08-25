@@ -14,9 +14,50 @@ static struct YASL_Table *YASLX_checkntable(struct YASL_State *S, const char *na
 	return (struct YASL_Table *)YASL_peeknuserdata(S, pos);
 }
 
-int table___len(struct YASL_State *S) {
-	struct YASL_Table *ht = YASLX_checkntable(S, "table.__len", 0);
-	YASL_pushint(S, YASL_Table_length(ht));
+int table___bor(struct YASL_State *S) {
+	struct YASL_Table *right = YASLX_checkntable(S, "table.__bor", 1);
+	struct YASL_Table *left = YASLX_checkntable(S, "table.__bor", 0);
+
+	struct RC_UserData *new_ht = rcht_new_sized(left->base_size);
+	ud_setmt(&S->vm, new_ht, S->vm.builtins_htable[Y_TABLE]);
+
+	FOR_TABLE(i, litem, left) {
+			YASL_Table_insert_fast((struct YASL_Table *) new_ht->data, litem->key, litem->value);
+		}
+
+	FOR_TABLE(i, ritem, right) {
+			YASL_Table_insert_fast((struct YASL_Table *) new_ht->data, ritem->key, ritem->value);
+		}
+
+	vm_push((struct VM *) S, YASL_TABLE(new_ht));
+	return 1;
+}
+
+int table___eq(struct YASL_State *S) {
+	struct YASL_Table *right = YASLX_checkntable(S, "table.__eq", 1);
+	struct YASL_Table *left = YASLX_checkntable(S, "table.__eq", 0);
+
+	if (left->count != right->count) {
+		YASL_pushbool(S, false);
+		return 1;
+	}
+
+	FOR_TABLE(i, item, left) {
+			struct YASL_Object search = YASL_Table_search(right, item->key);
+			if (search.type == Y_END) {
+				YASL_pushbool(S, false);
+				return 1;
+			}
+			vm_push((struct VM *) S, item->value);
+			vm_push((struct VM *) S, search);
+			vm_EQ((struct VM *) S);
+			if (!YASL_popbool(S)) {
+				YASL_pushbool(S, false);
+				return 1;
+			}
+		}
+
+	YASL_pushbool(S, true);
 	return 1;
 }
 
@@ -29,6 +70,12 @@ int table___get(struct YASL_State *S) {
 	} else {
 		vm_push((struct VM *) S, result);
 	}
+	return 1;
+}
+
+int table___len(struct YASL_State *S) {
+	struct YASL_Table *ht = YASLX_checkntable(S, "table.__len", 0);
+	YASL_pushint(S, YASL_Table_length(ht));
 	return 1;
 }
 
@@ -45,53 +92,6 @@ int table___set(struct YASL_State *S) {
 		vm_print_err_type(&S->vm, "unable to use mutable object of type %s as key.", obj_typename(&key));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
-	return 1;
-}
-
-int table___bor(struct YASL_State *S) {
-	struct YASL_Table *right = YASLX_checkntable(S, "table.__bor", 1);
-	struct YASL_Table *left = YASLX_checkntable(S, "table.__bor", 0);
-
-	struct RC_UserData *new_ht = rcht_new_sized(left->base_size);
-	ud_setmt(new_ht, S->vm.builtins_htable[Y_TABLE]);
-
-	FOR_TABLE(i, litem, left) {
-		YASL_Table_insert_fast((struct YASL_Table *) new_ht->data, litem->key, litem->value);
-	}
-
-	FOR_TABLE(i, ritem, right) {
-		YASL_Table_insert_fast((struct YASL_Table *) new_ht->data, ritem->key, ritem->value);
-	}
-
-	vm_push((struct VM *) S, YASL_TABLE(new_ht));
-	return 1;
-}
-
-int table___eq(struct YASL_State *S) {
-	struct YASL_Table *right = YASLX_checkntable(S, "table.__eq", 1);
-	struct YASL_Table *left = YASLX_checkntable(S, "table.__eq", 0);
-
-	if (left->count != right->count) {
-		YASL_pushbool(S, false);
-		return 1;
-	}
-
-	FOR_TABLE(i, item, left) {
-		struct YASL_Object search = YASL_Table_search(right, item->key);
-		if (search.type == Y_END) {
-			YASL_pushbool(S, false);
-			return 1;
-		}
-		vm_push((struct VM *) S, item->value);
-		vm_push((struct VM *) S, search);
-		vm_EQ((struct VM *) S);
-		if (!YASL_popbool(S)) {
-			YASL_pushbool(S, false);
-			return 1;
-		}
-	}
-
-	YASL_pushbool(S, true);
 	return 1;
 }
 
@@ -196,7 +196,7 @@ int table_tostr(struct YASL_State *S) {
 int table_keys(struct YASL_State *S) {
 	struct YASL_Table *ht = YASLX_checkntable(S, "table.keys", 0);
 	struct RC_UserData *ls = rcls_new();
-	ud_setmt(ls, S->vm.builtins_htable[Y_LIST]);
+	ud_setmt(&S->vm, ls, S->vm.builtins_htable[Y_LIST]);
 	FOR_TABLE(i, item, ht) {
 			YASL_List_append((struct YASL_List *) ls->data, (item->key));
 	}
@@ -208,7 +208,7 @@ int table_keys(struct YASL_State *S) {
 int table_values(struct YASL_State *S) {
 	struct YASL_Table *ht = YASLX_checkntable(S, "table.values", 0);
 	struct RC_UserData *ls = rcls_new();
-	ud_setmt(ls, S->vm.builtins_htable[Y_LIST]);
+	ud_setmt(&S->vm, ls, S->vm.builtins_htable[Y_LIST]);
 	FOR_TABLE(i, item, ht) {
 			YASL_List_append((struct YASL_List *) ls->data, (item->value));
 	}
