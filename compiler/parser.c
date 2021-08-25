@@ -318,9 +318,25 @@ static struct Node *parse_fn_body(struct Parser *const parser) {
 	struct Node *body;
 	if (matcheattok(parser, T_RIGHT_ARR)) {
 		size_t line = parserline(parser);
-		struct Node *expr = parse_expr(parser);
 		body = new_Body(parser, line);
-		body_append(parser, &body, new_Return(parser, expr, line));
+		if (matcheattok(parser, T_LPAR)) {
+			struct Node *expr = parse_expr(parser);
+			struct Node *block = new_Body(parser, line);
+			body_append(parser, &block, expr);
+			while (matcheattok(parser, T_COMMA)) {
+				expr = parse_expr(parser);
+				body_append(parser, &block, expr);
+			}
+			eattok(parser, T_RPAR);
+			struct Node *last = body_last(block);
+			if (last && will_var_expand(last)) {
+				block->children[block->children_len - 1] = new_VariadicContext(last, -1);
+			}
+			body_append(parser, &body, new_MultiReturn(parser, block, line));
+		} else {
+			struct Node *expr = parse_expr(parser);
+			body_append(parser, &body, new_Return(parser, expr, line));
+		}
 	} else {
 		body = parse_body(parser);
 	}

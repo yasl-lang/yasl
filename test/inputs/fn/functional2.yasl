@@ -1,6 +1,6 @@
 const functional = {
-    .map: fn(list, f) -> [ f(e) for e <- list ],
-    .filter: fn(list, p) -> [ e for e <- list if p(e) ],
+    .map: (fn(list, f) -> [ f(e) for e <- list ]),
+    .filter: (fn(list, p) -> [ e for e <- list if p(e) ]),
     .reduce: fn(list, f, i) {
         let tmp = i
         for e <- list {
@@ -22,4 +22,4 @@ ls = functional.filter(ls, fn(a) -> a % 2 != 0)
 
 echo ls
 
-echo functional.reduce(ls, fn(a, b) -> a + b, 0)
+echo functional.reduce(ls, (fn(a, b) -> a + b), 0)
