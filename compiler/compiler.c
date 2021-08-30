@@ -385,7 +385,7 @@ static void visit_FnDecl(struct Compiler *const compiler, const struct Node *con
 
 	size_t body_len = Body_get_len(FnDecl_get_params(node));
 	// TODO: verfiy that number of params is small enough. (same for the other casts below.)
-	compiler_add_byte(compiler, (unsigned char) is_variadic ? ~body_len : body_len);
+	compiler_add_byte(compiler, (unsigned char)(is_variadic ? ~body_len : body_len));
 	visit_Body(compiler, FnDecl_get_body(node));
 	// TODO: remove this when it's not required.
 	compiler_add_byte(compiler, O_NCONST);

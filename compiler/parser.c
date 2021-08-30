@@ -338,7 +338,7 @@ static struct Node *parse_fn_body(struct Parser *const parser, bool collect_rest
 			body_append(parser, &body, new_MultiReturn(parser, block, line));
 		} else {
 			struct Node *expr = parse_expr(parser);
-			body_append(parser, &body, new_Return(parser, expr, line));
+			body_append(parser, &body, new_Return(parser, new_VariadicContext(expr, -1), line));
 		}
 	} else {
 		eattok(parser, T_LBRC);
