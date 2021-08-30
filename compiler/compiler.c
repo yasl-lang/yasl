@@ -380,8 +380,12 @@ static void visit_FnDecl(struct Compiler *const compiler, const struct Node *con
 
 	size_t old_size = compiler->buffer->count;
 
+	bool is_variadic = FnDecl_get_body(node)->children[0]->nodetype == N_COLLECTRESTPARAMS;
+	YASL_UNUSED(is_variadic);
+
+	size_t body_len = Body_get_len(FnDecl_get_params(node));
 	// TODO: verfiy that number of params is small enough. (same for the other casts below.)
-	compiler_add_byte(compiler, (unsigned char) Body_get_len(FnDecl_get_params(node)));
+	compiler_add_byte(compiler, (unsigned char) is_variadic ? ~body_len : body_len);
 	visit_Body(compiler, FnDecl_get_body(node));
 	// TODO: remove this when it's not required.
 	compiler_add_byte(compiler, O_NCONST);
@@ -414,6 +418,12 @@ static void visit_FnDecl(struct Compiler *const compiler, const struct Node *con
 	compiler->params->parent = NULL;
 	env_del(compiler->params);
 	compiler->params = tmp;
+}
+
+static void visit_CollectRestParams(struct Compiler *const compiler, const struct Node *const node) {
+	YASL_UNUSED(node);
+	YASL_ASSERT(in_function(compiler), "ast gen should ensure this is only called from inside a function.");
+	compiler_add_byte(compiler, O_COLLECT_REST_PARAMS);
 }
 
 static void visit_Call(struct Compiler *const compiler, const struct Node *const node) {
