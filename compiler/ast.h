@@ -130,6 +130,7 @@ struct Node *name##_get_##b(const struct Node *const node);
 DECL_NODE(ExprStmt, N_EXPRSTMT, expr)
 DECL_NODE(Block, N_BLOCK, block)
 DECL_NODE(Return, N_RET, expr)
+DECL_NODE(CollectRestParams, N_COLLECTRESTPARAMS)
 DECL_NODE(MultiReturn, N_MULTIRET, exprs)
 DECL_NODE(Export, N_EXPORT, expr)
 DECL_INT_NODE(Call, N_CALL, params, object)

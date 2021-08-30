@@ -1,0 +1,22 @@
+
+const fn collect(rest[]) {
+    echo rest
+}
+
+fn f(first, const rest[]) {
+    echo first
+    echo rest
+}
+
+f(1, 2, 3)
+collect(.a, .b, .c, .d)
+
+
+fn ls(l[]) -> l
+const fn cls(const l[]) -> l
+
+echo ls(1, 2, 3, 4, 5)
+echo cls(.a, .b, .c, .d)
+
+echo (fn(rest[]) -> rest)(1, 2, 3)
+echo collections.list((fn(a, b, c[]) -> c->spread())(1, 2, 3, 4))

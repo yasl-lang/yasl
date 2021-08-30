@@ -187,6 +187,7 @@ struct Node *new_Block(struct Parser *parser, const struct Node *const body, con
 	return new_Node_1(parser, N_BLOCK, body, NULL, 0, line);
 }
 
+DEF_NODE(CollectRestParams, N_COLLECTRESTPARAMS)
 DEF_NODE(Body, N_BODY)
 DEF_NODE(Decl, N_DECL, lvals, rvals)
 DEF_NODE_ZSTR(FnDecl, N_FNDECL, params, body)
