@@ -13,12 +13,13 @@ const functional = {
 let ls = [ 1, 2, 3, 4, 5, 6 ]
 
 fn square(a) -> a * a
+const fn is_odd(n) -> n % 2 != 0
 
 ls = functional.map(ls, square)
 
 echo ls
 
-ls = functional.filter(ls, fn(a) -> a % 2 != 0)
+ls = functional.filter(ls, is_odd)
 
 echo ls
 
