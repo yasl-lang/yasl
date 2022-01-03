@@ -11,7 +11,7 @@ struct Closure {
 	struct Upvalue *upvalues[];
 };
 
-void closure_del_data(struct Closure *closure);
+void closure_del_data(struct VM *vm, struct Closure *closure);
 void closure_del_rc(struct Closure *closure);
 
 #endif

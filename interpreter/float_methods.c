@@ -6,22 +6,21 @@
 #include "yasl_aux.h"
 #include "yasl_float.h"
 
-int float_toint(struct YASL_State *S) {
-	yasl_float val = YASLX_checknfloat(S, "float.toint", 0);
-	YASL_pushint(S, (yasl_int)val);
-	return 1;
-}
-
 int float_tobool(struct YASL_State *S) {
 	yasl_float val = YASLX_checknfloat(S, "float.tobool", 0);
 	YASL_pushbool(S, val == val);
 	return 1;
 }
 
-
 int float_tofloat(struct YASL_State *S) {
 	yasl_float val = YASLX_checknfloat(S, "float.tofloat", 0);
 	YASL_pushfloat(S, val);
+	return 1;
+}
+
+int float_toint(struct YASL_State *S) {
+	yasl_float val = YASLX_checknfloat(S, "float.toint", 0);
+	YASL_pushint(S, (yasl_int)val);
 	return 1;
 }
 

@@ -1,7 +1,7 @@
 #include "yasl-std-mt.h"
 
 #include "yasl_aux.h"
-#include "VM.h"
+#include "yasl_state.h"
 
 int YASL_mt_getmt(struct YASL_State *S) {
 	vm_get_metatable((struct VM *)S);
@@ -19,7 +19,7 @@ int YASL_mt_setmt(struct YASL_State *S) {
 	case Y_USERDATA:
 	case Y_LIST:
 	case Y_TABLE:
-		ud_setmt(YASL_GETUSERDATA(vm_peek((struct VM *)S)), YASL_GETUSERDATA(mt));
+		ud_setmt(&S->vm, YASL_GETUSERDATA(vm_peek((struct VM *)S)), YASL_GETUSERDATA(mt));
 		break;
 	default:
 		vm_print_err_type((struct VM *)S, "cannot set metatable for value of type %s.", YASL_peektypename(S));

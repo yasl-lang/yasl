@@ -4,6 +4,7 @@
 #include "refcount.h"
 
 struct YASL_Table;
+struct VM;
 
 struct RC_UserData {
 	struct RC rc;        // DO NOT REARRANGE. RC MUST BE THE FIRST MEMBER OF THIS STRUCT.
@@ -14,10 +15,10 @@ struct RC_UserData {
 };
 
 struct RC_UserData *ud_new(void *data, const char *tag, struct RC_UserData *mt, void (*destructor)(void *));
-void ud_del_data(struct RC_UserData *ud);
+void ud_del_data(struct VM *vm, struct RC_UserData *ud);
 void ud_del_rc(struct RC_UserData *ud);
 void ud_del(struct RC_UserData *ud);
 
-void ud_setmt(struct RC_UserData *ud, struct RC_UserData *mt);
+void ud_setmt(struct VM *vm, struct RC_UserData *ud, struct RC_UserData *mt);
 
 #endif

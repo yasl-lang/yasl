@@ -674,7 +674,7 @@ static void vm_SLICE_list(struct VM *const vm) {
 
 	struct YASL_List *list = vm_poplist(vm);
 	struct RC_UserData *new_ls = rcls_new();
-	ud_setmt(new_ls, vm->builtins_htable[Y_LIST]);
+	ud_setmt(vm, new_ls, vm->builtins_htable[Y_LIST]);
 
 	for (yasl_int i = start; i <end; ++i) {
 		YASL_List_append((struct YASL_List *) new_ls->data, list->items[i]);
@@ -1241,7 +1241,15 @@ static void vm_fill_args(struct VM *const vm, const int num_args) {
 static inline void vm_CALL_native(struct VM *const vm, unsigned char *const code) {
 	vm->frames[vm->frame_num].pc = vm->pc;
 
-	vm_fill_args(vm, *code);
+	int num_args = *(signed char *)code;
+	if (num_args < 0) {
+		int var_num_args = ~num_args;
+		while (vm->sp - vm->fp < var_num_args) {
+			vm_pushundef(vm);
+		}
+	} else {
+		vm_fill_args(vm, num_args);
+	}
 
 	vm->pc =  code + 1;
 }
@@ -1268,6 +1276,24 @@ static void vm_CALL_cfn(struct VM *const vm) {
 	int num_returns = f->value((struct YASL_State *) vm);
 
 	vm_exitframe_multi(vm, vm->sp - num_returns - vm->fp);
+}
+
+void vm_COLLECT_REST_PARAMS(struct VM *const vm) {
+	if (vm_isfn(vm, vm->fp)) {
+		int offset = ~*(signed char *)vm_peek(vm, vm->fp).value.fval;
+
+		// vm_peek(vm, vm->fp + offset);
+
+		struct RC_UserData *ls = rcls_new();
+		ud_setmt(vm, ls, vm->builtins_htable[Y_LIST]);
+
+		for (int i = vm->fp + offset; i <= vm->sp; i++) {
+			YASL_List_append((struct YASL_List *) ls->data, vm_peek(vm, i));
+		}
+		vm->sp = vm->fp + offset - 1;
+		vm_push(vm, YASL_LIST(ls));
+
+	}
 }
 
 void vm_CALL(struct VM *const vm) {
@@ -1503,7 +1529,7 @@ void vm_executenext(struct VM *const vm) {
 				vm_throw_err(vm, YASL_TYPE_ERROR);
 			}
 		}
-		ud_setmt(table, vm->builtins_htable[Y_TABLE]);
+		ud_setmt(vm, table, vm->builtins_htable[Y_TABLE]);
 
 		vm_pop(vm);
 		vm_push(vm, YASL_TABLE(table));
@@ -1511,7 +1537,7 @@ void vm_executenext(struct VM *const vm) {
 	}
 	case O_NEWLIST: {
 		struct RC_UserData *ls = rcls_new();
-		ud_setmt(ls, vm->builtins_htable[Y_LIST]);
+		ud_setmt(vm, ls, vm->builtins_htable[Y_LIST]);
 		int len = 0;
 		while (vm_peek(vm, vm->sp - len).type != Y_END) {
 			len++;
@@ -1612,6 +1638,9 @@ void vm_executenext(struct VM *const vm) {
 		break;
 	case O_CALL:
 		vm_CALL(vm);
+		break;
+	case O_COLLECT_REST_PARAMS:
+		vm_COLLECT_REST_PARAMS(vm);
 		break;
 	case O_CRET:
 		vm_close_all(vm);
