@@ -363,6 +363,10 @@ static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *c
 	}
 }
 
+static char return_op(struct Compiler *compiler) {
+	return compiler->params->usedinclosure ? O_CRET : O_RET;
+}
+
 static void visit_FnDecl(struct Compiler *const compiler, const struct Node *const node) {
 	compiler->params = env_new(compiler->params);
 
@@ -381,7 +385,6 @@ static void visit_FnDecl(struct Compiler *const compiler, const struct Node *con
 	size_t old_size = compiler->buffer->count;
 
 	bool is_variadic = FnDecl_get_body(node)->children[0]->nodetype == N_COLLECTRESTPARAMS;
-	YASL_UNUSED(is_variadic);
 
 	size_t body_len = Body_get_len(FnDecl_get_params(node));
 	// TODO: verfiy that number of params is small enough. (same for the other casts below.)
@@ -389,8 +392,7 @@ static void visit_FnDecl(struct Compiler *const compiler, const struct Node *con
 	visit_Body(compiler, FnDecl_get_body(node));
 	// TODO: remove this when it's not required.
 	compiler_add_byte(compiler, O_NCONST);
-	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CRET : O_RET);
-	//compiler_add_byte(compiler, (unsigned char)1);
+	compiler_add_byte(compiler, return_op(compiler));
 	compiler_add_byte(compiler, (unsigned char)scope_len(get_scope_in_use(compiler)));
 
 	exit_scope(compiler);
@@ -456,7 +458,7 @@ static void visit_Return(struct Compiler *const compiler, const struct Node *con
 		return;
 	}
 	visit(compiler, Return_get_expr(node));
-	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CRET : O_RET);
+	compiler_add_byte(compiler, return_op(compiler));
 	compiler_add_byte(compiler, (unsigned char)scope_len(get_scope_in_use(compiler)));
 }
 
@@ -468,7 +470,7 @@ static void visit_MultiReturn(struct Compiler *const compiler, const struct Node
 	}
 
 	visit(compiler, MultiReturn_get_exprs(node));
-	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CRET : O_RET);
+	compiler_add_byte(compiler, return_op(compiler));
 	compiler_add_byte(compiler, (unsigned char)scope_len(get_scope_in_use(compiler)));
 }
 
