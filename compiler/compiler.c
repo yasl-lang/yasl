@@ -1349,6 +1349,7 @@ static void visit_String(struct Compiler *const compiler, const struct Node *con
 static void visit_Assert(struct Compiler *const compiler, const struct Node *const node) {
 	visit_expr(compiler, Assert_get_expr(node), -1);
 	compiler_add_byte(compiler, O_ASS);
+	compiler_add_byte(compiler, (unsigned char)scope_len(get_scope_in_use(compiler)));
 }
 
 static void make_new_collection(struct Compiler *const compiler, const struct Node *const node, enum Opcode type) {
