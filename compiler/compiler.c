@@ -363,7 +363,7 @@ static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *c
 	}
 }
 
-static char return_op(struct Compiler *compiler) {
+static int return_op(struct Compiler *compiler) {
 	return compiler->params->usedinclosure ? O_CRET : O_RET;
 }
 
