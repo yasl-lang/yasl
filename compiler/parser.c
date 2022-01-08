@@ -315,7 +315,6 @@ static struct Node *parse_body(struct Parser *const parser) {
 }
 
 static struct Node *parse_fn_body(struct Parser *const parser, bool collect_rest_params) {
-	YASL_UNUSED(collect_rest_params);
 	struct Node *body = new_Body(parser, parserline(parser));
 	if (collect_rest_params)
 		body_append(parser, &body, new_CollectRestParams(parser, parserline(parser)));
