@@ -1377,7 +1377,10 @@ static void visit_Assert(struct Compiler *const compiler, const struct Node *con
 
 static void make_new_collection(struct Compiler *const compiler, const struct Node *const node, enum Opcode type) {
 	compiler_add_byte(compiler, O_END);
-	visit_Body(compiler, node);
+	// visit_Body(compiler, node);
+	FOR_CHILDREN(i, child, node) {
+		visit_expr(compiler, child, -1);
+	}
 	compiler_add_byte(compiler, type);
 }
 
