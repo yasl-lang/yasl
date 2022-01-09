@@ -1,5 +1,6 @@
 #include "VM.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <memory.h>
 #include <stdint.h>
@@ -1413,7 +1414,7 @@ void vm_executenext(struct VM *const vm) {
 		break;
 	case O_NCONST:
 		c = NCODE(vm);
-		YASL_ASSERT(vm->sp + vm->fp == c, "");
+		assert(vm->sp == vm->fp + c);
 		vm_pushundef(vm);
 		break;
 	case O_FCONST:
