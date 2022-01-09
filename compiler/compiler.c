@@ -107,7 +107,7 @@ static void rm_checkpoint(struct Compiler *const compiler) {
 }
 
 static void visit_stmt(struct Compiler *const compiler, const struct Node *const node);
-static void visit_expr(struct Compiler *const compiler, const struct Node *const node, int target);
+static int visit_expr(struct Compiler *const compiler, const struct Node *const node, int target);
 static void visit_patt(struct Compiler *const compiler, const struct Node *const node);
 
 static void visit_Body(struct Compiler *const compiler, const struct Node *const node) {
@@ -361,7 +361,8 @@ static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *c
 			visit_stmt(compiler, expr);
 			return;
 		}
-		visit_expr(compiler, expr, scope_len(get_scope_in_use(compiler)));
+		int source = visit_expr(compiler, expr, scope_len(get_scope_in_use(compiler)));
+		YASL_UNUSED(source);
 		if (expr->nodetype == N_ASSIGN || expr->nodetype == N_SET) {
 			return;
 		} else {
@@ -374,7 +375,7 @@ static int return_op(struct Compiler *compiler) {
 	return compiler->params->usedinclosure ? O_CRET : O_RET;
 }
 
-static void visit_FnDecl(struct Compiler *const compiler, const struct Node *const node, int target) {
+static int visit_FnDecl(struct Compiler *const compiler, const struct Node *const node, int target) {
 	YASL_UNUSED(target);
 	compiler->params = env_new(compiler->params);
 
@@ -426,6 +427,7 @@ static void visit_FnDecl(struct Compiler *const compiler, const struct Node *con
 	compiler->params->parent = NULL;
 	env_del(compiler->params);
 	compiler->params = tmp;
+	return -1;
 }
 
 static void visit_CollectRestParams(struct Compiler *const compiler, const struct Node *const node) {
@@ -434,22 +436,24 @@ static void visit_CollectRestParams(struct Compiler *const compiler, const struc
 	compiler_add_byte(compiler, O_COLLECT_REST_PARAMS);
 }
 
-static void visit_Call(struct Compiler *const compiler, const struct Node *const node, int target) {
+static int visit_Call(struct Compiler *const compiler, const struct Node *const node, int target) {
 	YASL_UNUSED(target);
-	visit_expr(compiler, Call_get_object(node), target);
+	int source = visit_expr(compiler, Call_get_object(node), target);
 	compiler_add_byte(compiler, O_INIT_CALL);
 	compiler_add_byte(compiler, (unsigned char)node->value.ival);
 	FOR_CHILDREN(i, param, Call_get_params(node)) {
-		visit_expr(compiler, param, target + 1 + i);
+		source = visit_expr(compiler, param, target + 1 + i);
 	}
+	YASL_UNUSED(source);
 	compiler_add_byte(compiler, O_CALL);
+	return -1;
 }
 
-static void visit_MethodCall(struct Compiler *const compiler, const struct Node *const node, int target) {
+static int visit_MethodCall(struct Compiler *const compiler, const struct Node *const node, int target) {
 	YASL_UNUSED(target);
 	char *str = MethodCall_get_name(node);
 	size_t len = strlen(str);
-	visit_expr(compiler, MethodCall_get_object(node), -1);
+	int source = visit_expr(compiler, MethodCall_get_object(node), -1);
 
 	yasl_int index = compiler_intern_string(compiler, str, len);
 
@@ -458,10 +462,12 @@ static void visit_MethodCall(struct Compiler *const compiler, const struct Node 
 	compiler_add_int(compiler, index);
 
 	FOR_CHILDREN(i, param, MethodCall_get_params(node)) {
-			visit_expr(compiler, param, -1);
+		source = visit_expr(compiler, param, -1);
 	}
+	YASL_UNUSED(source);
 	// visit_Body(compiler, MethodCall_get_params(node));
 	compiler_add_byte(compiler, O_CALL);
+	return -1;
 }
 
 static void visit_Return(struct Compiler *const compiler, const struct Node *const node) {
@@ -470,7 +476,8 @@ static void visit_Return(struct Compiler *const compiler, const struct Node *con
 		handle_error(compiler);
 		return;
 	}
-	visit_expr(compiler, Return_get_expr(node), scope_len(get_scope_in_use(compiler)));
+	int source = visit_expr(compiler, Return_get_expr(node), scope_len(get_scope_in_use(compiler)));
+	YASL_UNUSED(source);
 	compiler_add_byte(compiler, return_op(compiler));
 	compiler_add_byte(compiler, (unsigned char)scope_len(get_scope_in_use(compiler)));
 }
@@ -507,19 +514,21 @@ static void visit_Set(struct Compiler *const compiler, const struct Node *const 
 	compiler_add_byte(compiler, O_SET);
 }
 
-static void visit_Get(struct Compiler *const compiler, const struct Node *const node, int target) {
+static int visit_Get(struct Compiler *const compiler, const struct Node *const node, int target) {
 	YASL_UNUSED(target);
 	visit_expr(compiler, Get_get_collection(node), target);
 	visit_expr(compiler, Get_get_value(node), target + 1);
 	compiler_add_byte(compiler, O_GET);
+	return -1;
 }
 
-static void visit_Slice(struct Compiler *const compiler, const struct Node *const node, int target) {
+static int visit_Slice(struct Compiler *const compiler, const struct Node *const node, int target) {
 	YASL_UNUSED(target);
 	visit_expr(compiler, Slice_get_collection(node), target);
 	visit_expr(compiler, Slice_get_start(node), target + 1);
 	visit_expr(compiler, Slice_get_end(node), target + 2);
 	compiler_add_byte(compiler, O_SLICE);
+	return -1;
 }
 
 static void visit_Block(struct Compiler *const compiler, const struct Node *const node) {
@@ -600,14 +609,16 @@ static void visit_Comp(struct Compiler *const compiler, const struct Node *const
 	compiler->buffer->count = curr;
 }
 
-static void visit_ListComp(struct Compiler *const compiler, const struct Node *const node, int target) {
+static int visit_ListComp(struct Compiler *const compiler, const struct Node *const node, int target) {
 	YASL_UNUSED(target);
 	visit_Comp(compiler, node, O_NEWLIST);
+	return -1;
 }
 
-static void visit_TableComp(struct Compiler *const compiler, const struct Node *const node, int target) {
+static int visit_TableComp(struct Compiler *const compiler, const struct Node *const node, int target) {
 	YASL_UNUSED(target);
 	visit_Comp(compiler, node, O_NEWTABLE);
+	return -1;
 }
 
 static void visit_ForIter(struct Compiler *const compiler, const struct Node *const node) {
@@ -1181,7 +1192,7 @@ static void visit_Decl(struct Compiler *const compiler, const struct Node *const
 	}
 }
 
-static void visit_TriOp(struct Compiler *const compiler, const struct Node *const node, int target) {
+static int visit_TriOp(struct Compiler *const compiler, const struct Node *const node, int target) {
 	YASL_UNUSED(target);
 	struct Node *left = TriOp_get_left(node);
 	struct Node *middle = TriOp_get_middle(node);
@@ -1201,9 +1212,10 @@ static void visit_TriOp(struct Compiler *const compiler, const struct Node *cons
 
 	visit_expr(compiler, right, -1);
 	exit_jump(compiler, &index_r);
+	return -1;
 }
 
-static void visit_BinOp_shortcircuit(struct Compiler *const compiler, const struct Node *const node, enum Opcode jump_type, int target) {
+static int visit_BinOp_shortcircuit(struct Compiler *const compiler, const struct Node *const node, enum Opcode jump_type, int target) {
 	YASL_UNUSED(target);
 	visit_expr(compiler, BinOp_get_left(node), target);
 	compiler_add_byte(compiler, O_DUP);
@@ -1213,20 +1225,17 @@ static void visit_BinOp_shortcircuit(struct Compiler *const compiler, const stru
 	compiler_add_byte(compiler, O_POP);
 	visit_expr(compiler, BinOp_get_right(node), target);
 	YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, index, compiler->buffer->count - index - 8);
+	return -1;
 }
 
-static void visit_BinOp(struct Compiler *const compiler, const struct Node *const node, int target) {
-	YASL_UNUSED(target);
+static int visit_BinOp(struct Compiler *const compiler, const struct Node *const node, int target) {
 	// complicated bin ops are handled on their own.
 	if (node->value.type == T_DQMARK) {        // ?? operator
-		visit_BinOp_shortcircuit(compiler, node, O_BRN_8, target);
-		return;
+		return visit_BinOp_shortcircuit(compiler, node, O_BRN_8, target);
 	} else if (node->value.type == T_DBAR) {   // || operator
-		visit_BinOp_shortcircuit(compiler, node, O_BRT_8, target);
-		return;
+		return visit_BinOp_shortcircuit(compiler, node, O_BRT_8, target);
 	} else if (node->value.type == T_DAMP) {   // && operator
-		visit_BinOp_shortcircuit(compiler, node, O_BRF_8, target);
-		return;
+		return visit_BinOp_shortcircuit(compiler, node, O_BRF_8, target);
 	}
 
 	// all other operators follow the same pattern of visiting one child then the other.
@@ -1305,11 +1314,13 @@ static void visit_BinOp(struct Compiler *const compiler, const struct Node *cons
 		YASL_UNREACHED();
 		break;
 	}
+	return -1;
 }
 
-static void visit_UnOp(struct Compiler *const compiler, const struct Node *const node, int target) {
+static int visit_UnOp(struct Compiler *const compiler, const struct Node *const node, int target) {
 	YASL_UNUSED(target);
-	visit_expr(compiler, UnOp_get_expr(node), -1);
+	struct Node *expr = UnOp_get_expr(node);
+	visit_expr(compiler, expr, target);
 	switch (node->value.type) {
 	case T_PLUS:
 		compiler_add_byte(compiler, O_POS);
@@ -1330,6 +1341,7 @@ static void visit_UnOp(struct Compiler *const compiler, const struct Node *const
 		YASL_UNREACHED();
 		break;
 	}
+	return -1;
 }
 
 static void visit_Assign(struct Compiler *const compiler, const struct Node *const node) {
@@ -1343,15 +1355,17 @@ static void visit_Assign(struct Compiler *const compiler, const struct Node *con
 	store_var(compiler, name, node->line);
 }
 
-static void visit_Var(struct Compiler *const compiler, const struct Node *const node, int target) {
+static int visit_Var(struct Compiler *const compiler, const struct Node *const node, int target) {
 	YASL_UNUSED(target);
 	load_var(compiler, Var_get_name(node), node->line);
+	return -1;
 }
 
-static void visit_Undef(struct Compiler *const compiler, const struct Node *const node, int target) {
+static int visit_Undef(struct Compiler *const compiler, const struct Node *const node, int target) {
 	YASL_UNUSED(target);
-	(void) node;
+	YASL_UNUSED(node);
 	compiler_add_byte(compiler, O_NCONST);
+	return -1;
 }
 
 static void compiler_add_literal(struct Compiler *const compiler, const yasl_int index, int target) {
@@ -1365,32 +1379,36 @@ static void compiler_add_literal(struct Compiler *const compiler, const yasl_int
 	}
 }
 
-static void visit_Float(struct Compiler *const compiler, const struct Node *const node, int target) {
+static int visit_Float(struct Compiler *const compiler, const struct Node *const node, int target) {
 	YASL_UNUSED(target);
 	yasl_float val = Float_get_float(node);
 
 	yasl_int index = compiler_intern_float(compiler, val);
 	compiler_add_literal(compiler, index, target);
+	return -1;
 }
 
-static void visit_Integer(struct Compiler *const compiler, const struct Node *const node, int target) {
+static int visit_Integer(struct Compiler *const compiler, const struct Node *const node, int target) {
 	YASL_UNUSED(target);
 	yasl_int val = Integer_get_int(node);
 	YASL_COMPILE_DEBUG_LOG("int: %" PRId64 "\n", val);
 
 	yasl_int index = compiler_intern_int(compiler, val);
 	compiler_add_literal(compiler, index, target);
+	return -1;
 }
 
-static void visit_Boolean(struct Compiler *const compiler, const struct Node *const node, int target) {
+static int visit_Boolean(struct Compiler *const compiler, const struct Node *const node, int target) {
 	YASL_UNUSED(target);
 	compiler_add_byte(compiler, Boolean_get_bool(node) ? O_BCONST_T : O_BCONST_F);
+	return -1;
 }
 
-static void visit_String(struct Compiler *const compiler, const struct Node *const node, int target) {
+static int visit_String(struct Compiler *const compiler, const struct Node *const node, int target) {
 	YASL_UNUSED(target);
 	yasl_int index = intern_string(compiler, node);
 	compiler_add_literal(compiler, index, target);
+	return -1;
 }
 
 static void visit_Assert(struct Compiler *const compiler, const struct Node *const node) {
@@ -1408,12 +1426,14 @@ static void make_new_collection(struct Compiler *const compiler, const struct No
 	compiler_add_byte(compiler, type);
 }
 
-static void visit_List(struct Compiler *const compiler, const struct Node *const node, int target) {
+static int visit_List(struct Compiler *const compiler, const struct Node *const node, int target) {
 	make_new_collection(compiler, List_get_values(node), O_NEWLIST, target);
+	return -1;
 }
 
-static void visit_Table(struct Compiler *const compiler, const struct Node *const node, int target) {
+static int visit_Table(struct Compiler *const compiler, const struct Node *const node, int target) {
 	make_new_collection(compiler, Table_get_values(node), O_NEWTABLE, target);
+	return -1;
 }
 
 /*
@@ -1460,7 +1480,7 @@ static void (*jmp_table[])(struct Compiler *const compiler, const struct Node *c
 };
 
 #define X(name, ...) &visit_##name,
-static void (*expr_jmp_table[])(struct Compiler *const compiler, const struct Node *const node, int target) = {
+static int (*expr_jmp_table[])(struct Compiler *const compiler, const struct Node *const node, int target) = {
 #include "expr_nodetype.x"
 };
 #undef X
@@ -1481,9 +1501,9 @@ static void visit_stmt(struct Compiler *const compiler, const struct Node *const
 	visit(compiler, node);
 }
 
-static void visit_expr(struct Compiler *const compiler, const struct Node *const node, int target) {
+static int visit_expr(struct Compiler *const compiler, const struct Node *const node, int target) {
 	handle_line(compiler, node);
-	expr_jmp_table[node->nodetype](compiler, node, target);
+	return expr_jmp_table[node->nodetype](compiler, node, target);
 }
 
 static void visit_patt(struct Compiler *const compiler, const struct Node *const node) {
