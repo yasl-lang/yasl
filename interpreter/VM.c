@@ -1413,8 +1413,6 @@ void vm_executenext(struct VM *const vm) {
 		vm_pushbool(vm, (bool)(opcode & 0x01));
 		break;
 	case O_NCONST:
-		c = NCODE(vm);
-		assert(vm->sp == vm->fp + c);
 		vm_pushundef(vm);
 		break;
 	case O_FCONST:

@@ -398,9 +398,6 @@ static void visit_FnDecl(struct Compiler *const compiler, const struct Node *con
 	// TODO: verfiy that number of params is small enough. (same for the other casts below.)
 	compiler_add_byte(compiler, (unsigned char)(is_variadic ? ~body_len : body_len));
 	visit_Body(compiler, FnDecl_get_body(node));
-	// TODO: remove this when it's not required.
-	// compiler_add_byte(compiler, O_NCONST);
-	// compiler_add_byte(compiler, (unsigned char)scope_len(get_scope_in_use(compiler)));
 	compiler_add_byte(compiler, return_op(compiler));
 	compiler_add_byte(compiler, 0);
 
@@ -1119,10 +1116,10 @@ static void declare_with_let_or_const(struct Compiler *const compiler, const str
 		decl_var(compiler, name, node->line);
 		visit_expr(compiler, expr, -1);
 	} else {
-		if (expr) visit_expr(compiler, expr, scope_len(get_scope_in_use(compiler)));
-		else {
+		if (expr) {
+			visit_expr(compiler, expr, scope_len(get_scope_in_use(compiler)));
+		} else {
 			compiler_add_byte(compiler, O_NCONST);
-			compiler_add_byte(compiler, scope_len(get_scope_in_use(compiler)));
 		}
 
 		decl_var(compiler, name, node->line);
@@ -1355,7 +1352,6 @@ static void visit_Undef(struct Compiler *const compiler, const struct Node *cons
 	YASL_UNUSED(target);
 	(void) node;
 	compiler_add_byte(compiler, O_NCONST);
-	compiler_add_byte(compiler, (unsigned char)target);
 }
 
 static void compiler_add_literal(struct Compiler *const compiler, const yasl_int index, int target) {
