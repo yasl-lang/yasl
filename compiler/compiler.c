@@ -12,7 +12,8 @@
 #include "yasl_error.h"
 #include "yasl_include.h"
 
-static void validate(struct Compiler *compiler, const struct Node *const node);
+static void validate_expr(struct Compiler *compiler, const struct Node *const node);
+static void validate_stmt(struct Compiler *compiler, const struct Node *const node);
 
 YASL_FORMAT_CHECK static void compiler_print_err(struct Compiler *compiler, const char *const fmt, ...) {
 	va_list args;
@@ -353,7 +354,7 @@ static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *c
 	case N_UNDEF:
 		return;
 	case N_VAR:
-		validate(compiler, expr);
+		validate_expr(compiler, expr);
 		return;
 	default:
 		if (expr->nodetype == N_ASSIGN) {
@@ -685,8 +686,8 @@ static bool Node_isfalsey(const struct Node *const node) {
 }
 
 static void visit_While_false(struct Compiler *const compiler, const struct Node *const body, const struct Node *const post) {
-	validate(compiler, body);
-	if (post) validate(compiler, post);
+	validate_stmt(compiler, body);
+	if (post) validate_expr(compiler, post);
 }
 
 static void visit_While(struct Compiler *const compiler, const struct Node *const node) {
@@ -1053,11 +1054,11 @@ static void visit_Match(struct Compiler *const compiler, const struct Node *cons
 
 static void visit_If_true(struct Compiler *const compiler, const struct Node *const then_br, const struct Node *const else_br) {
 	visit_stmt(compiler, then_br);
-	if (else_br) validate(compiler, else_br);
+	if (else_br) validate_stmt(compiler, else_br);
 }
 
 static void visit_If_false(struct Compiler *const compiler, const struct Node *const then_br, const struct Node *const else_br) {
-	validate(compiler, then_br);
+	validate_stmt(compiler, then_br);
 	if (else_br) visit_stmt(compiler, else_br);
 }
 
@@ -1419,7 +1420,19 @@ static void visit_Table(struct Compiler *const compiler, const struct Node *cons
 /*
  * Like visit, but doesn't save the results. Will validate things like variables having been declared before use.
  */
-static void validate(struct Compiler *compiler, const struct Node *const node) {
+static void validate_expr(struct Compiler *compiler, const struct Node *const node) {
+	const size_t buffer_count = compiler->buffer->count;
+	const size_t code_count = compiler->code->count;
+	const size_t line_count = compiler->lines->count;
+	const size_t line = compiler->line;
+	visit_expr(compiler, node, -1);
+	compiler->buffer->count = buffer_count;
+	compiler->code->count = code_count;
+	compiler->lines->count = line_count;
+	compiler->line = line;
+}
+
+static void validate_stmt(struct Compiler *compiler, const struct Node *const node) {
 	const size_t buffer_count = compiler->buffer->count;
 	const size_t code_count = compiler->code->count;
 	const size_t line_count = compiler->lines->count;
