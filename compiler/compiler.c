@@ -435,7 +435,10 @@ static void visit_Call(struct Compiler *const compiler, const struct Node *const
 	visit_expr(compiler, Call_get_object(node), -1);
 	compiler_add_byte(compiler, O_INIT_CALL);
 	compiler_add_byte(compiler, (unsigned char)node->value.ival);
-	visit_Body(compiler, Call_get_params(node));
+	FOR_CHILDREN(i, param, Call_get_params(node)) {
+		visit_expr(compiler, param, -1);
+	}
+	//w2visit_Body(compiler, Call_get_params(node));
 	compiler_add_byte(compiler, O_CALL);
 }
 
@@ -1091,7 +1094,7 @@ static void declare_with_let_or_const(struct Compiler *const compiler, const str
 	    expr->nodetype == N_FNDECL &&
 	    expr->value.sval.str != NULL) {
 		decl_var(compiler, name, node->line);
-		visit_expr(compiler, expr, -1);
+		visit_stmt(compiler, expr);
 	} else {
 		if (expr) visit_expr(compiler, expr, -1);
 		else compiler_add_byte(compiler, O_NCONST);
@@ -1116,9 +1119,12 @@ static void visit_Const(struct Compiler *const compiler, const struct Node *cons
 }
 
 static void visit_Decl(struct Compiler *const compiler, const struct Node *const node) {
-	visit_stmt(compiler, Decl_get_rvals(node));
+	//visit_stmt(compiler, Decl_get_rvals(node));
+	FOR_CHILDREN(i, rval, Decl_get_rvals(node)) {
+		visit_expr(compiler, rval, -1);
+	}
 
-	FOR_CHILDREN(i, child, Decl_get_lvals(node)) {
+	FOR_CHILDREN(j, child, Decl_get_lvals(node)) {
 		const char *name = child->value.sval.str;
 		if (child->nodetype == N_ASSIGN) {
 			if (!contains_var(compiler, name)) {
