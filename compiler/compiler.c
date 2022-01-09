@@ -1407,12 +1407,15 @@ static void visit_LetIter(struct Compiler *const compiler, const struct Node *co
 	YASL_UNREACHED();
 }
 
-#define X(name, ...) &visit_##name,
 static void (*jmp_table[])(struct Compiler *const compiler, const struct Node *const node) = {
+#define X(...) NULL,
+#include "expr_nodetype.x"
+#undef X
+#define X(name, ...) &visit_##name,
 #include "patt_nodetype.x"
 #include "stmt_nodetype.x"
-};
 #undef X
+};
 
 #define X(name, ...) &visit_##name,
 static void (*expr_jmp_table[])(struct Compiler *const compiler, const struct Node *const node, int target) = {
