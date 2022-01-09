@@ -1389,7 +1389,9 @@ static void visit_LetIter(struct Compiler *const compiler, const struct Node *co
 
 #define X(name, ...) &visit_##name,
 static void (*jmp_table[])(struct Compiler *const compiler, const struct Node *const node) = {
-#include "nodetype.x"
+#include "expr_nodetype.x"
+#include "patt_nodetype.x"
+#include "stmt_nodetype.x"
 };
 #undef X
 
