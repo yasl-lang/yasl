@@ -1682,7 +1682,8 @@ void vm_executenext(struct VM *const vm) {
 			vm_throw_err(vm, YASL_ASSERT_ERROR);
 		}
 		vm_pop(vm);
-		YASL_ASSERT(vm->sp - vm->fp == NCODE(vm), "");
+		c = NCODE(vm);
+		YASL_ASSERT(vm->sp - vm->fp == c, "");
 		break;
 	default:
 		vm_print_err(vm, "Error: Unknown Opcode: %x\n", opcode);
