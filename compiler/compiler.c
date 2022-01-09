@@ -356,6 +356,10 @@ static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *c
 		validate(compiler, expr);
 		return;
 	default:
+		if (expr->nodetype == N_ASSIGN) {
+			visit_stmt(compiler, expr);
+			return;
+		}
 		visit_expr(compiler, expr, scope_len(get_scope_in_use(compiler)));
 		if (expr->nodetype == N_ASSIGN || expr->nodetype == N_SET) {
 			return;
@@ -369,7 +373,8 @@ static int return_op(struct Compiler *compiler) {
 	return compiler->params->usedinclosure ? O_CRET : O_RET;
 }
 
-static void visit_FnDecl(struct Compiler *const compiler, const struct Node *const node) {
+static void visit_FnDecl(struct Compiler *const compiler, const struct Node *const node, int target) {
+	YASL_UNUSED(target);
 	compiler->params = env_new(compiler->params);
 
 	enter_scope(compiler);
@@ -454,7 +459,10 @@ static void visit_MethodCall(struct Compiler *const compiler, const struct Node 
 	compiler_add_byte(compiler, (unsigned char)node->value.sval.str_len);
 	compiler_add_int(compiler, index);
 
-	visit_Body(compiler, MethodCall_get_params(node));
+	FOR_CHILDREN(i, param, MethodCall_get_params(node)) {
+			visit_expr(compiler, param, -1);
+	}
+	// visit_Body(compiler, MethodCall_get_params(node));
 	compiler_add_byte(compiler, O_CALL);
 }
 
@@ -476,7 +484,10 @@ static void visit_MultiReturn(struct Compiler *const compiler, const struct Node
 		return;
 	}
 
-	visit_expr(compiler, MultiReturn_get_exprs(node), scope_len(get_scope_in_use(compiler)));
+	//visit_expr(compiler, MultiReturn_get_exprs(node), scope_len(get_scope_in_use(compiler)));
+	FOR_CHILDREN(i, child, MultiReturn_get_exprs(node)) {
+		visit_expr(compiler, child, -1);
+	}
 	compiler_add_byte(compiler, return_op(compiler));
 	compiler_add_byte(compiler, (unsigned char)scope_len(get_scope_in_use(compiler)));
 }
@@ -491,8 +502,7 @@ static void visit_Export(struct Compiler *const compiler, const struct Node *con
 	compiler_add_byte(compiler, O_EXPORT);
 }
 
-static void visit_Set(struct Compiler *const compiler, const struct Node *const node, int target) {
-	YASL_UNUSED(target);
+static void visit_Set(struct Compiler *const compiler, const struct Node *const node) {
 	visit_expr(compiler, Set_get_collection(node), -1);
 	visit_expr(compiler, Set_get_key(node), -1);
 	visit_expr(compiler, Set_get_value(node), -1);
@@ -531,11 +541,23 @@ static void visit_Comp_cond(struct Compiler *const compiler, const struct Node *
 		visit_expr(compiler, cond, -1);
 		enter_conditional_false(compiler, &index_third);
 
-		visit_expr(compiler, expr, -1);
+		if (expr->nodetype == N_BODY) {
+			FOR_CHILDREN(i, child, expr) {
+					visit_expr(compiler, child, -1);
+				}
+		} else {
+			visit_expr(compiler, expr, -1);
+		}
 
 		exit_conditional_false(compiler, &index_third);
 	} else {
-		visit_expr(compiler, expr, -1);
+		if (expr->nodetype == N_BODY) {
+			FOR_CHILDREN(i, child, expr) {
+				visit_expr(compiler, child, -1);
+			}
+		} else {
+			visit_expr(compiler, expr, -1);
+		}
 	}
 }
 
@@ -1094,7 +1116,7 @@ static void declare_with_let_or_const(struct Compiler *const compiler, const str
 	    expr->nodetype == N_FNDECL &&
 	    expr->value.sval.str != NULL) {
 		decl_var(compiler, name, node->line);
-		visit_stmt(compiler, expr);
+		visit_expr(compiler, expr, -1);
 	} else {
 		if (expr) visit_expr(compiler, expr, -1);
 		else compiler_add_byte(compiler, O_NCONST);
@@ -1308,8 +1330,7 @@ static void visit_UnOp(struct Compiler *const compiler, const struct Node *const
 	}
 }
 
-static void visit_Assign(struct Compiler *const compiler, const struct Node *const node, int target) {
-	YASL_UNUSED(target);
+static void visit_Assign(struct Compiler *const compiler, const struct Node *const node) {
 	char *name = node->value.sval.str;
 	if (!contains_var(compiler, name)) {
 		compiler_print_err_undeclared_var(compiler, name, node->line);
