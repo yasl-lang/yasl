@@ -1412,6 +1412,8 @@ void vm_executenext(struct VM *const vm) {
 		vm_pushbool(vm, (bool)(opcode & 0x01));
 		break;
 	case O_NCONST:
+		c = NCODE(vm);
+		YASL_ASSERT(vm->sp + vm->fp == c, "");
 		vm_pushundef(vm);
 		break;
 	case O_FCONST:
@@ -1675,6 +1677,7 @@ void vm_executenext(struct VM *const vm) {
 		vm_ECHO(vm);
 		break;
 	case O_ASS:
+		c = NCODE(vm);
 		if (isfalsey(vm_peek_p(vm))) {
 			vm_stringify_top(vm);
 			vm_print_err(vm, "AssertError: %.*s.", (int)YASL_String_len(vm_peekstr(vm)), YASL_String_chars(vm_peekstr(vm)));
@@ -1682,7 +1685,6 @@ void vm_executenext(struct VM *const vm) {
 			vm_throw_err(vm, YASL_ASSERT_ERROR);
 		}
 		vm_pop(vm);
-		c = NCODE(vm);
 		YASL_ASSERT(vm->sp - vm->fp == c, "");
 		break;
 	default:

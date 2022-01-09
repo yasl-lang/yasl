@@ -1351,9 +1351,11 @@ static void visit_Undef(struct Compiler *const compiler, const struct Node *cons
 	YASL_UNUSED(target);
 	(void) node;
 	compiler_add_byte(compiler, O_NCONST);
+	compiler_add_byte(compiler, (unsigned char)target);
 }
 
-static void compiler_add_literal(struct Compiler *const compiler, const yasl_int index) {
+static void compiler_add_literal(struct Compiler *const compiler, const yasl_int index, int target) {
+	YASL_UNUSED(target);
 	if (index < 128) {
 		compiler_add_byte(compiler, O_LIT);
 		compiler_add_byte(compiler, (unsigned char)index);
@@ -1368,7 +1370,7 @@ static void visit_Float(struct Compiler *const compiler, const struct Node *cons
 	yasl_float val = Float_get_float(node);
 
 	yasl_int index = compiler_intern_float(compiler, val);
-	compiler_add_literal(compiler, index);
+	compiler_add_literal(compiler, index, target);
 }
 
 static void visit_Integer(struct Compiler *const compiler, const struct Node *const node, int target) {
@@ -1377,7 +1379,7 @@ static void visit_Integer(struct Compiler *const compiler, const struct Node *co
 	YASL_COMPILE_DEBUG_LOG("int: %" PRId64 "\n", val);
 
 	yasl_int index = compiler_intern_int(compiler, val);
-	compiler_add_literal(compiler, index);
+	compiler_add_literal(compiler, index, target);
 }
 
 static void visit_Boolean(struct Compiler *const compiler, const struct Node *const node, int target) {
@@ -1388,7 +1390,7 @@ static void visit_Boolean(struct Compiler *const compiler, const struct Node *co
 static void visit_String(struct Compiler *const compiler, const struct Node *const node, int target) {
 	YASL_UNUSED(target);
 	yasl_int index = intern_string(compiler, node);
-	compiler_add_literal(compiler, index);
+	compiler_add_literal(compiler, index, target);
 }
 
 static void visit_Assert(struct Compiler *const compiler, const struct Node *const node) {
