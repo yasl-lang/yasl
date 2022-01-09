@@ -356,7 +356,7 @@ static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *c
 		validate(compiler, expr);
 		return;
 	default:
-		visit_expr(compiler, expr, -1);
+		visit_expr(compiler, expr, scope_len(get_scope_in_use(compiler)));
 		if (expr->nodetype == N_ASSIGN || expr->nodetype == N_SET) {
 			return;
 		} else {
@@ -459,7 +459,7 @@ static void visit_Return(struct Compiler *const compiler, const struct Node *con
 		handle_error(compiler);
 		return;
 	}
-	visit_expr(compiler, Return_get_expr(node), -1);
+	visit_expr(compiler, Return_get_expr(node), scope_len(get_scope_in_use(compiler)));
 	compiler_add_byte(compiler, return_op(compiler));
 	compiler_add_byte(compiler, (unsigned char)scope_len(get_scope_in_use(compiler)));
 }
@@ -471,7 +471,7 @@ static void visit_MultiReturn(struct Compiler *const compiler, const struct Node
 		return;
 	}
 
-	visit_expr(compiler, MultiReturn_get_exprs(node), -1);
+	visit_expr(compiler, MultiReturn_get_exprs(node), scope_len(get_scope_in_use(compiler)));
 	compiler_add_byte(compiler, return_op(compiler));
 	compiler_add_byte(compiler, (unsigned char)scope_len(get_scope_in_use(compiler)));
 }
@@ -482,7 +482,7 @@ static void visit_Export(struct Compiler *const compiler, const struct Node *con
 		handle_error(compiler);
 		return;
 	}
-	visit_expr(compiler, Export_get_expr(node), -1);
+	visit_expr(compiler, Export_get_expr(node), scope_len(get_scope_in_use(compiler)));
 	compiler_add_byte(compiler, O_EXPORT);
 }
 
@@ -589,7 +589,7 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 	struct Node *collection = LetIter_get_collection(iter);
 	char *name = iter->value.sval.str;
 
-	visit_expr(compiler, collection, -1);
+	visit_expr(compiler, collection, scope_len(get_scope_in_use(compiler)));
 
 	compiler_add_byte(compiler, O_INITFOR);
 	compiler_add_byte(compiler, O_END);
@@ -679,7 +679,7 @@ static void visit_While(struct Compiler *const compiler, const struct Node *cons
 
 	add_checkpoint(compiler, index_start);
 
-	visit_expr(compiler, cond, -1);
+	visit_expr(compiler, cond, scope_len(get_scope_in_use(compiler)));
 
 	add_checkpoint(compiler, compiler->buffer->count);
 
@@ -1010,7 +1010,7 @@ static void visit_Match(struct Compiler *const compiler, const struct Node *cons
 	struct Node *patterns = Match_get_patterns(node);
 	struct Node *guards = Match_get_guards(node);
 	struct Node *bodies = Match_get_bodies(node);
-	visit_expr(compiler, expr, -1);
+	visit_expr(compiler, expr, scope_len(get_scope_in_use(compiler)));
 	if (patterns->children_len == 0) {
 		compiler_add_byte(compiler, O_POP);
 		return;
@@ -1044,7 +1044,7 @@ static void visit_If(struct Compiler *const compiler, const struct Node *const n
 		return;
 	}
 
-	visit_expr(compiler, cond, -1);
+	visit_expr(compiler, cond, scope_len(get_scope_in_use(compiler)));
 
 	int64_t index_then;
 	enter_conditional_false(compiler, &index_then);
@@ -1066,7 +1066,7 @@ static void visit_If(struct Compiler *const compiler, const struct Node *const n
 }
 
 static void visit_Echo(struct Compiler *const compiler, const struct Node *const node) {
-	visit_expr(compiler, Echo_get_expr(node), -1);
+	visit_expr(compiler, Echo_get_expr(node), scope_len(get_scope_in_use(compiler)));
 	compiler_add_byte(compiler, O_ECHO);
 	compiler_add_byte(compiler, (char)scope_len(get_scope_in_use(compiler)));
 }
@@ -1347,7 +1347,7 @@ static void visit_String(struct Compiler *const compiler, const struct Node *con
 }
 
 static void visit_Assert(struct Compiler *const compiler, const struct Node *const node) {
-	visit_expr(compiler, Assert_get_expr(node), -1);
+	visit_expr(compiler, Assert_get_expr(node), scope_len(get_scope_in_use(compiler)));
 	compiler_add_byte(compiler, O_ASS);
 	compiler_add_byte(compiler, (unsigned char)scope_len(get_scope_in_use(compiler)));
 }
