@@ -1005,11 +1005,6 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 			compiler_add_byte(compiler, (unsigned char) vars);
 			visit_expr(compiler, guard, -1);
 			enter_conditional_false(compiler, &start_guard);
-/*
-			compiler_add_byte(compiler, O_BRF_8);
-			start_guard = compiler->buffer->count;
-			compiler_add_int(compiler, 0);
-*/
 			compiler_add_byte(compiler, O_POP);
 		} else {
 			compiler_add_byte(compiler, O_DEL_FP);
@@ -1019,11 +1014,6 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 		if (guard) {
 			visit_expr(compiler, guard, -1);
 			enter_conditional_false(compiler, &start_guard);
-/*
-			compiler_add_byte(compiler, O_BRF_8);
-			start_guard = compiler->buffer->count;
-			compiler_add_int(compiler, 0);
-*/
 		}
 		compiler_add_byte(compiler, O_POP);
 	}
