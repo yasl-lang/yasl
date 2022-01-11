@@ -80,7 +80,7 @@ static void exit_scope(struct Compiler *const compiler) {
 	struct Scope **lval = in_function(compiler) ? &compiler->params->scope : &compiler->stack;
 	struct Scope *tmp = *lval;
 	 *lval = tmp->parent;
-	size_t num_locals = scope_num_vars_cur_only(tmp); // ->vars.count;
+	size_t num_locals = scope_num_vars_cur_only(tmp);
 	scope_del_cur_only(tmp);
 	while (num_locals-- > 0) {
 		compiler_add_byte(compiler, O_POP);
