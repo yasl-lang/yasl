@@ -171,6 +171,7 @@ static const char *inputs[] = {
   "test/inputs/math/min-max.yasl",
   "test/inputs/clear.yasl",
   "test/inputs/collections/set.yasl",
+  "test/inputs/collections/set_iter.yasl",
   "test/inputs/collections/set_fromlist.yasl",
   "test/inputs/collections/table.yasl",
   "test/inputs/collections/list.yasl",

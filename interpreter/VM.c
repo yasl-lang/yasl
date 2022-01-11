@@ -917,6 +917,23 @@ static void vm_ITER_1(struct VM *const vm) {
 		}
 		return;
 	}
+	case Y_USERDATA: {
+		vm_push(vm, frame->next_fn);
+		vm_push(vm, frame->iterable);
+		vm_push(vm, frame->curr);
+		// vm_shifttopdown(vm, 2);
+		vm_INIT_CALL_offset(vm, vm->sp - 2, -1);
+		vm_CALL(vm);
+		if (vm_popbool(vm)) {
+			dec_ref(&frame->curr);
+			frame->curr = vm_pop(vm);
+			inc_ref(&frame->curr);
+			vm_pushbool(vm, true);
+		} else {
+			vm_pushbool(vm, false);
+		}
+		return;
+	}
 	default:
 		vm_print_err_type(vm,  "object of type %s is not iterable.\n", obj_typename(&frame->iterable));
 		vm_throw_err(vm, YASL_TYPE_ERROR);
@@ -1550,8 +1567,21 @@ void vm_executenext(struct VM *const vm) {
 		break;
 	}
 	case O_INITFOR:
-		inc_ref(&vm_peek(vm));
+		inc_ref(vm_peek_p(vm));
 		vm->loopframe_num++;
+		if (obj_isuserdata(vm_peek_p(vm))) {
+			struct YASL_Object *obj = vm_peek_p(vm);
+			vm_push(vm, *obj);
+			vm_lookup_method_throwing(vm, "__iter", "%s is not iterable type.",
+						  obj_typename(obj));
+			vm_shifttopdown(vm, 1);
+			vm_INIT_CALL_offset(vm, vm->sp - 1, 2);
+			vm_CALL(vm);
+			inc_ref(vm_peek_p(vm));
+			vm->loopframes[vm->loopframe_num].curr = vm_pop(vm);
+			inc_ref(vm_peek_p(vm));
+			vm->loopframes[vm->loopframe_num].next_fn = vm_pop(vm);
+		}
 		vm->loopframes[vm->loopframe_num].iter = 0;
 		vm->loopframes[vm->loopframe_num].iterable = vm_pop(vm);
 		break;

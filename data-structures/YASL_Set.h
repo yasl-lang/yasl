@@ -18,6 +18,7 @@ void YASL_Set_del(void *s);
 bool YASL_Set_insert(struct YASL_Set *const set, struct YASL_Object value) /* YASL_WARN_UNUSED */;
 bool YASL_Set_search(const struct YASL_Set *const set, const struct YASL_Object key);
 void YASL_Set_rm(struct YASL_Set *const set, struct YASL_Object key);
+size_t YASL_Set_getindex(const struct YASL_Set *const set, const struct YASL_Object value);
 
 struct YASL_Set *YASL_Set_union(const struct YASL_Set *const left, const struct YASL_Set *const right);
 struct YASL_Set *YASL_Set_intersection(const struct YASL_Set *const left, const struct YASL_Set *const right);
