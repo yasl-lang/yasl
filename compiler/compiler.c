@@ -391,9 +391,8 @@ static void visit_FnDecl(struct Compiler *const compiler, const struct Node *con
 	compiler_add_byte(compiler, (unsigned char)(is_variadic ? ~body_len : body_len));
 	visit_Body(compiler, FnDecl_get_body(node));
 	// TODO: remove this when it's not required.
-	compiler_add_byte(compiler, O_NCONST);
 	compiler_add_byte(compiler, return_op(compiler));
-	compiler_add_byte(compiler, (unsigned char)scope_len(get_scope_in_use(compiler)));
+	compiler_add_byte(compiler, 0);
 
 	exit_scope(compiler);
 
@@ -951,7 +950,7 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 	visit(compiler, patterns->children[curr]);
 
 	struct Node *guard = guards->children[curr];
-	size_t start_guard = 0;
+	int64_t start_guard = 0;
 
 	unsigned char bindings = (unsigned char) scope_num_vars_cur_only(get_scope_in_use(compiler));
 	if (bindings) {
@@ -961,9 +960,7 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 			compiler_add_byte(compiler, O_MOVEUP_FP);
 			compiler_add_byte(compiler, (unsigned char) vars);
 			visit(compiler, guard);
-			compiler_add_byte(compiler, O_BRF_8);
-			start_guard = compiler->buffer->count;
-			compiler_add_int(compiler, 0);
+			enter_conditional_false(compiler, &start_guard);
 			compiler_add_byte(compiler, O_POP);
 		} else {
 			compiler_add_byte(compiler, O_DEL_FP);
@@ -972,9 +969,7 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 	} else {
 		if (guard) {
 			visit(compiler, guard);
-			compiler_add_byte(compiler, O_BRF_8);
-			start_guard = compiler->buffer->count;
-			compiler_add_int(compiler, 0);
+			enter_conditional_false(compiler, &start_guard);
 		}
 		compiler_add_byte(compiler, O_POP);
 	}
