@@ -1475,7 +1475,10 @@ void vm_executenext(struct VM *const vm) {
 		vm_pow(vm);
 		break;
 	case O_NEG:
+		// c = NCODE(vm);
+		// YASL_ASSERT(vm->fp + c == vm->sp - 1, "");
 		vm_num_unop(vm, &int_neg, &float_neg, "-", OP_UN_MINUS);
+		// vm_fppeek(vm, c) =
 		break;
 	case O_POS:
 		vm_num_unop(vm, &int_pos, &float_pos, "+", OP_UN_PLUS);

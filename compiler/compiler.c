@@ -994,7 +994,7 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 	visit_patt(compiler, patterns->children[curr]);
 
 	struct Node *guard = guards->children[curr];
-	size_t start_guard = 0;
+	int64_t start_guard = 0;
 
 	unsigned char bindings = (unsigned char) scope_num_vars_cur_only(get_scope_in_use(compiler));
 	if (bindings) {
@@ -1004,9 +1004,12 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 			compiler_add_byte(compiler, O_MOVEUP_FP);
 			compiler_add_byte(compiler, (unsigned char) vars);
 			visit_expr(compiler, guard, -1);
+			enter_conditional_false(compiler, &start_guard);
+/*
 			compiler_add_byte(compiler, O_BRF_8);
 			start_guard = compiler->buffer->count;
 			compiler_add_int(compiler, 0);
+*/
 			compiler_add_byte(compiler, O_POP);
 		} else {
 			compiler_add_byte(compiler, O_DEL_FP);
@@ -1015,9 +1018,12 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 	} else {
 		if (guard) {
 			visit_expr(compiler, guard, -1);
+			enter_conditional_false(compiler, &start_guard);
+/*
 			compiler_add_byte(compiler, O_BRF_8);
 			start_guard = compiler->buffer->count;
 			compiler_add_int(compiler, 0);
+*/
 		}
 		compiler_add_byte(compiler, O_POP);
 	}
@@ -1314,19 +1320,21 @@ static int visit_BinOp(struct Compiler *const compiler, const struct Node *const
 		YASL_UNREACHED();
 		break;
 	}
-	return -1;
+	return target;
 }
 
 static int visit_UnOp(struct Compiler *const compiler, const struct Node *const node, int target) {
 	YASL_UNUSED(target);
 	struct Node *expr = UnOp_get_expr(node);
-	visit_expr(compiler, expr, target);
+	int source = visit_expr(compiler, expr, target);
+	YASL_UNUSED(source);
 	switch (node->value.type) {
 	case T_PLUS:
 		compiler_add_byte(compiler, O_POS);
 		break;
 	case T_MINUS:
 		compiler_add_byte(compiler, O_NEG);
+		// compiler_add_byte(compiler, (unsigned char)source);
 		break;
 	case T_BANG:
 		compiler_add_byte(compiler, O_NOT);
@@ -1341,7 +1349,7 @@ static int visit_UnOp(struct Compiler *const compiler, const struct Node *const 
 		YASL_UNREACHED();
 		break;
 	}
-	return -1;
+	return target;
 }
 
 static void visit_Assign(struct Compiler *const compiler, const struct Node *const node) {
@@ -1356,16 +1364,14 @@ static void visit_Assign(struct Compiler *const compiler, const struct Node *con
 }
 
 static int visit_Var(struct Compiler *const compiler, const struct Node *const node, int target) {
-	YASL_UNUSED(target);
 	load_var(compiler, Var_get_name(node), node->line);
-	return -1;
+	return target;
 }
 
 static int visit_Undef(struct Compiler *const compiler, const struct Node *const node, int target) {
-	YASL_UNUSED(target);
 	YASL_UNUSED(node);
 	compiler_add_byte(compiler, O_NCONST);
-	return -1;
+	return target;
 }
 
 static void compiler_add_literal(struct Compiler *const compiler, const yasl_int index, int target) {
