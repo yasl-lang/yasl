@@ -256,7 +256,7 @@ static struct Node *parse_program(struct Parser *const parser) {
 		return new_Echo(parser, parse_expr(parser), line);
 	case T_FN:
 		if (isfndecl(parser)) return parse_fn(parser);
-		else return parse_expr(parser);
+		else return new_ExprStmt(parser, parse_expr(parser), line);
 	case T_RET:
 		return parse_return(parser);
 	case T_EXPORT:

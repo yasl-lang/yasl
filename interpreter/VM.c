@@ -1,5 +1,6 @@
 #include "VM.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <memory.h>
 #include <stdint.h>
@@ -1474,7 +1475,10 @@ void vm_executenext(struct VM *const vm) {
 		vm_pow(vm);
 		break;
 	case O_NEG:
+		// c = NCODE(vm);
+		// YASL_ASSERT(vm->fp + c == vm->sp - 1, "");
 		vm_num_unop(vm, &int_neg, &float_neg, "-", OP_UN_MINUS);
+		// vm_fppeek(vm, c) =
 		break;
 	case O_POS:
 		vm_num_unop(vm, &int_pos, &float_pos, "+", OP_UN_PLUS);
@@ -1675,6 +1679,7 @@ void vm_executenext(struct VM *const vm) {
 		vm_ECHO(vm);
 		break;
 	case O_ASS:
+		c = NCODE(vm);
 		if (isfalsey(vm_peek_p(vm))) {
 			vm_stringify_top(vm);
 			vm_print_err(vm, "AssertError: %.*s.", (int)YASL_String_len(vm_peekstr(vm)), YASL_String_chars(vm_peekstr(vm)));
@@ -1682,6 +1687,7 @@ void vm_executenext(struct VM *const vm) {
 			vm_throw_err(vm, YASL_ASSERT_ERROR);
 		}
 		vm_pop(vm);
+		YASL_ASSERT(vm->sp - vm->fp == c, "");
 		break;
 	default:
 		vm_print_err(vm, "Error: Unknown Opcode: %x\n", opcode);
