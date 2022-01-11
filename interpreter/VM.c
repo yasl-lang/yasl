@@ -1572,7 +1572,8 @@ void vm_executenext(struct VM *const vm) {
 		if (obj_isuserdata(vm_peek_p(vm))) {
 			struct YASL_Object *obj = vm_peek_p(vm);
 			vm_push(vm, *obj);
-			vm_lookup_method_throwing(vm, "__iter", "%s is not iterable type.",
+			vm_push(vm, *obj);
+			vm_lookup_method_throwing(vm, "__iter", "object of type %s is not iterable.",
 						  obj_typename(obj));
 			vm_shifttopdown(vm, 1);
 			vm_INIT_CALL_offset(vm, vm->sp - 1, 2);
