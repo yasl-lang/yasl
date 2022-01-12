@@ -87,7 +87,6 @@ struct CallFrame {
 };
 
 struct LoopFrame {
-	int iter;
 	struct YASL_Object iterable;
 	struct YASL_Object next_fn;
 	struct YASL_Object curr;

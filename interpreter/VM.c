@@ -881,18 +881,7 @@ static void vm_LIT8(struct VM *const vm) {
 static void vm_ITER_1(struct VM *const vm) {
 	struct LoopFrame *frame = &vm->loopframes[vm->loopframe_num];
 	switch (frame->iterable.type) {
-	case Y_STR: {
-		struct YASL_String *str = obj_getstr(&frame->iterable);
-		if (YASL_String_len(str) <= (size_t) frame->iter) {
-			vm_pushbool(vm, false);
-		} else {
-			size_t i = (size_t) frame->iter;
-			vm_pushstr(vm, YASL_String_new_substring(i, i + 1, str));
-			frame->iter++;
-			vm_pushbool(vm, true);
-		}
-		return;
-	}
+	case Y_STR:
 	case Y_LIST:
 	case Y_TABLE:
 	case Y_USERDATA: {
@@ -1545,27 +1534,25 @@ void vm_executenext(struct VM *const vm) {
 		vm_push(vm, YASL_LIST(ls));
 		break;
 	}
-	case O_INITFOR:
+	case O_INITFOR: {
 		inc_ref(vm_peek_p(vm));
 		vm->loopframe_num++;
-		if (obj_isuserdata(vm_peek_p(vm)) || obj_istable(vm_peek_p(vm)) || obj_islist(vm_peek_p(vm))) {
-			struct YASL_Object *obj = vm_peek_p(vm);
-			vm_push(vm, *obj);
-			vm_push(vm, *obj);
-			vm_lookup_method_throwing(
-				vm, "__iter", "object of type %s is not iterable.",
-				obj_typename(obj));
-			vm_shifttopdown(vm, 1);
-			vm_INIT_CALL_offset(vm, vm->sp - 1, 2);
-			vm_CALL(vm);
-			inc_ref(vm_peek_p(vm));
-			vm->loopframes[vm->loopframe_num].curr = vm_pop(vm);
-			inc_ref(vm_peek_p(vm));
-			vm->loopframes[vm->loopframe_num].next_fn = vm_pop(vm);
-		}
-		vm->loopframes[vm->loopframe_num].iter = 0;
+		struct YASL_Object *obj = vm_peek_p(vm);
+		vm_push(vm, *obj);
+		vm_push(vm, *obj);
+		vm_lookup_method_throwing(
+			vm, "__iter", "object of type %s is not iterable.",
+			obj_typename(obj));
+		vm_shifttopdown(vm, 1);
+		vm_INIT_CALL_offset(vm, vm->sp - 1, 2);
+		vm_CALL(vm);
+		inc_ref(vm_peek_p(vm));
+		vm->loopframes[vm->loopframe_num].curr = vm_pop(vm);
+		inc_ref(vm_peek_p(vm));
+		vm->loopframes[vm->loopframe_num].next_fn = vm_pop(vm);
 		vm->loopframes[vm->loopframe_num].iterable = vm_pop(vm);
 		break;
+	}
 	case O_ENDFOR:
 		vm_dec_ref(vm, &vm->loopframes[vm->loopframe_num].iterable);
 		vm->loopframe_num--;
