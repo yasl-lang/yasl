@@ -79,6 +79,36 @@ int table___len(struct YASL_State *S) {
 	return 1;
 }
 
+static int table___next(struct YASL_State *S) {
+	YASLX_checkntable(S, "table.__next", 0);
+	struct YASL_Object key = vm_pop(&S->vm);
+	struct YASL_Table *table = vm_peektable(&S->vm);
+
+	size_t index = obj_isundef(&key) ? 0 : YASL_Table_getindex(table, key) + 1;
+
+	while (table->size > index &&
+	       (table->items[index].key.type == Y_END || table->items[index].key.type == Y_UNDEF)) {
+		index++;
+	}
+
+	if (table->size <= index) {
+		YASL_pushbool(S, false);
+		return 1;
+	}
+
+	vm_push(&S->vm, table->items[index].key);
+	vm_push(&S->vm, table->items[index].key);
+	YASL_pushbool(S, true);
+	return 3;
+}
+
+int table___iter(struct YASL_State *S) {
+	YASLX_checkntable(S, "table.__iter", 0);
+	YASL_pushcfunction(S, &table___next, 2);
+	YASL_pushundef(S);
+	return 2;
+}
+
 int table___set(struct YASL_State *S) {
 	struct YASL_Object val = vm_pop((struct VM *) S);
 	struct YASL_Object key = vm_pop((struct VM *) S);

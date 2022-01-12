@@ -120,5 +120,6 @@ struct YASL_Table* table_builtins(struct VM *vm) {
 	table_insert_specialstring_cfunction(vm, table, S___BOR, &table___bor, 2);
 	table_insert_specialstring_cfunction(vm, table, S___EQ, &table___eq, 2);
 	table_insert_specialstring_cfunction(vm, table, S_CLEAR, &table_clear, 1);
+	table_insert_specialstring_cfunction(vm, table, S___ITER, &table___iter, 1);
 	return table;
 }

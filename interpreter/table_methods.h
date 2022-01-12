@@ -7,6 +7,8 @@ int table___len(struct YASL_State *S);
 
 int table___get(struct YASL_State *S);
 
+int table___iter(struct YASL_State *S);
+
 int table___set(struct YASL_State *S);
 
 int table___bor(struct YASL_State *S);

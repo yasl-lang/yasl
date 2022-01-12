@@ -891,6 +891,7 @@ static void vm_ITER_1(struct VM *const vm) {
 		}
 		return;
 	}
+	/*
 	case Y_TABLE: {
 		struct YASL_Table *table = YASL_GETTABLE(frame->iterable);
 		while (table->size > (size_t) frame->iter &&
@@ -905,6 +906,7 @@ static void vm_ITER_1(struct VM *const vm) {
 		vm_pushbool(vm, true);
 		return;
 	}
+	 */
 	case Y_STR: {
 		struct YASL_String *str = obj_getstr(&frame->iterable);
 		if (YASL_String_len(str) <= (size_t) frame->iter) {
@@ -917,6 +919,7 @@ static void vm_ITER_1(struct VM *const vm) {
 		}
 		return;
 	}
+	case Y_TABLE:
 	case Y_USERDATA: {
 		vm_push(vm, frame->next_fn);
 		vm_push(vm, frame->iterable);
@@ -926,8 +929,10 @@ static void vm_ITER_1(struct VM *const vm) {
 		vm_CALL(vm);
 		if (vm_popbool(vm)) {
 			dec_ref(&frame->curr);
+			struct YASL_Object value = vm_pop(vm);
 			frame->curr = vm_pop(vm);
 			inc_ref(&frame->curr);
+			vm_push(vm, value);
 			vm_pushbool(vm, true);
 		} else {
 			vm_pushbool(vm, false);
@@ -1569,12 +1574,13 @@ void vm_executenext(struct VM *const vm) {
 	case O_INITFOR:
 		inc_ref(vm_peek_p(vm));
 		vm->loopframe_num++;
-		if (obj_isuserdata(vm_peek_p(vm))) {
+		if (obj_isuserdata(vm_peek_p(vm)) || obj_istable(vm_peek_p(vm))) {
 			struct YASL_Object *obj = vm_peek_p(vm);
 			vm_push(vm, *obj);
 			vm_push(vm, *obj);
-			vm_lookup_method_throwing(vm, "__iter", "object of type %s is not iterable.",
-						  obj_typename(obj));
+			vm_lookup_method_throwing(
+				vm, "__iter", "object of type %s is not iterable.",
+				obj_typename(obj));
 			vm_shifttopdown(vm, 1);
 			vm_INIT_CALL_offset(vm, vm->sp - 1, 2);
 			vm_CALL(vm);
