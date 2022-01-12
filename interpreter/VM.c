@@ -881,16 +881,6 @@ static void vm_LIT8(struct VM *const vm) {
 static void vm_ITER_1(struct VM *const vm) {
 	struct LoopFrame *frame = &vm->loopframes[vm->loopframe_num];
 	switch (frame->iterable.type) {
-	case Y_LIST: {
-		struct YASL_List *list = YASL_GETLIST(frame->iterable);
-		if (list->count <= (size_t) frame->iter) {
-			vm_pushbool(vm, false);
-		} else {
-			vm_push(vm, list->items[frame->iter++]);
-			vm_pushbool(vm, true);
-		}
-		return;
-	}
 	case Y_STR: {
 		struct YASL_String *str = obj_getstr(&frame->iterable);
 		if (YASL_String_len(str) <= (size_t) frame->iter) {
@@ -903,6 +893,7 @@ static void vm_ITER_1(struct VM *const vm) {
 		}
 		return;
 	}
+	case Y_LIST:
 	case Y_TABLE:
 	case Y_USERDATA: {
 		vm_push(vm, frame->next_fn);
@@ -1557,7 +1548,7 @@ void vm_executenext(struct VM *const vm) {
 	case O_INITFOR:
 		inc_ref(vm_peek_p(vm));
 		vm->loopframe_num++;
-		if (obj_isuserdata(vm_peek_p(vm)) || obj_istable(vm_peek_p(vm))) {
+		if (obj_isuserdata(vm_peek_p(vm)) || obj_istable(vm_peek_p(vm)) || obj_islist(vm_peek_p(vm))) {
 			struct YASL_Object *obj = vm_peek_p(vm);
 			vm_push(vm, *obj);
 			vm_push(vm, *obj);

@@ -9,6 +9,8 @@ int list___get(struct YASL_State *S);
 
 int list___set(struct YASL_State *S);
 
+int list___iter(struct YASL_State *S);
+
 int list_tostr(struct YASL_State *S);
 
 int list_push(struct YASL_State *S);

@@ -104,6 +104,7 @@ struct YASL_Table* list_builtins(struct VM *vm) {
 	table_insert_specialstring_cfunction(vm, table, S_SPREAD, &list_spread, 1);
 	table_insert_specialstring_cfunction(vm, table, S_COUNT, &list_count, 2);
 	table_insert_specialstring_cfunction(vm, table, S_INSERT, &list_insert, 3);
+	table_insert_specialstring_cfunction(vm, table, S___ITER, &list___iter, 1);
 	return table;
 }
 
