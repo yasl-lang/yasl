@@ -891,22 +891,6 @@ static void vm_ITER_1(struct VM *const vm) {
 		}
 		return;
 	}
-	/*
-	case Y_TABLE: {
-		struct YASL_Table *table = YASL_GETTABLE(frame->iterable);
-		while (table->size > (size_t) frame->iter &&
-		       (table->items[frame->iter].key.type == Y_END || table->items[frame->iter].key.type == Y_UNDEF)) {
-			frame->iter++;
-		}
-		if (table->size <= (size_t) frame->iter) {
-			vm_pushbool(vm, false);
-			return;
-		}
-		vm_push(vm, table->items[frame->iter++].key);
-		vm_pushbool(vm, true);
-		return;
-	}
-	 */
 	case Y_STR: {
 		struct YASL_String *str = obj_getstr(&frame->iterable);
 		if (YASL_String_len(str) <= (size_t) frame->iter) {
@@ -924,7 +908,6 @@ static void vm_ITER_1(struct VM *const vm) {
 		vm_push(vm, frame->next_fn);
 		vm_push(vm, frame->iterable);
 		vm_push(vm, frame->curr);
-		// vm_shifttopdown(vm, 2);
 		vm_INIT_CALL_offset(vm, vm->sp - 2, -1);
 		vm_CALL(vm);
 		if (vm_popbool(vm)) {
