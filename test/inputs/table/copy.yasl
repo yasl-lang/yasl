@@ -1,2 +1,2 @@
 let x = {1:'one', 2:'two', 3:'three'};
-for e <- x->copy() { echo e; echo x[e]; }
+echo x == x->copy()

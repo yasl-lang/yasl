@@ -1,0 +1,6 @@
+
+const s = collections.set(.a, .a2, false, true, 1, 2, 3, .a, .bbbbb, .dsdasdasd, 4)
+
+for e <- s {
+    echo e
+}

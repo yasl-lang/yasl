@@ -60,6 +60,28 @@ int list___set(struct YASL_State *S) {
 	return 1;
 }
 
+static int list___next(struct YASL_State *S) {
+	yasl_int curr = YASLX_checknint(S, "list.__next", 1);
+	struct YASL_List *ls = YASLX_checknlist(S, "list.__next", 0);
+
+	if (curr < -(yasl_int) ls->count || curr >= (yasl_int)ls->count) {
+		YASL_pushbool(S, false);
+		return 1;
+	}
+
+	YASL_pushint(S, curr + 1);
+	vm_push(&S->vm, ls->items[curr]);
+	YASL_pushbool(S, true);
+	return 3;
+}
+
+int list___iter(struct YASL_State *S) {
+	YASLX_checknlist(S, "list.__iter", 0);
+	YASL_pushcfunction(S, &list___next, 2);
+	YASL_pushint(S, 0);
+	return 2;
+}
+
 int list_copy(struct YASL_State *S) {
 	struct YASL_List *ls = YASLX_checknlist(S, "list.copy", 0);
 	struct RC_UserData *new_ls = rcls_new_sized(ls->size);

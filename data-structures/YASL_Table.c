@@ -98,10 +98,6 @@ static void table_resize_down(struct YASL_Table *const table) {
 	table_resize(table, new_size);
 }
 
-bool isequal_typed(const struct YASL_Object *const a, const struct YASL_Object *const b) {
-	return a->type == b->type && isequal(a, b);
-}
-
 size_t YASL_Table_getindex(struct YASL_Table *const table, const struct YASL_Object key) {
 	size_t index = get_hash(key, table->size, 0);
 	struct YASL_Table_Item curr_item = table->items[index];

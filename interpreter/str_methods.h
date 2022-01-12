@@ -7,6 +7,8 @@ int str___len(struct YASL_State *S);
 
 int str___get(struct YASL_State *S);
 
+int str___iter(struct YASL_State *S);
+
 int str_tobool(struct YASL_State *S);
 
 int str_tostr(struct YASL_State *S);
