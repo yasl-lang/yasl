@@ -65,23 +65,16 @@ bool YASL_Set_insert(struct YASL_Set *const set, struct YASL_Object value) {
 
 	const size_t load = set->count * 100 / set->size;
 	if (load > 70) set_resize_up(set);
-	size_t index = get_hash(value, set->size, 0);
-	inc_ref(&value);
+	size_t index = YASL_Set_getindex(set, value);
 	struct YASL_Object curr_item = set->items[index];
-	size_t i = 1;
-	while (!obj_isundef(&curr_item)) {
-		if (curr_item.type != Y_END) {
-			if ((isequal(&curr_item, &value))) {
-				dec_ref(&curr_item);
-				set->items[index] = value;
-				return true;
-			}
-		}
-		index = get_hash(value, set->size, i++);
-		curr_item = set->items[index];
+	if (isequal_typed(&curr_item, &value)) {
+		dec_ref(&curr_item);
+	} else {
+		set->count++;
 	}
+
+	inc_ref(&value);
 	set->items[index] = value;
-	set->count++;
 	return true;
 }
 
@@ -119,6 +112,22 @@ void YASL_Set_rm(struct YASL_Set *const set, struct YASL_Object key) {
 		item = set->items[index];
 	}
 	set->count--;
+}
+
+size_t YASL_Set_getindex(const struct YASL_Set *const set, const struct YASL_Object value) {
+	size_t index = get_hash(value, set->size, 0);
+	struct YASL_Object curr_item = set->items[index];
+	size_t i = 1;
+	while (!obj_isundef(&curr_item)) {
+		if (curr_item.type != Y_END) {
+			if ((isequal_typed(&curr_item, &value))) {
+				return index;
+			}
+		}
+		index = get_hash(value, set->size, i++);
+		curr_item = set->items[index];
+	}
+	return index;
 }
 
 struct YASL_Set *YASL_Set_union(const struct YASL_Set *const left, const struct YASL_Set *const right) {

@@ -46,6 +46,28 @@ int str___len(struct YASL_State *S) {
 	return 1;
 }
 
+static int str___next(struct YASL_State *S) {
+	yasl_int curr = YASLX_checknint(S, "str.__next", 1);
+	struct YASL_String *str = YASLX_checknstr(S, "str.__next", 0);
+
+	if (curr < -(yasl_int) YASL_String_len(str) || curr >= (yasl_int)YASL_String_len(str)) {
+		YASL_pushbool(S, false);
+		return 1;
+	}
+
+	YASL_pushint(S, curr + 1);
+	vm_pushstr(&S->vm, YASL_String_new_substring(curr, curr + 1, str));
+	YASL_pushbool(S, true);
+	return 3;
+}
+
+int str___iter(struct YASL_State *S) {
+	YASLX_checknstr(S, "str.__iter", 0);
+	YASL_pushcfunction(S, &str___next, 2);
+	YASL_pushint(S, 0);
+	return 2;
+}
+
 int str_tobool(struct YASL_State* S) {
 	struct YASL_String *a = YASLX_checknstr(S, "str.tobool", 0);
 	YASL_pushbool(S, YASL_String_len(a) != 0);

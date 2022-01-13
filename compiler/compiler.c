@@ -80,7 +80,7 @@ static void exit_scope(struct Compiler *const compiler) {
 	struct Scope **lval = in_function(compiler) ? &compiler->params->scope : &compiler->stack;
 	struct Scope *tmp = *lval;
 	 *lval = tmp->parent;
-	size_t num_locals = scope_num_vars_cur_only(tmp); // ->vars.count;
+	size_t num_locals = scope_num_vars_cur_only(tmp);
 	scope_del_cur_only(tmp);
 	while (num_locals-- > 0) {
 		compiler_add_byte(compiler, O_POP);
@@ -363,6 +363,10 @@ static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *c
 	}
 }
 
+static int return_op(struct Compiler *compiler) {
+	return compiler->params->usedinclosure ? O_CRET : O_RET;
+}
+
 static void visit_FnDecl(struct Compiler *const compiler, const struct Node *const node) {
 	compiler->params = env_new(compiler->params);
 
@@ -381,17 +385,14 @@ static void visit_FnDecl(struct Compiler *const compiler, const struct Node *con
 	size_t old_size = compiler->buffer->count;
 
 	bool is_variadic = FnDecl_get_body(node)->children[0]->nodetype == N_COLLECTRESTPARAMS;
-	YASL_UNUSED(is_variadic);
 
 	size_t body_len = Body_get_len(FnDecl_get_params(node));
 	// TODO: verfiy that number of params is small enough. (same for the other casts below.)
 	compiler_add_byte(compiler, (unsigned char)(is_variadic ? ~body_len : body_len));
 	visit_Body(compiler, FnDecl_get_body(node));
 	// TODO: remove this when it's not required.
-	compiler_add_byte(compiler, O_NCONST);
-	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CRET : O_RET);
-	//compiler_add_byte(compiler, (unsigned char)1);
-	compiler_add_byte(compiler, (unsigned char)scope_len(get_scope_in_use(compiler)));
+	compiler_add_byte(compiler, return_op(compiler));
+	compiler_add_byte(compiler, 0);
 
 	exit_scope(compiler);
 
@@ -456,7 +457,7 @@ static void visit_Return(struct Compiler *const compiler, const struct Node *con
 		return;
 	}
 	visit(compiler, Return_get_expr(node));
-	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CRET : O_RET);
+	compiler_add_byte(compiler, return_op(compiler));
 	compiler_add_byte(compiler, (unsigned char)scope_len(get_scope_in_use(compiler)));
 }
 
@@ -468,7 +469,7 @@ static void visit_MultiReturn(struct Compiler *const compiler, const struct Node
 	}
 
 	visit(compiler, MultiReturn_get_exprs(node));
-	compiler_add_byte(compiler, compiler->params->usedinclosure ? O_CRET : O_RET);
+	compiler_add_byte(compiler, return_op(compiler));
 	compiler_add_byte(compiler, (unsigned char)scope_len(get_scope_in_use(compiler)));
 }
 
@@ -949,7 +950,7 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 	visit(compiler, patterns->children[curr]);
 
 	struct Node *guard = guards->children[curr];
-	size_t start_guard = 0;
+	int64_t start_guard = 0;
 
 	unsigned char bindings = (unsigned char) scope_num_vars_cur_only(get_scope_in_use(compiler));
 	if (bindings) {
@@ -959,9 +960,7 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 			compiler_add_byte(compiler, O_MOVEUP_FP);
 			compiler_add_byte(compiler, (unsigned char) vars);
 			visit(compiler, guard);
-			compiler_add_byte(compiler, O_BRF_8);
-			start_guard = compiler->buffer->count;
-			compiler_add_int(compiler, 0);
+			enter_conditional_false(compiler, &start_guard);
 			compiler_add_byte(compiler, O_POP);
 		} else {
 			compiler_add_byte(compiler, O_DEL_FP);
@@ -970,9 +969,7 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 	} else {
 		if (guard) {
 			visit(compiler, guard);
-			compiler_add_byte(compiler, O_BRF_8);
-			start_guard = compiler->buffer->count;
-			compiler_add_int(compiler, 0);
+			enter_conditional_false(compiler, &start_guard);
 		}
 		compiler_add_byte(compiler, O_POP);
 	}

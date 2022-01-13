@@ -301,6 +301,34 @@ static int YASL_collections_set_clear(struct YASL_State *S) {
 	return 1;
 }
 
+static int YASL_collections_set_next(struct YASL_State *S) {
+	struct YASL_Object *curr = vm_peek_p(&S->vm);
+	struct YASL_Set *set = YASLX_checknset(S, SET_PRE ".__next", 0);
+
+	size_t index = obj_isundef(curr) ? 0 : YASL_Set_getindex(set, *curr) + 1;
+
+	while (set->size > index &&
+	       (set->items[index].type == Y_END || set->items[index].type == Y_UNDEF)) {
+		index++;
+	}
+
+	if (set->size <= index) {
+		YASL_pushbool(S, false);
+		return 1;
+	} else {
+		vm_push(&S->vm, set->items[index]);
+		vm_push(&S->vm, set->items[index]);
+		YASL_pushbool(S, true);
+		return 3;
+	}
+}
+
+static int YASL_collections_set___iter(struct YASL_State *S) {
+	YASL_pushcfunction(S, YASL_collections_set_next, 2);
+	YASL_pushundef(S);
+	return 2;
+}
+
 static int YASL_collections_set___get(struct YASL_State *S) {
 	struct YASL_Object object = vm_pop(&S->vm);
 	struct YASL_Set *set = YASLX_checknset(S, SET_PRE ".__get", 0);
@@ -376,6 +404,10 @@ int YASL_decllib_collections(struct YASL_State *S) {
 
 	YASL_pushlit(S, "clear");
 	YASL_pushcfunction(S, YASL_collections_set_clear, 1);
+	YASL_tableset(S);
+
+	YASL_pushlit(S, "__iter");
+	YASL_pushcfunction(S, YASL_collections_set___iter, 1);
 	YASL_tableset(S);
 
 	YASL_pushlit(S, "__get");

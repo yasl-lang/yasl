@@ -131,6 +131,10 @@ bool isequal(const struct YASL_Object *const a, const struct YASL_Object *const 
 	return false;
 }
 
+bool isequal_typed(const struct YASL_Object *const a, const struct YASL_Object *const b) {
+	return a->type == b->type && isequal(a, b);
+}
+
 const char *obj_typename(const struct YASL_Object *const v) {
 	if (obj_isuserdata(v)) {
 		return v->value.uval->tag;

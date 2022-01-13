@@ -256,7 +256,7 @@ static struct Node *parse_program(struct Parser *const parser) {
 		return new_Echo(parser, parse_expr(parser), line);
 	case T_FN:
 		if (isfndecl(parser)) return parse_fn(parser);
-		else return parse_expr(parser);
+		else return parse_assign_or_exprstmt(parser);
 	case T_RET:
 		return parse_return(parser);
 	case T_EXPORT:
@@ -315,7 +315,6 @@ static struct Node *parse_body(struct Parser *const parser) {
 }
 
 static struct Node *parse_fn_body(struct Parser *const parser, bool collect_rest_params) {
-	YASL_UNUSED(collect_rest_params);
 	struct Node *body = new_Body(parser, parserline(parser));
 	if (collect_rest_params)
 		body_append(parser, &body, new_CollectRestParams(parser, parserline(parser)));
