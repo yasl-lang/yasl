@@ -614,6 +614,8 @@ void YASL_setprintout_tostr(struct YASL_State *S);
 
 void YASL_setprinterr_tostr(struct YASL_State *S);
 
+void YASL_stringifytop(struct YASL_State *S);
+
 /**
  * [-1, +2]
  * Iterates over a table. The topmost item of the stack should be the previous index in
