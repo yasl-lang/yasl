@@ -1,0 +1,9 @@
+const list = collections.list
+
+const fn ls(...) {
+    return list(...)
+}
+
+echo ls()
+echo ls(1)
+echo ls(1, 2, 3)

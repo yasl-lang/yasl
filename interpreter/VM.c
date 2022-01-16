@@ -1276,10 +1276,11 @@ void vm_COLLECT_REST_PARAMS(struct VM *const vm) {
 	struct RC_UserData *ls = rcls_new();
 	ud_setmt(vm, ls, vm->builtins_htable[Y_LIST]);
 
-	for (int i = vm->fp + offset; i <= vm->sp; i++) {
+	for (int i = vm->fp + offset + 1; i <= vm->sp; i++) {
 		YASL_List_append((struct YASL_List *) ls->data, vm_peek(vm, i));
 	}
-	vm->sp = vm->fp + offset - 1;
+
+	vm->sp = vm->fp + offset;
 	vm_push(vm, YASL_LIST(ls));
 }
 

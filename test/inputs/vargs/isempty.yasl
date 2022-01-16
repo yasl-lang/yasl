@@ -1,0 +1,9 @@
+const list = collections.list
+
+const fn isempty(...) {
+    return len list(...) == 0
+}
+
+echo isempty()
+echo isempty(1)
+echo isempty(1, 2, 3)
