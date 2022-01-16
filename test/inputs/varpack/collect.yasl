@@ -1,0 +1,7 @@
+const fn collect(ls[]) {
+    return ls
+}
+
+echo collect()
+echo collect(1)
+echo collect(1, 2, 3)

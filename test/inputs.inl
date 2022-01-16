@@ -6,6 +6,7 @@ static const char *inputs[] = {
   "test/inputs/varpack/too_few.yasl",
   "test/inputs/varpack/nested_calls.yasl",
   "test/inputs/varpack/function_call.yasl",
+  "test/inputs/varpack/collect.yasl",
   "test/inputs/varpack/function_with_args.yasl",
   "test/inputs/varpack/nested_method.yasl",
   "test/inputs/varpack/method_using_fields.yasl",
