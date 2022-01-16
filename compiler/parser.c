@@ -320,7 +320,6 @@ static struct Node *parse_fn_body(struct Parser *const parser, bool collect_rest
 		body_append(parser, &body, new_CollectRestParams(parser, parserline(parser)));
 	if (matcheattok(parser, T_RIGHT_ARR)) {
 		size_t line = parserline(parser);
-		// body = new_Body(parser, line);
 		if (matcheattok(parser, T_LPAR)) {
 			struct Node *expr = parse_expr(parser);
 			struct Node *block = new_Body(parser, line);
@@ -335,6 +334,8 @@ static struct Node *parse_fn_body(struct Parser *const parser, bool collect_rest
 				block->children[block->children_len - 1] = new_VariadicContext(last, -1);
 			}
 			body_append(parser, &body, new_MultiReturn(parser, block, line));
+		} else if (matcheattok(parser, T_TDOT)) {
+			body_append(parser, &body, new_Return(parser, new_VariadicContext(new_Vargs(parser, line), -1), line));
 		} else {
 			struct Node *expr = parse_expr(parser);
 			body_append(parser, &body, new_Return(parser, new_VariadicContext(expr, -1), line));
@@ -378,16 +379,27 @@ static struct Node *parse_function_params(struct Parser *const parser, bool *col
 	return block;
 }
 
+static struct Node *parse_expr_or_vargs(struct Parser *const parser) {
+	YASL_PARSE_DEBUG_LOG("%s\n", "parsing expression or vargs.");
+	size_t line = parserline(parser);
+	if (matcheattok(parser, T_TDOT)) {
+		return new_Vargs(parser, line);
+	} else {
+		return parse_expr(parser);
+	}
+}
+
 static struct Node *parse_return(struct Parser *const parser) {
 	size_t line = parserline(parser);
 	eattok(parser, T_RET);
-	struct Node *expr = parse_expr(parser);
-	if (TOKEN_MATCHES(parser, T_COMMA)) {
+	struct Node *expr = parse_expr_or_vargs(parser);
+	if (TOKEN_MATCHES(parser, T_COMMA) && expr->nodetype != N_VARGS) {
 		struct Node *block = new_Body(parser, line);
 		body_append(parser, &block, expr);
 		while (matcheattok(parser, T_COMMA)) {
-			expr = parse_expr(parser);
+			expr = parse_expr_or_vargs(parser);
 			body_append(parser, &block, expr);
+			if (curtok(parser) != T_COMMA || expr->nodetype == N_VARGS) break;
 		}
 		struct Node *last = body_last(block);
 		if (last && will_var_expand(last)) {
@@ -814,16 +826,6 @@ static struct Node *parse_assert(struct Parser *const parser) {
 	size_t line = parserline(parser);
 	eattok(parser, T_ASS);
 	return new_Assert(parser, parse_expr(parser), line);
-}
-
-static struct Node *parse_expr_or_vargs(struct Parser *const parser) {
-	YASL_PARSE_DEBUG_LOG("%s\n", "parsing expression or vargs.");
-	size_t line = parserline(parser);
-	if (matcheattok(parser, T_TDOT)) {
-		return new_Vargs(parser, line);
-	} else {
-		return parse_expr(parser);
-	}
 }
 
 static struct Node *parse_expr(struct Parser *const parser) {
