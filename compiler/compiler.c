@@ -373,9 +373,13 @@ static void visit_FnDecl(struct Compiler *const compiler, const struct Node *con
 	enter_scope(compiler);
 
 	FOR_CHILDREN(i, child, FnDecl_get_params(node)) {
-		decl_var(compiler, Decl_get_name(child), child->line);
-		if (child->nodetype == N_CONST) {
-			make_const(compiler, Decl_get_name(child));
+		if (child->nodetype == N_VARGS) {
+			decl_var(compiler, "...", child->line);
+		} else {
+			decl_var(compiler, Decl_get_name(child), child->line);
+			if (child->nodetype == N_CONST) {
+				make_const(compiler, Decl_get_name(child));
+			}
 		}
 	}
 
@@ -386,9 +390,9 @@ static void visit_FnDecl(struct Compiler *const compiler, const struct Node *con
 
 	bool is_variadic = FnDecl_get_body(node)->children[0]->nodetype == N_COLLECTRESTPARAMS;
 
-	size_t body_len = Body_get_len(FnDecl_get_params(node));
+	size_t num_params = Body_get_len(FnDecl_get_params(node));
 	// TODO: verfiy that number of params is small enough. (same for the other casts below.)
-	compiler_add_byte(compiler, (unsigned char)(is_variadic ? ~body_len : body_len));
+	compiler_add_byte(compiler, (unsigned char)(is_variadic ? ~num_params : num_params));
 	visit_Body(compiler, FnDecl_get_body(node));
 	// TODO: remove this when it's not required.
 	compiler_add_byte(compiler, return_op(compiler));
@@ -1377,6 +1381,11 @@ static void visit_LetIter(struct Compiler *const compiler, const struct Node *co
 	YASL_UNUSED(compiler);
 	YASL_UNUSED(node);
 	YASL_UNREACHED();
+}
+
+static void visit_Vargs(struct Compiler *const compiler, const struct Node *const node) {
+	load_var(compiler, "...", node->line);
+	compiler_add_byte(compiler, O_SPREAD_VARGS);
 }
 
 #define X(name, ...) &visit_##name,

@@ -23,6 +23,7 @@ static const char *inputs[] = {
   "test/inputs/bool/tobool.yasl",
   "test/inputs/mt/mt.yasl",
   "test/inputs/mt/setmt.yasl",
+  "test/inputs/vargs/simple.yasl",
   "test/inputs/ternary.yasl",
   "test/inputs/assert.yasl",
   "test/inputs/float.yasl",

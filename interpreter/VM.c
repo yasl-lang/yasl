@@ -1264,21 +1264,35 @@ static void vm_CALL_cfn(struct VM *const vm) {
 }
 
 void vm_COLLECT_REST_PARAMS(struct VM *const vm) {
+	int offset;
 	if (vm_isfn(vm, vm->fp)) {
-		int offset = ~*(signed char *)vm_peek(vm, vm->fp).value.fval;
-
-		// vm_peek(vm, vm->fp + offset);
-
-		struct RC_UserData *ls = rcls_new();
-		ud_setmt(vm, ls, vm->builtins_htable[Y_LIST]);
-
-		for (int i = vm->fp + offset; i <= vm->sp; i++) {
-			YASL_List_append((struct YASL_List *) ls->data, vm_peek(vm, i));
-		}
-		vm->sp = vm->fp + offset - 1;
-		vm_push(vm, YASL_LIST(ls));
-
+		offset = ~*(signed char *) vm_peek(vm, vm->fp).value.fval;
+	} else if (vm_isclosure(vm, vm->fp)) {
+		offset = ~*(signed char *) vm_peek(vm, vm->fp).value.lval->f;
+	} else {
+		YASL_UNREACHED();
 	}
+
+	struct RC_UserData *ls = rcls_new();
+	ud_setmt(vm, ls, vm->builtins_htable[Y_LIST]);
+
+	for (int i = vm->fp + offset; i <= vm->sp; i++) {
+		YASL_List_append((struct YASL_List *) ls->data, vm_peek(vm, i));
+	}
+	vm->sp = vm->fp + offset - 1;
+	vm_push(vm, YASL_LIST(ls));
+}
+
+void vm_SPREAD_VARGS(struct VM *const vm) {
+	const int top = vm->sp;
+	YASL_ASSERT(vm_islist(vm), "top should be a list.");
+	struct YASL_List *ls = vm_peeklist(vm);
+
+	FOR_LIST(i, elmt, ls) {
+		vm_push(vm, elmt);
+	}
+
+	vm_rm(vm, top);
 }
 
 void vm_CALL(struct VM *const vm) {
@@ -1639,6 +1653,9 @@ void vm_executenext(struct VM *const vm) {
 		break;
 	case O_COLLECT_REST_PARAMS:
 		vm_COLLECT_REST_PARAMS(vm);
+		break;
+	case O_SPREAD_VARGS:
+		vm_SPREAD_VARGS(vm);
 		break;
 	case O_CRET:
 		vm_close_all(vm);
