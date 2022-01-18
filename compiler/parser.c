@@ -319,7 +319,12 @@ static struct Node *parse_fn_body(struct Parser *const parser, bool collect_rest
 	if (collect_rest_params)
 		body_append(parser, &body, new_CollectRestParams(parser, parserline(parser)));
 	if (matcheattok(parser, T_RIGHT_ARR)) {
-		YASLKeywords(&parser->lex);
+		// fix the case where we have ... -> fn(...) -> ...
+		// `fn` would otherwise be parsed as an <id> since it follows
+		// a -> token.
+		if (TOKEN_MATCHES(parser, T_ID)) {
+			YASLKeywords(&parser->lex);
+		}
 		size_t line = parserline(parser);
 		if (matcheattok(parser, T_LPAR)) {
 			struct Node *expr = parse_expr(parser);
