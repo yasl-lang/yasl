@@ -319,6 +319,7 @@ static struct Node *parse_fn_body(struct Parser *const parser, bool collect_rest
 	if (collect_rest_params)
 		body_append(parser, &body, new_CollectRestParams(parser, parserline(parser)));
 	if (matcheattok(parser, T_RIGHT_ARR)) {
+		YASLKeywords(&parser->lex);
 		size_t line = parserline(parser);
 		if (matcheattok(parser, T_LPAR)) {
 			struct Node *expr = parse_expr(parser);

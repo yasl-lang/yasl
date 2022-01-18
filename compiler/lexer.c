@@ -12,7 +12,6 @@
 static enum Token YASLToken_ThreeChars(char c1, char c2, char c3);
 static enum Token YASLToken_TwoChars(char c1, char c2);
 static enum Token YASLToken_OneChar(char c1);
-static void YASLKeywords(struct Lexer *const lex);
 
 static int isbdigit(int c) {
 	return c == '0' || c == '1';
@@ -643,7 +642,7 @@ static void set_keyword(struct Lexer *const lex, enum Token type) {
 	lex_val_setnull(lex);
 }
 
-static void YASLKeywords(struct Lexer *const lex) {
+void YASLKeywords(struct Lexer *const lex) {
 	/* keywords:
 	 *  let
 	 *  print

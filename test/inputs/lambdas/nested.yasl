@@ -1,0 +1,5 @@
+const fn adder_factory(b) -> fn(a, n) -> a + b
+
+const add1 = adder_factory(1)
+
+echo add1(10)
