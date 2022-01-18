@@ -121,6 +121,7 @@ static const char *inputs[] = {
   "test/inputs/syntax/multi_assign_swap.yasl",
   "test/inputs/empty.yasl",
   "test/inputs/lambdas/basic.yasl",
+  "test/inputs/lambdas/nested.yasl",
   "test/inputs/lambdas/ambiguous.yasl",
   "test/inputs/binops.yasl",
   "test/inputs/table/memberfn.yasl",
