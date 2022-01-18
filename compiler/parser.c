@@ -314,12 +314,37 @@ static struct Node *parse_body(struct Parser *const parser) {
 	return body;
 }
 
+static struct Node *parse_expr_or_vargs(struct Parser *const parser) {
+	YASL_PARSE_DEBUG_LOG("%s\n", "parsing expression or vargs.");
+	size_t line = parserline(parser);
+	if (matcheattok(parser, T_TDOT)) {
+		return new_Vargs(parser, line);
+	} else {
+		return parse_expr(parser);
+	}
+}
+
+static struct Node *parse_return_vals(struct Parser *const parser) {
+	struct Node *block = new_Body(parser, parserline(parser));
+	struct Node *expr = NULL;
+	do {
+		expr = parse_expr_or_vargs(parser);
+		body_append(parser, &block, expr);
+	} while (expr->nodetype != N_VARGS && matcheattok(parser, T_COMMA));
+
+	struct Node *last = body_last(block);
+	if (last && will_var_expand(last)) {
+		block->children[block->children_len - 1] = new_VariadicContext(last, -1);
+	}
+	return block;
+}
+
 static struct Node *parse_fn_body(struct Parser *const parser, bool collect_rest_params) {
 	struct Node *body = new_Body(parser, parserline(parser));
 	if (collect_rest_params)
 		body_append(parser, &body, new_CollectRestParams(parser, parserline(parser)));
 	if (matcheattok(parser, T_RIGHT_ARR)) {
-		// fix the case where we have ... -> fn(...) -> ...
+		// fix the case where we have ... -> fn(...) -> ...;
 		// `fn` would otherwise be parsed as an <id> since it follows
 		// a -> token.
 		if (TOKEN_MATCHES(parser, T_ID)) {
@@ -327,23 +352,11 @@ static struct Node *parse_fn_body(struct Parser *const parser, bool collect_rest
 		}
 		size_t line = parserline(parser);
 		if (matcheattok(parser, T_LPAR)) {
-			struct Node *expr = parse_expr(parser);
-			struct Node *block = new_Body(parser, line);
-			body_append(parser, &block, expr);
-			while (matcheattok(parser, T_COMMA)) {
-				expr = parse_expr(parser);
-				body_append(parser, &block, expr);
-			}
+			struct Node *block = parse_return_vals(parser);
 			eattok(parser, T_RPAR);
-			struct Node *last = body_last(block);
-			if (last && will_var_expand(last)) {
-				block->children[block->children_len - 1] = new_VariadicContext(last, -1);
-			}
 			body_append(parser, &body, new_MultiReturn(parser, block, line));
-		} else if (matcheattok(parser, T_TDOT)) {
-			body_append(parser, &body, new_Return(parser, new_VariadicContext(new_Vargs(parser, line), -1), line));
 		} else {
-			struct Node *expr = parse_expr(parser);
+			struct Node *expr = parse_expr_or_vargs(parser);
 			body_append(parser, &body, new_Return(parser, new_VariadicContext(expr, -1), line));
 		}
 	} else {
@@ -385,35 +398,11 @@ static struct Node *parse_function_params(struct Parser *const parser, bool *col
 	return block;
 }
 
-static struct Node *parse_expr_or_vargs(struct Parser *const parser) {
-	YASL_PARSE_DEBUG_LOG("%s\n", "parsing expression or vargs.");
-	size_t line = parserline(parser);
-	if (matcheattok(parser, T_TDOT)) {
-		return new_Vargs(parser, line);
-	} else {
-		return parse_expr(parser);
-	}
-}
-
 static struct Node *parse_return(struct Parser *const parser) {
 	size_t line = parserline(parser);
 	eattok(parser, T_RET);
-	struct Node *expr = parse_expr_or_vargs(parser);
-	if (TOKEN_MATCHES(parser, T_COMMA) && expr->nodetype != N_VARGS) {
-		struct Node *block = new_Body(parser, line);
-		body_append(parser, &block, expr);
-		while (matcheattok(parser, T_COMMA)) {
-			expr = parse_expr_or_vargs(parser);
-			body_append(parser, &block, expr);
-			if (curtok(parser) != T_COMMA || expr->nodetype == N_VARGS) break;
-		}
-		struct Node *last = body_last(block);
-		if (last && will_var_expand(last)) {
-			block->children[block->children_len - 1] = new_VariadicContext(last, -1);
-		}
-		return new_MultiReturn(parser, block, line);
-	}
-	return new_Return(parser, new_VariadicContext(expr, -1), line);
+	struct Node *block = parse_return_vals(parser);
+	return new_MultiReturn(parser, block, line);
 }
 
 static struct Node *parse_fn(struct Parser *const parser) {
