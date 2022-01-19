@@ -27,6 +27,7 @@ static const char *inputs[] = {
   "test/inputs/vargs/fold.yasl",
   "test/inputs/vargs/isempty.yasl",
   "test/inputs/vargs/first_rest.yasl",
+  "test/inputs/vargs/prepend.yasl",
   "test/inputs/vargs/closure.yasl",
   "test/inputs/vargs/forward.yasl",
   "test/inputs/vargs/filter.yasl",

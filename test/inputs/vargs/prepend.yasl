@@ -15,7 +15,7 @@ const f3 = fn(...) {
 
 const f4 = fn(...) -> (4, ...)
 
-echo list(f1(.a, .b, .c))
-echo list(f2(.a, .b, .c))
-echo list(f3(.a, .b, .c))
-echo list(f4(.a, .b, .c))
+echo list(f1(.a1, .b1, .c1))
+echo list(f2(.a2, .b2, .c2))
+echo list(f3(.a3, .b3, .c3))
+echo list(f4(.a4, .b4, .c4))
