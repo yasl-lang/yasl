@@ -1,0 +1,21 @@
+const list = collections.list
+
+
+const fn f1(...) {
+    return 1, ...
+}
+
+
+const fn f2(...) -> (2, ...)
+
+
+const f3 = fn(...) {
+    return 3, ...
+}
+
+const f4 = fn(...) -> (4, ...)
+
+echo list(f1(.a, .b, .c))
+echo list(f2(.a, .b, .c))
+echo list(f3(.a, .b, .c))
+echo list(f4(.a, .b, .c))
