@@ -177,7 +177,6 @@ static const char *inputs[] = {
   "test/inputs/list/clear.yasl",
   "test/inputs/list/extend.yasl",
   "test/inputs/list/__set.yasl",
-  "test/inputs/list/spread.yasl",
   "test/inputs/list/search.yasl",
   "test/inputs/require/require.yasl",
   "test/inputs/math/math.yasl",
