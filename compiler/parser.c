@@ -702,7 +702,7 @@ static struct Node *parse_patternsingle(struct Parser *const parser) {
 			body_append(parser, &n, parse_primitivepattern(parser));
 			eattok(parser, T_COLON);
 			body_append(parser, &n, parse_pattern(parser));
-			while (parser->lex.c == '\n') eattok(parser, T_SEMI);
+			while (matcheattok(parser, T_SEMI)) ;
 			while (matcheattok(parser, T_COMMA)) {
 				YASL_PARSE_DEBUG_LOG("%s\n", "Parsing table pattern");
 				if (matcheattok(parser, T_TDOT)) {
@@ -713,7 +713,7 @@ static struct Node *parse_patternsingle(struct Parser *const parser) {
 				eattok(parser, T_COLON);
 				body_append(parser, &n, parse_pattern(parser));
 			}
-			while (parser->lex.c == '\n') eattok(parser, T_SEMI);
+			while (matcheattok(parser, T_SEMI)) ;
 		}
 		eattok(parser, T_RBRC);
 		return n;
@@ -726,7 +726,7 @@ static struct Node *parse_patternsingle(struct Parser *const parser) {
 			n->nodetype = N_PATVLS;
 		} else if (curtok(parser) != T_RSQB) {
 			body_append(parser, &n, parse_pattern(parser));
-			while (parser->lex.c == '\n') eattok(parser, T_SEMI);
+			while (matcheattok(parser, T_SEMI)) ;
 			while (matcheattok(parser, T_COMMA)) {
 				YASL_PARSE_DEBUG_LOG("%s\n", "Parsing list pattern");
 				if (matcheattok(parser, T_TDOT)) {
@@ -735,7 +735,7 @@ static struct Node *parse_patternsingle(struct Parser *const parser) {
 				}
 				body_append(parser, &n, parse_pattern(parser));
 			}
-			while (parser->lex.c == '\n') eattok(parser, T_SEMI);
+			while (matcheattok(parser, T_SEMI)) ;
 		}
 		eattok(parser, T_RSQB);
 		return n;
@@ -1197,7 +1197,7 @@ static struct Node *parse_table(struct Parser *const parser) {
 	eattok(parser, T_COLON);
 	body_append(parser, &keys, parse_expr(parser));
 
-	while (parser->lex.c == '\n') eattok(parser, T_SEMI);
+	while (matcheattok(parser, T_SEMI)) ;
 	if (matcheattok(parser, T_FOR)) {
 		struct Node *iter = parse_iterate(parser);
 
@@ -1206,7 +1206,7 @@ static struct Node *parse_table(struct Parser *const parser) {
 			cond = parse_expr(parser);
 		}
 
-		while (parser->lex.c == '\n') eattok(parser, T_SEMI);
+		while (matcheattok(parser, T_SEMI)) ;
 		eattok(parser, T_RBRC);
 		struct Node *table_comp = new_TableComp(parser, keys, iter, cond, line);
 		return table_comp;
@@ -1216,7 +1216,7 @@ static struct Node *parse_table(struct Parser *const parser) {
 		eattok(parser, T_COLON);
 		body_append(parser, &keys, parse_expr(parser));
 	}
-	while (parser->lex.c == '\n') eattok(parser, T_SEMI);
+	while (matcheattok(parser, T_SEMI)) ;
 	eattok(parser, T_RBRC);
 	return new_Table(parser, keys, line);
 }
@@ -1236,7 +1236,7 @@ static struct Node *parse_list(struct Parser *const parser) {
 
 	body_append(parser, &keys, parse_expr(parser));
 
-	while (parser->lex.c == '\n') eattok(parser, T_SEMI);
+	while (matcheattok(parser, T_SEMI)) ;
 
 	// non-empty list
 	if (matcheattok(parser, T_FOR)) {
@@ -1247,7 +1247,7 @@ static struct Node *parse_list(struct Parser *const parser) {
 			cond = parse_expr(parser);
 		}
 
-		while (parser->lex.c == '\n') eattok(parser, T_SEMI);
+		while (matcheattok(parser, T_SEMI)) ;
 		eattok(parser, T_RSQB);
 		struct Node *table_comp = new_ListComp(parser, keys->children[0], iter, cond, line);
 		return table_comp;
@@ -1256,7 +1256,7 @@ static struct Node *parse_list(struct Parser *const parser) {
 			YASL_PARSE_DEBUG_LOG("%s\n", "Parsing list");
 			body_append(parser, &keys, parse_expr(parser));
 		}
-		while (parser->lex.c == '\n') eattok(parser, T_SEMI);
+		while (matcheattok(parser, T_SEMI)) ;
 		eattok(parser, T_RSQB);
 		return new_List(parser, keys, line);
 	}

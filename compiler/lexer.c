@@ -112,12 +112,12 @@ static bool lex_eatcommentsandwhitespace(struct Lexer * lex) {
 		    long cur = lxtell(lex->file);
 			lex_getchar(lex);
 			if (lex->c == '*') {
-				int addsemi = 0;
+				bool addsemi = false;
 				lex->c = ' ';
 				int c1 = lxgetc(lex->file);
 				int c2 = lxgetc(lex->file);
 				while (!lxeof(lex->file) && (c1 != '*' || c2 != '/')) {
-					if (c1 == '\n' || c2 == '\n') addsemi = 1;
+					if (c1 == '\n' || c2 == '\n') addsemi = true;
 					if (c1 == '\n') lex->line++;
 					c1 = c2;
 					c2 = lxgetc(lex->file);
