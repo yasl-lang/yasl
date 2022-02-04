@@ -97,6 +97,7 @@ static const char *type_errors[] = {
   "test/errors/type/list/reverse.yasl",
   "test/errors/type/list/search.yasl",
   "test/errors/type/list/sort.yasl",
+  "test/errors/type/list/spread.yasl",
   "test/errors/type/list/tostr.yasl",
   "test/errors/type/math/abs.yasl",
   "test/errors/type/math/acos.yasl",

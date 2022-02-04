@@ -471,7 +471,6 @@ static void visit_MultiReturn(struct Compiler *const compiler, const struct Node
 		handle_error(compiler);
 		return;
 	}
-
 	visit(compiler, MultiReturn_get_exprs(node));
 	compiler_add_byte(compiler, return_op(compiler));
 	compiler_add_byte(compiler, (unsigned char)scope_len(get_scope_in_use(compiler)));
