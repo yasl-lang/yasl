@@ -1,0 +1,19 @@
+const list = collections.list
+
+
+const fn ls1(...) {
+    return list(...)
+}
+
+const fn ls2(...) -> list(...)
+
+const ls3 = fn(...) {
+    return list(...)
+}
+
+const ls4 = fn(...) -> list(...)
+
+echo ls1(.a1, .b1, .c1)
+echo ls1(.a2, .b2, .c2)
+echo ls1(.a3, .b3, .c3)
+echo ls1(.a4, .b4, .c4)

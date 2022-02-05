@@ -10,7 +10,8 @@
 #define  ispotentialend(l) ((l)->type == T_ID || (l)->type == T_STR || \
             (l)->type == T_INT || (l)->type == T_FLOAT || (l)->type == T_BREAK || \
             (l)->type == T_CONT || (l)->type == T_RPAR || (l)->type == T_RSQB || \
-            (l)->type == T_RBRC || (l)->type == T_UNDEF || (l)->type == T_BOOL)
+            (l)->type == T_RBRC || (l)->type == T_UNDEF || (l)->type == T_BOOL || \
+            (l)->type == T_TDOT)
 
 #define NEW_LEXER(f) ((struct Lexer) {\
         .file = (f),\
@@ -71,6 +72,8 @@ void lex_val_free(struct Lexer *const lex);
 char *lex_val_get(struct Lexer *const lex);
 void lex_val_save(const struct Lexer *const lex, YASL_ByteBuffer *const buffer);
 void lex_val_restore(struct Lexer *const lex, const YASL_ByteBuffer *const buffer);
+
+void YASLKeywords(struct Lexer *const lex);
 
 extern const char *YASL_TOKEN_NAMES[84];
 

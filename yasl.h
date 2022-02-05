@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define YASL_VERSION "v0.11.10"
+#define YASL_VERSION "v0.11.11"
 
 #define YASL_STR_NAME "str"
 #define YASL_FLOAT_NAME "float"
@@ -613,6 +613,8 @@ int YASL_setmt(struct YASL_State *S);
 void YASL_setprintout_tostr(struct YASL_State *S);
 
 void YASL_setprinterr_tostr(struct YASL_State *S);
+
+void YASL_stringifytop(struct YASL_State *S);
 
 /**
  * [-1, +2]

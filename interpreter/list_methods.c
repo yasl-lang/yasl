@@ -370,7 +370,7 @@ int list_join(struct YASL_State *S) {
 }
 
 int list_spread(struct YASL_State *S) {
-	struct YASL_List *ls = YASLX_checknlist(S, "list.reverse", 0);
+	struct YASL_List *ls = YASLX_checknlist(S, "list.spread", 0);
 	const yasl_int len = YASL_List_length(ls);
 
 	FOR_LIST(i, elmt, ls) {

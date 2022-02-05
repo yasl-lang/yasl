@@ -314,29 +314,49 @@ static struct Node *parse_body(struct Parser *const parser) {
 	return body;
 }
 
+static struct Node *parse_expr_or_vargs(struct Parser *const parser) {
+	YASL_PARSE_DEBUG_LOG("%s\n", "parsing expression or vargs.");
+	size_t line = parserline(parser);
+	if (matcheattok(parser, T_TDOT)) {
+		return new_Vargs(parser, line);
+	} else {
+		return parse_expr(parser);
+	}
+}
+
+static struct Node *parse_return_vals(struct Parser *const parser) {
+	struct Node *block = new_Body(parser, parserline(parser));
+	struct Node *expr = NULL;
+	do {
+		expr = parse_expr_or_vargs(parser);
+		body_append(parser, &block, expr);
+	} while (expr->nodetype != N_VARGS && matcheattok(parser, T_COMMA));
+
+	struct Node *last = body_last(block);
+	if (last && will_var_expand(last)) {
+		block->children[block->children_len - 1] = new_VariadicContext(last, -1);
+	}
+	return block;
+}
+
 static struct Node *parse_fn_body(struct Parser *const parser, bool collect_rest_params) {
 	struct Node *body = new_Body(parser, parserline(parser));
 	if (collect_rest_params)
 		body_append(parser, &body, new_CollectRestParams(parser, parserline(parser)));
 	if (matcheattok(parser, T_RIGHT_ARR)) {
+		// fix the case where we have ... -> fn(...) -> ...;
+		// `fn` would otherwise be parsed as an <id> since it follows
+		// a -> token.
+		if (TOKEN_MATCHES(parser, T_ID)) {
+			YASLKeywords(&parser->lex);
+		}
 		size_t line = parserline(parser);
-		// body = new_Body(parser, line);
 		if (matcheattok(parser, T_LPAR)) {
-			struct Node *expr = parse_expr(parser);
-			struct Node *block = new_Body(parser, line);
-			body_append(parser, &block, expr);
-			while (matcheattok(parser, T_COMMA)) {
-				expr = parse_expr(parser);
-				body_append(parser, &block, expr);
-			}
+			struct Node *block = parse_return_vals(parser);
 			eattok(parser, T_RPAR);
-			struct Node *last = body_last(block);
-			if (last && will_var_expand(last)) {
-				block->children[block->children_len - 1] = new_VariadicContext(last, -1);
-			}
 			body_append(parser, &body, new_MultiReturn(parser, block, line));
 		} else {
-			struct Node *expr = parse_expr(parser);
+			struct Node *expr = parse_expr_or_vargs(parser);
 			body_append(parser, &body, new_Return(parser, new_VariadicContext(expr, -1), line));
 		}
 	} else {
@@ -353,16 +373,20 @@ static struct Node *parse_fn_body(struct Parser *const parser, bool collect_rest
 
 static struct Node *parse_function_params(struct Parser *const parser, bool *collect_rest_params) {
 	struct Node *block = new_Body(parser, parserline(parser));
-	while (TOKEN_MATCHES(parser, T_ID, T_CONST)) {
+	while (TOKEN_MATCHES(parser, T_ID, T_CONST, T_TDOT)) {
 		if (TOKEN_MATCHES(parser, T_ID)) {
 			struct Node *cur_node = parse_id(parser);
 			cur_node->nodetype = N_LET;
 			body_append(parser, &block, cur_node);
-		} else {
-			eattok(parser, T_CONST);
+		} else if (matcheattok(parser, T_CONST)) {
 			struct Node *cur_node = parse_id(parser);
 			cur_node->nodetype = N_CONST;
 			body_append(parser, &block, cur_node);
+		} else {
+			eattok(parser, T_TDOT);
+			body_append(parser, &block, new_Vargs(parser, parserline(parser)));
+			*collect_rest_params = true;
+			break;
 		}
 		if (matcheattok(parser, T_LSQB)) {
 			eattok(parser, T_RSQB);
@@ -377,21 +401,8 @@ static struct Node *parse_function_params(struct Parser *const parser, bool *col
 static struct Node *parse_return(struct Parser *const parser) {
 	size_t line = parserline(parser);
 	eattok(parser, T_RET);
-	struct Node *expr = parse_expr(parser);
-	if (TOKEN_MATCHES(parser, T_COMMA)) {
-		struct Node *block = new_Body(parser, line);
-		body_append(parser, &block, expr);
-		while (matcheattok(parser, T_COMMA)) {
-			expr = parse_expr(parser);
-			body_append(parser, &block, expr);
-		}
-		struct Node *last = body_last(block);
-		if (last && will_var_expand(last)) {
-			block->children[block->children_len - 1] = new_VariadicContext(last, -1);
-		}
-		return new_MultiReturn(parser, block, line);
-	}
-	return new_Return(parser, new_VariadicContext(expr, -1), line);
+	struct Node *block = parse_return_vals(parser);
+	return new_MultiReturn(parser, block, line);
 }
 
 static struct Node *parse_fn(struct Parser *const parser) {
@@ -691,7 +702,7 @@ static struct Node *parse_patternsingle(struct Parser *const parser) {
 			body_append(parser, &n, parse_primitivepattern(parser));
 			eattok(parser, T_COLON);
 			body_append(parser, &n, parse_pattern(parser));
-			while (parser->lex.c == '\n') eattok(parser, T_SEMI);
+			while (matcheattok(parser, T_SEMI)) ;
 			while (matcheattok(parser, T_COMMA)) {
 				YASL_PARSE_DEBUG_LOG("%s\n", "Parsing table pattern");
 				if (matcheattok(parser, T_TDOT)) {
@@ -702,7 +713,7 @@ static struct Node *parse_patternsingle(struct Parser *const parser) {
 				eattok(parser, T_COLON);
 				body_append(parser, &n, parse_pattern(parser));
 			}
-			while (parser->lex.c == '\n') eattok(parser, T_SEMI);
+			while (matcheattok(parser, T_SEMI)) ;
 		}
 		eattok(parser, T_RBRC);
 		return n;
@@ -715,7 +726,7 @@ static struct Node *parse_patternsingle(struct Parser *const parser) {
 			n->nodetype = N_PATVLS;
 		} else if (curtok(parser) != T_RSQB) {
 			body_append(parser, &n, parse_pattern(parser));
-			while (parser->lex.c == '\n') eattok(parser, T_SEMI);
+			while (matcheattok(parser, T_SEMI)) ;
 			while (matcheattok(parser, T_COMMA)) {
 				YASL_PARSE_DEBUG_LOG("%s\n", "Parsing list pattern");
 				if (matcheattok(parser, T_TDOT)) {
@@ -724,7 +735,7 @@ static struct Node *parse_patternsingle(struct Parser *const parser) {
 				}
 				body_append(parser, &n, parse_pattern(parser));
 			}
-			while (parser->lex.c == '\n') eattok(parser, T_SEMI);
+			while (matcheattok(parser, T_SEMI)) ;
 		}
 		eattok(parser, T_RSQB);
 		return n;
@@ -947,8 +958,9 @@ static struct Node *parse_call(struct Parser *const parser) {
 						  parserline(parser));
 			eattok(parser, T_LPAR);
 			while (!TOKEN_MATCHES(parser, T_RPAR, T_EOF)) {
-				body_append(parser, &cur_node->children[0], parse_expr(parser));
-				if (curtok(parser) != T_COMMA) break;
+				struct Node *expr = parse_expr_or_vargs(parser);
+				body_append(parser, &cur_node->children[0], expr);
+				if (curtok(parser) != T_COMMA || expr->nodetype == N_VARGS) break;
 				eattok(parser, T_COMMA);
 			}
 			eattok(parser, T_RPAR);
@@ -990,8 +1002,9 @@ static struct Node *parse_call(struct Parser *const parser) {
 			YASL_PARSE_DEBUG_LOG("%s\n", "Parsing function call");
 			cur_node = new_Call(parser, new_Body(parser, parserline(parser)), cur_node, 1, parserline(parser));
 			while (!TOKEN_MATCHES(parser, T_RPAR, T_EOF)) {
-				body_append(parser, &cur_node->children[0], parse_expr(parser));
-				if (curtok(parser) != T_COMMA) break;
+				struct Node *expr = parse_expr_or_vargs(parser);
+				body_append(parser, &cur_node->children[0], expr);
+				if (curtok(parser) != T_COMMA || expr->nodetype == N_VARGS) break;
 				eattok(parser, T_COMMA);
 			}
 			eattok(parser, T_RPAR);
@@ -1184,7 +1197,7 @@ static struct Node *parse_table(struct Parser *const parser) {
 	eattok(parser, T_COLON);
 	body_append(parser, &keys, parse_expr(parser));
 
-	while (parser->lex.c == '\n') eattok(parser, T_SEMI);
+	while (matcheattok(parser, T_SEMI)) ;
 	if (matcheattok(parser, T_FOR)) {
 		struct Node *iter = parse_iterate(parser);
 
@@ -1193,7 +1206,7 @@ static struct Node *parse_table(struct Parser *const parser) {
 			cond = parse_expr(parser);
 		}
 
-		while (parser->lex.c == '\n') eattok(parser, T_SEMI);
+		while (matcheattok(parser, T_SEMI)) ;
 		eattok(parser, T_RBRC);
 		struct Node *table_comp = new_TableComp(parser, keys, iter, cond, line);
 		return table_comp;
@@ -1203,7 +1216,7 @@ static struct Node *parse_table(struct Parser *const parser) {
 		eattok(parser, T_COLON);
 		body_append(parser, &keys, parse_expr(parser));
 	}
-	while (parser->lex.c == '\n') eattok(parser, T_SEMI);
+	while (matcheattok(parser, T_SEMI)) ;
 	eattok(parser, T_RBRC);
 	return new_Table(parser, keys, line);
 }
@@ -1223,7 +1236,7 @@ static struct Node *parse_list(struct Parser *const parser) {
 
 	body_append(parser, &keys, parse_expr(parser));
 
-	while (parser->lex.c == '\n') eattok(parser, T_SEMI);
+	while (matcheattok(parser, T_SEMI)) ;
 
 	// non-empty list
 	if (matcheattok(parser, T_FOR)) {
@@ -1234,7 +1247,7 @@ static struct Node *parse_list(struct Parser *const parser) {
 			cond = parse_expr(parser);
 		}
 
-		while (parser->lex.c == '\n') eattok(parser, T_SEMI);
+		while (matcheattok(parser, T_SEMI)) ;
 		eattok(parser, T_RSQB);
 		struct Node *table_comp = new_ListComp(parser, keys->children[0], iter, cond, line);
 		return table_comp;
@@ -1243,7 +1256,7 @@ static struct Node *parse_list(struct Parser *const parser) {
 			YASL_PARSE_DEBUG_LOG("%s\n", "Parsing list");
 			body_append(parser, &keys, parse_expr(parser));
 		}
-		while (parser->lex.c == '\n') eattok(parser, T_SEMI);
+		while (matcheattok(parser, T_SEMI)) ;
 		eattok(parser, T_RSQB);
 		return new_List(parser, keys, line);
 	}

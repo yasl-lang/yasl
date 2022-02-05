@@ -1,0 +1,14 @@
+const list = collections.list
+
+
+const first = fn(a, ...) -> a
+const rest = fn(a, ...) -> ...
+
+const fn f(...) {
+    return fn() -> ...
+}
+
+const g = f(1, 2, 3, 4, 5)
+
+echo first(g())
+echo list(rest(g()))

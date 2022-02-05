@@ -368,6 +368,10 @@ int YASL_duptop(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
+void YASL_stringifytop(struct YASL_State *S) {
+	vm_stringify_top(&S->vm);
+}
+
 bool YASL_tablenext(struct YASL_State *S) {
 	struct YASL_Object key = vm_pop(&S->vm);
 	if (!YASL_istable(S)) {

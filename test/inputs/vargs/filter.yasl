@@ -1,0 +1,20 @@
+const list = collections.list
+
+const first = fn(a, ...) -> a
+const rest = fn(a, ...) -> ...
+
+const fn vargs_filter(f, ...) {
+    if len list(...) == 0 {
+        return ...
+    } else {
+        if f(first(...)) {
+            return first(...), vargs_filter(f, rest(...))
+        } else {
+            return vargs_filter(f, rest(...))
+        }
+    }
+}
+
+echo list(vargs_filter(fn(a) -> a % 2 == 0, 1, 2, 3, 4, 5, 6, 7, 8, 9))
+echo list(vargs_filter(fn(a) -> a % 2 == 0, 1))
+echo list(vargs_filter(fn(a) -> a % 2 == 0))
