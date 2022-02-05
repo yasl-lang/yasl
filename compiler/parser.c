@@ -51,6 +51,7 @@ static struct Node *parse_table(struct Parser *const parser);
 static struct Node *parse_lambda(struct Parser *const parser);
 static struct Node *parse_list(struct Parser *const parser);
 static struct Node *parse_assert(struct Parser *const parser);
+static void parse_exprs_or_vargs(struct Parser *const parser, struct Node **body);
 
 YASL_FORMAT_CHECK static void parser_print_err(struct Parser *parser, const char *const fmt, ...) {
 	va_list args;
@@ -251,9 +252,12 @@ static struct Node *parse_program(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("parsing statement in line %" PRI_SIZET "\n", parserline(parser));
 	size_t line = parserline(parser);
 	switch (curtok(parser)) {
-	case T_ECHO:
+	case T_ECHO: {
 		eattok(parser, T_ECHO);
-		return new_Echo(parser, parse_expr(parser), line);
+		struct Node *body = new_Body(parser, parserline(parser));
+		parse_exprs_or_vargs(parser, &body);
+		return new_Echo(parser, body, line);
+	}
 	case T_FN:
 		if (isfndecl(parser)) return parse_fn(parser);
 		else return parse_assign_or_exprstmt(parser);

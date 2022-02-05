@@ -1332,26 +1332,51 @@ void vm_close_all(struct VM *const vm) {
 	vm->pending = vm_close_all_helper(vm->stack + vm->fp, vm->pending);
 }
 
+/*
+static void vm_ECHO_one(struct VM *const vm) {
+
+}
+*/
 static void vm_ECHO(struct VM *const vm) {
 	unsigned char top = NCODE(vm);
 	YASL_UNUSED(top);
 	YASL_ASSERT(top == vm->sp - vm->fp - 1, "wrong value for top of stack.");
-	vm_stringify_top(vm);
-	struct YASL_String *v = vm_popstr(vm);
-	size_t strlen = (int)YASL_String_len(v);
+	if (vm->fp + top == vm->sp) {
+		vm_print_out(vm, "\n");
+		return;
+	}
+	size_t tmp = 0;
+	for (int i = vm->fp + 1 + top; i <= vm->sp; i++) {
+		vm_push(vm, vm_peek(vm, i));
+		vm_stringify_top(vm);
+		tmp += YASL_String_len(vm_peekstr(vm)) + 2;
+		inc_ref(vm_peek_p(vm));
+		dec_ref(vm_peek_p(vm, i));
+		vm_peek(vm, i) = vm_pop(vm);
+	}
 	bool alloc = false;
 	char *dest;
-	if (strlen > SCRATCH_SIZE) {
-		dest = (char *) malloc(strlen);
+	if (tmp > SCRATCH_SIZE) {
+		dest = (char *) malloc(tmp);
 		alloc = true;
 	} else {
 		dest = (char *) &vm->scratch;
 	}
-	size_t copied = io_str_strip_char(dest, YASL_String_chars(v), strlen, 0);
-	vm_print_out(vm, "%.*s\n", (int)copied, dest);
+	tmp = 0;
+	char *curr = dest;
+	for (int i = vm->fp + 1 + top; i <= vm->sp; i++) {
+		size_t strlen = YASL_String_len(vm_peekstr(vm, i));
+		size_t copied = io_str_strip_char(curr, YASL_String_chars(vm_peekstr(vm, i)), strlen, 0);
+		curr[strlen] = ',';
+		curr[strlen+1] = ' ';
+		curr += copied + 2;
+		tmp += copied + 2;
+	}
+	vm_print_out(vm, "%.*s\n", (int)tmp-2, dest);
 	if (alloc) {
 		free(dest);
 	}
+	vm->sp = vm->fp + top;
 }
 
 void vm_setupconstants(struct VM *const vm) {

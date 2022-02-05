@@ -1062,7 +1062,7 @@ static void visit_If(struct Compiler *const compiler, const struct Node *const n
 }
 
 static void visit_Echo(struct Compiler *const compiler, const struct Node *const node) {
-	visit(compiler, Echo_get_expr(node));
+	visit(compiler, Echo_get_exprs(node));
 	compiler_add_byte(compiler, O_ECHO);
 	compiler_add_byte(compiler, (char)scope_len(get_scope_in_use(compiler)));
 }
