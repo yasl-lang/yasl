@@ -103,6 +103,7 @@ static const char *inputs[] = {
   "test/inputs/syntax/for.yasl",
   "test/inputs/syntax/while.yasl",
   "test/inputs/syntax/if.yasl",
+  "test/inputs/syntax/echo.yasl",
   "test/inputs/syntax/table_comprehensions.yasl",
   "test/inputs/syntax/multi_assign_set_list.yasl",
   "test/inputs/syntax/fn_with_for.yasl",
