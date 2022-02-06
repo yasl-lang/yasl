@@ -11,5 +11,7 @@ fn obj.g(self, const e, const f, const g) {
     return e, f, g
 }
 
+mt.set(obj, obj)
+
 # 2, a, 4
 f(obj->g(2, obj->g(.a, .b, .c), 4))

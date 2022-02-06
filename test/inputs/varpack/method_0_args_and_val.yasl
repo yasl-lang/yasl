@@ -13,6 +13,8 @@ fn obj.h() {
     return 'first', 'second'
 }
 
+mt.set(obj, obj)
+
 let a, let b, let c = false, obj->f()
 
 echo a

@@ -96,14 +96,17 @@ const fn Lex(const str) {
             const value = self.curr.value
             self->gettoken()
             return value
-        }
+        },
+        .__set: fn(self, key, val) ->
+            mt.get({}).__set(self, key, val)
     }
+    mt.set(lex, lex)
     lex->gettoken()
     return lex
 }
 
 const fn Parser(const lex) {
-    return {
+    const parser = {
         .lex: lex,
         .parse_value: fn(self) {
                 if self.lex.curr == T_LBRC {
@@ -154,6 +157,8 @@ const fn Parser(const lex) {
                 return value
         }
     }
+    mt.set(parser, parser)
+    return parser
 }
 
 const fn parse(str) {

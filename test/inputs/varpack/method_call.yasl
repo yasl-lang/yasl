@@ -9,6 +9,8 @@ fn obj.g(self, x, y, z) {
     return x + y + z
 }
 
+mt.set(obj, obj)
+
 # at the end, expand f's return values
 echo obj->g(obj->f(1, 2, 3))
 

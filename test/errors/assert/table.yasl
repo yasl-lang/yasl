@@ -7,5 +7,6 @@ let x = {
         echo false
     } }
 
+mt.set(x, x)
 
 x->f()
