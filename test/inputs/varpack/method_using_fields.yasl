@@ -13,6 +13,8 @@ fn obj.h(self) {
     return self.x, self.y, self.z, self.extra
 }
 
+mt.set(obj, obj)
+
 let a, let b, let c = obj->f()
 
 echo a

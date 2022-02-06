@@ -12,6 +12,8 @@ const obj = {
     }
 }
 
+mt.set(obj, obj)
+
 let a, let b, let c = obj->f()
 
 echo a
