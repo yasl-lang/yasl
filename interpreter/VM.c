@@ -1237,7 +1237,7 @@ static void vm_INIT_MC(struct VM *const vm) {
 	// vm_duptop(vm);
 	yasl_int addr = vm_read_int(vm);
 	struct RC_UserData* table = obj_get_metatable(vm, vm_peek(vm));
-	int result = lookup(vm, vm_peek(vm), table ? table->data : NULL, vm->constants[addr]);
+	int result = lookup(vm, vm_peek(vm), (struct YASL_Table *)(table ? table->data : NULL), vm->constants[addr]);
 	if (result) {
 		vm_print_err(vm, "Could not find index.");
 		vm_throw_err(vm, YASL_VALUE_ERROR);
