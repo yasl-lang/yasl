@@ -11,7 +11,7 @@
             (l)->type == T_INT || (l)->type == T_FLOAT || (l)->type == T_BREAK || \
             (l)->type == T_CONT || (l)->type == T_RPAR || (l)->type == T_RSQB || \
             (l)->type == T_RBRC || (l)->type == T_UNDEF || (l)->type == T_BOOL || \
-            (l)->type == T_TDOT)
+            (l)->type == T_TDOT || (l)->type == T_RET)
 
 #define NEW_LEXER(f) ((struct Lexer) {\
         .file = (f),\

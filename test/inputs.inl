@@ -149,6 +149,7 @@ static const char *inputs[] = {
   "test/inputs/unary.yasl",
   "test/inputs/method.yasl",
   "test/inputs/fn/cvarfn.yasl",
+  "test/inputs/fn/empty_return.yasl",
   "test/inputs/fn/nested.yasl",
   "test/inputs/fn/add.yasl",
   "test/inputs/fn/functional2.yasl",

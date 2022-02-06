@@ -326,13 +326,13 @@ static struct Node *parse_expr_or_vargs(struct Parser *const parser) {
 
 static struct Node *parse_return_vals(struct Parser *const parser) {
 	struct Node *block = new_Body(parser, parserline(parser));
-	struct Node *expr = NULL;
-	do {
-		expr = parse_expr_or_vargs(parser);
+	while (!TOKEN_MATCHES(parser, T_SEMI, T_EOF)) {
+		struct Node *expr = parse_expr_or_vargs(parser);
 		body_append(parser, &block, expr);
-	} while (expr->nodetype != N_VARGS && matcheattok(parser, T_COMMA));
-
-	struct Node *last = body_last(block);
+		if (curtok(parser) != T_COMMA || expr->nodetype == N_VARGS) break;
+		eattok(parser, T_COMMA);
+	}
+	struct Node *last = block->children_len > 0 ? body_last(block) : NULL;
 	if (last && will_var_expand(last)) {
 		block->children[block->children_len - 1] = new_VariadicContext(last, -1);
 	}

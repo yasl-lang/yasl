@@ -1,0 +1,9 @@
+
+const list = collections.list
+
+const fn empty() {
+    return
+}
+
+
+echo list(empty())
