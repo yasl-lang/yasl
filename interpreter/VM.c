@@ -1276,7 +1276,7 @@ static void vm_CALL_cfn(struct VM *const vm) {
 }
 
 void vm_COLLECT_REST_PARAMS(struct VM *const vm) {
-	int offset;
+	int offset = 0;
 	if (vm_isfn(vm, vm->fp)) {
 		offset = ~*(signed char *) vm_peek(vm, vm->fp).value.fval;
 	} else if (vm_isclosure(vm, vm->fp)) {
