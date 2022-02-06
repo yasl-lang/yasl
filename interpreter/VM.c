@@ -1332,15 +1332,8 @@ void vm_close_all(struct VM *const vm) {
 	vm->pending = vm_close_all_helper(vm->stack + vm->fp, vm->pending);
 }
 
-/*
-static void vm_ECHO_one(struct VM *const vm) {
-
-}
-*/
 static void vm_ECHO(struct VM *const vm) {
 	unsigned char top = NCODE(vm);
-	YASL_UNUSED(top);
-	YASL_ASSERT(top == vm->sp - vm->fp - 1, "wrong value for top of stack.");
 	if (vm->fp + top == vm->sp) {
 		vm_print_out(vm, "\n");
 		return;
