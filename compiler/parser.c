@@ -218,6 +218,22 @@ static bool isfndecl(struct Parser *const parser) {
 }
 
 /*
+ * Checks for function statement `fn <id> ...` vs function expr `fn ( ...`.
+ */
+/*
+static bool isemptyvargs(struct Parser *const parser) {
+	long curr = lxtell(parser->lex.file);
+	eattok(parser, T_LPAR);
+	lex_val_free(&parser->lex);
+	lex_val_setnull(&parser->lex);
+	bool result = TOKEN_MATCHES(parser, T_RPAR);
+	lxseek(parser->lex.file, curr, SEEK_SET);
+	parser->lex.type = T_LPAR;
+	return result;
+}
+*/
+
+/*
  * Checks for const function statement `const fn ...` vs const decl `const <id> ...`.
  */
 static bool isconstfndecl(struct Parser *const parser) {
@@ -352,9 +368,13 @@ static struct Node *parse_fn_body(struct Parser *const parser, bool collect_rest
 		}
 		size_t line = parserline(parser);
 		if (matcheattok(parser, T_LPAR)) {
-			struct Node *block = parse_return_vals(parser);
-			eattok(parser, T_RPAR);
-			body_append(parser, &body, new_Return(parser, block, line));
+			if (matcheattok(parser, T_RPAR)) {
+				body_append(parser, &body, new_Return(parser, new_Block(parser, new_Body(parser, line), line), line));
+			} else {
+				struct Node *block = parse_return_vals(parser);
+				eattok(parser, T_RPAR);
+				body_append(parser, &body, new_Return(parser, block, line));
+			}
 		} else {
 			struct Node *expr = parse_expr_or_vargs(parser);
 			body_append(parser, &body, new_Return(parser, new_VariadicContext(expr, -1), line));

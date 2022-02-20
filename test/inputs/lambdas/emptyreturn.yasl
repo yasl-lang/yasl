@@ -1,0 +1,6 @@
+
+const list = collections.list
+
+echo list((fn()->())())
+
+

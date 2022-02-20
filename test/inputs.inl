@@ -124,6 +124,7 @@ static const char *inputs[] = {
   "test/inputs/lambdas/basic.yasl",
   "test/inputs/lambdas/nested.yasl",
   "test/inputs/lambdas/ambiguous.yasl",
+  "test/inputs/lambdas/emptyreturn.yasl",
   "test/inputs/binops.yasl",
   "test/inputs/table/memberfn.yasl",
   "test/inputs/table/tostr.yasl",
