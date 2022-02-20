@@ -388,7 +388,8 @@ static void visit_FnDecl(struct Compiler *const compiler, const struct Node *con
 
 	size_t old_size = compiler->buffer->count;
 
-	bool is_variadic = FnDecl_get_body(node)->children[0]->nodetype == N_COLLECTRESTPARAMS;
+	struct Node *body = FnDecl_get_body(node);
+	bool is_variadic = body->children_len > 0 && body->children[0]->nodetype == N_COLLECTRESTPARAMS;
 
 	size_t num_params = Body_get_len(FnDecl_get_params(node)) - (int)is_variadic;
 	// TODO: verfiy that number of params is small enough. (same for the other casts below.)
