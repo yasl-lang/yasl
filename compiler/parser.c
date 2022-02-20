@@ -339,7 +339,7 @@ static struct Node *parse_expr_or_vargs(struct Parser *const parser) {
 }
 
 static void parse_exprs_or_vargs(struct Parser *const parser, struct Node **block) {
-	if (isemptyvargs(parser)) {
+	if (TOKEN_MATCHES(parser, T_LPAR) && isemptyvargs(parser)) {
 		eattok(parser, T_LPAR);
 		eattok(parser, T_RPAR);
 		return;
