@@ -54,6 +54,7 @@ static const char *inputs[] = {
   "test/inputs/closures/local.yasl",
   "test/inputs/closures/simple.yasl",
   "test/inputs/closures/location.yasl",
+  "test/inputs/closures/memoize.yasl",
   "test/inputs/closures/multi.yasl",
   "test/inputs/str/isalnum.yasl",
   "test/inputs/str/rep.yasl",

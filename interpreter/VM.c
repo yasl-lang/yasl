@@ -584,7 +584,7 @@ void vm_stringify_top(struct VM *const vm) {
 	}
 }
 
-static struct Upvalue *add_upvalue(struct VM *const vm, struct YASL_Object *const location) {
+struct Upvalue *add_upvalue(struct VM *const vm, struct YASL_Object *const location) {
 	if (vm->pending == NULL) {
 		return (vm->pending = upval_new(location));
 	}
@@ -602,8 +602,12 @@ static struct Upvalue *add_upvalue(struct VM *const vm, struct YASL_Object *cons
 		}
 		if (curr->location < location) {
 			struct Upvalue *upval = upval_new(location);
-			upval->next = curr->next;
-			curr->next = upval;
+			if (prev == NULL) {
+				vm->pending = upval;
+			} else {
+				prev->next = upval;
+			}
+			upval->next = curr;
 			return upval;
 		}
 		return (curr->next = upval_new(location));

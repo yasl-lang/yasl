@@ -113,7 +113,7 @@ struct VM {
 	int next_fp;
 	struct YASL_String *special_strings[NUM_SPECIAL_STRINGS];
 	struct RC_UserData **builtins_htable;   // htable of builtin methods
-	struct Upvalue *pending;
+	struct Upvalue *pending;  // upvals that still need to be closed. Should be in descending order.
 	jmp_buf buf;
 	int status;
 	uint8_t scratch[SCRATCH_SIZE];
@@ -140,6 +140,8 @@ YASL_NORETURN void vm_throw_err(struct VM *const vm, int error);
 void vm_get_metatable(struct VM *const vm);
 void vm_stringify_top(struct VM *const vm);
 void vm_EQ(struct VM *const vm);
+
+struct Upvalue *add_upvalue(struct VM *const vm, struct YASL_Object *const location);
 
 void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns);
 void vm_CALL(struct VM *const vm);

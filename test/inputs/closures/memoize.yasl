@@ -1,0 +1,23 @@
+const fn memoize(f) {
+    const tmp = {}
+    return fn(k) {
+        let v = tmp[k]
+        if v === undef {
+            v = f(k)
+            tmp[k] = v
+        }
+        return v, tmp
+    }
+}
+
+const fn fact(n) -> n == 0 ? 1 : n * fact(n - 1)
+
+let f = undef
+f = memoize(fn(n) -> n == 0 ? 1 : n * f(n - 1))
+
+echo f(0)
+echo f(0)
+echo f(1)
+echo f(1)
+echo f(5)
+
