@@ -354,7 +354,7 @@ static struct Node *parse_fn_body(struct Parser *const parser, bool collect_rest
 		if (matcheattok(parser, T_LPAR)) {
 			struct Node *block = parse_return_vals(parser);
 			eattok(parser, T_RPAR);
-			body_append(parser, &body, new_MultiReturn(parser, block, line));
+			body_append(parser, &body, new_Return(parser, block, line));
 		} else {
 			struct Node *expr = parse_expr_or_vargs(parser);
 			body_append(parser, &body, new_Return(parser, new_VariadicContext(expr, -1), line));
@@ -402,7 +402,7 @@ static struct Node *parse_return(struct Parser *const parser) {
 	size_t line = parserline(parser);
 	eattok(parser, T_RET);
 	struct Node *block = parse_return_vals(parser);
-	return new_MultiReturn(parser, block, line);
+	return new_Return(parser, block, line);
 }
 
 static struct Node *parse_fn(struct Parser *const parser) {
