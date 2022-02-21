@@ -893,7 +893,7 @@ static void vm_ITER_1(struct VM *const vm) {
 		vm_push(vm, frame->iterable);
 		vm_push(vm, frame->curr);
 		vm_INIT_CALL_offset(vm, vm->sp - 2, -1);
-		vm_CALL(vm);
+		vm_CALL_now(vm);
 		if (vm_popbool(vm)) {
 			dec_ref(&frame->curr);
 			struct YASL_Object value = vm_pop(vm);
@@ -1564,7 +1564,7 @@ void vm_executenext(struct VM *const vm) {
 			obj_typename(obj));
 		vm_shifttopdown(vm, 1);
 		vm_INIT_CALL_offset(vm, vm->sp - 1, 2);
-		vm_CALL(vm);
+		vm_CALL_now(vm);
 		inc_ref(vm_peek_p(vm));
 		vm->loopframes[vm->loopframe_num].curr = vm_pop(vm);
 		inc_ref(vm_peek_p(vm));
