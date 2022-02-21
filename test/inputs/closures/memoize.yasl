@@ -6,7 +6,7 @@ const fn memoize(f) {
             v = f(k)
             tmp[k] = v
         }
-        return v, tmp
+        return v
     }
 }
 
