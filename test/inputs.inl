@@ -84,6 +84,7 @@ static const char *inputs[] = {
   "test/inputs/str/isnum.yasl",
   "test/inputs/str/search.yasl",
   "test/inputs/refcount.yasl",
+  "test/inputs/yasl_iter.yasl",
   "test/inputs/scripts/CTCI1-4.yasl",
   "test/inputs/scripts/LC-3.yasl",
   "test/inputs/scripts/CTCI1-1.yasl",
