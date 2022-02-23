@@ -20,7 +20,7 @@ fn match_smallint(n) {
         4 {
             return 'four'
         }
-        5 {
+        +5 {
             return 'five'
         }
         * {

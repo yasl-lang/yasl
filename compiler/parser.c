@@ -645,6 +645,20 @@ static struct Node *parse_primitivepattern(struct Parser *const parser) {
 			parser_print_err_syntax(parser, "Expected numeric pattern, got pattern starting in %s (line %" PRI_SIZET ").\n", YASL_TOKEN_NAMES[curtok(parser)], line);
 			handle_error(parser);
 		}
+	case T_PLUS:
+		eattok(parser, T_PLUS);
+		if (curtok(parser) == T_INT) {
+			n = parse_integer(parser);
+			n->nodetype = N_PATINT;
+			return n;
+		} else if (curtok(parser) == T_FLOAT) {
+			n = parse_float(parser);
+			n->nodetype = N_PATFL;
+			return n;
+		} else {
+			parser_print_err_syntax(parser, "Expected numeric pattern, got pattern starting in %s (line %" PRI_SIZET ").\n", YASL_TOKEN_NAMES[curtok(parser)], line);
+			handle_error(parser);
+		}
 	case T_STR:
 		if (parser->lex.mode == L_INTERP) {
 			while (parser->lex.c != '"') {
