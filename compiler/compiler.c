@@ -1145,12 +1145,11 @@ static void visit_TriOp(struct Compiler *const compiler, const struct Node *cons
 
 static void visit_BinOp_shortcircuit(struct Compiler *const compiler, const struct Node *const node, enum Opcode jump_type) {
 	visit(compiler, BinOp_get_left(node));
-	compiler_add_code_BB(compiler, O_DUP, jump_type);
+	compiler_add_code_BBW(compiler, O_DUP, jump_type, -1);
 	size_t index = compiler->buffer->count;
-	compiler_add_int(compiler, 0);
 	compiler_add_byte(compiler, O_POP);
 	visit(compiler, BinOp_get_right(node));
-	YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, index, compiler->buffer->count - index - 8);
+	YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, index - 8, compiler->buffer->count - index);
 }
 
 static void visit_BinOp(struct Compiler *const compiler, const struct Node *const node) {
@@ -1290,11 +1289,9 @@ static void visit_Undef(struct Compiler *const compiler, const struct Node *cons
 
 static void compiler_add_literal(struct Compiler *const compiler, const yasl_int index) {
 	if (index < 128) {
-		compiler_add_byte(compiler, O_LIT);
-		compiler_add_byte(compiler, (unsigned char)index);
+		compiler_add_code_BB(compiler, O_LIT, (unsigned char)index);
 	} else {
-		compiler_add_byte(compiler, O_LIT8);
-		compiler_add_int(compiler, index);
+		compiler_add_code_BW(compiler, O_LIT8, index);
 	}
 }
 
