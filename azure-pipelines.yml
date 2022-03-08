@@ -46,7 +46,7 @@ jobs:
     vmImage: 'ubuntu-18.04'
   steps:
   - script:
-      sudo apt install valgrind
+      sudo apt install valgrind --fix-missing
     displayName: "Install Valgrind"  
   - script: |
       set -e
