@@ -43,10 +43,10 @@ jobs:
 - job: 
   displayName: "C TCC Ubuntu"
   pool:
-    vmImage: 'ubuntu-18.04'
+    vmImage: 'ubuntu-20.04'
   steps:
   - script:
-      sudo apt install valgrind --fix-missing
+      sudo apt install valgrind
     displayName: "Install Valgrind"  
   - script: |
       set -e
@@ -73,7 +73,7 @@ jobs:
 - job: 
   displayName: "C GCC Ubuntu"
   pool:
-    vmImage: 'ubuntu-18.04'
+    vmImage: 'ubuntu-20.04'
   steps:
   - script:
       sudo apt install valgrind
@@ -117,7 +117,7 @@ jobs:
 - job:
   displayName: "C Clang Ubuntu [Debug]"
   pool:
-    vmImage: 'ubuntu-18.04'
+    vmImage: 'ubuntu-20.04'
   steps:
   - script:
       sudo apt install valgrind
@@ -140,7 +140,7 @@ jobs:
 - job: 
   displayName: "C++ GCC Ubuntu"
   pool:
-    vmImage: 'ubuntu-18.04'
+    vmImage: 'ubuntu-20.04'
   steps:
   - script:
       sudo apt install valgrind
@@ -162,7 +162,7 @@ jobs:
 - job: 
   displayName: "C++ Clang Ubuntu"
   pool:
-    vmImage: 'ubuntu-18.04'
+    vmImage: 'ubuntu-20.04'
   steps:
   - script:
       sudo apt install valgrind
