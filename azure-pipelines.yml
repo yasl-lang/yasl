@@ -45,7 +45,9 @@ jobs:
   pool:
     vmImage: 'ubuntu-20.04'
   steps:
-  - script:
+  - script: |
+      set -e
+      sudo apt-get update
       sudo apt-get install valgrind
     displayName: "Install Valgrind"  
   - script: |
@@ -75,7 +77,9 @@ jobs:
   pool:
     vmImage: 'ubuntu-20.04'
   steps:
-  - script:
+  - script: |
+      set -e
+      sudo apt-get update
       sudo apt-get install valgrind
     displayName: "Install Valgrind"  
   - script: |
@@ -94,9 +98,11 @@ jobs:
 - job: 
   displayName: "C Clang Ubuntu"
   pool:
-    vmImage: 'ubuntu-18.04'
+    vmImage: 'ubuntu-20.04'
   steps:
-  - script:
+  - script: |
+      set -e
+      sudo apt-get update
       sudo apt-get install valgrind
     displayName: "Install Valgrind"  
   - script: |
@@ -119,7 +125,9 @@ jobs:
   pool:
     vmImage: 'ubuntu-20.04'
   steps:
-  - script:
+  - script: |
+      set -e
+      sudo apt-get update
       sudo apt-get install valgrind
     displayName: "Install Valgrind"
   - script: |
@@ -142,7 +150,9 @@ jobs:
   pool:
     vmImage: 'ubuntu-20.04'
   steps:
-  - script:
+  - script: |
+      set -e
+      sudo apt-get update
       sudo apt-get install valgrind
     displayName: "Install Valgrind"  
   - script: |
