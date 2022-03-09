@@ -1574,6 +1574,8 @@ void vm_executenext(struct VM *const vm) {
 	}
 	case O_ENDFOR:
 		vm_dec_ref(vm, &vm->loopframes[vm->loopframe_num].iterable);
+		vm_dec_ref(vm, &vm->loopframes[vm->loopframe_num].next_fn);
+		vm_dec_ref(vm, &vm->loopframes[vm->loopframe_num].curr);
 		vm->loopframe_num--;
 		break;
 	case O_ENDCOMP:
@@ -1581,6 +1583,8 @@ void vm_executenext(struct VM *const vm) {
 		vm_pop(vm);
 		vm_push(vm, a);
 		vm_dec_ref(vm, &vm->loopframes[vm->loopframe_num].iterable);
+		vm_dec_ref(vm, &vm->loopframes[vm->loopframe_num].next_fn);
+		vm_dec_ref(vm, &vm->loopframes[vm->loopframe_num].curr);
 		vm->loopframe_num--;
 		break;
 	case O_ITER_1:
