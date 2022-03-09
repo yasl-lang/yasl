@@ -621,7 +621,7 @@ static void vm_CCONST(struct VM *const vm) {
 	vm->pc += len;
 
 	const size_t num_upvalues = NCODE(vm);
-	struct Closure *closure = (struct Closure *)malloc(sizeof(struct Closure) + num_upvalues*sizeof(struct Upvalue *));
+	struct Closure *closure = (struct Closure *)vm_alloc_cyclic(vm, sizeof(struct Closure) + num_upvalues*sizeof(struct Upvalue *));
 	closure->f = start;
 	closure->num_upvalues = num_upvalues;
 	closure->rc = NEW_RC();
