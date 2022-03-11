@@ -1141,6 +1141,13 @@ static void vm_enterframe_offset(struct VM *const vm, int offset, int num_return
 
 static void vm_fill_args(struct VM *const vm, const int num_args);
 
+static void vm_exitloopframe(struct VM *const vm) {
+	vm_dec_ref(vm, &vm->loopframes[vm->loopframe_num].iterable);
+	vm_dec_ref(vm, &vm->loopframes[vm->loopframe_num].curr);
+	vm_dec_ref(vm, &vm->loopframes[vm->loopframe_num].next_fn);
+	vm->loopframe_num--;
+}
+
 static void vm_exitframe_multi(struct VM *const vm, int len) {
 	vm_rm_range(vm, vm->fp, vm->fp + len + 1);
 
@@ -1163,7 +1170,7 @@ static void vm_exitframe_multi(struct VM *const vm, int len) {
 	vm->fp = frame.prev_fp;
 	vm->next_fp = frame.curr_fp;
 	while (vm->loopframe_num > frame.lp) {
-		vm_dec_ref(vm, &vm->loopframes[vm->loopframe_num--].iterable);
+		vm_exitloopframe(vm);
 	}
 
 	vm->frame_num--;
@@ -1177,7 +1184,7 @@ static void vm_exitframe(struct VM *const vm) {
 	vm->fp = frame.prev_fp;
 	vm->next_fp = frame.curr_fp;
 	while (vm->loopframe_num > frame.lp) {
-		vm_dec_ref(vm, &vm->loopframes[vm->loopframe_num--].iterable);
+		vm_exitloopframe(vm);
 	}
 
 	vm->frame_num--;
@@ -1573,19 +1580,13 @@ void vm_executenext(struct VM *const vm) {
 		break;
 	}
 	case O_ENDFOR:
-		vm_dec_ref(vm, &vm->loopframes[vm->loopframe_num].iterable);
-		vm_dec_ref(vm, &vm->loopframes[vm->loopframe_num].next_fn);
-		vm_dec_ref(vm, &vm->loopframes[vm->loopframe_num].curr);
-		vm->loopframe_num--;
+		vm_exitloopframe(vm);
 		break;
 	case O_ENDCOMP:
 		a = vm_pop(vm);
 		vm_pop(vm);
 		vm_push(vm, a);
-		vm_dec_ref(vm, &vm->loopframes[vm->loopframe_num].iterable);
-		vm_dec_ref(vm, &vm->loopframes[vm->loopframe_num].next_fn);
-		vm_dec_ref(vm, &vm->loopframes[vm->loopframe_num].curr);
-		vm->loopframe_num--;
+		vm_exitloopframe(vm);
 		break;
 	case O_ITER_1:
 		vm_ITER_1(vm);
