@@ -404,7 +404,7 @@ static void visit_FnDecl(struct Compiler *const compiler, const struct Node *con
 	visit_Body(compiler, FnDecl_get_body(node));
 
 	// Implicit return at the end of the function.
-	compiler_add_code_BB(compiler, return_op(compiler), 0);
+	compiler_add_code_BB(compiler, return_op(compiler), (unsigned char)scope_len(get_scope_in_use(compiler)));
 
 	exit_scope(compiler);
 

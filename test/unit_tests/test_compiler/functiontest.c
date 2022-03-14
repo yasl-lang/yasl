@@ -15,7 +15,7 @@ static void test_simple() {
 		O_LLOAD, 0x01,
 		O_ADD,
 		O_RET, 0x02,
-		O_RET, 0x00,
+		O_RET, 0x02,
 		O_POP,
 		O_POP,
 		O_HALT,
