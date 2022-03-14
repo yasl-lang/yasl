@@ -1,0 +1,30 @@
+
+let box = undef
+
+const boxmt = {
+    .tostr: fn(self) -> "box(#{self.contents->tostr()})",
+    .__bnot: fn(self) -> self.contents,
+    .update: fn(self, val) {
+        self.contents = val
+    },
+    .__set: mt.get({}).__set
+}
+
+box = fn(val) {
+    const tmp = { .contents: val }
+    mt.set(tmp, boxmt)
+    return tmp
+}
+
+
+const x = box(10)
+
+echo x
+echo ^x
+
+x->update("blah blah blah")
+
+echo x
+echo ^x
+
+
