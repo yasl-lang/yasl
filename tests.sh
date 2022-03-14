@@ -32,7 +32,7 @@ run_mem_tests () {
         declare exit_code=$?;
         if (( exit_code == 255 )); then
             case ${f%.yasl} in
-            test/inputs/scripts/fib_match|test/inputs/scripts/fib|test/errors/stackoverflow/fib|test/errors/stackoverflow/list_eq)
+            test/inputs/scripts/fib_match|test/inputs/scripts/fib|test/errors/stackoverflow/fib|test/errors/stackoverflow/list_eq|test/inputs/closures/memoize|test/inputs/scripts/heap|test/inputs/vargs/*|test/errors/assert/foreach)
                 (( ++skipped ));
                 ;;
             *)
