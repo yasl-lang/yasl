@@ -31,7 +31,7 @@ jobs:
     vmImage: 'windows-2019'
   steps:
   - script:
-      cmake -G "Visual Studio 15" .
+      cmake -G "Visual Studio 16" .
     displayName: "Generate Solution"  
   - task: MSBuild@1
     inputs:
