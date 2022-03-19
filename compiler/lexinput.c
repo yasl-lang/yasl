@@ -2,13 +2,15 @@
 
 #include "data-structures/YASL_ByteBuffer.h"
 
+#include <stdbool.h>
+
 #undef getc
 
 struct LEXINPUT {
   FILE *fp;
   YASL_ByteBuffer *bb;
-  int pos;
-  int iseof;
+  size_t pos;
+  bool iseof;
   int (*getc)(struct LEXINPUT *const lp);
   int (*tell)(struct LEXINPUT *const lp);
   int (*seek)(struct LEXINPUT *const lp, int w, int cmd);
