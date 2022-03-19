@@ -80,7 +80,7 @@ struct LEXINPUT *lexinput_new_file(FILE *const fp) {
 
 static int lexinput_bb_eof(struct LEXINPUT *const lp);
 static  int lexinput_bb_getc(struct LEXINPUT *const lp) {
-	if (lp->pos >= (signed) lp->bb->count) {
+	if (lp->pos >= lp->bb->count) {
 		lp->iseof = 1;
 		return -1;
 	}
