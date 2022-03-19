@@ -13,7 +13,7 @@ jobs:
 - job:
   displayName: "C MinGW Windows"
   pool:
-    vmImage: 'vs2017-win2019'
+    vmImage: 'windows-2019'
   steps:
   - script: |
       set -e
@@ -28,7 +28,7 @@ jobs:
 - job:
   displayName: "C MSVC Windows"
   pool:
-    vmImage: 'vs2017-win2019'
+    vmImage: 'vs2019-win2019'
   steps:
   - script:
       cmake -G "Visual Studio 15" .
