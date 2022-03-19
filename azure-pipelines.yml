@@ -28,7 +28,7 @@ jobs:
 - job:
   displayName: "C MSVC Windows"
   pool:
-    vmImage: 'vs2019-win2019'
+    vmImage: 'windows-2019'
   steps:
   - script:
       cmake -G "Visual Studio 15" .
