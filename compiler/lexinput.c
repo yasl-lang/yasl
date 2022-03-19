@@ -88,7 +88,7 @@ static  int lexinput_bb_getc(struct LEXINPUT *const lp) {
 }
 
 static  int lexinput_bb_tell(struct LEXINPUT *const lp) {
-	return lp->pos;
+	return (int)lp->pos;
 }
 
 static  int lexinput_bb_seek(struct LEXINPUT *const lp, int w, int cmd) {
