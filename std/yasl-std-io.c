@@ -140,7 +140,7 @@ static int YASL_io_read(struct YASL_State *S) {
 		fseek(f, 0, SEEK_SET);
 
 		char *string = (char *) malloc(fsize);
-		int result = fread(string, fsize, 1, f);
+		size_t result = fread(string, fsize, 1, f);
 		(void) result;
 		// TODO clean this up.
 		YASL_pushlstr(S, string, fsize);
