@@ -448,6 +448,7 @@ void YASL_String_split_fast(struct YASL_List *data, struct YASL_String *haystack
 			end++;
 		}
 	}
+	end = YASL_String_len(haystack);
 	struct YASL_Object to = YASL_STR(
 		YASL_String_new_substring(start + haystack->start, end + haystack->start, haystack));
 	YASL_List_append(data, to);
