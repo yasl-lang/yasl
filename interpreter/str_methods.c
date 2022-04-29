@@ -1,5 +1,7 @@
 #include "str_methods.h"
 
+#include <stddef.h>
+
 #include "yasl.h"
 #include "yasl_aux.h"
 #include "yasl_include.h"
