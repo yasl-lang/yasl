@@ -8,6 +8,8 @@
 #include "yasl_types.h"
 #include "yasl_state.h"
 
+#undef min
+
 static size_t min(size_t a, size_t b) {
 	return a < b ? a : b;
 }
