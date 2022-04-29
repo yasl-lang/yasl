@@ -17,6 +17,8 @@ int str_tofloat(struct YASL_State *S);
 
 int str_toint(struct YASL_State *S);
 
+int str_tolist(struct YASL_State *S);
+
 int str_toupper(struct YASL_State *S);
 
 int str_tolower(struct YASL_State *S);
