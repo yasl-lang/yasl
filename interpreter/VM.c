@@ -1409,9 +1409,10 @@ void vm_executenext(struct VM *const vm) {
 	signed char offset;
 	struct YASL_Object a, b;
 	yasl_int c;
-	YASL_VM_DEBUG_LOG("----------------"
+	YASL_VM_DEBUG_LOG("----------------\n"
+		          "line: %zu\n"
 			  "opcode: %x\n"
-			  "vm->sp, vm->prev_fp, vm->curr_fp: %d, %d, %d\n\n", opcode, vm->sp, vm->fp, vm->next_fp);
+			  "vm->sp, vm->prev_fp, vm->curr_fp: %d, %d, %d\n\n", vm_getcurrline(vm), opcode, vm->sp, vm->fp, vm->next_fp);
 	switch (opcode) {
 	case O_EXPORT:
 		vm_close_all(vm);

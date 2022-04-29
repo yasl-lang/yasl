@@ -15,7 +15,7 @@ enum LogLevel {
 	D_RC       = 64
 };
 
-#define LOGLEVEL 0
+#define LOGLEVEL D_VM
 
 #define YASL_LEX_DEBUG_LOG(str, ...) do { if ((LOGLEVEL) & D_LEX) printf(K_RED str K_END, __VA_ARGS__); } while(0)
 #define YASL_PARSE_DEBUG_LOG(str, ...) do { if ((LOGLEVEL) & D_PARSE) printf(K_YEL str K_END, __VA_ARGS__); } while(0)
