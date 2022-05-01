@@ -31,6 +31,7 @@ YASL_FORMAT_CHECK static void compiler_print_err(struct Compiler *compiler, cons
 
 #define break_checkpoint(compiler)    ((compiler)->checkpoints.items[(compiler)->checkpoints.count-1])
 #define continue_checkpoint(compiler) ((compiler)->checkpoints.items[(compiler)->checkpoints.count-2])
+#define stacksize_checkpoint(compiler) ((compiler)->checkpoints.items[(compiler)->checkpoints.count-3])
 
 
 void compiler_tables_del(struct Compiler *compiler) {
@@ -588,6 +589,7 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 	compiler_add_byte(compiler, O_END);
 	decl_var(compiler, name, iter->line);
 
+	add_checkpoint(compiler, scope_len(get_scope_in_use(compiler)));
 	size_t index_start = compiler->buffer->count;
 	add_checkpoint(compiler, index_start);
 
@@ -609,6 +611,7 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 	compiler_add_byte(compiler, O_ENDFOR);
 	exit_scope(compiler);
 
+	rm_checkpoint(compiler);
 	rm_checkpoint(compiler);
 	rm_checkpoint(compiler);
 }
@@ -669,6 +672,7 @@ static void visit_While(struct Compiler *const compiler, const struct Node *cons
 		exit_jump(compiler, &index);
 	}
 
+	add_checkpoint(compiler, scope_len(get_scope_in_use(compiler)));
 	add_checkpoint(compiler, index_start);
 
 	visit(compiler, cond);
@@ -684,6 +688,7 @@ static void visit_While(struct Compiler *const compiler, const struct Node *cons
 
 	exit_conditional_false(compiler, &index_second);
 
+	rm_checkpoint(compiler);
 	rm_checkpoint(compiler);
 	rm_checkpoint(compiler);
 }
@@ -704,6 +709,10 @@ static void visit_Continue(struct Compiler *const compiler, const struct Node *c
 		handle_error(compiler);
 		return;
 	}
+
+	size_t num_pops = scope_len(get_scope_in_use(compiler)) - stacksize_checkpoint(compiler);
+	while (num_pops-- > 0)
+		compiler_add_byte(compiler, O_POP);
 	branch_back(compiler, continue_checkpoint(compiler));
 }
 
