@@ -1,0 +1,34 @@
+
+
+const list = collections.list
+
+const boxes = [ list(.G, .G), list(.G, .S), list(.S, .S) ]
+let is_gold, let is_silver = 0, 0
+
+# Seed random numbers
+math.seed(1)
+
+const n = 10_000
+for let i = 0; i < n; i += 1 {
+    const r1 = math.abs(math.rand()) % 3
+    const box = boxes[r1]
+
+    const r2 = math.abs(math.rand()) % 2
+    const coin = box[r2]
+
+    match coin {
+        .S {
+            continue;
+        }
+        .G {
+            if box[r2 - 1] == .G {
+                is_gold += 1
+            } else {
+                is_silver += 1
+            }
+        }
+    }
+}
+
+echo is_gold
+echo is_silver

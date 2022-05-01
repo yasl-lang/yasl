@@ -95,6 +95,7 @@ static const char *inputs[] = {
   "test/inputs/scripts/LC-2.yasl",
   "test/inputs/scripts/fib_iter.yasl",
   "test/inputs/scripts/factorial.yasl",
+  "test/inputs/scripts/coins.yasl",
   "test/inputs/scripts/LC-1.yasl",
   "test/inputs/scripts/CTCI1-6.yasl",
   "test/inputs/scripts/str_to_json.yasl",
