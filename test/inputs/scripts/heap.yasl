@@ -1,0 +1,132 @@
+
+const listmt = mt.get([])
+const list_push = listmt.push
+const list_pop = listmt.pop
+const list_get = listmt.__get
+const list_set = listmt.__set
+const list_len = listmt.__len
+const list_join = listmt.join
+const fn list_swap(ls, a, b) {
+    const av = list_get(ls, a)
+    const bv = list_get(ls, b)
+    list_set(ls, a, bv)
+    list_set(ls, b, av)
+}
+
+const fn left_child(i) -> 2*i + 1
+const fn right_child(i) -> 2*i + 2
+const fn parent(i) -> ((i-1) // 2)
+
+const fn has_right_child(ls, i) -> right_child(i) < list_len(ls)
+const fn has_children(ls, i) -> left_child(i) < list_len(ls)
+
+const fn smallest_child(ls, i) {
+    assert has_children(ls, i)
+
+    const l = left_child(i)
+    const r = right_child(i)
+
+    if r >= list_len(ls) {
+        return l
+    }
+
+    return list_get(ls, l) < list_get(ls, r) ? l : r
+}
+
+const fn swim_down(ls, root) {
+    if !has_children(ls, root) {
+        return ()
+    }
+
+    const smallest = smallest_child(ls, root)
+    if list_get(ls, root) < list_get(ls, smallest) {
+        return ()
+    }
+
+    list_swap(ls, root, smallest)
+    swim_down(ls, smallest)
+}
+
+const fn swim_up(ls, child) {
+    if child == 0 {
+        return ()
+    }
+    const p = parent(child)
+    if list_get(ls, child) < list_get(ls, p) {
+        list_swap(ls, child, p)
+        swim_up(ls, p)
+    }
+}
+
+const fn heapify(ls) {
+    for let i = list_len(ls) // 2 - 1; i >= 0; i -= 1 {
+        swim_down(ls, i)
+    }
+}
+
+const fn assert_heap(ls) {
+    for let i = 0; i < list_len(ls); i += 1 {
+        assert !has_children(ls, i) || list_get(ls, smallest_child(ls, i)) >= list_get(ls, i)
+    }
+}
+
+const fn heap_pop(ls) {
+    assert list_len(ls) > 0
+
+    if list_len(ls) == 1 {
+        return list_pop(ls)
+    }
+
+    const tmp = list_get(ls, 0)
+    list_set(ls, 0, list_pop(ls))
+    swim_down(ls, 0)
+    return tmp
+}
+
+const fn heap_push(ls, v) {
+    const n = list_len(ls)
+    list_push(ls, v)
+    swim_up(ls, n)
+}
+
+const fn heap_len(ls) -> list_len(ls)
+const fn heap_peek(ls) -> ls[0]
+
+const fn heap_tostr(ls) {
+    const tmp = list_join(ls, ', ')
+    return "heap(#{tmp})"
+}
+
+const heapmt = {
+    .__len: heap_len,
+    .push: heap_push,
+    .pop: heap_pop,
+    .peek: heap_peek,
+    .tostr: heap_tostr
+}
+
+const fn heap(args[]) {
+    mt.set(args, heapmt)
+    heapify(args)
+    return args
+}
+
+const h = heap( 10, 12, 13, 45, 27, 931, 433, 7, 4, 12, 9, 112 )
+
+echo h
+
+assert_heap(h)
+
+for v <- [ 121, 3, 32, 45, 645, 555, 69 ] {
+    h->push(v)
+    assert_heap(h)
+}
+
+echo h
+
+
+while len h > 0 {
+    echo h->pop()
+    assert_heap(h)
+}
+

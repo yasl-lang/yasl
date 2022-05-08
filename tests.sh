@@ -32,7 +32,7 @@ run_mem_tests () {
         declare exit_code=$?;
         if (( exit_code == 255 )); then
             case ${f%.yasl} in
-            test/inputs/scripts/fib_match|test/inputs/scripts/fib|test/errors/stackoverflow/fib|test/errors/stackoverflow/list_eq)
+            test/inputs/scripts/fib_match|test/inputs/scripts/fib|test/errors/stackoverflow/fib|test/errors/stackoverflow/list_eq|test/inputs/closures/memoize|test/inputs/scripts/heap|test/inputs/vargs/*|test/errors/assert/foreach)
                 (( ++skipped ));
                 ;;
             *)
@@ -94,7 +94,7 @@ run_cli_test () {
 
 run_cli_tests () {
     echo "Running CLI tests...";
-    run_cli_test 'YASL v0.11.11' '-V';
+    run_cli_test 'YASL v0.11.12' '-V';
     run_cli_test '10' '-e' "let x=10; x;";
     run_cli_test '' '-E' 'let x = 10; x;';
     run_cli_test '10' '-E' 'let x = 10; echo x;';

@@ -101,10 +101,10 @@ void str_del(struct YASL_String *const str) {
 
 
 bool isvaliddouble(const char *str) {
-	long len = strlen(str);
+	const size_t len = strlen(str);
 	bool hasdot = false;
 	bool hase = false;
-	for (size_t i = 0; i < strlen(str); i++) {
+	for (size_t i = 0; i < len; i++) {
 		switch (str[i]) {
 		case '0':
 		case '1':
@@ -140,10 +140,10 @@ bool isvaliddouble(const char *str) {
 
 int64_t str_find_index(const struct YASL_String *const haystack, const struct YASL_String *const needle) {
 	// TODO: implement non-naive algorithm for string search.
-	const size_t haystack_len = YASL_String_len(haystack);
-	const size_t needle_len = YASL_String_len(needle);
+	const yasl_int haystack_len = YASL_String_len(haystack);
+	const yasl_int needle_len = YASL_String_len(needle);
 	if (haystack_len < needle_len) return -1;
-	size_t i = 0;
+	yasl_int i = 0;
 	const char *hayStr = YASL_String_chars(haystack);
 	const char *needleStr = YASL_String_chars(needle);
 	while (i <= haystack_len - needle_len) {
@@ -448,6 +448,7 @@ void YASL_String_split_fast(struct YASL_List *data, struct YASL_String *haystack
 			end++;
 		}
 	}
+	end = YASL_String_len(haystack);
 	struct YASL_Object to = YASL_STR(
 		YASL_String_new_substring(start + haystack->start, end + haystack->start, haystack));
 	YASL_List_append(data, to);

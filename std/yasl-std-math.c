@@ -332,6 +332,12 @@ static int YASL_math_rand(struct YASL_State *S) {
 	return 1;
 }
 
+static int YASL_math_seed(struct YASL_State *S) {
+	yasl_int n = YASLX_checknint(S, "math.seed", 0);
+	srand(n);
+	return 0;
+}
+
 int YASL_decllib_math(struct YASL_State *S) {
 	YASL_declglobal(S, "math");
 	YASL_pushtable(S);
@@ -432,8 +438,13 @@ int YASL_decllib_math(struct YASL_State *S) {
 	YASL_tableset(S);
 
 	YASL_pushlit(S, "rand");
-	YASL_pushcfunction(S, YASL_math_rand, 1);
+	YASL_pushcfunction(S, YASL_math_rand, 0);
 	YASL_tableset(S);
+
+	YASL_pushlit(S, "seed");
+	YASL_pushcfunction(S, YASL_math_seed, 1);
+	YASL_tableset(S);
+
 	YASL_pop(S);
 
 	return YASL_SUCCESS;

@@ -1,3 +1,4 @@
+#include <interpreter/upvalue.h>
 #include "test/yats.h"
 #include "yasl.h"
 #include "yasl_aux.h"
@@ -271,6 +272,24 @@ static TEST(testinsertbottom) {
 	return NUM_FAILED;
 }
 
+static TEST(testaddupvalue) {
+	struct VM vm;
+	vm_init(&vm, NULL, 0, 1);
+
+	// These will never be dereferenced in this test.
+	add_upvalue(&vm, (struct YASL_Object *)(0x100));
+	add_upvalue(&vm, (struct YASL_Object *)(0x300));
+	add_upvalue(&vm, (struct YASL_Object *)(0x400));
+	add_upvalue(&vm, (struct YASL_Object *)(0x200));
+	add_upvalue(&vm, (struct YASL_Object *)(0x500));
+
+	for (struct Upvalue *curr = vm.pending; curr; curr = curr->next) {
+		ASSERT(!curr->next || curr->location > curr->next->location);
+	}
+
+	return NUM_FAILED;
+}
+
 int vmtest(void) {
 	RUN(testpushundef);
 	RUN(testpushbool);
@@ -284,6 +303,7 @@ int vmtest(void) {
 	RUN(testinsert);
 	RUN(testinserttop);
 	RUN(testinsertbottom);
+	RUN(testaddupvalue);
 
 	return NUM_FAILED;
 }

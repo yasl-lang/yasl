@@ -11,6 +11,6 @@ void closure_del_data(struct VM *vm, struct Closure *closure) {
 	}
 }
 
-void closure_del_rc(struct Closure *closure) {
-	free(closure);
+void closure_del_rc(struct VM *vm, struct Closure *closure) {
+	vm_free_cyclic(vm, closure);
 }

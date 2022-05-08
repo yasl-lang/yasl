@@ -1,0 +1,10 @@
+
+
+const list = collections.list
+
+echo list((fn() -> ())())
+echo list((fn() {
+    return ()
+})())
+echo list(())
+

@@ -584,7 +584,7 @@ void vm_stringify_top(struct VM *const vm) {
 	}
 }
 
-static struct Upvalue *add_upvalue(struct VM *const vm, struct YASL_Object *const location) {
+struct Upvalue *add_upvalue(struct VM *const vm, struct YASL_Object *const location) {
 	if (vm->pending == NULL) {
 		return (vm->pending = upval_new(location));
 	}
@@ -602,8 +602,12 @@ static struct Upvalue *add_upvalue(struct VM *const vm, struct YASL_Object *cons
 		}
 		if (curr->location < location) {
 			struct Upvalue *upval = upval_new(location);
-			upval->next = curr->next;
-			curr->next = upval;
+			if (prev == NULL) {
+				vm->pending = upval;
+			} else {
+				prev->next = upval;
+			}
+			upval->next = curr;
 			return upval;
 		}
 		return (curr->next = upval_new(location));
@@ -617,7 +621,7 @@ static void vm_CCONST(struct VM *const vm) {
 	vm->pc += len;
 
 	const size_t num_upvalues = NCODE(vm);
-	struct Closure *closure = (struct Closure *)malloc(sizeof(struct Closure) + num_upvalues*sizeof(struct Upvalue *));
+	struct Closure *closure = (struct Closure *)vm_alloc_cyclic(vm, sizeof(struct Closure) + num_upvalues*sizeof(struct Upvalue *));
 	closure->f = start;
 	closure->num_upvalues = num_upvalues;
 	closure->rc = NEW_RC();
@@ -889,7 +893,7 @@ static void vm_ITER_1(struct VM *const vm) {
 		vm_push(vm, frame->iterable);
 		vm_push(vm, frame->curr);
 		vm_INIT_CALL_offset(vm, vm->sp - 2, -1);
-		vm_CALL(vm);
+		vm_CALL_now(vm);
 		if (vm_popbool(vm)) {
 			dec_ref(&frame->curr);
 			struct YASL_Object value = vm_pop(vm);
@@ -1137,6 +1141,13 @@ static void vm_enterframe_offset(struct VM *const vm, int offset, int num_return
 
 static void vm_fill_args(struct VM *const vm, const int num_args);
 
+static void vm_exitloopframe(struct VM *const vm) {
+	vm_dec_ref(vm, &vm->loopframes[vm->loopframe_num].iterable);
+	vm_dec_ref(vm, &vm->loopframes[vm->loopframe_num].curr);
+	vm_dec_ref(vm, &vm->loopframes[vm->loopframe_num].next_fn);
+	vm->loopframe_num--;
+}
+
 static void vm_exitframe_multi(struct VM *const vm, int len) {
 	vm_rm_range(vm, vm->fp, vm->fp + len + 1);
 
@@ -1159,7 +1170,7 @@ static void vm_exitframe_multi(struct VM *const vm, int len) {
 	vm->fp = frame.prev_fp;
 	vm->next_fp = frame.curr_fp;
 	while (vm->loopframe_num > frame.lp) {
-		vm_dec_ref(vm, &vm->loopframes[vm->loopframe_num--].iterable);
+		vm_exitloopframe(vm);
 	}
 
 	vm->frame_num--;
@@ -1173,7 +1184,7 @@ static void vm_exitframe(struct VM *const vm) {
 	vm->fp = frame.prev_fp;
 	vm->next_fp = frame.curr_fp;
 	while (vm->loopframe_num > frame.lp) {
-		vm_dec_ref(vm, &vm->loopframes[vm->loopframe_num--].iterable);
+		vm_exitloopframe(vm);
 	}
 
 	vm->frame_num--;
@@ -1264,7 +1275,7 @@ static void vm_CALL_cfn(struct VM *const vm) {
 }
 
 void vm_COLLECT_REST_PARAMS(struct VM *const vm) {
-	int offset;
+	int offset = 0;
 	if (vm_isfn(vm, vm->fp)) {
 		offset = ~*(signed char *) vm_peek(vm, vm->fp).value.fval;
 	} else if (vm_isclosure(vm, vm->fp)) {
@@ -1398,9 +1409,10 @@ void vm_executenext(struct VM *const vm) {
 	signed char offset;
 	struct YASL_Object a, b;
 	yasl_int c;
-	YASL_VM_DEBUG_LOG("----------------"
+	YASL_VM_DEBUG_LOG("----------------\n"
+		  	  "line: %" PRI_SIZET "\n"
 			  "opcode: %x\n"
-			  "vm->sp, vm->prev_fp, vm->curr_fp: %d, %d, %d\n\n", opcode, vm->sp, vm->fp, vm->next_fp);
+			  "vm->sp, vm->prev_fp, vm->curr_fp: %d, %d, %d\n\n", vm_getcurrline(vm), opcode, vm->sp, vm->fp, vm->next_fp);
 	switch (opcode) {
 	case O_EXPORT:
 		vm_close_all(vm);
@@ -1560,7 +1572,7 @@ void vm_executenext(struct VM *const vm) {
 			obj_typename(obj));
 		vm_shifttopdown(vm, 1);
 		vm_INIT_CALL_offset(vm, vm->sp - 1, 2);
-		vm_CALL(vm);
+		vm_CALL_now(vm);
 		inc_ref(vm_peek_p(vm));
 		vm->loopframes[vm->loopframe_num].curr = vm_pop(vm);
 		inc_ref(vm_peek_p(vm));
@@ -1569,15 +1581,13 @@ void vm_executenext(struct VM *const vm) {
 		break;
 	}
 	case O_ENDFOR:
-		vm_dec_ref(vm, &vm->loopframes[vm->loopframe_num].iterable);
-		vm->loopframe_num--;
+		vm_exitloopframe(vm);
 		break;
 	case O_ENDCOMP:
 		a = vm_pop(vm);
 		vm_pop(vm);
 		vm_push(vm, a);
-		vm_dec_ref(vm, &vm->loopframes[vm->loopframe_num].iterable);
-		vm->loopframe_num--;
+		vm_exitloopframe(vm);
 		break;
 	case O_ITER_1:
 		vm_ITER_1(vm);

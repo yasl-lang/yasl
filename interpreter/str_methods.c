@@ -1,10 +1,18 @@
 #include "str_methods.h"
 
+#include <stddef.h>
+
 #include "yasl.h"
 #include "yasl_aux.h"
 #include "yasl_include.h"
 #include "yasl_types.h"
 #include "yasl_state.h"
+
+#undef min
+
+static size_t min(size_t a, size_t b) {
+	return a < b ? a : b;
+}
 
 static struct YASL_String *YASLX_checknstr(struct YASL_State *S, const char *name, unsigned pos) {
 	if (!YASL_isnstr(S, pos)) {
@@ -83,6 +91,28 @@ int str_tofloat(struct YASL_State *S) {
 int str_toint(struct YASL_State *S) {
 	struct YASL_String *str = YASLX_checknstr(S, "str.toint", 0);
 	YASL_pushint(S, YASL_String_toint(str));
+	return 1;
+}
+
+int str_tolist(struct YASL_State *S) {
+	size_t size = 1;
+	if (YASL_isint(S)) {
+		yasl_int n = YASL_popint(S);
+		if (n <= 0) {
+			YASL_print_err(S, "ValueError: Expecte a positive number.");
+			YASL_throw_err(S, YASL_VALUE_ERROR);
+		}
+		size = n;
+	} else {
+		YASLX_checknundef(S, "str.tolist", 1);
+	}
+	struct YASL_String *str = YASLX_checknstr(S, "str.tolist", 0);
+	const size_t len = YASL_String_len(str);
+	YASL_pushlist(S);
+	for (size_t i = 0; i < len; i+= size) {
+		YASL_pushlstr(S, YASL_String_chars(str) + i, min(size, len - i));
+		YASL_listpush(S);
+	}
 	return 1;
 }
 

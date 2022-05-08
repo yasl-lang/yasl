@@ -70,7 +70,7 @@ static void dec_strong_ref(struct VM *vm, struct YASL_Object *v) {
 	case Y_CLOSURE:
 		if (--(v->value.lval->rc.refs)) return;
 		closure_del_data(vm, v->value.lval);
-		closure_del_rc(v->value.lval);
+		closure_del_rc(vm, v->value.lval);
 		v->type = Y_UNDEF;
 		break;
 	default:

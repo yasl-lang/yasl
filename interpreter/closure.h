@@ -12,6 +12,6 @@ struct Closure {
 };
 
 void closure_del_data(struct VM *vm, struct Closure *closure);
-void closure_del_rc(struct Closure *closure);
+void closure_del_rc(struct VM *vm, struct Closure *closure);
 
 #endif

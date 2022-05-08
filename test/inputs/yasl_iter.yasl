@@ -1,0 +1,57 @@
+# const orderedtable = require('./sample.yam')
+
+const orderedtablemt = {
+	.__get: fn(self, key) {
+		return self->__table()[key]
+	},
+	.__set: fn(self, key, val) {
+		if !self->__table()[key] {
+			self->__list()->push(key)
+		}
+		self->__table()[key] = val
+	},
+	.__iter: fn(self) ->
+		(fn(t, i) {
+		    # echo t
+		    # echo i
+			const l = t->__list()
+			if i >= len l {
+				return false
+			} else {
+				return i + 1, l[i], true
+			}
+		}, 0),
+	.tostr: fn(self) {
+		const buffer = []
+		for k <- self->__list() {
+			buffer->push("#{k}: #{self->__table()[k]}")
+		}
+		return "orderedtable(#{buffer->join(', ')})"
+	},
+	.__list: fn(self) {
+	    return {}.__get(self, .list)
+	},
+	.__table: fn(self) {
+	    return {}.__get(self, .table)
+	}
+}
+
+const fn orderedtable() {
+	const t = {}
+	const l = []
+	const tmp = { .table: t, .list: l }
+	mt.set(tmp, orderedtablemt)
+	return tmp
+}
+
+const t = orderedtable()
+
+t.a = 'A'
+t.b = 'B'
+t.c = 'C'
+
+for i <- t {
+	echo "#{i}: #{t[i]}"
+}
+
+
