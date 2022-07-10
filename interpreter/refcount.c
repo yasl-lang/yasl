@@ -45,7 +45,7 @@ void inc_ref(struct YASL_Object *v) {
 	}
 }
 
-static void dec_strong_ref(struct VM *vm, struct YASL_Object *v) {
+void dec_strong_ref(struct VM *vm, struct YASL_Object *v) {
 	switch (v->type) {
 	case Y_STR:
 		if (--(v->value.sval->rc.refs)) return;

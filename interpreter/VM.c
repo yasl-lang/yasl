@@ -197,7 +197,7 @@ void vm_throw_err(struct VM *const vm, int error) {
 
 void vm_dec_ref(struct VM *const vm, struct YASL_Object *val) {
 	YASL_UNUSED(vm);
-	dec_ref(val);
+	dec_strong_ref(vm, val);
 }
 
 void vm_push(struct VM *const vm, const struct YASL_Object val) {
@@ -613,6 +613,16 @@ struct Upvalue *add_upvalue(struct VM *const vm, struct YASL_Object *const locat
 		return (curr->next = upval_new(location));
 	}
 	return (prev->next = upval_new(location));
+}
+
+void vm_remove_pending_upvalue(struct VM *vm, struct Upvalue *upval) {
+	struct Upvalue **p = &vm->pending;
+	while (*p != NULL) {
+		if (*p == upval)
+			*p = upval->next;
+		else
+			p = &(*p)->next;
+	}
 }
 
 static void vm_CCONST(struct VM *const vm) {

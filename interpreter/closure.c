@@ -5,6 +5,7 @@ void closure_del_data(struct VM *vm, struct Closure *closure) {
 		struct Upvalue *upval = closure->upvalues[i];
 		upval->rc.refs--;
 		if (upval->rc.refs == 0) {
+			vm_remove_pending_upvalue(vm, upval);
 			vm_dec_ref(vm, upval->location);
 			free(upval);
 		}
