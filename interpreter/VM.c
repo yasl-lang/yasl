@@ -616,6 +616,9 @@ struct Upvalue *add_upvalue(struct VM *const vm, struct YASL_Object *const locat
 }
 
 void vm_remove_pending_upvalue(struct VM *vm, struct Upvalue *upval) {
+	// Hack until we get every possible call site to this passing VM* correctly.
+	// Currently, some pass NULL for backwards compatibility.
+	if (vm == NULL) return;
 	struct Upvalue **p = &vm->pending;
 	while (*p != NULL) {
 		if (*p == upval)
