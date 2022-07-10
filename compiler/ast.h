@@ -146,7 +146,7 @@ DECL_NODE(Continue, N_CONT)
 DECL_NODE(Match, N_MATCH, cond, patterns, guards, bodies)
 DECL_NODE(If, N_IF, cond, then, el)
 
-DECL_NODE(Echo, N_ECHO, expr)
+DECL_NODE(Echo, N_ECHO, exprs)
 DECL_NODE(Decl, N_DECL, lvals, rvals)
 DECL_ZSTR_NODE(FnDecl, N_FNDECL, params, body)
 DECL_NODE(Undef, N_UNDEF)
