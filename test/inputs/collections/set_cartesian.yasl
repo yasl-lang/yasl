@@ -1,0 +1,18 @@
+
+const set = collections.set
+
+const fn concat(left, right) {
+    const tmp = set()
+    for l <- left {
+        for r <- right {
+            tmp->add(l ~ r)
+        }
+    }
+    return tmp
+}
+
+
+const a = set(.A, .B, .C, .D)
+const b = set('1', '2', '3')
+
+echo concat(a, b)

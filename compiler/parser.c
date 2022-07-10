@@ -219,6 +219,20 @@ static bool isfndecl(struct Parser *const parser) {
 }
 
 /*
+ * Checks for function statement `fn <id> ...` vs function expr `fn ( ...`.
+ */
+static bool isemptyvargs(struct Parser *const parser) {
+	long curr = lxtell(parser->lex.file);
+	eattok(parser, T_LPAR);
+	lex_val_free(&parser->lex);
+	lex_val_setnull(&parser->lex);
+	bool result = TOKEN_MATCHES(parser, T_RPAR);
+	lxseek(parser->lex.file, curr, SEEK_SET);
+	parser->lex.type = T_LPAR;
+	return result;
+}
+
+/*
  * Checks for const function statement `const fn ...` vs const decl `const <id> ...`.
  */
 static bool isconstfndecl(struct Parser *const parser) {
@@ -328,7 +342,14 @@ static struct Node *parse_expr_or_vargs(struct Parser *const parser) {
 	}
 }
 
+
 static void parse_exprs_or_vargs(struct Parser *const parser, struct Node **body) {
+	if (TOKEN_MATCHES(parser, T_LPAR) && isemptyvargs(parser)) {
+		eattok(parser, T_LPAR);
+		eattok(parser, T_RPAR);
+		return;
+	}
+
 	struct Node *expr = NULL;
 	do {
 		expr = parse_expr_or_vargs(parser);
@@ -360,9 +381,13 @@ static struct Node *parse_fn_body(struct Parser *const parser, bool collect_rest
 		}
 		size_t line = parserline(parser);
 		if (matcheattok(parser, T_LPAR)) {
-			struct Node *block = parse_return_vals(parser);
-			eattok(parser, T_RPAR);
-			body_append(parser, &body, new_MultiReturn(parser, block, line));
+			if (matcheattok(parser, T_RPAR)) {
+				body_append(parser, &body, new_Return(parser, new_Block(parser, new_Body(parser, line), line), line));
+			} else {
+				struct Node *block = parse_return_vals(parser);
+				eattok(parser, T_RPAR);
+				body_append(parser, &body, new_Return(parser, block, line));
+			}
 		} else {
 			struct Node *expr = parse_expr_or_vargs(parser);
 			body_append(parser, &body, new_Return(parser, new_VariadicContext(expr, -1), line));
@@ -410,7 +435,7 @@ static struct Node *parse_return(struct Parser *const parser) {
 	size_t line = parserline(parser);
 	eattok(parser, T_RET);
 	struct Node *block = parse_return_vals(parser);
-	return new_MultiReturn(parser, block, line);
+	return new_Return(parser, block, line);
 }
 
 static struct Node *parse_fn(struct Parser *const parser) {
@@ -621,6 +646,20 @@ static struct Node *parse_primitivepattern(struct Parser *const parser) {
 			n = parse_float(parser);
 			n->nodetype = N_PATFL;
 			n->value.dval *= -1;
+			return n;
+		} else {
+			parser_print_err_syntax(parser, "Expected numeric pattern, got pattern starting in %s (line %" PRI_SIZET ").\n", YASL_TOKEN_NAMES[curtok(parser)], line);
+			handle_error(parser);
+		}
+	case T_PLUS:
+		eattok(parser, T_PLUS);
+		if (curtok(parser) == T_INT) {
+			n = parse_integer(parser);
+			n->nodetype = N_PATINT;
+			return n;
+		} else if (curtok(parser) == T_FLOAT) {
+			n = parse_float(parser);
+			n->nodetype = N_PATFL;
 			return n;
 		} else {
 			parser_print_err_syntax(parser, "Expected numeric pattern, got pattern starting in %s (line %" PRI_SIZET ").\n", YASL_TOKEN_NAMES[curtok(parser)], line);

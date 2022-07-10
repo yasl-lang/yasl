@@ -101,10 +101,10 @@ void str_del(struct YASL_String *const str) {
 
 
 bool isvaliddouble(const char *str) {
-	long len = strlen(str);
+	const size_t len = strlen(str);
 	bool hasdot = false;
 	bool hase = false;
-	for (size_t i = 0; i < strlen(str); i++) {
+	for (size_t i = 0; i < len; i++) {
 		switch (str[i]) {
 		case '0':
 		case '1':
@@ -140,10 +140,10 @@ bool isvaliddouble(const char *str) {
 
 int64_t str_find_index(const struct YASL_String *const haystack, const struct YASL_String *const needle) {
 	// TODO: implement non-naive algorithm for string search.
-	const size_t haystack_len = YASL_String_len(haystack);
-	const size_t needle_len = YASL_String_len(needle);
+	const yasl_int haystack_len = YASL_String_len(haystack);
+	const yasl_int needle_len = YASL_String_len(needle);
 	if (haystack_len < needle_len) return -1;
-	size_t i = 0;
+	yasl_int i = 0;
 	const char *hayStr = YASL_String_chars(haystack);
 	const char *needleStr = YASL_String_chars(needle);
 	while (i <= haystack_len - needle_len) {
@@ -361,7 +361,7 @@ bool YASL_String_endswith(struct YASL_String *haystack, struct YASL_String *need
 
 // Caller makes sure search_str is at least length 1.
 struct YASL_String *YASL_String_replace_fast_default(struct YASL_String *str, struct YASL_String *search_str,
-					     struct YASL_String *replace_str) {
+					     struct YASL_String *replace_str, int *replacements) {
 	YASL_ASSERT(YASL_String_len(search_str) >= 1, "`search_str` must be at least length 1");
 
 	STR_REPLACE_START
@@ -369,6 +369,7 @@ struct YASL_String *YASL_String_replace_fast_default(struct YASL_String *str, st
 		if (search_len <= str_len - i && memcmp(str_ptr + i, search_str_ptr, search_len) == 0) {
 			YASL_ByteBuffer_extend(buff, replace_str_ptr, YASL_String_len(replace_str));
 			i += search_len;
+			++*replacements;
 		} else {
 			YASL_ByteBuffer_add_byte(buff, str_ptr[i++]);
 		}
@@ -379,7 +380,7 @@ struct YASL_String *YASL_String_replace_fast_default(struct YASL_String *str, st
 
 // Caller makes sure search_str is at least length 1.
 struct YASL_String *YASL_String_replace_fast(struct YASL_String *str, struct YASL_String *search_str,
-					     struct YASL_String *replace_str, yasl_int max) {
+					     struct YASL_String *replace_str, int *replacements, yasl_int max) {
 	YASL_ASSERT(YASL_String_len(search_str) >= 1, "`search_str` must be at least length 1");
 
 	STR_REPLACE_START
@@ -387,6 +388,7 @@ struct YASL_String *YASL_String_replace_fast(struct YASL_String *str, struct YAS
 		if (search_len <= str_len - i && memcmp(str_ptr + i, search_str_ptr, search_len) == 0 && max > 0) {
 			YASL_ByteBuffer_extend(buff, replace_str_ptr, YASL_String_len(replace_str));
 			i += search_len;
+			++*replacements;
 		} else {
 			YASL_ByteBuffer_add_byte(buff, str_ptr[i++]);
 		}
@@ -448,6 +450,7 @@ void YASL_String_split_fast(struct YASL_List *data, struct YASL_String *haystack
 			end++;
 		}
 	}
+	end = YASL_String_len(haystack);
 	struct YASL_Object to = YASL_STR(
 		YASL_String_new_substring(start + haystack->start, end + haystack->start, haystack));
 	YASL_List_append(data, to);

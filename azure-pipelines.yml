@@ -13,7 +13,7 @@ jobs:
 - job:
   displayName: "C MinGW Windows"
   pool:
-    vmImage: 'vs2017-win2016'
+    vmImage: 'windows-2019'
   steps:
   - script: |
       set -e
@@ -28,10 +28,10 @@ jobs:
 - job:
   displayName: "C MSVC Windows"
   pool:
-    vmImage: 'vs2017-win2016'
+    vmImage: 'windows-2019'
   steps:
   - script:
-      cmake -G "Visual Studio 15" .
+      cmake -G "Visual Studio 16" .
     displayName: "Generate Solution"  
   - task: MSBuild@1
     inputs:
@@ -43,10 +43,12 @@ jobs:
 - job: 
   displayName: "C TCC Ubuntu"
   pool:
-    vmImage: 'ubuntu-18.04'
+    vmImage: 'ubuntu-20.04'
   steps:
-  - script:
-      sudo apt install valgrind
+  - script: |
+      set -e
+      sudo apt-get update
+      sudo apt-get install valgrind
     displayName: "Install Valgrind"  
   - script: |
       set -e
@@ -73,10 +75,12 @@ jobs:
 - job: 
   displayName: "C GCC Ubuntu"
   pool:
-    vmImage: 'ubuntu-18.04'
+    vmImage: 'ubuntu-20.04'
   steps:
-  - script:
-      sudo apt install valgrind
+  - script: |
+      set -e
+      sudo apt-get update
+      sudo apt-get install valgrind
     displayName: "Install Valgrind"  
   - script: |
       set -e
@@ -94,10 +98,12 @@ jobs:
 - job: 
   displayName: "C Clang Ubuntu"
   pool:
-    vmImage: 'ubuntu-18.04'
+    vmImage: 'ubuntu-20.04'
   steps:
-  - script:
-      sudo apt install valgrind
+  - script: |
+      set -e
+      sudo apt-get update
+      sudo apt-get install valgrind
     displayName: "Install Valgrind"  
   - script: |
       set -e
@@ -117,10 +123,12 @@ jobs:
 - job:
   displayName: "C Clang Ubuntu [Debug]"
   pool:
-    vmImage: 'ubuntu-18.04'
+    vmImage: 'ubuntu-20.04'
   steps:
-  - script:
-      sudo apt install valgrind
+  - script: |
+      set -e
+      sudo apt-get update
+      sudo apt-get install valgrind
     displayName: "Install Valgrind"
   - script: |
       set -e
@@ -140,10 +148,12 @@ jobs:
 - job: 
   displayName: "C++ GCC Ubuntu"
   pool:
-    vmImage: 'ubuntu-18.04'
+    vmImage: 'ubuntu-20.04'
   steps:
-  - script:
-      sudo apt install valgrind
+  - script: |
+      set -e
+      sudo apt-get update
+      sudo apt-get install valgrind
     displayName: "Install Valgrind"  
   - script: |
       set -e
@@ -162,10 +172,12 @@ jobs:
 - job: 
   displayName: "C++ Clang Ubuntu"
   pool:
-    vmImage: 'ubuntu-18.04'
+    vmImage: 'ubuntu-20.04'
   steps:
-  - script:
-      sudo apt install valgrind
+  - script: |
+      set -e
+      sudo apt-get update
+      sudo apt-get install valgrind
     displayName: "Install Valgrind"  
   - script: |
       set -e
