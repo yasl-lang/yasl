@@ -18,9 +18,10 @@ struct YASL_Set *YASL_Set_new(void) {
 	return set_new_sized(SET_BASESIZE);
 }
 
-void YASL_Set_del(void *s) {
-	if (!s) return;
-	struct YASL_Set *set = (struct YASL_Set *)s;
+void YASL_Set_del(struct YASL_State *S, void *ptr) {
+	YASL_UNUSED(S);
+	if (!ptr) return;
+	struct YASL_Set *set = (struct YASL_Set *)ptr;
 	FOR_SET(i, item, set) {
 		dec_ref(item);
 	}
@@ -45,7 +46,7 @@ static void set_resize(struct YASL_Set *const set, const size_t base_size) {
 	set->items = new_set->items;
 	new_set->items = tmp_items;
 
-	YASL_Set_del(new_set);
+	YASL_Set_del(NULL, new_set);
 }
 
 static void set_resize_up(struct YASL_Set *set) {

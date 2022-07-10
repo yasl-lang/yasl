@@ -14,7 +14,7 @@ struct YASL_Set {
 };
 
 struct YASL_Set *YASL_Set_new(void);
-void YASL_Set_del(void *s);
+void YASL_Set_del(struct YASL_State *S, void *set);
 bool YASL_Set_insert(struct YASL_Set *const set, struct YASL_Object value) /* YASL_WARN_UNUSED */;
 bool YASL_Set_search(const struct YASL_Set *const set, const struct YASL_Object key);
 void YASL_Set_rm(struct YASL_Set *const set, struct YASL_Object key);

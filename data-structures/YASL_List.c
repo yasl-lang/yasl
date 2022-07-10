@@ -30,7 +30,8 @@ struct RC_UserData* rcls_new(void) {
 	return rcls_new_sized(LIST_BASESIZE);
 }
 
-void YASL_List_del_data(void *ls) {
+void YASL_List_del_data(struct YASL_State *S, void *ls) {
+	YASL_UNUSED(S);
 	for (size_t i = 0; i < ((struct YASL_List *) ls)->count; i++) dec_ref(((struct YASL_List *) ls)->items + i);
 	free(((struct YASL_List *) ls)->items);
 	free(ls);
