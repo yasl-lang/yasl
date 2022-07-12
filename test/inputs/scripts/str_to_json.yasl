@@ -79,9 +79,7 @@ const fn gettoken(const str, n) {
 }
 
 const fn Lex(const str) {
-    const lex = {
-        .str: str,
-        .n: 0,
+    const lex_mt = {
         .gettoken: fn(self) {
             const curr, const n = gettoken(self.str, self.n)
             self.curr = curr
@@ -96,15 +94,21 @@ const fn Lex(const str) {
             const value = self.curr.value
             self->gettoken()
             return value
-        }
+        },
+        .__set: fn(self, key, val) ->
+            mt.get({}).__set(self, key, val)
     }
+    const lex = {
+        .str: str,
+        .n: 0
+    }
+    mt.set(lex, lex_mt)
     lex->gettoken()
     return lex
 }
 
 const fn Parser(const lex) {
-    return {
-        .lex: lex,
+    const parser_mt = {
         .parse_value: fn(self) {
                 if self.lex.curr == T_LBRC {
                         return self->parse_table()
@@ -154,6 +158,11 @@ const fn Parser(const lex) {
                 return value
         }
     }
+    const parser = {
+        .lex: lex
+    }
+    mt.set(parser, parser_mt)
+    return parser
 }
 
 const fn parse(str) {

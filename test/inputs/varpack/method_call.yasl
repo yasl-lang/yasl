@@ -1,13 +1,16 @@
 
-const obj = {}
+const obj_mt = {}
 
-fn obj.f(self, a, b, c) {
+fn obj_mt.f(self, a, b, c) {
     return a, b, c
 }
 
-fn obj.g(self, x, y, z) {
+fn obj_mt.g(self, x, y, z) {
     return x + y + z
 }
+
+const obj = {}
+mt.set(obj, obj_mt)
 
 # at the end, expand f's return values
 echo obj->g(obj->f(1, 2, 3))
