@@ -1,5 +1,5 @@
 
-let obj = {}
+let obj_mt = {}
 
 const fn f(const a, const b, const c) {
     echo a
@@ -7,11 +7,12 @@ const fn f(const a, const b, const c) {
     echo c
 }
 
-fn obj.g(self, const e, const f, const g) {
+fn obj_mt.g(self, const e, const f, const g) {
     return e, f, g
 }
 
-mt.set(obj, obj)
+const obj = {}
+mt.set(obj, obj_mt)
 
 # 2, a, 4
 f(obj->g(2, obj->g(.a, .b, .c), 4))

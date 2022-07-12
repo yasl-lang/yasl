@@ -1,19 +1,20 @@
 
-const obj = {}
+const obj_mt = {}
 
-fn obj.f() {
+fn obj_mt.f() {
     return 1, 2
 }
 
-fn obj.g() {
+fn obj_mt.g() {
     return .a, .b, .c
 }
 
-fn obj.h() {
+fn obj_mt.h() {
     return 'first', 'second'
 }
 
-mt.set(obj, obj)
+const obj = {}
+mt.set(obj, obj_mt)
 
 let a, let b, let c = false, obj->f()
 

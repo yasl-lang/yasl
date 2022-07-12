@@ -1,19 +1,21 @@
 
 const obj = { .x: 10, .y: 1, .z: 100, .extra: 20 }
 
-fn obj.f(self) {
+const obj_mt = {}
+
+fn obj_mt.f(self) {
     return self.x, self.y
 }
 
-fn obj.g(self) {
+fn obj_mt.g(self) {
     return self.x, self.y, self.z
 }
 
-fn obj.h(self) {
+fn obj_mt.h(self) {
     return self.x, self.y, self.z, self.extra
 }
 
-mt.set(obj, obj)
+mt.set(obj, obj_mt)
 
 let a, let b, let c = obj->f()
 
