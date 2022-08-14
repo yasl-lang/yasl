@@ -310,7 +310,7 @@ static yasl_int vm_read_int(struct VM *const vm) {
 
 static void vm_duptop(struct VM *const vm);
 static void vm_swaptop(struct VM *const vm);
-static int vm_lookup_method_helper(struct VM *vm, struct YASL_Object obj, struct YASL_Table *mt, struct YASL_Object index);
+static int vm_lookup_method_helper(struct VM *vm, struct YASL_Table *mt, struct YASL_Object index);
 static void vm_GET(struct VM *const vm);
 static void vm_INIT_CALL(struct VM *const vm, int expected_returns);
 void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns);
@@ -327,13 +327,12 @@ static void vm_call_now_2(struct VM *vm, struct YASL_Object a, struct YASL_Objec
 #define vm_lookup_method_throwing(vm, method_name, err_str, ...) \
 do {\
 	struct YASL_Object index = YASL_STR(YASL_String_new_sized(strlen(method_name), method_name));\
-	struct YASL_Object val = vm_peek(vm);\
 	vm_get_metatable(vm);\
 	struct YASL_Table *mt = vm_istable(vm) ? vm_poptable(vm) : NULL;\
 	if (!mt) {\
 		vm_pop(vm);\
 	}\
-	int result = vm_lookup_method_helper(vm, val, mt, index);\
+	int result = vm_lookup_method_helper(vm, mt, index);\
 	str_del(obj_getstr(&index));\
 	if (result) {\
 		vm_print_err_type(vm, err_str, __VA_ARGS__);\
@@ -775,8 +774,7 @@ void vm_get_metatable(struct VM *const vm) {
 	vm_push(vm, mt ? YASL_TABLE(mt) : YASL_UNDEF());
 }
 
-static int vm_lookup_method_helper(struct VM *vm, struct YASL_Object obj, struct YASL_Table *mt, struct YASL_Object index) {
-	(void) obj;
+static int vm_lookup_method_helper(struct VM *vm, struct YASL_Table *mt, struct YASL_Object index) {
 	if (!mt) return YASL_VALUE_ERROR;
 	struct YASL_Object search = YASL_Table_search(mt, index);
 	if (search.type != Y_END) {
@@ -787,24 +785,14 @@ static int vm_lookup_method_helper(struct VM *vm, struct YASL_Object obj, struct
 	return YASL_VALUE_ERROR;
 }
 
-static int lookup(struct VM *vm, struct YASL_Object obj, struct YASL_Table *mt, struct YASL_Object index) {
+static int lookup(struct VM *vm, struct YASL_Table *mt, struct YASL_Object index) {
 	struct YASL_Object search = YASL_Table_search(mt, index);
 	if (search.type != Y_END) {
 		vm_push(vm, search);
 		return YASL_SUCCESS;
 	}
 
-	YASL_UNUSED(obj);
 	return YASL_VALUE_ERROR;
-	/*
-	search = YASL_Table_search_zstring_int(mt, "__get");
-	if (search.type != Y_END) {
-		vm_push(vm, search);
-		vm_call_now_2(vm, obj, index);
-		return YASL_SUCCESS;
-	}
-	return YASL_VALUE_ERROR;
-	 */
 }
 
 static int lookup2(struct VM *vm, struct YASL_Table *mt) {
@@ -828,31 +816,7 @@ static int lookup2(struct VM *vm, struct YASL_Table *mt) {
 	return YASL_VALUE_ERROR;
 }
 
-/*
-static void vm_GET_helper(struct VM *const vm, struct YASL_Object index) {
-	struct YASL_Object v = vm_pop(vm);
-
-	struct YASL_Table *mt = get_mt(vm, v);
-	int result = YASL_ERROR;
-	if (mt) {
-		result = lookup(vm, v, mt, index);
-	}
-
-	if (result) {
-		if (obj_istable(&v)) {
-			struct YASL_Object search = YASL_Table_search(YASL_GETTABLE(v), index);
-			if (search.type != Y_END) {
-				vm_push(vm, search);
-				return;
-			}
-		}
-		vm_print_err_value(vm, "Could not find value for index%s", "");
-		vm_throw_err(vm, YASL_VALUE_ERROR);
-	}
-}
- */
-
-static void vm_GET_helper2(struct VM *const vm) {
+static void vm_GET(struct VM *const vm) {
 	struct YASL_Object index = vm_peek(vm);
 	struct YASL_Object v = vm_peek(vm, vm->sp - 1);
 
@@ -875,10 +839,6 @@ static void vm_GET_helper2(struct VM *const vm) {
 		vm_print_err_value(vm, "Could not find value for index%s", "");
 		vm_throw_err(vm, YASL_VALUE_ERROR);
 	}
-}
-
-static void vm_GET(struct VM *const vm) {
-	vm_GET_helper2(vm);
 }
 
 static void vm_SET(struct VM *const vm) {
@@ -1234,15 +1194,15 @@ static void vm_swaptop(struct VM *const vm) {
 
 static void vm_INIT_MC(struct VM *const vm) {
 	int expected_returns = (signed char)NCODE(vm);
-	// vm_duptop(vm);
 	yasl_int addr = vm_read_int(vm);
 	struct RC_UserData* table = obj_get_metatable(vm, vm_peek(vm));
-	int result = lookup(vm, vm_peek(vm), (struct YASL_Table *)(table ? table->data : NULL), vm->constants[addr]);
+	int result = lookup(vm, (struct YASL_Table *)(table ? table->data : NULL), vm->constants[addr]);
 	if (result) {
-		vm_print_err(vm, "Could not find index.");
+		const size_t len = YASL_String_len(vm->constants[addr].value.sval);
+		const char *chars = YASL_String_chars(vm->constants[addr].value.sval);
+		vm_print_err_value(vm, "No method named `%.*s` for object of type %s.", (int)len, chars, obj_typename(vm_peek_p(vm)));
 		vm_throw_err(vm, YASL_VALUE_ERROR);
 	}
-	//vm_GET_helper(vm, vm->constants[addr]);
 	vm_swaptop(vm);
 	vm_INIT_CALL_offset(vm, vm->sp - 1, expected_returns);
 }
