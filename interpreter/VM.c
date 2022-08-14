@@ -785,17 +785,7 @@ static int vm_lookup_method_helper(struct VM *vm, struct YASL_Table *mt, struct 
 	return YASL_VALUE_ERROR;
 }
 
-static int lookup(struct VM *vm, struct YASL_Table *mt, struct YASL_Object index) {
-	struct YASL_Object search = YASL_Table_search(mt, index);
-	if (search.type != Y_END) {
-		vm_push(vm, search);
-		return YASL_SUCCESS;
-	}
-
-	return YASL_VALUE_ERROR;
-}
-
-static int lookup2(struct VM *vm, struct YASL_Table *mt) {
+static int lookup(struct VM *vm, struct YASL_Table *mt) {
 	struct YASL_Object index = vm_peek(vm);
 	struct YASL_Object search = YASL_Table_search(mt, index);
 	if (search.type != Y_END) {
@@ -823,7 +813,7 @@ static void vm_GET(struct VM *const vm) {
 	struct YASL_Table *mt = get_mt(vm, v);
 	int result = YASL_ERROR;
 	if (mt) {
-		result = lookup2(vm, mt);
+		result = lookup(vm, mt);
 	}
 
 	if (result) {
@@ -1196,7 +1186,7 @@ static void vm_INIT_MC(struct VM *const vm) {
 	int expected_returns = (signed char)NCODE(vm);
 	yasl_int addr = vm_read_int(vm);
 	struct RC_UserData* table = obj_get_metatable(vm, vm_peek(vm));
-	int result = lookup(vm, (struct YASL_Table *)(table ? table->data : NULL), vm->constants[addr]);
+	int result = vm_lookup_method_helper(vm, (struct YASL_Table *)(table ? table->data : NULL), vm->constants[addr]);
 	if (result) {
 		const size_t len = YASL_String_len(vm->constants[addr].value.sval);
 		const char *chars = YASL_String_chars(vm->constants[addr].value.sval);
