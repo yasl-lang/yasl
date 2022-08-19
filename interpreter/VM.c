@@ -419,38 +419,9 @@ static void vm_int_binop(struct VM *const vm, int_binop op, const char *opstr, c
 		vm_pop(vm);
 		vm_pushint(vm, op(obj_getint(&left), obj_getint(&right)));
 	} else {
-		/*
 		vm_call_binop_method_now(vm, left, right, overload_name, "%s not supported for operands of types %s and %s.", opstr,
 					 obj_typename(&left),
 					 obj_typename(&right));
-					 */
-		do {
-	struct YASL_Object index = YASL_STR(YASL_String_new_sized(strlen(overload_name), overload_name));
-	vm_push(vm, left);
-	vm_get_metatable(vm);
-	struct YASL_Table *mt = vm_istable(vm) ? vm_poptable(vm) : NULL;
-	if (!mt) {
-		vm_pop(vm);
-	}
-	int result = vm_lookup_method_helper(vm, mt, index);
-	if (result) {
-		vm_push(vm, right);
-		vm_get_metatable(vm);
-		mt = vm_istable(vm) ? vm_poptable(vm) : NULL;
-		if (!mt) {
-			vm_pop(vm);
-		}
-		result = vm_lookup_method_helper(vm, mt, index);
-	}
-	if (result) {
-		vm_print_err_type(vm, "BLAH%s", "");
-		vm_throw_err(vm, YASL_TYPE_ERROR);
-	}
-	str_del(obj_getstr(&index));
-	vm_shifttopdown(vm, 2);
-	vm_INIT_CALL_offset(vm, vm->sp - 2, 1);
-	vm_CALL(vm);
-} while (0);
 	}
 }
 
