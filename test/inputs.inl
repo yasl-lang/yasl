@@ -23,6 +23,7 @@ static const char *inputs[] = {
   "test/inputs/table/copy.yasl",
   "test/inputs/table/__bor.yasl",
   "test/inputs/table/tostr.yasl",
+  "test/inputs/table/operator_overloading_right.yasl",
   "test/inputs/table/__set.yasl",
   "test/inputs/table/operator_overloading.yasl",
   "test/inputs/table/values.yasl",

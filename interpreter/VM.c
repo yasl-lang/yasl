@@ -324,8 +324,7 @@ static void vm_call_now_2(struct VM *vm, struct YASL_Object a, struct YASL_Objec
 	vm_CALL(vm);
 }
 
-#define vm_lookup_method_throwing(vm, method_name, err_str, ...) \
-do {\
+#define vm_lookup_method_throwing(vm, method_name, err_str, ...) do {\
 	struct YASL_Object index = YASL_STR(YASL_String_new_sized(strlen(method_name), method_name));\
 	vm_get_metatable(vm);\
 	struct YASL_Table *mt = vm_istable(vm) ? vm_poptable(vm) : NULL;\
@@ -358,6 +357,34 @@ do {\
 	vm_dec_ref(vm, &right);\
 } while (0)
 
+#define vm_call_binop_method_now(vm, left, right, method_name, format, ...) do {\
+	struct YASL_Object index = YASL_STR(YASL_String_new_sized(strlen(method_name), method_name));\
+	vm_push(vm, left);\
+	vm_get_metatable(vm);\
+	struct YASL_Table *mt = vm_istable(vm) ? vm_poptable(vm) : NULL;\
+	if (!mt) {\
+		vm_pop(vm);\
+	}\
+	int result = vm_lookup_method_helper(vm, mt, index);\
+	if (result) {\
+		vm_push(vm, right);\
+		vm_get_metatable(vm);\
+		mt = vm_istable(vm) ? vm_poptable(vm) : NULL;\
+		if (!mt) {\
+			vm_pop(vm);\
+		}\
+		result = vm_lookup_method_helper(vm, mt, index);\
+	}\
+	if (result) {\
+		vm_print_err_type(vm, format, __VA_ARGS__);\
+		vm_throw_err(vm, YASL_TYPE_ERROR);\
+	}\
+	str_del(obj_getstr(&index));\
+	vm_shifttopdown(vm, 2);\
+	vm_INIT_CALL_offset(vm, vm->sp - 2, 1);\
+	vm_CALL(vm);\
+} while (0)
+
 #define INT_BINOP(name, op) yasl_int name(yasl_int left, yasl_int right) { return left op right; }
 
 INT_BINOP(bor, |)
@@ -381,22 +408,49 @@ static void vm_shifttopdown(struct VM *const vm, int depth) {
 	vm_dec_ref(vm, &top);
 }
 
+static void vm_ECHO(struct VM *const vm);
+
 static void vm_int_binop(struct VM *const vm, int_binop op, const char *opstr, const char *overload_name) {
+	YASL_UNUSED(opstr);
 	struct YASL_Object right = vm_peek(vm);
 	struct YASL_Object left = vm_peek(vm, vm->sp - 1);
 	if (obj_isint(&left) && obj_isint(&right)) {
 		vm_pop(vm);
 		vm_pop(vm);
-		vm_push(vm, YASL_INT(op(obj_getint(&left), obj_getint(&right))));
+		vm_pushint(vm, op(obj_getint(&left), obj_getint(&right)));
 	} else {
-		vm_push(vm, left);
-		vm_lookup_method_throwing(vm, overload_name, "%s not supported for operands of types %s and %s.",
-					  opstr,
-					  obj_typename(&left),
-					  obj_typename(&right));
-		vm_shifttopdown(vm, 2);
-		vm_INIT_CALL_offset(vm, vm->sp - 2, 1);
-		vm_CALL(vm);
+		/*
+		vm_call_binop_method_now(vm, left, right, overload_name, "%s not supported for operands of types %s and %s.", opstr,
+					 obj_typename(&left),
+					 obj_typename(&right));
+					 */
+		do {
+	struct YASL_Object index = YASL_STR(YASL_String_new_sized(strlen(overload_name), overload_name));
+	vm_push(vm, left);
+	vm_get_metatable(vm);
+	struct YASL_Table *mt = vm_istable(vm) ? vm_poptable(vm) : NULL;
+	if (!mt) {
+		vm_pop(vm);
+	}
+	int result = vm_lookup_method_helper(vm, mt, index);
+	if (result) {
+		vm_push(vm, right);
+		vm_get_metatable(vm);
+		mt = vm_istable(vm) ? vm_poptable(vm) : NULL;
+		if (!mt) {
+			vm_pop(vm);
+		}
+		result = vm_lookup_method_helper(vm, mt, index);
+	}
+	if (result) {
+		vm_print_err_type(vm, "BLAH%s", "");
+		vm_throw_err(vm, YASL_TYPE_ERROR);
+	}
+	str_del(obj_getstr(&index));
+	vm_shifttopdown(vm, 2);
+	vm_INIT_CALL_offset(vm, vm->sp - 2, 1);
+	vm_CALL(vm);
+} while (0);
 	}
 }
 
@@ -424,14 +478,9 @@ static void vm_num_binop(struct VM *const vm, int_binop int_op, float_binop floa
 		vm_pop(vm);
 		vm_pushfloat(vm, float_op(obj_getnum(&left), obj_getnum(&right)));
 	} else {
-		vm_push(vm, left);
-		vm_lookup_method_throwing(vm, overload_name, "%s not supported for operands of types %s and %s.",
-					  opstr,
-					  obj_typename(&left),
-					  obj_typename(&right));
-		vm_shifttopdown(vm, 2);
-		vm_INIT_CALL_offset(vm, vm->sp - 2, 1);
-		vm_CALL(vm);
+		vm_call_binop_method_now(vm, left, right, overload_name, "%s not supported for operands of types %s and %s.", opstr,
+					 obj_typename(&left),
+					 obj_typename(&right));
 	}
 }
 
@@ -444,12 +493,9 @@ static void vm_fdiv(struct VM *const vm) {
 		vm_pop(vm);
 		vm_pushfloat(vm, obj_getnum(&left) / obj_getnum(&right));
 	} else {
-		vm_push(vm, left);
-		vm_lookup_method_throwing(vm, overload_name, "/ not supported for operands of types %s and %s.",
-					  obj_typename(&left), obj_typename(&right));
-		vm_shifttopdown(vm, 2);
-		vm_INIT_CALL_offset(vm, vm->sp - 2, 1);
-		vm_CALL(vm);
+		vm_call_binop_method_now(vm, left, right, overload_name, "/ not supported for operands of types %s and %s.",
+					 obj_typename(&left),
+					 obj_typename(&right));
 	}
 }
 
