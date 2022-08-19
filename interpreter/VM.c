@@ -375,11 +375,11 @@ static void vm_call_now_2(struct VM *vm, struct YASL_Object a, struct YASL_Objec
 		}\
 		result = vm_lookup_method_helper(vm, mt, index);\
 	}\
+	str_del(obj_getstr(&index));\
 	if (result) {\
 		vm_print_err_type(vm, format, __VA_ARGS__);\
 		vm_throw_err(vm, YASL_TYPE_ERROR);\
 	}\
-	str_del(obj_getstr(&index));\
 	vm_shifttopdown(vm, 2);\
 	vm_INIT_CALL_offset(vm, vm->sp - 2, 1);\
 	vm_CALL(vm);\
