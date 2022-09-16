@@ -316,15 +316,6 @@ void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns);
 void vm_CALL(struct VM *const vm);
 void vm_CALL_now(struct VM *const vm);
 
-/*
-static void vm_call_now_2(struct VM *vm, struct YASL_Object a, struct YASL_Object b) {
-	vm_INIT_CALL(vm, 1);
-	vm_push(vm, a);
-	vm_push(vm, b);
-	vm_CALL(vm);
-}
-*/
-
 #define vm_lookup_method_throwing(vm, method_name, err_str, ...) do {\
 	struct YASL_Object index = YASL_STR(YASL_String_new_sized(strlen(method_name), method_name));\
 	vm_get_metatable(vm);\
@@ -346,16 +337,6 @@ static void vm_call_now_2(struct VM *vm, struct YASL_Object a, struct YASL_Objec
 	vm_swaptop(vm);\
 	vm_INIT_CALL_offset(vm, vm->sp - 1, 1);\
 	vm_CALL(vm);\
-} while (0)
-
-#define vm_call_method_now_2(vm, left, right, method_name, ...) do {\
-	inc_ref(&left);\
-	inc_ref(&right);\
-	vm_push(vm, left);\
-	vm_lookup_method_throwing(vm, method_name, __VA_ARGS__);\
-	vm_call_now_2(vm, left, right);\
-	vm_dec_ref(vm, &left);\
-	vm_dec_ref(vm, &right);\
 } while (0)
 
 #define vm_call_binop_method_now(vm, left, right, method_name, format, ...) do {\
@@ -520,12 +501,17 @@ void vm_EQ(struct VM *const vm) {
 	if (obj_isuserdata(&a) && obj_isuserdata(&b) ||
 	    obj_istable(&a) && obj_istable(&b) ||
 	    obj_islist(&a) && obj_islist(&b)) {
+		vm_call_binop_method_now(vm, a, b, "__eq", "== not supported for operands of types %s and %s.",
+					 obj_typename(&a),
+					 obj_typename(&b));
+		/*
 		vm_push(vm, a);
 		vm_lookup_method_throwing(vm, "__eq", "== not supported for operands of types %s and %s.",
 					  obj_typename(&a), obj_typename(&b));
 		vm_shifttopdown(vm, 2);
 		vm_INIT_CALL_offset(vm, vm->sp - 2, 1);
 		vm_CALL(vm);
+		 */
 	} else {
 		vm_pop(vm);
 		vm_pop(vm);
