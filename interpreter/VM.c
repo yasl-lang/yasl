@@ -166,7 +166,7 @@ static void printline(struct VM *vm) {
 
 	while (vm->fp >= 0) {
 		vm_exitframe(vm);
-		size_t line = vm_getcurrline(vm);
+		line = vm_getcurrline(vm);
 		vm_print_err_wrapper(vm, "In function call on line %" PRI_SIZET "\n", line);
 	}
 }
@@ -196,7 +196,6 @@ void vm_throw_err(struct VM *const vm, int error) {
 }
 
 void vm_dec_ref(struct VM *const vm, struct YASL_Object *val) {
-	YASL_UNUSED(vm);
 	dec_strong_ref(vm, val);
 }
 
@@ -317,12 +316,14 @@ void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns);
 void vm_CALL(struct VM *const vm);
 void vm_CALL_now(struct VM *const vm);
 
+/*
 static void vm_call_now_2(struct VM *vm, struct YASL_Object a, struct YASL_Object b) {
 	vm_INIT_CALL(vm, 1);
 	vm_push(vm, a);
 	vm_push(vm, b);
 	vm_CALL(vm);
 }
+*/
 
 #define vm_lookup_method_throwing(vm, method_name, err_str, ...) do {\
 	struct YASL_Object index = YASL_STR(YASL_String_new_sized(strlen(method_name), method_name));\
@@ -510,11 +511,7 @@ static void vm_num_unop(struct VM *const vm, yasl_int (*int_op)(yasl_int), yasl_
 }
 
 void vm_len_unop(struct VM *const vm) {
-	if (vm_isstr(vm)) {
-		vm_pushint(vm, (yasl_int) YASL_String_len(vm_popstr(vm)));
-	} else {
-		vm_call_method_now_1_top(vm, "__len", "len not supported for operand of type %s.");
-	}
+	vm_call_method_now_1_top(vm, "__len", "len not supported for operand of type %s.");
 }
 
 void vm_EQ(struct VM *const vm) {
@@ -565,10 +562,12 @@ static void vm_##name(struct VM *const vm) {\
 		COMP(vm, left, right, name);\
 		return;\
 	}\
-	vm_call_method_now_2(vm, left, right, overload_name, "%s not supported for operands of types %s and %s.",\
-		opstr,\
-		obj_typename(&left),\
-		obj_typename(&right));\
+	vm_push(vm, left);\
+	vm_push(vm, right);\
+	vm_call_binop_method_now(vm, left, right, overload_name, "%s not supported for operands of types %s and %s.",\
+	opstr,\
+	obj_typename(&left),\
+	obj_typename(&right));\
 }
 
 DEFINE_COMP(GT, ">", "__gt")
