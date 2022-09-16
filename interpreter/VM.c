@@ -504,14 +504,6 @@ void vm_EQ(struct VM *const vm) {
 		vm_call_binop_method_now(vm, a, b, "__eq", "== not supported for operands of types %s and %s.",
 					 obj_typename(&a),
 					 obj_typename(&b));
-		/*
-		vm_push(vm, a);
-		vm_lookup_method_throwing(vm, "__eq", "== not supported for operands of types %s and %s.",
-					  obj_typename(&a), obj_typename(&b));
-		vm_shifttopdown(vm, 2);
-		vm_INIT_CALL_offset(vm, vm->sp - 2, 1);
-		vm_CALL(vm);
-		 */
 	} else {
 		vm_pop(vm);
 		vm_pop(vm);
