@@ -40,9 +40,9 @@ bool YASL_String_startswith(struct YASL_String *haystack, struct YASL_String *ne
 bool YASL_String_endswith(struct YASL_String *haystack, struct YASL_String *needle);
 // Caller makes sure search_str is at least length 1.
 struct YASL_String *YASL_String_replace_fast_default(struct YASL_String *str, struct YASL_String *search_str,
-					     struct YASL_String *replace_str);
+					     struct YASL_String *replace_str, int *replacements);
 struct YASL_String *YASL_String_replace_fast(struct YASL_String *str, struct YASL_String *search_str,
-					     struct YASL_String *replace_str, yasl_int);
+					     struct YASL_String *replace_str, int *replacements, yasl_int max_replacements);
 yasl_int YASL_String_count(struct YASL_String *haystack, struct YASL_String *needle);
 void YASL_String_split_default(struct YASL_List *data, struct YASL_String *haystack);
 // Caller makes sure needle is not 0 length

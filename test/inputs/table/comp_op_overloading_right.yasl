@@ -1,0 +1,25 @@
+
+
+let x = {
+    .a: 10,
+    .b: 12 }
+
+const extend = {}.__bor
+
+const ops = {
+    .__gt: fn(left, right) { return left.a > right.a; },
+    .__ge: fn(left, right) { return left.a >= right.a; },
+    .__lt: fn(left, right) { return left.a < right.a; },
+    .__le: fn(left, right) { return left.a <= right.a; }
+}
+
+let y = x | { .a: 10 }
+
+mt.set(y, extend(mt.get(x), ops))
+
+echo x > y
+echo x >= y
+echo x < y
+echo x <= y
+
+

@@ -1,6 +1,6 @@
 
 
-const obj = {
+const obj_mt = {
     .f: fn() {
         return 1, 2
     },
@@ -11,6 +11,9 @@ const obj = {
         return '1st', '2nd', '3rd', '4th'
     }
 }
+
+const obj = {}
+mt.set(obj, obj_mt)
 
 let a, let b, let c = obj->f()
 

@@ -16,8 +16,8 @@
 
 
 #define NUM_FRAMES 1000
-#define NUM_TYPES 13                                     // number of builtin types, each needs a vtable
-#define SCRATCH_SIZE 1024								// scratchspace size (needs tuning)
+#define NUM_TYPES 13                                    // number of builtin types, each needs a vtable
+#define SCRATCH_SIZE 1024				// scratchspace size (needs tuning)
 
 #define vm_peek_offset(vm, offset) ((vm)->stack[offset])
 #define vm_peek_offset_p(vm, offset) ((vm)->stack + (offset))
@@ -142,6 +142,7 @@ void vm_stringify_top(struct VM *const vm);
 void vm_EQ(struct VM *const vm);
 
 struct Upvalue *add_upvalue(struct VM *const vm, struct YASL_Object *const location);
+void vm_remove_pending_upvalue(struct VM *vm, struct Upvalue *upval);
 
 void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns);
 void vm_CALL(struct VM *const vm);

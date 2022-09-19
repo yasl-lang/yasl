@@ -64,7 +64,8 @@ void rcht_del(struct RC_UserData *const hashtable) {
 	free(hashtable);
 }
 
-void rcht_del_data(void *hashtable) {
+void rcht_del_data(struct YASL_State *S, void *hashtable) {
+	YASL_UNUSED(S);
 	YASL_Table_del((struct YASL_Table *) hashtable);
 }
 

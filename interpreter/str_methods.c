@@ -176,7 +176,7 @@ int str_endswith(struct YASL_State *S) {
 	return 1;
 }
 
-static void str_replace_default(struct YASL_State *S) {
+static int str_replace_default(struct YASL_State *S) {
 	struct YASL_String *replace_str = YASLX_checknstr(S, "str.replace", 2);
 	struct YASL_String *search_str = YASLX_checknstr(S, "str.replace", 1);
 	struct YASL_String *str = YASLX_checknstr(S, "str.replace", 0);
@@ -188,13 +188,15 @@ static void str_replace_default(struct YASL_State *S) {
 		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
 
-	vm_push((struct VM *) S, YASL_STR(YASL_String_replace_fast_default(str, search_str, replace_str)));
+	int replacements = 0;
+	vm_push((struct VM *) S, YASL_STR(YASL_String_replace_fast_default(str, search_str, replace_str, &replacements)));
+	YASL_pushint(S, replacements);
+	return 2;
 }
 
 int str_replace(struct YASL_State *S) {
 	if (YASL_isundef(S)) {
-		str_replace_default(S);
-		return 1;
+		return str_replace_default(S);
 	}
 
 	yasl_int max = YASLX_checknint(S, "str.replace", 3);
@@ -209,8 +211,10 @@ int str_replace(struct YASL_State *S) {
 		YASL_throw_err(S, YASL_VALUE_ERROR);
 	}
 
-	vm_push((struct VM *) S, YASL_STR(YASL_String_replace_fast(str, search_str, replace_str, max)));
-	return 1;
+	int replacements = 0;
+	vm_push((struct VM *) S, YASL_STR(YASL_String_replace_fast(str, search_str, replace_str, &replacements, max)));
+	YASL_pushint(S, replacements);
+	return 2;
 }
 
 int str_search(struct YASL_State *S) {

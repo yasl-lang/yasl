@@ -17,4 +17,7 @@ mt.set(left, extend(mt.get(left), {
     }
 }))
 
+mt.set(right, {})
+
 echo left == right
+echo right == left

@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define YASL_VERSION "v0.11.12"
+#define YASL_VERSION "v0.12.0"
 
 #define YASL_STR_NAME "str"
 #define YASL_FLOAT_NAME "float"
@@ -550,7 +550,7 @@ void YASL_pushundef(struct YASL_State *S);
  * @param S the YASL_State onto which to push the user-pointer.
  * @param userpointer the user-pointer to push onto the stack.
  */
-void YASL_pushuserdata(struct YASL_State *S, void *data, const char *tag, void (*destructor)(void *));
+void YASL_pushuserdata(struct YASL_State *S, void *data, const char *tag, void (*destructor)(struct YASL_State *, void *));
 
 /**
  * [-0, +1]

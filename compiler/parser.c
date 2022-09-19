@@ -51,6 +51,7 @@ static struct Node *parse_table(struct Parser *const parser);
 static struct Node *parse_lambda(struct Parser *const parser);
 static struct Node *parse_list(struct Parser *const parser);
 static struct Node *parse_assert(struct Parser *const parser);
+static void parse_exprs_or_vargs(struct Parser *const parser, struct Node **body);
 
 YASL_FORMAT_CHECK static void parser_print_err(struct Parser *parser, const char *const fmt, ...) {
 	va_list args;
@@ -265,9 +266,12 @@ static struct Node *parse_program(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("parsing statement in line %" PRI_SIZET "\n", parserline(parser));
 	size_t line = parserline(parser);
 	switch (curtok(parser)) {
-	case T_ECHO:
+	case T_ECHO: {
 		eattok(parser, T_ECHO);
-		return new_Echo(parser, parse_expr(parser), line);
+		struct Node *body = new_Body(parser, parserline(parser));
+		parse_exprs_or_vargs(parser, &body);
+		return new_Echo(parser, body, line);
+	}
 	case T_FN:
 		if (isfndecl(parser)) return parse_fn(parser);
 		else return parse_assign_or_exprstmt(parser);
@@ -338,28 +342,30 @@ static struct Node *parse_expr_or_vargs(struct Parser *const parser) {
 	}
 }
 
-static void parse_exprs_or_vargs(struct Parser *const parser, struct Node **block) {
+
+static void parse_exprs_or_vargs(struct Parser *const parser, struct Node **body) {
 	if (TOKEN_MATCHES(parser, T_LPAR) && isemptyvargs(parser)) {
 		eattok(parser, T_LPAR);
 		eattok(parser, T_RPAR);
 		return;
 	}
+
 	struct Node *expr = NULL;
 	do {
 		expr = parse_expr_or_vargs(parser);
-		body_append(parser, block, expr);
+		body_append(parser, body, expr);
 	} while (expr->nodetype != N_VARGS && matcheattok(parser, T_COMMA));
 
-	struct Node *last = body_last(*block);
+	struct Node *last = body_last(*body);
 	if (last && will_var_expand(last)) {
-		(*block)->children[(*block)->children_len - 1] = new_VariadicContext(last, -1);
+		(*body)->children[(*body)->children_len - 1] = new_VariadicContext(last, -1);
 	}
 }
 
 static struct Node *parse_return_vals(struct Parser *const parser) {
-	struct Node *block = new_Body(parser, parserline(parser));
-	parse_exprs_or_vargs(parser, &block);
-	return block;
+	struct Node *body = new_Body(parser, parserline(parser));
+	parse_exprs_or_vargs(parser, &body);
+	return body;
 }
 
 static struct Node *parse_fn_body(struct Parser *const parser, bool collect_rest_params) {
@@ -998,8 +1004,9 @@ static struct Node *parse_call(struct Parser *const parser) {
 			cur_node = new_MethodCall(parser, block, cur_node, right->value.sval.str, 1,
 						  parserline(parser));
 			eattok(parser, T_LPAR);
-			if (!TOKEN_MATCHES(parser, T_RPAR))
+			if (!TOKEN_MATCHES(parser, T_RPAR, T_EOF)) {
 				parse_exprs_or_vargs(parser, &cur_node->children[0]);
+			}
 			eattok(parser, T_RPAR);
 
 			struct Node *body = cur_node->children[0];
@@ -1038,8 +1045,9 @@ static struct Node *parse_call(struct Parser *const parser) {
 		} else if (matcheattok(parser, T_LPAR)) {
 			YASL_PARSE_DEBUG_LOG("%s\n", "Parsing function call");
 			cur_node = new_Call(parser, new_Body(parser, parserline(parser)), cur_node, 1, parserline(parser));
-			if (!TOKEN_MATCHES(parser, T_RPAR))
+			if (!TOKEN_MATCHES(parser, T_RPAR, T_EOF)) {
 				parse_exprs_or_vargs(parser, &cur_node->children[0]);
+			}
 			eattok(parser, T_RPAR);
 
 			struct Node *body = cur_node->children[0];

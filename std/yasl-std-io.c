@@ -29,7 +29,8 @@ static FILE *YASLX_checknfile(struct YASL_State *S, const char *name, unsigned p
 	return (FILE *)YASL_peeknuserdata(S, pos);
 }
 
-static void close_file(void *ptr) {
+static void close_file(struct YASL_State *S, void *ptr) {
+	YASL_UNUSED(S);
 	fclose((FILE *)ptr);
 }
 

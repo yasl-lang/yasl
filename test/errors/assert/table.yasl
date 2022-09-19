@@ -1,5 +1,5 @@
 
-let x = {
+let x_mt = {
     .f: fn() {
         assert false
     },
@@ -7,5 +7,7 @@ let x = {
         echo false
     } }
 
+const x = {}
+mt.set(x, x_mt)
 
 x->f()
