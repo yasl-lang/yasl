@@ -296,7 +296,35 @@ static unsigned char *return_bytes(const struct Compiler *const compiler) {
 	return bytecode;
 }
 
+/*
+#define X(name, type, ...) case type: return #name;
+static const char *node_type_str(const struct Node *const node) {
+	switch (node->nodetype) {
+#include "nodetype.x"
+	default:
+		return "Unknown";
+	}
+}
+#undef X
+ */
+
+#ifdef YASL_DEBUG
+#define X(_, type, ...) case type: return true;
+static bool node_is_expr(const struct Node *const node) {
+	switch (node->nodetype) {
+#include "exprnodetype.x"
+	default:
+		return false;
+	}
+}
+#endif
+
+#undef X
 static void visit(struct Compiler *const compiler, const struct Node *const node);
+static void visit_expr(struct Compiler *const compiler, const struct Node *const node) {
+	YASL_ASSERT(node_is_expr(node), "Expected expr");
+	visit(compiler, node);
+}
 
 unsigned char *compile(struct Compiler *const compiler) {
 	struct Node *node;
@@ -345,6 +373,12 @@ unsigned char *compile_REPL(struct Compiler *const compiler) {
 }
 
 static void visit_Body(struct Compiler *const compiler, const struct Node *const node) {
+	FOR_CHILDREN(i, child, node) {
+		visit(compiler, child);
+	}
+}
+
+static void visit_Exprs(struct Compiler *const compiler, const struct Node *const node) {
 	FOR_CHILDREN(i, child, node) {
 		visit(compiler, child);
 	}
@@ -443,7 +477,7 @@ static void visit_CollectRestParams(struct Compiler *const compiler, const struc
 static void visit_Call(struct Compiler *const compiler, const struct Node *const node) {
 	visit(compiler, Call_get_object(node));
 	compiler_add_code_BB(compiler, O_INIT_CALL, (unsigned char)node->value.ival);
-	visit_Body(compiler, Call_get_params(node));
+	visit_Exprs(compiler, Call_get_params(node));
 	compiler_add_byte(compiler, O_CALL);
 }
 
@@ -456,7 +490,7 @@ static void visit_MethodCall(struct Compiler *const compiler, const struct Node 
 
 	compiler_add_code_BBW(compiler, O_INIT_MC, (unsigned char)node->value.sval.str_len, index);
 
-	visit_Body(compiler, MethodCall_get_params(node));
+	visit_Exprs(compiler, MethodCall_get_params(node));
 	compiler_add_byte(compiler, O_CALL);
 }
 
@@ -476,27 +510,27 @@ static void visit_Export(struct Compiler *const compiler, const struct Node *con
 		handle_error(compiler);
 		return;
 	}
-	visit(compiler, Export_get_expr(node));
+	visit_expr(compiler, Export_get_expr(node));
 	compiler_add_byte(compiler, O_EXPORT);
 }
 
 static void visit_Set(struct Compiler *const compiler, const struct Node *const node) {
-	visit(compiler, Set_get_collection(node));
-	visit(compiler, Set_get_key(node));
+	visit_expr(compiler, Set_get_collection(node));
+	visit_expr(compiler, Set_get_key(node));
 	visit(compiler, Set_get_value(node));
 	compiler_add_byte(compiler, O_SET);
 }
 
 static void visit_Get(struct Compiler *const compiler, const struct Node *const node) {
-	visit(compiler, Get_get_collection(node));
-	visit(compiler, Get_get_value(node));
+	visit_expr(compiler, Get_get_collection(node));
+	visit_expr(compiler, Get_get_value(node));
 	compiler_add_byte(compiler, O_GET);
 }
 
 static void visit_Slice(struct Compiler *const compiler, const struct Node *const node) {
-	visit(compiler, Slice_get_collection(node));
-	visit(compiler, Slice_get_start(node));
-	visit(compiler, Slice_get_end(node));
+	visit_expr(compiler, Slice_get_collection(node));
+	visit_expr(compiler, Slice_get_start(node));
+	visit_expr(compiler, Slice_get_end(node));
 	compiler_add_byte(compiler, O_SLICE);
 }
 
@@ -514,14 +548,14 @@ static inline void branch_back(struct Compiler *const compiler, int64_t index) {
 static void visit_Comp_cond(struct Compiler *const compiler, const struct Node *const cond, const struct Node *const expr) {
 	if (cond) {
 		int64_t index_third;
-		visit(compiler, cond);
+		visit_expr(compiler, cond);
 		enter_conditional_false(compiler, &index_third);
 
-		visit(compiler, expr);
+		visit_expr(compiler, expr);
 
 		exit_conditional_false(compiler, &index_third);
 	} else {
-		visit(compiler, expr);
+		visit_expr(compiler, expr);
 	}
 }
 
@@ -583,7 +617,7 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 	struct Node *collection = LetIter_get_collection(iter);
 	char *name = iter->value.sval.str;
 
-	visit(compiler, collection);
+	visit_expr(compiler, collection);
 
 	compiler_add_byte(compiler, O_INITFOR);
 	compiler_add_byte(compiler, O_END);
@@ -675,7 +709,7 @@ static void visit_While(struct Compiler *const compiler, const struct Node *cons
 	add_checkpoint(compiler, scope_len(get_scope_in_use(compiler)));
 	add_checkpoint(compiler, index_start);
 
-	visit(compiler, cond);
+	visit_expr(compiler, cond);
 
 	add_checkpoint(compiler, compiler->buffer->count);
 
@@ -1136,28 +1170,28 @@ static void visit_TriOp(struct Compiler *const compiler, const struct Node *cons
 	struct Node *middle = TriOp_get_middle(node);
 	struct Node *right = TriOp_get_right(node);
 
-	visit(compiler, left);
+	visit_expr(compiler, left);
 
 	int64_t index_l;
 	enter_conditional_false(compiler, &index_l);
 
-	visit(compiler, middle);
+	visit_expr(compiler, middle);
 
 	size_t index_r;
 	enter_jump(compiler, &index_r);
 
 	exit_conditional_false(compiler, &index_l);
 
-	visit(compiler, right);
+	visit_expr(compiler, right);
 	exit_jump(compiler, &index_r);
 }
 
 static void visit_BinOp_shortcircuit(struct Compiler *const compiler, const struct Node *const node, enum Opcode jump_type) {
-	visit(compiler, BinOp_get_left(node));
+	visit_expr(compiler, BinOp_get_left(node));
 	compiler_add_code_BBW(compiler, O_DUP, jump_type, -1);
 	size_t index = compiler->buffer->count;
 	compiler_add_byte(compiler, O_POP);
-	visit(compiler, BinOp_get_right(node));
+	visit_expr(compiler, BinOp_get_right(node));
 	YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, index - 8, compiler->buffer->count - index);
 }
 
@@ -1175,8 +1209,8 @@ static void visit_BinOp(struct Compiler *const compiler, const struct Node *cons
 	}
 
 	// all other operators follow the same pattern of visiting one child then the other.
-	visit(compiler, BinOp_get_left(node));
-	visit(compiler, BinOp_get_right(node));
+	visit_expr(compiler, BinOp_get_left(node));
+	visit_expr(compiler, BinOp_get_right(node));
 	switch (node->value.type) {
 	case T_BAR:
 		compiler_add_byte(compiler, O_BOR);
@@ -1335,7 +1369,7 @@ static void visit_Assert(struct Compiler *const compiler, const struct Node *con
 
 static void make_new_collection(struct Compiler *const compiler, const struct Node *const node, enum Opcode type) {
 	compiler_add_byte(compiler, O_END);
-	visit_Body(compiler, node);
+	visit_Exprs(compiler, node);
 	compiler_add_byte(compiler, type);
 }
 

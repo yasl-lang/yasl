@@ -154,6 +154,7 @@ DECL_NODE(List, N_LIST, values)
 DECL_NODE(Table, N_TABLE, values)
 DECL_NODE(Assert, N_ASS, expr)
 DECL_NODE(Body, N_BODY)
+DECL_NODE(Exprs, N_EXPRS)
 
 struct Node *new_VariadicContext(struct Node *const expr, const int expected);
 struct Node *new_MethodCall(struct Parser *parser, const struct Node *const params, const struct Node *const object, char *value, size_t len, const size_t line);
