@@ -1481,7 +1481,7 @@ static void visit(struct Compiler *const compiler, const struct Node *const node
 static void visit_expr(struct Compiler *const compiler, const struct Node *const node, int expected) {
 	YASL_ASSERT(node_is_expr(node), "Expected expr");
 
-#ifdef YASL_DEBUG
+#if 0
 	if (expected != -1) {
 		compiler_add_byte(compiler, O_ASSERT_SP);
 		compiler_add_int(compiler, expected);
