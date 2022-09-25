@@ -421,11 +421,7 @@ static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *c
 		return;
 	default:
 		visit(compiler, expr);
-		if (expr->nodetype == N_ASSIGN || expr->nodetype == N_SET) {
-			return;
-		} else {
-			compiler_add_byte(compiler, O_POP);
-		}
+		compiler_add_byte(compiler, O_POP);
 	}
 }
 

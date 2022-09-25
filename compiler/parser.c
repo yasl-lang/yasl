@@ -601,7 +601,7 @@ static struct Node *parse_for(struct Parser *const parser) {
 		struct Node *body = parse_body(parser);
 		struct Node *outer_body = new_Body(parser, line);
 		body_append(parser, &outer_body, iter);
-		body_append(parser, &outer_body, new_While(parser, cond, new_Block(parser, body, line), new_ExprStmt(parser, post, line), line));
+		body_append(parser, &outer_body, new_While(parser, cond, new_Block(parser, body, line), post, line));
 		struct Node *block = new_Block(parser, outer_body, line);
 		return block;
 	}
