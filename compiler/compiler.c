@@ -1154,7 +1154,9 @@ static void visit_Const(struct Compiler *const compiler, const struct Node *cons
 static void visit_Decl(struct Compiler *const compiler, const struct Node *const node) {
 	visit_expr(compiler, Decl_get_rvals(node), compiler_stacksize(compiler));
 
-	FOR_CHILDREN(i, child, Decl_get_lvals(node)) {
+	const struct Node *const lvals = Decl_get_lvals(node);
+	const size_t num_lvals = lvals->children_len;
+	FOR_CHILDREN(i, child, lvals) {
 		const char *name = child->value.sval.str;
 		if (child->nodetype == N_ASSIGN) {
 			if (!contains_var(compiler, name)) {
@@ -1165,8 +1167,8 @@ static void visit_Decl(struct Compiler *const compiler, const struct Node *const
 			compiler_add_code_BB(compiler, O_MOVEUP_FP, (unsigned char)compiler_stacksize(compiler));
 			store_var(compiler, name, node->line);
 		} else if (child->nodetype == N_SET) {
-			visit_expr(compiler, Set_get_collection(child), -1);
-			visit_expr(compiler, Set_get_key(child), -1);
+			visit_expr(compiler, Set_get_collection(child), compiler_stacksize(compiler) + num_lvals - i);
+			visit_expr(compiler, Set_get_key(child), compiler_stacksize(compiler) + num_lvals - i + 1);
 			compiler_add_code_BB(compiler, O_MOVEUP_FP, (unsigned char)compiler_stacksize(compiler));
 			compiler_add_byte(compiler, O_SET);
 		} else {
@@ -1479,7 +1481,7 @@ static void visit(struct Compiler *const compiler, const struct Node *const node
 static void visit_expr(struct Compiler *const compiler, const struct Node *const node, int expected) {
 	YASL_ASSERT(node_is_expr(node), "Expected expr");
 
-#if 0
+#ifdef YASL_DEBUG
 	if (expected != -1) {
 		compiler_add_byte(compiler, O_ASSERT_SP);
 		compiler_add_int(compiler, expected);
