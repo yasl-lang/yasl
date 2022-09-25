@@ -10,6 +10,8 @@ enum Opcode {
 
 	O_HALT = 0x0F, // halt
 
+	O_ASSERT_SP = 0x20,
+
 	O_MATCH = 0x31, // pattern matching
 
 	O_BOR = 0x40, // bitwise or
