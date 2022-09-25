@@ -306,7 +306,7 @@ static const char *node_type_str(const struct Node *const node) {
 	}
 }
 #undef X
- */
+*/
 
 #ifdef YASL_DEBUG
 #define X(_, type, ...) case type: return true;
@@ -317,12 +317,24 @@ static bool node_is_expr(const struct Node *const node) {
 		return false;
 	}
 }
+static bool node_is_stmt(const struct Node *const node) {
+	switch (node->nodetype) {
+#include "stmtnodetype.x"
+	default:
+		return false;
+	}
+}
+#undef X
 #endif
 
 #undef X
 static void visit(struct Compiler *const compiler, const struct Node *const node);
 static void visit_expr(struct Compiler *const compiler, const struct Node *const node) {
 	YASL_ASSERT(node_is_expr(node), "Expected expr");
+	visit(compiler, node);
+}
+ void visit_stmt(struct Compiler *const compiler, const struct Node *const node) {
+	YASL_ASSERT(node_is_stmt(node), "Expected stmt");
 	visit(compiler, node);
 }
 
@@ -342,7 +354,7 @@ unsigned char *compile(struct Compiler *const compiler) {
 			compiler->status |= compiler->parser.status;
 			return NULL;
 		}
-		visit(compiler, node);
+		visit_stmt(compiler, node);
 		YASL_ByteBuffer_extend(compiler->code, compiler->buffer->items, compiler->buffer->count);
 		compiler->buffer->count = 0;
 	}
@@ -380,7 +392,7 @@ static void visit_Body(struct Compiler *const compiler, const struct Node *const
 
 static void visit_Exprs(struct Compiler *const compiler, const struct Node *const node) {
 	FOR_CHILDREN(i, child, node) {
-		visit(compiler, child);
+		visit_expr(compiler, child);
 	}
 }
 
@@ -484,7 +496,7 @@ static void visit_Call(struct Compiler *const compiler, const struct Node *const
 static void visit_MethodCall(struct Compiler *const compiler, const struct Node *const node) {
 	char *str = MethodCall_get_name(node);
 	size_t len = strlen(str);
-	visit(compiler, MethodCall_get_object(node));
+	visit_expr(compiler, MethodCall_get_object(node));
 
 	yasl_int index = compiler_intern_string(compiler, str, len);
 
@@ -570,7 +582,7 @@ static void visit_Comp(struct Compiler *const compiler, const struct Node *const
 
 	char *name = iter->value.sval.str;
 
-	visit(compiler, collection);
+	visit_expr(compiler, collection);
 
 	compiler_add_byte(compiler, O_INITFOR);
 	compiler_add_byte(compiler, O_END);
