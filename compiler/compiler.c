@@ -415,10 +415,10 @@ static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *c
 	case N_UNDEF:
 		return;
 	case N_VAR:
-		validate_expr(compiler, expr, compiler_stacksize(compiler));
+		validate_expr(compiler, expr, (int)compiler_stacksize(compiler));
 		return;
 	default:
-		visit_expr(compiler, expr, compiler_stacksize(compiler));
+		visit_expr(compiler, expr, (int)compiler_stacksize(compiler));
 		compiler_add_byte(compiler, O_POP);
 	}
 }
@@ -518,7 +518,7 @@ static void visit_Return(struct Compiler *const compiler, const struct Node *con
 		handle_error(compiler);
 		return;
 	}
-	visit_expr(compiler, Return_get_exprs(node), compiler_stacksize(compiler));
+	visit_expr(compiler, Return_get_exprs(node), (int)compiler_stacksize(compiler));
 	compiler_add_code_BB(compiler, return_op(compiler), (unsigned char)compiler_stacksize(compiler));
 }
 
@@ -528,13 +528,13 @@ static void visit_Export(struct Compiler *const compiler, const struct Node *con
 		handle_error(compiler);
 		return;
 	}
-	visit_expr(compiler, Export_get_expr(node), compiler_stacksize(compiler));
+	visit_expr(compiler, Export_get_expr(node), (int)compiler_stacksize(compiler));
 	compiler_add_byte(compiler, O_EXPORT);
 }
 
 static void visit_Set(struct Compiler *const compiler, const struct Node *const node) {
 	const size_t expected = compiler_stacksize(compiler);
-	visit_expr(compiler, Set_get_collection(node), expected);
+	visit_expr(compiler, Set_get_collection(node), (int)expected);
 	visit_expr(compiler, Set_get_key(node), next_expected(expected));
 	visit_expr(compiler, Set_get_value(node), add_to_expected(expected, 2));
 	compiler_add_byte(compiler, O_SET);
@@ -637,7 +637,7 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 	struct Node *collection = LetIter_get_collection(iter);
 	char *name = iter->value.sval.str;
 
-	visit_expr(compiler, collection, compiler_stacksize(compiler));
+	visit_expr(compiler, collection, (int)compiler_stacksize(compiler));
 
 	compiler_add_byte(compiler, O_INITFOR);
 	compiler_add_byte(compiler, O_END);
@@ -729,7 +729,7 @@ static void visit_While(struct Compiler *const compiler, const struct Node *cons
 	add_checkpoint(compiler, compiler_stacksize(compiler));
 	add_checkpoint(compiler, index_start);
 
-	visit_expr(compiler, cond, compiler_stacksize(compiler));
+	visit_expr(compiler, cond, (int)compiler_stacksize(compiler));
 
 	add_checkpoint(compiler, compiler->buffer->count);
 
@@ -1011,7 +1011,7 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 		compiler_add_code_BB(compiler, O_INCSP, bindings);
 		if (guard) {
 			compiler_add_code_BB(compiler, O_MOVEUP_FP, (unsigned char) vars);
-			visit_expr(compiler, guard, compiler_stacksize(compiler) + 1);
+			visit_expr(compiler, guard, (int)compiler_stacksize(compiler) + 1);
 			enter_conditional_false(compiler, &start_guard);
 			compiler_add_byte(compiler, O_POP);
 		} else {
@@ -1019,7 +1019,7 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 		}
 	} else {
 		if (guard) {
-			visit_expr(compiler, guard, compiler_stacksize(compiler) + 1);
+			visit_expr(compiler, guard, (int)compiler_stacksize(compiler) + 1);
 			enter_conditional_false(compiler, &start_guard);
 		}
 		compiler_add_byte(compiler, O_POP);
@@ -1054,7 +1054,7 @@ static void visit_Match(struct Compiler *const compiler, const struct Node *cons
 	struct Node *patterns = Match_get_patterns(node);
 	struct Node *guards = Match_get_guards(node);
 	struct Node *bodies = Match_get_bodies(node);
-	visit_expr(compiler, expr, compiler_stacksize(compiler));
+	visit_expr(compiler, expr, (int)compiler_stacksize(compiler));
 	if (patterns->children_len == 0) {
 		compiler_add_byte(compiler, O_POP);
 		return;
@@ -1088,7 +1088,7 @@ static void visit_If(struct Compiler *const compiler, const struct Node *const n
 		return;
 	}
 
-	visit_expr(compiler, cond, compiler_stacksize(compiler));
+	visit_expr(compiler, cond, (int)compiler_stacksize(compiler));
 
 	int64_t index_then;
 	enter_conditional_false(compiler, &index_then);
@@ -1110,7 +1110,7 @@ static void visit_If(struct Compiler *const compiler, const struct Node *const n
 }
 
 static void visit_Echo(struct Compiler *const compiler, const struct Node *const node) {
-	visit_expr(compiler, Echo_get_exprs(node), compiler_stacksize(compiler));
+	visit_expr(compiler, Echo_get_exprs(node), (int)compiler_stacksize(compiler));
 	compiler_add_code_BB(compiler, O_ECHO, (char)compiler_stacksize(compiler));
 }
 
@@ -1143,19 +1143,19 @@ static void declare_with_let_or_const(struct Compiler *const compiler, const str
 }
 
 static void visit_Let(struct Compiler *const compiler, const struct Node *const node) {
-	declare_with_let_or_const(compiler, node, compiler_stacksize(compiler));
+	declare_with_let_or_const(compiler, node, (int)compiler_stacksize(compiler));
 }
 
 static void visit_Const(struct Compiler *const compiler, const struct Node *const node) {
-	declare_with_let_or_const(compiler, node, compiler_stacksize(compiler));
+	declare_with_let_or_const(compiler, node, (int)compiler_stacksize(compiler));
 	make_const(compiler, Decl_get_name(node));
 }
 
 static void visit_Decl(struct Compiler *const compiler, const struct Node *const node) {
-	visit_expr(compiler, Decl_get_rvals(node), compiler_stacksize(compiler));
+	visit_expr(compiler, Decl_get_rvals(node), (int)compiler_stacksize(compiler));
 
 	const struct Node *const lvals = Decl_get_lvals(node);
-	const size_t num_lvals = lvals->children_len;
+	const int num_lvals = (int)lvals->children_len;
 	FOR_CHILDREN(i, child, lvals) {
 		const char *name = child->value.sval.str;
 		if (child->nodetype == N_ASSIGN) {
@@ -1167,8 +1167,8 @@ static void visit_Decl(struct Compiler *const compiler, const struct Node *const
 			compiler_add_code_BB(compiler, O_MOVEUP_FP, (unsigned char)compiler_stacksize(compiler));
 			store_var(compiler, name, node->line);
 		} else if (child->nodetype == N_SET) {
-			visit_expr(compiler, Set_get_collection(child), compiler_stacksize(compiler) + num_lvals - i);
-			visit_expr(compiler, Set_get_key(child), compiler_stacksize(compiler) + num_lvals - i + 1);
+			visit_expr(compiler, Set_get_collection(child), (int)compiler_stacksize(compiler) + num_lvals - (int)i);
+			visit_expr(compiler, Set_get_key(child), (int)compiler_stacksize(compiler) + num_lvals - (int)i + 1);
 			compiler_add_code_BB(compiler, O_MOVEUP_FP, (unsigned char)compiler_stacksize(compiler));
 			compiler_add_byte(compiler, O_SET);
 		} else {
@@ -1339,7 +1339,7 @@ static void visit_Assign(struct Compiler *const compiler, const struct Node *con
 		handle_error(compiler);
 		return;
 	}
-	visit_expr(compiler, Assign_get_expr(node), compiler_stacksize(compiler));
+	visit_expr(compiler, Assign_get_expr(node), (int)compiler_stacksize(compiler));
 	store_var(compiler, name, node->line);
 }
 
@@ -1391,7 +1391,7 @@ static void visit_String(struct Compiler *const compiler, const struct Node *con
 }
 
 static void visit_Assert(struct Compiler *const compiler, const struct Node *const node) {
-	visit_expr(compiler, Assert_get_expr(node), compiler_stacksize(compiler));
+	visit_expr(compiler, Assert_get_expr(node), (int)compiler_stacksize(compiler));
 	compiler_add_byte(compiler, O_ASS);
 }
 
