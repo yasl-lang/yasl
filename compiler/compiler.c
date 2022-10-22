@@ -100,7 +100,8 @@ static void exit_scope(struct Compiler *const compiler) {
 	scope_del_cur_only(tmp);
 	if (num_locals > 0) {
 		compiler_add_byte(compiler, O_DECSP);
-		compiler_add_byte(compiler, num_locals);
+		// TODO: make sure `num_locals` is small enough.
+		compiler_add_byte(compiler, (char)num_locals);
 	}
 }
 
