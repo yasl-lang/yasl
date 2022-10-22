@@ -98,8 +98,10 @@ static void exit_scope(struct Compiler *const compiler) {
 	 *lval = tmp->parent;
 	size_t num_locals = scope_num_vars_cur_only(tmp);
 	scope_del_cur_only(tmp);
-	while (num_locals-- > 0) {
-		compiler_add_byte(compiler, O_POP);
+	if (num_locals > 0) {
+		compiler_add_byte(compiler, O_DECSP);
+		// TODO: make sure `num_locals` is small enough.
+		compiler_add_byte(compiler, (char)num_locals);
 	}
 }
 
