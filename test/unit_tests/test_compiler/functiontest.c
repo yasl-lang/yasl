@@ -16,8 +16,7 @@ static void test_simple() {
 		O_ADD,
 		O_RET, 0x02,
 		O_RET, 0x02,
-		O_POP,
-		O_POP,
+		O_DECSP, 0x02,
 		O_HALT,
 	};
 
