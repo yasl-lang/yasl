@@ -1,0 +1,10 @@
+
+let m = undef
+
+ifdef args {
+    m = 'submodule: args is defined'
+} else {
+    m = 'submodule: args is not defined'
+}
+
+export m

@@ -22,6 +22,7 @@ static struct Node *parse_for(struct Parser *const parser);
 static struct Node *parse_while(struct Parser *const parser);
 static struct Node *parse_match(struct Parser *const parser);
 static struct Node *parse_if(struct Parser *const parser);
+static struct Node *parse_ifdef(struct Parser *const parser);
 static struct Node *parse_expr(struct Parser *const parser);
 static struct Node *parse_assign(struct Parser *const parser, struct Node *cur_node);
 static struct Node *parse_ternary(struct Parser *const parser);
@@ -308,6 +309,15 @@ static struct Node *parse_program(struct Parser *const parser) {
 			"`%s` without previous `if` (line %" PRI_SIZET ").\n",
 			YASL_TOKEN_NAMES[curtok(parser)],
 			line);
+		handle_error(parser);
+		break;
+	case T_IFDEF:
+		return parse_ifdef(parser);
+	case T_ELSEIFDEF:
+		parser_print_err_syntax(parser,
+					"`%s` without previous `ifdef` (line %" PRI_SIZET ").\n",
+					YASL_TOKEN_NAMES[curtok(parser)],
+					line);
 		handle_error(parser);
 		break;
 	case T_ASS:
@@ -859,6 +869,35 @@ static struct Node *parse_if(struct Parser *const parser) {
 		YASL_PARSE_DEBUG_LOG("%s\n", "else");
 		struct Node *else_block = parse_body(parser);
 		return new_If(parser, cond, new_Block(parser, then_block, line), new_Block(parser, else_block, else_line), line);
+	}
+	parser_print_err_syntax(parser, "Expected newline, got `%s`.\n", YASL_TOKEN_NAMES[curtok(parser)]);
+	handle_error(parser);
+}
+
+static struct Node *parse_ifdef(struct Parser *const parser) {
+	size_t line = parserline(parser);
+	YASL_PARSE_DEBUG_LOG("parsing `ifdef` in line %" PRI_SIZET "\n", line);
+	if (matcheattok(parser, T_IFDEF)) ;
+	else if (matcheattok(parser, T_ELSEIFDEF));
+	else {
+		parser_print_err_syntax(parser, "Expected `ifdef` or `elseifdef`, got `%s` (line %" PRI_SIZET ")\n", YASL_TOKEN_NAMES[curtok(parser)], line);
+		handle_error(parser);
+	}
+	struct Node *cond = parse_id(parser);
+	struct Node *then_block = parse_body(parser);
+	if (curtok(parser) != T_ELSE && curtok(parser) != T_ELSEIFDEF) {
+		YASL_PARSE_DEBUG_LOG("%s\n", "no else");
+		return new_IfDef(parser, cond, new_Block(parser, then_block, line), NULL, line);
+	}
+	if (curtok(parser) == T_ELSEIFDEF) {
+		YASL_PARSE_DEBUG_LOG("%s\n", "elseifdef");
+		return new_IfDef(parser, cond, new_Block(parser, then_block, line), parse_ifdef(parser), line);
+	}
+	if (matcheattok(parser, T_ELSE)) {
+		size_t else_line = parserline(parser);
+		YASL_PARSE_DEBUG_LOG("%s\n", "else");
+		struct Node *else_block = parse_body(parser);
+		return new_IfDef(parser, cond, new_Block(parser, then_block, line), new_Block(parser, else_block, else_line), line);
 	}
 	parser_print_err_syntax(parser, "Expected newline, got `%s`.\n", YASL_TOKEN_NAMES[curtok(parser)]);
 	handle_error(parser);

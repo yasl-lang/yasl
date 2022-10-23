@@ -1,0 +1,22 @@
+
+ifdef A {
+    echo 'A'
+} elseifdef B {
+    echo 'B'
+} else {
+    echo 'neither'
+}
+
+ifdef collections {
+    echo 'collections'
+} else {
+    echo undef
+}
+
+ifdef args {
+    echo 'args'
+} elseifdef math {
+    echo 'math'
+} else {
+    echo undef
+}

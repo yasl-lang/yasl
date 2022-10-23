@@ -208,6 +208,7 @@ DEF_NODE(Break, N_BREAK)
 DEF_NODE(Continue, N_CONT)
 DEF_NODE(Match, N_MATCH, cond, patterns, guards, bodies)
 DEF_NODE(If, N_IF, cond, then, el)
+DEF_NODE(IfDef, N_IFDEF, cond, then, el)
 
 DEF_NODE(Echo, N_ECHO, exprs)
 DEF_NODE(Assert, N_ASS, expr)

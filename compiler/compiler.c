@@ -153,7 +153,7 @@ static void load_var_from_upval(struct Compiler *const compiler, const char *con
 	compiler_add_code_BB(compiler, O_ULOAD, (unsigned char) tmp);
 }
 
-static void load_var(struct Compiler *const compiler, const char *const name, const size_t line) {
+static bool maybe_load_var(struct Compiler *const compiler, const char *const name) {
 	if (in_function(compiler) && env_contains_cur_only(compiler->params, name)) {   // fn-local var
 		load_var_local(compiler, compiler->params->scope, name);
 	} else if (env_contains(compiler->params, name)) {                         // closure over fn-local variable
@@ -167,6 +167,13 @@ static void load_var(struct Compiler *const compiler, const char *const name, co
 	} else if (scope_contains(compiler->globals, name)) {                      // global vars
 		compiler_add_code_BW(compiler, O_GLOAD_8, YASL_Table_search_zstring_int(compiler->strings, name).value.ival);
 	} else {
+		return false;
+	}
+	return true;
+}
+
+static void load_var(struct Compiler *const compiler, const char *const name, const size_t line) {
+	if (!maybe_load_var(compiler, name)) {
 		compiler_print_err_undeclared_var(compiler, name, line);
 		handle_error(compiler);
 	}
@@ -1054,6 +1061,19 @@ static void visit_If(struct Compiler *const compiler, const struct Node *const n
 	if (else_br) {
 		visit(compiler, else_br);
 		exit_jump(compiler, &index_else);
+	}
+}
+
+static void visit_IfDef(struct Compiler *const compiler, const struct Node *const node) {
+	struct Node *cond = IfDef_get_cond(node);
+	struct Node *then_br = IfDef_get_then(node);
+	struct Node *else_br = IfDef_get_el(node);
+
+	if (maybe_load_var(compiler, Var_get_name(cond))) {
+		compiler_add_byte(compiler, O_POP);
+		visit(compiler, then_br);
+	} else if (else_br) {
+		visit(compiler, else_br);
 	}
 }
 
