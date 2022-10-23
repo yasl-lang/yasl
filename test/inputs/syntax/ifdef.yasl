@@ -13,8 +13,8 @@ ifdef collections {
     echo undef
 }
 
-ifdef args {
-    echo 'args'
+ifdef asddas {
+    echo 'asddas'
 } elseifdef math {
     echo 'math'
 } else {

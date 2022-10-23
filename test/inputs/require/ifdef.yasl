@@ -1,9 +1,9 @@
-const m = require('test/inputs/args.yam')
+const m = require('test/inputs/math.yam')
 
 echo m
 
-ifdef args {
-    echo 'script: args is defined'
+ifdef math {
+    echo 'script: math is defined'
 } else {
-    echo 'script: args is not defined'
+    echo 'script: math is not defined'
 }
