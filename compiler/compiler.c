@@ -1063,12 +1063,34 @@ static void visit_If(struct Compiler *const compiler, const struct Node *const n
 	}
 }
 
+static bool vars_are_defined(struct Compiler *const compiler, const struct Node *const node) {
+	switch (node->nodetype) {
+	case N_UNOP:
+		YASL_ASSERT(node->value.type == T_BANG, "parser should have generated a ! here.");
+		return !vars_are_defined(compiler, UnOp_get_expr(node));
+	/*
+	case N_BINOP:
+		YASL_ASSERT(node->value.type == T_DAMP || node->value.type == T_DBAR, "parser should have generated a & or | here.");
+		if (node->value.type == T_DAMP) {
+			return vars_are_defined(compiler, BinOp_get_left(node)) && vars_are_defined(compiler, BinOp_get_right(node));
+		} else {
+			return vars_are_defined(compiler, BinOp_get_left(node)) || vars_are_defined(compiler, BinOp_get_right(node));
+		}
+	 */
+	case N_VAR:
+		return var_is_defined(compiler, Var_get_name(node));
+	default:
+		YASL_UNREACHED();
+	}
+	return false;
+}
+
 static void visit_IfDef(struct Compiler *const compiler, const struct Node *const node) {
 	struct Node *cond = IfDef_get_cond(node);
 	struct Node *then_br = IfDef_get_then(node);
 	struct Node *else_br = IfDef_get_el(node);
 
-	if (var_is_defined(compiler, Var_get_name(cond))) {
+	if (vars_are_defined(compiler, cond)) {
 		visit(compiler, then_br);
 	} else if (else_br) {
 		visit(compiler, else_br);

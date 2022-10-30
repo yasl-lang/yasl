@@ -874,6 +874,49 @@ static struct Node *parse_if(struct Parser *const parser) {
 	handle_error(parser);
 }
 
+#define BINOP_R(name, next, msg, ...)\
+static struct Node *parse_##name(struct Parser *const parser) {\
+	size_t line = parserline(parser);\
+	YASL_PARSE_DEBUG_LOG("parsing " msg " in line %" PRI_SIZET "\n", parserline(parser));\
+        struct Node *cur_node = parse_##next(parser);\
+        if (TOKEN_MATCHES(parser, __VA_ARGS__)) {\
+                enum Token op = eattok(parser, curtok(parser));\
+                return new_BinOp(parser, op, cur_node, parse_##name(parser), line);\
+        }\
+        return cur_node;\
+}
+
+#define BINOP_L(name, next, msg, ...) \
+static struct Node *parse_##name(struct Parser *const parser) {\
+	size_t line = parserline(parser);\
+	YASL_PARSE_DEBUG_LOG("parsing " msg " in line %" PRI_SIZET "\n", line);\
+        struct Node *cur_node = parse_##next(parser);\
+        while (TOKEN_MATCHES(parser, __VA_ARGS__)) {\
+                enum Token op = eattok(parser, curtok(parser));\
+                cur_node = new_BinOp(parser, op, cur_node, parse_##next(parser), line);\
+        }\
+        return cur_node;\
+}
+
+static struct Node *parse_ifdef_cond_not(struct Parser *const parser) {
+	size_t line = parserline(parser);
+	YASL_PARSE_DEBUG_LOG("parsing ! in line %" PRI_SIZET "\n", parserline(parser));
+	if (matcheattok(parser, T_BANG)) {
+		return new_UnOp(parser, T_BANG, parse_id(parser), line);
+	} else {
+		return parse_id(parser);
+	}
+}
+
+/*
+BINOP_R(ifdef_cond_and, ifdef_cond_not, "&", T_DAMP);
+BINOP_R(ifdef_cond_or, ifdef_cond_and, "|", T_DBAR);
+
+static struct Node *parse_ifdef_cond(struct Parser *const parser) {
+	return parse_ifdef_cond_or(parser);
+}
+*/
+
 static struct Node *parse_ifdef(struct Parser *const parser) {
 	size_t line = parserline(parser);
 	YASL_PARSE_DEBUG_LOG("parsing `ifdef` in line %" PRI_SIZET "\n", line);
@@ -883,7 +926,8 @@ static struct Node *parse_ifdef(struct Parser *const parser) {
 		parser_print_err_syntax(parser, "Expected `ifdef` or `elseifdef`, got `%s` (line %" PRI_SIZET ")\n", YASL_TOKEN_NAMES[curtok(parser)], line);
 		handle_error(parser);
 	}
-	struct Node *cond = parse_id(parser);
+
+	struct Node *cond = parse_ifdef_cond_not(parser);
 	struct Node *then_block = parse_body(parser);
 	if (curtok(parser) != T_ELSE && curtok(parser) != T_ELSEIFDEF) {
 		YASL_PARSE_DEBUG_LOG("%s\n", "no else");
@@ -966,31 +1010,6 @@ static struct Node *parse_ternary(struct Parser *const parser) {
 		return new_TriOp(parser, T_QMARK, cur_node, left, right, parserline(parser));
 	}
 	return cur_node;
-}
-
-
-#define BINOP_R(name, next, msg, ...)\
-static struct Node *parse_##name(struct Parser *const parser) {\
-	size_t line = parserline(parser);\
-	YASL_PARSE_DEBUG_LOG("parsing " msg " in line %" PRI_SIZET "\n", parserline(parser));\
-        struct Node *cur_node = parse_##next(parser);\
-        if (TOKEN_MATCHES(parser, __VA_ARGS__)) {\
-                enum Token op = eattok(parser, curtok(parser));\
-                return new_BinOp(parser, op, cur_node, parse_##name(parser), line);\
-        }\
-        return cur_node;\
-}
-
-#define BINOP_L(name, next, msg, ...) \
-static struct Node *parse_##name(struct Parser *const parser) {\
-	size_t line = parserline(parser);\
-	YASL_PARSE_DEBUG_LOG("parsing " msg " in line %" PRI_SIZET "\n", line);\
-        struct Node *cur_node = parse_##next(parser);\
-        while (TOKEN_MATCHES(parser, __VA_ARGS__)) {\
-                enum Token op = eattok(parser, curtok(parser));\
-                cur_node = new_BinOp(parser, op, cur_node, parse_##next(parser), line);\
-        }\
-        return cur_node;\
 }
 
 BINOP_R(undef_or, or, "??", T_DQMARK)

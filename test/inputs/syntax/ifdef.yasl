@@ -20,3 +20,31 @@ ifdef asddas {
 } else {
     echo undef
 }
+
+const B = 'B'
+
+fn f(A) {
+    ifdef A {
+        echo 'A'
+    } elseifdef B {
+        echo 'B'
+    } else {
+        echo 'neither'
+    }
+
+    ifdef collections {
+        echo 'collections'
+    } else {
+        echo undef
+    }
+
+    ifdef B {
+        echo 'B'
+    } elseifdef math {
+        echo 'math'
+    } else {
+        echo undef
+    }
+}
+
+f()
