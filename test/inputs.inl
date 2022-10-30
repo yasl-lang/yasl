@@ -106,6 +106,7 @@ static const char *inputs[] = {
   "test/inputs/syntax/foreach_listcomp.yasl",
   "test/inputs/syntax/multi_assign_set_table.yasl",
   "test/inputs/syntax/echo.yasl",
+  "test/inputs/syntax/ifndef.yasl",
   "test/inputs/match/guard/last_guard.yasl",
   "test/inputs/match/guard/list_guard.yasl",
   "test/inputs/match/guard/bind_guard.yasl",
