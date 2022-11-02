@@ -135,6 +135,10 @@ static struct Scope *get_scope_in_use(const struct Compiler *const compiler) {
 	return in_function(compiler) ? compiler->params->scope : compiler->stack;
 }
 
+static size_t get_stacksize(const struct Compiler *const compiler) {
+	return scope_len(get_scope_in_use(compiler));
+}
+
 static struct Env *get_nearest(struct Env *env, const char *const name) {
 	while (!env_contains_cur_only(env, name)) {
 		env = env->parent;
@@ -413,7 +417,7 @@ static void visit_FnDecl(struct Compiler *const compiler, const struct Node *con
 	visit_Body(compiler, FnDecl_get_body(node));
 
 	// Implicit return at the end of the function.
-	compiler_add_code_BB(compiler, return_op(compiler), (unsigned char)scope_len(get_scope_in_use(compiler)));
+	compiler_add_code_BB(compiler, return_op(compiler), (unsigned char)get_stacksize(compiler));
 
 	exit_scope(compiler);
 
@@ -475,7 +479,7 @@ static void visit_Return(struct Compiler *const compiler, const struct Node *con
 		return;
 	}
 	visit(compiler, Return_get_exprs(node));
-	compiler_add_code_BB(compiler, return_op(compiler), (unsigned char)scope_len(get_scope_in_use(compiler)));
+	compiler_add_code_BB(compiler, return_op(compiler), (unsigned char)get_stacksize(compiler));
 }
 
 static void visit_Export(struct Compiler *const compiler, const struct Node *const node) {
@@ -597,7 +601,7 @@ static void visit_ForIter(struct Compiler *const compiler, const struct Node *co
 	compiler_add_byte(compiler, O_END);
 	decl_var(compiler, name, iter->line);
 
-	add_checkpoint(compiler, scope_len(get_scope_in_use(compiler)));
+	add_checkpoint(compiler, get_stacksize(compiler));
 	size_t index_start = compiler->buffer->count;
 	add_checkpoint(compiler, index_start);
 
@@ -680,7 +684,7 @@ static void visit_While(struct Compiler *const compiler, const struct Node *cons
 		exit_jump(compiler, &index);
 	}
 
-	add_checkpoint(compiler, scope_len(get_scope_in_use(compiler)));
+	add_checkpoint(compiler, get_stacksize(compiler));
 	add_checkpoint(compiler, index_start);
 
 	visit(compiler, cond);
@@ -718,7 +722,7 @@ static void visit_Continue(struct Compiler *const compiler, const struct Node *c
 		return;
 	}
 
-	size_t num_pops = scope_len(get_scope_in_use(compiler)) - stacksize_checkpoint(compiler);
+	size_t num_pops = get_stacksize(compiler) - stacksize_checkpoint(compiler);
 	while (num_pops-- > 0)
 		compiler_add_byte(compiler, O_POP);
 	branch_back(compiler, continue_checkpoint(compiler));
@@ -952,7 +956,7 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 	compiler_add_code_BW(compiler, O_MATCH, -1);
 	size_t start = compiler->buffer->count;
 
-	size_t vars = scope_len(get_scope_in_use(compiler));
+	size_t vars = get_stacksize(compiler);
 	enter_scope(compiler);
 	compiler->leftmost_pattern = true;
 	visit(compiler, patterns->children[curr]);
@@ -1099,7 +1103,7 @@ static void visit_IfDef(struct Compiler *const compiler, const struct Node *cons
 
 static void visit_Echo(struct Compiler *const compiler, const struct Node *const node) {
 	visit(compiler, Echo_get_exprs(node));
-  compiler_add_code_BB(compiler, O_ECHO, (char)scope_len(get_scope_in_use(compiler)));
+  compiler_add_code_BB(compiler, O_ECHO, (char)get_stacksize(compiler));
 }
 
 static void declare_with_let_or_const(struct Compiler *const compiler, const struct Node *const node) {
@@ -1150,12 +1154,12 @@ static void visit_Decl(struct Compiler *const compiler, const struct Node *const
 				handle_error(compiler);
 				return;
 			}
-			compiler_add_code_BB(compiler, O_MOVEUP_FP, (unsigned char)scope_len(get_scope_in_use(compiler)));
+			compiler_add_code_BB(compiler, O_MOVEUP_FP, (unsigned char)get_stacksize(compiler));
 			store_var(compiler, name, node->line);
 		} else if (child->nodetype == N_SET) {
 			visit(compiler, Set_get_collection(child));
 			visit(compiler, Set_get_key(child));
-			compiler_add_code_BB(compiler, O_MOVEUP_FP, (unsigned char)scope_len(get_scope_in_use(compiler)));
+			compiler_add_code_BB(compiler, O_MOVEUP_FP, (unsigned char)get_stacksize(compiler));
 			compiler_add_byte(compiler, O_SET);
 		} else {
 			if (contains_var_in_current_scope(compiler, name)) {
