@@ -1,7 +1,6 @@
 X(ExprStmt, N_EXPRSTMT)
 X(Block, N_BLOCK)
 X(Body, N_BODY)
-X(FnDecl, N_FNDECL)
 X(CollectRestParams, N_COLLECTRESTPARAMS)
 X(Return, N_RET)
 X(Export, N_EXPORT)
