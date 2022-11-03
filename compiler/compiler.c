@@ -329,7 +329,7 @@ unsigned char *compile(struct Compiler *const compiler) {
 			compiler->status |= compiler->parser.status;
 			return NULL;
 		}
-		visit(compiler, node);
+		visit_stmt(compiler, node);
 		YASL_ByteBuffer_extend(compiler->code, compiler->buffer->items, compiler->buffer->count);
 		compiler->buffer->count = 0;
 	}
@@ -350,7 +350,7 @@ unsigned char *compile_REPL(struct Compiler *const compiler) {
 			if (peof(&compiler->parser) && node->nodetype == N_EXPRSTMT) {
 				node->nodetype = N_ECHO;
 			}
-			visit(compiler, node);
+			visit_stmt(compiler, node);
 			YASL_ByteBuffer_extend(compiler->code, compiler->buffer->items, compiler->buffer->count);
 			compiler->buffer->count = 0;
 		}
@@ -362,6 +362,12 @@ unsigned char *compile_REPL(struct Compiler *const compiler) {
 static void visit_Body(struct Compiler *const compiler, const struct Node *const node) {
 	FOR_CHILDREN(i, child, node) {
 		visit(compiler, child);
+	}
+}
+
+static void visit_Exprs(struct Compiler *const compiler, const struct Node *const node) {
+	FOR_CHILDREN(i, child, node) {
+			visit_expr(compiler, child);
 	}
 }
 
@@ -378,12 +384,8 @@ static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *c
 		validate(compiler, expr);
 		return;
 	default:
-		visit(compiler, expr);
-		if (expr->nodetype == N_ASSIGN || expr->nodetype == N_SET) {
-			return;
-		} else {
-			compiler_add_byte(compiler, O_POP);
-		}
+		visit_expr(compiler, expr);
+		compiler_add_byte(compiler, O_POP);
 	}
 }
 
@@ -481,7 +483,7 @@ static void visit_Return(struct Compiler *const compiler, const struct Node *con
 		handle_error(compiler);
 		return;
 	}
-	visit(compiler, Return_get_exprs(node));
+	visit_expr(compiler, Return_get_exprs(node));
 	compiler_add_code_BB(compiler, return_op(compiler), (unsigned char)get_stacksize(compiler));
 }
 
@@ -532,11 +534,11 @@ static void visit_Comp_cond(struct Compiler *const compiler, const struct Node *
 		visit_expr(compiler, cond);
 		enter_conditional_false(compiler, &index_third);
 
-		visit(compiler, expr);
+		visit_expr(compiler, expr);
 
 		exit_conditional_false(compiler, &index_third);
 	} else {
-		visit(compiler, expr);
+		visit_expr(compiler, expr);
 	}
 }
 
@@ -683,7 +685,7 @@ static void visit_While(struct Compiler *const compiler, const struct Node *cons
 		size_t index;
 		enter_jump(compiler, &index);
 		index_start = compiler->buffer->count;
-		visit(compiler, post);
+		visit_stmt(compiler, post);
 		exit_jump(compiler, &index);
 	}
 
@@ -1105,7 +1107,7 @@ static void visit_IfDef(struct Compiler *const compiler, const struct Node *cons
 }
 
 static void visit_Echo(struct Compiler *const compiler, const struct Node *const node) {
-	visit(compiler, Echo_get_exprs(node));
+	visit_expr(compiler, Echo_get_exprs(node));
 	compiler_add_code_BB(compiler, O_ECHO, (char)get_stacksize(compiler));
 }
 
@@ -1147,7 +1149,7 @@ static void visit_Const(struct Compiler *const compiler, const struct Node *cons
 }
 
 static void visit_Decl(struct Compiler *const compiler, const struct Node *const node) {
-	visit(compiler, Decl_get_rvals(node));
+	visit_expr(compiler, Decl_get_rvals(node));
 
 	FOR_CHILDREN(i, child, Decl_get_lvals(node)) {
 		const char *name = child->value.sval.str;
@@ -1438,7 +1440,6 @@ static void visit(struct Compiler *const compiler, const struct Node *const node
 }
 
 #ifdef YASL_DEBUG
-
 const char* node_name(const struct Node *const node) {
 	switch (node->nodetype) {
 #define X(name, e, ...) case e: return #name;
@@ -1479,7 +1480,6 @@ static bool is_stmt(const struct Node *const node) {
 		return false;
 	}
 }
-
 #endif
 
 static void visit_expr(struct Compiler *const compiler, const struct Node *const node) {
