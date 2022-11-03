@@ -12,7 +12,8 @@
 #include "yasl_error.h"
 #include "yasl_include.h"
 
-static void validate(struct Compiler *compiler, const struct Node *const node);
+static void validate_stmt(struct Compiler *compiler, const struct Node *const node);
+static void validate_expr(struct Compiler *compiler, const struct Node *const node);
 
 YASL_FORMAT_CHECK static void compiler_print_err(struct Compiler *compiler, const char *const fmt, ...) {
 	va_list args;
@@ -308,7 +309,6 @@ static unsigned char *return_bytes(const struct Compiler *const compiler) {
 	return bytecode;
 }
 
-static void visit(struct Compiler *const compiler, const struct Node *const node);
 static void visit_expr(struct Compiler *const compiler, const struct Node *const node);
 static void visit_patt(struct Compiler *const compiler, const struct Node *const node);
 static void visit_stmt(struct Compiler *const compiler, const struct Node *const node);
@@ -361,7 +361,7 @@ unsigned char *compile_REPL(struct Compiler *const compiler) {
 
 static void visit_Body(struct Compiler *const compiler, const struct Node *const node) {
 	FOR_CHILDREN(i, child, node) {
-		visit(compiler, child);
+		visit_stmt(compiler, child);
 	}
 }
 
@@ -381,7 +381,7 @@ static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *c
 	case N_UNDEF:
 		return;
 	case N_VAR:
-		validate(compiler, expr);
+		validate_expr(compiler, expr);
 		return;
 	default:
 		visit_expr(compiler, expr);
@@ -460,7 +460,7 @@ static void visit_CollectRestParams(struct Compiler *const compiler, const struc
 static void visit_Call(struct Compiler *const compiler, const struct Node *const node) {
 	visit_expr(compiler, Call_get_object(node));
 	compiler_add_code_BB(compiler, O_INIT_CALL, (unsigned char)node->value.ival);
-	visit_Body(compiler, Call_get_params(node));
+	visit_expr(compiler, Call_get_params(node));
 	compiler_add_byte(compiler, O_CALL);
 }
 
@@ -473,7 +473,7 @@ static void visit_MethodCall(struct Compiler *const compiler, const struct Node 
 
 	compiler_add_code_BBW(compiler, O_INIT_MC, (unsigned char)node->value.sval.str_len, index);
 
-	visit_Body(compiler, MethodCall_get_params(node));
+	visit_expr(compiler, MethodCall_get_params(node));
 	compiler_add_byte(compiler, O_CALL);
 }
 
@@ -665,8 +665,8 @@ static bool Node_isfalsey(const struct Node *const node) {
 }
 
 static void visit_While_false(struct Compiler *const compiler, const struct Node *const body, const struct Node *const post) {
-	validate(compiler, body);
-	if (post) validate(compiler, post);
+	validate_stmt(compiler, body);
+	if (post) validate_stmt(compiler, post);
 }
 
 static void visit_While(struct Compiler *const compiler, const struct Node *const node) {
@@ -1028,11 +1028,11 @@ static void visit_Match(struct Compiler *const compiler, const struct Node *cons
 
 static void visit_If_true(struct Compiler *const compiler, const struct Node *const then_br, const struct Node *const else_br) {
 	visit_stmt(compiler, then_br);
-	if (else_br) validate(compiler, else_br);
+	if (else_br) validate_stmt(compiler, else_br);
 }
 
 static void visit_If_false(struct Compiler *const compiler, const struct Node *const then_br, const struct Node *const else_br) {
-	validate(compiler, then_br);
+	validate_stmt(compiler, then_br);
 	if (else_br) visit_stmt(compiler, else_br);
 }
 
@@ -1386,7 +1386,7 @@ static void visit_Assert(struct Compiler *const compiler, const struct Node *con
 
 static void make_new_collection(struct Compiler *const compiler, const struct Node *const node, enum Opcode type) {
 	compiler_add_byte(compiler, O_END);
-	visit_Body(compiler, node);
+	visit_expr(compiler, node);
 	compiler_add_byte(compiler, type);
 }
 
@@ -1401,17 +1401,20 @@ static void visit_Table(struct Compiler *const compiler, const struct Node *cons
 /*
  * Like visit, but doesn't save the results. Will validate things like variables having been declared before use.
  */
-static void validate(struct Compiler *compiler, const struct Node *const node) {
-	const size_t buffer_count = compiler->buffer->count;
-	const size_t code_count = compiler->code->count;
-	const size_t line_count = compiler->lines->count;
-	const size_t line = compiler->line;
-	visit(compiler, node);
-	compiler->buffer->count = buffer_count;
-	compiler->code->count = code_count;
-	compiler->lines->count = line_count;
-	compiler->line = line;
+#define DEF_VALIDATE(n) static void validate_##n(struct Compiler *compiler, const struct Node *const node) {\
+	const size_t buffer_count = compiler->buffer->count;\
+	const size_t code_count = compiler->code->count;\
+	const size_t line_count = compiler->lines->count;\
+	const size_t line = compiler->line;\
+	visit_##n(compiler, node);\
+	compiler->buffer->count = buffer_count;\
+	compiler->code->count = code_count;\
+	compiler->lines->count = line_count;\
+	compiler->line = line;\
 }
+
+DEF_VALIDATE(expr)
+DEF_VALIDATE(stmt)
 
 static void visit_LetIter(struct Compiler *const compiler, const struct Node *const node) {
 	YASL_UNUSED(compiler);
