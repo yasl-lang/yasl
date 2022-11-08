@@ -30,7 +30,7 @@ int str___get(struct YASL_State *S) {
 	if (index < -(yasl_int) YASL_String_len(str) ||
 		   index >= (yasl_int) YASL_String_len(
 			   str)) {
-		vm_print_err_value(&S->vm, "unable to index str of length %" PRI_SIZET " with index %" PRI_SIZET ".", YASL_String_len(str), index);
+		vm_print_err_value(&S->vm, "unable to index str of length %" PRI_SIZET " with index %lld.", YASL_String_len(str), index);
 		YASL_throw_err(S, YASL_VALUE_ERROR);
 	} else {
 		if (index >= 0)

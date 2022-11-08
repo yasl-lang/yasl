@@ -53,6 +53,11 @@ struct YASL_Table* bool_builtins(struct VM *vm) {
 	struct YASL_Table *table = YASL_Table_new();
 	table_insert_specialstring_cfunction(vm, table, S_TOSTR, &bool_tostr, 1);
 	table_insert_specialstring_cfunction(vm, table, S_TOBOOL, &bool_tobool, 1);
+	table_insert_specialstring_cfunction(vm, table, S___BOR, &bool___bor, 2);
+	table_insert_specialstring_cfunction(vm, table, S___BAND, &bool___band, 2);
+	table_insert_specialstring_cfunction(vm, table, S___BANDNOT, &bool___bandnot, 2);
+	table_insert_specialstring_cfunction(vm, table, S___BXOR, &bool___bxor, 2);
+	table_insert_specialstring_cfunction(vm, table, S___BNOT, &bool___bnot, 1);
 	return table;
 }
 

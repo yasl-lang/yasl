@@ -692,14 +692,14 @@ void YASLKeywords(struct Lexer *const lex) {
 		lex_print_err_syntax(lex,  "`do` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
 		lex_error(lex);
 		return;
-	} else if (matches_keyword(lex, "ifdef")) {
+	/*} else if (matches_keyword(lex, "ifdef")) {
 		lex_print_err_syntax(lex,  "`ifdef` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
 		lex_error(lex);
 		return;
 	} else if (matches_keyword(lex, "elseifdef")) {
 		lex_print_err_syntax(lex,  "`elseifdef` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
 		lex_error(lex);
-		return;
+		return;*/
 	} else if (matches_keyword(lex, "use")) {
 		lex_print_err_syntax(lex,  "`use` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
 		lex_error(lex);
@@ -749,10 +749,12 @@ void YASLKeywords(struct Lexer *const lex) {
 	else if (matches_keyword(lex, "continue")) set_keyword(lex, T_CONT);
 	else if (matches_keyword(lex, "else")) set_keyword(lex, T_ELSE);
 	else if (matches_keyword(lex, "elseif")) set_keyword(lex, T_ELSEIF);
+	else if (matches_keyword(lex, "elseifdef")) set_keyword(lex, T_ELSEIFDEF);
 	else if (matches_keyword(lex, "export")) set_keyword(lex, T_EXPORT);
 	else if (matches_keyword(lex, "fn")) set_keyword(lex, T_FN);
 	else if (matches_keyword(lex, "for")) set_keyword(lex, T_FOR);
 	else if (matches_keyword(lex, "if")) set_keyword(lex, T_IF);
+	else if (matches_keyword(lex, "ifdef")) set_keyword(lex, T_IFDEF);
 	else if (matches_keyword(lex, "echo")) set_keyword(lex, T_ECHO);
 	else if (matches_keyword(lex, "let")) set_keyword(lex, T_LET);
 	else if (matches_keyword(lex, "return")) set_keyword(lex, T_RET);

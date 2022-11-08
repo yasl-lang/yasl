@@ -145,6 +145,7 @@ DECL_NODE(Break, N_BREAK)
 DECL_NODE(Continue, N_CONT)
 DECL_NODE(Match, N_MATCH, cond, patterns, guards, bodies)
 DECL_NODE(If, N_IF, cond, then, el)
+DECL_NODE(IfDef, N_IFDEF, cond, then, el)
 
 DECL_NODE(Echo, N_ECHO, exprs)
 DECL_NODE(Decl, N_DECL, lvals, rvals)
@@ -154,6 +155,7 @@ DECL_NODE(List, N_LIST, values)
 DECL_NODE(Table, N_TABLE, values)
 DECL_NODE(Assert, N_ASS, expr)
 DECL_NODE(Body, N_BODY)
+DECL_NODE(Exprs, N_EXPRS)
 
 struct Node *new_VariadicContext(struct Node *const expr, const int expected);
 struct Node *new_MethodCall(struct Parser *parser, const struct Node *const params, const struct Node *const object, char *value, size_t len, const size_t line);

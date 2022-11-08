@@ -1,0 +1,10 @@
+
+let m = undef
+
+ifdef math {
+    m = 'submodule: math is defined'
+} else {
+    m = 'submodule: math is not defined'
+}
+
+export m

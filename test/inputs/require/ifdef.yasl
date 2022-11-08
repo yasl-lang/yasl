@@ -1,0 +1,9 @@
+const m = require('test/inputs/math.yam')
+
+echo m
+
+ifdef math {
+    echo 'script: math is defined'
+} else {
+    echo 'script: math is not defined'
+}
