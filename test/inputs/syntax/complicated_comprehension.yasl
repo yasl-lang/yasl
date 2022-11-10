@@ -1,0 +1,3 @@
+const a = [ 10, 2, 45, 6 ]
+
+echo 's' ~ [ b for b <- a ]->join(', ') ~ [ b->tostr() for b <- a]->join(' ') ~ ' asdasd'

@@ -1571,9 +1571,8 @@ void vm_executenext(struct VM *const vm) {
 		vm_exitloopframe(vm);
 		break;
 	case O_ENDCOMP:
-		a = vm_pop(vm);
-		vm_pop(vm);
-		vm_push(vm, a);
+		c = NCODE(vm);
+		vm_rm(vm, vm->fp + 1 + c);
 		vm_exitloopframe(vm);
 		break;
 	case O_ITER_1:
@@ -1596,6 +1595,12 @@ void vm_executenext(struct VM *const vm) {
 		a = vm_peek(vm, vm->fp + offset + 1);
 		memmove(vm->stack + vm->fp + offset + 1, vm->stack + vm->fp + offset + 2, (vm->sp - (vm->fp + offset + 1)) * sizeof(struct YASL_Object));
 		vm->stack[vm->sp] = a;
+		break;
+	case O_MOVEDOWN_FP:
+		offset = NCODE(vm);
+		a = vm_peek(vm);
+		memmove(vm->stack + vm->fp + offset + 2, vm->stack + vm->fp + offset + 1, (vm->sp - (vm->fp + offset + 1)) * sizeof(struct YASL_Object));\
+		vm->stack[vm->fp + offset + 1] = a;
 		break;
 	case O_MATCH:
 		vm_MATCH_IF(vm);

@@ -555,10 +555,13 @@ static void visit_Comp(struct Compiler *const compiler, const struct Node *const
 
 	visit_expr(compiler, collection);
 
+	const size_t stack_size_before = get_stacksize(compiler);
 	compiler_add_byte(compiler, O_INITFOR);
 	compiler_add_byte(compiler, O_END);
 	decl_var(compiler, name, iter->line);
 	compiler_add_byte(compiler, O_END);
+	compiler_add_byte(compiler, O_MOVEDOWN_FP);
+	compiler_add_byte(compiler, (unsigned char)stack_size_before);
 
 	int64_t index_start = compiler->buffer->count;
 
@@ -577,6 +580,7 @@ static void visit_Comp(struct Compiler *const compiler, const struct Node *const
 
 	compiler_add_byte(compiler, byte);
 	compiler_add_byte(compiler, O_ENDCOMP);
+	compiler_add_byte(compiler, (unsigned char)stack_size_before);
 
 	size_t curr = compiler->buffer->count;
 	exit_scope(compiler);
