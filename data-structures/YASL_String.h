@@ -45,8 +45,12 @@ struct YASL_String *YASL_String_replace_fast(struct YASL_String *str, struct YAS
 					     struct YASL_String *replace_str, int *replacements, yasl_int max_replacements);
 yasl_int YASL_String_count(struct YASL_String *haystack, struct YASL_String *needle);
 void YASL_String_split_default(struct YASL_List *data, struct YASL_String *haystack);
+// Caller makes sure max_splits > 0
+void YASL_String_split_default_max(struct YASL_List *data, struct YASL_String *haystack, yasl_int max_splits);
 // Caller makes sure needle is not 0 length
 void YASL_String_split_fast(struct YASL_List *data, struct YASL_String *haystack, struct YASL_String *needle);
+// Caller makes sure needle is not 0 length and max_splits > 0
+void YASL_String_split_max_fast(struct YASL_List *data, struct YASL_String *haystack, struct YASL_String *needle, yasl_int max_splits);
 struct YASL_String *YASL_String_ltrim_default(struct YASL_String *haystack);
 struct YASL_String *YASL_String_ltrim(struct YASL_String *haystack, struct YASL_String *needle);
 struct YASL_String *YASL_String_rtrim_default(struct YASL_String *haystack);
