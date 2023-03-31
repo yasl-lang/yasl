@@ -138,6 +138,7 @@ void vm_print_err(struct VM *vm, const char *const fmt, ...);
 YASL_NORETURN void vm_throw_err(struct VM *const vm, int error);
 
 void vm_get_metatable(struct VM *const vm);
+int vm_lookup_method_helper(struct VM *vm, struct YASL_Table *mt, struct YASL_Object index);
 void vm_stringify_top(struct VM *const vm);
 void vm_EQ(struct VM *const vm);
 

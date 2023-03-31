@@ -309,7 +309,7 @@ static yasl_int vm_read_int(struct VM *const vm) {
 
 static void vm_duptop(struct VM *const vm);
 static void vm_swaptop(struct VM *const vm);
-static int vm_lookup_method_helper(struct VM *vm, struct YASL_Table *mt, struct YASL_Object index);
+int vm_lookup_method_helper(struct VM *vm, struct YASL_Table *mt, struct YASL_Object index);
 static void vm_GET(struct VM *const vm);
 static void vm_INIT_CALL(struct VM *const vm, int expected_returns);
 void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns);
@@ -768,7 +768,7 @@ void vm_get_metatable(struct VM *const vm) {
 	vm_push(vm, mt ? YASL_TABLE(mt) : YASL_UNDEF());
 }
 
-static int vm_lookup_method_helper(struct VM *vm, struct YASL_Table *mt, struct YASL_Object index) {
+int vm_lookup_method_helper(struct VM *vm, struct YASL_Table *mt, struct YASL_Object index) {
 	if (!mt) return YASL_VALUE_ERROR;
 	struct YASL_Object search = YASL_Table_search(mt, index);
 	if (search.type != Y_END) {
