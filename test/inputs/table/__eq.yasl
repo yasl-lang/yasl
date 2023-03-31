@@ -1,5 +1,5 @@
 
-const extend = {}.__bor
+const extend = mt.lookup({}, .__bor)
 
 let left = { .a: 10, .b: 12 }
 let right = collections.table(.a, 10, .b, 12, .c, 7)

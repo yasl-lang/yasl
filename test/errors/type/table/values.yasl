@@ -1,1 +1,1 @@
-{}.values(1)
+mt.lookup({}, .values)(1)

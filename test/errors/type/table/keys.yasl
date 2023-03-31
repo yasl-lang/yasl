@@ -1,1 +1,1 @@
-{}.keys(1)
+mt.lookup({}, .keys)(1)

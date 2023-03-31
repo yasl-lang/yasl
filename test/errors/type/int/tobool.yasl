@@ -1,1 +1,1 @@
-echo 0.tobool(1.0)
+echo mt.lookup(0, .tobool)(1.0)

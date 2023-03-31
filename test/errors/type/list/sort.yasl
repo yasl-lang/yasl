@@ -1,1 +1,1 @@
-[].sort(1)
+mt.lookup([], .sort)(1)

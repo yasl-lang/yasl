@@ -1,1 +1,1 @@
-[].remove(1, true)
+mt.lookup([], .remove)(1, true)

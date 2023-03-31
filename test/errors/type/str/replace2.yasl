@@ -1,1 +1,1 @@
-''.replace(1, true, .str)
+mt.lookup('', .replace)(1, true, .str)

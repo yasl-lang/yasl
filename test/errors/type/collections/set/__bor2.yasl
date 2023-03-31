@@ -1,1 +1,1 @@
-echo collections.set().__bor(1, collections.set())
+echo mt.lookup(collections.set(), .__bor)(1, collections.set())

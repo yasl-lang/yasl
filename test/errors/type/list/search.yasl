@@ -1,1 +1,1 @@
-[].search(1)
+mt.lookup([], .search)(1)

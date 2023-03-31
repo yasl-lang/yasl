@@ -1,1 +1,1 @@
-echo collections.set().copy(1)
+echo mt.lookup(collections.set(), .copy)(1)

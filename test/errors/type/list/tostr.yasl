@@ -1,1 +1,1 @@
-[].tostr(1)
+mt.lookup([], .tostr)(1)

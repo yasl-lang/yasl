@@ -1,1 +1,1 @@
-[].__add([], true)
+mt.lookup([], .__add)([], true)

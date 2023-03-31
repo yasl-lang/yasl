@@ -1,2 +1,2 @@
 
-true.tostr(1)
+mt.lookup(true, .tostr)(1)

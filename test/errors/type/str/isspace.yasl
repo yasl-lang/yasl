@@ -1,1 +1,1 @@
-''.isspace(1)
+mt.lookup('', .isspace)(1)

@@ -1,2 +1,2 @@
 
-true.tobool(1)
+mt.lookup(true, .tobool)(1)

@@ -2,7 +2,7 @@
 
 let ls = []
 
-mt.set(ls, {}.__bor(mt.get(ls), { .first: fn(self) { return self[0]; }, .rest: fn(self) { return self[1:]; } }))
+mt.set(ls, mt.lookup({}, .__bor)(mt.get(ls), { .first: fn(self) { return self[0]; }, .rest: fn(self) { return self[1:]; } }))
 
 echo ls
 ls->push(1)

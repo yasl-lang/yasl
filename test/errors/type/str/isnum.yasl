@@ -1,1 +1,1 @@
-''.isnum(1)
+mt.lookup('', .isnum)(1)

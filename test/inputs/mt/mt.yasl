@@ -1,6 +1,6 @@
 let ls = [ 1, 2, 3, 4, 5 ]
 
-const extend = {}.__bor
+const extend = mt.lookup({}, .__bor)
 
 const ops = {}
 

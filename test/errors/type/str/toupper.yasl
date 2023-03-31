@@ -1,1 +1,1 @@
-''.toupper(1)
+mt.lookup('', .toupper)(1)

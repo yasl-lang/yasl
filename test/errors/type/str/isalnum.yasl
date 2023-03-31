@@ -1,1 +1,1 @@
-''.isalnum(1)
+mt.lookup('', .isalnum)(1)

@@ -1,1 +1,1 @@
-''.endswith(1, true)
+mt.lookup('', .endswith)(1, true)

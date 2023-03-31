@@ -4,7 +4,7 @@ let x = {
     .a: 10,
     .b: 12 }
 
-const extend = {}.__bor
+const extend = mt.lookup({}, .__bor)
 
 const ops = {
     .__gt: fn(left, right) { return left.a > right.a; },

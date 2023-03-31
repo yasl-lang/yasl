@@ -1,1 +1,1 @@
-''.search(.str, true)
+mt.lookup('', .search)(.str, true)

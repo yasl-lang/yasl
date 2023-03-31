@@ -1,1 +1,1 @@
-[].spread(1)
+mt.lookup([], .spread)(1)

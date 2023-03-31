@@ -1,1 +1,1 @@
-echo collections.set().__band(collections.set(), true)
+echo mt.lookup(collections.set(), .__band)(collections.set(), true)
