@@ -22,7 +22,7 @@ static int isddigit(int c) {
 }
 
 static bool iswhitespace(int c) {
-	return c == ' ' || c == '\n' || c == '\t';
+	return c == ' ' || c == '\n' || c == '\t' || c == '\r';
 }
 
 YASL_FORMAT_CHECK static void lex_print_err(struct Lexer *lex, const char *const fmt, ...) {
