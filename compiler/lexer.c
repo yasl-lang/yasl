@@ -22,7 +22,7 @@ static int isddigit(int c) {
 }
 
 static bool iswhitespace(int c) {
-	return c == ' ' || c == '\n' || c == '\t';
+	return c == ' ' || c == '\n' || c == '\t' || c == '\r';
 }
 
 YASL_FORMAT_CHECK static void lex_print_err(struct Lexer *lex, const char *const fmt, ...) {
@@ -772,19 +772,6 @@ const char *YASL_TOKEN_NAMES[] = {
 #include "tokentype.x"
 #undef X
 };
-
-struct Lexer *lex_new(FILE *file /* OWN */) {
-	struct Lexer *const lex = (struct Lexer *) malloc(sizeof(struct Lexer));
-	lex->line = 1;
-	lex_val_setnull(lex);
-	lex->buffer.size = 0;
-	lex->buffer.count = 0;
-	lex->file = lexinput_new_file(file);
-	lex->type = T_UNKNOWN;
-	lex->status = YASL_SUCCESS;
-	lex->mode = L_NORMAL;
-	return lex;
-}
 
 void lex_cleanup(struct Lexer *const lex) {
 	lxclose(lex->file);

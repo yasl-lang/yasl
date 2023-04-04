@@ -1,1 +1,1 @@
-''.count(.str, true)
+mt.lookup('', .count)(.str, true)

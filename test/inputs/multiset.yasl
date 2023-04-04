@@ -1,16 +1,16 @@
 
 const multisetmt = {} | mt.get({}) | {
         .__get: fn(self, k) {
-                return {}.__get(self, k) ?? 0;
+                return mt.lookup({}, .__get)(self, k) ?? 0;
         },
         .__set: fn(self, k, v) {
                 match v {
                 0 {
-                        {}.__set(self, k, undef)
+                        mt.lookup({}, .__set)(self, k, undef)
                 }
                 int {
                     if v > 0 {
-                            return {}.__set(self, k, v)
+                            return mt.lookup({}, .__set)(self, k, v)
                     } else {
                             assert false
                     }

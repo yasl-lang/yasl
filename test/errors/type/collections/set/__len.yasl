@@ -1,1 +1,1 @@
-echo collections.set().__len(1)
+echo mt.lookup(collections.set(), .__len)(1)

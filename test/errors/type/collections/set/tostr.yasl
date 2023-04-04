@@ -1,1 +1,1 @@
-echo collections.set().tostr(1)
+echo mt.lookup(collections.set(), .tostr)(1)

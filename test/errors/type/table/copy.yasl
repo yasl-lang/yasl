@@ -1,1 +1,1 @@
-{}.copy(1)
+mt.lookup({}, .copy)(1)

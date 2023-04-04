@@ -80,7 +80,7 @@ struct YASL_Table* str_builtins(struct VM *vm) {
 	table_insert_specialstring_cfunction(vm, table, S_REPLACE, &str_replace, 4);
 	table_insert_specialstring_cfunction(vm, table, S_SEARCH, &str_search, 2);
 	table_insert_specialstring_cfunction(vm, table, S_COUNT, &str_count, 2);
-	table_insert_specialstring_cfunction(vm, table, S_SPLIT, &str_split, 2);
+	table_insert_specialstring_cfunction(vm, table, S_SPLIT, &str_split, 3);
 	table_insert_specialstring_cfunction(vm, table, S_LTRIM, &str_ltrim, 2);
 	table_insert_specialstring_cfunction(vm, table, S_RTRIM, &str_rtrim, 2);
 	table_insert_specialstring_cfunction(vm, table, S_TRIM, &str_trim, 2);

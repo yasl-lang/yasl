@@ -309,7 +309,7 @@ static yasl_int vm_read_int(struct VM *const vm) {
 
 static void vm_duptop(struct VM *const vm);
 static void vm_swaptop(struct VM *const vm);
-static int vm_lookup_method_helper(struct VM *vm, struct YASL_Table *mt, struct YASL_Object index);
+int vm_lookup_method_helper(struct VM *vm, struct YASL_Table *mt, struct YASL_Object index);
 static void vm_GET(struct VM *const vm);
 static void vm_INIT_CALL(struct VM *const vm, int expected_returns);
 void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns);
@@ -768,7 +768,7 @@ void vm_get_metatable(struct VM *const vm) {
 	vm_push(vm, mt ? YASL_TABLE(mt) : YASL_UNDEF());
 }
 
-static int vm_lookup_method_helper(struct VM *vm, struct YASL_Table *mt, struct YASL_Object index) {
+int vm_lookup_method_helper(struct VM *vm, struct YASL_Table *mt, struct YASL_Object index) {
 	if (!mt) return YASL_VALUE_ERROR;
 	struct YASL_Object search = YASL_Table_search(mt, index);
 	if (search.type != Y_END) {
@@ -782,6 +782,7 @@ static int vm_lookup_method_helper(struct VM *vm, struct YASL_Table *mt, struct 
 static int lookup(struct VM *vm, struct YASL_Table *mt) {
 	struct YASL_Object index = vm_peek(vm);
 	struct YASL_Object search = YASL_Table_search(mt, index);
+	// TODO: remove this, make lookups use only `mt.lookup`.
 	if (search.type != Y_END) {
 		vm_pop(vm);
 		vm_pop(vm);
@@ -1571,9 +1572,8 @@ void vm_executenext(struct VM *const vm) {
 		vm_exitloopframe(vm);
 		break;
 	case O_ENDCOMP:
-		a = vm_pop(vm);
-		vm_pop(vm);
-		vm_push(vm, a);
+		c = NCODE(vm);
+		vm_rm(vm, vm->fp + 1 + c);
 		vm_exitloopframe(vm);
 		break;
 	case O_ITER_1:
@@ -1596,6 +1596,12 @@ void vm_executenext(struct VM *const vm) {
 		a = vm_peek(vm, vm->fp + offset + 1);
 		memmove(vm->stack + vm->fp + offset + 1, vm->stack + vm->fp + offset + 2, (vm->sp - (vm->fp + offset + 1)) * sizeof(struct YASL_Object));
 		vm->stack[vm->sp] = a;
+		break;
+	case O_MOVEDOWN_FP:
+		offset = NCODE(vm);
+		a = vm_peek(vm);
+		memmove(vm->stack + vm->fp + offset + 2, vm->stack + vm->fp + offset + 1, (vm->sp - (vm->fp + offset + 1)) * sizeof(struct YASL_Object));\
+		vm->stack[vm->fp + offset + 1] = a;
 		break;
 	case O_MATCH:
 		vm_MATCH_IF(vm);

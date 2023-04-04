@@ -1,1 +1,1 @@
-echo collections.set().__gt(1, collections.set())
+echo mt.lookup(collections.set(), .__gt)(1, collections.set())

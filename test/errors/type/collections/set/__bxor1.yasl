@@ -1,1 +1,1 @@
-echo collections.set().__bxor(collections.set(), true)
+echo mt.lookup(collections.set(), .__bxor)(collections.set(), true)

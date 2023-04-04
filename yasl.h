@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define YASL_VERSION "v0.12.2"
+#define YASL_VERSION "v0.12.3"
 
 #define YASL_STR_NAME "str"
 #define YASL_FLOAT_NAME "float"
@@ -31,7 +31,8 @@ int YASL_compile(struct YASL_State *S);
 
 /**
  * [-0, +0]
- * Declares a global for use in the given YASL_State.
+ * Declares a global for use in the given YASL_State. YASL does
+ * not handle the lifetime of the string; normally a literal is used.
  * @param S the YASL_State in which to declare the global.
  * @param name the name of the global (null-terminated string).
  * @return YASL_SUCCESS on success, otherwise an error code.

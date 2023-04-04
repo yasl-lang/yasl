@@ -1,1 +1,1 @@
-[].copy(true)
+mt.lookup([], .copy)(true)

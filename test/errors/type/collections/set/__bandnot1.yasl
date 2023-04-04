@@ -1,1 +1,1 @@
-echo collections.set().__bandnot(collections.set(), true)
+echo mt.lookup(collections.set(), .__bandnot)(collections.set(), true)

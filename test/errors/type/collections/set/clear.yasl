@@ -1,1 +1,1 @@
-echo collections.set().clear(1)
+echo mt.lookup(collections.set(), .clear)(1)

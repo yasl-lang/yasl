@@ -3,12 +3,12 @@
 #include "yasl_aux.h"
 #include "yasl_state.h"
 
-int YASL_mt_getmt(struct YASL_State *S) {
+int YASL_mt_get(struct YASL_State *S) {
 	vm_get_metatable((struct VM *)S);
 	return 1;
 }
 
-int YASL_mt_setmt(struct YASL_State *S) {
+int YASL_mt_set(struct YASL_State *S) {
 	if (!YASL_istable(S)) {
 		YASLX_print_err_bad_arg_type(S, "mt.set", 1, YASL_TABLE_NAME, YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
@@ -28,6 +28,35 @@ int YASL_mt_setmt(struct YASL_State *S) {
 	return 1;
 }
 
+int YASL_mt_setself(struct YASL_State *S) {
+	if (!YASL_istable(S)) {
+		YASLX_print_err_bad_arg_type(S, "mt.set", 1, YASL_TABLE_NAME, YASL_peektypename(S));
+		YASL_throw_err(S, YASL_TYPE_ERROR);
+	}
+
+	YASL_duptop(S);
+	return YASL_mt_set(S);
+}
+
+int YASL_mt_lookup(struct YASL_State *S) {
+	struct YASL_Object key = vm_pop((struct VM *)S);
+	vm_get_metatable((struct VM *)S);
+
+	if (YASL_isundef(S)) {
+		return 1;
+	}
+
+	struct YASL_Table* table = vm_poptable((struct VM *)S);
+	int result = vm_lookup_method_helper((struct VM *)S, table, key);
+
+	if (result != YASL_SUCCESS) {
+		YASL_pushundef(S);
+		return 1;
+	}
+
+	return 1;
+}
+
 int YASL_decllib_mt(struct YASL_State *S) {
 	YASL_declglobal(S, "mt");
 	YASL_pushtable(S);
@@ -35,11 +64,19 @@ int YASL_decllib_mt(struct YASL_State *S) {
 
 	YASL_loadglobal(S, "mt");
 	YASL_pushlit(S, "get");
-	YASL_pushcfunction(S, YASL_mt_getmt, 1);
+	YASL_pushcfunction(S, YASL_mt_get, 1);
 	YASL_tableset(S);
 
 	YASL_pushlit(S, "set");
-	YASL_pushcfunction(S, YASL_mt_setmt, 2);
+	YASL_pushcfunction(S, YASL_mt_set, 2);
+	YASL_tableset(S);
+
+	YASL_pushlit(S, "setself");
+	YASL_pushcfunction(S, YASL_mt_setself, 1);
+	YASL_tableset(S);
+
+	YASL_pushlit(S, "lookup");
+	YASL_pushcfunction(S, YASL_mt_lookup, 2);
 	YASL_tableset(S);
 	YASL_pop(S);
 

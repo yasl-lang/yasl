@@ -1,1 +1,1 @@
-[].join([], true)
+mt.lookup([], .join)([], true)

@@ -31,7 +31,7 @@ struct YASL_State *YASL_newstate_num(const char *filename, size_t num) {
 }
 
 struct YASL_State *YASL_newstate(const char *filename) {
-	FILE *fp = fopen(filename, "r");
+	FILE *fp = fopen(filename, "rb");
 	if (!fp) {
 		return NULL;  // Can't open file.
 	}

@@ -235,6 +235,26 @@ int str_count(struct YASL_State *S) {
 	return 1;
 }
 
+static void str_split_max(struct YASL_State *S, yasl_int max_splits) {
+	struct YASL_String *needle = YASLX_checknstr(S, "str.split", 1);
+	struct YASL_String *haystack = YASLX_checknstr(S, "str.split", 0);
+
+	if (max_splits < 0) {
+		vm_print_err_value((struct VM *)S, "%s expected a non-negative int as arg 2.", "str.split");
+		YASL_throw_err(S, YASL_VALUE_ERROR);
+	}
+
+	if (max_splits == 0) {
+		YASL_pushlist(S);
+		return;
+	}
+
+	struct RC_UserData *result = rcls_new();
+	ud_setmt(&S->vm, result, (&S->vm)->builtins_htable[Y_LIST]);
+	YASL_String_split_max_fast((struct YASL_List *)result->data, haystack, needle, max_splits);
+	vm_push((struct VM *) S, YASL_LIST(result));
+}
+
 static void str_split_default(struct YASL_State *S) {
 	struct YASL_String *haystack = YASLX_checknstr(S, "str.split", 0);
 	struct RC_UserData *result = rcls_new();
@@ -244,10 +264,38 @@ static void str_split_default(struct YASL_State *S) {
 	vm_push((struct VM *) S, YASL_LIST(result));
 }
 
+static void str_split_default_max(struct YASL_State *S, yasl_int max_splits) {
+	struct YASL_String *haystack = YASLX_checknstr(S, "str.split", 0);
+	struct RC_UserData *result = rcls_new();
+	ud_setmt(&S->vm, result, (&S->vm)->builtins_htable[Y_LIST]);
+
+	YASL_String_split_default_max((struct YASL_List *)result->data, haystack, max_splits);
+	vm_push((struct VM *) S, YASL_LIST(result));
+}
+
 int str_split(struct YASL_State *S) {
+	if (YASL_isint(S)) {
+		yasl_int max_splits = YASL_popint(S);
+		str_split_max(S, max_splits);
+		return 1;
+	}
+
+	if (!YASL_isundef(S)) {
+		vm_print_err_type((struct VM *)S, "str.split expected an argument 2 to be of type int or undef, got %s.", YASL_peekntypename(S, 2));
+		YASL_throw_err(S, YASL_TYPE_ERROR);
+	}
+
+	YASL_pop(S);
+
 	if (YASL_isundef(S)) {
 		YASL_pop(S);
 		str_split_default(S);
+		return 1;
+	}
+
+	if (YASL_isint(S)) {
+		yasl_int max_splits = YASL_popint(S);
+		str_split_default_max(S, max_splits);
 		return 1;
 	}
 

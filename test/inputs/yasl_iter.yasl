@@ -29,10 +29,10 @@ const orderedtablemt = {
 		return "orderedtable(#{buffer->join(', ')})"
 	},
 	.__list: fn(self) {
-	    return {}.__get(self, .list)
+	    return mt.lookup({}, .__get)(self, .list)
 	},
 	.__table: fn(self) {
-	    return {}.__get(self, .table)
+	    return mt.lookup({}, .__get)(self, .table)
 	}
 }
 

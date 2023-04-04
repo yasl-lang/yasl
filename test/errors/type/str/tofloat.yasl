@@ -1,1 +1,1 @@
-''.tofloat(1)
+mt.lookup('', .tofloat)(1)

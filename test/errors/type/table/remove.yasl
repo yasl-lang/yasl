@@ -1,1 +1,1 @@
-{}.remove(1, 2.0)
+mt.lookup({}, .remove)(1, 2.0)

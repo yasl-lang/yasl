@@ -54,6 +54,7 @@ enum Opcode {
 	O_NEWLIST = 0x9D, // make new list and push it onto stack
 
 	O_MOVEUP_FP = 0xA0, // move an element from index whatever to top of stack, indexing from fp.
+	O_MOVEDOWN_FP = 0xA1,
 
 	O_END = 0xB0, // indicate end of list on stack.
 	O_SWAP = 0xB7, // swap the top two elements of the stack.

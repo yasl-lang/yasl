@@ -1,1 +1,1 @@
-''.tolower(1)
+mt.lookup('', .tolower)(1)

@@ -413,47 +413,74 @@ yasl_int YASL_String_count(struct YASL_String *haystack, struct YASL_String *nee
 	return count;
 }
 
-void YASL_String_split_default(struct YASL_List *data, struct YASL_String *haystack) {
-	const size_t haystack_len = YASL_String_len(haystack);
-	const char *haystack_chars = YASL_String_chars(haystack);
-	size_t end = 0, start = 0;
-	while (true) {
-		while (end < haystack_len && iswhitespace(haystack_chars[end])) {
-			end++;
-		}
-		if (end >= haystack_len) break;
-		start = end;
-		while (end < haystack_len && !iswhitespace(haystack_chars[end])) {
-			end++;
-		}
-		struct YASL_Object to = YASL_STR(
-			YASL_String_new_substring(start + haystack->start, end + haystack->start, haystack));
-		YASL_List_append(data, to);
+#define DEF_STR_SPLIT_DEFAULT(COND, POST) \
+	const size_t haystack_len = YASL_String_len(haystack);\
+	const char *haystack_chars = YASL_String_chars(haystack);\
+	size_t end = 0, start = 0;\
+	while (COND) {\
+		while (end < haystack_len && iswhitespace(haystack_chars[end])) {\
+			end++;\
+		}\
+		if (end >= haystack_len) break;\
+		start = end;\
+		while (end < haystack_len && !iswhitespace(haystack_chars[end])) {\
+			end++;\
+		}\
+		struct YASL_Object to = YASL_STR(\
+			YASL_String_new_substring(start + haystack->start, end + haystack->start, haystack));\
+		YASL_List_append(data, to);\
+		POST;\
 	}
+
+
+void YASL_String_split_default(struct YASL_List *data, struct YASL_String *haystack) {
+	DEF_STR_SPLIT_DEFAULT(true, {});
 }
+
+void YASL_String_split_default_max(struct YASL_List *data, struct YASL_String *haystack, yasl_int max_splits) {
+	YASL_ASSERT(max_splits > 0, "max_splits should be greater than 0");
+	DEF_STR_SPLIT_DEFAULT(max_splits > 0, max_splits--);
+	start = end;
+	end = haystack_len;
+	struct YASL_Object to = YASL_STR(\
+			YASL_String_new_substring(start + haystack->start, end + haystack->start, haystack));
+	YASL_List_append(data, to);
+}
+
+#define DEF_STR_SPLIT(COND, POST) \
+	YASL_ASSERT(YASL_String_len(needle) != 0, "needle must have non-zero length");\
+	const size_t needle_len = YASL_String_len(needle);\
+	const char *haystack_chars = YASL_String_chars(haystack);\
+	const char *needle_chars = YASL_String_chars(needle);\
+	int64_t end = 0, start = 0;\
+	while (end + needle_len <= YASL_String_len(haystack) && (COND)) {\
+		if (!memcmp(haystack_chars + end, needle_chars, needle_len)) {\
+			struct YASL_Object to = YASL_STR(\
+				YASL_String_new_substring(start + haystack->start, end + haystack->start, haystack));\
+			YASL_List_append(data, to);\
+			end += needle_len;\
+			start = end;\
+			POST;\
+		} else {\
+			end++;\
+		}\
+	}\
+	end = YASL_String_len(haystack);\
+	struct YASL_Object to = YASL_STR(\
+		YASL_String_new_substring(start + haystack->start, end + haystack->start, haystack));\
+	YASL_List_append(data, to);
+
+
 
 // Caller makes sure needle is not 0 length
 void YASL_String_split_fast(struct YASL_List *data, struct YASL_String *haystack, struct YASL_String *needle) {
-	YASL_ASSERT(YASL_String_len(needle) != 0, "needle must have non-zero length");
-	const size_t needle_len = YASL_String_len(needle);
-	const char *haystack_chars = YASL_String_chars(haystack);
-	const char *needle_chars = YASL_String_chars(needle);
-	int64_t end = 0, start = 0;
-	while (end + needle_len <= YASL_String_len(haystack)) {
-		if (!memcmp(haystack_chars + end, needle_chars, needle_len)) {
-			struct YASL_Object to = YASL_STR(
-				YASL_String_new_substring(start + haystack->start, end + haystack->start, haystack));
-			YASL_List_append(data, to);
-			end += needle_len;
-			start = end;
-		} else {
-			end++;
-		}
-	}
-	end = YASL_String_len(haystack);
-	struct YASL_Object to = YASL_STR(
-		YASL_String_new_substring(start + haystack->start, end + haystack->start, haystack));
-	YASL_List_append(data, to);
+	DEF_STR_SPLIT(true, {});
+}
+
+// Caller makes sure needle is not 0 length
+void YASL_String_split_max_fast(struct YASL_List *data, struct YASL_String *haystack, struct YASL_String *needle, yasl_int max_splits) {
+	YASL_ASSERT(max_splits > 0, "max_splits should be greater than 0");
+	DEF_STR_SPLIT(max_splits > 0, max_splits--);
 }
 
 struct YASL_String *YASL_String_ltrim_default(struct YASL_String *haystack) {

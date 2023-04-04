@@ -1,1 +1,1 @@
-''.rep(.str, true)
+mt.lookup('', .rep)(.str, true)
