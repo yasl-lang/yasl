@@ -773,19 +773,6 @@ const char *YASL_TOKEN_NAMES[] = {
 #undef X
 };
 
-struct Lexer *lex_new(FILE *file /* OWN */) {
-	struct Lexer *const lex = (struct Lexer *) malloc(sizeof(struct Lexer));
-	lex->line = 1;
-	lex_val_setnull(lex);
-	lex->buffer.size = 0;
-	lex->buffer.count = 0;
-	lex->file = lexinput_new_file(file);
-	lex->type = T_UNKNOWN;
-	lex->status = YASL_SUCCESS;
-	lex->mode = L_NORMAL;
-	return lex;
-}
-
 void lex_cleanup(struct Lexer *const lex) {
 	lxclose(lex->file);
 	io_cleanup(&lex->err);
