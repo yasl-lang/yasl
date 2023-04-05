@@ -1130,10 +1130,11 @@ static struct Node *parse_constant(struct Parser *const parser) {
 	case T_ID:
 		return parse_id(parser);
 	case T_LPAR: {
+		size_t line = parserline(parser);
 		eattok(parser, T_LPAR);
 		struct Node *expr = parse_expr(parser);
 		eattok(parser, T_RPAR);
-		return expr;
+		return new_Parens(parser, expr, line);
 	}
 	case T_LSQB:
 		return parse_list(parser);
