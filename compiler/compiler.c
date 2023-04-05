@@ -1431,6 +1431,10 @@ static void visit_Vargs(struct Compiler *const compiler, const struct Node *cons
 	compiler_add_byte(compiler, O_SPREAD_VARGS);
 }
 
+static void visit_Parens(struct Compiler *const compiler, const struct Node *const node) {
+	visit_expr(compiler, Parens_get_expr(node));
+}
+
 #define X(name, ...) &visit_##name,
 static void (*jmp_table[])(struct Compiler *const compiler, const struct Node *const node) = {
 #include "nodetype.x"
