@@ -25,6 +25,15 @@ jobs:
   - script:
       tests.exe
     displayName: "Run API Tests"
+  - name: Check out repository
+    uses: actions/checkout@v2
+  - name: Set up PowerShell 7
+    uses: actions/setup-powershell@v1
+    with:
+      powershell-version: '7.x'
+  - name: Run tests.ps1
+    run: pwsh tests.ps1
+    displayName: "Run Interpreter Tests"
 - job:
   displayName: "C MSVC Windows"
   pool:
