@@ -187,7 +187,7 @@ endif()
 
 target_link_libraries(tests yaslapi)
 
-if (UNIX)
+if (NOT WIN32)
     target_link_libraries(yasl dl)
     target_link_libraries(yaslapi dl)
     target_link_libraries(tests dl)

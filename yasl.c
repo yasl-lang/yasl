@@ -11,7 +11,7 @@
 #include "compiler/lexinput.h"
 
 struct YASL_State *YASL_newstate_num(const char *filename, size_t num) {
-	FILE *fp = fopen(filename, "r");
+	FILE *fp = fopen(filename, "rb");
 	if (!fp) {
 		return NULL;  // Can't open file.
 	}
@@ -77,7 +77,7 @@ void YASL_loadprinterr(struct YASL_State *S) {
 }
 
 int YASL_resetstate(struct YASL_State *S, const char *filename) {
-	FILE *fp = fopen(filename, "r");
+	FILE *fp = fopen(filename, "rb");
 	if (!fp) {
 		return YASL_ERROR;  // Can't open file.
 	}
