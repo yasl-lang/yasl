@@ -17,6 +17,8 @@
                   "|     ||  |  | |    | |     |\n" \
                   "|_____/|__|__| \\____/ |_____|\n"
 
+extern int random_offset;
+
 // -b: run bytecode
 // -c: compile to bytecode
 static int main_help(int argc, char **argv) {
@@ -44,6 +46,7 @@ static int main_version(int argc, char **argv) {
 static inline void main_init_platform() {
 	// Initialize prng seed
 	srand(time(NULL));
+	random_offset = (size_t)rand();
 
 	#ifdef YASL_USE_WIN
 		SetConsoleOutputCP(CP_UTF8);
