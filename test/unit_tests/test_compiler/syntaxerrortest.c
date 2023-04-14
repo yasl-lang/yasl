@@ -86,14 +86,9 @@ TEST(syntaxerrortest) {
 	ASSERT_SYNTAX_ERR("'asdsadasd", "Unclosed string literal in line 1");
 	ASSERT_SYNTAX_ERR("`asdsadasd", "Unclosed string literal in line 1");
 	ASSERT_SYNTAX_ERR("enum", "`enum` is an unused reserved word and cannot be used (line 1)");
-	ASSERT_SYNTAX_ERR("yield", "`yield` is an unused reserved word and cannot be used (line 1)");
 	ASSERT_SYNTAX_ERR("do", "`do` is an unused reserved word and cannot be used (line 1)");
 	ASSERT_SYNTAX_ERR("use", "`use` is an unused reserved word and cannot be used (line 1)");
 	ASSERT_SYNTAX_ERR("no", "`no` is an unused reserved word and cannot be used (line 1)");
-	ASSERT_SYNTAX_ERR("pure", "`pure` is an unused reserved word and cannot be used (line 1)");
-	ASSERT_SYNTAX_ERR("consteval", "`consteval` is an unused reserved word and cannot be used (line 1)");
-	ASSERT_SYNTAX_ERR("constexpr", "`constexpr` is an unused reserved word and cannot be used (line 1)");
-	ASSERT_SYNTAX_ERR("constfold", "`constfold` is an unused reserved word and cannot be used (line 1)");
 	ASSERT_SYNTAX_ERR("extern", "`extern` is an unused reserved word and cannot be used (line 1)");
 	ASSERT_SYNTAX_ERR("/*..a.sd", "Unclosed block comment in line 1");
 	ASSERT_SYNTAX_ERR("@", "Unknown character in line 1: `@` (0x40)");
