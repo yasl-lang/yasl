@@ -7,4 +7,4 @@ mt.set(table, m | mt.get(table))
 
 
 echo table('hello', 'world')
-echo table.__call('hello', 'world')
+echo mt.lookup(table, .__call)('hello', 'world')

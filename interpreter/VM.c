@@ -780,17 +780,7 @@ int vm_lookup_method_helper(struct VM *vm, struct YASL_Table *mt, struct YASL_Ob
 }
 
 static int lookup(struct VM *vm, struct YASL_Table *mt) {
-	struct YASL_Object index = vm_peek(vm);
-	struct YASL_Object search = YASL_Table_search(mt, index);
-	// TODO: remove this, make lookups use only `mt.lookup`.
-	if (search.type != Y_END) {
-		vm_pop(vm);
-		vm_pop(vm);
-		vm_push(vm, search);
-		return YASL_SUCCESS;
-	}
-
-	search = YASL_Table_search_zstring_int(mt, "__get");
+	struct YASL_Object search = YASL_Table_search_zstring_int(mt, "__get");
 	if (search.type != Y_END) {
 		vm_push(vm, search);
 		vm_shifttopdown(vm, 2);
