@@ -35,6 +35,9 @@
 #define INTERP_STR_PLACEHOLDER '#'
 #define NUM_SEPERATOR '_'
 
+#define isyaslidstart(c) (isalpha(c) || (c) == '_' || (c) == '$')
+#define isyaslid(c) (isalnum(c) || (c) == '_' || (c) == '$')
+
 enum LexerModes {
 	L_NORMAL,     // default mode.
 	L_INTERP,     // for string interpolation.
