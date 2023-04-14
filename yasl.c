@@ -168,6 +168,16 @@ int YASL_execute(struct YASL_State *S) {
 }
 
 int YASL_declglobal(struct YASL_State *S, const char *name) {
+#ifdef YASL_DEBUG
+	const char *curr = name;
+	YASL_ASSERT(*curr, "name must be at least length 1.");
+	YASL_ASSERT(isyaslidstart(*curr), "name must start with [A-Za-z_$].");
+	curr++;
+	while (*curr) {
+		YASL_ASSERT(isyaslid(*curr), "name must only contain [A-Za-z0-9_$].");
+		curr++;
+	}
+#endif  // YASL_DEBUG
 	compiler_intern_string(&S->compiler, name, strlen(name));
 	scope_decl_var(S->compiler.globals, name);
 	return YASL_SUCCESS;

@@ -34,9 +34,6 @@ YASL_FORMAT_CHECK static void lex_print_err(struct Lexer *lex, const char *const
 
 #define lex_print_err_syntax(lex, format, ...) lex_print_err(lex, "SyntaxError: " format, __VA_ARGS__)
 
-#define isyaslidstart(c) (isalpha(c) || (c) == '_' || (c) == '$')
-#define isyaslid(c) (isalnum(c) || (c) == '_' || (c) == '$')
-
 void lex_val_setnull(struct Lexer *const lex) {
 	lex->buffer.items = NULL;
 	lex->buffer.size = 0;
