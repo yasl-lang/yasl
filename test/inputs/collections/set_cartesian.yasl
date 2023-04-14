@@ -15,4 +15,5 @@ const fn concat(left, right) {
 const a = set(.A, .B, .C, .D)
 const b = set('1', '2', '3')
 
-echo concat(a, b)
+echo concat(a, b) == collections.set(.A2, .A1, .D1, .B1, .B2, .B3, .C3, .C2, .D2, .D3, .C1, .A3)
+

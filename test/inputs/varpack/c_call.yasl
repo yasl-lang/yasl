@@ -4,6 +4,9 @@
 
 let a, let b = collections.set(1, 2, 3)
 
+assert a[1]
+assert a[2]
+assert a[3]
 
-echo a
+echo len a
 echo b

@@ -176,7 +176,7 @@ int main(int argc, char **argv) {
 int main(int argc, char **argv) {
 	// Initialize prng seed
 	srand((unsigned)time(NULL));
-	random_offset = (size_t)rand();
+	// random_offset = (size_t)rand();
 
 	if (argc == 1) {
 		return main_REPL(argc, argv);
