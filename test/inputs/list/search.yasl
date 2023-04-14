@@ -1,3 +1,4 @@
-let x = [1, 2, 3]
+let x = [1, 2, 3, 1]
 echo x->search(4)
 echo x->search(3)
+echo x->search(1)
