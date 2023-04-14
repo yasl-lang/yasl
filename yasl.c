@@ -1,14 +1,16 @@
 #include "yasl.h"
 
+#include <ctype.h>
 #include <stdarg.h>
-#include <interpreter/YASL_Object.h>
 
+#include "compiler/compiler.h"
+#include "compiler/lexinput.h"
 #include "interpreter/table_methods.h"
 #include "interpreter/userdata.h"
-#include "yasl_state.h"
-#include "compiler/compiler.h"
 #include "interpreter/VM.h"
-#include "compiler/lexinput.h"
+#include "interpreter/YASL_Object.h"
+#include "yasl_state.h"
+
 
 struct YASL_State *YASL_newstate_num(const char *filename, size_t num) {
 	FILE *fp = fopen(filename, "r");
