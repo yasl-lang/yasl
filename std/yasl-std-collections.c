@@ -74,9 +74,10 @@ static int YASL_collections_list_new(struct YASL_State *S) {
 
 static int YASL_collections_table_new(struct YASL_State *S) {
 	yasl_int i = YASL_peekvargscount(S);
-	// If we have an odd number of args, we just add an undef to balance it out.
+	// If we have an odd number of args, we just pop the last one to balance it out.
 	if (i % 2 != 0) {
-		YASL_pushundef(S);
+		YASL_pop(S);
+		i--;
 	}
 	struct RC_UserData *table = rcht_new();
 	while (i > 0) {
