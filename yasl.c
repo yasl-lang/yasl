@@ -11,6 +11,7 @@
 #include "interpreter/YASL_Object.h"
 #include "yasl_state.h"
 
+size_t random_offset = 0;
 
 struct YASL_State *YASL_newstate_num(const char *filename, size_t num) {
 	FILE *fp = fopen(filename, "r");

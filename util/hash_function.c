@@ -3,23 +3,24 @@
 
 #include "prime.h"
 
+extern size_t random_offset;
 size_t hash_function(const struct YASL_Object s, const size_t a, const size_t m) {
-	size_t hash = 0;
 	if (obj_isstr(&s)) {
+		size_t hash = 0;
 		const int64_t len_s = YASL_String_len(s.value.sval);
 		const char *str = YASL_String_chars(s.value.sval);
 		for (int64_t i = 0; i < len_s; i++) {
 			hash = (hash * a) ^ str[i];
 			hash %= m;
 		}
-		return (size_t) hash;
+		return (random_offset ^ hash) % m;
 	} else {
 		int64_t ll = s.value.ival & 0xFFFF;
 		int64_t lu = (s.value.ival & 0xFFFF0000) >> 16;
 		int64_t ul = (s.value.ival & 0xFFFF00000000) >> 32;
 		int64_t uu = (s.value.ival & 0xFFFF000000000000) >> 48;
-		return (size_t) (((size_t) a * ll * ll * ll * ll ^ a * a * lu * lu * lu ^ a * a * a * ul * ul ^
-				  a * a * a * a * uu) % m);
+		return (random_offset ^ (size_t) (((size_t) a * ll * ll * ll * ll ^ a * a * lu * lu * lu ^ a * a * a * ul * ul ^
+				  a * a * a * a * uu) % m)) % m;
 	}
 }
 
