@@ -681,47 +681,16 @@ void YASLKeywords(struct Lexer *const lex) {
 		lex_print_err_syntax(lex,  "`pragma` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
 		lex_error(lex);
 		return;
-	} else if (matches_keyword(lex, "yield")) {
-		lex_print_err_syntax(lex,  "`yield` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
-		lex_error(lex);
-		return;
 	} else if (matches_keyword(lex, "do")) {
 		lex_print_err_syntax(lex,  "`do` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
 		lex_error(lex);
 		return;
-	/*} else if (matches_keyword(lex, "ifdef")) {
-		lex_print_err_syntax(lex,  "`ifdef` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
-		lex_error(lex);
-		return;
-	} else if (matches_keyword(lex, "elseifdef")) {
-		lex_print_err_syntax(lex,  "`elseifdef` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
-		lex_error(lex);
-		return;*/
 	} else if (matches_keyword(lex, "use")) {
 		lex_print_err_syntax(lex,  "`use` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
 		lex_error(lex);
 		return;
 	} else if (matches_keyword(lex, "no")) {
 		lex_print_err_syntax(lex,  "`no` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
-		lex_error(lex);
-		return;
-	} else if (matches_keyword(lex, "pure")) {
-		lex_print_err_syntax(lex,  "`pure` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
-		lex_error(lex);
-		return;
-	} else if (matches_keyword(lex, "consteval")) {
-		lex_print_err_syntax(lex,  "`consteval` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n",
-					lex->line);
-		lex_error(lex);
-		return;
-	} else if (matches_keyword(lex, "constexpr")) {
-		lex_print_err_syntax(lex,  "`constexpr` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n",
-					lex->line);
-		lex_error(lex);
-		return;
-	} else if (matches_keyword(lex, "constfold")) {
-		lex_print_err_syntax(lex,  "`constfold` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n",
-					lex->line);
 		lex_error(lex);
 		return;
 	} else if (matches_keyword(lex, "extern")) {
