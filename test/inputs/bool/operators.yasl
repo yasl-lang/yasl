@@ -7,10 +7,10 @@ const fn apply(f, op) {
     }
 }
 
-apply(fn(a, b) -> a | b, '|')
-apply(fn(a, b) -> a & b, '&')
-apply(fn(a, b) -> a &^ b, '&^')
-apply(fn(a, b) -> a ^ b, '^')
+apply((fn(a, b) -> a | b), '|')
+apply((fn(a, b) -> a & b), '&')
+apply((fn(a, b) -> a &^ b), '&^')
+apply((fn(a, b) -> a ^ b), '^')
 
 echo ^true
 echo ^false

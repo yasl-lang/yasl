@@ -390,6 +390,9 @@ static struct Node *parse_fn_body(struct Parser *const parser, bool collect_rest
 			YASLKeywords(&parser->lex);
 		}
 		size_t line = parserline(parser);
+		struct Node *block = parse_return_vals(parser);
+		body_append(parser, &body, new_Return(parser, block, line));
+		/*
 		if (matcheattok(parser, T_LPAR)) {
 			if (matcheattok(parser, T_RPAR)) {
 				body_append(parser, &body, new_Return(parser, new_Exprs(parser, line), line));
@@ -401,7 +404,7 @@ static struct Node *parse_fn_body(struct Parser *const parser, bool collect_rest
 		} else {
 			struct Node *expr = parse_expr_or_vargs(parser);
 			body_append(parser, &body, new_Return(parser, new_VariadicContext(expr, -1), line));
-		}
+		}*/
 	} else {
 		eattok(parser, T_LBRC);
 		while (curtok(parser) != T_RBRC && curtok(parser) != T_EOF) {

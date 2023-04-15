@@ -2,8 +2,8 @@
 let box = undef
 
 const boxmt = {
-    .tostr: fn(self) -> "box(#{self.contents->tostr()})",
-    .__bnot: fn(self) -> self.contents,
+    .tostr: (fn(self) -> "box(#{self.contents->tostr()})"),
+    .__bnot: (fn(self) -> self.contents),
     .update: fn(self, val) {
         self.contents = val
     },
