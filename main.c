@@ -19,6 +19,8 @@
 
 extern int random_offset;
 
+extern int random_offset;
+
 // -b: run bytecode
 // -c: compile to bytecode
 static int main_help(int argc, char **argv) {
