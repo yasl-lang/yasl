@@ -33,3 +33,15 @@ int int_tostr(struct YASL_State *S) {
 	free(ptr);
 	return 1;
 }
+
+int int_tochar(struct YASL_State *S) {
+	yasl_int n = YASLX_checknint(S, "int.tochar", 0);
+	// TODO: make this more portable.
+	if (n > 127 || n < 0) {
+		YASL_print_err(S, MSG_VALUE_ERROR "int.tochar was used with an invalid value (%" PRId64 ").", n);
+		YASL_throw_err(S, YASL_VALUE_ERROR);
+	}
+	char v = (char)n;
+	YASL_pushlstr(S, &v, 1);
+	return 1;
+}

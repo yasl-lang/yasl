@@ -33,6 +33,8 @@ int str_isnum(struct YASL_State *S);
 
 int str_isspace(struct YASL_State *S);
 
+int str_tobyte(struct YASL_State *S);
+
 int str_startswith(struct YASL_State *S);
 
 int str_endswith(struct YASL_State *S);

@@ -1,0 +1,5 @@
+
+echo 65->tochar()
+echo 97->tochar()
+echo 33->tochar()
+echo 126->tochar()

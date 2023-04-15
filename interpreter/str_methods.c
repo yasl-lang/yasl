@@ -169,6 +169,16 @@ int str_isspace(struct YASL_State *S) {
 	return 1;
 }
 
+int str_tobyte(struct YASL_State *S) {
+	struct YASL_String *a = YASLX_checknstr(S, "str.tobyte", 0);
+	if (YASL_String_len(a) != 1) {
+		YASL_print_err(S, MSG_VALUE_ERROR "str.tobyte expected a str of len 1.");
+		YASL_throw_err(S, YASL_VALUE_ERROR);
+	}
+	YASL_pushint(S, *YASL_String_chars(a));
+	return 1;
+}
+
 int str_startswith(struct YASL_State *S) {
 	struct YASL_String *haystack = YASLX_checknstr(S, "str.startswith", 0);
 	struct YASL_String *needle = YASLX_checknstr(S, "str.startswith", 1);

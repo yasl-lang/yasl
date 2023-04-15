@@ -1,0 +1,5 @@
+
+echo .A->tobyte()
+echo .a->tobyte()
+echo ' '->tobyte()
+echo '~'->tobyte()
