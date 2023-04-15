@@ -96,8 +96,10 @@ static bool lex_eatinlinecomments(struct Lexer *const lex) {
 	return false;
 }
 
+#define COMMENT_START '/'
+#define COMMENT_END '/'
 static bool lex_eatcommentsandwhitespace(struct Lexer * lex) {
-	while (!lxeof(lex->file) && (iswhitespace(lex->c) || lex->c == '#' || lex->c == '/')) {
+	while (!lxeof(lex->file) && (iswhitespace(lex->c) || lex->c == '#' || lex->c == COMMENT_START)) {
 		// white space
 		if (lex_eatwhitespace(lex)) return true;
 
@@ -105,7 +107,7 @@ static bool lex_eatcommentsandwhitespace(struct Lexer * lex) {
 		if (lex_eatinlinecomments(lex)) return true;
 
 		// block comments
-		if (lex->c == '/') {
+		if (lex->c == COMMENT_START) {
 		    long cur = lxtell(lex->file);
 			lex_getchar(lex);
 			if (lex->c == '*') {
@@ -113,7 +115,7 @@ static bool lex_eatcommentsandwhitespace(struct Lexer * lex) {
 				lex->c = ' ';
 				int c1 = lxgetc(lex->file);
 				int c2 = lxgetc(lex->file);
-				while (!lxeof(lex->file) && (c1 != '*' || c2 != '/')) {
+				while (!lxeof(lex->file) && (c1 != '*' || c2 != COMMENT_END)) {
 					if (c1 == '\n' || c2 == '\n') addsemi = true;
 					if (c1 == '\n') lex->line++;
 					c1 = c2;
@@ -128,12 +130,9 @@ static bool lex_eatcommentsandwhitespace(struct Lexer * lex) {
 					lex->type = T_SEMI;
 					return true;
 				}
-			} else if (lxeof(lex->file)) {
-				lex->type = T_SLASH;
-				return true;
 			} else {
 			    lxseek(lex->file, cur, SEEK_SET);
-			    lex->c = '/';
+			    lex->c = COMMENT_START;
 				break;
 			}
 		}
