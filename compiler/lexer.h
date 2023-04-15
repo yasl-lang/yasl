@@ -78,6 +78,6 @@ void lex_val_restore(struct Lexer *const lex, const YASL_ByteBuffer *const buffe
 
 void YASLKeywords(struct Lexer *const lex);
 
-extern const char *YASL_TOKEN_NAMES[86];
+extern const char *YASL_TOKEN_NAMES[84];
 
 #endif

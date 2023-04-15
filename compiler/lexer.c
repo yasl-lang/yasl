@@ -559,11 +559,9 @@ static enum Token YASLToken_TwoChars(char c1, char c2) {
 	  } return T_UNKNOWN;
 		case '=': switch(c2) {
 			case '=': return T_DEQ;
-			case '~': return T_EQTILDE;
 	  } return T_UNKNOWN;
 		case '!': switch(c2) {
 			case '=': return T_BANGEQ;
-			case '~': return T_BANGTILDE;
 	  } return T_UNKNOWN;
 	case '~': switch(c2) { case '=': return T_TILDEEQ; } return T_UNKNOWN;
 		case '*': switch(c2) {
