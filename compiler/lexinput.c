@@ -42,23 +42,23 @@ int lxeof(struct LEXINPUT *const lp) {
 	return lp->eof(lp);
 }
 
-static  int lexinput_file_getc(struct LEXINPUT *const lp) {
+static int lexinput_file_getc(struct LEXINPUT *const lp) {
 	return fgetc(lp->fp);
 }
 
-static  int lexinput_file_tell(struct LEXINPUT *const lp) {
+static int lexinput_file_tell(struct LEXINPUT *const lp) {
 	return ftell(lp->fp);
 }
 
-static  int lexinput_file_seek(struct LEXINPUT *const lp, int w, int cmd) {
+static int lexinput_file_seek(struct LEXINPUT *const lp, int w, int cmd) {
 	return fseek(lp->fp, w, cmd);
 }
 
-static  int lexinput_file_eof(struct LEXINPUT *const lp) {
+static int lexinput_file_eof(struct LEXINPUT *const lp) {
 	return feof(lp->fp);
 }
 
-static  int lexinput_file_close(struct LEXINPUT *const lp) {
+static int lexinput_file_close(struct LEXINPUT *const lp) {
 	fclose(lp->fp);
 	lp->fp = 0;
 	free(lp);
@@ -79,7 +79,7 @@ struct LEXINPUT *lexinput_new_file(FILE *const fp) {
 #include "data-structures/YASL_ByteBuffer.h"
 
 static int lexinput_bb_eof(struct LEXINPUT *const lp);
-static  int lexinput_bb_getc(struct LEXINPUT *const lp) {
+static int lexinput_bb_getc(struct LEXINPUT *const lp) {
 	if (lp->pos >= lp->bb->count) {
 		lp->iseof = true;
 		return -1;
@@ -87,11 +87,11 @@ static  int lexinput_bb_getc(struct LEXINPUT *const lp) {
 	return lp->bb->items[lp->pos++];
 }
 
-static  int lexinput_bb_tell(struct LEXINPUT *const lp) {
+static int lexinput_bb_tell(struct LEXINPUT *const lp) {
 	return (int)lp->pos;
 }
 
-static  int lexinput_bb_seek(struct LEXINPUT *const lp, int w, int cmd) {
+static int lexinput_bb_seek(struct LEXINPUT *const lp, int w, int cmd) {
 	if (cmd == 0) {
 		lp->pos = w;
 	} else if (cmd == 1) {
@@ -110,7 +110,7 @@ static int lexinput_bb_eof(struct LEXINPUT *const lp) {
 	return 0;
 }
 
-static  int lexinput_bb_close(struct LEXINPUT *const lp) {
+static int lexinput_bb_close(struct LEXINPUT *const lp) {
 	YASL_ByteBuffer_del(lp->bb);
 	lp->bb = 0;
 	free(lp);

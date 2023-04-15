@@ -5,6 +5,7 @@
 
 #include "yasl.h"
 #include "yasl_aux.h"
+#include "yasl_plat.h"
 #include "yasl_state.h"
 
 #define VERSION_PRINTOUT "YASL " YASL_VERSION
@@ -13,8 +14,8 @@
                   "|  |  ||     | /    \\ |  |    \n" \
                   "|  |  ||  O  | |  __| |  |  \n" \
                   "|___  ||     | |__  | |  |__ \n" \
-		  "|     ||  |  | |    | |     |\n" \
-		  "|_____/|__|__| \\____/ |_____|\n"
+                  "|     ||  |  | |    | |     |\n" \
+                  "|_____/|__|__| \\____/ |_____|\n"
 
 // -b: run bytecode
 // -c: compile to bytecode
@@ -38,6 +39,15 @@ static int main_version(int argc, char **argv) {
 	(void) argv;
 	puts(VERSION_PRINTOUT);
 	return 0;
+}
+
+static inline void main_init_platform() {
+	// Initialize prng seed
+	srand(time(NULL));
+
+	#ifdef YASL_USE_WIN
+		SetConsoleOutputCP(CP_UTF8);
+	#endif
 }
 
 static int main_file(int argc, char **argv) {
@@ -161,8 +171,7 @@ static int main_REPL(int argc, char **argv) {
 
 #ifdef __EMSCRIPTEN__
 int main(int argc, char **argv) {
-	// Initialize prng seed
-	srand(time(NULL));
+	main_init_platform();
 
 	if (argc == 1) {
 		puts(VERSION_PRINTOUT);
@@ -172,8 +181,7 @@ int main(int argc, char **argv) {
 }
 #else
 int main(int argc, char **argv) {
-	// Initialize prng seed
-	srand((unsigned)time(NULL));
+	main_init_platform();
 
 	if (argc == 1) {
 		return main_REPL(argc, argv);
@@ -192,4 +200,3 @@ int main(int argc, char **argv) {
 	}
 }
 #endif
-
