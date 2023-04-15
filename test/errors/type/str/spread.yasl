@@ -1,0 +1,7 @@
+/*
+
+ example block comment
+
+*/
+
+mt.lookup('', .spread)(1, true)

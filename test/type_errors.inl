@@ -170,6 +170,7 @@ static const char *type_errors[] = {
   "test/errors/type/str/split2.yasl",
   "test/errors/type/str/split3.yasl",
   "test/errors/type/str/split4.yasl",
+  "test/errors/type/str/spread.yasl",
   "test/errors/type/str/startswith2.yasl",
   "test/errors/type/str/startswith3.yasl",
   "test/errors/type/str/startswith4.yasl",

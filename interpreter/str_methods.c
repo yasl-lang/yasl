@@ -116,6 +116,15 @@ int str_tolist(struct YASL_State *S) {
 	return 1;
 }
 
+int str_spread(struct YASL_State *S) {
+	struct YASL_String *str = YASLX_checknstr(S, "str.spread", 0);
+	const size_t len = YASL_String_len(str);
+	for (size_t i = 0; i < len; i++) {
+		YASL_pushlstr(S, YASL_String_chars(str) + i, 1);
+	}
+	return len;
+}
+
 int str_tostr(struct YASL_State *S) {
 	if (!YASL_isstr(S)) {
 		YASLX_print_err_bad_arg_type(S, "str.tostr", 0, "str", YASL_peektypename(S));
