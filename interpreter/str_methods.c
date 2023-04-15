@@ -122,7 +122,7 @@ int str_spread(struct YASL_State *S) {
 	for (size_t i = 0; i < len; i++) {
 		YASL_pushlstr(S, YASL_String_chars(str) + i, 1);
 	}
-	return len;
+	return (int)len;
 }
 
 int str_tostr(struct YASL_State *S) {
