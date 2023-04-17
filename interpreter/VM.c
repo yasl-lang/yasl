@@ -1693,6 +1693,14 @@ void vm_executenext(struct VM *const vm) {
 		}
 		vm_pop(vm);
 		break;
+	case O_ASSERT_STACK_HEIGHT:
+		c = NCODE(vm);
+		if (c != vm->sp - vm->fp) {
+			fprintf(stderr, "vm->sp, vm->fp: %d, %d\n", vm->sp, vm->fp);
+			fprintf(stdout, "Wrong stack height in line %zd, expected %d, got %d\n", vm_getcurrline(vm), (int)c, (vm->sp - vm->fp));
+			// vm_throw_err(vm, YASL_ERROR);
+		}
+		break;
 	default:
 		vm_print_err(vm, "Error: Unknown Opcode: %x\n", opcode);
 		vm_throw_err(vm, YASL_ERROR);

@@ -21,6 +21,8 @@ enum Opcode {
 	O_BSR = 0x46, // bitwise right shift
 
 	O_ASS = 0x50, // assert
+	O_ASSERT_STACK_HEIGHT = 0x58,
+
 
 	O_ADD = 0x60, // add two numbers
 	O_SUB = 0x61, // subtract two numbers

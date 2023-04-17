@@ -11,6 +11,7 @@
 
 #define INPUT_TEST(inputs) \
 for (size_t i = 0; i < sizeof(inputs) / sizeof(char *); i++) {\
+	fprintf(stderr, "Testing: %s\n", inputs[i]);\
 	if (strlen(inputs[i]) + 5 > MAX_FILE_NAME_LEN) {\
 		fprintf(stderr, "file name too large: %s\n", inputs[i]);\
 		exit(1);\
