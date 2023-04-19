@@ -21,4 +21,6 @@ static const char *value_errors[] = {
   "test/errors/value/str/split.yasl",
   "test/errors/value/str/tobyte2.yasl",
   "test/errors/value/str/tobyte.yasl",
+  "test/errors/value/str/tostr-format2.yasl",
+  "test/errors/value/str/tostr-format.yasl",
 };

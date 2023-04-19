@@ -1,0 +1,6 @@
+const stream = 'zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw'
+
+echo stream->tostr('r')
+
+echo "dsaasd''dsadsadsa'sad'dsa'd'sdad'"->tostr('r')
+

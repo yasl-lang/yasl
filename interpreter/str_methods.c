@@ -126,10 +126,40 @@ int str_spread(struct YASL_State *S) {
 }
 
 int str_tostr(struct YASL_State *S) {
-	if (!YASL_isstr(S)) {
-		YASLX_print_err_bad_arg_type(S, "str.tostr", 0, "str", YASL_peektypename(S));
-		YASL_throw_err(S, YASL_TYPE_ERROR);
+	struct YASL_String *str = YASLX_checknstr(S, "str.tostr", 0);
+	if (YASL_isnundef(S, 1)) {
+		YASL_pop(S);
+		return 1;
 	}
+
+	struct YASL_String *format =  YASLX_checknstr(S, "str.tostr", 1);
+	if (YASL_String_len(format) != 1) {
+		YASL_print_err(S, MSG_VALUE_ERROR "Expected str of len 1, got str of len %" PRI_SIZET ".",
+			       YASL_String_len(format));
+		YASL_throw_err(S, YASL_VALUE_ERROR);
+	}
+
+	if (*YASL_String_chars(format) != 'r') {
+		YASL_print_err(S, MSG_VALUE_ERROR "Unexpected format str: '%c'.", *YASL_String_chars(format));
+		YASL_throw_err(S, YASL_VALUE_ERROR);
+	}
+
+	const char *str_chars = YASL_String_chars(str);
+	size_t buffer_size = YASL_String_len(str) + 2;
+	char *buffer = (char *)malloc(buffer_size);
+	size_t curr = 0;
+	buffer[curr++] = '\'';
+	for (size_t i = 0; i < YASL_String_len(str); i++, curr++) {
+		if (str_chars[i] == '\'') {
+			buffer = (char *)realloc(buffer, ++buffer_size);
+			buffer[curr++] = '\\';
+		}
+		buffer[curr] = str_chars[i];
+	}
+	buffer[curr++] = '\'';
+
+	YASL_pushlstr(S, buffer, curr);
+	free(buffer);
 	return 1;
 }
 

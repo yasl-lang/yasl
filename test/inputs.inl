@@ -79,6 +79,7 @@ static const char *inputs[] = {
   "test/inputs/str/isal.yasl",
   "test/inputs/str/interpolation.yasl",
   "test/inputs/str/__get.yasl",
+  "test/inputs/str/tostr-format.yasl",
   "test/inputs/str/tostr.yasl",
   "test/inputs/str/trim.yasl",
   "test/inputs/str/concat.yasl",

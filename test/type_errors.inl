@@ -182,6 +182,7 @@ static const char *type_errors[] = {
   "test/errors/type/str/tofloat.yasl",
   "test/errors/type/str/toint.yasl",
   "test/errors/type/str/tolower.yasl",
+  "test/errors/type/str/tostr-format.yasl",
   "test/errors/type/str/tostr.yasl",
   "test/errors/type/str/toupper.yasl",
   "test/errors/type/str/trim1.yasl",
