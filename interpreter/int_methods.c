@@ -43,7 +43,7 @@ int int_tostr(struct YASL_State *S) {
 	if (!YASL_isundef(S)) {
 		struct YASL_String *str = YASLX_checknstr(S, "int.tostr", 1);
 		if (YASL_String_len(str) != 1) {
-			YASL_print_err(S, MSG_VALUE_ERROR "Expected str of len 1, got str of len %zd.",
+			YASL_print_err(S, MSG_VALUE_ERROR "Expected str of len 1, got str of len " PRI_SIZET ".",
 				       YASL_String_len(str));
 			YASL_throw_err(S, YASL_VALUE_ERROR);
 		}
