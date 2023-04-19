@@ -2,9 +2,19 @@
 
 #include <stdio.h>
 
+#include "VM.h"
 #include "yasl.h"
 #include "yasl_aux.h"
 #include "yasl_include.h"
+
+static struct YASL_String *YASLX_checknstr(struct YASL_State *S, const char *name, unsigned pos) {
+	if (!YASL_isnstr(S, pos)) {
+		YASLX_print_err_bad_arg_type(S, name, pos, "str", YASL_peekntypename(S, pos));
+		YASL_throw_err(S, YASL_TYPE_ERROR);
+	}
+
+	return vm_peekstr((struct VM *)S, ((struct VM *)S)->fp + 1 + pos);
+}
 
 int int_tobool(struct YASL_State *S) {
 	YASL_UNUSED(YASLX_checknint(S, "int.tobool", 0));
@@ -24,13 +34,49 @@ int int_toint(struct YASL_State *S) {
 	return 1;
 }
 
+#define BUFF_LEN 67
 int int_tostr(struct YASL_State *S) {
 	yasl_int n = YASLX_checknint(S, "int.tostr", 0);
-	int len = snprintf(NULL, 0, "%" PRId64 "", n);
-	char *ptr = (char *)malloc(len + 1);
-	sprintf(ptr, "%" PRId64 "", n);
-	YASL_pushlstr(S, ptr, len);
-	free(ptr);
+	const char *format = "%" PRId64 "";
+
+	char format_char = 'd';
+	if (!YASL_isundef(S)) {
+		struct YASL_String *str = YASLX_checknstr(S, "int.tostr", 1);
+		if (YASL_String_len(str) != 1) {
+			YASL_print_err(S, MSG_VALUE_ERROR "Expected str of len 1, got str of len %zd.",
+				       YASL_String_len(str));
+			YASL_throw_err(S, YASL_VALUE_ERROR);
+		}
+		format_char = *YASL_String_chars(str);
+	}
+	char buffer[BUFF_LEN];
+
+	int len = 0;
+	char *curr = buffer;
+	switch (format_char) {
+	case 'x':
+		format = "0x%" PRIx64 "";
+		/* fallthrough */
+	case 'd':
+		len = sprintf(buffer, format, n);
+		break;
+	case 'b':
+		curr = buffer + BUFF_LEN - 1;
+		do {
+			len++;
+			*--curr = n % 2 ? '1' : '0';
+			n /= 2;
+		} while (n);
+		*--curr = 'b';
+		*--curr = '0';
+		len += 2;
+		break;
+	default:
+		YASL_print_err(S, MSG_VALUE_ERROR "Unexpected format str: '%c'.", format_char);
+		YASL_throw_err(S, YASL_VALUE_ERROR);
+	}
+
+	YASL_pushlstr(S, curr, len);
 	return 1;
 }
 

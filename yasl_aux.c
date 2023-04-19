@@ -28,7 +28,7 @@ void YASLX_print_err_bad_arg_type(struct YASL_State *S,
 
 yasl_int YASLX_checknint(struct YASL_State *S, const char *name, unsigned n) {
 	if (!YASL_isnint(S, n)) {
-		YASLX_print_err_bad_arg_type(S, name, n, "int", YASL_peektypename(S));
+		YASLX_print_err_bad_arg_type(S, name, n, "int", YASL_peekntypename(S, n));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	return YASL_peeknint(S, n);
@@ -36,7 +36,7 @@ yasl_int YASLX_checknint(struct YASL_State *S, const char *name, unsigned n) {
 
 yasl_float YASLX_checknfloat(struct YASL_State *S, const char *name, unsigned n) {
 	if (!YASL_isnfloat(S, n)) {
-		YASLX_print_err_bad_arg_type(S, name, n, "float", YASL_peektypename(S));
+		YASLX_print_err_bad_arg_type(S, name, n, "float", YASL_peekntypename(S, n));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	return YASL_peeknfloat(S, n);

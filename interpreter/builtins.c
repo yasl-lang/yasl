@@ -45,7 +45,7 @@ struct YASL_Table* int_builtins(struct VM *vm) {
 	table_insert_specialstring_cfunction(vm, table, S_TOINT, &int_toint, 1);
 	table_insert_specialstring_cfunction(vm, table, S_TOBOOL, &int_tobool, 1);
 	table_insert_specialstring_cfunction(vm, table, S_TOFLOAT, &int_tofloat, 1);
-	table_insert_specialstring_cfunction(vm, table, S_TOSTR, &int_tostr, 1);
+	table_insert_specialstring_cfunction(vm, table, S_TOSTR, &int_tostr, 2);
 	table_insert_specialstring_cfunction(vm, table, S_TOCHAR, &int_tochar, 1);
 	return table;
 }
