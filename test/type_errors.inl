@@ -66,6 +66,7 @@ static const char *type_errors[] = {
   "test/errors/type/int/tochar.yasl",
   "test/errors/type/int/tofloat.yasl",
   "test/errors/type/int/toint.yasl",
+  "test/errors/type/int/tostr-format.yasl",
   "test/errors/type/int/tostr.yasl",
   "test/errors/type/io/flush.yasl",
   "test/errors/type/io/open1.yasl",
