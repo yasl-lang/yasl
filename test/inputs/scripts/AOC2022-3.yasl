@@ -1,0 +1,31 @@
+
+# https://adventofcode.com/2022/day/3
+const set = collections.set
+
+const rucksacks = `
+vJrwpWtwJgWrhcsFMMfFFhFp
+jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL
+PmmdzqPrVvPwwTWBwg
+wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn
+ttgJtRGJQctTZtZT
+CrZsJsPPZsGzwwsLwLmpwMDw
+`->trim()->split()
+
+const fn ord(char) {
+    const a = char->tolower()->tobyte() - 'a'->tobyte() + 1
+    return char == char->toupper() ? a + 26 : a
+}
+
+echo ord('c'), ord('A')
+
+
+let tmp = 0
+for rucksack <- rucksacks {
+    let a, let b = rucksack->tolist(len rucksack // 2)->spread()
+    a, b = set(a->spread()), set(b->spread())
+    for char <- a & b {
+        tmp += ord(char)
+    }
+}
+
+echo tmp

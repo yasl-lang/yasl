@@ -216,6 +216,7 @@ static const char *inputs[] = {
   "test/inputs/scripts/CTCI1-1.yasl",
   "test/inputs/scripts/fib_iter.yasl",
   "test/inputs/scripts/LC-5.yasl",
+  "test/inputs/scripts/AOC2022-3.yasl",
   "test/inputs/scripts/LC-3.yasl",
   "test/inputs/scripts/CTCI1-4.yasl",
   "test/inputs/scripts/fib.yasl",
