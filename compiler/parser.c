@@ -1265,7 +1265,7 @@ static struct Node *parse_string(struct Parser *const parser) {
 		if (parser->lex.c == '}') {
 			parser->lex.c = lxgetc(parser->lex.file);
 		} else {
-			parser_print_err_syntax(parser, "Expected } in line %" PRI_SIZET ".\n", parserline(parser));
+			parser_print_err_syntax(parser, "Expected } in line %" PRI_SIZET ", got `%s`.\n", parserline(parser), YASL_TOKEN_NAMES[curtok(parser)]);
 			handle_error(parser);
 		}
 		lex_eatinterpstringbody(&parser->lex);

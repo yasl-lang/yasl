@@ -99,7 +99,7 @@ int str_tolist(struct YASL_State *S) {
 	if (YASL_isint(S)) {
 		yasl_int n = YASL_popint(S);
 		if (n <= 0) {
-			YASL_print_err(S, "ValueError: Expecte a positive number.");
+			YASL_print_err(S, "ValueError: Expected a positive number, got: %" PRId64 ".", n);
 			YASL_throw_err(S, YASL_VALUE_ERROR);
 		}
 		size = n;

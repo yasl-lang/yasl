@@ -81,7 +81,7 @@ TEST(syntaxerrortest) {
 	ASSERT_SYNTAX_ERR("\"asdsadasd", "Unclosed string literal in line 1");
 	ASSERT_SYNTAX_ERR("\"das#{1}asd\n", "Unclosed string literal in line 1");
 	ASSERT_SYNTAX_ERR("\"das#{1}asd", "Unclosed string literal in line 1");
-	ASSERT_SYNTAX_ERR("\"asdasd#{1 asdda\";", "Expected } in line 1");
+	ASSERT_SYNTAX_ERR("\"asdasd#{1 asdda\";", "Expected } in line 1, got `ID`");
 	ASSERT_SYNTAX_ERR("'asdsadasd\n", "Unclosed string literal in line 1");
 	ASSERT_SYNTAX_ERR("'asdsadasd", "Unclosed string literal in line 1");
 	ASSERT_SYNTAX_ERR("`asdsadasd", "Unclosed string literal in line 1");

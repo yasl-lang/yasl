@@ -571,6 +571,7 @@ void vm_stringify_top(struct VM *const vm) {
 		vm_INIT_CALL_offset(vm, vm->sp - 1, 1);
 		vm_CALL_now(vm);
 	}
+
 	if (!vm_isstr(vm)) {
 		vm_print_err_type(vm, "Could not stringify items, got: %s", vm_peektypename(vm));
 		vm_throw_err(vm, YASL_TYPE_ERROR);
