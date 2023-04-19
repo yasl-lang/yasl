@@ -40,6 +40,7 @@ static const char *inputs[] = {
   "test/inputs/int/decimal.yasl",
   "test/inputs/int/tobool.yasl",
   "test/inputs/int/hex.yasl",
+  "test/inputs/int/tostr-format.yasl",
   "test/inputs/int/tostr.yasl",
   "test/inputs/int/binary.yasl",
   "test/inputs/int/tofloat.yasl",
