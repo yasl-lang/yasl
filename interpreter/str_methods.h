@@ -25,11 +25,13 @@ int str_toupper(struct YASL_State *S);
 
 int str_tolower(struct YASL_State *S);
 
-int str_isalnum(struct YASL_State *S);
-
 int str_isal(struct YASL_State *S);
 
+int str_isalnum(struct YASL_State *S);
+
 int str_isnum(struct YASL_State *S);
+
+int str_isprint(struct YASL_State *S);
 
 int str_isspace(struct YASL_State *S);
 

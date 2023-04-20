@@ -35,6 +35,7 @@ struct YASL_String *YASL_String_tolower(struct YASL_String *a);
 bool YASL_String_isalnum(struct YASL_String *a);
 bool YASL_String_isal(struct YASL_String *a);
 bool YASL_String_isnum(struct YASL_String *a);
+bool YASL_String_isprint(struct YASL_String *a);
 bool YASL_String_isspace(struct YASL_String *a);
 bool YASL_String_startswith(struct YASL_String *haystack, struct YASL_String *needle);
 bool YASL_String_endswith(struct YASL_String *haystack, struct YASL_String *needle);

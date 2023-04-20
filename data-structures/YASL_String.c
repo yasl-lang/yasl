@@ -303,6 +303,7 @@ DEFINE_STR_TO_X(lower, LOWER);
 DEFINE_STR_IS_X(isal, isalpha);
 DEFINE_STR_IS_X(isnum, isdigit);
 DEFINE_STR_IS_X(isalnum, isalnum);
+DEFINE_STR_IS_X(isprint, isprint);
 DEFINE_STR_IS_X(isspace, iswhitespace);
 
 bool YASL_String_startswith(struct YASL_String *haystack, struct YASL_String *needle) {

@@ -193,6 +193,12 @@ int str_isnum(struct YASL_State *S) {
 	return 1;
 }
 
+int str_isprint(struct YASL_State *S) {
+	struct YASL_String *a = YASLX_checknstr(S, "str.isprint", 0);
+	YASL_pushbool(S, YASL_String_isprint(a));
+	return 1;
+}
+
 int str_isspace(struct YASL_State *S) {
 	struct YASL_String *a = YASLX_checknstr(S, "str.isspace", 0);
 	YASL_pushbool(S, YASL_String_isspace(a));
