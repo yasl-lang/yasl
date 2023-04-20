@@ -1261,7 +1261,9 @@ static struct Node *parse_string(struct Parser *const parser) {
 		parser->lex.mode = L_NORMAL;
 		struct Node *expr = parse_expr(parser);
 		parser->lex.mode = L_INTERP;
-		cur_node = new_BinOp(parser, T_TILDE, cur_node, expr, parserline(parser));
+		const size_t line = parserline(parser);
+		cur_node = new_BinOp(parser, T_TILDE, cur_node, expr, line);
+
 		if (parser->lex.c == '}') {
 			parser->lex.c = lxgetc(parser->lex.file);
 		} else {

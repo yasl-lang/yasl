@@ -67,6 +67,7 @@ struct Lexer {
 void lex_cleanup(struct Lexer *const lex);
 void gettok(struct Lexer *const lex);
 void lex_eatinterpstringbody(struct Lexer *const lex);
+bool lex_eatwhitespace(struct Lexer *const lex);
 void lex_error(struct Lexer *const lex);
 int lex_getchar(struct Lexer *const lex);
 

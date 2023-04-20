@@ -221,14 +221,14 @@ int list_search(struct YASL_State *S) {
 	return 1;
 }
 
-int table_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer);
+int table_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer, struct YASL_Object *format);
 bool buffer_contains(BUFFER(ptr) buffer, void *val);
-void rec_call(struct YASL_State *S, BUFFER(ptr) buffer, int (*f)(struct YASL_State *, BUFFER(ptr)));
+void rec_call(struct YASL_State *S, BUFFER(ptr) buffer, struct YASL_Object *format, int (*f)(struct YASL_State *, BUFFER(ptr), struct YASL_Object *));
 
 #define FOUND_LIST "[...], "
 #define FOUND_TABLE "{...}, "
 
-int list_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer) {
+int list_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer, struct YASL_Object *format) {
 	YASL_ByteBuffer bb = NEW_BB(8);
 
 	YASL_ByteBuffer_add_byte(&bb, '[');
@@ -250,7 +250,7 @@ int list_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer) {
 				YASL_pop(S);
 				continue;
 			} else {
-				rec_call(S, buffer, &list_tostr_helper);
+				rec_call(S, buffer, format, &list_tostr_helper);
 			}
 		} else if (vm_istable((struct VM *) S)) {
 			bool found = buffer_contains(buffer, vm_peeklist((struct VM *) S));
@@ -259,10 +259,10 @@ int list_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer) {
 				YASL_pop(S);
 				continue;
 			} else {
-				rec_call(S, buffer, &table_tostr_helper);
+				rec_call(S, buffer, format, &table_tostr_helper);
 			}
 		} else {
-			vm_stringify_top((struct VM *) S);
+			vm_stringify_top_format((struct VM *) S, format);
 		}
 
 		struct YASL_String *str = vm_popstr((struct VM *) S);
@@ -280,17 +280,17 @@ int list_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer) {
 }
 
 int list_tostr(struct YASL_State *S) {
-	if (!YASL_islist(S)) {
-		YASLX_print_err_bad_arg_type(S, "list.tostr", 0, "list", YASL_peektypename(S));
-		YASL_throw_err(S, YASL_TYPE_ERROR);
-	}
+	struct YASL_List *list = YASLX_checknlist(S, "list.tostr", 0);
+	struct YASL_Object format = vm_pop((struct VM *)S);
+	inc_ref(&format);
 
 	BUFFER(ptr) buffer;
 	BUFFER_INIT(ptr)(&buffer, 8);
-	BUFFER_PUSH(ptr)(&buffer, vm_peeklist((struct VM *) S));
-	list_tostr_helper(S, buffer);
+	BUFFER_PUSH(ptr)(&buffer, list);
+	list_tostr_helper(S, buffer, &format);
 	BUFFER_CLEANUP(ptr)(&buffer);
 
+	dec_ref(&format);
 	return 1;
 }
 

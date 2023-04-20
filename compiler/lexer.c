@@ -77,7 +77,7 @@ int lex_getchar(struct Lexer *const lex) {
 	return lex->c = (char)lxgetc(lex->file);
 }
 
-static bool lex_eatwhitespace(struct Lexer *const lex) {
+bool lex_eatwhitespace(struct Lexer *const lex) {
 	while (!lxeof(lex->file) && iswhitespace(lex->c)) {
 		if (lex->c == '\n') {
 			lex->line++;

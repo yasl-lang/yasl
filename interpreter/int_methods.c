@@ -58,6 +58,7 @@ int int_tostr(struct YASL_State *S) {
 		format = "0x%" PRIx64 "";
 		/* fallthrough */
 	case 'd':
+	case 'r':
 		len = sprintf(buffer, format, n);
 		break;
 	case 'b':

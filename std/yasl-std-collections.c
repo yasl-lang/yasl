@@ -98,6 +98,7 @@ static int YASL_collections_table_new(struct YASL_State *S) {
 
 static int YASL_collections_set_tostr(struct YASL_State *S) {
 	struct YASL_Set *set = YASLX_checknset(S, SET_PRE ".tostr", 0);
+	struct YASL_Object *format = vm_peek_p((struct VM *)S);
 
 	size_t string_count = 0;
 	size_t string_size = 8;
@@ -112,7 +113,7 @@ static int YASL_collections_set_tostr(struct YASL_State *S) {
 	}
 	FOR_SET(i, item, set) {
 		vm_push((struct VM *)S, *item);
-		vm_stringify_top((struct VM *) S);
+		vm_stringify_top_format((struct VM *) S, format);
 		struct YASL_String *str = vm_popstr((struct VM *) S);
 		while (string_count + YASL_String_len(str) >= string_size) {
 			string_size *= 2;
@@ -344,7 +345,7 @@ int YASL_decllib_collections(struct YASL_State *S) {
 
 	YASL_loadmt(S, SET_NAME);
 	YASL_pushlit(S, "tostr");
-	YASL_pushcfunction(S, YASL_collections_set_tostr, 1);
+	YASL_pushcfunction(S, YASL_collections_set_tostr, 2);
 	YASL_tableset(S);
 
 	YASL_pushlit(S, "tolist");

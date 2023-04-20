@@ -554,6 +554,10 @@ DEFINE_COMP(LT, "<", "__lt")
 DEFINE_COMP(LE, "<=", "__le")
 
 void vm_stringify_top(struct VM *const vm) {
+	vm_stringify_top_format(vm, NULL);
+}
+
+void vm_stringify_top_format(struct VM *const vm, struct YASL_Object *format) {
 	if (vm_isfn(vm) || vm_iscfn(vm) || vm_isclosure(vm)) {
 		size_t n = (size_t)snprintf(NULL, 0, "<fn: %p>", vm_peekuserptr(vm)) + 1;
 		char *buffer = (char *)malloc(n);
@@ -568,7 +572,12 @@ void vm_stringify_top(struct VM *const vm) {
 		vm_duptop(vm);
 		vm_lookup_method_throwing(vm, "tostr", "tostr not supported for operand of type %s.", vm_peektypename(vm));
 		vm_swaptop(vm);
-		vm_INIT_CALL_offset(vm, vm->sp - 1, 1);
+		int offset = 1;
+		if (format) {
+			offset++;
+			vm_push(vm, *format);
+		}
+		vm_INIT_CALL_offset(vm, vm->sp - offset, 1);
 		vm_CALL_now(vm);
 	}
 
