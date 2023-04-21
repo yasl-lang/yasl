@@ -498,7 +498,7 @@ static void visit_Export(struct Compiler *const compiler, const struct Node *con
 		handle_error(compiler);
 		return;
 	}
-	visit_expr(compiler, Export_get_expr(node), 0);
+	visit_expr(compiler, Export_get_expr(node), get_stacksize(compiler));
 	compiler_add_byte(compiler, O_EXPORT);
 }
 
