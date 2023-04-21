@@ -322,30 +322,9 @@ static bool handle_escapes(struct Lexer *const lex, char delim) {
 	char tmp;
 	char *end;
 	switch (lex->c) {
-	case 'a':
-		lex_val_append(lex, '\a');
-		break;
-	case 'b':
-		lex_val_append(lex, '\b');
-		break;
-	case 'f':
-		lex_val_append(lex, '\f');
-		break;
-	case 'n':
-		lex_val_append(lex, '\n');
-		break;
-	case 'r':
-		lex_val_append(lex, '\r');
-		break;
-	case 't':
-		lex_val_append(lex, '\t');
-		break;
-	case 'v':
-		lex_val_append(lex, '\v');
-		break;
-	case '0':
-		lex_val_append(lex, '\0');
-		break;
+#define X(escape, c) case c: lex_val_append(lex, escape); break;
+#include "escapes.x"
+#undef X
 	case STR_DELIM:
 	case INTERP_STR_DELIM:
 	case INTERP_STR_PLACEHOLDER:

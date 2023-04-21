@@ -1,6 +1,7 @@
 #include "str_methods.h"
 
 #include <stddef.h>
+#include <ctype.h>
 
 #include "yasl.h"
 #include "yasl_aux.h"
@@ -150,6 +151,27 @@ int str_tostr(struct YASL_State *S) {
 	size_t curr = 0;
 	buffer[curr++] = '\'';
 	for (size_t i = 0; i < YASL_String_len(str); i++, curr++) {
+		const char c = str_chars[i];
+		switch (c) {
+#define X(escape, c) case escape: buffer = (char *)realloc(buffer, ++buffer_size); buffer[curr++] = '\\'; buffer[curr] = c; continue;
+#include "escapes.x"
+#undef X
+		default:
+			break;
+		}
+
+		if (!isprint(str_chars[i])) {
+			char tmp[3] = { '0', '0', 0x00 };
+			sprintf(tmp + (str_chars[i] < 16), "%x", str_chars[i]);
+			buffer_size += 3;
+			buffer = (char *)realloc(buffer, buffer_size);
+			buffer[curr++] = '\\';
+			buffer[curr++] = 'x';
+			memcpy(buffer + curr, tmp, 2);
+			curr += 1;
+			continue;
+		}
+
 		if (str_chars[i] == '\'') {
 			buffer = (char *)realloc(buffer, ++buffer_size);
 			buffer[curr++] = '\\';
