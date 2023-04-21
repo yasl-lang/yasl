@@ -449,7 +449,7 @@ int YASL_listpush(struct YASL_State *S) {
 
 	struct YASL_List *list = vm_peeklist(&S->vm);
 
-	YASL_List_append(list, value);
+	YASL_List_push(list, value);
 
 	return YASL_SUCCESS;
 }

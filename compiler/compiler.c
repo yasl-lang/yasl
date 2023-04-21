@@ -534,23 +534,25 @@ static inline void branch_back(struct Compiler *const compiler, int64_t index) {
 	compiler_add_int(compiler, index - compiler->buffer->count - 8);
 }
 
-static void visit_Comp_cond(struct Compiler *const compiler, const struct Node *const cond, const struct Node *const expr, int stack_height) {
+static void visit_Comp_cond(struct Compiler *const compiler, const struct Node *const cond, const struct Node *const expr, unsigned char byte, int stack_height) {
+	(void) byte;
 	if (cond) {
 		int64_t index_third;
 		visit_expr(compiler, cond, stack_height);
 		enter_conditional_false(compiler, &index_third);
 
 		visit_expr(compiler, expr, stack_height);
+		compiler_add_byte(compiler, byte);
 
 		exit_conditional_false(compiler, &index_third);
 	} else {
 		visit_expr(compiler, expr, stack_height);
+		compiler_add_byte(compiler, byte);
 	}
 }
 
-static void visit_Comp(struct Compiler *const compiler, const struct Node *const node, unsigned char byte, int stack_height) {
+static void visit_Comp(struct Compiler *const compiler, const struct Node *const node, unsigned char collection_type, unsigned char byte, int stack_height) {
 	enter_scope(compiler);
-
 	struct Node *expr = Comp_get_expr(node);
 	struct Node *cond = Comp_get_cond(node);
 	struct Node *iter = Comp_get_iter(node);
@@ -564,6 +566,7 @@ static void visit_Comp(struct Compiler *const compiler, const struct Node *const
 	const size_t stack_size_before = get_stacksize(compiler);
 	compiler_add_byte(compiler, O_INITFOR);
 	compiler_add_byte(compiler, O_END);
+	compiler_add_byte(compiler, collection_type);
 	decl_var(compiler, name, iter->line);
 	compiler_add_byte(compiler, O_END);
 	compiler_add_byte(compiler, O_MOVEDOWN_FP);
@@ -578,13 +581,12 @@ static void visit_Comp(struct Compiler *const compiler, const struct Node *const
 
 	store_var(compiler, name, iter->line);
 
-	visit_Comp_cond(compiler, cond, expr, -1);
+	visit_Comp_cond(compiler, cond, expr, byte, stack_height + 2);
 
 	branch_back(compiler, index_start);
 
 	exit_conditional_false(compiler, &index_second);
 
-	compiler_add_byte(compiler, byte);
 	compiler_add_byte(compiler, O_ENDCOMP);
 	compiler_add_byte(compiler, (unsigned char)stack_size_before);
 
@@ -594,11 +596,11 @@ static void visit_Comp(struct Compiler *const compiler, const struct Node *const
 }
 
 static void visit_ListComp(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
-	visit_Comp(compiler, node, O_NEWLIST, stack_height);
+	visit_Comp(compiler, node, O_NEWLIST, O_LIST_PUSH, stack_height);
 }
 
 static void visit_TableComp(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
-	visit_Comp(compiler, node, O_NEWTABLE, stack_height);
+	visit_Comp(compiler, node, O_NEWTABLE, O_TABLE_SET, stack_height);
 }
 
 static void visit_ForIter(struct Compiler *const compiler, const struct Node *const node) {
@@ -984,7 +986,7 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 		compiler_add_code_BB(compiler, O_INCSP, bindings);
 		if (guard) {
 			compiler_add_code_BB(compiler, O_MOVEUP_FP, (unsigned char) vars);
-			visit_expr(compiler, guard, 0);
+			visit_expr(compiler, guard, get_stacksize(compiler) + 1);
 			enter_conditional_false(compiler, &start_guard);
 			compiler_add_byte(compiler, O_POP);
 		} else {
@@ -992,7 +994,7 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 		}
 	} else {
 		if (guard) {
-			visit_expr(compiler, guard, 0);
+			visit_expr(compiler, guard, get_stacksize(compiler) + 1);
 			enter_conditional_false(compiler, &start_guard);
 		}
 		compiler_add_byte(compiler, O_POP);
@@ -1173,8 +1175,9 @@ static void visit_Decl(struct Compiler *const compiler, const struct Node *const
 			compiler_add_code_BB(compiler, O_MOVEUP_FP, (unsigned char)get_stacksize(compiler));
 			store_var(compiler, name, node->line);
 		} else if (child->nodetype == N_SET) {
-			visit_expr(compiler, Set_get_collection(child), 1);
-			visit_expr(compiler, Set_get_key(child), 2);
+			const size_t offset = Decl_get_lvals(node)->children_len - i;
+			visit_expr(compiler, Set_get_collection(child), get_stacksize(compiler) + offset);
+			visit_expr(compiler, Set_get_key(child), get_stacksize(compiler) + offset + 1);
 			compiler_add_code_BB(compiler, O_MOVEUP_FP, (unsigned char)get_stacksize(compiler));
 			compiler_add_byte(compiler, O_SET);
 		} else {
@@ -1400,7 +1403,7 @@ static void visit_String(struct Compiler *const compiler, const struct Node *con
 }
 
 static void visit_Assert(struct Compiler *const compiler, const struct Node *const node) {
-	visit_expr(compiler, Assert_get_expr(node), 0);
+	visit_expr(compiler, Assert_get_expr(node), get_stacksize(compiler));
 	compiler_add_byte(compiler, O_ASS);
 }
 

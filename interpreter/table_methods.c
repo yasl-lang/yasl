@@ -228,7 +228,7 @@ int table_keys(struct YASL_State *S) {
 	struct RC_UserData *ls = rcls_new();
 	ud_setmt(&S->vm, ls, S->vm.builtins_htable[Y_LIST]);
 	FOR_TABLE(i, item, ht) {
-			YASL_List_append((struct YASL_List *) ls->data, (item->key));
+			YASL_List_push((struct YASL_List *) ls->data, (item->key));
 	}
 
 	vm_push((struct VM *) S, YASL_LIST(ls));
@@ -240,7 +240,7 @@ int table_values(struct YASL_State *S) {
 	struct RC_UserData *ls = rcls_new();
 	ud_setmt(&S->vm, ls, S->vm.builtins_htable[Y_LIST]);
 	FOR_TABLE(i, item, ht) {
-			YASL_List_append((struct YASL_List *) ls->data, (item->value));
+			YASL_List_push((struct YASL_List *) ls->data, (item->value));
 	}
 	vm_push((struct VM *) S, YASL_LIST(ls));
 	return 1;

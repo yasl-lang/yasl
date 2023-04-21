@@ -65,7 +65,7 @@ static int YASL_collections_list_new(struct YASL_State *S) {
 	struct RC_UserData *list = rcls_new();
 	ud_setmt(&S->vm, list, S->vm.builtins_htable[Y_LIST]);
 	while (i-- > 0) {
-		YASL_List_append((struct YASL_List *) list->data, vm_pop((struct VM *) S));
+		YASL_List_push((struct YASL_List *) list->data, vm_pop((struct VM *) S));
 	}
 	YASL_reverse((struct YASL_List *) list->data);
 	vm_pushlist((struct VM *)S, list);
@@ -143,7 +143,7 @@ static int YASL_collections_set_tolist(struct YASL_State *S) {
 	ud_setmt(&S->vm, list, S->vm.builtins_htable[Y_LIST]);
 	struct YASL_List *ls = (struct YASL_List *)list->data;
 	FOR_SET(i, item, set) {
-		YASL_List_append(ls, *item);
+			YASL_List_push(ls, *item);
 	}
 
 	vm_pushlist(&S->vm, list);

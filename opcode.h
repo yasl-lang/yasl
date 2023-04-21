@@ -54,6 +54,8 @@ enum Opcode {
 	O_LIT8 = 0x9B, // make new constant and push it onto stack (index into constant table: 8 bytes)
 	O_NEWTABLE = 0x9C, // make new table and push it onto stack
 	O_NEWLIST = 0x9D, // make new list and push it onto stack
+	O_LIST_PUSH = 0x9E,
+	O_TABLE_SET = 0x9F,
 
 	O_MOVEUP_FP = 0xA0, // move an element from index whatever to top of stack, indexing from fp.
 	O_MOVEDOWN_FP = 0xA1,

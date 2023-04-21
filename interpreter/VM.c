@@ -687,7 +687,7 @@ static void vm_SLICE_list(struct VM *const vm) {
 	ud_setmt(vm, new_ls, vm->builtins_htable[Y_LIST]);
 
 	for (yasl_int i = start; i <end; ++i) {
-		YASL_List_append((struct YASL_List *) new_ls->data, list->items[i]);
+		YASL_List_push((struct YASL_List *) new_ls->data, list->items[i]);
 	}
 	vm_push(vm, YASL_LIST(new_ls));
 }
@@ -1248,7 +1248,7 @@ void vm_COLLECT_REST_PARAMS(struct VM *const vm) {
 	ud_setmt(vm, ls, vm->builtins_htable[Y_LIST]);
 
 	for (int i = vm->fp + offset + 1; i <= vm->sp; i++) {
-		YASL_List_append((struct YASL_List *) ls->data, vm_peek(vm, i));
+		YASL_List_push((struct YASL_List *) ls->data, vm_peek(vm, i));
 	}
 
 	vm->sp = vm->fp + offset;
@@ -1533,10 +1533,23 @@ void vm_executenext(struct VM *const vm) {
 			len++;
 		}
 		for (int i = 0; i < len; i++) {
-			YASL_List_append((struct YASL_List *) ls->data, vm_peek(vm, vm->sp - len + i + 1));
+			YASL_List_push((struct YASL_List *) ls->data, vm_peek(vm, vm->sp - len + i + 1));
 		}
 		vm->sp -= len + 1;
 		vm_push(vm, YASL_LIST(ls));
+		break;
+	}
+	case O_LIST_PUSH:{
+		struct YASL_Object v = vm_pop(vm);
+		struct YASL_List *ls = vm_peeklist(vm);
+		YASL_List_push(ls, v);
+		break;
+	}
+	case O_TABLE_SET: {
+		struct YASL_Object v = vm_pop(vm);
+		struct YASL_Object k = vm_pop(vm);
+		struct YASL_Table *ht = vm_peektable(vm);
+		YASL_Table_insert(ht, k, v);
 		break;
 	}
 	case O_INITFOR: {
@@ -1698,7 +1711,7 @@ void vm_executenext(struct VM *const vm) {
 		if (c != vm->sp - vm->fp) {
 			fprintf(stderr, "vm->sp, vm->fp: %d, %d\n", vm->sp, vm->fp);
 			fprintf(stdout, "Wrong stack height in line %zd, expected %d, got %d\n", vm_getcurrline(vm), (int)c, (vm->sp - vm->fp));
-			// vm_throw_err(vm, YASL_ERROR);
+			vm_throw_err(vm, YASL_ERROR);
 		}
 		break;
 	default:
