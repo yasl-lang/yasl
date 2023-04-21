@@ -1545,15 +1545,12 @@ static void visit_expr(struct Compiler *const compiler, const struct Node *const
 	YASL_ASSERT(is_expr(node), "Expected expression");
 	setline(compiler, node);
 
-#ifdef YASL_DEBUG
+#if 0 //YASL_DEBUG
 	compiler_add_byte(compiler, O_ASSERT_STACK_HEIGHT);
 	compiler_add_byte(compiler, stack_height);
 #endif  // YASL_DEBUG
 
-	//if (stack_height == -1)
-	//	printf("Node: %s\n", node_name(node));
 	expr_jmp_table[node->nodetype](compiler, node, stack_height);
-	//visit(compiler, node);
 }
 
 static void visit_patt(struct Compiler *const compiler, const struct Node *const node) {

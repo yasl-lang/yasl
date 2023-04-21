@@ -1706,6 +1706,7 @@ void vm_executenext(struct VM *const vm) {
 		}
 		vm_pop(vm);
 		break;
+	/*
 	case O_ASSERT_STACK_HEIGHT:
 		c = NCODE(vm);
 		if (c != vm->sp - vm->fp) {
@@ -1714,6 +1715,7 @@ void vm_executenext(struct VM *const vm) {
 			vm_throw_err(vm, YASL_ERROR);
 		}
 		break;
+	*/
 	default:
 		vm_print_err(vm, "Error: Unknown Opcode: %x\n", opcode);
 		vm_throw_err(vm, YASL_ERROR);
