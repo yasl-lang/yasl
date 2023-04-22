@@ -18,7 +18,7 @@ struct YASL_List {
 struct YASL_List *YASL_List_new_sized(const size_t base_size);
 void YASL_List_del_data(struct YASL_State *S, void *ls);
 yasl_int YASL_List_length(const struct YASL_List *const ls);
-void YASL_List_append(struct YASL_List *const ls, struct YASL_Object value);
+void YASL_List_push(struct YASL_List *const ls, struct YASL_Object value);
 void YASL_List_insert(struct YASL_List *const ls, size_t index, struct YASL_Object value);
 void YASL_reverse(struct YASL_List *const ls);
 

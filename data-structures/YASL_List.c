@@ -51,7 +51,7 @@ static void ls_resize_up(struct YASL_List *const ls) {
 	ls_resize(ls, new_size);
 }
 
-void YASL_List_append(struct YASL_List *const ls, struct YASL_Object value) {
+void YASL_List_push(struct YASL_List *const ls, struct YASL_Object value) {
 	if (ls->count >= ls->size) ls_resize_up(ls);
 	ls->items[ls->count++] = value;
 	inc_ref(&value);
