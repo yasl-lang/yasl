@@ -7,7 +7,7 @@ let x = {
 echo x
 
 let xx = { k: x[k] + 1
-            for k <- x
+            for k in x
          }
 
 echo xx
@@ -20,7 +20,7 @@ let y = [
 echo y
 
 let yy = [ v + 1
-           for v <- y
+           for v in y
          ]
 
 echo yy

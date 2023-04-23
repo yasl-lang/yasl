@@ -2,11 +2,11 @@
 
 
 fn map(it, f) {
-    return [ f(x) for x <- it ]
+    return [ f(x) for x in it ]
 }
 
 fn filter(it, pred) {
-    return [ x for x <- it if pred(x) ]
+    return [ x for x in it if pred(x) ]
 }
 
 echo map([ 1, 2, 3, 4 ], fn(a) { return a * 2; })

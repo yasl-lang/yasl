@@ -20,10 +20,10 @@ echo ord('c'), ord('A')
 
 
 let tmp = 0
-for rucksack <- rucksacks {
+for rucksack in rucksacks {
     let a, let b = rucksack->tolist(len rucksack // 2)->spread()
     a, b = set(a->spread()), set(b->spread())
-    for char <- a & b {
+    for char in a & b {
         tmp += ord(char)
     }
 }

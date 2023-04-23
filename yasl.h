@@ -98,7 +98,7 @@ int YASL_functioncall(struct YASL_State *S, int n);
  * @param S the YASL_State.
  * @return true if the top of the stack is bool, else false.
  */
-YASL_DEPRECATE bool YASL_isbool(struct YASL_State *S);
+bool YASL_isbool(struct YASL_State *S);
 
 /**
  *
@@ -107,7 +107,7 @@ YASL_DEPRECATE bool YASL_isbool(struct YASL_State *S);
  * @param S the YASL_State.
  * @return true if the top of the stack is float, else false.
  */
-YASL_DEPRECATE bool YASL_isfloat(struct YASL_State *S);
+bool YASL_isfloat(struct YASL_State *S);
 
 /**
  * [-0, +0]
@@ -115,7 +115,7 @@ YASL_DEPRECATE bool YASL_isfloat(struct YASL_State *S);
  * @param S the YASL_State.
  * @return true if the top of the stack is int, else false.
  */
-YASL_DEPRECATE bool YASL_isint(struct YASL_State *S);
+bool YASL_isint(struct YASL_State *S);
 
 /**
  * [-0, +0]
@@ -123,7 +123,7 @@ YASL_DEPRECATE bool YASL_isint(struct YASL_State *S);
  * @param S the YASL_State.
  * @return true if the top of the stack is list, else false.
  */
-YASL_DEPRECATE bool YASL_islist(struct YASL_State *S);
+bool YASL_islist(struct YASL_State *S);
 
 /**
  * [-0, +0]
@@ -308,7 +308,7 @@ struct YASL_State *YASL_newstate_bb(const char *buf, size_t len);
  * @param S the YASL_State.
  * @return
  */
-YASL_DEPRECATE bool YASL_peekbool(struct YASL_State *S);
+bool YASL_peekbool(struct YASL_State *S);
 
 /**
  * [-0, +0]
@@ -326,7 +326,7 @@ char *YASL_peekcstr(struct YASL_State *S);
  * @param S the YASL_State.
  * @return
  */
-YASL_DEPRECATE yasl_float YASL_peekfloat(struct YASL_State *S);
+yasl_float YASL_peekfloat(struct YASL_State *S);
 
 /**
  * [-0, +0]
@@ -335,7 +335,7 @@ YASL_DEPRECATE yasl_float YASL_peekfloat(struct YASL_State *S);
  * @param S the YASL_State.
  * @return the value of the int on top of the stack, or 0 if it's not an int.
  */
-YASL_DEPRECATE yasl_int YASL_peekint(struct YASL_State *S);
+yasl_int YASL_peekint(struct YASL_State *S);
 
 /**
  * [-0, +0]

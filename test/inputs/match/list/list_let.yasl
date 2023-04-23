@@ -11,7 +11,7 @@ fn match_list(n) {
     }
 }
 
-for i <- [ [ 1, 2 ], [ 1 ], [ .a, .b ] ] {
+for i in [ [ 1, 2 ], [ 1 ], [ .a, .b ] ] {
     echo match_list(i)
 }
 

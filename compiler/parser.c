@@ -584,7 +584,7 @@ static struct Node *parse_iterate(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("parsing let <- in line %" PRI_SIZET "\n", parserline(parser));
 	size_t line = parserline(parser);
 	char *name = eatname(parser);
-	eattok(parser, T_LEFT_ARR);
+	eattok(parser, T_IN);
 	struct Node *collection = parse_expr(parser);
 	return new_LetIter(parser, collection, name, line);
 }

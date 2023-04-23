@@ -657,6 +657,7 @@ void YASLKeywords(struct Lexer *const lex) {
 	else if (matches_keyword(lex, "for")) set_keyword(lex, T_FOR);
 	else if (matches_keyword(lex, "if")) set_keyword(lex, T_IF);
 	else if (matches_keyword(lex, "ifdef")) set_keyword(lex, T_IFDEF);
+	else if (matches_keyword(lex, "in")) set_keyword(lex, T_IN);
 	else if (matches_keyword(lex, "echo")) set_keyword(lex, T_ECHO);
 	else if (matches_keyword(lex, "let")) set_keyword(lex, T_LET);
 	else if (matches_keyword(lex, "return")) set_keyword(lex, T_RET);

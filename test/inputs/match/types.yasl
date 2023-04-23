@@ -28,6 +28,6 @@ const fn typeof(const v) {
     }
 }
 
-for v <- [ undef, true, 10, 11.4, 'string', [], {} ] {
+for v in [ undef, true, 10, 11.4, 'string', [], {} ] {
     echo typeof(v)
 }

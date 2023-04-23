@@ -25,7 +25,7 @@ TEST(syntaxerrortest) {
 	ASSERT_SYNTAX_ERR("let x = 10; let x = 11;", "Illegal redeclaration of x (line 1)");
 	ASSERT_SYNTAX_ERR("let x = 10; const x = 11;", "Illegal redeclaration of x (line 1)");
 	ASSERT_SYNTAX_ERR("const x = 10; const x = 11;", "Illegal redeclaration of x (line 1)");
-	ASSERT_SYNTAX_ERR("let x = [b for b <- [1, 2, 3, 4] if b % 2 == 0]; echo b;", "Undeclared variable b (line 1)");
+	ASSERT_SYNTAX_ERR("let x = [b for b in [1, 2, 3, 4] if b % 2 == 0]; echo b;", "Undeclared variable b (line 1)");
 	ASSERT_SYNTAX_ERR("echo if;", "Expected expression, got `if` (line 1)");
 	ASSERT_SYNTAX_ERR("else { echo true };", "`else` without previous `if` (line 1)");
 	ASSERT_SYNTAX_ERR("elseif { echo true };", "`elseif` without previous `if` (line 1)");

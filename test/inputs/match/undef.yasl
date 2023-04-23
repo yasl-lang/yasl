@@ -17,7 +17,7 @@ fn match_undef(n) {
     }
 }
 
-for i <- [ true, false, undef ] {
+for i in [ true, false, undef ] {
     echo match_undef(i)
 }
 

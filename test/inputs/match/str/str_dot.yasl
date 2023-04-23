@@ -14,7 +14,7 @@ fn match_str(n) {
     }
 }
 
-for i <- [ '!!!', 'abc123', .abc, '123' ] {
+for i in [ '!!!', 'abc123', .abc, '123' ] {
     echo match_str(i)
 }
 

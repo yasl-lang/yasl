@@ -1,2 +1,2 @@
-echo { x*2:-x for x <- [1, 2, 3, 4] if x % 2 == 0}
-echo { x*2:-x for x <- [1, 2, 3]}
+echo { x*2:-x for x in [1, 2, 3, 4] if x % 2 == 0}
+echo { x*2:-x for x in [1, 2, 3]}

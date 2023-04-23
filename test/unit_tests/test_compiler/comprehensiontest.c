@@ -35,7 +35,7 @@ static void test_tablecomp_noif() {
 		O_ECHO, 0x00,
 		O_HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "echo {i:-i for i <- [1,2,3]};");
+	ASSERT_GEN_BC_EQ(expected, "echo {i:-i for i in [1,2,3]};");
 }
 
 static void test_tablecomp() {
@@ -79,7 +79,7 @@ static void test_tablecomp() {
 		O_ECHO, 0x00,
 		O_HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "echo {i:-i for i <- [1,2,3] if i % 2 != 0};");
+	ASSERT_GEN_BC_EQ(expected, "echo {i:-i for i in [1,2,3] if i % 2 != 0};");
 }
 
 static void test_listcomp_noif() {
@@ -113,7 +113,7 @@ static void test_listcomp_noif() {
 		O_ECHO, 0x00,
 		O_HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "echo [-i for i <- [1,2,3]];");
+	ASSERT_GEN_BC_EQ(expected, "echo [-i for i in [1,2,3]];");
 }
 
 static void test_listcomp() {
@@ -156,7 +156,7 @@ static void test_listcomp() {
 		O_ECHO, 0x00,
 		O_HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "echo [-i for i <- [1,2,3] if i % 2 != 0];");
+	ASSERT_GEN_BC_EQ(expected, "echo [-i for i in [1,2,3] if i % 2 != 0];");
 }
 
 TEST(comprehensiontest) {

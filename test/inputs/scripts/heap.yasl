@@ -117,7 +117,7 @@ echo h
 
 assert_heap(h)
 
-for v <- [ 121, 3, 32, 45, 645, 555, 69 ] {
+for v in [ 121, 3, 32, 45, 645, 555, 69 ] {
     h->push(v)
     assert_heap(h)
 }

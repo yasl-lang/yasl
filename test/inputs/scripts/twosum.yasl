@@ -5,8 +5,8 @@
  */
 
 const fn twosum(const nums, const target) {
-    const x = { target - num: num for num <- nums }
-    for y <- nums {
+    const x = { target - num: num for num in nums }
+    for y in nums {
         if x[y] {
             return "#{x[y]} + #{y} == #{target}"
         }

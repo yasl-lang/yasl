@@ -3,8 +3,8 @@ const set = collections.set
 
 const fn concat(left, right) {
     const tmp = set()
-    for l <- left {
-        for r <- right {
+    for l in left {
+        for r in right {
             tmp->add(l ~ r)
         }
     }
