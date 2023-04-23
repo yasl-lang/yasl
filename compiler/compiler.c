@@ -309,11 +309,11 @@ static unsigned char *return_bytes(const struct Compiler *const compiler) {
 	return bytecode;
 }
 
-#define X(name, ...) static void visit_##name(struct Compiler *const compiler, const struct Node *const node, int stack_height);
+#define X(name, ...) static int visit_##name(struct Compiler *const compiler, const struct Node *const node, int stack_height);
 #include "exprnodetype.x"
 #undef X
 
-static void visit_expr(struct Compiler *const compiler, const struct Node *const node, int stack_height);
+static int visit_expr(struct Compiler *const compiler, const struct Node *const node, int stack_height);
 static void visit_patt(struct Compiler *const compiler, const struct Node *const node);
 static void visit_stmt(struct Compiler *const compiler, const struct Node *const node);
 
@@ -369,10 +369,11 @@ static void visit_Body(struct Compiler *const compiler, const struct Node *const
 	}
 }
 
-static void visit_Exprs(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
+static int visit_Exprs(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	FOR_CHILDREN(i, child, node) {
 			visit_expr(compiler, child, stack_height + (int)i);
 	}
+	return stack_height + 1;
 }
 
 static void visit_ExprStmt(struct Compiler *const compiler, const struct Node *const node) {
@@ -397,7 +398,7 @@ static int return_op(struct Compiler *compiler) {
 	return compiler->params->usedinclosure ? O_CRET : O_RET;
 }
 
-static void visit_FnDecl(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
+static int visit_FnDecl(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	YASL_UNUSED(stack_height);
 	compiler->params = env_new(compiler->params);
 
@@ -454,6 +455,8 @@ static void visit_FnDecl(struct Compiler *const compiler, const struct Node *con
 	compiler->params->parent = NULL;
 	env_del(compiler->params);
 	compiler->params = tmp;
+
+	return stack_height + 1;
 }
 
 static void visit_CollectRestParams(struct Compiler *const compiler, const struct Node *const node) {
@@ -462,14 +465,16 @@ static void visit_CollectRestParams(struct Compiler *const compiler, const struc
 	compiler_add_byte(compiler, O_COLLECT_REST_PARAMS);
 }
 
-static void visit_Call(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
+static int visit_Call(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	visit_expr(compiler, Call_get_object(node), stack_height);
 	compiler_add_code_BB(compiler, O_INIT_CALL, (unsigned char)node->value.ival);
 	visit_expr(compiler, Call_get_params(node), stack_height + 1);
 	compiler_add_byte(compiler, O_CALL);
+
+	return stack_height + 1;
 }
 
-static void visit_MethodCall(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
+static int visit_MethodCall(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	char *str = MethodCall_get_name(node);
 	size_t len = strlen(str);
 	visit_expr(compiler, MethodCall_get_object(node), stack_height);
@@ -480,6 +485,8 @@ static void visit_MethodCall(struct Compiler *const compiler, const struct Node 
 
 	visit_expr(compiler, MethodCall_get_params(node), stack_height + 2);  // +2 for function and object
 	compiler_add_byte(compiler, O_CALL);
+
+	return stack_height + 1;
 }
 
 static void visit_Return(struct Compiler *const compiler, const struct Node *const node) {
@@ -510,17 +517,21 @@ static void visit_Set(struct Compiler *const compiler, const struct Node *const 
 	compiler_add_byte(compiler, O_SET);
 }
 
-static void visit_Get(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
+static int visit_Get(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	visit_expr(compiler, Get_get_collection(node), stack_height);
 	visit_expr(compiler, Get_get_value(node), stack_height + 1);
 	compiler_add_byte(compiler, O_GET);
+
+	return stack_height + 1;
 }
 
-static void visit_Slice(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
+static int visit_Slice(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	visit_expr(compiler, Slice_get_collection(node), stack_height);
 	visit_expr(compiler, Slice_get_start(node), stack_height + 1);
 	visit_expr(compiler, Slice_get_end(node), stack_height + 2);
 	compiler_add_byte(compiler, O_SLICE);
+
+	return stack_height + 1;
 }
 
 static void visit_Block(struct Compiler *const compiler, const struct Node *const node) {
@@ -595,12 +606,16 @@ static void visit_Comp(struct Compiler *const compiler, const struct Node *const
 	compiler->buffer->count = curr;
 }
 
-static void visit_ListComp(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
+static int visit_ListComp(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	visit_Comp(compiler, node, O_NEWLIST, O_LIST_PUSH, stack_height);
+
+	return stack_height + 1;
 }
 
-static void visit_TableComp(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
+static int visit_TableComp(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	visit_Comp(compiler, node, O_NEWTABLE, O_TABLE_SET, stack_height);
+
+	return stack_height + 1;
 }
 
 static void visit_ForIter(struct Compiler *const compiler, const struct Node *const node) {
@@ -1196,7 +1211,7 @@ static void visit_Decl(struct Compiler *const compiler, const struct Node *const
 	}
 }
 
-static void visit_TriOp(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
+static int visit_TriOp(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	struct Node *left = TriOp_get_left(node);
 	struct Node *middle = TriOp_get_middle(node);
 	struct Node *right = TriOp_get_right(node);
@@ -1215,6 +1230,8 @@ static void visit_TriOp(struct Compiler *const compiler, const struct Node *cons
 
 	visit_expr(compiler, right, stack_height);
 	exit_jump(compiler, &index_r);
+
+	return stack_height + 1;
 }
 
 static void visit_BinOp_shortcircuit(struct Compiler *const compiler, const struct Node *const node, enum Opcode jump_type, int stack_height) {
@@ -1226,17 +1243,17 @@ static void visit_BinOp_shortcircuit(struct Compiler *const compiler, const stru
 	YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, index - 8, compiler->buffer->count - index);
 }
 
-static void visit_BinOp(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
+static int visit_BinOp(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	// complicated bin ops are handled on their own.
 	if (node->value.type == T_DQMARK) {        // ?? operator
 		visit_BinOp_shortcircuit(compiler, node, O_BRN_8, stack_height);
-		return;
+		return stack_height + 1;
 	} else if (node->value.type == T_DBAR) {   // || operator
 		visit_BinOp_shortcircuit(compiler, node, O_BRT_8, stack_height);
-		return;
+		return stack_height + 1;
 	} else if (node->value.type == T_DAMP) {   // && operator
 		visit_BinOp_shortcircuit(compiler, node, O_BRF_8, stack_height);
-		return;
+		return stack_height + 1;
 	}
 
 	// all other operators follow the same pattern of visiting one child then the other.
@@ -1315,9 +1332,11 @@ static void visit_BinOp(struct Compiler *const compiler, const struct Node *cons
 		YASL_UNREACHED();
 		break;
 	}
+
+	return stack_height + 1;
 }
 
-static void visit_UnOp(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
+static int visit_UnOp(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	visit_expr(compiler, UnOp_get_expr(node), stack_height);
 	switch (node->value.type) {
 	case T_PLUS:
@@ -1339,6 +1358,8 @@ static void visit_UnOp(struct Compiler *const compiler, const struct Node *const
 		YASL_UNREACHED();
 		break;
 	}
+
+	return stack_height + 1;
 }
 
 static void visit_Assign(struct Compiler *const compiler, const struct Node *const node) {
@@ -1352,15 +1373,17 @@ static void visit_Assign(struct Compiler *const compiler, const struct Node *con
 	store_var(compiler, name, node->line);
 }
 
-static void visit_Var(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
+static int visit_Var(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	YASL_UNUSED(stack_height);
 	load_var(compiler, Var_get_name(node), node->line);
+	return stack_height + 1;
 }
 
-static void visit_Undef(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
+static int visit_Undef(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	YASL_UNUSED(node);
 	YASL_UNUSED(stack_height);
 	compiler_add_byte(compiler, O_NCONST);
+	return stack_height + 1;
 }
 
 static void compiler_add_literal(struct Compiler *const compiler, const yasl_int index) {
@@ -1371,16 +1394,18 @@ static void compiler_add_literal(struct Compiler *const compiler, const yasl_int
 	}
 }
 
-static void visit_Float(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
+static int visit_Float(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	YASL_UNUSED(stack_height);
 
 	yasl_float val = Float_get_float(node);
 
 	yasl_int index = compiler_intern_float(compiler, val);
 	compiler_add_literal(compiler, index);
+
+	return stack_height + 1;
 }
 
-static void visit_Integer(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
+static int visit_Integer(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	YASL_UNUSED(stack_height);
 
 	yasl_int val = Integer_get_int(node);
@@ -1388,18 +1413,24 @@ static void visit_Integer(struct Compiler *const compiler, const struct Node *co
 
 	yasl_int index = compiler_intern_int(compiler, val);
 	compiler_add_literal(compiler, index);
+
+	return stack_height + 1;
 }
 
-static void visit_Boolean(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
+static int visit_Boolean(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	YASL_UNUSED(stack_height);
 	compiler_add_byte(compiler, Boolean_get_bool(node) ? O_BCONST_T : O_BCONST_F);
+
+	return stack_height + 1;
 }
 
-static void visit_String(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
+static int visit_String(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	YASL_UNUSED(stack_height);
 
 	yasl_int index = intern_string(compiler, node);
 	compiler_add_literal(compiler, index);
+
+	return stack_height + 1;
 }
 
 static void visit_Assert(struct Compiler *const compiler, const struct Node *const node) {
@@ -1413,12 +1444,16 @@ static void make_new_collection(struct Compiler *const compiler, const struct No
 	compiler_add_byte(compiler, type);
 }
 
-static void visit_List(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
+static int visit_List(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	make_new_collection(compiler, List_get_values(node), O_NEWLIST, stack_height);
+
+	return stack_height + 1;
 }
 
-static void visit_Table(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
+static int visit_Table(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	make_new_collection(compiler, Table_get_values(node), O_NEWTABLE, stack_height);
+
+	return stack_height + 1;
 }
 
 /*
@@ -1445,27 +1480,21 @@ static void visit_LetIter(struct Compiler *const compiler, const struct Node *co
 	YASL_UNREACHED();
 }
 
-static void visit_Vargs(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
+static int visit_Vargs(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	YASL_UNUSED(stack_height);
 	load_var(compiler, "...", node->line);
 	compiler_add_byte(compiler, O_SPREAD_VARGS);
+
+	return stack_height + 1;
 }
 
-static void visit_Parens(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
+static int visit_Parens(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	visit_expr(compiler, Parens_get_expr(node), stack_height);
+
+	return stack_height + 1;
 }
 
-/*
-static void (*jmp_table[])(struct Compiler *const compiler, const struct Node *const node) = {
-#define X(name, ...) &visit_##name,
-#include "exprnodetype.x"
-#include "pattnodetype.x"
-#include "stmtnodetype.x"
-#undef X
-};
-*/
-
-static void (*expr_jmp_table[])(struct Compiler *const compiler, const struct Node *const node, int stack_height) = {
+static int (*expr_jmp_table[])(struct Compiler *const compiler, const struct Node *const node, int stack_height) = {
 #define X(name, ...) &visit_##name,
 #include "exprnodetype.x"
 #undef X
@@ -1541,7 +1570,7 @@ static bool is_stmt(const struct Node *const node) {
 }
 #endif
 
-static void visit_expr(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
+static int visit_expr(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	YASL_ASSERT(is_expr(node), "Expected expression");
 	setline(compiler, node);
 
@@ -1550,7 +1579,7 @@ static void visit_expr(struct Compiler *const compiler, const struct Node *const
 	compiler_add_byte(compiler, stack_height);
 #endif  // YASL_DEBUG
 
-	expr_jmp_table[node->nodetype](compiler, node, stack_height);
+	return expr_jmp_table[node->nodetype](compiler, node, stack_height);
 }
 
 static void visit_patt(struct Compiler *const compiler, const struct Node *const node) {
