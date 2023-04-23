@@ -89,6 +89,11 @@ struct YASLX_function {
 	int args;
 };
 
-void YASLX_tablesetfunctions(struct YASL_State *S, struct YASLX_function[]);
+/**
+ * Inserts all functions in the array into a table on top of the stack.
+ * @param S The YASL_State
+ * @param functions array of function names, function pointers, and number of args.
+ */
+void YASLX_tablesetfunctions(struct YASL_State *S, struct YASLX_function functions[]);
 
 #endif

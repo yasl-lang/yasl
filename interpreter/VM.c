@@ -774,7 +774,8 @@ struct YASL_Table *get_mt(const struct VM *const vm, struct YASL_Object v) {
 }
 
 void vm_get_metatable(struct VM *const vm) {
-	struct RC_UserData *mt = obj_get_metatable(vm, vm_pop(vm));
+	struct YASL_Object v = vm_pop(vm);
+	struct RC_UserData *mt = obj_get_metatable(vm, v);
 	vm_push(vm, mt ? YASL_TABLE(mt) : YASL_UNDEF());
 }
 
