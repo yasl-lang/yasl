@@ -4,7 +4,7 @@
 #include "yasl_state.h"
 
 int YASL_mt_get(struct YASL_State *S) {
-	if (!YASL_istable(S) && !YASL_islist(S) && !vm_isuserdata(&S->vm)) {
+	if (!YASL_isntable(S, 0) && !YASL_isnlist(S, 0) && !vm_isuserdata(&S->vm)) {
 		vm_print_err_type((struct VM *)S, "cannot get metatable for value of type %s.", YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}

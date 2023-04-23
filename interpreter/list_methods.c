@@ -315,7 +315,7 @@ int list_join(struct YASL_State *S) {
 	}
 	struct YASL_String *string = vm_peekstr((struct VM *) S, S->vm.sp);
 	S->vm.sp--;
-	if (!YASL_islist(S)) {
+	if (!YASL_isnlist(S, 0)) {
 		YASLX_print_err_bad_arg_type(S, "list.join", 0, "list", YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}

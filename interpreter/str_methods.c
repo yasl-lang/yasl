@@ -97,7 +97,7 @@ int str_toint(struct YASL_State *S) {
 
 int str_tolist(struct YASL_State *S) {
 	size_t size = 1;
-	if (YASL_isint(S)) {
+	if (YASL_isnint(S, 1)) {
 		yasl_int n = YASL_popint(S);
 		if (n <= 0) {
 			YASL_print_err(S, "ValueError: Expected a positive number, got: %" PRId64 ".", n);
@@ -351,7 +351,7 @@ static void str_split_default_max(struct YASL_State *S, yasl_int max_splits) {
 }
 
 int str_split(struct YASL_State *S) {
-	if (YASL_isint(S)) {
+	if (vm_isint((struct VM *)S)) {
 		yasl_int max_splits = YASL_popint(S);
 		str_split_max(S, max_splits);
 		return 1;
@@ -370,7 +370,7 @@ int str_split(struct YASL_State *S) {
 		return 1;
 	}
 
-	if (YASL_isint(S)) {
+	if (vm_isint((struct VM *)S)) {
 		yasl_int max_splits = YASL_popint(S);
 		str_split_default_max(S, max_splits);
 		return 1;

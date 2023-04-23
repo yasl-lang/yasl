@@ -1,1 +1,1 @@
-TypeError: math.gcd expected arg in position 1 to be of type float, got arg of type str. (line 1)
+TypeError: math.gcd expected arg in position 1 to be of type float or int, got arg of type str. (line 1)

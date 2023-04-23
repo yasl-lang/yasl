@@ -204,7 +204,7 @@ static int YASL_io_seek(struct YASL_State *S) {
 	if (YASL_isundef(S)) {
 		offset = 0;
 		YASL_pop(S);
-	} else if ((YASL_isint(S))) {
+	} else if ((YASL_isnint(S, 2))) {
 		offset = YASL_popint(S);
 	} else {
 		vm_print_err_type((struct VM *)S,"%s expected arg in position %d to be of type int, got arg of type %s.", FILE_PRE ".seek", 2, YASL_peektypename(S));

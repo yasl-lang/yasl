@@ -39,7 +39,7 @@ static int YASL_collections_set_fromlist(struct YASL_State *S) {
 
 static int YASL_collections_set_new(struct YASL_State *S) {
 	yasl_int i = YASL_peekvargscount(S);
-	if (i == 1 && YASL_islist(S)) {
+	if (i == 1 && YASL_isnlist(S, 1)) {  // TODO: Fix hack, we are off by one because of the number of VA ARGS.
 		return YASL_collections_set_fromlist(S);
 	}
 
