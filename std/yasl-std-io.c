@@ -251,25 +251,17 @@ int YASL_decllib_io(struct YASL_State *S) {
 	YASL_registermt(S, FILE_NAME);
 
 	YASL_loadmt(S, FILE_NAME);
-	YASL_pushlit(S, "read");
-	YASL_pushcfunction(S, YASL_io_read, 2);
-	YASL_tableset(S);
 
-	YASL_pushlit(S, "write");
-	YASL_pushcfunction(S, YASL_io_write, 2);
-	YASL_tableset(S);
+	struct YASLX_function functions[] = {
+		{ "read", YASL_io_read, 2 },
+		{ "write", YASL_io_write, 2 },
+		{ "seek", YASL_io_seek, 3 },
+		{ "flush", YASL_io_flush, 1 },
+		{ "close", YASL_io_close, 1 },
+		{ NULL, NULL, 0 }
+	};
 
-	YASL_pushlit(S, "seek");
-	YASL_pushcfunction(S, YASL_io_seek, 3);
-	YASL_tableset(S);
-
-	YASL_pushlit(S, "flush");
-	YASL_pushcfunction(S, YASL_io_flush, 1);
-	YASL_tableset(S);
-
-	YASL_pushlit(S, "close");
-	YASL_pushcfunction(S, YASL_io_close, 1);
-	YASL_tableset(S);
+	YASLX_tablesetfunctions(S, functions);
 	YASL_pop(S);
 
 	YASL_pushtable(S);

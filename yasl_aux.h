@@ -83,4 +83,12 @@ void YASLX_checknundef(struct YASL_State *S, const char *name, unsigned n);
  */
 void *YASLX_checknuserdata(struct YASL_State *S, const char *tag, const char *name, unsigned n);
 
+struct YASLX_function {
+	const char *name;
+	YASL_cfn fn;
+	int args;
+};
+
+void YASLX_tablesetfunctions(struct YASL_State *S, struct YASLX_function[]);
+
 #endif
