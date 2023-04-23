@@ -529,7 +529,6 @@ static enum Token YASLToken_ThreeChars(char c1, char c2, char c3) {
 
 static enum Token YASLToken_TwoChars(char c1, char c2) {
 	switch(c1) {
-	case ':': switch(c2) { case '=': return T_COLONEQ; } return T_UNKNOWN;
 	case '^': switch(c2) { case '=': return T_CARETEQ; } return T_UNKNOWN;
 	case '+': switch(c2) { case '=': return T_PLUSEQ; } return T_UNKNOWN;
 		case '-': switch(c2) {
@@ -554,7 +553,6 @@ static enum Token YASLToken_TwoChars(char c1, char c2) {
 		case '<': switch(c2) {
 				case '=': return T_LTEQ;
 				case '<': return T_DLT;
-				case '-': return T_LEFT_ARR;
 	  } return T_UNKNOWN;
 		case '>': switch(c2) {
 				case '=': return T_GTEQ;

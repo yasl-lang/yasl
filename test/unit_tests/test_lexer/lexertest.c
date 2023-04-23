@@ -551,13 +551,6 @@ static void test_colon(void) {
 	);
 }
 
-static void test_colon_eq(void) {
-	USING_LEX(lex, ":=",
-	ASSERT_EATTOK(T_COLONEQ, lex);
-	ASSERT_EATTOK(T_EOF, lex);
-	);
-}
-
 static void test_small_arrow(void) {
 	USING_LEX(lex, "->",
 	ASSERT_EATTOK(T_RIGHT_ARR, lex);
@@ -643,9 +636,10 @@ static void test_float(void) {
 }
 
 static void test_string(void) {
-	USING_LEX(lex, "x := 'hello world';",
+	USING_LEX(lex, "let x = 'hello world';",
+	ASSERT_EATTOK(T_LET, lex);
 	ASSERT_EATTOK(T_ID, lex);
-	ASSERT_EATTOK(T_COLONEQ, lex);
+	ASSERT_EATTOK(T_EQ, lex);
 	ASSERT_EATTOK(T_STR, lex);
 	ASSERT_EATTOK(T_SEMI, lex);
 	ASSERT_EATTOK(T_EOF, lex);
@@ -744,7 +738,6 @@ int lexertest(void) {
 	test_dqmark();
 	test_dqmarkeq();
 	test_colon();
-	test_colon_eq();
 	test_small_arrow();
 	return NUM_FAILED;
 }
