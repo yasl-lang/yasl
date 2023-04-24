@@ -1,0 +1,16 @@
+
+const fn f(v) {
+    match v {
+    !int {
+        return '!int'
+    }
+    * {
+        return ()
+    }
+    }
+    return ()
+}
+
+echo f(1)
+echo f(true)
+echo f('wasd')
