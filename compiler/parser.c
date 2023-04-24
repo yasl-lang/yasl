@@ -630,6 +630,7 @@ static struct Node *parse_while(struct Parser *const parser) {
 }
 
 static struct Node *parse_pattern(struct Parser *const parser);
+static struct Node *parse_patternsingle(struct Parser *const parser);
 
 static struct Node *parse_primitivepattern(struct Parser *const parser) {
 	size_t line = parserline(parser);
@@ -689,6 +690,11 @@ static struct Node *parse_primitivepattern(struct Parser *const parser) {
 		}
 		n = parse_string(parser);
 		n->nodetype = N_PATSTR;
+		return n;
+	case T_BANG:
+		eattok(parser, T_BANG);
+		n = new_UnOp(parser, T_BANG, parse_patternsingle(parser), line);
+		n->nodetype = N_PATNOT;
 		return n;
 	case T_DOT:
 		eattok(parser, T_DOT);

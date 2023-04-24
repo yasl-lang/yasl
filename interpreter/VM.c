@@ -890,6 +890,7 @@ static void vm_ff_subpattern(struct VM *const vm) {
 	case P_TYPE_LS:
 	case P_TYPE_TABLE:
 	case P_ANY:
+	case P_NOT:
 		break;
 	case P_BIND:
 	case P_BOOL:
@@ -1052,6 +1053,8 @@ static bool vm_MATCH_subpattern(struct VM *const vm, struct YASL_Object *expr) {
 	}
 	case P_ANY:
 		return true;
+	case P_NOT:
+		return !vm_MATCH_subpattern(vm, expr);
 	case P_ALT: {
 		if (vm_MATCH_subpattern(vm, expr)) {
 			vm_ff_subpattern(vm);

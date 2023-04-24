@@ -917,6 +917,11 @@ static void visit_AnyPattern(struct Compiler *const compiler, const struct Node 
 	compiler_add_byte(compiler, P_ANY);
 }
 
+static void visit_NotPattern(struct Compiler *const compiler, const struct Node *const node) {
+	compiler_add_byte(compiler, P_NOT);
+	visit_patt(compiler, UnOp_get_expr(node));
+}
+
 static void visit_AltPattern(struct Compiler *const compiler, const struct Node *const node) {
 	compiler_add_byte(compiler, P_ALT);
 	struct YASL_Table prev = compiler->seen_bindings;

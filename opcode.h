@@ -120,6 +120,7 @@ enum Pattern {
 	P_TYPE_TABLE = 0x07,
 	P_BOOL = 0x08,
 	P_ANY = 0x0F,
+	P_NOT = 0x10,
 	P_LIT = 0x9A,
 	P_LIT8 = 0x9B,
 	P_TABLE = 0x9C,
