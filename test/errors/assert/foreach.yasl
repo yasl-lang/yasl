@@ -1,5 +1,5 @@
 
-for x <- [1, 2, 3] {
+for x in [1, 2, 3] {
     assert false
     echo x
 }

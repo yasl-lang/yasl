@@ -19,17 +19,23 @@ int str_toint(struct YASL_State *S);
 
 int str_tolist(struct YASL_State *S);
 
+int str_spread(struct YASL_State *S);
+
 int str_toupper(struct YASL_State *S);
 
 int str_tolower(struct YASL_State *S);
 
-int str_isalnum(struct YASL_State *S);
-
 int str_isal(struct YASL_State *S);
+
+int str_isalnum(struct YASL_State *S);
 
 int str_isnum(struct YASL_State *S);
 
+int str_isprint(struct YASL_State *S);
+
 int str_isspace(struct YASL_State *S);
+
+int str_tobyte(struct YASL_State *S);
 
 int str_startswith(struct YASL_State *S);
 

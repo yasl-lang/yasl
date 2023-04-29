@@ -179,9 +179,9 @@ static int YASL_io_write(struct YASL_State *S) {
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	char *str = YASL_peekcstr(S);
-	YASL_pop(S);
+	YASL_len(S);
 
-	size_t len = strlen(str);
+	size_t len = (size_t)YASL_popint(S);
 
 	size_t write_len = fwrite(str, 1, len, f);
 
@@ -204,7 +204,7 @@ static int YASL_io_seek(struct YASL_State *S) {
 	if (YASL_isundef(S)) {
 		offset = 0;
 		YASL_pop(S);
-	} else if ((YASL_isint(S))) {
+	} else if ((YASL_isnint(S, 2))) {
 		offset = YASL_popint(S);
 	} else {
 		vm_print_err_type((struct VM *)S,"%s expected arg in position %d to be of type int, got arg of type %s.", FILE_PRE ".seek", 2, YASL_peektypename(S));
@@ -251,25 +251,17 @@ int YASL_decllib_io(struct YASL_State *S) {
 	YASL_registermt(S, FILE_NAME);
 
 	YASL_loadmt(S, FILE_NAME);
-	YASL_pushlit(S, "read");
-	YASL_pushcfunction(S, YASL_io_read, 2);
-	YASL_tableset(S);
 
-	YASL_pushlit(S, "write");
-	YASL_pushcfunction(S, YASL_io_write, 2);
-	YASL_tableset(S);
+	struct YASLX_function functions[] = {
+		{ "read", YASL_io_read, 2 },
+		{ "write", YASL_io_write, 2 },
+		{ "seek", YASL_io_seek, 3 },
+		{ "flush", YASL_io_flush, 1 },
+		{ "close", YASL_io_close, 1 },
+		{ NULL, NULL, 0 }
+	};
 
-	YASL_pushlit(S, "seek");
-	YASL_pushcfunction(S, YASL_io_seek, 3);
-	YASL_tableset(S);
-
-	YASL_pushlit(S, "flush");
-	YASL_pushcfunction(S, YASL_io_flush, 1);
-	YASL_tableset(S);
-
-	YASL_pushlit(S, "close");
-	YASL_pushcfunction(S, YASL_io_close, 1);
-	YASL_tableset(S);
+	YASLX_tablesetfunctions(S, functions);
 	YASL_pop(S);
 
 	YASL_pushtable(S);

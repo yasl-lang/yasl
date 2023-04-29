@@ -1,0 +1,2 @@
+
+echo mt.lookup('', .tostr)('asdfg', 'a')

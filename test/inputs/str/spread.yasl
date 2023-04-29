@@ -1,0 +1,3 @@
+echo 'ABCD'->spread()
+echo ('ABCD'->spread())
+echo collections.list('12345'->spread())

@@ -1,14 +1,17 @@
 #include "yasl.h"
 
+#include <ctype.h>
 #include <stdarg.h>
-#include <interpreter/YASL_Object.h>
 
+#include "compiler/compiler.h"
+#include "compiler/lexinput.h"
 #include "interpreter/table_methods.h"
 #include "interpreter/userdata.h"
-#include "yasl_state.h"
-#include "compiler/compiler.h"
 #include "interpreter/VM.h"
-#include "compiler/lexinput.h"
+#include "interpreter/YASL_Object.h"
+#include "yasl_state.h"
+
+size_t random_offset = 0;
 
 struct YASL_State *YASL_newstate_num(const char *filename, size_t num) {
 	FILE *fp = fopen(filename, "rb");
@@ -168,6 +171,16 @@ int YASL_execute(struct YASL_State *S) {
 }
 
 int YASL_declglobal(struct YASL_State *S, const char *name) {
+#ifdef YASL_DEBUG
+	const char *curr = name;
+	YASL_ASSERT(*curr, "name must be at least length 1.");
+	YASL_ASSERT(isyaslidstart(*curr), "name must start with [A-Za-z_$].");
+	curr++;
+	while (*curr) {
+		YASL_ASSERT(isyaslid(*curr), "name must only contain [A-Za-z0-9_$].");
+		curr++;
+	}
+#endif  // YASL_DEBUG
 	compiler_intern_string(&S->compiler, name, strlen(name));
 	scope_decl_var(S->compiler.globals, name);
 	return YASL_SUCCESS;
@@ -418,7 +431,7 @@ void YASL_len(struct YASL_State *S) {
 }
 
 int YASL_listget(struct YASL_State *S, yasl_int n) {
-	if (!YASL_islist(S)) {
+	if (!vm_islist(&S->vm)) {
 		return YASL_TYPE_ERROR;
 	}
 
@@ -430,13 +443,13 @@ int YASL_listget(struct YASL_State *S, yasl_int n) {
 
 int YASL_listpush(struct YASL_State *S) {
 	struct YASL_Object value = vm_pop(&S->vm);
-	if (!YASL_islist(S)) {
+	if (!vm_islist(&S->vm)) {
 		return YASL_TYPE_ERROR;
 	}
 
 	struct YASL_List *list = vm_peeklist(&S->vm);
 
-	YASL_List_append(list, value);
+	YASL_List_push(list, value);
 
 	return YASL_SUCCESS;
 }
@@ -517,7 +530,7 @@ bool YASL_isuserdata(struct YASL_State *S, const char *tag) {
 }
 
 bool YASL_peekbool(struct YASL_State *S) {
-	if (YASL_isbool(S)) {
+	if (vm_isbool(&S->vm)) {
 		return vm_peekbool(&S->vm);
 	}
 	return false;
@@ -532,14 +545,14 @@ bool YASL_peeknbool(struct YASL_State *S, unsigned n) {
 }
 
 bool YASL_popbool(struct YASL_State *S) {
-	if (YASL_isbool(S)) {
+	if (vm_isbool(&S->vm)) {
 		return vm_popbool(&S->vm);
 	}
 	return false;
 }
 
 yasl_float YASL_peekfloat(struct YASL_State *S) {
-	if (YASL_isfloat(S)) {
+	if (vm_isfloat(&S->vm)) {
 		return vm_peekfloat(&S->vm);
 	}
 	return 0.0;
@@ -554,14 +567,14 @@ yasl_float YASL_peeknfloat(struct YASL_State *S, unsigned n) {
 }
 
 yasl_float YASL_popfloat(struct YASL_State *S) {
-	if (YASL_isfloat(S)) {
+	if (vm_isfloat(&S->vm)) {
 		return vm_popfloat(&S->vm);
 	}
 	return 0.0;
 }
 
 yasl_int YASL_peekint(struct YASL_State *S) {
-	if (YASL_isint(S)) {
+	if (vm_isint(&S->vm)) {
 		return vm_peekint(&S->vm);
 	}
 	return 0;
@@ -576,7 +589,7 @@ yasl_int YASL_peeknint(struct YASL_State *S, unsigned n) {
 }
 
 yasl_int YASL_popint(struct YASL_State *S) {
-	if (YASL_isint(S)) {
+	if (vm_isint(&S->vm)) {
 		return vm_popint(&S->vm);
 	}
 	return 0;

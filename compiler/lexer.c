@@ -34,9 +34,6 @@ YASL_FORMAT_CHECK static void lex_print_err(struct Lexer *lex, const char *const
 
 #define lex_print_err_syntax(lex, format, ...) lex_print_err(lex, "SyntaxError: " format, __VA_ARGS__)
 
-#define isyaslidstart(c) (isalpha(c) || (c) == '_' || (c) == '$')
-#define isyaslid(c) (isalnum(c) || (c) == '_' || (c) == '$')
-
 void lex_val_setnull(struct Lexer *const lex) {
 	lex->buffer.items = NULL;
 	lex->buffer.size = 0;
@@ -80,7 +77,7 @@ int lex_getchar(struct Lexer *const lex) {
 	return lex->c = (char)lxgetc(lex->file);
 }
 
-static bool lex_eatwhitespace(struct Lexer *const lex) {
+bool lex_eatwhitespace(struct Lexer *const lex) {
 	while (!lxeof(lex->file) && iswhitespace(lex->c)) {
 		if (lex->c == '\n') {
 			lex->line++;
@@ -99,8 +96,10 @@ static bool lex_eatinlinecomments(struct Lexer *const lex) {
 	return false;
 }
 
+#define COMMENT_START '/'
+#define COMMENT_END '/'
 static bool lex_eatcommentsandwhitespace(struct Lexer * lex) {
-	while (!lxeof(lex->file) && (iswhitespace(lex->c) || lex->c == '#' || lex->c == '/')) {
+	while (!lxeof(lex->file) && (iswhitespace(lex->c) || lex->c == '#' || lex->c == COMMENT_START)) {
 		// white space
 		if (lex_eatwhitespace(lex)) return true;
 
@@ -108,7 +107,7 @@ static bool lex_eatcommentsandwhitespace(struct Lexer * lex) {
 		if (lex_eatinlinecomments(lex)) return true;
 
 		// block comments
-		if (lex->c == '/') {
+		if (lex->c == COMMENT_START) {
 		    long cur = lxtell(lex->file);
 			lex_getchar(lex);
 			if (lex->c == '*') {
@@ -116,7 +115,7 @@ static bool lex_eatcommentsandwhitespace(struct Lexer * lex) {
 				lex->c = ' ';
 				int c1 = lxgetc(lex->file);
 				int c2 = lxgetc(lex->file);
-				while (!lxeof(lex->file) && (c1 != '*' || c2 != '/')) {
+				while (!lxeof(lex->file) && (c1 != '*' || c2 != COMMENT_END)) {
 					if (c1 == '\n' || c2 == '\n') addsemi = true;
 					if (c1 == '\n') lex->line++;
 					c1 = c2;
@@ -131,12 +130,9 @@ static bool lex_eatcommentsandwhitespace(struct Lexer * lex) {
 					lex->type = T_SEMI;
 					return true;
 				}
-			} else if (lxeof(lex->file)) {
-				lex->type = T_SLASH;
-				return true;
 			} else {
 			    lxseek(lex->file, cur, SEEK_SET);
-			    lex->c = '/';
+			    lex->c = COMMENT_START;
 				break;
 			}
 		}
@@ -326,30 +322,9 @@ static bool handle_escapes(struct Lexer *const lex, char delim) {
 	char tmp;
 	char *end;
 	switch (lex->c) {
-	case 'a':
-		lex_val_append(lex, '\a');
-		break;
-	case 'b':
-		lex_val_append(lex, '\b');
-		break;
-	case 'f':
-		lex_val_append(lex, '\f');
-		break;
-	case 'n':
-		lex_val_append(lex, '\n');
-		break;
-	case 'r':
-		lex_val_append(lex, '\r');
-		break;
-	case 't':
-		lex_val_append(lex, '\t');
-		break;
-	case 'v':
-		lex_val_append(lex, '\v');
-		break;
-	case '0':
-		lex_val_append(lex, '\0');
-		break;
+#define X(escape, c) case c: lex_val_append(lex, escape); break;
+#include "escapes.x"
+#undef X
 	case STR_DELIM:
 	case INTERP_STR_DELIM:
 	case INTERP_STR_PLACEHOLDER:
@@ -554,7 +529,6 @@ static enum Token YASLToken_ThreeChars(char c1, char c2, char c3) {
 
 static enum Token YASLToken_TwoChars(char c1, char c2) {
 	switch(c1) {
-	case ':': switch(c2) { case '=': return T_COLONEQ; } return T_UNKNOWN;
 	case '^': switch(c2) { case '=': return T_CARETEQ; } return T_UNKNOWN;
 	case '+': switch(c2) { case '=': return T_PLUSEQ; } return T_UNKNOWN;
 		case '-': switch(c2) {
@@ -563,11 +537,9 @@ static enum Token YASLToken_TwoChars(char c1, char c2) {
 	  } return T_UNKNOWN;
 		case '=': switch(c2) {
 			case '=': return T_DEQ;
-			case '~': return T_EQTILDE;
 	  } return T_UNKNOWN;
 		case '!': switch(c2) {
 			case '=': return T_BANGEQ;
-			case '~': return T_BANGTILDE;
 	  } return T_UNKNOWN;
 	case '~': switch(c2) { case '=': return T_TILDEEQ; } return T_UNKNOWN;
 		case '*': switch(c2) {
@@ -581,7 +553,6 @@ static enum Token YASLToken_TwoChars(char c1, char c2) {
 		case '<': switch(c2) {
 				case '=': return T_LTEQ;
 				case '<': return T_DLT;
-				case '-': return T_LEFT_ARR;
 	  } return T_UNKNOWN;
 		case '>': switch(c2) {
 				case '=': return T_GTEQ;
@@ -664,85 +635,14 @@ void YASLKeywords(struct Lexer *const lex) {
 	 *  assert
 	 */
 
-	if (matches_keyword(lex, "header")) {
-		lex_print_err_syntax(lex,  "`header` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
-		lex_error(lex);
-		return;
-	} else if (matches_keyword(lex, "global")) {
-		lex_print_err_syntax(lex,  "`global` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
-		lex_error(lex);
-		return;
-	} else if (matches_keyword(lex, "enum")) {
-		lex_print_err_syntax(lex,  "`enum` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
-		lex_error(lex);
-		return;
-	} else if (matches_keyword(lex, "struct")) {
-		lex_print_err_syntax(lex,  "`struct` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
-		lex_error(lex);
-		return;
-	} else if (matches_keyword(lex, "pragma")) {
-		lex_print_err_syntax(lex,  "`pragma` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
-		lex_error(lex);
-		return;
-	} else if (matches_keyword(lex, "yield")) {
-		lex_print_err_syntax(lex,  "`yield` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
-		lex_error(lex);
-		return;
-	} else if (matches_keyword(lex, "do")) {
-		lex_print_err_syntax(lex,  "`do` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
-		lex_error(lex);
-		return;
-	/*} else if (matches_keyword(lex, "ifdef")) {
-		lex_print_err_syntax(lex,  "`ifdef` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
-		lex_error(lex);
-		return;
-	} else if (matches_keyword(lex, "elseifdef")) {
-		lex_print_err_syntax(lex,  "`elseifdef` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
-		lex_error(lex);
-		return;*/
-	} else if (matches_keyword(lex, "use")) {
-		lex_print_err_syntax(lex,  "`use` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
-		lex_error(lex);
-		return;
-	} else if (matches_keyword(lex, "no")) {
-		lex_print_err_syntax(lex,  "`no` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
-		lex_error(lex);
-		return;
-	} else if (matches_keyword(lex, "pure")) {
-		lex_print_err_syntax(lex,  "`pure` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);
-		lex_error(lex);
-		return;
-	} else if (matches_keyword(lex, "consteval")) {
-		lex_print_err_syntax(lex,  "`consteval` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n",
-					lex->line);
-		lex_error(lex);
-		return;
-	} else if (matches_keyword(lex, "constexpr")) {
-		lex_print_err_syntax(lex,  "`constexpr` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n",
-					lex->line);
-		lex_error(lex);
-		return;
-	} else if (matches_keyword(lex, "constfold")) {
-		lex_print_err_syntax(lex,  "`constfold` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n",
-					lex->line);
-		lex_error(lex);
-		return;
-	} else if (matches_keyword(lex, "extern")) {
-		lex_print_err_syntax(lex,  "`extern` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n",
-					lex->line);
-		lex_error(lex);
-		return;
-	} else if (matches_keyword(lex, "in")) {
-		lex_print_err_syntax(lex,  "`in` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n",
-				     lex->line);
-		lex_error(lex);
-		return;
-	} else if (matches_keyword(lex, "typename")) {
-		lex_print_err_syntax(lex,  "`typename` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n",
-				     lex->line);
-		lex_error(lex);
-		return;
-	}
+#define X(word, ...) if (matches_keyword(lex, #word)) {\
+	lex_print_err_syntax(lex, "`" #word "` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);\
+	lex_error(lex);\
+	return;\
+}
+
+#include "reservedwords.x"
+#undef X
 
 	if (matches_keyword(lex, "break")) set_keyword(lex, T_BREAK);
 	else if (matches_keyword(lex, "const")) set_keyword(lex, T_CONST);
@@ -755,6 +655,7 @@ void YASLKeywords(struct Lexer *const lex) {
 	else if (matches_keyword(lex, "for")) set_keyword(lex, T_FOR);
 	else if (matches_keyword(lex, "if")) set_keyword(lex, T_IF);
 	else if (matches_keyword(lex, "ifdef")) set_keyword(lex, T_IFDEF);
+	else if (matches_keyword(lex, "in")) set_keyword(lex, T_IN);
 	else if (matches_keyword(lex, "echo")) set_keyword(lex, T_ECHO);
 	else if (matches_keyword(lex, "let")) set_keyword(lex, T_LET);
 	else if (matches_keyword(lex, "return")) set_keyword(lex, T_RET);

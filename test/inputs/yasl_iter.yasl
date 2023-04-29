@@ -10,7 +10,7 @@ const orderedtablemt = {
 		}
 		self->__table()[key] = val
 	},
-	.__iter: fn(self) ->
+	.__iter: (fn(self) ->
 		(fn(t, i) {
 		    # echo t
 		    # echo i
@@ -20,10 +20,10 @@ const orderedtablemt = {
 			} else {
 				return i + 1, l[i], true
 			}
-		}, 0),
+		}), 0),
 	.tostr: fn(self) {
 		const buffer = []
-		for k <- self->__list() {
+		for k in self->__list() {
 			buffer->push("#{k}: #{self->__table()[k]}")
 		}
 		return "orderedtable(#{buffer->join(', ')})"
@@ -50,7 +50,7 @@ t.a = 'A'
 t.b = 'B'
 t.c = 'C'
 
-for i <- t {
+for i in t {
 	echo "#{i}: #{t[i]}"
 }
 

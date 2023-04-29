@@ -27,6 +27,6 @@ fn range(a, b) {
     return tmp
 }
 
-for i <- range(0, 7) {
+for i in range(0, 7) {
     echo "fib(#{i}): #{fib(i)}"
 }

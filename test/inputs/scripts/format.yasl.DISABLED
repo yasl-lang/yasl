@@ -1,0 +1,44 @@
+
+fn format(fmt, args[]) {
+    if len fmt == 0 {
+        assert len args == 0
+        return ''
+    }
+
+    let tmp = []
+
+    let start = 0
+    let end = 0
+
+    let j = 0
+    for let i = 0; i < len fmt - 1; i += 1 {
+        const char = fmt[i]
+        if char == '%' {
+            i += 1
+            match fmt[i] {
+            '%' {
+                tmp->push('%')
+            }
+            let m {
+                tmp->push(args[j]->tostr(m))
+                j += 1
+            }
+
+            }
+        } else {
+            tmp->push(char)
+        }
+    }
+
+    assert len args == j
+
+    if tmp[-1] != '%' {
+        tmp->push(fmt[-1])
+    }
+
+    return tmp->join()
+}
+
+echo format('hex: %x, dec: %d, %% esc', 0x10, 100)
+echo format('hex: %x, bin: %b, %%', 0x10, 100)
+

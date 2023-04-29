@@ -1,4 +1,4 @@
 
 const s = collections.set(.a, .a2, false, true, 1, 2, 3, .a, .bbbbb, .dsdasdasd, 4)
 
-echo [ e for e <- s ]
+echo [ e for e in s ]

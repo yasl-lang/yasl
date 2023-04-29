@@ -1,6 +1,7 @@
 #include "str_methods.h"
 
 #include <stddef.h>
+#include <ctype.h>
 
 #include "yasl.h"
 #include "yasl_aux.h"
@@ -96,10 +97,10 @@ int str_toint(struct YASL_State *S) {
 
 int str_tolist(struct YASL_State *S) {
 	size_t size = 1;
-	if (YASL_isint(S)) {
+	if (YASL_isnint(S, 1)) {
 		yasl_int n = YASL_popint(S);
 		if (n <= 0) {
-			YASL_print_err(S, "ValueError: Expecte a positive number.");
+			YASL_print_err(S, "ValueError: Expected a positive number, got: %" PRId64 ".", n);
 			YASL_throw_err(S, YASL_VALUE_ERROR);
 		}
 		size = n;
@@ -116,11 +117,71 @@ int str_tolist(struct YASL_State *S) {
 	return 1;
 }
 
-int str_tostr(struct YASL_State *S) {
-	if (!YASL_isstr(S)) {
-		YASLX_print_err_bad_arg_type(S, "str.tostr", 0, "str", YASL_peektypename(S));
-		YASL_throw_err(S, YASL_TYPE_ERROR);
+int str_spread(struct YASL_State *S) {
+	struct YASL_String *str = YASLX_checknstr(S, "str.spread", 0);
+	const size_t len = YASL_String_len(str);
+	for (size_t i = 0; i < len; i++) {
+		YASL_pushlstr(S, YASL_String_chars(str) + i, 1);
 	}
+	return (int)len;
+}
+
+int str_tostr(struct YASL_State *S) {
+	struct YASL_String *str = YASLX_checknstr(S, "str.tostr", 0);
+	if (YASL_isnundef(S, 1)) {
+		YASL_pop(S);
+		return 1;
+	}
+
+	struct YASL_String *format =  YASLX_checknstr(S, "str.tostr", 1);
+	if (YASL_String_len(format) != 1) {
+		YASL_print_err(S, MSG_VALUE_ERROR "Expected str of len 1, got str of len %" PRI_SIZET ".",
+			       YASL_String_len(format));
+		YASL_throw_err(S, YASL_VALUE_ERROR);
+	}
+
+	if (*YASL_String_chars(format) != 'r') {
+		YASL_print_err(S, MSG_VALUE_ERROR "Unexpected format str: '%c'.", *YASL_String_chars(format));
+		YASL_throw_err(S, YASL_VALUE_ERROR);
+	}
+
+	const char *str_chars = YASL_String_chars(str);
+	size_t buffer_size = YASL_String_len(str) + 2;
+	char *buffer = (char *)malloc(buffer_size);
+	size_t curr = 0;
+	buffer[curr++] = '\'';
+	for (size_t i = 0; i < YASL_String_len(str); i++, curr++) {
+		const unsigned char c = (unsigned char)str_chars[i];
+		switch (c) {
+#define X(escape, c) case escape: buffer = (char *)realloc(buffer, ++buffer_size); buffer[curr++] = '\\'; buffer[curr] = c; continue;
+#include "escapes.x"
+#undef X
+		default:
+			break;
+		}
+
+		if (!isprint(c)) {
+			char tmp[3] = { '0', '0', 0x00 };
+			sprintf(tmp + (c < 16), "%x", c);
+			buffer_size += 3;
+			buffer = (char *)realloc(buffer, buffer_size);
+			buffer[curr++] = '\\';
+			buffer[curr++] = 'x';
+			memcpy(buffer + curr, tmp, 2);
+			curr += 1;
+			continue;
+		}
+
+		if (c == '\'') {
+			buffer = (char *)realloc(buffer, ++buffer_size);
+			buffer[curr++] = '\\';
+		}
+		buffer[curr] = c;
+	}
+	buffer[curr++] = '\'';
+
+	YASL_pushlstr(S, buffer, curr);
+	free(buffer);
 	return 1;
 }
 
@@ -154,9 +215,25 @@ int str_isnum(struct YASL_State *S) {
 	return 1;
 }
 
+int str_isprint(struct YASL_State *S) {
+	struct YASL_String *a = YASLX_checknstr(S, "str.isprint", 0);
+	YASL_pushbool(S, YASL_String_isprint(a));
+	return 1;
+}
+
 int str_isspace(struct YASL_State *S) {
 	struct YASL_String *a = YASLX_checknstr(S, "str.isspace", 0);
 	YASL_pushbool(S, YASL_String_isspace(a));
+	return 1;
+}
+
+int str_tobyte(struct YASL_State *S) {
+	struct YASL_String *a = YASLX_checknstr(S, "str.tobyte", 0);
+	if (YASL_String_len(a) != 1) {
+		YASL_print_err(S, MSG_VALUE_ERROR "str.tobyte expected a str of len 1.");
+		YASL_throw_err(S, YASL_VALUE_ERROR);
+	}
+	YASL_pushint(S, *YASL_String_chars(a));
 	return 1;
 }
 
@@ -274,7 +351,7 @@ static void str_split_default_max(struct YASL_State *S, yasl_int max_splits) {
 }
 
 int str_split(struct YASL_State *S) {
-	if (YASL_isint(S)) {
+	if (vm_isint((struct VM *)S)) {
 		yasl_int max_splits = YASL_popint(S);
 		str_split_max(S, max_splits);
 		return 1;
@@ -293,7 +370,7 @@ int str_split(struct YASL_State *S) {
 		return 1;
 	}
 
-	if (YASL_isint(S)) {
+	if (vm_isint((struct VM *)S)) {
 		yasl_int max_splits = YASL_popint(S);
 		str_split_default_max(S, max_splits);
 		return 1;

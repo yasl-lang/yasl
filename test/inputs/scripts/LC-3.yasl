@@ -13,21 +13,21 @@
 
 fn count(const s1, const s2) {
     const tmp = {}
-    for word <- s1->split() {
+    for word in s1->split() {
         if !tmp[word] {
             tmp[word] = 0
         }
         tmp[word] += 1
     }
 
-    for word <- s2->split() {
+    for word in s2->split() {
         if !tmp[word] {
             tmp[word] = 0
         }
         tmp[word] += 1
     }
 
-    return [ word for word <- tmp if tmp[word] == 1]
+    return [ word for word in tmp if tmp[word] == 1]
 }
 
 echo count('this apple is sweet', 'this apple is sour')

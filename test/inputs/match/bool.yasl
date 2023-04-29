@@ -14,7 +14,7 @@ fn match_bool(n) {
     }
 }
 
-for i <- [ true, false, undef ] {
+for i in [ true, false, undef ] {
     echo match_bool(i)
 }
 

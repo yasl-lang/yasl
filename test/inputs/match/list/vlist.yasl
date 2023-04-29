@@ -20,7 +20,7 @@ fn match_list(n) {
     }
 }
 
-for i <- [ [], [ 1, 2 ], [ 'a' ], [ .a, .b ], [ 2, 3, 4, 5 ], undef ] {
+for i in [ [], [ 1, 2 ], [ 'a' ], [ .a, .b ], [ 2, 3, 4, 5 ], undef ] {
     echo match_list(i)
 }
 

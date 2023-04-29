@@ -1,1 +1,1 @@
-TypeError: tostr not supported for operand of type table. (line 4)
+TypeError: cannot get metatable for value of type bool. (line 4)

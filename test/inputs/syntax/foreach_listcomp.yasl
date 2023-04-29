@@ -1,6 +1,6 @@
 
-for e <- [ 1, 2, 3 ] {
-    const x = [ e for e <- [ e ] ]
+for e in [ 1, 2, 3 ] {
+    const x = [ e for e in [ e ] ]
 
     echo x
 

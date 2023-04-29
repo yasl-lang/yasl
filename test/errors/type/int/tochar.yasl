@@ -1,0 +1,2 @@
+
+echo mt.lookup(0, .tochar)(1.0)

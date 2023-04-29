@@ -43,7 +43,7 @@ static void test_continue() {
 		O_DECSP, 0x01,
 		O_HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "for i <- [0, 1, 2, 3, 4, 5] { if i == 5 { continue; }; echo i; };");
+	ASSERT_GEN_BC_EQ(expected, "for i in [0, 1, 2, 3, 4, 5] { if i == 5 { continue; }; echo i; };");
 }
 
 static void test_break() {
@@ -87,7 +87,7 @@ static void test_break() {
 		O_DECSP, 0x01,
 		O_HALT
 	};
-	ASSERT_GEN_BC_EQ(expected, "for i <- [0, 1, 2, 3, 4, 5] { if i == 5 { break; }; echo i; };");
+	ASSERT_GEN_BC_EQ(expected, "for i in [0, 1, 2, 3, 4, 5] { if i == 5 { break; }; echo i; };");
 }
 
 TEST(foreachtest) {

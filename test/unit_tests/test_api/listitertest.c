@@ -10,7 +10,7 @@ static void testlistiter(void) {
 	ASSERT_SUCCESS(YASL_declglobal(S, "x"));
 	ASSERT_SUCCESS(YASL_execute(S));
 	ASSERT_SUCCESS(YASL_loadglobal(S, "x"));
-	ASSERT(YASL_islist(S));
+	ASSERT(YASL_isnlist(S, 0));
 
 	YASL_duptop(S);
 	YASL_len(S);
@@ -19,7 +19,7 @@ static void testlistiter(void) {
 
 	for (yasl_int i = 0; i < len; i++) {
 		YASL_listget(S, i);
-		ASSERT(YASL_isint(S));
+		ASSERT(YASL_isnint(S, 1));
 		yasl_int value = YASL_popint(S);
 		ASSERT_EQ(value, 10 - i);
 	}

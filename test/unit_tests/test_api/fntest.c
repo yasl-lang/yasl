@@ -21,7 +21,7 @@ static void testfncall(void) {
 	YASL_pushint(S, 5);
 	int rets = YASL_functioncall(S, 2);
 	ASSERT_EQ(rets, 1);
-	ASSERT_EQ(YASL_peekint(S), 7);
+	ASSERT_EQ(YASL_peeknint(S, 0), 7);
 	YASL_delstate(S);
 }
 

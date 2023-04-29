@@ -390,6 +390,9 @@ static struct Node *parse_fn_body(struct Parser *const parser, bool collect_rest
 			YASLKeywords(&parser->lex);
 		}
 		size_t line = parserline(parser);
+		struct Node *block = parse_return_vals(parser);
+		body_append(parser, &body, new_Return(parser, block, line));
+		/*
 		if (matcheattok(parser, T_LPAR)) {
 			if (matcheattok(parser, T_RPAR)) {
 				body_append(parser, &body, new_Return(parser, new_Exprs(parser, line), line));
@@ -401,7 +404,7 @@ static struct Node *parse_fn_body(struct Parser *const parser, bool collect_rest
 		} else {
 			struct Node *expr = parse_expr_or_vargs(parser);
 			body_append(parser, &body, new_Return(parser, new_VariadicContext(expr, -1), line));
-		}
+		}*/
 	} else {
 		eattok(parser, T_LBRC);
 		while (curtok(parser) != T_RBRC && curtok(parser) != T_EOF) {
@@ -581,7 +584,7 @@ static struct Node *parse_iterate(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("parsing let <- in line %" PRI_SIZET "\n", parserline(parser));
 	size_t line = parserline(parser);
 	char *name = eatname(parser);
-	eattok(parser, T_LEFT_ARR);
+	eattok(parser, T_IN);
 	struct Node *collection = parse_expr(parser);
 	return new_LetIter(parser, collection, name, line);
 }
@@ -627,6 +630,7 @@ static struct Node *parse_while(struct Parser *const parser) {
 }
 
 static struct Node *parse_pattern(struct Parser *const parser);
+static struct Node *parse_patternsingle(struct Parser *const parser);
 
 static struct Node *parse_primitivepattern(struct Parser *const parser) {
 	size_t line = parserline(parser);
@@ -686,6 +690,11 @@ static struct Node *parse_primitivepattern(struct Parser *const parser) {
 		}
 		n = parse_string(parser);
 		n->nodetype = N_PATSTR;
+		return n;
+	case T_BANG:
+		eattok(parser, T_BANG);
+		n = new_UnOp(parser, T_BANG, parse_patternsingle(parser), line);
+		n->nodetype = N_PATNOT;
 		return n;
 	case T_DOT:
 		eattok(parser, T_DOT);
@@ -1258,11 +1267,13 @@ static struct Node *parse_string(struct Parser *const parser) {
 		parser->lex.mode = L_NORMAL;
 		struct Node *expr = parse_expr(parser);
 		parser->lex.mode = L_INTERP;
-		cur_node = new_BinOp(parser, T_TILDE, cur_node, expr, parserline(parser));
+		const size_t line = parserline(parser);
+		cur_node = new_BinOp(parser, T_TILDE, cur_node, expr, line);
+
 		if (parser->lex.c == '}') {
 			parser->lex.c = lxgetc(parser->lex.file);
 		} else {
-			parser_print_err_syntax(parser, "Expected } in line %" PRI_SIZET ".\n", parserline(parser));
+			parser_print_err_syntax(parser, "Expected } in line %" PRI_SIZET ", got `%s`.\n", parserline(parser), YASL_TOKEN_NAMES[curtok(parser)]);
 			handle_error(parser);
 		}
 		lex_eatinterpstringbody(&parser->lex);

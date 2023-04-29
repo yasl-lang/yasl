@@ -1,0 +1,7 @@
+echo 16->tostr()
+echo 16->tostr('d')
+echo 0x10->tostr('x')
+echo 0b11111010->tostr('b')
+echo 0->tostr('b')
+echo 0->tostr('x')
+echo 15->tostr('x')

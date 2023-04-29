@@ -45,7 +45,8 @@ struct YASL_Table* int_builtins(struct VM *vm) {
 	table_insert_specialstring_cfunction(vm, table, S_TOINT, &int_toint, 1);
 	table_insert_specialstring_cfunction(vm, table, S_TOBOOL, &int_tobool, 1);
 	table_insert_specialstring_cfunction(vm, table, S_TOFLOAT, &int_tofloat, 1);
-	table_insert_specialstring_cfunction(vm, table, S_TOSTR, &int_tostr, 1);
+	table_insert_specialstring_cfunction(vm, table, S_TOSTR, &int_tostr, 2);
+	table_insert_specialstring_cfunction(vm, table, S_TOCHAR, &int_tochar, 1);
 	return table;
 }
 
@@ -70,11 +71,14 @@ struct YASL_Table* str_builtins(struct VM *vm) {
 	table_insert_specialstring_cfunction(vm, table, S_ISAL, &str_isal, 1);
 	table_insert_specialstring_cfunction(vm, table, S_ISNUM, &str_isnum, 1);
 	table_insert_specialstring_cfunction(vm, table, S_ISSPACE, &str_isspace, 1);
+	table_insert_specialstring_cfunction(vm, table, S_ISPRINT, &str_isprint, 1);
 	table_insert_specialstring_cfunction(vm, table, S_TOBOOL, &str_tobool, 1);
-	table_insert_specialstring_cfunction(vm, table, S_TOSTR, &str_tostr, 1);
+	table_insert_specialstring_cfunction(vm, table, S_TOSTR, &str_tostr, 2);
 	table_insert_specialstring_cfunction(vm, table, S_TOLIST, &str_tolist, 2);
+	table_insert_specialstring_cfunction(vm, table, S_SPREAD, &str_spread, 1);
 	table_insert_specialstring_cfunction(vm, table, S_TOUPPER, &str_toupper, 1);
 	table_insert_specialstring_cfunction(vm, table, S_TOLOWER, &str_tolower, 1);
+	table_insert_specialstring_cfunction(vm, table, S_TOBYTE, &str_tobyte, 1);
 	table_insert_specialstring_cfunction(vm, table, S_STARTSWITH, &str_startswith, 2);
 	table_insert_specialstring_cfunction(vm, table, S_ENDSWITH, &str_endswith, 2);
 	table_insert_specialstring_cfunction(vm, table, S_REPLACE, &str_replace, 4);
@@ -101,7 +105,7 @@ struct YASL_Table* list_builtins(struct VM *vm) {
 	table_insert_specialstring_cfunction(vm, table, S_POP, &list_pop, 1);
 	table_insert_specialstring_cfunction(vm, table, S___GET, &list___get, 2);
 	table_insert_specialstring_cfunction(vm, table, S___SET, &list___set, 3);
-	table_insert_specialstring_cfunction(vm, table, S_TOSTR, &list_tostr, 1);
+	table_insert_specialstring_cfunction(vm, table, S_TOSTR, &list_tostr, 2);
 	table_insert_specialstring_cfunction(vm, table, S_SEARCH, &list_search, 2);
 	table_insert_specialstring_cfunction(vm, table, S_REVERSE, &list_reverse, 1);
 	table_insert_specialstring_cfunction(vm, table, S_REMOVE, &list_remove, 2);
@@ -122,7 +126,7 @@ struct YASL_Table* table_builtins(struct VM *vm) {
 	table_insert_specialstring_cfunction(vm, table, S_KEYS, &table_keys, 1);
 	table_insert_specialstring_cfunction(vm, table, S_VALUES, &table_values, 1);
 	table_insert_specialstring_cfunction(vm, table, S_COPY, &table_copy, 1);
-	table_insert_specialstring_cfunction(vm, table, S_TOSTR, &table_tostr, 1);
+	table_insert_specialstring_cfunction(vm, table, S_TOSTR, &table_tostr, 2);
 	table_insert_specialstring_cfunction(vm, table, S___GET, &table___get, 2);
 	table_insert_specialstring_cfunction(vm, table, S___SET, &table___set, 3);
 	table_insert_specialstring_cfunction(vm, table, S___BOR, &table___bor, 2);

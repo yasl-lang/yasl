@@ -22,7 +22,7 @@ const multisetmt = {} | mt.get({}) | {
         },
         .tostr: fn(self) {
                 const buffer = []
-                for k <- self {
+                for k in self {
                         buffer->push("#{k}: #{self[k]}")
                 }
                 return "multiset(#{buffer->join(', ')})"

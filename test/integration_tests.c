@@ -12,12 +12,17 @@
 #define INPUT_TEST(inputs) \
 for (size_t i = 0; i < sizeof(inputs) / sizeof(char *); i++) {\
 	if (strlen(inputs[i]) + 5 > MAX_FILE_NAME_LEN) {\
-		printf("file name too large: %s\n", inputs[i]);\
+		fprintf(stderr, "file name too large: %s\n", inputs[i]);\
 		exit(1);\
 	}\
 	strcpy(buffer, inputs[i]);\
 	strcpy(buffer + strlen(inputs[i]), ".out");\
 	FILE *f = fopen(buffer, "r");\
+	if (f == NULL) {\
+		fprintf(stderr, "missing file: %s\n", buffer);\
+		failed++;\
+		continue;\
+	}\
 	fseek(f, 0, SEEK_END);\
 	size_t size = ftell(f);\
 	fseek(f, 0, SEEK_SET);\

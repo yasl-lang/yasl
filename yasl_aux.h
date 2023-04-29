@@ -83,4 +83,17 @@ void YASLX_checknundef(struct YASL_State *S, const char *name, unsigned n);
  */
 void *YASLX_checknuserdata(struct YASL_State *S, const char *tag, const char *name, unsigned n);
 
+struct YASLX_function {
+	const char *name;
+	YASL_cfn fn;
+	int args;
+};
+
+/**
+ * Inserts all functions in the array into a table on top of the stack.
+ * @param S The YASL_State
+ * @param functions array of function names, function pointers, and number of args.
+ */
+void YASLX_tablesetfunctions(struct YASL_State *S, struct YASLX_function functions[]);
+
 #endif

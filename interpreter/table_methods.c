@@ -8,7 +8,7 @@
 static struct YASL_Table *YASLX_checkntable(struct YASL_State *S, const char *name, unsigned pos) {
 	if (!YASL_isntable(S, pos)) {
 		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type table, got arg of type %s.",
-				  name, pos, YASL_peektypename(S));
+				  name, pos, YASL_peekntypename(S, pos));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	return (struct YASL_Table *)YASL_peeknuserdata(S, pos);
@@ -125,7 +125,7 @@ int table___set(struct YASL_State *S) {
 	return 1;
 }
 
-int list_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer);
+int list_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer, struct YASL_Object *format);
 
 #define FOUND_LIST "[...], "
 #define FOUND_TABLE "{...}, "
@@ -139,16 +139,16 @@ bool buffer_contains(BUFFER(ptr) buffer, void *val) {
 	return false;
 }
 
-void rec_call(struct YASL_State *S, BUFFER(ptr) buffer, int (*f)(struct YASL_State *, BUFFER(ptr))) {
+void rec_call(struct YASL_State *S, BUFFER(ptr) buffer, struct YASL_Object *format, int (*f)(struct YASL_State *, BUFFER(ptr), struct YASL_Object *)) {
 	BUFFER(ptr) tmp = BUFFER_COPY(ptr)(&buffer);
 	BUFFER_PUSH(ptr)(&tmp, vm_peeklist((struct VM *)S));
 
-	f(S, tmp);
+	f(S, tmp, format);
 
 	BUFFER_CLEANUP(ptr)(&tmp);
 }
 
-int table_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer) {
+int table_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer, struct YASL_Object *format) {
 	YASL_ByteBuffer bb = NEW_BB(8);
 
 	YASL_ByteBuffer_add_byte(&bb, '{');
@@ -163,7 +163,7 @@ int table_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer) {
 	FOR_TABLE(i, item, table) {
 		vm_push((struct VM *) S, item->key);
 
-		vm_stringify_top(&S->vm);
+		vm_stringify_top_format(&S->vm, format);
 
 		struct YASL_String *str = vm_popstr((struct VM *) S);
 		YASL_ByteBuffer_extend(&bb, (unsigned char *)YASL_String_chars(str), YASL_String_len(str));
@@ -178,7 +178,7 @@ int table_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer) {
 				vm_pop((struct VM *) S);
 				continue;
 			} else {
-				rec_call(S, buffer, &list_tostr_helper);
+				rec_call(S, buffer, format, &list_tostr_helper);
 			}
 		} else if (vm_istable((struct VM *) S, S->vm.sp)) {
 			bool found = buffer_contains(buffer, vm_peeklist((struct VM *) S));
@@ -187,10 +187,10 @@ int table_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer) {
 				vm_pop((struct VM *) S);
 				continue;
 			} else {
-				rec_call(S, buffer, &table_tostr_helper);
+				rec_call(S, buffer, format, &table_tostr_helper);
 			}
 		} else {
-			vm_stringify_top((struct VM *) S);
+			vm_stringify_top_format((struct VM *) S, format);
 		}
 
 		str = vm_popstr((struct VM *) S);
@@ -209,17 +209,17 @@ int table_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer) {
 }
 
 int table_tostr(struct YASL_State *S) {
-	if (!YASL_istable(S)) {
-		YASLX_print_err_bad_arg_type(S, "table.tostr", 0, "table", YASL_peektypename(S));
-		YASL_throw_err(S, YASL_TYPE_ERROR);
-	}
+	struct YASL_Table *ht = YASLX_checkntable(S, "table.tostr", 0);
+	struct YASL_Object format = vm_pop((struct VM *)S);
+	inc_ref(&format);
 
 	BUFFER(ptr) buffer;
 	BUFFER_INIT(ptr)(&buffer, 8);
-	BUFFER_PUSH(ptr)(&buffer, vm_peektable((struct VM *) S));
-	table_tostr_helper(S, buffer);
+	BUFFER_PUSH(ptr)(&buffer, ht);
+	table_tostr_helper(S, buffer, &format);
 	BUFFER_CLEANUP(ptr)(&buffer);
 
+	dec_ref(&format);
 	return 1;
 }
 
@@ -228,7 +228,7 @@ int table_keys(struct YASL_State *S) {
 	struct RC_UserData *ls = rcls_new();
 	ud_setmt(&S->vm, ls, S->vm.builtins_htable[Y_LIST]);
 	FOR_TABLE(i, item, ht) {
-			YASL_List_append((struct YASL_List *) ls->data, (item->key));
+			YASL_List_push((struct YASL_List *) ls->data, (item->key));
 	}
 
 	vm_push((struct VM *) S, YASL_LIST(ls));
@@ -240,7 +240,7 @@ int table_values(struct YASL_State *S) {
 	struct RC_UserData *ls = rcls_new();
 	ud_setmt(&S->vm, ls, S->vm.builtins_htable[Y_LIST]);
 	FOR_TABLE(i, item, ht) {
-			YASL_List_append((struct YASL_List *) ls->data, (item->value));
+			YASL_List_push((struct YASL_List *) ls->data, (item->value));
 	}
 	vm_push((struct VM *) S, YASL_LIST(ls));
 	return 1;

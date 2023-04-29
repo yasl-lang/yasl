@@ -20,7 +20,7 @@ fn match_list(n) {
     }
 }
 
-for i <- [ [], [ 1, 2 ], [ 1 ], [ 2, 1 ] ] {
+for i in [ [], [ 1, 2 ], [ 1 ], [ 2, 1 ] ] {
     echo match_list(i)
 }
 

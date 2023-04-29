@@ -1,9 +1,9 @@
 const functional = {
-    .map: (fn(list, f) -> [ f(e) for e <- list ]),
-    .filter: (fn(list, p) -> [ e for e <- list if p(e) ]),
+    .map: (fn(list, f) -> [ f(e) for e in list ]),
+    .filter: (fn(list, p) -> [ e for e in list if p(e) ]),
     .reduce: fn(list, f, i) {
         let tmp = i
-        for e <- list {
+        for e in list {
             tmp = f(tmp, e)
         }
         return tmp

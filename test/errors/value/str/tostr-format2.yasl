@@ -1,0 +1,2 @@
+
+echo mt.lookup('', .tostr)('a', 'abc')

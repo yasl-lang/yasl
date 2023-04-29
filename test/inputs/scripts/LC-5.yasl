@@ -18,6 +18,6 @@ fn count_primes(n) {
     return tmp
 }
 
-for i <- [ 0, 1, 10, 100 ] {
+for i in [ 0, 1, 10, 100 ] {
     echo count_primes(i)
 }

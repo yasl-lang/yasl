@@ -303,6 +303,7 @@ DEFINE_STR_TO_X(lower, LOWER);
 DEFINE_STR_IS_X(isal, isalpha);
 DEFINE_STR_IS_X(isnum, isdigit);
 DEFINE_STR_IS_X(isalnum, isalnum);
+DEFINE_STR_IS_X(isprint, isprint);
 DEFINE_STR_IS_X(isspace, iswhitespace);
 
 bool YASL_String_startswith(struct YASL_String *haystack, struct YASL_String *needle) {
@@ -428,7 +429,7 @@ yasl_int YASL_String_count(struct YASL_String *haystack, struct YASL_String *nee
 		}\
 		struct YASL_Object to = YASL_STR(\
 			YASL_String_new_substring(start + haystack->start, end + haystack->start, haystack));\
-		YASL_List_append(data, to);\
+		YASL_List_push(data, to);\
 		POST;\
 	}
 
@@ -444,7 +445,7 @@ void YASL_String_split_default_max(struct YASL_List *data, struct YASL_String *h
 	end = haystack_len;
 	struct YASL_Object to = YASL_STR(\
 			YASL_String_new_substring(start + haystack->start, end + haystack->start, haystack));
-	YASL_List_append(data, to);
+	YASL_List_push(data, to);
 }
 
 #define DEF_STR_SPLIT(COND, POST) \
@@ -457,7 +458,7 @@ void YASL_String_split_default_max(struct YASL_List *data, struct YASL_String *h
 		if (!memcmp(haystack_chars + end, needle_chars, needle_len)) {\
 			struct YASL_Object to = YASL_STR(\
 				YASL_String_new_substring(start + haystack->start, end + haystack->start, haystack));\
-			YASL_List_append(data, to);\
+			YASL_List_push(data, to);\
 			end += needle_len;\
 			start = end;\
 			POST;\
@@ -468,7 +469,7 @@ void YASL_String_split_default_max(struct YASL_List *data, struct YASL_String *h
 	end = YASL_String_len(haystack);\
 	struct YASL_Object to = YASL_STR(\
 		YASL_String_new_substring(start + haystack->start, end + haystack->start, haystack));\
-	YASL_List_append(data, to);
+	YASL_List_push(data, to);
 
 
 

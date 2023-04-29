@@ -17,6 +17,10 @@
                   "|     ||  |  | |    | |     |\n" \
                   "|_____/|__|__| \\____/ |_____|\n"
 
+extern int random_offset;
+
+extern int random_offset;
+
 // -b: run bytecode
 // -c: compile to bytecode
 static int main_help(int argc, char **argv) {
@@ -44,6 +48,7 @@ static int main_version(int argc, char **argv) {
 static inline void main_init_platform() {
 	// Initialize prng seed
 	srand(time(NULL));
+	// random_offset = (size_t)rand();
 
 	#ifdef YASL_USE_WIN
 		SetConsoleOutputCP(CP_UTF8);
@@ -89,14 +94,41 @@ static int main_compile(int argc, char **argv) {
 	// Load Standard Libraries
 	YASLX_decllibs(S);
 
-	int status = YASL_compile(S);
 	YASL_declglobal(S, "args");
+	int status = YASL_compile(S);
 	YASL_pushlist(S);
 	for (int i = 1; i < argc; i++) {
 		YASL_pushlit(S, argv[i]);
 		YASL_listpush(S);
 	}
 	YASL_setglobal(S, "args");
+
+	YASL_delstate(S);
+
+	return status;
+}
+
+static int main_gen_bytecode(int argc, char **argv) {
+	(void) argc;
+	struct YASL_State *S = YASL_newstate(argv[2]);
+
+	if (!S) {
+		puts("ERROR: cannot open file.");
+		exit(EXIT_FAILURE);
+	}
+
+	// Load Standard Libraries
+	YASLX_decllibs(S);
+
+	YASL_declglobal(S, "args");
+	int status = YASL_compile(S);
+	YASL_pushlist(S);
+	for (int i = 1; i < argc; i++) {
+		YASL_pushlit(S, argv[i]);
+		YASL_listpush(S);
+	}
+	YASL_setglobal(S, "args");
+
 
 	YASL_delstate(S);
 
@@ -195,6 +227,8 @@ int main(int argc, char **argv) {
 		return main_command(argc, argv);
 	} else if (argc == 3 && !strcmp(argv[1], "-C")) {
 		return main_compile(argc, argv);
+	} else if (argc == 3 && !strcmp(argv[1], "-b")) {
+		return main_gen_bytecode(argc, argv);
 	} else {
 		return main_file(argc, argv);
 	}

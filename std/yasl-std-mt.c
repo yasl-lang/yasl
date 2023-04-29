@@ -4,6 +4,11 @@
 #include "yasl_state.h"
 
 int YASL_mt_get(struct YASL_State *S) {
+	if (!YASL_isntable(S, 0) && !YASL_isnlist(S, 0) && !vm_isuserdata(&S->vm)) {
+		vm_print_err_type((struct VM *)S, "cannot get metatable for value of type %s.", YASL_peektypename(S));
+		YASL_throw_err(S, YASL_TYPE_ERROR);
+	}
+
 	vm_get_metatable((struct VM *)S);
 	return 1;
 }
@@ -63,21 +68,16 @@ int YASL_decllib_mt(struct YASL_State *S) {
 	YASL_setglobal(S, "mt");
 
 	YASL_loadglobal(S, "mt");
-	YASL_pushlit(S, "get");
-	YASL_pushcfunction(S, YASL_mt_get, 1);
-	YASL_tableset(S);
 
-	YASL_pushlit(S, "set");
-	YASL_pushcfunction(S, YASL_mt_set, 2);
-	YASL_tableset(S);
+	struct YASLX_function functions[] = {
+		{"get",     YASL_mt_get,     1},
+		{"set",     YASL_mt_set,     2},
+		{"setself", YASL_mt_setself, 1},
+		{"lookup",  YASL_mt_lookup,  2},
+		{NULL, 	    NULL,            0}
+	};
 
-	YASL_pushlit(S, "setself");
-	YASL_pushcfunction(S, YASL_mt_setself, 1);
-	YASL_tableset(S);
-
-	YASL_pushlit(S, "lookup");
-	YASL_pushcfunction(S, YASL_mt_lookup, 2);
-	YASL_tableset(S);
+	YASLX_tablesetfunctions(S, functions);
 	YASL_pop(S);
 
 	return YASL_SUCCESS;

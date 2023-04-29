@@ -1,1 +1,1 @@
-TypeError: math.max expected arg in position 2 to be of type float, got arg of type str. (line 1)
+TypeError: math.max expected arg in position 2 to be of type float or int, got arg of type str. (line 1)

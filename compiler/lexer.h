@@ -35,6 +35,9 @@
 #define INTERP_STR_PLACEHOLDER '#'
 #define NUM_SEPERATOR '_'
 
+#define isyaslidstart(c) (isalpha(c) || (c) == '_' || (c) == '$')
+#define isyaslid(c) (isalnum(c) || (c) == '_' || (c) == '$')
+
 enum LexerModes {
 	L_NORMAL,     // default mode.
 	L_INTERP,     // for string interpolation.
@@ -64,6 +67,7 @@ struct Lexer {
 void lex_cleanup(struct Lexer *const lex);
 void gettok(struct Lexer *const lex);
 void lex_eatinterpstringbody(struct Lexer *const lex);
+bool lex_eatwhitespace(struct Lexer *const lex);
 void lex_error(struct Lexer *const lex);
 int lex_getchar(struct Lexer *const lex);
 
@@ -75,6 +79,6 @@ void lex_val_restore(struct Lexer *const lex, const YASL_ByteBuffer *const buffe
 
 void YASLKeywords(struct Lexer *const lex);
 
-extern const char *YASL_TOKEN_NAMES[86];
+extern const char *YASL_TOKEN_NAMES[83];
 
 #endif

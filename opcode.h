@@ -21,6 +21,8 @@ enum Opcode {
 	O_BSR = 0x46, // bitwise right shift
 
 	O_ASS = 0x50, // assert
+	O_ASSERT_STACK_HEIGHT = 0x58,
+
 
 	O_ADD = 0x60, // add two numbers
 	O_SUB = 0x61, // subtract two numbers
@@ -52,11 +54,13 @@ enum Opcode {
 	O_LIT8 = 0x9B, // make new constant and push it onto stack (index into constant table: 8 bytes)
 	O_NEWTABLE = 0x9C, // make new table and push it onto stack
 	O_NEWLIST = 0x9D, // make new list and push it onto stack
+	O_LIST_PUSH = 0x9E,
+	O_TABLE_SET = 0x9F,
 
 	O_MOVEUP_FP = 0xA0, // move an element from index whatever to top of stack, indexing from fp.
 	O_MOVEDOWN_FP = 0xA1,
 
-	O_END = 0xB0, // indicate end of list on stack.
+	O_END = 0xB0, // indicate end of list or table on stack.
 	O_SWAP = 0xB7, // swap the top two elements of the stack.
 	O_DUP = 0xB8, // duplicate top values of stack
 	O_DEL_FP = 0xB9, // deletes an element from the stack. Takes a one-byte index, indicating which element to delete.
@@ -116,6 +120,7 @@ enum Pattern {
 	P_TYPE_TABLE = 0x07,
 	P_BOOL = 0x08,
 	P_ANY = 0x0F,
+	P_NOT = 0x10,
 	P_LIT = 0x9A,
 	P_LIT8 = 0x9B,
 	P_TABLE = 0x9C,

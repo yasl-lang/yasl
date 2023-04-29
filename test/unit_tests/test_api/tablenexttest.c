@@ -15,9 +15,9 @@ static void testtablenext(void) {
 	int i = 0;
 	YASL_pushundef(S);
 	while (YASL_tablenext(S)) {
-		ASSERT(YASL_isfloat(S));
+		ASSERT(YASL_isnfloat(S, 2));
 		YASL_pop(S);
-		ASSERT(YASL_isint(S));
+		ASSERT(YASL_isnint(S, 1));
 		i++;
 	}
 
