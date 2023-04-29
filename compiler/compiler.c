@@ -1020,6 +1020,7 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 		compiler_add_byte(compiler, O_POP);
 	}
 
+	// compiler_add_byte(compiler, O_POP);
 	visit_stmt(compiler, bodies->children[curr]);
 	exit_scope(compiler);
 

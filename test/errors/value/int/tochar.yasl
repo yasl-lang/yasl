@@ -1,1 +1,1 @@
-echo 128->tochar()
+echo 256->tochar()

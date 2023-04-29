@@ -1072,10 +1072,10 @@ static bool vm_MATCH_pattern(struct VM *const vm, struct YASL_Object *expr) {
 }
 
 static void vm_MATCH_IF(struct VM *const vm) {
-	struct YASL_Object expr = vm_peek(vm);
+	struct YASL_Object *expr = vm_peek_p(vm);
 	yasl_int addr = vm_read_int(vm);
 	unsigned char *start = vm->pc;
-	if (!vm_MATCH_pattern(vm, &expr)) {
+	if (!vm_MATCH_pattern(vm, expr)) {
 		vm->pc = start + addr;
 	}
 }

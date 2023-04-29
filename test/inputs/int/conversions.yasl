@@ -1,5 +1,11 @@
+echo 2->tobool()
+echo 0->tobool()
 
 echo 65->tochar()
 echo 97->tochar()
 echo 33->tochar()
 echo 126->tochar()
+
+echo 2->tofloat()
+
+echo 5->tostr()
