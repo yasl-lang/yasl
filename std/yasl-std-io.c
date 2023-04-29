@@ -180,9 +180,8 @@ static int YASL_io_write(struct YASL_State *S) {
 	}
 	char *str = YASL_peekcstr(S);
 	YASL_len(S);
-	// YASL_pop(S);
 
-	size_t len = (size_t)YASL_popint(S); //strlen(str);
+	size_t len = (size_t)YASL_popint(S);
 
 	size_t write_len = fwrite(str, 1, len, f);
 
