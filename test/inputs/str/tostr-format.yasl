@@ -5,7 +5,7 @@ echo stream->tostr('r')
 echo "dsaasd''dsadsadsa'sad'dsa'd'sdad'"->tostr('r')
 
 let chars = []
-for let i = 0; i < 256; i += 1 {
+for let i = 0; i < 128; i += 1 {
     chars->push(i->tochar())
 }
 
