@@ -151,7 +151,7 @@ int str_tostr(struct YASL_State *S) {
 	size_t curr = 0;
 	buffer[curr++] = '\'';
 	for (size_t i = 0; i < YASL_String_len(str); i++, curr++) {
-		const char c = (unsigned char)str_chars[i];
+		const unsigned char c = (unsigned char)str_chars[i];
 		switch (c) {
 #define X(escape, c) case escape: buffer = (char *)realloc(buffer, ++buffer_size); buffer[curr++] = '\\'; buffer[curr] = c; continue;
 #include "escapes.x"
