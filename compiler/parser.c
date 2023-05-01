@@ -1275,8 +1275,7 @@ static struct Node *parse_string(struct Parser *const parser) {
 			const size_t line = parserline(parser);
 			struct Node *block = new_Exprs(parser, line);
 			body_append(parser, &block, fmt);
-			char *tostr = (char *)malloc(strlen("tostr") + 1);
-			strcpy(tostr, "tostr");
+			static char tostr[] = "tostr";
 			expr = new_MethodCall(parser, block, expr, tostr, 1, line);
 		}
 
