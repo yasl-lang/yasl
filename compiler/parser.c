@@ -851,6 +851,12 @@ static struct Node *parse_match(struct Parser *const parser) {
 		eattok(parser, T_SEMI);
 	}
 	eattok(parser, T_RBRC);
+
+	struct Node *n = new_Undef(parser, line);
+	n->nodetype = N_PATANY;
+	body_append(parser, &pats, n);
+	body_append(parser, &guards, NULL);
+	body_append(parser, &bodies, new_Body(parser, line));
 	return new_Match(parser, expr, pats, guards, bodies, line);
 }
 
