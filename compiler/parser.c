@@ -1266,9 +1266,21 @@ static struct Node *parse_string(struct Parser *const parser) {
 		eattok(parser, T_LBRC);
 		parser->lex.mode = L_NORMAL;
 		struct Node *expr = parse_expr(parser);
-		parser->lex.mode = L_INTERP;
 		const size_t line = parserline(parser);
+
+		// Handle format strings
+		if (matcheattok(parser, T_COLON)) {
+			struct Node *fmt = parse_id(parser);
+			fmt->nodetype = N_STR;
+			const size_t line = parserline(parser);
+			struct Node *block = new_Exprs(parser, line);
+			body_append(parser, &block, fmt);
+			expr = new_MethodCall(parser, block, expr, "tostr", 1, line);
+		}
+
 		cur_node = new_BinOp(parser, T_TILDE, cur_node, expr, line);
+
+		parser->lex.mode = L_INTERP;
 
 		if (parser->lex.c == '}') {
 			parser->lex.c = lxgetc(parser->lex.file);
