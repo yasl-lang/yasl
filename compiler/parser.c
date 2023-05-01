@@ -1275,7 +1275,9 @@ static struct Node *parse_string(struct Parser *const parser) {
 			const size_t line = parserline(parser);
 			struct Node *block = new_Exprs(parser, line);
 			body_append(parser, &block, fmt);
-			expr = new_MethodCall(parser, block, expr, "tostr", 1, line);
+			char *tostr = (char *)malloc(strlen("tostr") + 1);
+			strcpy(tostr, "tostr");
+			expr = new_MethodCall(parser, block, expr, tostr, 1, line);
 		}
 
 		cur_node = new_BinOp(parser, T_TILDE, cur_node, expr, line);
