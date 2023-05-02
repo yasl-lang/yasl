@@ -401,8 +401,24 @@ enum {
 	SORT_TYPE_NUM = 1
 };
 
-#define DEF_SORT(COMP) \
-void sort(struct YASL_Object *list, const size_t len) {\
+
+int custom_comp(struct YASL_State *S, struct YASL_Object a, struct YASL_Object b) {
+	YASL_duptop(S);
+	vm_push((struct VM *)S, a);
+	vm_push((struct VM *)S, b);
+	YASL_functioncall(S, 2);
+	if (!YASL_isint(S)) {
+		YASL_print_err(S, "TypeError: Expected a function returning int, got %s.", YASL_peektypename(S));
+		YASL_throw_err(S, YASL_TYPE_ERROR);
+	}
+	yasl_int v = YASL_popint(S);
+	return v > 0 ? 1 : v < 0 ? -1 : 0;
+}
+
+#define CUSTOM_COMP(a, b) custom_comp(S, a, b)
+
+#define DEF_SORT(name, COMP) \
+void name##sort(struct YASL_State *S, struct YASL_Object *list, const size_t len) {\
 	/* Base cases*/ \
 	struct YASL_Object tmpObj;\
 	if (len < 2) return;\
@@ -456,15 +472,21 @@ void sort(struct YASL_Object *list, const size_t len) {\
 	}\
 \
 	/* Let sort() finish that for us...*/ \
-	sort(list, ltCount);\
-	sort(&list[ltCount], len - ltCount);\
+	name##sort(S, list, ltCount);\
+	name##sort(S, &list[ltCount], len - ltCount);\
 }
 
-DEF_SORT(yasl_object_cmp)
+DEF_SORT(default, yasl_object_cmp)
+DEF_SORT(fn, CUSTOM_COMP)
 
 // TODO: clean this up
 int list_sort(struct YASL_State *S) {
 	struct YASL_List *list = YASLX_checknlist(S, "list.sort", 0);
+
+	if (!YASL_isundef(S)) {
+		fnsort(S, list->items, list->count);
+		return 0;
+	}
 
 	if (YASL_List_length(list) <= 1) {
 		return 0;
@@ -500,7 +522,7 @@ int list_sort(struct YASL_State *S) {
 	}
 
 	if (type != SORT_TYPE_EMPTY) {
-		sort(list->items, list->count);
+		defaultsort(S, list->items, list->count);
 	}
 
 	return 0;

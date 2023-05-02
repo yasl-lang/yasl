@@ -454,12 +454,13 @@ int YASL_listpush(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
+void vm_CALL_now(struct VM *const vm);
 int YASL_functioncall(struct YASL_State *S, int n) {
 	struct VM *vm = &S->vm;
 	vm_INIT_CALL_offset(vm, vm->sp - n, -1);
 
 	const int old_sp = vm->sp;
-	vm_CALL(vm);
+	vm_CALL_now(vm);
 
 	return old_sp - vm->sp - 1;
 }
