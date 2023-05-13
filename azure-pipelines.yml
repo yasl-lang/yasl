@@ -198,7 +198,7 @@ jobs:
 - job: 
   displayName: "C Clang MacOS"
   pool:
-    vmImage: 'macOS-10.15'
+    vmImage: 'macOS-11'
   steps:
   - script: |
       set -e
@@ -218,7 +218,7 @@ jobs:
 - job: 
   displayName: "C++ Clang MacOS"
   pool:
-    vmImage: 'macOS-10.15'
+    vmImage: 'macOS-11'
   steps:
   - script: |
       set -e
