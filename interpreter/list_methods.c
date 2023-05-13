@@ -407,12 +407,25 @@ int custom_comp(struct YASL_State *S, struct YASL_Object a, struct YASL_Object b
 	vm_push((struct VM *)S, a);
 	vm_push((struct VM *)S, b);
 	YASL_functioncall(S, 2);
-	if (!YASL_isint(S)) {
-		YASL_print_err(S, "TypeError: Expected a function returning int, got %s.", YASL_peektypename(S));
+	if (!YASL_isbool(S)) {
+		YASL_print_err(S, "TypeError: Expected a function returning bool, got %s.", YASL_peektypename(S));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
-	yasl_int v = YASL_popint(S);
-	return v > 0 ? 1 : v < 0 ? -1 : 0;
+	bool a_lt_b = YASL_popbool(S);
+
+	YASL_duptop(S);
+	vm_push((struct VM *)S, b);
+	vm_push((struct VM *)S, a);
+	YASL_functioncall(S, 2);
+	if (!YASL_isbool(S)) {
+		YASL_print_err(S, "TypeError: Expected a function returning bool, got %s.", YASL_peektypename(S));
+		YASL_throw_err(S, YASL_TYPE_ERROR);
+	}
+
+	bool a_gt_b = YASL_popbool(S);
+
+	if (a_lt_b == a_gt_b) return 0;
+	return a_lt_b ? -1 : a_gt_b ? 1 : 0;
 }
 
 #define CUSTOM_COMP(a, b) custom_comp(S, a, b)
@@ -483,10 +496,12 @@ DEF_SORT(fn, CUSTOM_COMP)
 int list_sort(struct YASL_State *S) {
 	struct YASL_List *list = YASLX_checknlist(S, "list.sort", 0);
 
+	/*
 	if (!YASL_isundef(S)) {
 		fnsort(S, list->items, list->count);
 		return 0;
 	}
+	 */
 
 	if (YASL_List_length(list) <= 1) {
 		return 0;
