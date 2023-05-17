@@ -395,7 +395,7 @@ int list_count(struct YASL_State *S) {
 	return 1;
 }
 
-enum {
+enum SortType {
 	SORT_TYPE_STR = -1,
 	SORT_TYPE_EMPTY = 0,
 	SORT_TYPE_NUM = 1
@@ -507,7 +507,7 @@ int list_sort(struct YASL_State *S) {
 		return 0;
 	}
 
-	int type = SORT_TYPE_EMPTY;
+	enum SortType type = SORT_TYPE_EMPTY;
 
 	int err = 0;
 	for (size_t i = 0; i < list->count; i++) {
