@@ -431,7 +431,7 @@ int custom_comp(struct YASL_State *S, struct YASL_Object a, struct YASL_Object b
 #define CUSTOM_COMP(a, b) custom_comp(S, a, b)
 
 #define DEF_SORT(name, COMP) \
-void name##sort(struct YASL_State *S, struct YASL_Object *list, const size_t len) {\
+static void name##sort(struct YASL_State *S, struct YASL_Object *list, const size_t len) {\
 	/* Base cases*/ \
 	struct YASL_Object tmpObj;\
 	if (len < 2) return;\
