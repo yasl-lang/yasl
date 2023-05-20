@@ -490,7 +490,7 @@ static void name##sort(struct YASL_State *S, struct YASL_Object *list, const siz
 }
 
 DEF_SORT(default, yasl_object_cmp)
-DEF_SORT(fn, CUSTOM_COMP)
+// DEF_SORT(fn, CUSTOM_COMP)
 
 // TODO: clean this up
 int list_sort(struct YASL_State *S) {
