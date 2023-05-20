@@ -72,8 +72,10 @@ static int main_file(int argc, char **argv) {
 			fprintf(stderr, "Error: Non-empty name required for variable: %s\n", argv[1] + 2);
 			exit(EXIT_FAILURE);
 		}
-		char *name = malloc(len + 1);
+		char *name = (char *)malloc(len + 1);
 		strncpy(name, argv[1] + 2, len);
+		name[len] = '\0';
+		puts(name);
 		YASL_declglobal(S, name);
 		YASL_pushundef(S);
 		YASL_setglobal(S, name);
