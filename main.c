@@ -56,7 +56,7 @@ static inline void main_init_platform() {
 }
 
 static int main_file(int argc, char **argv) {
-	YASL_ByteBuffer *buffer = YASL_ByteBuffer_new(0);
+	YASL_ByteBuffer *buffer = YASL_ByteBuffer_new(8);
 	struct YASL_State *S = YASL_newstate_bb(NULL, 0);
 	// Load Standard Libraries
 	YASLX_decllibs(S);
@@ -108,6 +108,7 @@ static int main_file(int argc, char **argv) {
 	int status = YASL_execute(S);
 
 	YASL_delstate(S);
+	YASL_ByteBuffer_del(buffer);
 
 	return status;
 }
