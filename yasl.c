@@ -95,6 +95,9 @@ int YASL_resetstate(struct YASL_State *S, const char *filename) {
 	S->compiler.code->count = 0;
 	S->compiler.buffer->count = 0;
 
+	if (S->vm.code)	free(S->vm.code);
+	S->vm.code = NULL;
+
 	return YASL_SUCCESS;
 }
 
@@ -108,6 +111,11 @@ struct YASL_State *YASL_newstate_bb(const char *buf, size_t len) {
 	S->compiler.num = 0;
 
 	vm_init((struct VM *) S, NULL, -1, 1);
+
+	YASL_declglobal(S, "__VERSION__");
+	YASL_pushlit(S, YASL_VERSION);
+	YASL_setglobal(S, "__VERSION__");
+
 	return S;
 }
 
@@ -115,9 +123,11 @@ int YASL_resetstate_bb(struct YASL_State *S, const char *buf, size_t len) {
 	S->compiler.status = YASL_SUCCESS;
 	S->compiler.parser.status = YASL_SUCCESS;
 	lex_cleanup(&S->compiler.parser.lex);
+
 	S->compiler.parser.lex = NEW_LEXER(lexinput_new_bb(buf, len));
 	S->compiler.code->count = 0;
 	S->compiler.buffer->count = 0;
+
 	if (S->vm.code)	free(S->vm.code);
 	S->vm.code = NULL;
 
