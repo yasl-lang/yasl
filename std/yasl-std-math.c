@@ -333,7 +333,7 @@ static int YASL_math_seed(struct YASL_State *S) {
 	return 0;
 }
 
-int YASL_decllib_math(struct YASL_State *S) {
+void YASL_decllib_math(struct YASL_State *S) {
 	YASL_declglobal(S, "math");
 	YASL_pushtable(S);
 	YASL_setglobal(S, "math");
@@ -380,7 +380,4 @@ int YASL_decllib_math(struct YASL_State *S) {
 
 	YASLX_tablesetfunctions(S, functions);
 	YASL_pop(S);
-
-	return YASL_SUCCESS;
 }
-

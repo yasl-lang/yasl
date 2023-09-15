@@ -111,7 +111,7 @@ struct YASL_State *YASL_newstate_bb(const char *buf, size_t len) {
 }
 
 
-int YASL_resetstate_bb(struct YASL_State *S, const char *buf, size_t len) {
+void YASL_resetstate_bb(struct YASL_State *S, const char *buf, size_t len) {
 	S->compiler.status = YASL_SUCCESS;
 	S->compiler.parser.status = YASL_SUCCESS;
 	lex_cleanup(&S->compiler.parser.lex);
@@ -122,17 +122,14 @@ int YASL_resetstate_bb(struct YASL_State *S, const char *buf, size_t len) {
 
 	if (S->vm.code)	free(S->vm.code);
 	S->vm.code = NULL;
-
-	return YASL_SUCCESS;
 }
 
-int YASL_delstate(struct YASL_State *S) {
-	if (!S) return YASL_SUCCESS;
+void YASL_delstate(struct YASL_State *S) {
+	if (!S) return;
 
 	compiler_cleanup(&S->compiler);
 	vm_cleanup((struct VM *) S);
 	free(S);
-	return YASL_SUCCESS;
 }
 
 void YASL_setprintout_tostr(struct YASL_State *S) {
@@ -188,12 +185,10 @@ int YASL_execute(struct YASL_State *S) {
 	S->vm.code = bc;
 	S->vm.headers[S->compiler.num] = bc;
 
-	int result = vm_run((struct VM *) S);  // TODO: error handling for runtime errors.
-
-	return result;
+	return vm_run((struct VM *) S);  // TODO: error handling for runtime errors.
 }
 
-int YASL_declglobal(struct YASL_State *S, const char *name) {
+void YASL_declglobal(struct YASL_State *S, const char *name) {
 #ifdef YASL_DEBUG
 	const char *curr = name;
 	YASL_ASSERT(*curr, "name must be at least length 1.");
@@ -206,7 +201,6 @@ int YASL_declglobal(struct YASL_State *S, const char *name) {
 #endif  // YASL_DEBUG
 	compiler_intern_string(&S->compiler, name, strlen(name));
 	scope_decl_var(S->compiler.globals, name);
-	return YASL_SUCCESS;
 }
 
 static inline int is_const(int64_t value) {
@@ -238,12 +232,10 @@ int YASL_loadglobal(struct YASL_State *S, const char *name) {
 	return YASL_SUCCESS;
 }
 
-int YASL_registermt(struct YASL_State *S, const char *name) {
+void YASL_registermt(struct YASL_State *S, const char *name) {
 	struct YASL_String *string = YASL_String_new_sized(strlen(name), name);
 	YASL_Table_insert_fast(S->vm.metatables, YASL_STR(string), vm_peek((struct VM *) S));
 	YASL_pop(S);
-
-	return YASL_SUCCESS;
 }
 
 int YASL_loadmt(struct YASL_State *S, const char *name) {
@@ -398,10 +390,9 @@ void YASL_pop(struct YASL_State *S) {
 	vm_pop(&S->vm);
 }
 
-int YASL_duptop(struct YASL_State *S) {
+void YASL_duptop(struct YASL_State *S) {
 	YASL_ASSERT(S->vm.sp >= 0, "Cannot duplicate top of empty stack.");
 	vm_push(&S->vm, vm_peek(&S->vm));
-	return YASL_SUCCESS;
 }
 
 void YASL_stringifytop(struct YASL_State *S) {

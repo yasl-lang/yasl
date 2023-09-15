@@ -3,6 +3,6 @@
 
 #include "yasl.h"
 
-int YASL_decllib_io(struct YASL_State *S);
+void YASL_decllib_io(struct YASL_State *S);
 
 #endif

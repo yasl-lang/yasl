@@ -7,7 +7,7 @@ SETUP_YATS();
 static void testpopfloat(void) {
 	const char *code = "x = 12.5;";
 	struct YASL_State *S = YASL_newstate_bb(code, strlen(code));
-	ASSERT_SUCCESS(YASL_declglobal(S, "x"));
+	YASL_declglobal(S, "x");
 	ASSERT_SUCCESS(YASL_execute(S));
 	ASSERT_SUCCESS(YASL_loadglobal(S, "x"));
 	ASSERT(YASL_isnfloat(S, 0));
@@ -18,7 +18,7 @@ static void testpopfloat(void) {
 static void testpopint(void) {
 	const char *code = "x = 12;";
 	struct YASL_State *S = YASL_newstate_bb(code, strlen(code));
-	ASSERT_SUCCESS(YASL_declglobal(S, "x"));
+	YASL_declglobal(S, "x");
 	ASSERT_SUCCESS(YASL_execute(S));
 	ASSERT_SUCCESS(YASL_loadglobal(S, "x"));
 	ASSERT(YASL_isnint(S, 0));
@@ -29,7 +29,7 @@ static void testpopint(void) {
 static void testpopbool(void) {
 	const char *code = "x = true;";
 	struct YASL_State *S = YASL_newstate_bb(code, strlen(code));
-	ASSERT_SUCCESS(YASL_declglobal(S, "x"));
+	YASL_declglobal(S, "x");
 	ASSERT_SUCCESS(YASL_execute(S));
 	ASSERT_SUCCESS(YASL_loadglobal(S, "x"));
 	ASSERT(YASL_isnbool(S, 0));
@@ -48,11 +48,11 @@ static void testpopuserptr(void) {
 	char x[] = "hello world";
 	struct YASL_State *S = YASL_newstate_bb(code, strlen(code));
 
-	ASSERT_SUCCESS(YASL_declglobal(S, "x"));
+	YASL_declglobal(S, "x");
 	YASL_pushuserptr(S, x);
 	ASSERT_SUCCESS(YASL_setglobal(S, "x"));
 
-	ASSERT_SUCCESS(YASL_declglobal(S, "f"));
+	YASL_declglobal(S, "f");
 	YASL_pushcfunction(S, testpop_userptr_helper, 1);
 	ASSERT_SUCCESS(YASL_setglobal(S, "f"));
 

@@ -3,7 +3,7 @@
 
 #include "yasl.h"
 
-int YASL_decllib_require(struct YASL_State *S);
-int YASL_decllib_require_c(struct YASL_State *S);
+void YASL_decllib_require(struct YASL_State *S);
+void YASL_decllib_require_c(struct YASL_State *S);
 
 #endif

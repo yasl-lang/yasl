@@ -246,7 +246,7 @@ static int YASL_io_close(struct YASL_State *S) {
 	return 1;
 }
 
-int YASL_decllib_io(struct YASL_State *S) {
+void YASL_decllib_io(struct YASL_State *S) {
 	YASL_pushtable(S);
 	YASL_registermt(S, FILE_NAME);
 
@@ -290,6 +290,4 @@ int YASL_decllib_io(struct YASL_State *S) {
 	YASL_setmt(S);
 	YASL_tableset(S);
 	YASL_pop(S);
-
-	return YASL_SUCCESS;
 }
