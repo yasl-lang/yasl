@@ -69,7 +69,7 @@ static bool YASLX_functions_issentinal(struct YASLX_function functions) {
 	return functions.name == NULL && functions.fn == NULL && functions.args == 0;
 }
 
-void YASLX_tablesetfunctions(struct YASL_State *S, struct YASLX_function functions[]) {
+void YASLX_tablesetfunctions(struct YASL_State *S, const struct YASLX_function functions[]) {
 	for (int i = 0; !YASLX_functions_issentinal(functions[i]); i++) {
 		struct YASLX_function function = functions[i];
 		YASL_pushlit(S, function.name);
