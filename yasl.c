@@ -285,6 +285,14 @@ const char *YASL_peekntypestr(struct YASL_State *S, unsigned n) {
 	return YASL_peekntypename(S, n);
 }
 
+void *YASL_peekuserdata(struct YASL_State *S) {
+	return YASL_GETUSERDATA(vm_peek(&S->vm))->data;
+}
+
+void *YASL_peekuserptr(struct YASL_State *S) {
+	return YASL_GETUSERPTR(vm_peek(&S->vm));
+}
+
 void YASL_pushundef(struct YASL_State *S) {
 	vm_push((struct VM *) S, YASL_UNDEF());
 }
