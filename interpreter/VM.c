@@ -1697,6 +1697,12 @@ void vm_executenext(struct VM *const vm) {
 		}
 		vm_pop(vm);
 		break;
+#ifdef YASL_DEBUG
+	case O_ASSERT_SP:
+		c = vm_read_int(vm);
+		YASL_ASSERT(vm->sp - vm->fp == c,"Expected stack pointer to be different");
+		break;
+#endif
 	default:
 		vm_print_err(vm, "Error: Unknown Opcode: %x\n", opcode);
 		vm_throw_err(vm, YASL_ERROR);
