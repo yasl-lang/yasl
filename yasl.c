@@ -14,15 +14,15 @@
 size_t random_offset = 0;
 
 
-static struct YASL_State *YASL_newstate_helper(struct LEXINPUT *lexinput) {
+static struct YASL_State *YASL_newstate_helper(struct LEXINPUT *lexinput, size_t num) {
 	struct YASL_State *S = (struct YASL_State *)malloc(sizeof(struct YASL_State));
 
 	struct Compiler tcomp = NEW_COMPILER(lexinput);
 	S->compiler = tcomp;
 	S->compiler.header->count = 24;
-	S->compiler.num = 0;
+	S->compiler.num = num;
 
-	vm_init((struct VM *) S, NULL, -1, 1);
+	vm_init((struct VM *) S, NULL, -1, num + 1);
 
 	YASL_declglobal(S, "__VERSION__");
 	YASL_pushlit(S, YASL_VERSION);
@@ -37,23 +37,7 @@ struct YASL_State *YASL_newstate_num(const char *filename, size_t num) {
 		return NULL;  // Can't open file.
 	}
 
-	struct YASL_State *S = (struct YASL_State *)malloc(sizeof(struct YASL_State));
-
-	fseek(fp, 0, SEEK_SET);
-
-	struct LEXINPUT *lp = lexinput_new_file(fp);
-	struct Compiler tcomp = NEW_COMPILER(lp);
-	S->compiler = tcomp;
-	S->compiler.header->count = 24;
-	S->compiler.num = num;
-
-	vm_init((struct VM *)S, NULL, -1, num + 1);
-
-	YASL_declglobal(S, "__VERSION__");
-	YASL_pushlit(S, YASL_VERSION);
-	YASL_setglobal(S, "__VERSION__");
-
-	return S;
+	return YASL_newstate_helper(lexinput_new_file(fp), num);
 }
 
 struct YASL_State *YASL_newstate(const char *filename) {
@@ -64,7 +48,7 @@ struct YASL_State *YASL_newstate(const char *filename) {
 
 	fseek(fp, 0, SEEK_SET);
 
-	return YASL_newstate_helper(lexinput_new_file(fp));
+	return YASL_newstate_helper(lexinput_new_file(fp), 0);
 }
 
 int YASL_resetstate(struct YASL_State *S, const char *filename) {
@@ -90,24 +74,7 @@ int YASL_resetstate(struct YASL_State *S, const char *filename) {
 }
 
 struct YASL_State *YASL_newstate_bb(const char *buf, size_t len) {
-	//struct YASL_State *S = (struct YASL_State *) malloc(sizeof(struct YASL_State));
-
-	struct LEXINPUT *lp = lexinput_new_bb(buf, len);
-	return YASL_newstate_helper(lp);
-	/*
-	struct Compiler tcomp = NEW_COMPILER(lp);
-	S->compiler = tcomp;
-	S->compiler.header->count = 24;
-	S->compiler.num = 0;
-
-	vm_init((struct VM *) S, NULL, -1, 1);
-
-	YASL_declglobal(S, "__VERSION__");
-	YASL_pushlit(S, YASL_VERSION);
-	YASL_setglobal(S, "__VERSION__");
-
-	return S;
-	 */
+	return YASL_newstate_helper(lexinput_new_bb(buf, len), 0);
 }
 
 
