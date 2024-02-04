@@ -129,6 +129,7 @@ static const char *inputs[] = {
   "test/inputs/match/alt/alt_nested_right.yasl",
   "test/inputs/match/alt/alt_nested_left.yasl",
   "test/inputs/match/alt/alt.yasl",
+  "test/inputs/match/fallthrough.yasl",
   "test/inputs/match/basic_1.yasl",
   "test/inputs/match/bool.yasl",
   "test/inputs/match/list/const_vlist.yasl",

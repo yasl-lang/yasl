@@ -1,3 +1,4 @@
 $x is 10, 12.
 $x is 10, 12
-$x is 1012  
+'$x$y is 1012  '
+hex: 0xa, dec: 10, bin: 0b1010

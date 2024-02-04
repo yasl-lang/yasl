@@ -94,6 +94,6 @@ struct YASLX_function {
  * @param S The YASL_State
  * @param functions array of function names, function pointers, and number of args.
  */
-void YASLX_tablesetfunctions(struct YASL_State *S, struct YASLX_function functions[]);
+void YASLX_tablesetfunctions(struct YASL_State *S, const struct YASLX_function functions[]);
 
 #endif

@@ -1,0 +1,12 @@
+fn matcher(n) {
+    match n {
+    0 {
+        return ();
+    }
+  #  * {}
+    }
+    return ()
+}
+
+echo matcher(0)
+echo matcher(-1)

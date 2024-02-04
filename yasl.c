@@ -13,24 +13,31 @@
 
 size_t random_offset = 0;
 
+
+static struct YASL_State *YASL_newstate_helper(struct LEXINPUT *lexinput, size_t num) {
+	struct YASL_State *S = (struct YASL_State *)malloc(sizeof(struct YASL_State));
+
+	struct Compiler tcomp = NEW_COMPILER(lexinput);
+	S->compiler = tcomp;
+	S->compiler.header->count = 24;
+	S->compiler.num = num;
+
+	vm_init((struct VM *) S, NULL, -1, num + 1);
+
+	YASL_declglobal(S, "__VERSION__");
+	YASL_pushlit(S, YASL_VERSION);
+	YASL_setglobal(S, "__VERSION__");
+
+	return S;
+}
+
 struct YASL_State *YASL_newstate_num(const char *filename, size_t num) {
 	FILE *fp = fopen(filename, "rb");
 	if (!fp) {
 		return NULL;  // Can't open file.
 	}
 
-	struct YASL_State *S = (struct YASL_State *)malloc(sizeof(struct YASL_State));
-
-	fseek(fp, 0, SEEK_SET);
-
-	struct LEXINPUT *lp = lexinput_new_file(fp);
-	struct Compiler tcomp = NEW_COMPILER(lp);
-	S->compiler = tcomp;
-	S->compiler.num = num;
-	S->compiler.header->count = 24;
-
-	vm_init((struct VM *)S, NULL, -1, num + 1);
-	return S;
+	return YASL_newstate_helper(lexinput_new_file(fp), num);
 }
 
 struct YASL_State *YASL_newstate(const char *filename) {
@@ -39,23 +46,60 @@ struct YASL_State *YASL_newstate(const char *filename) {
 		return NULL;  // Can't open file.
 	}
 
-	struct YASL_State *S = (struct YASL_State *) malloc(sizeof(struct YASL_State));
+	fseek(fp, 0, SEEK_SET);
+
+	return YASL_newstate_helper(lexinput_new_file(fp), 0);
+}
+
+int YASL_resetstate(struct YASL_State *S, const char *filename) {
+	FILE *fp = fopen(filename, "rb");
+	if (!fp) {
+		return YASL_ERROR;  // Can't open file.
+	}
 
 	fseek(fp, 0, SEEK_SET);
 
-	struct LEXINPUT *lp = lexinput_new_file(fp);
-	struct Compiler tcomp = NEW_COMPILER(lp);
-	S->compiler = tcomp;
-	S->compiler.header->count = 24;
-	S->compiler.num = 0;
+	S->compiler.status = YASL_SUCCESS;
+	S->compiler.parser.status = YASL_SUCCESS;
+	lex_cleanup(&S->compiler.parser.lex);
 
-	vm_init((struct VM *) S, NULL, -1, 1);
+	S->compiler.parser.lex = NEW_LEXER(lexinput_new_file(fp));
+	S->compiler.code->count = 0;
+	S->compiler.buffer->count = 0;
 
-	YASL_declglobal(S, "__VERSION__");
-	YASL_pushlit(S, YASL_VERSION);
-	YASL_setglobal(S, "__VERSION__");
+	if (S->vm.code)	free(S->vm.code);
+	S->vm.code = NULL;
 
-	return S;
+	return YASL_SUCCESS;
+}
+
+struct YASL_State *YASL_newstate_bb(const char *buf, size_t len) {
+	return YASL_newstate_helper(lexinput_new_bb(buf, len), 0);
+}
+
+
+int YASL_resetstate_bb(struct YASL_State *S, const char *buf, size_t len) {
+	S->compiler.status = YASL_SUCCESS;
+	S->compiler.parser.status = YASL_SUCCESS;
+	lex_cleanup(&S->compiler.parser.lex);
+
+	S->compiler.parser.lex = NEW_LEXER(lexinput_new_bb(buf, len));
+	S->compiler.code->count = 0;
+	S->compiler.buffer->count = 0;
+
+	if (S->vm.code)	free(S->vm.code);
+	S->vm.code = NULL;
+
+	return YASL_SUCCESS;
+}
+
+int YASL_delstate(struct YASL_State *S) {
+	if (!S) return YASL_SUCCESS;
+
+	compiler_cleanup(&S->compiler);
+	vm_cleanup((struct VM *) S);
+	free(S);
+	return YASL_SUCCESS;
 }
 
 void YASL_setprintout_tostr(struct YASL_State *S) {
@@ -77,60 +121,6 @@ void YASL_loadprinterr(struct YASL_State *S) {
 	} else {
 		YASL_pushlstr(S, S->vm.err.string, S->vm.err.len);
 	}
-}
-
-int YASL_resetstate(struct YASL_State *S, const char *filename) {
-	FILE *fp = fopen(filename, "rb");
-	if (!fp) {
-		return YASL_ERROR;  // Can't open file.
-	}
-
-	fseek(fp, 0, SEEK_SET);
-
-	S->compiler.status = YASL_SUCCESS;
-	S->compiler.parser.status = YASL_SUCCESS;
-	lex_cleanup(&S->compiler.parser.lex);
-
-	S->compiler.parser.lex = NEW_LEXER(lexinput_new_file(fp));
-	S->compiler.code->count = 0;
-	S->compiler.buffer->count = 0;
-
-	return YASL_SUCCESS;
-}
-
-struct YASL_State *YASL_newstate_bb(const char *buf, size_t len) {
-	struct YASL_State *S = (struct YASL_State *) malloc(sizeof(struct YASL_State));
-
-	struct LEXINPUT *lp = lexinput_new_bb(buf, len);
-	struct Compiler tcomp = NEW_COMPILER(lp);
-	S->compiler = tcomp;
-	S->compiler.header->count = 24;
-	S->compiler.num = 0;
-
-	vm_init((struct VM *) S, NULL, -1, 1);
-	return S;
-}
-
-int YASL_resetstate_bb(struct YASL_State *S, const char *buf, size_t len) {
-	S->compiler.status = YASL_SUCCESS;
-	S->compiler.parser.status = YASL_SUCCESS;
-	lex_cleanup(&S->compiler.parser.lex);
-	S->compiler.parser.lex = NEW_LEXER(lexinput_new_bb(buf, len));
-	S->compiler.code->count = 0;
-	S->compiler.buffer->count = 0;
-	if (S->vm.code)	free(S->vm.code);
-	S->vm.code = NULL;
-
-	return YASL_SUCCESS;
-}
-
-int YASL_delstate(struct YASL_State *S) {
-	if (!S) return YASL_SUCCESS;
-
-	compiler_cleanup(&S->compiler);
-	vm_cleanup((struct VM *) S);
-	free(S);
-	return YASL_SUCCESS;
 }
 
 int YASL_execute_REPL(struct YASL_State *S) {
@@ -454,12 +444,13 @@ int YASL_listpush(struct YASL_State *S) {
 	return YASL_SUCCESS;
 }
 
+void vm_CALL_now(struct VM *const vm);
 int YASL_functioncall(struct YASL_State *S, int n) {
 	struct VM *vm = &S->vm;
 	vm_INIT_CALL_offset(vm, vm->sp - n, -1);
 
 	const int old_sp = vm->sp;
-	vm_CALL(vm);
+	vm_CALL_now(vm);
 
 	return old_sp - vm->sp - 1;
 }

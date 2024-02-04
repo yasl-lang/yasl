@@ -56,16 +56,46 @@ static inline void main_init_platform() {
 }
 
 static int main_file(int argc, char **argv) {
-	(void) argc;
-	struct YASL_State *S = YASL_newstate(argv[1]);
+	YASL_ByteBuffer *buffer = YASL_ByteBuffer_new(8);
+	struct YASL_State *S = YASL_newstate_bb(NULL, 0);
+	// Load Standard Libraries
+	YASLX_decllibs(S);
+
+	while (argc > 1 && !strncmp(argv[1], "-D", 2)) {
+		const char *equals = strchr(argv[1], '=');
+		if (!equals) {
+			fprintf(stderr, "Error: Expected an initial value for variable: %s\n", argv[1] + 2);
+			exit(EXIT_FAILURE);
+		}
+		const long int len = equals - argv[1] -2;
+		if (len <= 0) {
+			fprintf(stderr, "Error: Non-empty name required for variable: %s\n", argv[1] + 2);
+			exit(EXIT_FAILURE);
+		}
+		char *name = (char *)malloc(len + 1);
+		strncpy(name, argv[1] + 2, len);
+		name[len] = '\0';
+		puts(name);
+		YASL_declglobal(S, name);
+		YASL_pushundef(S);
+		YASL_setglobal(S, name);
+
+		YASL_ByteBuffer_extend(buffer, (unsigned char *)argv[1] + 2,  strlen(argv[1]) - 2 );
+		YASL_ByteBuffer_add_byte(buffer, '\n');
+		YASL_resetstate_bb(S, (char *)buffer->items, buffer->count);
+		buffer->count = 0;
+		YASL_execute(S);
+
+		argc--;
+		argv++;
+	}
+
+	YASL_resetstate(S, argv[argc - 1]);
 
 	if (!S) {
 		puts("ERROR: cannot open file.");
 		exit(EXIT_FAILURE);
 	}
-
-	// Load Standard Libraries
-	YASLX_decllibs(S);
 
 	YASL_declglobal(S, "args");
 	YASL_pushlist(S);
@@ -78,6 +108,7 @@ static int main_file(int argc, char **argv) {
 	int status = YASL_execute(S);
 
 	YASL_delstate(S);
+	YASL_ByteBuffer_del(buffer);
 
 	return status;
 }
@@ -87,7 +118,7 @@ static int main_compile(int argc, char **argv) {
 	struct YASL_State *S = YASL_newstate(argv[2]);
 
 	if (!S) {
-		puts("ERROR: cannot open file.");
+		fprintf(stderr, "Error: cannot open file.");
 		exit(EXIT_FAILURE);
 	}
 
@@ -113,7 +144,7 @@ static int main_gen_bytecode(int argc, char **argv) {
 	struct YASL_State *S = YASL_newstate(argv[2]);
 
 	if (!S) {
-		puts("ERROR: cannot open file.");
+		fprintf(stderr, "Error: cannot open file.");
 		exit(EXIT_FAILURE);
 	}
 
@@ -213,14 +244,17 @@ int main(int argc, char **argv) {
 }
 #else
 int main(int argc, char **argv) {
+	// These don't require any state, so just return immediately.
+	if (argc == 2 && !strcmp(argv[1], "-h")) {
+		return main_help(argc, argv);
+	} else if (argc == 2 && !strcmp(argv[1], "-V")) {
+		return main_version(argc, argv);
+	}
+
 	main_init_platform();
 
 	if (argc == 1) {
 		return main_REPL(argc, argv);
-	} else if (argc == 2 && !strcmp(argv[1], "-h")) {
-		return main_help(argc, argv);
-	} else if (argc == 2 && !strcmp(argv[1], "-V")) {
-		return main_version(argc, argv);
 	} else if (argc == 3 && !strcmp(argv[1], "-e")) {
 		return main_command_REPL(argc, argv);
 	} else if (argc == 3 && !strcmp(argv[1], "-E")) {

@@ -21,7 +21,6 @@ void YASL_ByteBuffer_del(YASL_ByteBuffer *const bb);
 
 void YASL_ByteBuffer_extend(YASL_ByteBuffer *const bb, const byte *const bytes, const size_t bytes_len);
 #define YASL_ByteBuffer_add_byte BUFFER_PUSH(byte)
-// void YASL_ByteBuffer_add_byte(YASL_ByteBuffer *const buffer, const byte v);
 void YASL_ByteBuffer_add_vint(YASL_ByteBuffer *const bb, size_t val);
 void YASL_ByteBuffer_add_float(YASL_ByteBuffer *const bb, const yasl_float value);
 void YASL_ByteBuffer_add_int(YASL_ByteBuffer *const bb, const yasl_int value);

@@ -395,71 +395,119 @@ int list_count(struct YASL_State *S) {
 	return 1;
 }
 
-static const int SORT_TYPE_EMPTY = 0;
-static const int SORT_TYPE_STR = -1;
-static const int SORT_TYPE_NUM = 1;
-void sort(struct YASL_Object *list, const size_t len) {
-	// Base cases
-	struct YASL_Object tmpObj;
-	if (len < 2) return;
-	if (len == 2) {
-		if (yasl_object_cmp(list[0], list[1]) > 0) {
-			tmpObj = list[0];
-			list[0] = list[1];
-			list[1] = tmpObj;
-		}
-		return;
+enum SortType {
+	SORT_TYPE_STR = -1,
+	SORT_TYPE_EMPTY = 0,
+	SORT_TYPE_NUM = 1
+};
+
+
+int custom_comp(struct YASL_State *S, struct YASL_Object a, struct YASL_Object b) {
+	YASL_duptop(S);
+	vm_push((struct VM *)S, a);
+	vm_push((struct VM *)S, b);
+	YASL_functioncall(S, 2);
+	if (!YASL_isbool(S)) {
+		YASL_print_err(S, "TypeError: Expected a function returning bool, got %s.", YASL_peektypename(S));
+		YASL_throw_err(S, YASL_TYPE_ERROR);
+	}
+	bool a_lt_b = YASL_popbool(S);
+
+	YASL_duptop(S);
+	vm_push((struct VM *)S, b);
+	vm_push((struct VM *)S, a);
+	YASL_functioncall(S, 2);
+	if (!YASL_isbool(S)) {
+		YASL_print_err(S, "TypeError: Expected a function returning bool, got %s.", YASL_peektypename(S));
+		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 
-	// YASL_Set sorting bounds
-	size_t left = 0;
-	size_t right = len - 1;
+	bool a_gt_b = YASL_popbool(S);
 
-	// Determine random midpoint to use (good average case)
-	const size_t randIndex = rand() % len;
-	const struct YASL_Object mid = list[randIndex];
-
-	// Determine exact number of items less than mid (mid's index)
-	// Furthermore, ensure list is not homogenous to avoid infinite loops
-	size_t ltCount = 0;
-	int seenDifferent = 0;
-	for (size_t i = 0; i < len; i++) {
-		if (yasl_object_cmp(list[i], mid) < 0) ltCount++;
-		if (seenDifferent == 0 && yasl_object_cmp(list[0], list[i]) != 0) seenDifferent = 1;
-	}
-	if (seenDifferent == 0) return;
-
-	// Ensure all items are on the correct side of mid
-	while (left < right) {
-		while (yasl_object_cmp(list[left], mid) < 0) left++;
-		while (yasl_object_cmp(list[right], mid) >= 0) {
-			if (right == 0) break;
-			right--;
-		}
-
-		int cmp = yasl_object_cmp(list[left], list[right]);
-		if (cmp > 0 && left < right) {
-			tmpObj = list[right];
-			list[right] = list[left];
-			list[left++] = tmpObj;
-			if (right == 0) break;
-			right--;
-		} else if (cmp == 0) {
-			left++;
-			if (right == 0) break;
-			right--;
-		}
-	}
-
-	// Let sort() finish that for us...
-	sort(list, ltCount);
-	sort(&list[ltCount], len - ltCount);
+	if (a_lt_b == a_gt_b) return 0;
+	return a_lt_b ? -1 : a_gt_b ? 1 : 0;
 }
+
+#define CUSTOM_COMP(a, b) custom_comp(S, a, b)
+
+#define DEF_SORT(name, COMP) \
+static void name##sort(struct YASL_State *S, struct YASL_Object *list, const size_t len) {\
+	/* Base cases*/ \
+	struct YASL_Object tmpObj;\
+	if (len < 2) return;\
+	if (len == 2) {\
+		if (COMP(list[0], list[1]) > 0) {\
+			tmpObj = list[0];\
+			list[0] = list[1];\
+			list[1] = tmpObj;\
+		}\
+		return;\
+	}\
+\
+	/* YASL_Set sorting bounds */\
+	size_t left = 0;\
+	size_t right = len - 1;\
+\
+	/* Determine random midpoint to use (good average case) */\
+	const size_t randIndex = rand() % len;\
+	const struct YASL_Object mid = list[randIndex];\
+\
+	/* Determine exact number of items less than mid (mid's index)\
+	   Furthermore, ensure list is not homogeneous to avoid infinite loops */\
+	size_t ltCount = 0;\
+	bool seenDifferent = false;\
+	for (size_t i = 0; i < len; i++) {\
+		if (COMP(list[i], mid) < 0) ltCount++;\
+		if (seenDifferent == 0 && COMP(list[0], list[i]) != 0) seenDifferent = true;\
+	}\
+	if (!seenDifferent) return;\
+\
+	/* Ensure all items are on the correct side of mid */\
+	while (left < right) {\
+		while (COMP(list[left], mid) < 0) left++;\
+		while (COMP(list[right], mid) >= 0) {\
+			if (right == 0) break;\
+			right--;\
+		}\
+\
+		int cmp = COMP(list[left], list[right]);\
+		if (cmp > 0 && left < right) {\
+			tmpObj = list[right];\
+			list[right] = list[left];\
+			list[left++] = tmpObj;\
+			if (right == 0) break;\
+			right--;\
+		} else if (cmp == 0) {\
+			left++;\
+			if (right == 0) break;\
+			right--;\
+		}\
+	}\
+\
+	/* Let sort() finish that for us...*/ \
+	name##sort(S, list, ltCount);\
+	name##sort(S, &list[ltCount], len - ltCount);\
+}
+
+DEF_SORT(default, yasl_object_cmp)
+// DEF_SORT(fn, CUSTOM_COMP)
 
 // TODO: clean this up
 int list_sort(struct YASL_State *S) {
 	struct YASL_List *list = YASLX_checknlist(S, "list.sort", 0);
-	int type = SORT_TYPE_EMPTY;
+
+	/*
+	if (!YASL_isundef(S)) {
+		fnsort(S, list->items, list->count);
+		return 0;
+	}
+	 */
+
+	if (YASL_List_length(list) <= 1) {
+		return 0;
+	}
+
+	enum SortType type = SORT_TYPE_EMPTY;
 
 	int err = 0;
 	for (size_t i = 0; i < list->count; i++) {
@@ -489,7 +537,7 @@ int list_sort(struct YASL_State *S) {
 	}
 
 	if (type != SORT_TYPE_EMPTY) {
-		sort(list->items, list->count);
+		defaultsort(S, list->items, list->count);
 	}
 
 	return 0;

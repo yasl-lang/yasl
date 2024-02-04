@@ -529,19 +529,21 @@ static void vm_CNCT(struct VM *const vm) {
 
 #define DEFINE_COMP(name, opstr, overload_name) \
 static void vm_##name(struct VM *const vm) {\
-	struct YASL_Object right = vm_pop(vm);\
-	struct YASL_Object left = vm_pop(vm);\
+	struct YASL_Object right = vm_peek(vm);\
+	struct YASL_Object left = vm_peek(vm, vm->sp -1);\
 	bool c;\
 	if (obj_isstr(&left) && obj_isstr(&right)) {\
+		vm_pop(vm);\
+		vm_pop(vm);\
 		vm_pushbool(vm, name(YASL_String_cmp(obj_getstr(&left), obj_getstr(&right)), 0));\
 		return;\
 	}\
 	if (obj_isnum(&left) && obj_isnum(&right)) {\
+		vm_pop(vm);\
+		vm_pop(vm);\
 		COMP(vm, left, right, name);\
 		return;\
 	}\
-	vm_push(vm, left);\
-	vm_push(vm, right);\
 	vm_call_binop_method_now(vm, left, right, overload_name, "%s not supported for operands of types %s and %s.",\
 	opstr,\
 	obj_typename(&left),\
