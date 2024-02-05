@@ -67,7 +67,6 @@ int YASL_resetstate(struct YASL_State *S, const char *filename) {
 	S->compiler.code->count = 0;
 	S->compiler.buffer->count = 0;
 
-	if (S->vm.code)	free(S->vm.code);
 	S->vm.code = NULL;
 
 	return YASL_SUCCESS;
@@ -87,7 +86,6 @@ int YASL_resetstate_bb(struct YASL_State *S, const char *buf, size_t len) {
 	S->compiler.code->count = 0;
 	S->compiler.buffer->count = 0;
 
-	if (S->vm.code)	free(S->vm.code);
 	S->vm.code = NULL;
 
 	return YASL_SUCCESS;

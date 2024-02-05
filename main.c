@@ -67,7 +67,7 @@ static int main_file(int argc, char **argv) {
 			fprintf(stderr, "Error: Expected an initial value for variable: %s\n", argv[1] + 2);
 			exit(EXIT_FAILURE);
 		}
-		const long int len = equals - argv[1] -2;
+		const size_t len = equals - argv[1] -2;
 		if (len <= 0) {
 			fprintf(stderr, "Error: Non-empty name required for variable: %s\n", argv[1] + 2);
 			exit(EXIT_FAILURE);
