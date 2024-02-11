@@ -94,6 +94,7 @@ static const char *type_errors[] = {
   "test/errors/type/list/join3.yasl",
   "test/errors/type/list/join.yasl",
   "test/errors/type/list/__len.yasl",
+  "test/errors/type/list/__lt.yasl",
   "test/errors/type/list/push.yasl",
   "test/errors/type/list/remove.yasl",
   "test/errors/type/list/reverse.yasl",

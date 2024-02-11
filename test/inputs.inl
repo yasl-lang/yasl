@@ -103,6 +103,7 @@ static const char *inputs[] = {
   "test/inputs/syntax/foreach.yasl",
   "test/inputs/syntax/while.yasl",
   "test/inputs/syntax/continue_locals.yasl",
+  "test/inputs/syntax/ifdef_simple.yasl",
   "test/inputs/syntax/table_comprehensions.yasl",
   "test/inputs/syntax/while_continue.yasl",
   "test/inputs/syntax/list_comprehensions.yasl",

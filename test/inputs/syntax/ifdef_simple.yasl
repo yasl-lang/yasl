@@ -1,0 +1,9 @@
+ifdef A {
+    echo "A = #{A:r}"
+}
+
+ifdef B {
+    echo "B = #{B:r}"
+}
+
+echo args
