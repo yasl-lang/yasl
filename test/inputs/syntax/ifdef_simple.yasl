@@ -9,3 +9,5 @@ ifdef B {
 ifdef use_args {
     echo args
 }
+
+echo "done"
