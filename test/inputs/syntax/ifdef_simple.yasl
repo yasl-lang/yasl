@@ -6,4 +6,8 @@ ifdef B {
     echo "B = #{B:r}"
 }
 
-echo args
+ifdef args {
+    echo args
+} else {
+    echo 'args undefined'
+}
