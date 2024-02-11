@@ -36,32 +36,29 @@ int YASL_compile(struct YASL_State *S);
  * not handle the lifetime of the string; normally a literal is used.
  * @param S the YASL_State in which to declare the global.
  * @param name the name of the global (null-terminated string).
- * @return YASL_SUCCESS on success, otherwise an error code.
  */
-int YASL_declglobal(struct YASL_State *S, const char *name);
+void YASL_declglobal(struct YASL_State *S, const char *name);
 
-int YASL_decllib_collections(struct YASL_State *S);
-int YASL_decllib_error(struct YASL_State *S);
-int YASL_decllib_io(struct YASL_State *S);
-int YASL_decllib_math(struct YASL_State *S);
-int YASL_decllib_require(struct YASL_State *S);
-int YASL_decllib_require_c(struct YASL_State *S);
-int YASL_decllib_mt(struct YASL_State *S);
+void YASL_decllib_collections(struct YASL_State *S);
+void YASL_decllib_error(struct YASL_State *S);
+void YASL_decllib_io(struct YASL_State *S);
+void YASL_decllib_math(struct YASL_State *S);
+void YASL_decllib_require(struct YASL_State *S);
+void YASL_decllib_require_c(struct YASL_State *S);
+void YASL_decllib_mt(struct YASL_State *S);
 
 /**
  * deletes the given YASL_State.
  * @param S YASL_State to be deleted.
- * @return 0 on success, otherwise an error code.
  */
-int YASL_delstate(struct YASL_State *S);
+void YASL_delstate(struct YASL_State *S);
 
 /**
  * [-0, +1]
  * Duplicates the top of the stack.
  * @param S the YASL_State.
- * @return YASL_SUCCESS on success, otherwise an error code.
  */
-int YASL_duptop(struct YASL_State *S);
+void YASL_duptop(struct YASL_State *S);
 
 /**
  * [-0, +0]
@@ -578,9 +575,8 @@ void YASL_pushzstr(struct YASL_State *S, const char *value);
  * with metatables, e.g. `YASL_setmt` or `YASL_loadmt`.
  * @param S the YASL_State.
  * @param name the name of the metatable.
- * @return YASL_SUCCESS.
  */
-int YASL_registermt(struct YASL_State *S, const char *name);
+void YASL_registermt(struct YASL_State *S, const char *name);
 
 /**
  * resets S to the same state it would be in if newly created using
@@ -597,9 +593,8 @@ int YASL_resetstate(struct YASL_State *S, const char *filename);
  * @param S the YASL_State.
  * @param buf the buffer used to initialize S.
  * @param len the length of buf.
- * @return YASL_SUCCESS on success, else an error code.
  */
-int YASL_resetstate_bb(struct YASL_State *S, const char *buf, size_t len);
+void YASL_resetstate_bb(struct YASL_State *S, const char *buf, size_t len);
 
 /**
  * [-1, +0]

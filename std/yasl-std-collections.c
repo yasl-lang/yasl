@@ -339,7 +339,7 @@ static int YASL_collections_set___get(struct YASL_State *S) {
 	return 1;
 }
 
-int YASL_decllib_collections(struct YASL_State *S) {
+void YASL_decllib_collections(struct YASL_State *S) {
 	YASL_pushtable(S);
 	YASL_registermt(S, SET_NAME);
 
@@ -385,6 +385,4 @@ int YASL_decllib_collections(struct YASL_State *S) {
 	YASL_pushcfunction(S, YASL_collections_table_new, -1);
 	YASL_tableset(S);
 	YASL_pop(S);
-
-	return YASL_SUCCESS;
 }

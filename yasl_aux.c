@@ -1,7 +1,7 @@
 #include "yasl_aux.h"
 #include "yasl_include.h"
 
-int YASLX_decllibs(struct YASL_State *S) {
+void YASLX_decllibs(struct YASL_State *S) {
 	YASL_decllib_collections(S);
 	YASL_decllib_error(S);
 	YASL_decllib_io(S);
@@ -9,8 +9,6 @@ int YASLX_decllibs(struct YASL_State *S) {
 	YASL_decllib_require(S);
 	YASL_decllib_require_c(S);
 	YASL_decllib_mt(S);
-
-	return YASL_SUCCESS;
 }
 
 void YASLX_initglobal(struct YASL_State *S, const char *name) {

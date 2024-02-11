@@ -11,9 +11,8 @@
 /**
  * Loads all standard libraries into the appropriate state and declares them all with their default names.
  * @param S The state onto which to load the libraries.
- * @return YASL_SUCESS on success, else error code.
  */
-int YASLX_decllibs(struct YASL_State *S);
+void YASLX_decllibs(struct YASL_State *S);
 
 /**
  * Declares a global and initializes it with the top value from the stack.

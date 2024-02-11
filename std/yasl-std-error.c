@@ -17,12 +17,11 @@ int YASL_error(struct YASL_State *S) {
 	YASL_print_err(S, "Error: %s", str);
 	free(str);
 	YASL_throw_err(S, YASL_ERROR);
+	return YASL_SUCCESS;
 }
 
-int YASL_decllib_error(struct YASL_State *S) {
+void YASL_decllib_error(struct YASL_State *S) {
 	YASL_declglobal(S, "error");
 	YASL_pushcfunction(S, YASL_error, 1);
 	YASL_setglobal(S, "error");
-
-	return YASL_SUCCESS;
 }

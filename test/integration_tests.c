@@ -30,9 +30,9 @@ for (size_t i = 0; i < sizeof(inputs) / sizeof(char *); i++) {\
 	size_t read = fread(expected_output, 1, size, f);\
 	expected_output[read] = '\0';\
 	S = YASL_newstate(inputs[i]);\
-	int status = YASLX_decllibs(S);\
+	YASLX_decllibs(S);\
 	YASL_setprintout_tostr(S);\
-	status |= YASL_execute(S);\
+	int status = YASL_execute(S);\
 	YASL_loadprintout(S);\
 	char *actual_output = YASL_peekcstr(S);\
 	if (!!strcmp(expected_output, actual_output) || status != YASL_SUCCESS) {\

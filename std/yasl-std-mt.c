@@ -62,7 +62,7 @@ int YASL_mt_lookup(struct YASL_State *S) {
 	return 1;
 }
 
-int YASL_decllib_mt(struct YASL_State *S) {
+void YASL_decllib_mt(struct YASL_State *S) {
 	YASL_declglobal(S, "mt");
 	YASL_pushtable(S);
 	YASL_setglobal(S, "mt");
@@ -79,6 +79,4 @@ int YASL_decllib_mt(struct YASL_State *S) {
 
 	YASLX_tablesetfunctions(S, functions);
 	YASL_pop(S);
-
-	return YASL_SUCCESS;
 }

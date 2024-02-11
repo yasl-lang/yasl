@@ -189,18 +189,14 @@ int YASL_require_c(struct YASL_State *S) {
 	return 1;
 }
 
-int YASL_decllib_require(struct YASL_State *S) {
+void YASL_decllib_require(struct YASL_State *S) {
 	YASL_declglobal(S, "require");
 	YASL_pushcfunction(S, YASL_require, 1);
 	YASL_setglobal(S, "require");
-
-	return YASL_SUCCESS;
 }
 
-int YASL_decllib_require_c(struct YASL_State *S) {
+void YASL_decllib_require_c(struct YASL_State *S) {
 	YASL_declglobal(S, "__require_c__");
 	YASL_pushcfunction(S, YASL_require_c, 1);
 	YASL_setglobal(S, "__require_c__");
-
-	return YASL_SUCCESS;
 }
