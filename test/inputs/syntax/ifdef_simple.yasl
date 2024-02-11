@@ -6,3 +6,6 @@ ifdef B {
     echo "B = #{B:r}"
 }
 
+ifdef use_args {
+    echo args
+}
