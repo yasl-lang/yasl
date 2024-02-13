@@ -67,7 +67,6 @@ int YASL_resetstate(struct YASL_State *S, const char *filename) {
 	S->compiler.code->count = 0;
 	S->compiler.buffer->count = 0;
 
-	if (S->vm.code)	free(S->vm.code);
 	S->vm.code = NULL;
 
 	return YASL_SUCCESS;
@@ -87,7 +86,6 @@ int YASL_resetstate_bb(struct YASL_State *S, const char *buf, size_t len) {
 	S->compiler.code->count = 0;
 	S->compiler.buffer->count = 0;
 
-	if (S->vm.code)	free(S->vm.code);
 	S->vm.code = NULL;
 
 	return YASL_SUCCESS;
@@ -273,6 +271,14 @@ const char *YASL_peekntypename(struct YASL_State *S, unsigned n) {
 
 const char *YASL_peekntypestr(struct YASL_State *S, unsigned n) {
 	return YASL_peekntypename(S, n);
+}
+
+void *YASL_peekuserdata(struct YASL_State *S) {
+	return YASL_GETUSERDATA(vm_peek(&S->vm))->data;
+}
+
+void *YASL_peekuserptr(struct YASL_State *S) {
+	return YASL_GETUSERPTR(vm_peek(&S->vm));
 }
 
 void YASL_pushundef(struct YASL_State *S) {

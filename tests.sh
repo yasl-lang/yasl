@@ -94,11 +94,12 @@ run_cli_test () {
 
 run_cli_tests () {
     echo "Running CLI tests...";
-    run_cli_test 'YASL v0.13.1' '-V';
+    run_cli_test 'YASL v0.13.2' '-V';
     run_cli_test '10' '-e' "let x=10; x;";
     run_cli_test '' '-E' 'let x = 10; x;';
     run_cli_test '10' '-E' 'let x = 10; echo x;';
     run_cli_test "$usage" '-h';
+    # run_cli_test $'A = 10\nB = 11\n[test/inputs/syntax/ifdef_simple.yasl, a, b, c]' '-DA=10' '-DB=11' '-Duse_args=true' 'test/inputs/syntax/ifdef_simple.yasl' 'a' 'b' 'c'
 }
 
 run_tests inputs 0;

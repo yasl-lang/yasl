@@ -1,0 +1,13 @@
+ifdef A {
+    echo "A = #{A:r}"
+}
+
+ifdef B {
+    echo "B = #{B:r}"
+}
+
+ifdef use_args {
+    echo args
+}
+
+echo "done"

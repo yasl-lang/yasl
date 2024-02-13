@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define YASL_VERSION "v0.13.1"
+#define YASL_VERSION "v0.13.2"
 
 #define YASL_STR_NAME "str"
 #define YASL_FLOAT_NAME "float"
@@ -388,6 +388,14 @@ const char *YASL_peekntypename(struct YASL_State *S, unsigned n);
  * @return the type on top of the stack.
  */
 int YASL_peektype(struct YASL_State *S);
+
+/**
+ * [-0, +0]
+ * returns the type of object at index n.
+ * @param S the YASL_State.
+ * @return the type on top of the stack.
+ */
+int YASL_peekntype(struct YASL_State *S, unsigned n);
 
 /**
  * [-0, +0]
