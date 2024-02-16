@@ -94,7 +94,7 @@ run_cli_test () {
 
 run_cli_tests () {
     echo "Running CLI tests...";
-    run_cli_test 'YASL v0.13.2' '-V';
+    run_cli_test 'YASL v0.13.3' '-V';
     run_cli_test '10' '-e' "let x=10; x;";
     run_cli_test '' '-E' 'let x = 10; x;';
     run_cli_test '10' '-E' 'let x = 10; echo x;';

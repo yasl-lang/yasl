@@ -19,13 +19,11 @@
 
 extern int random_offset;
 
-extern int random_offset;
-
 // -b: run bytecode
 // -c: compile to bytecode
 static int main_help(int argc, char **argv) {
-	(void) argc;
-	(void) argv;
+	YASL_UNUSED(argc);
+	YASL_UNUSED(argv);
 	puts("usage: yasl [option] [input]\n"
 	     "options:\n"
 	     "\t-C: checks `input` for syntax errors but doesn't run it.\n"
@@ -39,13 +37,13 @@ static int main_help(int argc, char **argv) {
 }
 
 static int main_version(int argc, char **argv) {
-	(void) argc;
-	(void) argv;
+	YASL_UNUSED(argc);
+	YASL_UNUSED(argv);
 	puts(VERSION_PRINTOUT);
 	return 0;
 }
 
-static inline void main_init_platform() {
+static inline void main_init_platform(void) {
 	// Initialize prng seed
 	srand(time(NULL));
 	// random_offset = (size_t)rand();
@@ -55,6 +53,7 @@ static inline void main_init_platform() {
 	#endif
 }
 
+YASL_WARN_UNUSED
 static int main_file(int argc, char **argv) {
 	YASL_ByteBuffer *buffer = YASL_ByteBuffer_new(8);
 	struct YASL_State *S = YASL_newstate_bb(NULL, 0);
@@ -65,12 +64,12 @@ static int main_file(int argc, char **argv) {
 		const char *equals = strchr(argv[1], '=');
 		if (!equals) {
 			fprintf(stderr, "Error: Expected an initial value for variable: %s\n", argv[1] + 2);
-			exit(EXIT_FAILURE);
+			return YASL_ERROR;
 		}
 		const size_t len = equals - argv[1] -2;
 		if (len <= 0) {
 			fprintf(stderr, "Error: Non-empty name required for variable: %s\n", argv[1] + 2);
-			exit(EXIT_FAILURE);
+			return YASL_ERROR;
 		}
 		char *name = (char *)malloc(len + 1);
 		strncpy(name, argv[1] + 2, len);
@@ -83,7 +82,8 @@ static int main_file(int argc, char **argv) {
 		YASL_ByteBuffer_add_byte(buffer, '\n');
 		YASL_resetstate_bb(S, (char *)buffer->items, buffer->count);
 		buffer->count = 0;
-		YASL_execute(S);
+		int status = YASL_execute(S);
+		if (status) return status;
 
 		argc--;
 		argv++;
@@ -92,8 +92,8 @@ static int main_file(int argc, char **argv) {
 	int err = YASL_resetstate(S, argv[1]);
 
 	if (err) {
-		printf("ERROR: cannot open file (%s).\n", argv[argc-1]);
-		exit(EXIT_FAILURE);
+		fprintf(stderr, "Error: cannot open file (%s).\n", argv[argc-1]);
+		return err;
 	}
 
 	YASL_declglobal(S, "args");
@@ -112,13 +112,13 @@ static int main_file(int argc, char **argv) {
 	return status;
 }
 
+YASL_WARN_UNUSED
 static int main_compile(int argc, char **argv) {
-	(void) argc;
 	struct YASL_State *S = YASL_newstate(argv[2]);
 
 	if (!S) {
 		fprintf(stderr, "Error: cannot open file.");
-		exit(EXIT_FAILURE);
+		return YASL_ERROR;
 	}
 
 	// Load Standard Libraries
@@ -138,13 +138,13 @@ static int main_compile(int argc, char **argv) {
 	return status;
 }
 
+YASL_WARN_UNUSED
 static int main_gen_bytecode(int argc, char **argv) {
-	(void) argc;
 	struct YASL_State *S = YASL_newstate(argv[2]);
 
 	if (!S) {
 		fprintf(stderr, "Error: cannot open file.");
-		exit(EXIT_FAILURE);
+		return YASL_ERROR;
 	}
 
 	// Load Standard Libraries
@@ -159,14 +159,14 @@ static int main_gen_bytecode(int argc, char **argv) {
 	}
 	YASL_setglobal(S, "args");
 
-
 	YASL_delstate(S);
 
 	return status;
 }
 
+YASL_WARN_UNUSED
 static int main_command_REPL(int argc, char **argv) {
-	(void) argc;
+	YASL_UNUSED(argc);
 	const size_t size = strlen(argv[2]);
 	struct YASL_State *S = YASL_newstate_bb(argv[2], size);
 	YASLX_decllibs(S);
@@ -176,8 +176,8 @@ static int main_command_REPL(int argc, char **argv) {
 }
 
 static int YASL_quit(struct YASL_State *S) {
-	(void) S;
-	exit(0);
+	YASL_UNUSED(S);
+	exit(EXIT_SUCCESS);
 }
 
 
@@ -191,8 +191,9 @@ int execute_string(char *str) {
 }
 #endif
 
+YASL_WARN_UNUSED
 static int main_command(int argc, char **argv) {
-	(void) argc;
+	YASL_UNUSED(argc);
 	const size_t size = strlen(argv[2]);
 	struct YASL_State *S = YASL_newstate_bb(argv[2], size);
 	YASLX_decllibs(S);
@@ -202,8 +203,8 @@ static int main_command(int argc, char **argv) {
 }
 
 static int main_REPL(int argc, char **argv) {
-	(void) argc;
-	(void) argv;
+	YASL_UNUSED(argc);
+	YASL_UNUSED(argv);
 	int next;
 	YASL_ByteBuffer *buffer = YASL_ByteBuffer_new(8);
 	struct YASL_State *S = YASL_newstate_bb((const char *)buffer->items, 0);
