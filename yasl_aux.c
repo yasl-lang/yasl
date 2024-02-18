@@ -45,7 +45,7 @@ yasl_float YASLX_checknfloat(struct YASL_State *S, const char *name, unsigned n)
 
 bool YASLX_checknbool(struct YASL_State *S, const char *name, unsigned n) {
 	if (!YASL_isnbool(S, n)) {
-		YASLX_print_err_bad_arg_type(S, name, n, "bool", YASL_peektypename(S));
+		YASLX_print_err_bad_arg_type(S, name, n, "bool", YASL_peekntypename(S, n));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	return YASL_peeknbool(S, n);

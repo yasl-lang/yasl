@@ -376,14 +376,6 @@ void *YASL_peeknuserdata(struct YASL_State *S, unsigned n);
 
 /**
  * [-0, +0]
- * returns the type of index n as a string.
- * @param S the YASL_State.
- * @return the string representation of the type of index n.
- */
-const char *YASL_peekntypename(struct YASL_State *S, unsigned n);
-
-/**
- * [-0, +0]
  * returns the type of the top of the stack.
  * @param S the YASL_State.
  * @return the type on top of the stack.
@@ -405,6 +397,14 @@ int YASL_peekntype(struct YASL_State *S, unsigned n);
  * @return the string representation of the type on top of the stack.
  */
 const char *YASL_peektypename(struct YASL_State *S);
+
+/**
+ * [-0, +0]
+ * returns the type of index n as a string.
+ * @param S the YASL_State.
+ * @return the string representation of the type of index n.
+ */
+const char *YASL_peekntypename(struct YASL_State *S, unsigned n);
 
 /**
  * [-0, +0]

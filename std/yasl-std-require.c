@@ -143,7 +143,7 @@ static void *search_on_path(const char *path, const char *name, const char sep, 
 int YASL_require_c(struct YASL_State *S) {
 	// TODO: Do I need anything else here?
 	if (!YASL_isstr(S)) {
-		YASLX_print_err_bad_arg_type(S, "__require_c__", 0, YASL_STR_NAME, YASL_peektypename(S));
+		YASLX_print_err_bad_arg_type(S, "__require_c__", 0, YASL_STR_NAME, YASL_peekntypename(S, 0));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 

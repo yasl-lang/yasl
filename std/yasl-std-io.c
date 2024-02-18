@@ -49,13 +49,13 @@ static int YASL_io_open(struct YASL_State *S) {
 		mode_str[1] = tmp[1];
 		free(tmp);
 	} else {
-		vm_print_err_bad_arg_type_name((struct VM *)S, "io.open", 1, YASL_STR_NAME, YASL_peektypename(S));
+		vm_print_err_bad_arg_type_name((struct VM *)S, "io.open", 1, YASL_STR_NAME, YASL_peekntypename(S, 1));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	YASL_pop(S);
 
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type_name((struct VM *)S, "io.open", 0, YASL_STR_NAME, YASL_peektypename(S));
+		vm_print_err_bad_arg_type_name((struct VM *)S, "io.open", 0, YASL_STR_NAME, YASL_peekntypename(S, 0));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 
@@ -127,7 +127,7 @@ static int YASL_io_read(struct YASL_State *S) {
 		mode_str[0] = tmp[0];
 		free(tmp);
 	} else {
-		vm_print_err_bad_arg_type_name((struct VM *)S, FILE_PRE ".read", 1, YASL_STR_NAME, YASL_peektypename(S));
+		vm_print_err_bad_arg_type_name((struct VM *)S, FILE_PRE ".read", 1, YASL_STR_NAME, YASL_peekntypename(S, 1));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	YASL_pop(S);
@@ -175,7 +175,7 @@ static int YASL_io_write(struct YASL_State *S) {
 	FILE *f = YASLX_checknfile(S, FILE_PRE ".write", 0);
 
 	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type_name((struct VM *)S, FILE_PRE ".write", 1, YASL_STR_NAME, YASL_peektypename(S));
+		vm_print_err_bad_arg_type_name((struct VM *)S, FILE_PRE ".write", 1, YASL_STR_NAME, YASL_peekntypename(S, 1));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	char *str = YASL_peekcstr(S);

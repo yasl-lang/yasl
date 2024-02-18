@@ -261,16 +261,8 @@ const char *YASL_peektypename(struct YASL_State *S) {
 	return obj_typename(vm_peek_p(&S->vm));
 }
 
-const char *YASL_peektypestr(struct YASL_State *S) {
-	return YASL_peektypename(S);
-}
-
 const char *YASL_peekntypename(struct YASL_State *S, unsigned n) {
 	return obj_typename(vm_peek_p(&S->vm, S->vm.fp + 1 + n));
-}
-
-const char *YASL_peekntypestr(struct YASL_State *S, unsigned n) {
-	return YASL_peekntypename(S, n);
 }
 
 void *YASL_peekuserdata(struct YASL_State *S) {
@@ -297,28 +289,12 @@ void YASL_pushbool(struct YASL_State *S, bool value) {
 	vm_pushbool(&S->vm, value);
 }
 
-void YASL_pushliteralstring(struct YASL_State *S, char *value) {
-	vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized(strlen(value), value)));
-}
-
-void YASL_pushcstring(struct YASL_State *S, char *value) {
-	vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized(strlen(value), value)));
-}
-
 void YASL_pushuserdata(struct YASL_State *S, void *data, const char *tag, void (*destructor)(struct YASL_State *, void *)) {
 	vm_push(&S->vm, YASL_USERDATA(ud_new(data, tag, NULL, destructor)));
 }
 
 void YASL_pushuserptr(struct YASL_State *S, void *userpointer) {
 	vm_push((struct VM *) S, YASL_USERPTR(userpointer));
-}
-
-void YASL_pushszstring(struct YASL_State *S, const char *value) {
-	vm_pushstr((struct VM *) S, YASL_String_new_sized_heap(0, strlen(value), value));
-}
-
-void YASL_pushlitszstring(struct YASL_State *S, const char *value) {
-	YASL_pushlit(S, value);
 }
 
 void YASL_pushlit(struct YASL_State *S, const char *value) {
@@ -333,14 +309,6 @@ void YASL_pushlstr(struct YASL_State *S, const char *value, size_t len) {
 	char *buffer = (char *)malloc(len);
 	memcpy(buffer, value, len);
 	vm_pushstr((struct VM *)S, YASL_String_new_sized_heap(0, len, buffer));
-}
-
-void YASL_pushstring(struct YASL_State *S, const char *value, const size_t size) {
-	vm_pushstr((struct VM *) S, YASL_String_new_sized_heap(0, size, value));
-}
-
-void YASL_pushlitstring(struct YASL_State *S, const char *value, const size_t size) {
-	vm_pushstr((struct VM *) S, YASL_String_new_sized(size, value));
 }
 
 void YASL_pushcfunction(struct YASL_State *S, YASL_cfn value, int num_args) {

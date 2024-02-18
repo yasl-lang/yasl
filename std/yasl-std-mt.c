@@ -15,7 +15,7 @@ int YASL_mt_get(struct YASL_State *S) {
 
 int YASL_mt_set(struct YASL_State *S) {
 	if (!YASL_istable(S)) {
-		YASLX_print_err_bad_arg_type(S, "mt.set", 1, YASL_TABLE_NAME, YASL_peektypename(S));
+		YASLX_print_err_bad_arg_type(S, "mt.set", 1, YASL_TABLE_NAME, YASL_peekntypename(S, 1));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 
@@ -35,7 +35,7 @@ int YASL_mt_set(struct YASL_State *S) {
 
 int YASL_mt_setself(struct YASL_State *S) {
 	if (!YASL_istable(S)) {
-		YASLX_print_err_bad_arg_type(S, "mt.set", 1, YASL_TABLE_NAME, YASL_peektypename(S));
+		YASLX_print_err_bad_arg_type(S, "mt.set", 1, YASL_TABLE_NAME, YASL_peekntypename(S, 1));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 

@@ -310,13 +310,13 @@ int list_join(struct YASL_State *S) {
 		vm_pushstr((struct VM *)S, YASL_String_new_sized(0, ""));
 	}
 	if (!vm_isstr((struct VM *) S)) {
-		YASLX_print_err_bad_arg_type(S, "list.join", 1, "str", YASL_peektypename(S));
+		YASLX_print_err_bad_arg_type(S, "list.join", 1, "str", YASL_peekntypename(S, 1));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	struct YASL_String *string = vm_peekstr((struct VM *) S, S->vm.sp);
 	S->vm.sp--;
 	if (!YASL_isnlist(S, 0)) {
-		YASLX_print_err_bad_arg_type(S, "list.join", 0, "list", YASL_peektypename(S));
+		YASLX_print_err_bad_arg_type(S, "list.join", 0, "list", YASL_peekntypename(S, 0));
 		YASL_throw_err(S, YASL_TYPE_ERROR);
 	}
 	struct YASL_List *list = vm_peeklist((struct VM *) S, S->vm.sp);
