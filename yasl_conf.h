@@ -25,6 +25,12 @@
 #define YASL_NORETURN
 #endif
 
+#if defined __GNUC__ || defined __clang__
+#define YASL_WARN_UNUSED __attribute((warn_unused_result))
+#else
+#define YASL_WARN_UNUSED
+#endif  // defined __GNUC__ || defined __clang__
+
 #if defined(WIN32) || defined(_WIN32)
 #define YASL_USE_WIN
 #elif defined(__unix__)

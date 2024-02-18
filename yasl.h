@@ -313,12 +313,12 @@ bool YASL_peekbool(struct YASL_State *S);
 
 /**
  * [-0, +0]
- * Returns the int value of the top of the stack, if the top of the stack is an int.
+ * Returns a copy of the str value of the top of the stack, if the top of the stack is a str.
  * Otherwise returns 0. Does not modify the stack.
  * @param S the YASL_State.
- * @return the value of the int on top of the stack, or 0 if it's not an int.
+ * @return the value of the str on top of the stack, or NULL if it's not a str.
  */
-char *YASL_peekcstr(struct YASL_State *S);
+char *YASL_peekcstr(struct YASL_State *S) YASL_WARN_UNUSED;
 
 /**
  * [-0, +0]
@@ -449,7 +449,7 @@ bool YASL_popbool(struct YASL_State *S);
  * @param S the YASL_State.
  * @return the value of the str on top of the stack, or NULL if it's not a str.
  */
-char *YASL_popcstr(struct YASL_State *S);
+char *YASL_popcstr(struct YASL_State *S) YASL_WARN_UNUSED;
 
 /**
  * [-1, +0]
