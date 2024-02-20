@@ -200,16 +200,8 @@ static int YASL_io_flush(struct YASL_State *S) {
 }
 
 static int YASL_io_seek(struct YASL_State *S) {
-	yasl_int offset;
-	if (YASL_isundef(S)) {
-		offset = 0;
-		YASL_pop(S);
-	} else if ((YASL_isnint(S, 2))) {
-		offset = YASL_popint(S);
-	} else {
-		vm_print_err_type((struct VM *)S,"%s expected arg in position %d to be of type int, got arg of type %s.", FILE_PRE ".seek", 2, YASL_peektypename(S));
-		YASLX_throw_type_err(S);
-	}
+	yasl_int offset = YASLX_checknoptint(S, FILE_PRE ".seek", 2, 0);
+	YASL_pop(S);
 
 	int whence;
 	if (YASL_isundef(S)) {

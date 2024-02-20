@@ -81,6 +81,30 @@ void *YASLX_checknuserdata(struct YASL_State *S, const char *tag, const char *na
 	return YASL_peeknuserdata(S, n);
 }
 
+yasl_int YASLX_checknoptint(struct YASL_State *S, const char *fn_name, unsigned n, yasl_int default_val) {
+	if (YASL_isnundef(S, n)) {
+		return default_val;
+	}
+
+	return YASLX_checknint(S, fn_name, n);
+}
+
+yasl_float YASLX_checknoptfloat(struct YASL_State *S, const char *fn_name, unsigned n, yasl_float default_val) {
+	if (YASL_isnundef(S, n)) {
+		return default_val;
+	}
+
+	return YASLX_checknfloat(S, fn_name, n);
+}
+
+bool YASLX_checknoptbool(struct YASL_State *S, const char *fn_name, unsigned n, bool default_val) {
+	if (YASL_isnundef(S, n)) {
+		return default_val;
+	}
+
+	return YASLX_checknbool(S, fn_name, n);
+}
+
 static bool YASLX_functions_issentinal(struct YASLX_function functions) {
 	return functions.name == NULL && functions.fn == NULL && functions.args == 0;
 }
