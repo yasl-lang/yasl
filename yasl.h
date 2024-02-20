@@ -363,10 +363,22 @@ yasl_float YASL_peeknfloat(struct YASL_State *S, unsigned n);
  * [-0, +0]
  * Returns the int value at index n, if it is an int.
  * Otherwise returns 0. Does not modify the stack.
+ * The return value is owned by S, and modifying the stack may invalid the returned pointer.
  * @param S the YASL_State.
  * @return the value of the int at index n, or 0 if it's not an int.
  */
 yasl_int YASL_peeknint(struct YASL_State *S, unsigned n);
+
+/**
+ * [-0, +0]
+ * Returns the str value at index n, if it is a str.
+ * Otherwise returns NULL. Does not modify the stack.
+ * @param S the YASL_State.
+ * @param n the index of the stack to check.
+ * @outparam len the length of the string, filled only if the return value is non-NULL.
+ * @return the value of the str at index n, or NULL if it's not an str.
+ */
+const char *YASL_peeknstr(struct YASL_State *S, unsigned n, size_t *len);
 
 /**
  * [-0, +0]

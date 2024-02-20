@@ -38,10 +38,10 @@ static int YASL_io_open(struct YASL_State *S) {
 	char mode_str[3] = { '\0', '\0', '\0'};
 	if (YASL_isundef(S)) {
 		mode_str[0] = 'r';
-	} else if (YASL_isstr(S)) {
+	} else if (YASL_isnstr(S, 1)) {
 		char *tmp = YASL_peekcstr(S);
 		if (strlen(tmp) > 2 || strlen(tmp) < 1 || (strlen(tmp) == 2 && tmp[1] != '+')) {
-			vm_print_err_value((struct VM *)S, "io.open was passed invalid mode: %*s.", (int)strlen(tmp), tmp);
+			YASLX_print_value_err(S, "io.open was passed invalid mode: %*s.", (int)strlen(tmp), tmp);
 			free(tmp);
 			YASLX_throw_value_err(S);
 		}
@@ -49,18 +49,17 @@ static int YASL_io_open(struct YASL_State *S) {
 		mode_str[1] = tmp[1];
 		free(tmp);
 	} else {
-		vm_print_err_bad_arg_type_name((struct VM *)S, "io.open", 1, YASL_STR_NAME, YASL_peekntypename(S, 1));
+		YASLX_print_err_bad_arg_type_n(S, "io.open", 1, YASL_STR_NAME);
 		YASLX_throw_type_err(S);
 	}
 	YASL_pop(S);
 
-	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type_name((struct VM *)S, "io.open", 0, YASL_STR_NAME, YASL_peekntypename(S, 0));
+	if (!YASL_isnstr(S, 0)) {
+		YASLX_print_err_bad_arg_type_n(S, "io.open", 0, YASL_STR_NAME);
 		YASLX_throw_type_err(S);
 	}
 
 	char *filename_str = YASL_popcstr(S);
-
 
 	char mode_char = mode_str[0];
 
@@ -120,7 +119,7 @@ static int YASL_io_read(struct YASL_State *S) {
 	} else if (YASL_isstr(S)) {
 		char *tmp = YASL_peekcstr(S);
 		if (strlen(tmp) != 1) {
-			vm_print_err_value((struct VM *)S, FILE_PRE ".read was passed invalid mode: %*s.", (int)strlen(tmp), tmp);
+			YASLX_print_value_err(S, FILE_PRE ".read was passed invalid mode: %*s.", (int)strlen(tmp), tmp);
 			free(tmp);
 			YASLX_throw_value_err(S);
 		}
@@ -174,19 +173,17 @@ static int YASL_io_read(struct YASL_State *S) {
 static int YASL_io_write(struct YASL_State *S) {
 	FILE *f = YASLX_checknfile(S, FILE_PRE ".write", 0);
 
-	if (!YASL_isstr(S)) {
-		vm_print_err_bad_arg_type_name((struct VM *)S, FILE_PRE ".write", 1, YASL_STR_NAME, YASL_peekntypename(S, 1));
+	if (!YASL_isnstr(S, 1)) {
+		YASLX_print_err_bad_arg_type_n(S, FILE_PRE ".write", 1, YASL_STR_NAME);
 		YASLX_throw_type_err(S);
 	}
-	char *str = YASL_peekcstr(S);
-	YASL_len(S);
 
-	size_t len = (size_t)YASL_popint(S);
+	size_t len;
+	const char *str = YASL_peeknstr(S, 0, &len);
 
 	size_t write_len = fwrite(str, 1, len, f);
 
 	YASL_pushint(S, write_len);
-	free(str);
 	return 1;
 }
 

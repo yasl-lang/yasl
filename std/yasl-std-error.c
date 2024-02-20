@@ -8,14 +8,14 @@ int YASL_error(struct YASL_State *S) {
 		YASL_throw_err(S, YASL_ERROR);
 	}
 
-	char *str = YASL_peekcstr(S);
+	size_t len;
+	const char *str = YASL_peeknstr(S, 0, &len);
 	if (!str) {
 		YASLX_print_err_bad_arg_type(S, "error", 0, YASL_STR_NAME, YASL_peekntypename(S, 0));
 		YASLX_throw_type_err(S);
 	}
 
-	YASL_print_err(S, "Error: %s", str);
-	free(str);
+	YASL_print_err(S, "Error: %*s", (int)len, str);
 	YASL_throw_err(S, YASL_ERROR);
 }
 

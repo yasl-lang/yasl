@@ -553,6 +553,16 @@ yasl_int YASL_peeknint(struct YASL_State *S, unsigned n) {
 	return 0;
 }
 
+const char *YASL_peeknstr(struct YASL_State *S, unsigned n, size_t *len) {
+	if (YASL_isnstr(S, n)) {
+		struct YASL_String *s = vm_peekstr(&S->vm, S->vm.fp + 1 + n);
+		*len = YASL_String_len(s);
+		return YASL_String_chars(s);
+	}
+
+	return NULL;
+}
+
 yasl_int YASL_popint(struct YASL_State *S) {
 	if (vm_isint(&S->vm)) {
 		return vm_popint(&S->vm);
