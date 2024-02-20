@@ -406,7 +406,8 @@ int custom_comp(struct YASL_State *S, struct YASL_Object a, struct YASL_Object b
 	YASL_duptop(S);
 	vm_push((struct VM *)S, a);
 	vm_push((struct VM *)S, b);
-	YASL_functioncall(S, 2);
+	int num_returns = YASL_functioncall(S, 2);
+	YASL_UNUSED(num_returns);
 	if (!YASL_isbool(S)) {
 		YASL_print_err(S, "TypeError: Expected a function returning bool, got %s.", YASL_peektypename(S));
 		YASLX_throw_type_err(S);
@@ -416,7 +417,8 @@ int custom_comp(struct YASL_State *S, struct YASL_Object a, struct YASL_Object b
 	YASL_duptop(S);
 	vm_push((struct VM *)S, b);
 	vm_push((struct VM *)S, a);
-	YASL_functioncall(S, 2);
+	num_returns = YASL_functioncall(S, 2);
+	YASL_UNUSED(num_returns);
 	if (!YASL_isbool(S)) {
 		YASL_print_err(S, "TypeError: Expected a function returning bool, got %s.", YASL_peektypename(S));
 		YASLX_throw_type_err(S);

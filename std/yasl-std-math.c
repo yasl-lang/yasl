@@ -228,7 +228,7 @@ static int YASL_math_gcd(struct YASL_State *S) {
 }
 static int YASL_math_lcm(struct YASL_State *S) {
 	if (!YASL_isnnum(S, 1)) {
-		vm_print_err_bad_arg_type_name((struct VM*)S,"math.lcm", 1, YASL_FLOAT_NAME, YASL_peekntypename(S, 1));
+		vm_print_err_bad_arg_type_name((struct VM*)S,"math.lcm", 1, YASL_NUM_NAME, YASL_peekntypename(S, 1));
 		YASLX_throw_type_err(S);
 	}
 
@@ -240,7 +240,7 @@ static int YASL_math_lcm(struct YASL_State *S) {
 	}
 
 	if (!YASL_isnnum(S, 0)) {
-		vm_print_err_bad_arg_type_name((struct VM*)S,"math.lcm", 0, YASL_FLOAT_NAME, YASL_peekntypename(S, 0));
+		vm_print_err_bad_arg_type_name((struct VM*)S,"math.lcm", 0, YASL_NUM_NAME, YASL_peekntypename(S, 0));
 		YASLX_throw_type_err(S);
 	}
 
