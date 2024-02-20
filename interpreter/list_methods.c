@@ -15,7 +15,7 @@ static struct YASL_List *YASLX_checknlist(struct YASL_State *S, const char *name
 
 void list___get_helper(struct YASL_State *S, struct YASL_List *ls, yasl_int index) {
 	if (index < -(int64_t) ls->count || index >= (int64_t) ls->count) {
-		YASLX_print_and_throw_err_value(S, "unable to index list of length %" PRI_SIZET " with index %" PRI_SIZET ".", ls->count, index);
+		YASLX_print_and_throw_err_value(S, "unable to index list of length %" PRI_SIZET " with index %" "ld" ".", ls->count, (long)index);
 	} else {
 		if (index >= 0) {
 			vm_push((struct VM *) S, ls->items[index]);

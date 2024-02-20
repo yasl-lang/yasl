@@ -30,7 +30,7 @@ int str___get(struct YASL_State *S) {
 	if (index < -(yasl_int) YASL_String_len(str) ||
 		   index >= (yasl_int) YASL_String_len(
 			   str)) {
-		YASLX_print_and_throw_err_value(S, "unable to index str of length %" PRI_SIZET " with index %lld.", YASL_String_len(str), (long long)index);
+		YASLX_print_and_throw_err_value(S, "unable to index str of length %" PRI_SIZET " with index %ld.", YASL_String_len(str), (long)index);
 	} else {
 		if (index >= 0)
 			vm_push((struct VM *) S, YASL_STR(
@@ -346,7 +346,7 @@ int str_split(struct YASL_State *S) {
 	}
 
 	if (!YASL_isundef(S)) {
-		vm_print_err_type((struct VM *)S, "str.split expected an argument 2 to be of type int or undef, got %s.", YASL_peekntypename(S, 2));
+		YASLX_print_err_bad_arg_type_n(S, "str.split", 2, YASL_INT_NAME " or " YASL_UNDEF_NAME);
 		YASLX_throw_err_type(S);
 	}
 
