@@ -119,6 +119,17 @@ void YASLX_checknundef(struct YASL_State *S, const char *name, unsigned n);
 
 /**
  * [-0, +0]
+ * Returns the nth position of the stack if it is a str. Otherwise, causes a type error, along with a printed
+ * error message.
+ * @param S The YASL_State.
+ * @param name Name of the function in which this is called, used for error message.
+ * @param pos the position of the argument.
+ * @return the nth position of the stack if it's a str, otherwise no return.
+ */
+const char *YASLX_checknstr(struct YASL_State *S, const char *name, unsigned n, size_t *len);
+
+/**
+ * [-0, +0]
  * Returns the nth position of the stack if it is a userdata with a matching tag. Otherwise, causes a type error,
  * along with a printed error message.
  * @param S The YASL_State.

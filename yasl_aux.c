@@ -73,6 +73,14 @@ void YASLX_checknundef(struct YASL_State *S, const char *name, unsigned n) {
 	}
 }
 
+const char *YASLX_checknstr(struct YASL_State *S, const char *name, unsigned n, size_t *len) {
+	if (!YASL_isnstr(S, n)) {
+		YASLX_print_err_bad_arg_type_n(S, name, n, YASL_STR_NAME);
+		YASLX_throw_type_err(S);
+	}
+	return YASL_peeknstr(S, n, len);
+}
+
 void *YASLX_checknuserdata(struct YASL_State *S, const char *tag, const char *name, unsigned n) {
 	if (!YASL_isnuserdata(S, tag, n)) {
 		YASLX_print_err_bad_arg_type_n(S, name, n, tag);

@@ -7,15 +7,6 @@
 #include "yasl_aux.h"
 #include "yasl_include.h"
 
-static struct YASL_String *YASLX_checknstr(struct YASL_State *S, const char *name, unsigned pos) {
-	if (!YASL_isnstr(S, pos)) {
-		YASLX_print_err_bad_arg_type_n(S, name, pos, YASL_STR_NAME);
-		YASLX_throw_type_err(S);
-	}
-
-	return vm_peekstr((struct VM *)S, ((struct VM *)S)->fp + 1 + pos);
-}
-
 int int_tobool(struct YASL_State *S) {
 	YASL_UNUSED(YASLX_checknint(S, "int.tobool", 0));
 	YASL_pushbool(S, true);
@@ -41,13 +32,13 @@ int int_tostr(struct YASL_State *S) {
 
 	char format_char = 'd';
 	if (!YASL_isundef(S)) {
-		struct YASL_String *str = YASLX_checknstr(S, "int.tostr", 1);
-		if (YASL_String_len(str) != 1) {
-			YASLX_print_value_err(S, "Expected str of len 1, got str of len %" PRI_SIZET ".",
-				       YASL_String_len(str));
+		size_t len;
+		const char *str = YASLX_checknstr(S, "int.tostr", 1, &len);
+		if (len != 1) {
+			YASLX_print_value_err(S, "Expected str of len 1, got str of len %" PRI_SIZET ".", len);
 			YASLX_throw_value_err(S);
 		}
-		format_char = *YASL_String_chars(str);
+		format_char = *str;
 	}
 	char buffer[BUFF_LEN];
 
