@@ -5,6 +5,8 @@
 #include "yasl_conf.h"
 #include "yasl_include.h"
 
+#define iswhitespace(c) ((c) == ' ' || (c) == '\t' || (c) == '\n' || (c) == '\v' || (c) == '\r')
+
 struct YASL_List;
 
 struct YASL_String {
@@ -32,11 +34,6 @@ yasl_float YASL_String_tofloat(struct YASL_String *str);
 yasl_int YASL_String_toint(struct YASL_String *str);
 struct YASL_String *YASL_String_toupper(struct YASL_String *a);
 struct YASL_String *YASL_String_tolower(struct YASL_String *a);
-bool YASL_String_isalnum(struct YASL_String *a);
-bool YASL_String_isal(struct YASL_String *a);
-bool YASL_String_isnum(struct YASL_String *a);
-bool YASL_String_isprint(struct YASL_String *a);
-bool YASL_String_isspace(struct YASL_String *a);
 bool YASL_String_startswith(struct YASL_String *haystack, struct YASL_String *needle);
 bool YASL_String_endswith(struct YASL_String *haystack, struct YASL_String *needle);
 // Caller makes sure search_str is at least length 1.

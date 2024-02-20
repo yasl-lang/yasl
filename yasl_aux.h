@@ -30,7 +30,7 @@ void YASLX_initglobal(struct YASL_State *S, const char *name);
  * @param fmt a format string, taking the same parameters as printf.
  * @param ... var args for the above format string.
  */
-#define YASLX_print_value_err(S, ...) YASL_print_err(S, MSG_VALUE_ERROR __VA_ARGS__)
+#define YASLX_print_err_value(S, ...) YASL_print_err(S, MSG_VALUE_ERROR __VA_ARGS__)
 
 /**
  * [-0, +0]
@@ -51,7 +51,7 @@ void YASLX_print_err_bad_arg_type(struct YASL_State *S,
  * [-0, +0]
  * Prints an error message
  * @param S The YASL State.
- * @param fn_name name of the function in which the error occured.
+ * @param fn_name name of the function in which the error occurred.
  * @param position which arg had the wrong type.
  * @param exp expected type of the arg.
  */
@@ -63,16 +63,34 @@ void YASLX_print_err_bad_arg_type_n(struct YASL_State *S,
 /**
  * [-0, +0]
  * Causes a fatal value error.
- * @param S the YASL_State in which the error occured.
+ * @param S the YASL_State in which the error occurred.
  */
-YASL_NORETURN void YASLX_throw_value_err(struct YASL_State *S);
+YASL_NORETURN void YASLX_throw_err_value(struct YASL_State *S);
 
 /**
  * [-0, +0]
  * Causes a fatal value error.
- * @param S the YASL_State in which the error occured.
+ * @param S the YASL_State in which the error occurred.
  */
-YASL_NORETURN void YASLX_throw_type_err(struct YASL_State *S);
+YASL_NORETURN void YASLX_throw_err_type(struct YASL_State *S);
+
+/**
+ * [-0, +0]
+ * Prints an error message, then causes a fatal error.
+ * @param S the YASL State in which the error occurred.
+ */
+#define YASLX_print_and_throw_err_value(S, ...) do {\
+	YASLX_print_err_value(S, __VA_ARGS__);\
+	YASLX_throw_err_value(S);\
+} while (0)
+
+/**
+ * [-0, +0]
+ * Prints an error message, then causes a fatal error.
+ * @param S the YASL State in which the error occurred.
+ */
+YASL_NORETURN void YASLX_print_and_throw_err_bad_arg_type_n(struct YASL_State *S, const char *fn, unsigned n, const char *exp);
+
 
 /**
  * [-0, +0]
@@ -166,7 +184,7 @@ yasl_float YASLX_checknoptfloat(struct YASL_State *S, const char *name, unsigned
 
 /**
  * [-0, +0]
- * Returns the nth position of the stack if it is an bool, or default_val if the nth position is undef.
+ * Returns the nth position of the stack if it is a bool, or default_val if the nth position is undef.
  * Otherwise, causes a type error, along with a printed error message.
  * @param S The YASL_State.
  * @param name Name of the function in which this is called, used for error message.

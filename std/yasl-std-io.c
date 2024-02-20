@@ -16,15 +16,14 @@ static const char *const FILE_NAME = "io.file";
 static FILE *YASLX_checkfile(struct YASL_State *S, const char *name, int pos) {
 	if (!YASL_isuserdata(S, FILE_NAME)) {
 		YASLX_print_err_bad_arg_type(S, name, pos, FILE_NAME, YASL_peektypename(S));
-		YASLX_throw_type_err(S);
+		YASLX_throw_err_type(S);
 	}
 	return (FILE *)YASL_popuserdata(S);
 }
 
 static FILE *YASLX_checknfile(struct YASL_State *S, const char *name, unsigned pos) {
 	if (!YASL_isnuserdata(S, FILE_NAME, pos)) {
-		YASLX_print_err_bad_arg_type_n(S, name, pos, FILE_NAME);
-		YASLX_throw_type_err(S);
+		YASLX_print_and_throw_err_bad_arg_type_n(S, name, pos, FILE_NAME);
 	}
 	return (FILE *)YASL_peeknuserdata(S, pos);
 }
@@ -41,22 +40,20 @@ static int YASL_io_open(struct YASL_State *S) {
 	} else if (YASL_isnstr(S, 1)) {
 		char *tmp = YASL_peekcstr(S);
 		if (strlen(tmp) > 2 || strlen(tmp) < 1 || (strlen(tmp) == 2 && tmp[1] != '+')) {
-			YASLX_print_value_err(S, "io.open was passed invalid mode: %*s.", (int)strlen(tmp), tmp);
+			YASLX_print_err_value(S, "io.open was passed invalid mode: %*s.", (int)strlen(tmp), tmp);
 			free(tmp);
-			YASLX_throw_value_err(S);
+			YASLX_throw_err_value(S);
 		}
 		mode_str[0] = tmp[0];
 		mode_str[1] = tmp[1];
 		free(tmp);
 	} else {
-		YASLX_print_err_bad_arg_type_n(S, "io.open", 1, YASL_STR_NAME);
-		YASLX_throw_type_err(S);
+		YASLX_print_and_throw_err_bad_arg_type_n(S, "io.open", 1, YASL_STR_NAME);
 	}
 	YASL_pop(S);
 
 	if (!YASL_isnstr(S, 0)) {
-		YASLX_print_err_bad_arg_type_n(S, "io.open", 0, YASL_STR_NAME);
-		YASLX_throw_type_err(S);
+		YASLX_print_and_throw_err_bad_arg_type_n(S, "io.open", 0, YASL_STR_NAME);
 	}
 
 	char *filename_str = YASL_popcstr(S);
@@ -78,8 +75,7 @@ static int YASL_io_open(struct YASL_State *S) {
 		default:
 			// invalid mode;
 			free(filename_str);
-			vm_print_err_value((struct VM *)S, "io.open was passed invalid mode: %c.", mode_char);
-			YASLX_throw_value_err(S);
+			YASLX_print_and_throw_err_value(S, "io.open was passed invalid mode: %c.", mode_char);
 		}
 	}
 	if (strlen(mode_str) == 2) {
@@ -96,8 +92,7 @@ static int YASL_io_open(struct YASL_State *S) {
 		default:
 			// invalid mode;
 			free(filename_str);
-			vm_print_err_value((struct VM *)S, "io.open was passed invalid mode: %c+.", mode_char);
-			YASLX_throw_value_err(S);
+			YASLX_print_and_throw_err_value(S, "io.open was passed invalid mode: %c+.", mode_char);
 		}
 	}
 	if (f) {
@@ -119,15 +114,15 @@ static int YASL_io_read(struct YASL_State *S) {
 	} else if (YASL_isstr(S)) {
 		char *tmp = YASL_peekcstr(S);
 		if (strlen(tmp) != 1) {
-			YASLX_print_value_err(S, FILE_PRE ".read was passed invalid mode: %*s.", (int)strlen(tmp), tmp);
+			YASLX_print_err_value(S, FILE_PRE ".read was passed invalid mode: %*s.", (int)strlen(tmp), tmp);
 			free(tmp);
-			YASLX_throw_value_err(S);
+			YASLX_throw_err_value(S);
 		}
 		mode_str[0] = tmp[0];
 		free(tmp);
 	} else {
-		vm_print_err_bad_arg_type_name((struct VM *)S, FILE_PRE ".read", 1, YASL_STR_NAME, YASL_peekntypename(S, 1));
-		YASLX_throw_type_err(S);
+		YASLX_print_err_bad_arg_type(S, FILE_PRE ".read", 1, YASL_STR_NAME, YASL_peekntypename(S, 1));
+		YASLX_throw_err_type(S);
 	}
 	YASL_pop(S);
 
@@ -165,8 +160,7 @@ static int YASL_io_read(struct YASL_State *S) {
 		return 1;
 	}
 	default:
-		vm_print_err_value((struct VM *)S, FILE_PRE ".read was passed invalid mode: %c.", mode_str[0]);
-		YASLX_throw_value_err(S);
+		YASLX_print_and_throw_err_value(S, FILE_PRE ".read was passed invalid mode: %c.", mode_str[0]);
 	}
 }
 
@@ -174,8 +168,7 @@ static int YASL_io_write(struct YASL_State *S) {
 	FILE *f = YASLX_checknfile(S, FILE_PRE ".write", 0);
 
 	if (!YASL_isnstr(S, 1)) {
-		YASLX_print_err_bad_arg_type_n(S, FILE_PRE ".write", 1, YASL_STR_NAME);
-		YASLX_throw_type_err(S);
+		YASLX_print_and_throw_err_bad_arg_type_n(S, FILE_PRE ".write", 1, YASL_STR_NAME);
 	}
 
 	size_t len;
@@ -212,12 +205,12 @@ static int YASL_io_seek(struct YASL_State *S) {
 		else {
 			vm_print_err_value((struct VM *)S, "%s expected arg in position 1 to be one of 'set', 'cur', or 'end', got '%s'.", FILE_PRE ".seek", tmp);
 			free(tmp);
-			YASLX_throw_value_err(S);
+			YASLX_throw_err_value(S);
 		}
 		free(tmp);
 	} else {
-		vm_print_err_bad_arg_type_name((struct VM *)S, FILE_PRE ".seek", 1, YASL_STR_NAME, YASL_peektypename(S));
-		YASLX_throw_type_err(S);
+		YASLX_print_err_bad_arg_type(S, FILE_PRE ".seek", 1, YASL_STR_NAME, YASL_peektypename(S));
+		YASLX_throw_err_type(S);
 	}
 
 	FILE *f = YASLX_checkfile(S, FILE_PRE ".seek", 0);

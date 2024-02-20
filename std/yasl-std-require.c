@@ -33,8 +33,7 @@ static struct YASL_State *open_on_path(const char *path, const char *name, const
 
 int YASL_require(struct YASL_State *S) {
 	if (!YASL_isnstr(S, 0)) {
-		YASLX_print_err_bad_arg_type_n(S, "require", 0, YASL_STR_NAME);
-		YASLX_throw_type_err(S);
+		YASLX_print_and_throw_err_bad_arg_type_n(S, "require", 0, YASL_STR_NAME);
 	}
 
 	char *mode_str = YASL_popcstr(S);
@@ -142,8 +141,7 @@ static void *search_on_path(const char *path, const char *name, const char sep, 
 int YASL_require_c(struct YASL_State *S) {
 	// TODO: Do I need anything else here?
 	if (!YASL_isnstr(S, 0)) {
-		YASLX_print_err_bad_arg_type_n(S, "__require_c__", 0, YASL_STR_NAME);
-		YASLX_throw_type_err(S);
+		YASLX_print_and_throw_err_bad_arg_type_n(S, "__require_c__", 0, YASL_STR_NAME);
 	}
 
 	char *path = YASL_popcstr(S);
@@ -171,13 +169,11 @@ int YASL_require_c(struct YASL_State *S) {
 	void *lib = search_on_path(YASL_DEFAULT_CPATH, path, YASL_PATH_MARK, YASL_PATH_SEP);
 	free(path);
 	if (!lib) {
-		YASLX_print_value_err(S, "%s\n", dlerror());
-		YASLX_throw_value_err(S);
+		YASLX_print_and_throw_err_value(S, "%s\n", dlerror());
 	}
 	YASL_cfn fun = (YASL_cfn) dlsym(lib, LOAD_LIB_FUN_NAME);
 	if (!fun) {
-		YASLX_print_value_err(S, "%s\n", dlerror());
-		YASLX_throw_value_err(S);
+		YASLX_print_and_throw_err_value(S, "%s\n", dlerror());
 	}
 	fun(S);
 #else

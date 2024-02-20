@@ -1,6 +1,8 @@
 #include "yasl_aux.h"
 #include "yasl_include.h"
 
+#include <string.h>
+
 int YASLX_decllibs(struct YASL_State *S) {
 	YASL_decllib_collections(S);
 	YASL_decllib_error(S);
@@ -34,57 +36,59 @@ void YASLX_print_err_bad_arg_type_n(struct YASL_State *S,
 	YASL_print_err(S, MSG_TYPE_ERROR "%s expected arg in position %d to be of type %s, got arg of type %s.", fn_name, position, exp, YASL_peekntypename(S, position));
 }
 
-void YASLX_throw_type_err(struct YASL_State *S) {
+void YASLX_throw_err_type(struct YASL_State *S) {
 	YASL_throw_err(S, YASL_TYPE_ERROR);
 }
 
-void YASLX_throw_value_err(struct YASL_State *S) {
+void YASLX_throw_err_value(struct YASL_State *S) {
 	YASL_throw_err(S, YASL_VALUE_ERROR);
+}
+
+void YASLX_print_and_throw_err_bad_arg_type_n(struct YASL_State *S,
+				    const char *const fn_name,
+				    unsigned position,
+				    const char *const exp) {
+	YASLX_print_err_bad_arg_type_n(S, fn_name, position, exp);
+	YASLX_throw_err_type(S);
 }
 
 yasl_int YASLX_checknint(struct YASL_State *S, const char *name, unsigned n) {
 	if (!YASL_isnint(S, n)) {
-		YASLX_print_err_bad_arg_type_n(S, name, n, YASL_INT_NAME);
-		YASLX_throw_type_err(S);
+		YASLX_print_and_throw_err_bad_arg_type_n(S, name, n, YASL_INT_NAME);
 	}
 	return YASL_peeknint(S, n);
 }
 
 yasl_float YASLX_checknfloat(struct YASL_State *S, const char *name, unsigned n) {
 	if (!YASL_isnfloat(S, n)) {
-		YASLX_print_err_bad_arg_type_n(S, name, n, YASL_FLOAT_NAME);
-		YASLX_throw_type_err(S);
+		YASLX_print_and_throw_err_bad_arg_type_n(S, name, n, YASL_FLOAT_NAME);
 	}
 	return YASL_peeknfloat(S, n);
 }
 
 bool YASLX_checknbool(struct YASL_State *S, const char *name, unsigned n) {
 	if (!YASL_isnbool(S, n)) {
-		YASLX_print_err_bad_arg_type_n(S, name, n, YASL_BOOL_NAME);
-		YASLX_throw_type_err(S);
+		YASLX_print_and_throw_err_bad_arg_type_n(S, name, n, YASL_BOOL_NAME);
 	}
 	return YASL_peeknbool(S, n);
 }
 
 void YASLX_checknundef(struct YASL_State *S, const char *name, unsigned n) {
 	if (!YASL_isnundef(S, n)) {
-		YASLX_print_err_bad_arg_type_n(S, name, n, YASL_UNDEF_NAME);
-		YASLX_throw_type_err(S);
+		YASLX_print_and_throw_err_bad_arg_type_n(S, name, n, YASL_UNDEF_NAME);
 	}
 }
 
 const char *YASLX_checknstr(struct YASL_State *S, const char *name, unsigned n, size_t *len) {
 	if (!YASL_isnstr(S, n)) {
-		YASLX_print_err_bad_arg_type_n(S, name, n, YASL_STR_NAME);
-		YASLX_throw_type_err(S);
+		YASLX_print_and_throw_err_bad_arg_type_n(S, name, n, YASL_STR_NAME);
 	}
 	return YASL_peeknstr(S, n, len);
 }
 
 void *YASLX_checknuserdata(struct YASL_State *S, const char *tag, const char *name, unsigned n) {
 	if (!YASL_isnuserdata(S, tag, n)) {
-		YASLX_print_err_bad_arg_type_n(S, name, n, tag);
-		YASLX_throw_type_err(S);
+		YASLX_print_and_throw_err_bad_arg_type_n(S, name, n, tag);
 	}
 	return YASL_peeknuserdata(S, n);
 }

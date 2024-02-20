@@ -35,8 +35,7 @@ int int_tostr(struct YASL_State *S) {
 		size_t len;
 		const char *str = YASLX_checknstr(S, "int.tostr", 1, &len);
 		if (len != 1) {
-			YASLX_print_value_err(S, "Expected str of len 1, got str of len %" PRI_SIZET ".", len);
-			YASLX_throw_value_err(S);
+			YASLX_print_and_throw_err_value(S, "Expected str of len 1, got str of len %" PRI_SIZET ".", len);
 		}
 		format_char = *str;
 	}
@@ -64,8 +63,7 @@ int int_tostr(struct YASL_State *S) {
 		len += 2;
 		break;
 	default:
-		YASLX_print_value_err(S, "Unexpected format str: '%c'.", format_char);
-		YASLX_throw_value_err(S);
+		YASLX_print_and_throw_err_value(S, "Unexpected format str: '%c'.", format_char);
 	}
 
 	YASL_pushlstr(S, curr, len);
@@ -76,8 +74,7 @@ int int_tochar(struct YASL_State *S) {
 	yasl_int n = YASLX_checknint(S, "int.tochar", 0);
 	// TODO: make this more portable.
 	if (n > 255 || n < 0) {
-		YASLX_print_value_err(S, "int.tochar was used with an invalid value (%" PRId64 ").", n);
-		YASLX_throw_value_err(S);
+		YASLX_print_and_throw_err_value(S, "int.tochar was used with an invalid value (%" PRId64 ").", n);
 	}
 	char v = (char)n;
 	YASL_pushlstr(S, &v, 1);

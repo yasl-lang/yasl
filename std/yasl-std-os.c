@@ -6,8 +6,7 @@
 
 static int YASL_os_getenv(struct YASL_State *S) {
 	if (!YASL_isstr(S)) {
-		YASL_print_err(S, "TypeError: expected str, got %s.", YASL_peekntypename(S, 0));
-		YASLX_throw_type_err(S);
+		YASLX_print_and_throw_err_bad_arg_type_n(S, "os.getenv", 0, YASL_STR_NAME);
 	}
 
 	char *name = YASL_popcstr(S);
@@ -37,8 +36,7 @@ static int YASL_os_clock(struct YASL_State *S) {
 
 static int YASL_os_command(struct YASL_State *S) {
 	if (!YASL_isstr(S) && !YASL_isundef(S)) {
-		YASL_print_err(S, "TypeError: expected str or undef, got %s.", YASL_peekntypename(S, 0));
-		YASLX_throw_type_err(S);
+		YASLX_print_and_throw_err_bad_arg_type_n(S, "os.command", 0, YASL_STR_NAME " or " YASL_UNDEF_NAME);
 	}
 
 	if (YASL_isundef(S)) {

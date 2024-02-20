@@ -11,8 +11,6 @@
 #include "interpreter/YASL_Object.h"
 #include "data-structures/YASL_ByteBuffer.h"
 
-#define iswhitespace(c) ((c) == ' ' || (c) == '\t' || (c) == '\n' || (c) == '\v' || (c) == '\r')
-
 size_t YASL_String_len(const struct YASL_String *const str) {
 	return (size_t)(str->end - str->start);
 }
@@ -286,26 +284,6 @@ yasl_int YASL_String_toint(struct YASL_String *str) {
 DEFINE_STR_TO_X(upper, UPPER);
 DEFINE_STR_TO_X(lower, LOWER);
 
-/* Iterates through the string and checks each character against a predicate. */
-#define DEFINE_STR_IS_X(name, fun) bool YASL_String_##name(struct YASL_String *a) {\
-	const size_t length = YASL_String_len(a);\
-	const char *chars = YASL_String_chars(a);\
-	size_t i = 0;\
-	char curr;\
-	while (i < length) {\
-		curr = chars[i++];\
-		if (!fun(curr)) \
-			return false;\
-	}\
-	return true;\
-}
-
-DEFINE_STR_IS_X(isal, isalpha);
-DEFINE_STR_IS_X(isnum, isdigit);
-DEFINE_STR_IS_X(isalnum, isalnum);
-DEFINE_STR_IS_X(isprint, isprint);
-DEFINE_STR_IS_X(isspace, iswhitespace);
-
 bool YASL_String_startswith(struct YASL_String *haystack, struct YASL_String *needle) {
 	const size_t needle_len = YASL_String_len(needle);
 	const char *haystack_chars = YASL_String_chars(haystack);
@@ -433,7 +411,6 @@ yasl_int YASL_String_count(struct YASL_String *haystack, struct YASL_String *nee
 		POST;\
 	}
 
-
 void YASL_String_split_default(struct YASL_List *data, struct YASL_String *haystack) {
 	DEF_STR_SPLIT_DEFAULT(true, {});
 }
@@ -443,6 +420,7 @@ void YASL_String_split_default_max(struct YASL_List *data, struct YASL_String *h
 	DEF_STR_SPLIT_DEFAULT(max_splits > 0, max_splits--);
 	start = end;
 	end = haystack_len;
+	if (start >= end) return;
 	struct YASL_Object to = YASL_STR(\
 			YASL_String_new_substring(start + haystack->start, end + haystack->start, haystack));
 	YASL_List_push(data, to);
