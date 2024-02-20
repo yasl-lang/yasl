@@ -4,12 +4,14 @@
 #include <inttypes.h>
 
 #if defined __GNUC__ || defined __clang__
-#define YASL_DEPRECATE __attribute__((deprecated))
+#define YASL_DEPRECATED __attribute__((deprecated))
 #elif defined _MSC_VER
-#define YASL_DEPRECATE __declspec(deprecated)
+#define YASL_DEPRECATED __declspec(deprecated)
 #else
-#define YASL_DEPRECATE
+#define YASL_DEPRECATED
 #endif
+
+#define YASL_DEPRECATE YASL_DEPRECATED
 
 #if defined __GNUC__ || defined __clang__
 #define YASL_FORMAT_CHECK __attribute__((format (printf, 2, 3)))

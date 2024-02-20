@@ -26,7 +26,7 @@ static int YASL_collections_set_fromlist(struct YASL_State *S) {
 			YASL_Set_del(S, set);
 			vm_print_err_type(&S->vm, "unable to use mutable object of type %s as key.",
 					  YASL_peektypename(S));
-			YASL_throw_err(S, YASL_TYPE_ERROR);
+			YASLX_throw_type_err(S);
 		}
 		YASL_pop(S);
 	}
@@ -49,7 +49,7 @@ static int YASL_collections_set_new(struct YASL_State *S) {
 			YASL_Set_del(S, set);
 			vm_print_err_type(&S->vm, "unable to use mutable object of type %s as key.",
 					  YASL_peektypename(S));
-			YASL_throw_err(S, YASL_TYPE_ERROR);
+			YASLX_throw_type_err(S);
 		}
 		YASL_pop(S);
 	}
@@ -87,7 +87,7 @@ static int YASL_collections_table_new(struct YASL_State *S) {
 			rcht_del(table);
 			vm_print_err_type(&S->vm, "unable to use mutable object of type %s as key.",
 					  obj_typename(&key));
-			YASL_throw_err(S, YASL_TYPE_ERROR);
+			YASLX_throw_type_err(S);
 		}
 		i -= 2;
 	}
@@ -264,7 +264,7 @@ static int YASL_collections_set_add(struct YASL_State *S) {
 
 	if (!YASL_Set_insert(set, val)) {
 		vm_print_err_type(&S->vm, "unable to use mutable object of type %s as key.", obj_typename(&val));
-		YASL_throw_err(S, YASL_TYPE_ERROR);
+		YASLX_throw_type_err(S);
 	}
 	return 1;
 }
@@ -373,17 +373,15 @@ int YASL_decllib_collections(struct YASL_State *S) {
 	YASLX_initglobal(S, "collections");
 
 	YASL_loadglobal(S, "collections");
-	YASL_pushlit(S, "set");
-	YASL_pushcfunction(S, YASL_collections_set_new, -1);
-	YASL_tableset(S);
 
-	YASL_pushlit(S, "list");
-	YASL_pushcfunction(S, YASL_collections_list_new, -1);
-	YASL_tableset(S);
+	struct YASLX_function constructors[] = {
+		{ "set", &YASL_collections_set_new, -1 },
+		{ "list", &YASL_collections_list_new, -1 },
+		{ "table", &YASL_collections_table_new, -1 },
+		{ NULL, NULL, 0}
+	};
 
-	YASL_pushlit(S, "table");
-	YASL_pushcfunction(S, YASL_collections_table_new, -1);
-	YASL_tableset(S);
+	YASLX_tablesetfunctions(S, constructors);
 	YASL_pop(S);
 
 	return YASL_SUCCESS;

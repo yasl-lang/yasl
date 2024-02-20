@@ -9,7 +9,7 @@ static struct YASL_Table *YASLX_checkntable(struct YASL_State *S, const char *na
 	if (!YASL_isntable(S, pos)) {
 		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type table, got arg of type %s.",
 				  name, pos, YASL_peekntypename(S, pos));
-		YASL_throw_err(S, YASL_TYPE_ERROR);
+		YASLX_throw_type_err(S);
 	}
 	return (struct YASL_Table *)YASL_peeknuserdata(S, pos);
 }
@@ -120,7 +120,7 @@ int table___set(struct YASL_State *S) {
 
 	if (!YASL_Table_insert(ht, key, val)) {
 		vm_print_err_type(&S->vm, "unable to use mutable object of type %s as key.", obj_typename(&key));
-		YASL_throw_err(S, YASL_TYPE_ERROR);
+		YASLX_throw_type_err(S);
 	}
 	return 1;
 }
@@ -250,7 +250,7 @@ int table_remove(struct YASL_State *S) {
 	struct YASL_Object key = vm_pop((struct VM *) S);
 	if (!YASL_istable(S)) {
 		YASLX_print_err_bad_arg_type(S, "table.remove", 0, "table", YASL_peekntypename(S, 0));
-		YASL_throw_err(S, YASL_TYPE_ERROR);
+		YASLX_throw_type_err(S);
 	}
 	struct YASL_Table *ht = YASL_GETTABLE(vm_peek((struct VM *) S));
 
@@ -273,7 +273,7 @@ int table_copy(struct YASL_State *S) {
 int table_clear(struct YASL_State *S) {
 	if (!YASL_istable(S)) {
 		YASLX_print_err_bad_arg_type(S, "table.clear", 0, "table", YASL_peekntypename(S, 0));
-		YASL_throw_err(S, YASL_TYPE_ERROR);
+		YASLX_throw_type_err(S);
 	}
 	struct YASL_Table *ht = YASL_GETTABLE(vm_peek((struct VM *) S));
 	inc_ref(&vm_peek((struct VM *) S));

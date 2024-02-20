@@ -27,41 +27,56 @@ void YASLX_print_err_bad_arg_type(struct YASL_State *S,
 	YASL_print_err(S, MSG_TYPE_ERROR "%s expected arg in position %d to be of type %s, got arg of type %s.", fn_name, position, exp, act);
 }
 
+void YASLX_print_err_bad_arg_type_n(struct YASL_State *S,
+				const char *const fn_name,
+				unsigned position,
+				const char *const exp) {
+	YASLX_print_err_bad_arg_type(S, fn_name, position, exp, YASL_peekntypename(S, position));
+}
+
+void YASLX_throw_type_err(struct YASL_State *S) {
+	YASL_throw_err(S, YASL_TYPE_ERROR);
+}
+
+void YASLX_throw_value_err(struct YASL_State *S) {
+	YASL_throw_err(S, YASL_VALUE_ERROR);
+}
+
 yasl_int YASLX_checknint(struct YASL_State *S, const char *name, unsigned n) {
 	if (!YASL_isnint(S, n)) {
-		YASLX_print_err_bad_arg_type(S, name, n, "int", YASL_peekntypename(S, n));
-		YASL_throw_err(S, YASL_TYPE_ERROR);
+		YASLX_print_err_bad_arg_type_n(S, name, n, YASL_INT_NAME);
+		YASLX_throw_type_err(S);
 	}
 	return YASL_peeknint(S, n);
 }
 
 yasl_float YASLX_checknfloat(struct YASL_State *S, const char *name, unsigned n) {
 	if (!YASL_isnfloat(S, n)) {
-		YASLX_print_err_bad_arg_type(S, name, n, "float", YASL_peekntypename(S, n));
-		YASL_throw_err(S, YASL_TYPE_ERROR);
+		YASLX_print_err_bad_arg_type_n(S, name, n, YASL_FLOAT_NAME);
+		YASLX_throw_type_err(S);
 	}
 	return YASL_peeknfloat(S, n);
 }
 
 bool YASLX_checknbool(struct YASL_State *S, const char *name, unsigned n) {
 	if (!YASL_isnbool(S, n)) {
-		YASLX_print_err_bad_arg_type(S, name, n, "bool", YASL_peekntypename(S, n));
-		YASL_throw_err(S, YASL_TYPE_ERROR);
+		YASLX_print_err_bad_arg_type_n(S, name, n, YASL_BOOL_NAME);
+		YASLX_throw_type_err(S);
 	}
 	return YASL_peeknbool(S, n);
 }
 
 void YASLX_checknundef(struct YASL_State *S, const char *name, unsigned n) {
 	if (!YASL_isnundef(S, n)) {
-		YASLX_print_err_bad_arg_type(S, name, n, "undef", YASL_peekntypename(S, n));
-		YASL_throw_err(S, YASL_TYPE_ERROR);
+		YASLX_print_err_bad_arg_type_n(S, name, n, YASL_UNDEF_NAME);
+		YASLX_throw_type_err(S);
 	}
 }
 
 void *YASLX_checknuserdata(struct YASL_State *S, const char *tag, const char *name, unsigned n) {
 	if (!YASL_isnuserdata(S, tag, n)) {
-		YASLX_print_err_bad_arg_type(S, name, n, tag, YASL_peekntypename(S, n));
-		YASL_throw_err(S, YASL_TYPE_ERROR);
+		YASLX_print_err_bad_arg_type_n(S, name, n, tag);
+		YASLX_throw_type_err(S);
 	}
 	return YASL_peeknuserdata(S, n);
 }

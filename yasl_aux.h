@@ -16,15 +16,25 @@
 int YASLX_decllibs(struct YASL_State *S);
 
 /**
+ * [-1, +0]
  * Declares a global and initializes it with the top value from the stack.
  * @param S the YASL_State.
  * @param name name of the global (nul-terminated).
- * @return
  */
 void YASLX_initglobal(struct YASL_State *S, const char *name);
 
 /**
- * Prints an error message
+ * [-0, +0]
+ * Prints an error message for bad value.
+ * @param S The YASL State.
+ * @param fmt a format string, taking the same parameters as printf.
+ * @param ... var args for the above format string.
+ */
+#define YASLX_print_value_err(S, ...) YASL_print_err(S, MSG_VALUE_ERROR __VA_ARGS__)
+
+/**
+ * [-0, +0]
+ * Prints an error message for bad argument type.
  * @param S The YASL State.
  * @param fn_name name of the function in which the error occured.
  * @param position which arg had the wrong type.
@@ -36,6 +46,33 @@ void YASLX_print_err_bad_arg_type(struct YASL_State *S,
 				 int position,
 				 const char *const exp,
 				 const char *const act);
+
+/**
+ * [-0, +0]
+ * Prints an error message
+ * @param S The YASL State.
+ * @param fn_name name of the function in which the error occured.
+ * @param position which arg had the wrong type.
+ * @param exp expected type of the arg.
+ */
+void YASLX_print_err_bad_arg_type_n(struct YASL_State *S,
+				const char *const fn_name,
+				unsigned position,
+				const char *exp);
+
+/**
+ * [-0, +0]
+ * Causes a fatal value error.
+ * @param S the YASL_State in which the error occured.
+ */
+YASL_NORETURN void YASLX_throw_value_err(struct YASL_State *S);
+
+/**
+ * [-0, +0]
+ * Causes a fatal value error.
+ * @param S the YASL_State in which the error occured.
+ */
+YASL_NORETURN void YASLX_throw_type_err(struct YASL_State *S);
 
 /**
  * Returns the nth position of the stack if it is an int. Otherwise, causes a type error,

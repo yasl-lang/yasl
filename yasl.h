@@ -12,7 +12,10 @@
 #define YASL_STR_NAME "str"
 #define YASL_FLOAT_NAME "float"
 #define YASL_INT_NAME "int"
+#define YASL_BOOL_NAME "bool"
+#define YASL_LIST_NAME "list"
 #define YASL_TABLE_NAME "table"
+#define YASL_UNDEF_NAME "undef"
 
 struct YASL_State;
 
@@ -91,7 +94,7 @@ int YASL_execute_REPL(struct YASL_State *S);
  * @param n
  * @return r, the number of return values of the called functions
  */
-int YASL_functioncall(struct YASL_State *S, int n);
+int YASL_functioncall(struct YASL_State *S, int n) YASL_WARN_UNUSED;
 
 /**
  * [-0, +0]
@@ -252,7 +255,7 @@ void YASL_len(struct YASL_State *S);
  * Indexes the list on top of the stack and pushes the result on top of the stack.
  * @param S the YASL_State.
  * @param n the index to use on the list.
- * @return YASL_SUCCESS on
+ * @return YASL_SUCCESS if successful, otherwise an error value.
  */
 int YASL_listget(struct YASL_State *S, yasl_int n);
 
@@ -291,7 +294,7 @@ void YASL_loadprinterr(struct YASL_State *S);
  * @param filename the name of the file used to initialize the state.
  * @return the new YASL_State, or NULL on failure.
  */
-struct YASL_State *YASL_newstate(const char *filename);
+struct YASL_State *YASL_newstate(const char *filename) YASL_WARN_UNUSED;
 
 /**
  * initialises a new YASL_State for usage, or NULL on failure.
@@ -300,7 +303,7 @@ struct YASL_State *YASL_newstate(const char *filename);
  * @param len the length of the buffer.
  * @return the new YASL_State
  */
-struct YASL_State *YASL_newstate_bb(const char *buf, size_t len);
+struct YASL_State *YASL_newstate_bb(const char *buf, size_t len) YASL_WARN_UNUSED;
 
 /**
  * [-0, +0]
@@ -380,7 +383,7 @@ void *YASL_peeknuserdata(struct YASL_State *S, unsigned n);
  * @param S the YASL_State.
  * @return the type on top of the stack.
  */
-int YASL_peektype(struct YASL_State *S);
+int YASL_peektype(struct YASL_State *S) YASL_DEPRECATED;
 
 /**
  * [-0, +0]
@@ -388,7 +391,7 @@ int YASL_peektype(struct YASL_State *S);
  * @param S the YASL_State.
  * @return the type on top of the stack.
  */
-int YASL_peekntype(struct YASL_State *S, unsigned n);
+int YASL_peekntype(struct YASL_State *S, unsigned n) YASL_DEPRECATED;
 
 /**
  * [-0, +0]
@@ -478,7 +481,7 @@ void *YASL_popuserptr(struct YASL_State *S);
  * Prints a runtime error.
  * @param S the YASL_State in which the error occurred.
  * @param fmt a format string, taking the same parameters as printf.
- * @param ... var args for the above format strings.
+ * @param ... var args for the above format string.
  */
 YASL_FORMAT_CHECK void YASL_print_err(struct YASL_State *S, const char *const fmt, ...);
 

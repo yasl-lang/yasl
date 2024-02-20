@@ -32,13 +32,12 @@ static struct YASL_State *open_on_path(const char *path, const char *name, const
 }
 
 int YASL_require(struct YASL_State *S) {
-	if (!YASL_isstr(S)) {
-		// TODO error message
-		YASL_throw_err(S, YASL_TYPE_ERROR);
+	if (!YASL_isnstr(S, 0)) {
+		YASLX_print_err_bad_arg_type_n(S, "require", 0, YASL_STR_NAME);
+		YASLX_throw_type_err(S);
 	}
 
-	char *mode_str = YASL_peekcstr(S);
-	YASL_pop(S);
+	char *mode_str = YASL_popcstr(S);
 
 	struct YASL_State *Ss = open_on_path(YASL_DEFAULT_PATH, mode_str, YASL_PATH_MARK, YASL_PATH_SEP, S->vm.headers_size);
 
@@ -64,14 +63,14 @@ int YASL_require(struct YASL_State *S) {
 	int status = YASL_execute(Ss);
 
 	if (status != YASL_MODULE_SUCCESS) {
-		puts("Not a valid module");
+		YASL_print_err(S, "Not a valid module");
 		YASL_throw_err(S, YASL_ERROR);
 	}
 
 	inc_ref(&vm_peek(&Ss->vm));
 	struct YASL_Object exported = vm_pop(&Ss->vm);
 
-	vm_pushundef(&Ss->vm);
+	YASL_pushundef(Ss);
 
 	size_t old_headers_size = S->vm.headers_size;
 	size_t new_headers_size = Ss->vm.headers_size;
@@ -144,7 +143,7 @@ int YASL_require_c(struct YASL_State *S) {
 	// TODO: Do I need anything else here?
 	if (!YASL_isstr(S)) {
 		YASLX_print_err_bad_arg_type(S, "__require_c__", 0, YASL_STR_NAME, YASL_peekntypename(S, 0));
-		YASL_throw_err(S, YASL_TYPE_ERROR);
+		YASLX_throw_type_err(S);
 	}
 
 	char *path = YASL_peekcstr(S);
@@ -173,13 +172,13 @@ int YASL_require_c(struct YASL_State *S) {
 	void *lib = search_on_path(YASL_DEFAULT_CPATH, path, YASL_PATH_MARK, YASL_PATH_SEP);
 	free(path);
 	if (!lib) {
-		vm_print_err_value((struct VM *) S, "%s\n", dlerror());
-		YASL_throw_err(S, YASL_VALUE_ERROR);
+		YASLX_print_value_err(S, "%s\n", dlerror());
+		YASLX_throw_value_err(S);
 	}
-	YASL_cfn fun= (YASL_cfn) dlsym(lib, LOAD_LIB_FUN_NAME);
+	YASL_cfn fun = (YASL_cfn) dlsym(lib, LOAD_LIB_FUN_NAME);
 	if (!fun) {
-		vm_print_err_value((struct VM *) S, "%s\n", dlerror());
-		YASL_throw_err(S, YASL_VALUE_ERROR);
+		YASLX_print_value_err(S, "%s\n", dlerror());
+		YASLX_throw_value_err(S);
 	}
 	fun(S);
 #else

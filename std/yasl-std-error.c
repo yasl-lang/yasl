@@ -11,7 +11,7 @@ int YASL_error(struct YASL_State *S) {
 	char *str = YASL_peekcstr(S);
 	if (!str) {
 		YASLX_print_err_bad_arg_type(S, "error", 0, YASL_STR_NAME, YASL_peekntypename(S, 0));
-		YASL_throw_err(S, YASL_TYPE_ERROR);
+		YASLX_throw_type_err(S);
 	}
 
 	YASL_print_err(S, "Error: %s", str);
