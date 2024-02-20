@@ -37,7 +37,7 @@ static yasl_float YASL_peeknnum(struct YASL_State *S, unsigned n) {
 
 static yasl_float YASLX_checknnum(struct YASL_State *S, const char *name, unsigned n) {
 	if (!YASL_isnnum(S, n)) {
-		YASLX_print_err_bad_arg_type(S, name, n, "float or int", YASL_peekntypename(S, n));
+		YASLX_print_err_bad_arg_type_n(S, name, n, "float or int");
 		YASLX_throw_type_err(S);
 	}
 	return YASL_peeknnum(S, n);

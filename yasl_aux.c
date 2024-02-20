@@ -31,7 +31,7 @@ void YASLX_print_err_bad_arg_type_n(struct YASL_State *S,
 				const char *const fn_name,
 				unsigned position,
 				const char *const exp) {
-	YASLX_print_err_bad_arg_type(S, fn_name, position, exp, YASL_peekntypename(S, position));
+	YASL_print_err(S, MSG_TYPE_ERROR "%s expected arg in position %d to be of type %s, got arg of type %s.", fn_name, position, exp, YASL_peekntypename(S, position));
 }
 
 void YASLX_throw_type_err(struct YASL_State *S) {

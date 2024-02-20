@@ -249,7 +249,7 @@ int table_values(struct YASL_State *S) {
 int table_remove(struct YASL_State *S) {
 	struct YASL_Object key = vm_pop((struct VM *) S);
 	if (!YASL_istable(S)) {
-		YASLX_print_err_bad_arg_type(S, "table.remove", 0, "table", YASL_peekntypename(S, 0));
+		YASLX_print_err_bad_arg_type_n(S, "table.remove", 0, YASL_TABLE_NAME);
 		YASLX_throw_type_err(S);
 	}
 	struct YASL_Table *ht = YASL_GETTABLE(vm_peek((struct VM *) S));
@@ -272,7 +272,7 @@ int table_copy(struct YASL_State *S) {
 
 int table_clear(struct YASL_State *S) {
 	if (!YASL_istable(S)) {
-		YASLX_print_err_bad_arg_type(S, "table.clear", 0, "table", YASL_peekntypename(S, 0));
+		YASLX_print_err_bad_arg_type_n(S, "table.clear", 0, YASL_TABLE_NAME);
 		YASLX_throw_type_err(S);
 	}
 	struct YASL_Table *ht = YASL_GETTABLE(vm_peek((struct VM *) S));

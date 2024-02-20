@@ -23,7 +23,7 @@ static FILE *YASLX_checkfile(struct YASL_State *S, const char *name, int pos) {
 
 static FILE *YASLX_checknfile(struct YASL_State *S, const char *name, unsigned pos) {
 	if (!YASL_isnuserdata(S, FILE_NAME, pos)) {
-		YASLX_print_err_bad_arg_type(S, name, pos, FILE_NAME, YASL_peekntypename(S, pos));
+		YASLX_print_err_bad_arg_type_n(S, name, pos, FILE_NAME);
 		YASLX_throw_type_err(S);
 	}
 	return (FILE *)YASL_peeknuserdata(S, pos);
