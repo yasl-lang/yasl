@@ -458,7 +458,7 @@ void YASL_String_split_fast(struct YASL_List *data, struct YASL_String *haystack
 
 // Caller makes sure needle is not 0 length
 void YASL_String_split_max_fast(struct YASL_List *data, struct YASL_String *haystack, struct YASL_String *needle, yasl_int max_splits) {
-	YASL_ASSERT(max_splits > 0, "max_splits should be greater than 0");
+	YASL_ASSERT(max_splits >= 0, "max_splits should be greater than or equal to 0");
 	DEF_STR_SPLIT(max_splits > 0, max_splits--);
 }
 

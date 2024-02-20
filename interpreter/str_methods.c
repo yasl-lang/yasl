@@ -65,7 +65,6 @@ static int str___next(struct YASL_State *S) {
 
 	YASL_pushint(S, curr + 1);
 	YASL_pushlstr(S, str + curr, 1);
-	//vm_pushstr(&S->vm, YASL_String_new_substring(curr, curr + 1, str));
 	YASL_pushbool(S, true);
 	return 3;
 }
