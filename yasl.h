@@ -94,7 +94,7 @@ int YASL_execute_REPL(struct YASL_State *S);
  * @param n
  * @return r, the number of return values of the called functions
  */
-int YASL_functioncall(struct YASL_State *S, int n) YASL_WARN_UNUSED;
+int YASL_functioncall(struct YASL_State *S, int n);
 
 /**
  * [-0, +0]
@@ -294,7 +294,7 @@ void YASL_loadprinterr(struct YASL_State *S);
  * @param filename the name of the file used to initialize the state.
  * @return the new YASL_State, or NULL on failure.
  */
-struct YASL_State *YASL_newstate(const char *filename) YASL_WARN_UNUSED;
+YASL_WARN_UNUSED struct YASL_State *YASL_newstate(const char *filename);
 
 /**
  * initialises a new YASL_State for usage, or NULL on failure.
@@ -303,7 +303,7 @@ struct YASL_State *YASL_newstate(const char *filename) YASL_WARN_UNUSED;
  * @param len the length of the buffer.
  * @return the new YASL_State
  */
-struct YASL_State *YASL_newstate_bb(const char *buf, size_t len) YASL_WARN_UNUSED;
+YASL_WARN_UNUSED struct YASL_State *YASL_newstate_bb(const char *buf, size_t len);
 
 /**
  * [-0, +0]
@@ -321,7 +321,7 @@ bool YASL_peekbool(struct YASL_State *S);
  * @param S the YASL_State.
  * @return the value of the str on top of the stack, or NULL if it's not a str.
  */
-char *YASL_peekcstr(struct YASL_State *S) YASL_WARN_UNUSED;
+YASL_WARN_UNUSED char *YASL_peekcstr(struct YASL_State *S);
 
 /**
  * [-0, +0]
@@ -383,7 +383,7 @@ void *YASL_peeknuserdata(struct YASL_State *S, unsigned n);
  * @param S the YASL_State.
  * @return the type on top of the stack.
  */
-int YASL_peektype(struct YASL_State *S) YASL_DEPRECATED;
+YASL_DEPRECATED int YASL_peektype(struct YASL_State *S);
 
 /**
  * [-0, +0]
@@ -391,7 +391,7 @@ int YASL_peektype(struct YASL_State *S) YASL_DEPRECATED;
  * @param S the YASL_State.
  * @return the type on top of the stack.
  */
-int YASL_peekntype(struct YASL_State *S, unsigned n) YASL_DEPRECATED;
+YASL_DEPRECATED int YASL_peekntype(struct YASL_State *S, unsigned n);
 
 /**
  * [-0, +0]
@@ -452,7 +452,7 @@ bool YASL_popbool(struct YASL_State *S);
  * @param S the YASL_State.
  * @return the value of the str on top of the stack, or NULL if it's not a str.
  */
-char *YASL_popcstr(struct YASL_State *S) YASL_WARN_UNUSED;
+YASL_WARN_UNUSED char *YASL_popcstr(struct YASL_State *S);
 
 /**
  * [-1, +0]
