@@ -17,7 +17,7 @@ static size_t min(size_t a, size_t b) {
 
 static struct YASL_String *YASLX_checknstr(struct YASL_State *S, const char *name, unsigned pos) {
 	if (!YASL_isnstr(S, pos)) {
-		YASLX_print_err_bad_arg_type(S, name, pos, "str", YASL_peekntypename(S, pos));
+		YASLX_print_err_bad_arg_type_n(S, name, pos, YASL_STR_NAME);
 		YASLX_throw_type_err(S);
 	}
 
