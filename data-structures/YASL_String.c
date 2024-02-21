@@ -416,7 +416,7 @@ void YASL_String_split_default(struct YASL_List *data, struct YASL_String *hayst
 }
 
 void YASL_String_split_default_max(struct YASL_List *data, struct YASL_String *haystack, yasl_int max_splits) {
-	YASL_ASSERT(max_splits > 0, "max_splits should be greater than 0");
+	YASL_ASSERT(max_splits >= 0, "max_splits should be greater than or equal to 0");
 	DEF_STR_SPLIT_DEFAULT(max_splits > 0, max_splits--);
 	start = end;
 	end = haystack_len;
