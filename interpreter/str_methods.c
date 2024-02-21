@@ -308,11 +308,6 @@ static void str_split_max(struct YASL_State *S, yasl_int max_splits) {
 		YASLX_print_and_throw_err_value(S, "str.split expected a non-negative int as arg 2.");
 	}
 
-	if (max_splits == 0) {
-		YASL_pushlist(S);
-		return;
-	}
-
 	struct RC_UserData *result = rcls_new();
 	ud_setmt(&S->vm, result, (&S->vm)->builtins_htable[Y_LIST]);
 	YASL_String_split_max_fast((struct YASL_List *)result->data, haystack, needle, max_splits);

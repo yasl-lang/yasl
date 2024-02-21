@@ -420,6 +420,9 @@ void YASL_String_split_default_max(struct YASL_List *data, struct YASL_String *h
 	DEF_STR_SPLIT_DEFAULT(max_splits > 0, max_splits--);
 	start = end;
 	end = haystack_len;
+	while (start < haystack_len && iswhitespace(haystack_chars[start])) {
+		start++;
+	}
 	if (start >= end) return;
 	struct YASL_Object to = YASL_STR(\
 			YASL_String_new_substring(start + haystack->start, end + haystack->start, haystack));
