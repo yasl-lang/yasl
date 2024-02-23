@@ -7,12 +7,15 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define YASL_VERSION "v0.13.2"
+#define YASL_VERSION "v0.13.3"
 
 #define YASL_STR_NAME "str"
 #define YASL_FLOAT_NAME "float"
 #define YASL_INT_NAME "int"
+#define YASL_BOOL_NAME "bool"
+#define YASL_LIST_NAME "list"
 #define YASL_TABLE_NAME "table"
+#define YASL_UNDEF_NAME "undef"
 
 struct YASL_State;
 
@@ -47,6 +50,7 @@ int YASL_decllib_math(struct YASL_State *S);
 int YASL_decllib_require(struct YASL_State *S);
 int YASL_decllib_require_c(struct YASL_State *S);
 int YASL_decllib_mt(struct YASL_State *S);
+int YASL_decllib_os(struct YASL_State *S);
 
 /**
  * deletes the given YASL_State.
@@ -251,7 +255,7 @@ void YASL_len(struct YASL_State *S);
  * Indexes the list on top of the stack and pushes the result on top of the stack.
  * @param S the YASL_State.
  * @param n the index to use on the list.
- * @return YASL_SUCCESS on
+ * @return YASL_SUCCESS if successful, otherwise an error value.
  */
 int YASL_listget(struct YASL_State *S, yasl_int n);
 
@@ -290,7 +294,7 @@ void YASL_loadprinterr(struct YASL_State *S);
  * @param filename the name of the file used to initialize the state.
  * @return the new YASL_State, or NULL on failure.
  */
-struct YASL_State *YASL_newstate(const char *filename);
+YASL_WARN_UNUSED struct YASL_State *YASL_newstate(const char *filename);
 
 /**
  * initialises a new YASL_State for usage, or NULL on failure.
@@ -299,7 +303,7 @@ struct YASL_State *YASL_newstate(const char *filename);
  * @param len the length of the buffer.
  * @return the new YASL_State
  */
-struct YASL_State *YASL_newstate_bb(const char *buf, size_t len);
+YASL_WARN_UNUSED struct YASL_State *YASL_newstate_bb(const char *buf, size_t len);
 
 /**
  * [-0, +0]
@@ -312,12 +316,12 @@ bool YASL_peekbool(struct YASL_State *S);
 
 /**
  * [-0, +0]
- * Returns the int value of the top of the stack, if the top of the stack is an int.
+ * Returns a copy of the str value of the top of the stack, if the top of the stack is a str.
  * Otherwise returns 0. Does not modify the stack.
  * @param S the YASL_State.
- * @return the value of the int on top of the stack, or 0 if it's not an int.
+ * @return the value of the str on top of the stack, or NULL if it's not a str.
  */
-char *YASL_peekcstr(struct YASL_State *S);
+YASL_WARN_UNUSED char *YASL_peekcstr(struct YASL_State *S);
 
 /**
  * [-0, +0]
@@ -359,10 +363,22 @@ yasl_float YASL_peeknfloat(struct YASL_State *S, unsigned n);
  * [-0, +0]
  * Returns the int value at index n, if it is an int.
  * Otherwise returns 0. Does not modify the stack.
+ * The return value is owned by S, and modifying the stack may invalid the returned pointer.
  * @param S the YASL_State.
  * @return the value of the int at index n, or 0 if it's not an int.
  */
 yasl_int YASL_peeknint(struct YASL_State *S, unsigned n);
+
+/**
+ * [-0, +0]
+ * Returns the str value at index n, if it is a str.
+ * Otherwise returns NULL. Does not modify the stack.
+ * @param S the YASL_State.
+ * @param n the index of the stack to check.
+ * @outparam len the length of the string, filled only if the return value is non-NULL.
+ * @return the value of the str at index n, or NULL if it's not an str.
+ */
+const char *YASL_peeknstr(struct YASL_State *S, unsigned n, size_t *len);
 
 /**
  * [-0, +0]
@@ -375,19 +391,11 @@ void *YASL_peeknuserdata(struct YASL_State *S, unsigned n);
 
 /**
  * [-0, +0]
- * returns the type of index n as a string.
- * @param S the YASL_State.
- * @return the string representation of the type of index n.
- */
-const char *YASL_peekntypename(struct YASL_State *S, unsigned n);
-
-/**
- * [-0, +0]
  * returns the type of the top of the stack.
  * @param S the YASL_State.
  * @return the type on top of the stack.
  */
-int YASL_peektype(struct YASL_State *S);
+YASL_DEPRECATED int YASL_peektype(struct YASL_State *S);
 
 /**
  * [-0, +0]
@@ -395,7 +403,7 @@ int YASL_peektype(struct YASL_State *S);
  * @param S the YASL_State.
  * @return the type on top of the stack.
  */
-int YASL_peekntype(struct YASL_State *S, unsigned n);
+YASL_DEPRECATED int YASL_peekntype(struct YASL_State *S, unsigned n);
 
 /**
  * [-0, +0]
@@ -404,6 +412,14 @@ int YASL_peekntype(struct YASL_State *S, unsigned n);
  * @return the string representation of the type on top of the stack.
  */
 const char *YASL_peektypename(struct YASL_State *S);
+
+/**
+ * [-0, +0]
+ * returns the type of index n as a string.
+ * @param S the YASL_State.
+ * @return the string representation of the type of index n.
+ */
+const char *YASL_peekntypename(struct YASL_State *S, unsigned n);
 
 /**
  * [-0, +0]
@@ -448,7 +464,7 @@ bool YASL_popbool(struct YASL_State *S);
  * @param S the YASL_State.
  * @return the value of the str on top of the stack, or NULL if it's not a str.
  */
-char *YASL_popcstr(struct YASL_State *S);
+YASL_WARN_UNUSED char *YASL_popcstr(struct YASL_State *S);
 
 /**
  * [-1, +0]
@@ -477,7 +493,7 @@ void *YASL_popuserptr(struct YASL_State *S);
  * Prints a runtime error.
  * @param S the YASL_State in which the error occurred.
  * @param fmt a format string, taking the same parameters as printf.
- * @param ... var args for the above format strings.
+ * @param ... var args for the above format string.
  */
 YASL_FORMAT_CHECK void YASL_print_err(struct YASL_State *S, const char *const fmt, ...);
 

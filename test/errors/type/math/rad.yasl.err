@@ -1,1 +1,1 @@
-TypeError: math.rad expected arg in position 0 to be of type float, got arg of type str. (line 1)
+TypeError: math.rad expected arg in position 0 to be of type float or int, got arg of type str. (line 1)

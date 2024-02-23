@@ -8,17 +8,14 @@
 
 static struct YASL_List *YASLX_checknlist(struct YASL_State *S, const char *name, unsigned pos) {
 	if (!YASL_isnlist(S, pos)) {
-		vm_print_err_type(&S->vm, "%s expected arg in position %d to be of type list, got arg of type %s.",
-				  name, pos, YASL_peekntypename(S, pos));
-		YASL_throw_err(S, YASL_TYPE_ERROR);
+		YASLX_print_and_throw_err_bad_arg_type_n(S, name, pos, YASL_LIST_NAME);
 	}
 	return (struct YASL_List *)YASL_peeknuserdata(S, pos);
 }
 
 void list___get_helper(struct YASL_State *S, struct YASL_List *ls, yasl_int index) {
 	if (index < -(int64_t) ls->count || index >= (int64_t) ls->count) {
-		vm_print_err_value(&S->vm, "unable to index list of length %" PRI_SIZET " with index %" PRI_SIZET ".", ls->count, index);
-		YASL_throw_err(S, YASL_VALUE_ERROR);
+		YASLX_print_and_throw_err_value(S, "unable to index list of length %" PRI_SIZET " with index %" "ld" ".", ls->count, (long)index);
 	} else {
 		if (index >= 0) {
 			vm_push((struct VM *) S, ls->items[index]);
@@ -48,8 +45,7 @@ int list___set(struct YASL_State *S) {
 	struct YASL_List *ls = YASLX_checknlist(S, "list.__set", 0);
 
 	if (index < -(yasl_int) ls->count || index >= (yasl_int) ls->count) {
-		vm_print_err_value(&S->vm, "unable to index list of length %" PRI_SIZET " with index %" PRId64 ".", ls->count, index);
-		YASL_throw_err(S, YASL_VALUE_ERROR);
+		YASLX_print_and_throw_err_value(S, "unable to index list of length %" PRI_SIZET " with index %" PRId64 ".", ls->count, index);
 	}
 
 	if (index < 0) index += ls->count;
@@ -171,8 +167,7 @@ int list___eq(struct YASL_State *S) {
 int list_pop(struct YASL_State *S) {
 	struct YASL_List *ls = YASLX_checknlist(S, "list.pop", 0);
 	if (ls->count == 0) {
-		vm_print_err_value((struct VM *)S, "%s expected nonempty list as arg 0.", "list.pop");
-		YASL_throw_err(S, YASL_VALUE_ERROR);
+		YASLX_print_and_throw_err_value(S, "%s expected nonempty list as arg 0.", "list.pop");
 	}
 	vm_push((struct VM *) S, ls->items[--ls->count]);
 	return 1;
@@ -310,14 +305,12 @@ int list_join(struct YASL_State *S) {
 		vm_pushstr((struct VM *)S, YASL_String_new_sized(0, ""));
 	}
 	if (!vm_isstr((struct VM *) S)) {
-		YASLX_print_err_bad_arg_type(S, "list.join", 1, "str", YASL_peektypename(S));
-		YASL_throw_err(S, YASL_TYPE_ERROR);
+		YASLX_print_and_throw_err_bad_arg_type_n(S, "list.join", 1, YASL_STR_NAME);
 	}
 	struct YASL_String *string = vm_peekstr((struct VM *) S, S->vm.sp);
 	S->vm.sp--;
 	if (!YASL_isnlist(S, 0)) {
-		YASLX_print_err_bad_arg_type(S, "list.join", 0, "list", YASL_peektypename(S));
-		YASL_throw_err(S, YASL_TYPE_ERROR);
+		YASLX_print_and_throw_err_bad_arg_type_n(S, "list.join", 0, YASL_LIST_NAME);
 	}
 	struct YASL_List *list = vm_peeklist((struct VM *) S, S->vm.sp);
 	S->vm.sp++;
@@ -406,20 +399,22 @@ int custom_comp(struct YASL_State *S, struct YASL_Object a, struct YASL_Object b
 	YASL_duptop(S);
 	vm_push((struct VM *)S, a);
 	vm_push((struct VM *)S, b);
-	YASL_functioncall(S, 2);
+	int num_returns = YASL_functioncall(S, 2);
+	YASL_UNUSED(num_returns);
 	if (!YASL_isbool(S)) {
 		YASL_print_err(S, "TypeError: Expected a function returning bool, got %s.", YASL_peektypename(S));
-		YASL_throw_err(S, YASL_TYPE_ERROR);
+		YASLX_throw_err_type(S);
 	}
 	bool a_lt_b = YASL_popbool(S);
 
 	YASL_duptop(S);
 	vm_push((struct VM *)S, b);
 	vm_push((struct VM *)S, a);
-	YASL_functioncall(S, 2);
+	num_returns = YASL_functioncall(S, 2);
+	YASL_UNUSED(num_returns);
 	if (!YASL_isbool(S)) {
 		YASL_print_err(S, "TypeError: Expected a function returning bool, got %s.", YASL_peektypename(S));
-		YASL_throw_err(S, YASL_TYPE_ERROR);
+		YASLX_throw_err_type(S);
 	}
 
 	bool a_gt_b = YASL_popbool(S);
@@ -531,8 +526,7 @@ int list_sort(struct YASL_State *S) {
 		}
 
 		if (err != 0) {
-			vm_print_err_value((struct VM *)S, "%s expected a list of all numbers or all strings.", "list.sort");
-			YASL_throw_err(S, YASL_VALUE_ERROR);
+			YASLX_print_and_throw_err_value(S, "%s expected a list of all numbers or all strings.", "list.sort");
 		}
 	}
 
@@ -556,8 +550,7 @@ int list_insert(struct YASL_State *S) {
 	}
 
 	if (index >= len || index < -len) {
-		vm_print_err_value((struct VM *)S, "unable to insert item at index %" PRId64 " into list of length %" PRId64 ".", index, len);
-		YASL_throw_err(S, YASL_VALUE_ERROR);
+		YASLX_print_and_throw_err_value(S, "unable to insert item at index %" PRId64 " into list of length %" PRId64 ".", index, len);
 	}
 
 	if (index < 0) index += len;
