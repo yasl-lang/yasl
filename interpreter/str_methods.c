@@ -377,29 +377,31 @@ int str_split(struct YASL_State *S) {
 	return 1;
 }
 
-#define DEFINE_TRIM_FN(side) \
-static void str_##side##trim_default(struct YASL_State *S) {\
-	struct YASL_String *haystack = checkstr(S, "str." #side "trim", 0);\
-	\
-	vm_push((struct VM *)S, YASL_STR(YASL_String_##side##trim_default(haystack)));\
+#define DEFINE_TRIM_FN(name) \
+static void str_##name##_default(struct YASL_State *S) {\
+	struct YASL_String *haystack = checkstr(S, "str." #name, 0);\
+	vm_push((struct VM *)S, YASL_STR(YASL_String_##name##_default(haystack)));\
 }\
 \
-int str_##side##trim(struct YASL_State *S) {\
+int str_##name(struct YASL_State *S) {\
 	if (YASL_isundef(S)) {\
-		str_##side##trim_default(S);\
+		str_##name##_default(S);\
 		return 1;\
 	}\
 	\
-	struct YASL_String *needle = checkstr(S, "str." #side "trim", 1);\
-	struct YASL_String *haystack = checkstr(S, "str." #side "trim", 0);\
+	struct YASL_String *needle = checkstr(S, "str." #name, 1);\
+	struct YASL_String *haystack = checkstr(S, "str." #name, 0);\
 	\
-	vm_push((struct VM *) S, YASL_STR(YASL_String_##side##trim(haystack, needle)));\
+	vm_push((struct VM *) S, YASL_STR(YASL_String_##name(haystack, needle)));\
 	return 1;\
 }
 
-DEFINE_TRIM_FN(l)
-DEFINE_TRIM_FN(r)
-DEFINE_TRIM_FN( )
+/* We pass the full name here, rather than just the prefix, because MSVC breaks in some cases with
+ * empty macro parameters.
+ */
+DEFINE_TRIM_FN(ltrim)
+DEFINE_TRIM_FN(rtrim)
+DEFINE_TRIM_FN(trim)
 
 int str_repeat(struct YASL_State *S) {
 	yasl_int num = YASLX_checknint(S, "str.rep", 1);
