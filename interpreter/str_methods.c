@@ -308,9 +308,9 @@ static void str_split_max(struct YASL_State *S, yasl_int max_splits) {
 		YASLX_print_and_throw_err_value(S, "str.split expected a non-negative int as arg 2.");
 	}
 
-	if (YASL_String_len(needle) == 0) {
-		YASLX_print_and_throw_err_value(S, "str.split expected a nonempty str as arg 1.");
-	}
+	//if (YASL_String_len(needle) == 0) {
+	//	YASLX_print_and_throw_err_value(S, "str.split expected a nonempty str as arg 1.");
+	//}
 
 	struct RC_UserData *result = rcls_new();
 	ud_setmt(&S->vm, result, (&S->vm)->builtins_htable[Y_LIST]);
