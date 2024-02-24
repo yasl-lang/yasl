@@ -308,6 +308,10 @@ static void str_split_max(struct YASL_State *S, yasl_int max_splits) {
 		YASLX_print_and_throw_err_value(S, "str.split expected a non-negative int as arg 2.");
 	}
 
+	if (YASL_String_len(needle) == 0) {
+		YASLX_print_and_throw_err_value(S, "str.split expected a nonempty str as arg 1.");
+	}
+
 	struct RC_UserData *result = rcls_new();
 	ud_setmt(&S->vm, result, (&S->vm)->builtins_htable[Y_LIST]);
 	YASL_String_split_max_fast((struct YASL_List *)result->data, haystack, needle, max_splits);
@@ -373,62 +377,29 @@ int str_split(struct YASL_State *S) {
 	return 1;
 }
 
-static void str_ltrim_default(struct YASL_State *S) {
-	struct YASL_String *haystack = checkstr(S, "str.ltrim", 0);
-
-	vm_push((struct VM *) S, YASL_STR(YASL_String_ltrim_default(haystack)));
+#define DEFINE_TRIM_FN(side) \
+static void str_##side##trim_default(struct YASL_State *S) {\
+	struct YASL_String *haystack = checkstr(S, "str." #side "trim", 0);\
+	\
+	vm_push((struct VM *)S, YASL_STR(YASL_String_##side##trim_default(haystack)));\
+}\
+\
+int str_##side##trim(struct YASL_State *S) {\
+	if (YASL_isundef(S)) {\
+		str_##side##trim_default(S);\
+		return 1;\
+	}\
+	\
+	struct YASL_String *needle = checkstr(S, "str." #side "trim", 1);\
+	struct YASL_String *haystack = checkstr(S, "str." #side "trim", 0);\
+	\
+	vm_push((struct VM *) S, YASL_STR(YASL_String_##side##trim(haystack, needle)));\
+	return 1;\
 }
 
-int str_ltrim(struct YASL_State *S) {
-	if (YASL_isundef(S)) {
-		str_ltrim_default(S);
-		return 1;
-	}
-
-	struct YASL_String *needle = checkstr(S, "str.ltrim", 1);
-	struct YASL_String *haystack = checkstr(S, "str.ltrim", 0);
-
-	vm_push((struct VM *) S,
-		YASL_STR(YASL_String_ltrim(haystack, needle)));
-	return 1;
-}
-
-static void str_rtrim_default(struct YASL_State *S) {
-	struct YASL_String *haystack = checkstr(S, "str.rtrim", 0);
-
-	vm_push((struct VM *) S, YASL_STR(YASL_String_rtrim_default(haystack)));
-}
-
-int str_rtrim(struct YASL_State *S) {
-	if (YASL_isundef(S)) {
-		str_rtrim_default(S);
-		return 1;
-	}
-
-	struct YASL_String *needle = checkstr(S, "str.rtrim", 1);
-	struct YASL_String *haystack = checkstr(S, "str.rtrim", 0);
-
-	vm_push((struct VM *) S, YASL_STR(YASL_String_rtrim(haystack, needle)));
-	return 1;
-}
-
-static void str_trim_default(struct YASL_State *S) {
-	struct YASL_String *haystack = checkstr(S, "str.trim", 0);
-	vm_push((struct VM *) S, YASL_STR(YASL_String_trim_default(haystack)));
-}
-
-int str_trim(struct YASL_State *S) {
-	if (YASL_isundef(S)) {
-		str_trim_default(S);
-		return 1;
-	}
-
-	struct YASL_String *needle = checkstr(S, "str.trim", 1);
-	struct YASL_String *haystack = checkstr(S, "str.trim", 0);
-
-	vm_push((struct VM *) S, YASL_STR(YASL_String_trim(haystack, needle)));
-	return 1;
-}
+DEFINE_TRIM_FN(l)
+DEFINE_TRIM_FN(r)
+DEFINE_TRIM_FN( )
 
 int str_repeat(struct YASL_State *S) {
 	yasl_int num = YASLX_checknint(S, "str.rep", 1);
