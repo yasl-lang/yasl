@@ -332,8 +332,14 @@ static void str_split_default_max(struct YASL_State *S, yasl_int max_splits) {
 	struct RC_UserData *result = rcls_new();
 	ud_setmt(&S->vm, result, (&S->vm)->builtins_htable[Y_LIST]);
 
-	YASL_String_split_default_max((struct YASL_List *)result->data, haystack, max_splits);
-	vm_push((struct VM *) S, YASL_LIST(result));
+	if (max_splits == 0) {
+		vm_push((struct VM *) S, YASL_LIST(result));
+		vm_push((struct VM *)S, YASL_STR(haystack));
+		YASL_listpush(S);
+	} else {
+		YASL_String_split_default_max((struct YASL_List *)result->data, haystack, max_splits);
+		vm_push((struct VM *) S, YASL_LIST(result));
+	}
 }
 
 int str_split(struct YASL_State *S) {
