@@ -304,8 +304,7 @@ int str_count(struct YASL_State *S) {
 	return 1;
 }
 
-static void str_split_max(struct YASL_State *S, yasl_int max_splits) {
-	struct YASL_String *haystack = checkstr(S, "str.split", 0);
+static void str_split_max(struct YASL_State *S, struct YASL_String *haystack, yasl_int max_splits) {
 	struct YASL_String *needle = checkstr(S, "str.split", 1);
 
 	//if (YASL_String_len(needle) == 0) {
@@ -322,8 +321,7 @@ static void str_split_max(struct YASL_State *S, yasl_int max_splits) {
 	vm_push((struct VM *) S, YASL_LIST(result));
 }
 
-static void str_split_default(struct YASL_State *S) {
-	struct YASL_String *haystack = checkstr(S, "str.split", 0);
+static void str_split_default(struct YASL_State *S, struct YASL_String *haystack) {
 	struct RC_UserData *result = rcls_new();
 	ud_setmt(&S->vm, result, (&S->vm)->builtins_htable[Y_LIST]);
 
@@ -331,8 +329,7 @@ static void str_split_default(struct YASL_State *S) {
 	vm_push((struct VM *) S, YASL_LIST(result));
 }
 
-static void str_split_default_max(struct YASL_State *S, yasl_int max_splits) {
-	struct YASL_String *haystack = checkstr(S, "str.split", 0);
+static void str_split_default_max(struct YASL_State *S, struct YASL_String *haystack, yasl_int max_splits) {
 	struct RC_UserData *result = rcls_new();
 	ud_setmt(&S->vm, result, (&S->vm)->builtins_htable[Y_LIST]);
 
@@ -347,10 +344,12 @@ static void str_split_default_max(struct YASL_State *S, yasl_int max_splits) {
 }
 
 int str_split(struct YASL_State *S) {
+	struct YASL_String *haystack = checkstr(S, "str.split", 0);
+
 	// We check for 3 parameters first.
 	if (YASL_isnint(S, 2)) {
 		yasl_int max_splits = YASL_peeknint(S, 2);
-		str_split_max(S, max_splits);
+		str_split_max(S, haystack, max_splits);
 		return 1;
 	}
 
@@ -358,20 +357,19 @@ int str_split(struct YASL_State *S) {
 		YASLX_print_and_throw_err_bad_arg_type_n(S, "str.split", 2, YASL_INT_NAME " or " YASL_UNDEF_NAME);
 	}
 
-	YASL_pop(S);
+	// YASL_pop(S);
 
 	if (YASL_isnundef(S, 1)) {
-		str_split_default(S);
+		str_split_default(S, haystack);
 		return 1;
 	}
 
 	if (YASL_isnint(S, 1)) {
 		yasl_int max_splits = YASL_peeknint(S, 1);
-		str_split_default_max(S, max_splits);
+		str_split_default_max(S, haystack, max_splits);
 		return 1;
 	}
 
-	struct YASL_String *haystack = checkstr(S, "str.split", 0);
 	struct YASL_String *needle = checkstr(S, "str.split", 1);
 
 	if (YASL_String_len(needle) == 0) {
