@@ -100,7 +100,7 @@ int str_tolist(struct YASL_State *S) {
 	if (n <= 0) {
 		YASLX_print_and_throw_err_value(S, "Expected a positive number, got: %" PRId64 ".", n);
 	}
-	size_t size = n;
+	size_t size = (size_t)n;
 	const size_t len = YASL_String_len(str);
 	YASL_pushlist(S);
 	for (size_t i = 0; i < len; i+= size) {
@@ -122,7 +122,6 @@ int str_spread(struct YASL_State *S) {
 int str_tostr(struct YASL_State *S) {
 	size_t str_len;
 	const char *str_chars = YASLX_checknstr(S, "str.tostr", 0, &str_len);
-	// struct YASL_String *str = checkstr(S, "str.tostr", 0);
 	if (YASL_isnundef(S, 1)) {
 		YASL_pop(S);
 		return 1;
@@ -153,7 +152,7 @@ int str_tostr(struct YASL_State *S) {
 		}
 
 		if (!isprint(c)) {
-			char tmp[3] = { '0', '0', 0x00 };
+			char tmp[3] = { '0', '0', '\0' };
 			sprintf(tmp + (c < 16), "%x", c);
 			buffer_size += 3;
 			buffer = (char *)realloc(buffer, buffer_size);
@@ -365,7 +364,7 @@ int str_split(struct YASL_State *S) {
 	struct YASL_String *needle = checkstr(S, "str.split", 1);
 
 	if (YASL_String_len(needle) == 0) {
-		YASLX_print_and_throw_err_value(S, "str.split expected a nonempty str as arg 1.");
+		YASLX_print_and_throw_err_value(S, "str.split expected a non-empty str as arg 1.");
 	}
 
 	struct RC_UserData *result = rcls_new();

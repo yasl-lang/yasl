@@ -1,1 +1,1 @@
-ValueError: str.split expected a nonempty str as arg 1. (line 1)
+ValueError: str.split expected a non-empty str as arg 1. (line 1)
