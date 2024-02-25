@@ -13,8 +13,8 @@ static struct YASL_Table *YASLX_checkntable(struct YASL_State *S, const char *na
 }
 
 int table___bor(struct YASL_State *S) {
-	struct YASL_Table *right = YASLX_checkntable(S, "table.__bor", 1);
 	struct YASL_Table *left = YASLX_checkntable(S, "table.__bor", 0);
+	struct YASL_Table *right = YASLX_checkntable(S, "table.__bor", 1);
 
 	struct RC_UserData *new_ht = rcht_new_sized(left->base_size);
 	ud_setmt(&S->vm, new_ht, S->vm.builtins_htable[Y_TABLE]);
@@ -32,8 +32,8 @@ int table___bor(struct YASL_State *S) {
 }
 
 int table___eq(struct YASL_State *S) {
-	struct YASL_Table *right = YASLX_checkntable(S, "table.__eq", 1);
 	struct YASL_Table *left = YASLX_checkntable(S, "table.__eq", 0);
+	struct YASL_Table *right = YASLX_checkntable(S, "table.__eq", 1);
 
 	if (left->count != right->count) {
 		YASL_pushbool(S, false);
