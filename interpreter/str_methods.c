@@ -120,7 +120,9 @@ int str_spread(struct YASL_State *S) {
 }
 
 int str_tostr(struct YASL_State *S) {
-	struct YASL_String *str = checkstr(S, "str.tostr", 0);
+	size_t str_len;
+	const char *str_chars = YASLX_checknstr(S, "str.tostr", 0, &str_len);
+	// struct YASL_String *str = checkstr(S, "str.tostr", 0);
 	if (YASL_isnundef(S, 1)) {
 		YASL_pop(S);
 		return 1;
@@ -128,7 +130,6 @@ int str_tostr(struct YASL_State *S) {
 
 	size_t len;
 	const char *fmt = YASLX_checknstr(S, "str.tostr", 1, &len);
-	// struct YASL_String *format =  checkstr(S, "str.tostr", 1);
 	if (len != 1) {
 		YASLX_print_and_throw_err_value(S, "Expected str of len 1, got str of len %" PRI_SIZET ".", len);
 	}
@@ -137,12 +138,11 @@ int str_tostr(struct YASL_State *S) {
 		YASLX_print_and_throw_err_value(S, "Unexpected format str: '%c'.", *fmt);
 	}
 
-	const char *str_chars = YASL_String_chars(str);
-	size_t buffer_size = YASL_String_len(str) + 2;
+	size_t buffer_size = str_len + 2;
 	char *buffer = (char *)malloc(buffer_size);
 	size_t curr = 0;
 	buffer[curr++] = '\'';
-	for (size_t i = 0; i < YASL_String_len(str); i++, curr++) {
+	for (size_t i = 0; i < str_len; i++, curr++) {
 		const unsigned char c = (unsigned char)str_chars[i];
 		switch (c) {
 #define X(escape, c) case escape: buffer = (char *)realloc(buffer, ++buffer_size); buffer[curr++] = '\\'; buffer[curr] = c; continue;
@@ -247,15 +247,7 @@ int str_endswith(struct YASL_State *S) {
 	return 1;
 }
 
-static int str_replace_default(struct YASL_State *S) {
-	struct YASL_String *str = checkstr(S, "str.replace", 0);
-	struct YASL_String *search_str = checkstr(S, "str.replace", 1);
-	struct YASL_String *replace_str = checkstr(S, "str.replace", 2);
-
-	if (YASL_String_len(search_str) < 1) {
-		YASLX_print_and_throw_err_value(S, "str.replace expected a nonempty str as arg 1.");
-	}
-
+static int str_replace_default(struct YASL_State *S, struct YASL_String *str, struct YASL_String *search_str, struct YASL_String *replace_str) {
 	int replacements = 0;
 	vm_push((struct VM *) S, YASL_STR(YASL_String_replace_fast_default(str, search_str, replace_str, &replacements)));
 	YASL_pushint(S, replacements);
@@ -263,18 +255,18 @@ static int str_replace_default(struct YASL_State *S) {
 }
 
 int str_replace(struct YASL_State *S) {
-	if (YASL_isundef(S)) {
-		return str_replace_default(S);
-	}
-
-	yasl_int max = YASLX_checknint(S, "str.replace", 3);
-	struct YASL_String *replace_str = checkstr(S, "str.replace", 2);
-	struct YASL_String *search_str = checkstr(S, "str.replace", 1);
 	struct YASL_String *str = checkstr(S, "str.replace", 0);
-
+	struct YASL_String *search_str = checkstr(S, "str.replace", 1);
 	if (YASL_String_len(search_str) < 1) {
 		YASLX_print_and_throw_err_value(S, "str.replace expected a nonempty str as arg 1.");
 	}
+	struct YASL_String *replace_str = checkstr(S, "str.replace", 2);
+
+	if (YASL_isnundef(S, 3)) {
+		return str_replace_default(S, str, search_str, replace_str);
+	}
+
+	yasl_int max = YASLX_checknint(S, "str.replace", 3);
 
 	int replacements = 0;
 	vm_push((struct VM *) S, YASL_STR(YASL_String_replace_fast(str, search_str, replace_str, &replacements, max)));
