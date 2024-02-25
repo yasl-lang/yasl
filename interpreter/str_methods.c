@@ -299,7 +299,8 @@ static void str_split_max(struct YASL_State *S, struct YASL_String *haystack, ya
 	struct YASL_String *needle = checkstr(S, "str.split", 1);
 
 	if (YASL_String_len(needle) == 0) {
-		YASLX_print_and_throw_err_value(S, "str.split expected a non-empty str as arg 1.");
+		YASLX_print_err_value(S, "str.split expected a non-empty str as arg 1.");
+		YASLX_throw_err_value(S);
 	}
 
 	if (max_splits < 0) {
