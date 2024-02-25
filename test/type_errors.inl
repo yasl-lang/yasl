@@ -17,7 +17,6 @@ static const char *type_errors[] = {
   "test/errors/type/binary_operators/__sub.yasl",
   "test/errors/type/bool/tobool.yasl",
   "test/errors/type/bool/tostr.yasl",
-  "test/errors/type/callable.yasl",
   "test/errors/type/collections/set/add2.yasl",
   "test/errors/type/collections/set/add3.yasl",
   "test/errors/type/collections/set/add.yasl",
