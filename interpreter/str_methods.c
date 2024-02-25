@@ -248,9 +248,9 @@ int str_endswith(struct YASL_State *S) {
 }
 
 static int str_replace_default(struct YASL_State *S) {
-	struct YASL_String *replace_str = checkstr(S, "str.replace", 2);
-	struct YASL_String *search_str = checkstr(S, "str.replace", 1);
 	struct YASL_String *str = checkstr(S, "str.replace", 0);
+	struct YASL_String *search_str = checkstr(S, "str.replace", 1);
+	struct YASL_String *replace_str = checkstr(S, "str.replace", 2);
 
 	if (YASL_String_len(search_str) < 1) {
 		YASLX_print_and_throw_err_value(S, "str.replace expected a nonempty str as arg 1.");
@@ -283,8 +283,8 @@ int str_replace(struct YASL_State *S) {
 }
 
 int str_search(struct YASL_State *S) {
-	struct YASL_String *needle = checkstr(S, "str.search", 1);
 	struct YASL_String *haystack = checkstr(S, "str.search", 0);
+	struct YASL_String *needle = checkstr(S, "str.search", 1);
 
 	int64_t index = str_find_index(haystack, needle);
 	if (index != -1) YASL_pushint(S, index);
@@ -308,13 +308,13 @@ static void str_split_max(struct YASL_State *S, yasl_int max_splits) {
 	struct YASL_String *haystack = checkstr(S, "str.split", 0);
 	struct YASL_String *needle = checkstr(S, "str.split", 1);
 
-	if (max_splits < 0) {
-		YASLX_print_and_throw_err_value(S, "str.split expected a non-negative int as arg 2.");
-	}
-
 	//if (YASL_String_len(needle) == 0) {
 	//	YASLX_print_and_throw_err_value(S, "str.split expected a nonempty str as arg 1.");
 	//}
+
+	if (max_splits < 0) {
+		YASLX_print_and_throw_err_value(S, "str.split expected a non-negative int as arg 2.");
+	}
 
 	struct RC_UserData *result = rcls_new();
 	ud_setmt(&S->vm, result, (&S->vm)->builtins_htable[Y_LIST]);
@@ -347,27 +347,26 @@ static void str_split_default_max(struct YASL_State *S, yasl_int max_splits) {
 }
 
 int str_split(struct YASL_State *S) {
-	if (YASL_isint(S)) {
-		yasl_int max_splits = YASL_popint(S);
+	// We check for 3 parameters first.
+	if (YASL_isnint(S, 2)) {
+		yasl_int max_splits = YASL_peeknint(S, 2);
 		str_split_max(S, max_splits);
 		return 1;
 	}
 
-	if (!YASL_isundef(S)) {
-		YASLX_print_err_bad_arg_type_n(S, "str.split", 2, YASL_INT_NAME " or " YASL_UNDEF_NAME);
-		YASLX_throw_err_type(S);
+	if (!YASL_isnundef(S, 2)) {
+		YASLX_print_and_throw_err_bad_arg_type_n(S, "str.split", 2, YASL_INT_NAME " or " YASL_UNDEF_NAME);
 	}
 
 	YASL_pop(S);
 
-	if (YASL_isundef(S)) {
-		YASL_pop(S);
+	if (YASL_isnundef(S, 1)) {
 		str_split_default(S);
 		return 1;
 	}
 
-	if (YASL_isint(S)) {
-		yasl_int max_splits = YASL_popint(S);
+	if (YASL_isnint(S, 1)) {
+		yasl_int max_splits = YASL_peeknint(S, 1);
 		str_split_default_max(S, max_splits);
 		return 1;
 	}
