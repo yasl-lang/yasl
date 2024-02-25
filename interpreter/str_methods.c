@@ -402,7 +402,8 @@ int str_##name(struct YASL_State *S) {\
 	return 1;\
 }
 
-/* We pass the full name here, rather than just the prefix, because MSVC breaks in some cases with
+/*
+ * We pass the full name here, rather than just the prefix, because MSVC breaks in some cases with
  * empty macro parameters.
  */
 DEFINE_TRIM_FN(ltrim)

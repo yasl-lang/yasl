@@ -18,7 +18,6 @@ static const char *value_errors[] = {
   "test/errors/value/str/__get.yasl",
   "test/errors/value/str/replace.yasl",
   "test/errors/value/str/rep.yasl",
-  "test/errors/value/str/split_empty_max.yasl",
   "test/errors/value/str/split.yasl",
   "test/errors/value/str/tobyte2.yasl",
   "test/errors/value/str/tobyte.yasl",
