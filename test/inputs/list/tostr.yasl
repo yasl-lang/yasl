@@ -9,3 +9,6 @@ echo [
         .nickname: .Myself,
         .peerId: .QmemJHsMDuBjUCAyiWeVdct2LGHqtZhu8QQCt8ZQVbY1qz,
         .groups: ['パン:0'] }]
+
+# check that we correctly forward the specifier to each element.
+echo [ 16, 32, 10, 45 ]->tostr('x')
