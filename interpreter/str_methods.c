@@ -298,9 +298,9 @@ int str_count(struct YASL_State *S) {
 static void str_split_max(struct YASL_State *S, struct YASL_String *haystack, yasl_int max_splits) {
 	struct YASL_String *needle = checkstr(S, "str.split", 1);
 
-	//if (YASL_String_len(needle) == 0) {
-	//	YASLX_print_and_throw_err_value(S, "str.split expected a nonempty str as arg 1.");
-	//}
+	if (YASL_String_len(needle) == 0) {
+		YASLX_print_and_throw_err_value(S, "str.split expected a non-empty str as arg 1.");
+	}
 
 	if (max_splits < 0) {
 		YASLX_print_and_throw_err_value(S, "str.split expected a non-negative int as arg 2.");
@@ -347,8 +347,6 @@ int str_split(struct YASL_State *S) {
 	if (!YASL_isnundef(S, 2)) {
 		YASLX_print_and_throw_err_bad_arg_type_n(S, "str.split", 2, YASL_INT_NAME " or " YASL_UNDEF_NAME);
 	}
-
-	// YASL_pop(S);
 
 	if (YASL_isnundef(S, 1)) {
 		str_split_default(S, haystack);
