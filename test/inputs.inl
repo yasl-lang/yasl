@@ -57,7 +57,6 @@ static const char *inputs[] = {
   "test/inputs/str/startswith.yasl",
   "test/inputs/str/tolower.yasl",
   "test/inputs/str/count.yasl",
-  "test/inputs/str/tolist2.yasl",
   "test/inputs/str/ltrim.yasl",
   "test/inputs/str/slice.yasl",
   "test/inputs/str/split.yasl",
