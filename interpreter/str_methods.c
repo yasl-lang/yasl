@@ -296,6 +296,10 @@ int str_search(struct YASL_State *S) {
 int str_count(struct YASL_State *S) {
 	struct YASL_String *haystack = checkstr(S, "str.count", 0);
 	struct YASL_String *needle = checkstr(S, "str.count", 1);
+	if (YASL_String_len(needle) == 0) {
+		YASL_pushint(S, YASL_String_len(haystack) + 1);
+		return 1;
+	}
 	YASL_pushint(S, YASL_String_count(haystack, needle));
 	return 1;
 }
