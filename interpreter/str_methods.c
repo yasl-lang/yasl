@@ -205,6 +205,8 @@ DEFINE_STR_IS_X(isnum, isdigit);
 DEFINE_STR_IS_X(isalnum, isalnum);
 DEFINE_STR_IS_X(isprint, isprint);
 DEFINE_STR_IS_X(isspace, iswhitespace);
+DEFINE_STR_IS_X(islower, islower);
+DEFINE_STR_IS_X(isupper, isupper);
 
 #define DEFINE_STR_IS_X_FN(name) \
 int str_##name(struct YASL_State *S) {\
@@ -219,6 +221,8 @@ DEFINE_STR_IS_X_FN(isal)
 DEFINE_STR_IS_X_FN(isnum)
 DEFINE_STR_IS_X_FN(isprint)
 DEFINE_STR_IS_X_FN(isspace)
+DEFINE_STR_IS_X_FN(islower)
+DEFINE_STR_IS_X_FN(isupper)
 
 int str_tobyte(struct YASL_State *S) {
 	size_t len;
