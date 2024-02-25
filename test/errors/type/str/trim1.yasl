@@ -1,1 +1,1 @@
-mt.lookup('', .trim)(1, true)
+mt.lookup('', .trim)('1', true)

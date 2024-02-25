@@ -294,15 +294,15 @@ int str_search(struct YASL_State *S) {
 }
 
 int str_count(struct YASL_State *S) {
-	struct YASL_String *needle = checkstr(S, "str.count", 1);
 	struct YASL_String *haystack = checkstr(S, "str.count", 0);
+	struct YASL_String *needle = checkstr(S, "str.count", 1);
 	YASL_pushint(S, YASL_String_count(haystack, needle));
 	return 1;
 }
 
 static void str_split_max(struct YASL_State *S, yasl_int max_splits) {
-	struct YASL_String *needle = checkstr(S, "str.split", 1);
 	struct YASL_String *haystack = checkstr(S, "str.split", 0);
+	struct YASL_String *needle = checkstr(S, "str.split", 1);
 
 	if (max_splits < 0) {
 		YASLX_print_and_throw_err_value(S, "str.split expected a non-negative int as arg 2.");
@@ -368,8 +368,8 @@ int str_split(struct YASL_State *S) {
 		return 1;
 	}
 
-	struct YASL_String *needle = checkstr(S, "str.split", 1);
 	struct YASL_String *haystack = checkstr(S, "str.split", 0);
+	struct YASL_String *needle = checkstr(S, "str.split", 1);
 
 	if (YASL_String_len(needle) == 0) {
 		YASLX_print_and_throw_err_value(S, "str.split expected a nonempty str as arg 1.");
@@ -395,8 +395,8 @@ int str_##name(struct YASL_State *S) {\
 		return 1;\
 	}\
 	\
-	struct YASL_String *needle = checkstr(S, "str." #name, 1);\
 	struct YASL_String *haystack = checkstr(S, "str." #name, 0);\
+	struct YASL_String *needle = checkstr(S, "str." #name, 1);\
 	\
 	vm_push((struct VM *) S, YASL_STR(YASL_String_##name(haystack, needle)));\
 	return 1;\
@@ -411,8 +411,8 @@ DEFINE_TRIM_FN(rtrim)
 DEFINE_TRIM_FN(trim)
 
 int str_repeat(struct YASL_State *S) {
-	yasl_int num = YASLX_checknint(S, "str.rep", 1);
 	struct YASL_String *string = checkstr(S, "str.rep", 0);
+	yasl_int num = YASLX_checknint(S, "str.rep", 1);
 
 	if (num < 0) {
 		YASLX_print_and_throw_err_value(S, "str.rep expected non-negative int as arg 1.");
