@@ -423,7 +423,9 @@ int custom_comp(struct YASL_State *S, struct YASL_Object a, struct YASL_Object b
 	return a_lt_b ? -1 : a_gt_b ? 1 : 0;
 }
 
+#define YASL_OBJ_COMP_REVERSE(a, b) (-yasl_object_cmp(a, b))
 #define CUSTOM_COMP(a, b) custom_comp(S, a, b)
+#define CUSTOM_COMP_REVERSE(a, b) (-custom_comp(S, a, b))
 
 #define DEF_SORT(name, COMP) \
 static void name##sort(struct YASL_State *S, struct YASL_Object *list, const size_t len) {\
@@ -485,18 +487,26 @@ static void name##sort(struct YASL_State *S, struct YASL_Object *list, const siz
 }
 
 DEF_SORT(default, yasl_object_cmp)
-// DEF_SORT(fn, CUSTOM_COMP)
+// DEF_SORT(reverse, YASL_OBJ_COMP_REVERSE)
+DEF_SORT(fn, CUSTOM_COMP)
+// DEF_SORT(fn_reverse, CUSTOM_COMP_REVERSE)
 
 // TODO: clean this up
 int list_sort(struct YASL_State *S) {
 	struct YASL_List *list = YASLX_checknlist(S, "list.sort", 0);
 
-	/*
-	if (!YASL_isundef(S)) {
-		fnsort(S, list->items, list->count);
+	if (!YASL_isnundef(S, 1)) {
+		/*
+		 * We save the old value of list before calling the custom sort function, so that the sort function
+		 * modifying the list doesn't cause a segfault. To the custom sort function, it just sees an empty list.
+		 */
+		const struct YASL_List tmp = *list;
+		*list = (struct YASL_List) { 0, 0, NULL };
+		fnsort(S, tmp.items, tmp.count);
+		if (list->items) YASL_List_del_data(S, list->items);
+		*list = tmp;
 		return 0;
 	}
-	 */
 
 	if (YASL_List_len(list) <= 1) {
 		return 0;

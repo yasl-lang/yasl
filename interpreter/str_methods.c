@@ -261,7 +261,7 @@ int str_replace(struct YASL_State *S) {
 	struct YASL_String *str = checkstr(S, "str.replace", 0);
 	struct YASL_String *search_str = checkstr(S, "str.replace", 1);
 	if (YASL_String_len(search_str) < 1) {
-		YASLX_print_and_throw_err_value(S, "str.replace expected a nonempty str as arg 1.");
+		YASLX_print_and_throw_err_value(S, "str.replace expected a non-empty str as arg 1.");
 	}
 	struct YASL_String *replace_str = checkstr(S, "str.replace", 2);
 
