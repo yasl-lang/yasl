@@ -12,7 +12,7 @@ x->sort(fn(a, b) -> math.abs(a) < math.abs(b))
 
 echo x
 
-const y = ['abcd', 'aaaa', 'aa', 'ABCD', 'Abcd', '1234']
+const y = ['abcd', 'aaaa', 'aa', 'ABCDe', 'Abc', '1234']
 
 y->sort()
 
