@@ -106,6 +106,14 @@ static int YASL_io_open(struct YASL_State *S) {
 	return 1;
 }
 
+static int YASL_io_tmpfile(struct YASL_State *S) {
+	FILE *f = tmpfile();
+	YASL_pushuserdata(S, f, FILE_NAME, close_file);
+	YASL_loadmt(S, FILE_NAME);
+	YASL_setmt(S);
+	return 1;
+}
+
 static int YASL_io_read(struct YASL_State *S) {
 	char mode_str[2] = { '\0', '\0' };
 
@@ -172,7 +180,7 @@ static int YASL_io_write(struct YASL_State *S) {
 	}
 
 	size_t len;
-	const char *str = YASL_peeknstr(S, 0, &len);
+	const char *str = YASL_peeknstr(S, 1, &len);
 
 	size_t write_len = fwrite(str, 1, len, f);
 
@@ -221,7 +229,7 @@ static int YASL_io_seek(struct YASL_State *S) {
 }
 
 static int YASL_io_close(struct YASL_State *S) {
-	FILE *f = YASLX_checkfile(S, FILE_PRE ".close", 0);
+	FILE *f = YASLX_checknfile(S, FILE_PRE ".close", 0);
 
 	int success = fclose(f);
 	YASL_pushbool(S, success == 0);
@@ -252,6 +260,10 @@ int YASL_decllib_io(struct YASL_State *S) {
 	YASL_loadglobal(S, "io");
 	YASL_pushlit(S, "open");
 	YASL_pushcfunction(S, YASL_io_open, 2);
+	YASL_tableset(S);
+
+	YASL_pushlit(S, "tmpfile");
+	YASL_pushcfunction(S, YASL_io_tmpfile, 0);
 	YASL_tableset(S);
 
 	YASL_pushlit(S, "stdin");

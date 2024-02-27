@@ -1,0 +1,7 @@
+const f = io.tmpfile()
+
+f->write("12345")
+
+f->seek()
+
+echo f->read('a')
