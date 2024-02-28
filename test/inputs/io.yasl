@@ -5,3 +5,12 @@ f->write("12345")
 f->seek()
 
 echo f->read('a')
+
+f->seek(.end)
+
+f->write('\nabcde')
+
+f->seek()
+
+echo f->read('l')
+echo f->read('l')
