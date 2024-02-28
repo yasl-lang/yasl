@@ -26,8 +26,8 @@ void list___get_helper(struct YASL_State *S, struct YASL_List *ls, yasl_int inde
 }
 
 int list___get(struct YASL_State *S) {
-	yasl_int index = YASLX_checknint(S, "list.__get", 1);
 	struct YASL_List *ls = YASLX_checknlist(S, "list.__get", 0);
+	yasl_int index = YASLX_checknint(S, "list.__get", 1);
 
 	list___get_helper(S, ls, index);
 	return 1;
@@ -35,14 +35,14 @@ int list___get(struct YASL_State *S) {
 
 int list___len(struct YASL_State *S) {
 	struct YASL_List *ls = YASLX_checknlist(S, "list.__len", 0);
-	YASL_pushint(S, YASL_List_length(ls));
+	YASL_pushint(S, YASL_List_len(ls));
 	return 1;
 }
 
 int list___set(struct YASL_State *S) {
 	struct YASL_Object value = vm_pop((struct VM *) S);
-	yasl_int index = YASLX_checknint(S, "list.__set", 1);
 	struct YASL_List *ls = YASLX_checknlist(S, "list.__set", 0);
+	yasl_int index = YASLX_checknint(S, "list.__set", 1);
 
 	if (index < -(yasl_int) ls->count || index >= (yasl_int) ls->count) {
 		YASLX_print_and_throw_err_value(S, "unable to index list of length %" PRI_SIZET " with index %" PRId64 ".", ls->count, index);
@@ -57,8 +57,8 @@ int list___set(struct YASL_State *S) {
 }
 
 static int list___next(struct YASL_State *S) {
-	yasl_int curr = YASLX_checknint(S, "list.__next", 1);
 	struct YASL_List *ls = YASLX_checknlist(S, "list.__next", 0);
+	yasl_int curr = YASLX_checknint(S, "list.__next", 1);
 
 	if (curr < -(yasl_int) ls->count || curr >= (yasl_int)ls->count) {
 		YASL_pushbool(S, false);
@@ -134,16 +134,16 @@ static struct RC_UserData *list_concat(struct YASL_State *S, struct YASL_List *a
 }
 
 int list___add(struct YASL_State *S) {
-	struct YASL_List *b = YASLX_checknlist(S, "list.__add", 1);
 	struct YASL_List *a = YASLX_checknlist(S, "list.__add", 0);
+	struct YASL_List *b = YASLX_checknlist(S, "list.__add", 1);
 
 	vm_pushlist((struct VM *) S, list_concat(S, a, b));
 	return 1;
 }
 
 int list___eq(struct YASL_State *S) {
-	struct YASL_List *right = YASLX_checknlist(S, "list.__eq", 1);
 	struct YASL_List *left = YASLX_checknlist(S, "list.__eq", 0);
+	struct YASL_List *right = YASLX_checknlist(S, "list.__eq", 1);
 
 	if (left->count != right->count) {
 		YASL_pushbool(S, false);
@@ -366,7 +366,7 @@ int list_join(struct YASL_State *S) {
 
 int list_spread(struct YASL_State *S) {
 	struct YASL_List *ls = YASLX_checknlist(S, "list.spread", 0);
-	const yasl_int len = YASL_List_length(ls);
+	const yasl_int len = YASL_List_len(ls);
 
 	FOR_LIST(i, elmt, ls) {
 		vm_push((struct VM *)S, elmt);
@@ -423,7 +423,9 @@ int custom_comp(struct YASL_State *S, struct YASL_Object a, struct YASL_Object b
 	return a_lt_b ? -1 : a_gt_b ? 1 : 0;
 }
 
+#define YASL_OBJ_COMP_REVERSE(a, b) (-yasl_object_cmp(a, b))
 #define CUSTOM_COMP(a, b) custom_comp(S, a, b)
+#define CUSTOM_COMP_REVERSE(a, b) (-custom_comp(S, a, b))
 
 #define DEF_SORT(name, COMP) \
 static void name##sort(struct YASL_State *S, struct YASL_Object *list, const size_t len) {\
@@ -485,20 +487,28 @@ static void name##sort(struct YASL_State *S, struct YASL_Object *list, const siz
 }
 
 DEF_SORT(default, yasl_object_cmp)
-// DEF_SORT(fn, CUSTOM_COMP)
+// DEF_SORT(reverse, YASL_OBJ_COMP_REVERSE)
+DEF_SORT(fn, CUSTOM_COMP)
+// DEF_SORT(fn_reverse, CUSTOM_COMP_REVERSE)
 
 // TODO: clean this up
 int list_sort(struct YASL_State *S) {
 	struct YASL_List *list = YASLX_checknlist(S, "list.sort", 0);
 
-	/*
-	if (!YASL_isundef(S)) {
-		fnsort(S, list->items, list->count);
+	if (!YASL_isnundef(S, 1)) {
+		/*
+		 * We save the old value of list before calling the custom sort function, so that the sort function
+		 * modifying the list doesn't cause a segfault. To the custom sort function, it just sees an empty list.
+		 */
+		const struct YASL_List tmp = *list;
+		*list = (struct YASL_List) { 0, 0, NULL };
+		fnsort(S, tmp.items, tmp.count);
+		if (list->items) YASL_List_del_data(S, list->items);
+		*list = tmp;
 		return 0;
 	}
-	 */
 
-	if (YASL_List_length(list) <= 1) {
+	if (YASL_List_len(list) <= 1) {
 		return 0;
 	}
 
@@ -541,7 +551,7 @@ int list_insert(struct YASL_State *S) {
 	struct YASL_Object value = vm_pop((struct VM *) S);
 	yasl_int index = YASLX_checknint(S, "list.insert", 1);
 	struct YASL_List *ls = YASLX_checknlist(S, "list.insert", 0);
-	const yasl_int len = YASL_List_length(ls);
+	const yasl_int len = YASL_List_len(ls);
 
 	if (index == len) {
 		YASL_List_push(ls, value);

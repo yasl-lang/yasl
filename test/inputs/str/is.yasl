@@ -1,0 +1,27 @@
+echo 'isal:'
+echo 'YASL1223121321'->isal()
+echo 'YASLDSADASDAS'->isal()
+
+echo 'isalnum:'
+echo 'Yasl12_'->isalnum()
+echo 'YASL1223121321'->isalnum()
+
+echo 'isnum:'
+echo 'YASLDSADASDAS'->isnum()
+echo '12341213421'->isnum()
+
+echo 'isprint:'
+echo 'dsadswadsaa    #$@#^%$#%$#  '->isprint()
+echo '\0sadasd'->isprint()
+
+echo 'isspace:'
+echo '12341213421'->isspace()
+echo '  '->isspace()
+
+echo 'islower:'
+echo 'Yasadsdsa'->islower()
+echo 'sdadsadas'->islower()
+
+echo 'isupper:'
+echo 'Yasadsdsa'->isupper()
+echo 'SDSADSA'->isupper()

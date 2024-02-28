@@ -35,6 +35,10 @@ int str_isprint(struct YASL_State *S);
 
 int str_isspace(struct YASL_State *S);
 
+int str_islower(struct YASL_State *S);
+
+int str_isupper(struct YASL_State *S);
+
 int str_tobyte(struct YASL_State *S);
 
 int str_startswith(struct YASL_State *S);

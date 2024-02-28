@@ -2,3 +2,12 @@ let x = [1, 2, 3]
 x[1] = 0
 x->__set(2, 4)
 echo x
+
+
+const y = [ '1', '2', '3']
+
+echo y
+
+y[0]  = 'first'
+
+echo y

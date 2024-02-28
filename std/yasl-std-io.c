@@ -13,14 +13,6 @@
 
 static const char *const FILE_NAME = "io.file";
 
-static FILE *YASLX_checkfile(struct YASL_State *S, const char *name, int pos) {
-	if (!YASL_isuserdata(S, FILE_NAME)) {
-		YASLX_print_err_bad_arg_type(S, name, pos, FILE_NAME, YASL_peektypename(S));
-		YASLX_throw_err_type(S);
-	}
-	return (FILE *)YASL_popuserdata(S);
-}
-
 static FILE *YASLX_checknfile(struct YASL_State *S, const char *name, unsigned pos) {
 	if (!YASL_isnuserdata(S, FILE_NAME, pos)) {
 		YASLX_print_and_throw_err_bad_arg_type_n(S, name, pos, FILE_NAME);
@@ -106,6 +98,14 @@ static int YASL_io_open(struct YASL_State *S) {
 	return 1;
 }
 
+static int YASL_io_tmpfile(struct YASL_State *S) {
+	FILE *f = tmpfile();
+	YASL_pushuserdata(S, f, FILE_NAME, close_file);
+	YASL_loadmt(S, FILE_NAME);
+	YASL_setmt(S);
+	return 1;
+}
+
 static int YASL_io_read(struct YASL_State *S) {
 	char mode_str[2] = { '\0', '\0' };
 
@@ -126,7 +126,7 @@ static int YASL_io_read(struct YASL_State *S) {
 	}
 	YASL_pop(S);
 
-	FILE *f = YASLX_checkfile(S, FILE_PRE ".read", 0);
+	FILE *f = YASLX_checknfile(S, FILE_PRE ".read", 0);
 
 	switch (mode_str[0]) {
 	case 'a': {
@@ -172,7 +172,7 @@ static int YASL_io_write(struct YASL_State *S) {
 	}
 
 	size_t len;
-	const char *str = YASL_peeknstr(S, 0, &len);
+	const char *str = YASL_peeknstr(S, 1, &len);
 
 	size_t write_len = fwrite(str, 1, len, f);
 
@@ -181,7 +181,7 @@ static int YASL_io_write(struct YASL_State *S) {
 }
 
 static int YASL_io_flush(struct YASL_State *S) {
-	FILE *f = YASLX_checkfile(S, FILE_PRE ".flush", 0);
+	FILE *f = YASLX_checknfile(S, FILE_PRE ".flush", 0);
 
 	int success = fflush(f);
 
@@ -190,6 +190,7 @@ static int YASL_io_flush(struct YASL_State *S) {
 }
 
 static int YASL_io_seek(struct YASL_State *S) {
+	FILE *f = YASLX_checknfile(S, FILE_PRE ".seek", 0);
 	yasl_int offset = YASLX_checknoptint(S, FILE_PRE ".seek", 2, 0);
 	YASL_pop(S);
 
@@ -213,15 +214,13 @@ static int YASL_io_seek(struct YASL_State *S) {
 		YASLX_throw_err_type(S);
 	}
 
-	FILE *f = YASLX_checkfile(S, FILE_PRE ".seek", 0);
-
 	int success = fseek(f, offset, whence);
 	YASL_pushbool(S, success == 0);
 	return 1;
 }
 
 static int YASL_io_close(struct YASL_State *S) {
-	FILE *f = YASLX_checkfile(S, FILE_PRE ".close", 0);
+	FILE *f = YASLX_checknfile(S, FILE_PRE ".close", 0);
 
 	int success = fclose(f);
 	YASL_pushbool(S, success == 0);
@@ -252,6 +251,10 @@ int YASL_decllib_io(struct YASL_State *S) {
 	YASL_loadglobal(S, "io");
 	YASL_pushlit(S, "open");
 	YASL_pushcfunction(S, YASL_io_open, 2);
+	YASL_tableset(S);
+
+	YASL_pushlit(S, "tmpfile");
+	YASL_pushcfunction(S, YASL_io_tmpfile, 0);
 	YASL_tableset(S);
 
 	YASL_pushlit(S, "stdin");
