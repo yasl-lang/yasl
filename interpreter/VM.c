@@ -1126,7 +1126,7 @@ static void vm_exitloopframe(struct VM *const vm) {
 	vm->loopframe_num--;
 }
 
-static void vm_exitframe_multi(struct VM *const vm, int len) {
+void vm_exitframe_multi(struct VM *const vm, int len) {
 	vm_rm_range(vm, vm->fp, vm->fp + len + 1);
 
 	struct CallFrame frame = vm->frames[vm->frame_num];
