@@ -47,10 +47,11 @@ int YASL_decllib_collections(struct YASL_State *S);
 int YASL_decllib_error(struct YASL_State *S);
 int YASL_decllib_io(struct YASL_State *S);
 int YASL_decllib_math(struct YASL_State *S);
-int YASL_decllib_require(struct YASL_State *S);
-int YASL_decllib_require_c(struct YASL_State *S);
 int YASL_decllib_mt(struct YASL_State *S);
 int YASL_decllib_os(struct YASL_State *S);
+int YASL_decllib_require(struct YASL_State *S);
+int YASL_decllib_require_c(struct YASL_State *S);
+int YASL_decllib_try(struct YASL_State *S);
 
 /**
  * deletes the given YASL_State.

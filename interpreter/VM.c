@@ -192,7 +192,7 @@ YASL_FORMAT_CHECK static void vm_print_out(struct VM *vm, const char *const fmt,
 
 void vm_throw_err(struct VM *const vm, int error) {
 	vm->status = error;
-	longjmp(vm->buf, 1);
+	longjmp(*vm->buf, 1);
 }
 
 void vm_dec_ref(struct VM *const vm, struct YASL_Object *val) {
@@ -1108,9 +1108,8 @@ static void vm_GLOAD_8(struct VM *const vm) {
 static void vm_enterframe_offset(struct VM *const vm, int offset, int num_returns) {
 	if (++vm->frame_num >= NUM_FRAMES) {
 		vm->frame_num--;
-		vm->status = YASL_STACK_OVERFLOW_ERROR;
 		vm_print_err(vm, "StackOverflow.");
-		longjmp(vm->buf, 1);
+		vm_throw_err(vm, YASL_STACK_OVERFLOW_ERROR);
 	}
 
 	int next_fp = vm->next_fp;
@@ -1747,8 +1746,20 @@ void vm_executenext(struct VM *const vm) {
 	}
 }
 
+void vm_init_buf(struct VM *vm) {
+	YASL_ASSERT(vm->buf == NULL, "no longjmp buffer");
+	vm->buf = (jmp_buf*)malloc(sizeof(jmp_buf));
+}
+
+void vm_deinit_buf(struct VM *vm) {
+	// free(vm->buf);
+	vm->buf = NULL;
+}
+
 int vm_run(struct VM *const vm) {
-	if (setjmp(vm->buf)) {
+	vm_init_buf(vm);
+	if (setjmp(*vm->buf)) {
+		vm_deinit_buf(vm);
 		return vm->status;
 	}
 
