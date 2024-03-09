@@ -694,6 +694,11 @@ static void vm_SLICE_list(struct VM *const vm) {
 	vm_pop(vm);
 	vm_pop(vm);
 
+	if (end < start) {
+		vm_print_err_value(vm, "slicing expected the end of the range to be greater than or equal to the start, got %d:%d", (int)start, (int)end);
+		vm_throw_err(vm, YASL_VALUE_ERROR);
+	}
+
 	struct YASL_List *list = vm_poplist(vm);
 	struct RC_UserData *new_ls = rcls_new();
 	ud_setmt(vm, new_ls, vm->builtins_htable[Y_LIST]);
@@ -705,7 +710,7 @@ static void vm_SLICE_list(struct VM *const vm) {
 }
 
 static void vm_SLICE_str(struct VM *const vm){
-	yasl_int len = YASL_String_len(vm_peekstr(vm, vm->sp - 2));
+	const yasl_int len = YASL_String_len(vm_peekstr(vm, vm->sp - 2));
 	yasl_int end;
 	yasl_int start;
 
@@ -728,7 +733,6 @@ static void vm_SLICE_str(struct VM *const vm){
 	} else if (vm_isint(vm, vm->sp - 1)) {
 		start = vm_peekint(vm, vm->sp -1);
 		if (start < 0) start += len;
-
 		if (start < 0) start = 0;
 	} else {
 		vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
@@ -740,6 +744,11 @@ static void vm_SLICE_str(struct VM *const vm){
 
 	vm_pop(vm);
 	vm_pop(vm);
+
+	if (end < start) {
+		vm_print_err_value(vm, "slicing expected the end of the range to be greater than or equal to the start, got %d:%d", (int)start, (int)end);
+		vm_throw_err(vm, YASL_VALUE_ERROR);
+	}
 
 	struct YASL_String *str = vm_popstr(vm);
 
@@ -1722,7 +1731,7 @@ void vm_executenext(struct VM *const vm) {
 		}
 		vm_pop(vm);
 		break;
-	/*
+#ifdef YASL_DEBUG
 	case O_ASSERT_STACK_HEIGHT:
 		c = NCODE(vm);
 		if (c != vm->sp - vm->fp) {
@@ -1731,7 +1740,7 @@ void vm_executenext(struct VM *const vm) {
 			vm_throw_err(vm, YASL_ERROR);
 		}
 		break;
-	*/
+#endif  // YASL_DEBUG
 	default:
 		vm_print_err(vm, "Error: Unknown Opcode: %x\n", opcode);
 		vm_throw_err(vm, YASL_ERROR);
