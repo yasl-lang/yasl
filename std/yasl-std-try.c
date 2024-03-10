@@ -11,6 +11,11 @@ void vm_rm_range(struct VM *const vm, int start, int end);
 void vm_insertbool(struct VM *const vm, int index, bool val);
 void vm_rm(struct VM *const vm, int index);
 
+static void restore_buf(struct VM *vm, jmp_buf *old_buf) {
+	vm_deinit_buf(vm);
+	vm->buf = old_buf;
+}
+
 static int yasl_try(struct YASL_State *S) {
 	struct VM *vm = (struct VM *)S;
 	jmp_buf *old_buf = vm->buf;
@@ -19,8 +24,7 @@ static int yasl_try(struct YASL_State *S) {
 	int old_fp = vm->fp;
 	void (*old_print_err)(struct IO *const, const char *const, va_list) = vm->err.print;
 	if (setjmp(*vm->buf)) {
-		vm_deinit_buf(vm);
-		vm->buf = old_buf;
+		restore_buf(vm, old_buf);
 		vm->status = 0;
 
 		while (vm->fp > old_fp) {
@@ -35,13 +39,15 @@ static int yasl_try(struct YASL_State *S) {
 	}
 	vm->err.print = &io_print_string;
 	int old_sp = vm->fp + 1;
+	/* YASL inserts an extra argument here, to count the number of variadic arguments. We remove it here since it
+	 * interferes with us calling the next function.
+	 */
 	vm_rm(vm, vm->fp + 2);
 	vm_INIT_CALL_offset(vm, vm->fp + 1, -1);
 	vm_CALL_now(vm);
 
 	vm->err.print = old_print_err;
-	vm_deinit_buf(vm);
-	vm->buf = old_buf;
+	restore_buf(vm, old_buf);
 	vm_insertbool(vm, vm->fp + 1, true);
 	return vm->sp - old_sp + 1;
 }
