@@ -16,16 +16,17 @@ static int yasl_try(struct YASL_State *S) {
 	vm_init_buf(vm);
 	int old_fp = vm->fp;
 	if (setjmp(*vm->buf)) {
-		puts("gasfdsa");
 		vm_deinit_buf(vm);
 		vm->buf = old_buf;
 		vm->status = 0;
-		vm->sp = vm->fp + 1;
+		// vm->sp = vm->fp + 1;
 		// vm_rm_range(vm, vm->fp + 1, vm->sp -1);
-		while (vm->fp > old_fp) {
+		while (vm->fp < old_fp) {
 			vm_exitframe_multi(vm, 0);
 		}
-
+		// vm->fp = old_fp;
+		// vm->sp = vm->fp + 1;
+		// printf("vm->sp %d\n", vm->sp);
 		YASL_pushbool(S, false);
 		return 1;
 	}

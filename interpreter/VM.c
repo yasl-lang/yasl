@@ -173,7 +173,8 @@ static void printline(struct VM *vm) {
 
 void vvm_print_err(struct VM *vm, const char *const fmt, va_list args) {
 	vm->err.print(&vm->err, fmt, args);
-	printline(vm);
+	// printline(vm);
+	(void)printline;
 }
 
 YASL_FORMAT_CHECK void vm_print_err(struct VM *vm, const char *const fmt, ...) {
@@ -1760,6 +1761,7 @@ int vm_run(struct VM *const vm) {
 	vm_init_buf(vm);
 	if (setjmp(*vm->buf)) {
 		vm_deinit_buf(vm);
+		printline(vm);
 		return vm->status;
 	}
 
