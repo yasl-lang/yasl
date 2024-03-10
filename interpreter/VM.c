@@ -71,6 +71,7 @@ void vm_init(struct VM *const vm,
 
 	vm->builtins_htable = builtins_htable_new(vm);
 	vm->pending = NULL;
+	vm->buf = NULL;
 }
 
 void vm_close_all(struct VM *const vm);
@@ -173,8 +174,6 @@ static void printline(struct VM *vm) {
 
 void vvm_print_err(struct VM *vm, const char *const fmt, va_list args) {
 	vm->err.print(&vm->err, fmt, args);
-	// printline(vm);
-	(void)printline;
 }
 
 YASL_FORMAT_CHECK void vm_print_err(struct VM *vm, const char *const fmt, ...) {
@@ -277,6 +276,14 @@ void vm_insert(struct VM *const vm, int index, struct YASL_Object val) {
 	memmove(vm->stack + index + 1, vm->stack + index, (vm->sp - index + 1) * sizeof(struct YASL_Object));
 	vm->stack[index] = val;
 	vm->sp++;
+}
+
+void vm_insertbool(struct VM *const vm, int index, bool val) {
+	vm_insert(vm, index, YASL_BOOL(val));
+}
+
+void vm_insertint(struct VM *const vm, int index, yasl_int val) {
+	vm_insert(vm, index, YASL_INT(val));
 }
 
 void vm_rm(struct VM *const vm, int index) {

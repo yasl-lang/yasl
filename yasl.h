@@ -287,8 +287,10 @@ int YASL_loadglobal(struct YASL_State *S, const char *name);
 int YASL_loadmt(struct YASL_State *S, const char *name);
 
 void YASL_loadprintout(struct YASL_State *S);
-
 void YASL_loadprinterr(struct YASL_State *S);
+
+void YASL_resetprintout(struct YASL_State *S);
+void YASL_resetprinterr(struct YASL_State *S);
 
 /**
  * Initialises a new YASL_State for usage.

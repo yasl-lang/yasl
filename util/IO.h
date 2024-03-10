@@ -19,6 +19,9 @@ struct IO {
 
 void io_cleanup(struct IO *const io);
 
+// Resets the string portion of IO.
+void io_reset(struct IO *io);
+
 void io_print_none(struct IO *const io, const char *const format, va_list args);
 void io_print_file(struct IO *const io, const char *const format, va_list);
 void io_print_string(struct IO *const io, const char *const format, va_list);
