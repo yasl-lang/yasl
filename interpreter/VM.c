@@ -1753,15 +1753,18 @@ void vm_init_buf(struct VM *vm) {
 }
 
 void vm_deinit_buf(struct VM *vm) {
-	// free(vm->buf);
+	free(vm->buf);
 	vm->buf = NULL;
 }
+
+#define VM_FAILED(vm) ((vm)->status != YASL_SUCCESS && (vm)->status != YASL_MODULE_SUCCESS)
 
 int vm_run(struct VM *const vm) {
 	vm_init_buf(vm);
 	if (setjmp(*vm->buf)) {
 		vm_deinit_buf(vm);
-		printline(vm);
+		if (VM_FAILED(vm))
+			printline(vm);
 		return vm->status;
 	}
 
