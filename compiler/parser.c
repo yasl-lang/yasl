@@ -1062,6 +1062,19 @@ static struct Node *parse_power(struct Parser *const parser) {
 	return cur_node;
 }
 
+static void parse_args(struct Parser *const parser, struct Node **body) {
+	eattok(parser, T_LPAR);
+	if (!TOKEN_MATCHES(parser, T_RPAR, T_EOF)) {
+		parse_exprs_or_vargs(parser, body);
+	}
+	eattok(parser, T_RPAR);
+
+	struct Node *last = body_last(*body);
+	if (last && will_var_expand(last)) {
+		(*body)->children[(*body)->children_len - 1] = new_VariadicContext(last, -1);
+	}
+}
+
 static struct Node *parse_call(struct Parser *const parser) {
 	struct Node *cur_node = parse_constant(parser);
 	while (TOKEN_MATCHES(parser, T_LSQB, T_DOT, T_LPAR, T_RIGHT_ARR)) {
@@ -1076,17 +1089,7 @@ static struct Node *parse_call(struct Parser *const parser) {
 
 			cur_node = new_MethodCall(parser, block, cur_node, right->value.sval.str, 1,
 						  parserline(parser));
-			eattok(parser, T_LPAR);
-			if (!TOKEN_MATCHES(parser, T_RPAR, T_EOF)) {
-				parse_exprs_or_vargs(parser, &cur_node->children[0]);
-			}
-			eattok(parser, T_RPAR);
-
-			struct Node *body = cur_node->children[0];
-			struct Node *last = body_last(body);
-			if (last && will_var_expand(last)) {
-				body->children[body->children_len - 1] = new_VariadicContext(last, -1);
-			}
+			parse_args(parser, &cur_node->children[0]);
 		} else if (matcheattok(parser, T_DOT)) {
 			struct Node *right = parse_constant(parser);
 			if (right->nodetype == N_CALL) {
@@ -1115,19 +1118,10 @@ static struct Node *parse_call(struct Parser *const parser) {
 				}
 			}
 			eattok(parser, T_RSQB);
-		} else if (matcheattok(parser, T_LPAR)) {
+		} else if (TOKEN_MATCHES(parser, T_LPAR)) {
 			YASL_PARSE_DEBUG_LOG("%s\n", "Parsing function call");
 			cur_node = new_Call(parser, new_Exprs(parser, parserline(parser)), cur_node, 1, parserline(parser));
-			if (!TOKEN_MATCHES(parser, T_RPAR, T_EOF)) {
-				parse_exprs_or_vargs(parser, &cur_node->children[0]);
-			}
-			eattok(parser, T_RPAR);
-
-			struct Node *body = cur_node->children[0];
-			struct Node *last = body_last(body);
-			if (last && will_var_expand(last)) {
-				body->children[body->children_len - 1] = new_VariadicContext(last, -1);
-			}
+			parse_args(parser, &cur_node->children[0]);
 		}
 	}
 	return cur_node;
