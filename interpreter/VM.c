@@ -162,7 +162,7 @@ static void printline(struct VM *vm) {
 
 	vm_print_err_wrapper(vm, " (line %" PRI_SIZET ")\n", line);
 
-	if (vm->fp >= 0 && vm->stack[vm->fp].type == Y_CFN) vm_exitframe(vm);
+	if (vm->fp >= 0 && vm_peek(vm, vm->fp).type == Y_CFN) vm_exitframe(vm);
 
 	while (vm->fp >= 0) {
 		vm_exitframe(vm);
@@ -647,7 +647,7 @@ static void vm_CCONST(struct VM *const vm) {
 	for (size_t i = 0; i < num_upvalues; i++) {
 		unsigned char u = NCODE(vm);
 		if ((signed char)u >= 0) {
-			closure->upvalues[i] = add_upvalue(vm, &vm_peek(vm, vm->fp + 1 + u));
+			closure->upvalues[i] = add_upvalue(vm, &vm_peek_fp(vm, u));
 		} else {
 			closure->upvalues[i] = vm->stack[vm->fp].value.lval->upvalues[~(signed char)u];
 		}
@@ -1053,13 +1053,13 @@ static bool vm_MATCH_subpattern(struct VM *const vm, struct YASL_Object *expr) {
 		return MATCH_list(vm, ls, len);
 	}
 	case P_BIND: {
-		/* We offset by +2 instead of +1 here to account for the fact that the expression we are matching on is
-		   still on top of the stack. This is taken care of _after_ a successful match by a O_DEL_FP instruction.
-		  */
-		unsigned char offset = NCODE(vm);
-		vm_dec_ref(vm, &vm_peek(vm, vm->fp + offset + 2));
-		vm_peek(vm, vm->fp + offset + 2) = *expr;
-		inc_ref(&vm_peek(vm, vm->fp + offset + 2));
+		/* We offset by +1 here to account for the fact that the expression we are matching on is still on top
+		 * of the stack. This is taken care of _after_ a successful match by a O_DEL_FP instruction.
+		 */
+		unsigned char offset = NCODE(vm) + 1;
+		vm_dec_ref(vm, &vm_peek_fp(vm, offset));
+		vm_peek_fp(vm, offset) = *expr;
+		inc_ref(&vm_peek_fp(vm, offset));
 		return true;
 	}
 	case P_ANY:
@@ -1621,7 +1621,7 @@ void vm_executenext(struct VM *const vm) {
 		break;
 	case O_MOVEUP_FP:
 		offset = NCODE(vm);
-		a = vm_peek(vm, vm->fp + offset + 1);
+		a = vm_peek_fp(vm, offset);
 		memmove(vm->stack + vm->fp + offset + 1, vm->stack + vm->fp + offset + 2, (vm->sp - (vm->fp + offset + 1)) * sizeof(struct YASL_Object));
 		vm->stack[vm->sp] = a;
 		break;
@@ -1657,13 +1657,13 @@ void vm_executenext(struct VM *const vm) {
 		break;
 	case O_LLOAD:
 		offset = NCODE(vm);
-		vm_push(vm, vm_peek(vm, vm->fp + offset + 1));
+		vm_push(vm, vm_peek_fp(vm, offset));
 		break;
 	case O_LSTORE:
 		offset = NCODE(vm);
-		vm_dec_ref(vm, &vm_peek(vm, vm->fp + offset + 1));
-		vm_peek(vm, vm->fp + offset + 1) = vm_pop(vm);
-		inc_ref(&vm_peek(vm, vm->fp + offset + 1));
+		vm_dec_ref(vm, &vm_peek_fp(vm, offset));
+		vm_peek_fp(vm, offset) = vm_pop(vm);
+		inc_ref(&vm_peek_fp(vm, offset));
 		break;
 	case O_ULOAD:
 		offset = NCODE(vm);

@@ -589,7 +589,7 @@ char *YASL_popcstr(struct YASL_State *S) {
 }
 
 void *YASL_peeknuserdata(struct YASL_State *S, unsigned n) {
-	return YASL_GETUSERDATA(vm_peek(&S->vm, S->vm.fp + 1 + n))->data;
+	return YASL_GETUSERDATA(vm_peek_fp(&S->vm, n))->data;
 }
 
 void *YASL_popuserdata(struct YASL_State *S) {
