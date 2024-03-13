@@ -36,7 +36,7 @@ int YASL_require(struct YASL_State *S) {
 		YASLX_print_and_throw_err_bad_arg_type_n(S, "require", 0, YASL_STR_NAME);
 	}
 
-	char *mode_str = YASL_popcstr(S);
+	char *mode_str = YASL_peekcstr(S);
 
 	struct YASL_State *Ss = open_on_path(YASL_DEFAULT_PATH, mode_str, YASL_PATH_MARK, YASL_PATH_SEP, S->vm.headers_size);
 
@@ -144,7 +144,7 @@ int YASL_require_c(struct YASL_State *S) {
 		YASLX_print_and_throw_err_bad_arg_type_n(S, "__require_c__", 0, YASL_STR_NAME);
 	}
 
-	char *path = YASL_popcstr(S);
+	char *path = YASL_peekcstr(S);
 
 #if defined(YASL_USE_WIN)
 #ifndef _MSC_VER
@@ -177,24 +177,38 @@ int YASL_require_c(struct YASL_State *S) {
 	}
 	fun(S);
 #else
-	(void) path;
+	YASL_UNUSED(path);
 	YASL_throw_err(S, YASL_PLATFORM_NOT_SUPP);
 #endif
 	return 1;
 }
 
 int YASL_decllib_require(struct YASL_State *S) {
-	YASL_declglobal(S, "require");
 	YASL_pushcfunction(S, YASL_require, 1);
-	YASL_setglobal(S, "require");
+	YASLX_initglobal(S, "require");
 
 	return YASL_SUCCESS;
 }
 
 int YASL_decllib_require_c(struct YASL_State *S) {
-	YASL_declglobal(S, "__require_c__");
 	YASL_pushcfunction(S, YASL_require_c, 1);
-	YASL_setglobal(S, "__require_c__");
+	YASLX_initglobal(S, "__require_c__");
+
+	return YASL_SUCCESS;
+}
+
+int YASL_decllib_package(struct YASL_State *S) {
+	YASL_pushtable(S);
+
+	YASL_pushlit(S, "path");
+	YASL_pushlit(S, YASL_DEFAULT_PATH);
+	YASL_tableset(S);
+
+	YASL_pushlit(S, "__require_c__");
+	YASL_pushcfunction(S, &YASL_require_c, 1);
+	YASL_tableset(S);
+
+	YASLX_initglobal(S, "package");
 
 	return YASL_SUCCESS;
 }

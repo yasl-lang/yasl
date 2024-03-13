@@ -8,7 +8,7 @@ int YASL_error(struct YASL_State *S) {
 		YASL_throw_err(S, YASL_ERROR);
 	}
 
-	char *str = YASL_popcstr(S);
+	char *str = YASL_peekcstr(S);
 	if (!str) {
 		YASLX_print_and_throw_err_bad_arg_type_n(S, "error", 0, YASL_STR_NAME);
 	}
