@@ -1477,7 +1477,7 @@ static int visit_Table(struct Compiler *const compiler, const struct Node *const
 	compiler->line = line;\
 }
 
-DEF_VALIDATE(expr, compiler, node, -1)
+DEF_VALIDATE(expr, compiler, node, (int)get_stacksize(compiler))
 DEF_VALIDATE(stmt, compiler, node)
 
 static void visit_LetIter(struct Compiler *const compiler, const struct Node *const node) {
