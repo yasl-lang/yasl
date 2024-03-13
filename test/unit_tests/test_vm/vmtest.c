@@ -287,6 +287,8 @@ static TEST(testaddupvalue) {
 		ASSERT(!curr->next || curr->location > curr->next->location);
 	}
 
+	vm_cleanup(&vm);
+
 	return NUM_FAILED;
 }
 

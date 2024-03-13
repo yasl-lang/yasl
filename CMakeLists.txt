@@ -90,6 +90,7 @@ add_executable(yasl
         std/yasl-std-collections.c
         std/yasl-std-mt.c
         std/yasl-std-os.c
+        std/yasl-std-try.c
         util/hash_function.c
         util/IO.c
         util/prime.c
@@ -142,7 +143,8 @@ add_library(yaslapi
         std/yasl-std-require.c
         data-structures/YASL_Set.c
         std/yasl-std-mt.c
-        std/yasl-std-os.c)
+        std/yasl-std-os.c
+        std/yasl-std-try.c)
 
 set_property(TARGET yaslapi PROPERTY POSITION_INDEPENDENT_CODE ON)
 

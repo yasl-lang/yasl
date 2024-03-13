@@ -71,6 +71,7 @@ void vm_init(struct VM *const vm,
 
 	vm->builtins_htable = builtins_htable_new(vm);
 	vm->pending = NULL;
+	vm->buf = NULL;
 }
 
 void vm_close_all(struct VM *const vm);
@@ -173,7 +174,6 @@ static void printline(struct VM *vm) {
 
 void vvm_print_err(struct VM *vm, const char *const fmt, va_list args) {
 	vm->err.print(&vm->err, fmt, args);
-	printline(vm);
 }
 
 YASL_FORMAT_CHECK void vm_print_err(struct VM *vm, const char *const fmt, ...) {
@@ -192,7 +192,7 @@ YASL_FORMAT_CHECK static void vm_print_out(struct VM *vm, const char *const fmt,
 
 void vm_throw_err(struct VM *const vm, int error) {
 	vm->status = error;
-	longjmp(vm->buf, 1);
+	longjmp(*vm->buf, 1);
 }
 
 void vm_dec_ref(struct VM *const vm, struct YASL_Object *val) {
@@ -276,6 +276,14 @@ void vm_insert(struct VM *const vm, int index, struct YASL_Object val) {
 	memmove(vm->stack + index + 1, vm->stack + index, (vm->sp - index + 1) * sizeof(struct YASL_Object));
 	vm->stack[index] = val;
 	vm->sp++;
+}
+
+void vm_insertbool(struct VM *const vm, int index, bool val) {
+	vm_insert(vm, index, YASL_BOOL(val));
+}
+
+void vm_insertint(struct VM *const vm, int index, yasl_int val) {
+	vm_insert(vm, index, YASL_INT(val));
 }
 
 void vm_rm(struct VM *const vm, int index) {
@@ -1108,9 +1116,8 @@ static void vm_GLOAD_8(struct VM *const vm) {
 static void vm_enterframe_offset(struct VM *const vm, int offset, int num_returns) {
 	if (++vm->frame_num >= NUM_FRAMES) {
 		vm->frame_num--;
-		vm->status = YASL_STACK_OVERFLOW_ERROR;
 		vm_print_err(vm, "StackOverflow.");
-		longjmp(vm->buf, 1);
+		vm_throw_err(vm, YASL_STACK_OVERFLOW_ERROR);
 	}
 
 	int next_fp = vm->next_fp;
@@ -1127,7 +1134,7 @@ static void vm_exitloopframe(struct VM *const vm) {
 	vm->loopframe_num--;
 }
 
-static void vm_exitframe_multi(struct VM *const vm, int len) {
+void vm_exitframe_multi(struct VM *const vm, int len) {
 	vm_rm_range(vm, vm->fp, vm->fp + len + 1);
 
 	struct CallFrame frame = vm->frames[vm->frame_num];
@@ -1747,8 +1754,24 @@ void vm_executenext(struct VM *const vm) {
 	}
 }
 
+void vm_init_buf(struct VM *vm) {
+	YASL_ASSERT(vm->buf == NULL, "no longjmp buffer");
+	vm->buf = (jmp_buf*)malloc(sizeof(jmp_buf));
+}
+
+void vm_deinit_buf(struct VM *vm) {
+	free(vm->buf);
+	vm->buf = NULL;
+}
+
+#define VM_FAILED(vm) ((vm)->status != YASL_SUCCESS && (vm)->status != YASL_MODULE_SUCCESS)
+
 int vm_run(struct VM *const vm) {
-	if (setjmp(vm->buf)) {
+	vm_init_buf(vm);
+	if (setjmp(*vm->buf)) {
+		vm_deinit_buf(vm);
+		if (VM_FAILED(vm))
+			printline(vm);
 		return vm->status;
 	}
 
