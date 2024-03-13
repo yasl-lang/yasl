@@ -62,7 +62,7 @@ int YASL_delstate(struct YASL_State *S);
 
 /**
  * [-0, +1]
- * Duplicates the top of the stack.
+ * Duplicates the top of the stack, pushing the result on top of the stack.
  * @param S the YASL_State.
  * @return YASL_SUCCESS on success, otherwise an error code.
  */
@@ -87,7 +87,7 @@ int YASL_execute(struct YASL_State *S);
 int YASL_execute_REPL(struct YASL_State *S);
 
 /**
- * [-(n+1), +r]
+ * [-n-1, +r]
  * Calls a function with n parameters. The function should be located below all n
  * parameters it will be called with. The left-most parameter is placed directly above
  * the function, the right-most paramter at the top of the stack.
