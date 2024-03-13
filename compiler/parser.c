@@ -105,17 +105,16 @@ size_t parserline(const struct Parser *const parser) {
 	return parser->lex.line;
 }
 
-//NOTE: keep this updated alongside lexer.h
+// NOTE: keep this updated alongside lexer.h
 static inline int tok_isaugmented(const enum Token t) {
 	// ^=, *=, /=, //=,
 	// %=, +=, -=, >>=, <<=,
-	// ||=, &&=, ~=, **=, |=,
-	// ??=
+	// ||=, &&=, ~=, &=, &^=,
+	// **=, |=, ??=
 	return t == T_CARETEQ || t == T_STAREQ || t == T_SLASHEQ || t == T_DSLASHEQ ||
 	       t == T_MODEQ || t == T_PLUSEQ || t == T_MINUSEQ || t == T_DGTEQ || t == T_DLTEQ ||
 	       t == T_DBAREQ || t == T_DAMPEQ || t == T_TILDEEQ || t == T_AMPEQ || t == T_AMPCARETEQ ||
-	       t == T_DSTAREQ || t == T_BAREQ ||
-	       t == T_DQMARKEQ;
+	       t == T_DSTAREQ || t == T_BAREQ || t == T_DQMARKEQ;
 }
 
 static inline enum Token curtok(const struct Parser *const parser) {
@@ -209,7 +208,7 @@ struct Node *parse_assign_or_exprstmt(struct Parser *const parser) {
  * Checks for function statement `fn <id> ...` vs function expr `fn ( ...`.
  */
 static bool isfndecl(struct Parser *const parser) {
-	long curr = lxtell(parser->lex.file);
+	int curr = lxtell(parser->lex.file);
 	eattok(parser, T_FN);
 	lex_val_free(&parser->lex);
 	lex_val_setnull(&parser->lex);
@@ -220,10 +219,10 @@ static bool isfndecl(struct Parser *const parser) {
 }
 
 /*
- * Checks for function statement `fn <id> ...` vs function expr `fn ( ...`.
+ * Checks whether vargs is empty
  */
 static bool isemptyvargs(struct Parser *const parser) {
-	long curr = lxtell(parser->lex.file);
+	int curr = lxtell(parser->lex.file);
 	eattok(parser, T_LPAR);
 	lex_val_free(&parser->lex);
 	lex_val_setnull(&parser->lex);
@@ -527,18 +526,18 @@ static struct Node *parse_let_const_or_var(struct Parser *const parser) {
 static struct Node *parse_var_pack(struct Parser *const parser, int expected) {
 	struct Node *rvals = new_Exprs(parser, parserline(parser));
 
-	int j = 0;
+	int i = 0;
 	do {
 		body_append(parser, &rvals, parse_expr(parser));
-	} while (j++ < expected && matcheattok(parser, T_COMMA));
+	} while (i++ < expected && matcheattok(parser, T_COMMA));
 
 	struct Node *last = body_last(rvals);
 	if (last && !will_var_expand(last)) {
-		while (j++ < expected) {
+		while (i++ < expected) {
 			body_append(parser, &rvals, new_Undef(parser, parserline(parser)));
 		}
 	} else {
-		rvals->children[rvals->children_len - 1] = new_VariadicContext(last, expected - j + 1);
+		rvals->children[rvals->children_len - 1] = new_VariadicContext(last, expected - i + 1);
 	}
 
 	return rvals;
@@ -571,7 +570,7 @@ static struct Node *parse_decl(struct Parser *const parser) {
 }
 
 static struct Node *parse_let(struct Parser *const parser) {
-	YASL_PARSE_DEBUG_LOG("parsing let in line %" PRI_SIZET "\n", parserline(parser));
+	YASL_PARSE_DEBUG_LOG("parsing `let` in line %" PRI_SIZET "\n", parserline(parser));
 	eattok(parser, T_LET);
 	size_t line = parserline(parser);
 	char *name = eatname(parser);
@@ -581,7 +580,7 @@ static struct Node *parse_let(struct Parser *const parser) {
 }
 
 static struct Node *parse_iterate(struct Parser *const parser) {
-	YASL_PARSE_DEBUG_LOG("parsing let <- in line %" PRI_SIZET "\n", parserline(parser));
+	YASL_PARSE_DEBUG_LOG("parsing `let` <id> `in`  in line %" PRI_SIZET "\n", parserline(parser));
 	size_t line = parserline(parser);
 	char *name = eatname(parser);
 	eattok(parser, T_IN);
@@ -1161,7 +1160,7 @@ static struct Node *parse_constant(struct Parser *const parser) {
 		return parse_undef(parser);
 	case T_FN:
 		return parse_lambda(parser);
-	// handle invalid expressions with sensible error messages.
+	// handle invalid expressions with reasonable error messages.
 	case T_ECHO:
 	case T_WHILE:
 	case T_FOR:

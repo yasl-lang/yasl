@@ -467,7 +467,7 @@ bool YASL_popbool(struct YASL_State *S);
  * @param S the YASL_State.
  * @return the value of the str on top of the stack, or NULL if it's not a str.
  */
-YASL_WARN_UNUSED char *YASL_popcstr(struct YASL_State *S);
+YASL_DEPRECATE YASL_WARN_UNUSED char *YASL_popcstr(struct YASL_State *S);
 
 /**
  * [-1, +0]
