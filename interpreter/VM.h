@@ -114,9 +114,9 @@ struct VM {
 	struct YASL_String *special_strings[NUM_SPECIAL_STRINGS];
 	struct RC_UserData **builtins_htable;   // htable of builtin methods
 	struct Upvalue *pending;  // upvals that still need to be closed. Should be in descending order.
-	jmp_buf buf;
+	jmp_buf *buf;
 	int status;
-	uint8_t scratch[SCRATCH_SIZE];
+	char scratch[SCRATCH_SIZE];
 };
 
 void vm_init(struct VM *const vm, unsigned char *const code, const size_t pc, const size_t datasize);

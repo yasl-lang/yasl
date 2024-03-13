@@ -1,0 +1,27 @@
+const input = "o:'Draw two'"
+
+const fn index(obj, start, end) -> obj[start:end]
+const replace = mt.lookup('', 'replace')
+
+echo try(replace, 'ababsa', 'a', 'A', 2)
+echo try(fn() ->  1, 2, 3)
+echo try(fn() ->  1, 2)
+echo try(fn() ->  1)
+echo try((fn(a, b) -> a + b), 9, 10)
+const fn f(...) {
+    return collections.list(...)
+}
+
+echo try(error, '1')
+echo try(error, '2')
+echo try(error, '3')
+echo try(error, 1)
+echo try(fn() -> 1, 2, 3)
+echo try((fn(a) -> error(a)), '4')
+
+
+echo try(fn() -> error())
+echo try(index, input, 2, 0)
+echo try(error, 'sdasda')
+echo try(fn() -> ())
+echo try(index, input, 0, 2)

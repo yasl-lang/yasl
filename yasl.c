@@ -121,6 +121,22 @@ void YASL_loadprinterr(struct YASL_State *S) {
 	}
 }
 
+void YASL_resetprintout(struct YASL_State *S) {
+	io_reset(&S->vm.out);
+}
+
+void YASL_resetprinterr(struct YASL_State *S) {
+	struct IO *compiler_err = &S->compiler.parser.lex.err;
+	struct IO *vm_err = &S->vm.err;
+
+	io_reset(compiler_err);
+	io_reset(vm_err);
+
+	S->vm.err.len = 0;
+	free(S->vm.err.string);
+	S->vm.err.string = NULL;
+}
+
 int YASL_execute_REPL(struct YASL_State *S) {
 	unsigned char *bc = compile_REPL(&S->compiler);
 	if (!bc) return S->compiler.status;
