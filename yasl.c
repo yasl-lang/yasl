@@ -346,6 +346,9 @@ void YASL_pushlist(struct YASL_State *S) {
 yasl_int YASL_peekvargscount(struct YASL_State *S) {
 	struct VM *vm = (struct VM *)S;
 	yasl_int num_args = vm_peek(vm, vm->fp).value.cval->num_args;
+	if (num_args >= 0) {
+		return 0;
+	}
 
 	return vm_peekint(vm, vm->fp + 1 + ~num_args);
 }
