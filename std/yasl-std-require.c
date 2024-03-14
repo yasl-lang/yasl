@@ -36,7 +36,7 @@ int YASL_require(struct YASL_State *S) {
 		YASLX_print_and_throw_err_bad_arg_type_n(S, "require", 0, YASL_STR_NAME);
 	}
 
-	char *mode_str = YASL_popcstr(S);
+	char *mode_str = YASL_peekcstr(S);
 
 	struct YASL_State *Ss = open_on_path(YASL_DEFAULT_PATH, mode_str, YASL_PATH_MARK, YASL_PATH_SEP, S->vm.headers_size);
 
@@ -144,7 +144,7 @@ int YASL_require_c(struct YASL_State *S) {
 		YASLX_print_and_throw_err_bad_arg_type_n(S, "__require_c__", 0, YASL_STR_NAME);
 	}
 
-	char *path = YASL_popcstr(S);
+	char *path = YASL_peekcstr(S);
 
 #if defined(YASL_USE_WIN)
 #ifndef _MSC_VER
