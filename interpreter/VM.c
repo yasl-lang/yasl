@@ -72,6 +72,7 @@ void vm_init(struct VM *const vm,
 	vm->builtins_htable = builtins_htable_new(vm);
 	vm->pending = NULL;
 	vm->buf = NULL;
+	vm->format_str = NULL;
 }
 
 void vm_close_all(struct VM *const vm);
@@ -1344,7 +1345,7 @@ static void vm_ECHO(struct VM *const vm) {
 	size_t tmp = 0;
 	for (int i = vm->fp + 1 + top; i <= vm->sp; i++) {
 		vm_push(vm, vm_peek(vm, i));
-		vm_stringify_top(vm);
+		vm_stringify_top_format(vm, vm->format_str);
 		tmp += YASL_String_len(vm_peekstr(vm)) + 2;
 		inc_ref(vm_peek_p(vm));
 		dec_ref(vm_peek_p(vm, i));
