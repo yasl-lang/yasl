@@ -1350,14 +1350,7 @@ static void vm_ECHO(struct VM *const vm) {
 		dec_ref(vm_peek_p(vm, i));
 		vm_peek(vm, i) = vm_pop(vm);
 	}
-	bool alloc = false;
-	char *dest;
-	if (tmp > SCRATCH_SIZE) {
-		dest = (char *) malloc(tmp);
-		alloc = true;
-	} else {
-		dest = (char *) &vm->scratch;
-	}
+	char *dest = (char *) malloc(tmp);
 	tmp = 0;
 	char *curr = dest;
 	for (int i = vm->fp + 1 + top; i <= vm->sp; i++) {
@@ -1369,9 +1362,6 @@ static void vm_ECHO(struct VM *const vm) {
 		tmp += copied + 2;
 	}
 	vm_print_out(vm, "%.*s\n", (int)tmp-2, dest);
-	if (alloc) {
-		free(dest);
-	}
 	vm->sp = vm->fp + top;
 }
 

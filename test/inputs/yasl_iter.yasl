@@ -1,4 +1,3 @@
-# const orderedtable = require('./sample.yam')
 
 const orderedtablemt = {
 	.__get: fn(self, key) {

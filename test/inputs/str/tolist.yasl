@@ -1,2 +1,0 @@
-echo 'abcdefg'->tolist()
-echo 'abcdefg'->tolist(2)

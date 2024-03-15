@@ -97,27 +97,26 @@ struct VM {
 	struct IO out;
 	struct IO err;
 	struct YASL_Table *metatables;
-	struct YASL_Table *globals;   // variables, see "constant.c" for details on YASL_Object.
-	struct YASL_Object *stack;     // stack
+	struct YASL_Table *globals;   // global variables
+	struct YASL_Object *constants;
+	struct YASL_String *special_strings[NUM_SPECIAL_STRINGS];
+	int64_t num_constants;
+	struct YASL_Object *stack;    // stack
 	struct CallFrame frames[NUM_FRAMES];
 	int frame_num;
-	struct LoopFrame loopframes[16];
+	struct LoopFrame loopframes[16];  // We support 16 levels of nested loops.
 	int loopframe_num;
-	struct YASL_Object *constants;
-	int64_t num_constants;
-	unsigned char *code;           // bytecode
 	unsigned char **headers;
 	size_t headers_size;
-	unsigned char *pc;                     // program counter
-	int sp;                        // stack pointer
-	int fp;                        // frame pointer
+	unsigned char *code;          // bytecode
+	unsigned char *pc;            // program counter
+	int sp;                       // stack pointer
+	int fp;                       // frame pointer
 	int next_fp;
-	struct YASL_String *special_strings[NUM_SPECIAL_STRINGS];
 	struct RC_UserData **builtins_htable;   // htable of builtin methods
 	struct Upvalue *pending;  // upvals that still need to be closed. Should be in descending order.
 	jmp_buf *buf;
 	int status;
-	char scratch[SCRATCH_SIZE];
 };
 
 void vm_init(struct VM *const vm, unsigned char *const code, const size_t pc, const size_t datasize);
