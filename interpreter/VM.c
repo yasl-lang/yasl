@@ -1362,6 +1362,7 @@ static void vm_ECHO(struct VM *const vm) {
 		tmp += copied + 2;
 	}
 	vm_print_out(vm, "%.*s\n", (int)tmp-2, dest);
+	free(dest);
 	vm->sp = vm->fp + top;
 }
 
