@@ -100,41 +100,26 @@ static int YASL_collections_set_tostr(struct YASL_State *S) {
 	struct YASL_Set *set = YASLX_checknset(S, SET_PRE ".tostr", 0);
 	struct YASL_Object *format = vm_peek_p((struct VM *)S);
 
-	size_t string_count = 0;
-	size_t string_size = 8;
-	char *string = (char *)malloc(string_size);
-	string_count += strlen("set(");
-	memcpy(string, "set(", strlen("set("));
 	if (YASL_Set_length(set) == 0) {
-		string[string_count++] = ')';
-		YASL_pushlstr(S, string, string_count);
-		free(string);
+		YASL_pushlit(S, "set()");
 		return 1;
 	}
+
+	YASL_ByteBuffer bb = NEW_BB(8);
+	YASL_ByteBuffer_extend(&bb, (const byte *)"set(", strlen("set("));
+
 	FOR_SET(i, item, set) {
 		vm_push((struct VM *)S, *item);
 		vm_stringify_top_format((struct VM *) S, format);
 		struct YASL_String *str = vm_popstr((struct VM *) S);
-		while (string_count + YASL_String_len(str) >= string_size) {
-			string_size *= 2;
-			string = (char *) realloc(string, string_size);
-		}
 
-		memcpy(string + string_count, str->str, YASL_String_len(str));
-		string_count += YASL_String_len(str);
-
-		if (string_count + 2 >= string_size) {
-			string_size *= 2;
-			string = (char *) realloc(string, string_size);
-		}
-
-		string[string_count++] = ',';
-		string[string_count++] = ' ';
+		YASL_ByteBuffer_extend(&bb, (const byte *)YASL_String_chars(str), YASL_String_len(str));
+		YASL_ByteBuffer_extend(&bb, (const byte *)", ", 2);
 	}
 
-	string_count -= 2;
-	string[string_count++] = ')';
-	vm_pushstr((struct VM *)S, YASL_String_new_sized_heap(string_count, string));
+	bb.count -= 2;
+	YASL_ByteBuffer_add_byte(&bb, ')');
+	vm_pushstr((struct VM *)S, YASL_String_new_sized_heap(bb.count, (char *)bb.items));
 	return 1;
 }
 
@@ -144,7 +129,7 @@ static int YASL_collections_set_tolist(struct YASL_State *S) {
 	ud_setmt(&S->vm, list, S->vm.builtins_htable[Y_LIST]);
 	struct YASL_List *ls = (struct YASL_List *)list->data;
 	FOR_SET(i, item, set) {
-			YASL_List_push(ls, *item);
+		YASL_List_push(ls, *item);
 	}
 
 	vm_pushlist(&S->vm, list);

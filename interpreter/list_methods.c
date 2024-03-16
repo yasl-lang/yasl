@@ -320,47 +320,25 @@ int list_join(struct YASL_State *S) {
 		return 1;
 	}
 
-	size_t buffer_count = 0;
-	size_t buffer_size = 8;
-	char *buffer = (char *) malloc(buffer_size);
+	YASL_ByteBuffer bb = NEW_BB(8);
 
 	vm_push((struct VM *)S, list->items[0]);
 	vm_stringify_top((struct VM *)S);
 	struct YASL_String *str = vm_popstr((struct VM *) S);
 
-	while (buffer_count + YASL_String_len(str) >= buffer_size) {
-		buffer_size *= 2;
-		buffer = (char *) realloc(buffer, buffer_size);
-	}
-
-	memcpy(buffer + buffer_count, YASL_String_chars(str), YASL_String_len(str));
-	buffer_count += YASL_String_len(str);
-
+	YASL_ByteBuffer_extend(&bb, (const byte *)YASL_String_chars(str), YASL_String_len(str));
 
 	for (size_t i = 1; i < list->count; i++) {
-		while (buffer_count + YASL_String_len(string) >= buffer_size) {
-			buffer_size *= 2;
-			buffer = (char *) realloc(buffer, buffer_size);
-		}
-
-		memcpy(buffer + buffer_count, YASL_String_chars(string), YASL_String_len(string));
-		buffer_count += YASL_String_len(string);
+		YASL_ByteBuffer_extend(&bb, (const byte *)YASL_String_chars(string), YASL_String_len(string));
 
 		vm_push((struct VM *) S, list->items[i]);
 		vm_stringify_top((struct VM *)S);
 		struct YASL_String *str = vm_popstr((struct VM *) S);
 
-		while (buffer_count + YASL_String_len(str) >= buffer_size) {
-			buffer_size *= 2;
-			buffer = (char *) realloc(buffer, buffer_size);
-		}
-
-		memcpy(buffer + buffer_count, YASL_String_chars(str), YASL_String_len(str));
-		buffer_count += YASL_String_len(str);
+		YASL_ByteBuffer_extend(&bb, (const byte *)YASL_String_chars(str), YASL_String_len(str));
 	}
-	YASL_pop(S);
-	YASL_pop(S);
-	vm_pushstr((struct VM *) S, YASL_String_new_sized_heap(buffer_count, buffer));
+
+	vm_pushstr((struct VM *) S, YASL_String_new_sized_heap(bb.count, (char *)bb.items));
 	return 1;
 }
 

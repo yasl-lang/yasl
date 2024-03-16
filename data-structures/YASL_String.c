@@ -12,7 +12,7 @@
 #include "data-structures/YASL_ByteBuffer.h"
 
 size_t YASL_String_len(const struct YASL_String *const str) {
-	return (size_t)(str->end);
+	return (size_t)(str->len);
 }
 
 const char *YASL_String_chars(const struct YASL_String *const str) {
@@ -44,8 +44,7 @@ struct YASL_String *YASL_String_new_substring(const size_t start, const size_t e
 	struct YASL_String *str = (struct YASL_String *) malloc(sizeof(struct YASL_String));
 	str->str = (char *)malloc(end - start);
 	memcpy(str->str, string->str + start, end - start);
-	//str->start = 0;
-	str->end = end - start;
+	str->len = end - start;
 
 	str->rc = NEW_RC();
 	return str;
@@ -60,8 +59,7 @@ struct YASL_String *YASL_String_new_sized(const size_t base_size, const char *co
 
 struct YASL_String *YASL_String_new_sized_heap(const size_t base_size, const char *const mem) {
 	struct YASL_String *str = (struct YASL_String *) malloc(sizeof(struct YASL_String));
-	//str->start = 0;
-	str->end = base_size;
+	str->len = base_size;
 	str->str = (char *) mem;
 	str->rc = NEW_RC();
 	return str;
@@ -542,7 +540,7 @@ struct YASL_String *YASL_String_trim(struct YASL_String *haystack, struct YASL_S
 
 // Caller ensures num is greater than or equal to zero
 struct YASL_String *YASL_String_rep_fast(struct YASL_String *string, yasl_int num) {
-	YASL_ASSERT(num >= 0, "num must be nonnegative");
+	YASL_ASSERT(num >= 0, "num must be non-negative");
 	const size_t string_len = YASL_String_len(string);
 	size_t size = num * string_len;
 	char *str = (char *)malloc(size);
