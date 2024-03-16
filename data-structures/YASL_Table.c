@@ -147,7 +147,7 @@ void YASL_Table_insert_zstring_int(struct YASL_Table *const table, const char *c
 
 void YASL_Table_insert_string_int(struct YASL_Table *const table, const char *const key, const size_t key_len,
 				  const int64_t val) {
-	struct YASL_String *string = YASL_String_new_sized_heap(0, key_len, copy_char_buffer(key_len, key));
+	struct YASL_String *string = YASL_String_new_sized_heap(key_len, copy_char_buffer(key_len, key));
 	struct YASL_Object ko = YASL_STR(string);
 	struct YASL_Object vo = YASL_INT(val);
 	YASL_Table_insert_fast(table, ko, vo);
@@ -183,7 +183,7 @@ struct YASL_Object YASL_Table_search_zstring_int(const struct YASL_Table *const 
 
 struct YASL_Object YASL_Table_search_string_int(const struct YASL_Table *const table, const char *const key,
 						const size_t key_len) {
-	struct YASL_String *string = YASL_String_new_sized_heap(0, key_len, copy_char_buffer(key_len, key));
+	struct YASL_String *string = YASL_String_new_sized_heap(key_len, copy_char_buffer(key_len, key));
 	struct YASL_Object object = YASL_STR(string);
 
 	struct YASL_Object result = YASL_Table_search(table, object);

@@ -42,43 +42,33 @@ char *copy_char_buffer(const size_t size, const char *const ptr) {
 struct YASL_String *YASL_String_new_substring(const size_t start, const size_t end,
 					      const struct YASL_String *const string) {
 	struct YASL_String *str = (struct YASL_String *) malloc(sizeof(struct YASL_String));
-	str->on_heap = string->on_heap;
-	if (str->on_heap) {
-		str->str = (char *)malloc(end - start);
-		memcpy(str->str, string->str + start, end - start);
-		str->start = 0;
-		str->end = end - start;
-	} else {
-		str->start = start;
-		str->end = end;
-		str->str = string->str;
-	}
+	str->str = (char *)malloc(end - start);
+	memcpy(str->str, string->str + start, end - start);
+	str->start = 0;
+	str->end = end - start;
+
 	str->rc = NEW_RC();
 	return str;
 }
 
 struct YASL_String *YASL_String_new_sized(const size_t base_size, const char *const ptr) {
+	char *const mem = malloc(base_size + 1);
+	memcpy(mem, ptr, base_size);
+	mem[base_size] = '\0';
+	return YASL_String_new_sized_heap(base_size, mem);
+}
+
+struct YASL_String *YASL_String_new_sized_heap(const size_t base_size, const char *const mem) {
 	struct YASL_String *str = (struct YASL_String *) malloc(sizeof(struct YASL_String));
 	str->start = 0;
 	str->end = base_size;
-	str->str = (char *) ptr;
-	str->on_heap = false;
-	str->rc = NEW_RC();
-	return str;
-}
-
-struct YASL_String* YASL_String_new_sized_heap(const size_t start, const size_t end, const char *const mem) {
-	struct YASL_String *str = (struct YASL_String *) malloc(sizeof(struct YASL_String));
-	str->start = start;
-	str->end = end;
 	str->str = (char *) mem;
-	str->on_heap = true;
 	str->rc = NEW_RC();
 	return str;
 }
 
 void str_del_data(struct YASL_String *const str) {
-	if (str->on_heap) free((void *) str->str);
+	free((void *) str->str);
 }
 
 void str_del_rc(struct YASL_String *const str) {
@@ -86,7 +76,7 @@ void str_del_rc(struct YASL_String *const str) {
 }
 
 void str_del(struct YASL_String *const str) {
-	if (str->on_heap) free((void *) str->str);
+	str_del_data(str);
 	free(str);
 }
 
@@ -278,7 +268,7 @@ yasl_int YASL_String_toint(struct YASL_String *str) {
 		ptr[i++] = fun(curr);\
 	}\
 \
-	return YASL_String_new_sized_heap(0, length, ptr);\
+	return YASL_String_new_sized_heap(length, ptr);\
 }
 
 DEFINE_STR_TO_X(upper, UPPER);
@@ -335,7 +325,7 @@ bool YASL_String_endswith(struct YASL_String *haystack, struct YASL_String *need
 	size_t count = buff->count;\
 	\
 	YASL_ByteBuffer_del(buff);\
-	return YASL_String_new_sized_heap(0, count, items);
+	return YASL_String_new_sized_heap(count, items);
 
 
 // Caller makes sure search_str is at least length 1.
@@ -563,6 +553,6 @@ struct YASL_String *YASL_String_rep_fast(struct YASL_String *string, yasl_int nu
 		memcpy(str + i, string->str + string->start, string_len);
 	}
 
-	return YASL_String_new_sized_heap(0, size, str);
+	return YASL_String_new_sized_heap(size, str);
 }
 

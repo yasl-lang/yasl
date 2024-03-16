@@ -154,7 +154,7 @@ int table_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer, struct YASL_Obj
 	if (table->count == 0) {
 		vm_pop((struct VM *) S);
 		YASL_ByteBuffer_add_byte(&bb, '}');
-		vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, bb.count, (char *)bb.items)));
+		vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(bb.count, (char *) bb.items)));
 		return YASL_SUCCESS;
 	}
 
@@ -201,7 +201,7 @@ int table_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer, struct YASL_Obj
 	bb.count -= 2;
 	YASL_ByteBuffer_add_byte(&bb, '}');
 
-	vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, bb.count, (char *)bb.items)));
+	vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(bb.count, (char *) bb.items)));
 
 	return YASL_SUCCESS;
 }

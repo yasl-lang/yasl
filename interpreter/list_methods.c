@@ -231,7 +231,7 @@ int list_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer, struct YASL_Obje
 	if (list->count == 0) {
 		YASL_pop(S);
 		YASL_ByteBuffer_add_byte(&bb, ']');
-		vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, bb.count, (char *)bb.items)));
+		vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(bb.count, (char *) bb.items)));
 		return YASL_SUCCESS;
 	}
 
@@ -269,7 +269,7 @@ int list_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer, struct YASL_Obje
 	bb.count -= 2;
 	YASL_ByteBuffer_add_byte(&bb, ']');
 
-	vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, bb.count, (char *)bb.items)));
+	vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(bb.count, (char *) bb.items)));
 
 	return YASL_SUCCESS;
 }
@@ -360,7 +360,7 @@ int list_join(struct YASL_State *S) {
 	}
 	YASL_pop(S);
 	YASL_pop(S);
-	vm_pushstr((struct VM *) S, YASL_String_new_sized_heap(0, buffer_count, buffer));
+	vm_pushstr((struct VM *) S, YASL_String_new_sized_heap(buffer_count, buffer));
 	return 1;
 }
 

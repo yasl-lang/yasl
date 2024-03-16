@@ -134,7 +134,7 @@ static int YASL_collections_set_tostr(struct YASL_State *S) {
 
 	string_count -= 2;
 	string[string_count++] = ')';
-	vm_pushstr((struct VM *)S, YASL_String_new_sized_heap(0, string_count, string));
+	vm_pushstr((struct VM *)S, YASL_String_new_sized_heap(string_count, string));
 	return 1;
 }
 

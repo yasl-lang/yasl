@@ -104,6 +104,14 @@ int YASL_require(struct YASL_State *S) {
 	return 1;
 }
 
+#if defined(YASL_USE_WIN)
+#define LOAD_LIB(buffer) LoadLibrary(TEXT(buffer))
+#elif defined(YASL_USE_UNIX) || defined(YASL_USE_APPLE)
+#define LOAD_LIB(buffer) dlopen(buffer, RTLD_NOW)
+#else
+#define LOAD_LIB(buffer) NULL
+#endif
+
 static void *search_on_path(const char *path, const char *name, const char sep, const char dirmark) {
 	const char *start = path;
 	const char *end = strchr(start, dirmark);
@@ -115,13 +123,8 @@ static void *search_on_path(const char *path, const char *name, const char sep, 
 		memcpy(buffer + (split - start) + strlen(name), split + 1, end - split - 1);
 		buffer[end - start + strlen(name) - 1] = '\0';
 
-#if defined(YASL_USE_WIN)
-		void *lib = LoadLibrary(TEXT(buffer));
-#elif defined(YASL_USE_UNIX) || defined(YASL_USE_APPLE)
-		void *lib = dlopen(buffer, RTLD_NOW);
-#else
-		void *lib = NULL;
-#endif
+		void *lib = LOAD_LIB(buffer);
+
 		free(buffer);
 		if (lib)
 			return lib;
@@ -129,13 +132,7 @@ static void *search_on_path(const char *path, const char *name, const char sep, 
 		start = end + 1;
 		end = strchr(start, dirmark);
 	}
-#if defined(YASL_USE_WIN)
-	return LoadLibrary(TEXT(path));
-#elif defined(YASL_USE_UNIX) || defined(YASL_USE_APPLE)
-	return dlopen(name, RTLD_NOW);
-#else
-	return NULL;
-#endif
+	return LOAD_LIB(name);
 }
 
 int YASL_require_c(struct YASL_State *S) {
