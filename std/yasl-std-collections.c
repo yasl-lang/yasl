@@ -120,7 +120,7 @@ static int YASL_collections_set_tostr(struct YASL_State *S) {
 			string = (char *) realloc(string, string_size);
 		}
 
-		memcpy(string + string_count, str->str + str->start, YASL_String_len(str));
+		memcpy(string + string_count, str->str, YASL_String_len(str));
 		string_count += YASL_String_len(str);
 
 		if (string_count + 2 >= string_size) {

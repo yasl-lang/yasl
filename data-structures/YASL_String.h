@@ -12,9 +12,8 @@ struct YASL_List;
 struct YASL_String {
 	struct RC rc;      // NOTE: RC MUST BE THE FIRST MEMBER OF THIS STRUCT. DO NOT REARRANGE.
 	char *str;
-	size_t start;
+	// size_t start;
 	size_t end;
-	// bool on_heap;
 };
 
 size_t YASL_String_len(const struct YASL_String *const str);

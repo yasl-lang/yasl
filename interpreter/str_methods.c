@@ -34,14 +34,14 @@ int str___get(struct YASL_State *S) {
 	} else {
 		if (index >= 0)
 			vm_push((struct VM *) S, YASL_STR(
-				YASL_String_new_substring(str->start + index,
-							  str->start + index + 1,
+				YASL_String_new_substring(index,
+							  index + 1,
 							  str)));
 		else
 			vm_push((struct VM *) S,
 				YASL_STR(YASL_String_new_substring(
-					str->start + index + YASL_String_len(str),
-					str->start + index + YASL_String_len(str) + 1,
+					index + YASL_String_len(str),
+					index + YASL_String_len(str) + 1,
 					str)));
 	}
 	return 1;
