@@ -53,9 +53,6 @@ struct CFunction *new_cfn(YASL_cfn value, int num_args);
 void cfn_del_rc(struct CFunction *cfn);
 void cfn_del_data(struct CFunction *cfn);
 
-struct YASL_Object *YASL_String(struct YASL_String *str);
-struct YASL_Object *YASL_Table(void);
-
 /*
  * Either both types are strings or both types are numerical. Otherwise error
  */

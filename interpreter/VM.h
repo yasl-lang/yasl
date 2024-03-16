@@ -138,6 +138,7 @@ void vm_print_err(struct VM *vm, const char *const fmt, ...);
 
 YASL_NORETURN void vm_throw_err(struct VM *const vm, int error);
 
+struct RC_UserData *obj_get_metatable(const struct VM *const vm, struct YASL_Object v);
 void vm_get_metatable(struct VM *const vm);
 int vm_lookup_method_helper(struct VM *vm, struct YASL_Table *mt, struct YASL_Object index);
 void vm_stringify_top(struct VM *const vm);
@@ -166,6 +167,7 @@ void vm_pushundef(struct VM *const vm);
 void vm_pushfloat(struct VM *const vm, yasl_float f);
 void vm_pushint(struct VM *const vm, yasl_int i);
 void vm_pushbool(struct VM *const vm, bool b);
+void vm_pushstr_bb(struct VM *const vm, YASL_ByteBuffer *bb);
 #define vm_pushstr(vm, s) vm_push(vm, YASL_STR(s))
 #define vm_pushlist(vm, l) vm_push(vm, YASL_LIST(l))
 #define vm_pushtable(vm, l) vm_push(vm, YASL_TABLE(l))

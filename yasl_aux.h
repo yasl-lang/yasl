@@ -142,6 +142,7 @@ void YASLX_checknundef(struct YASL_State *S, const char *name, unsigned n);
  * @param S The YASL_State.
  * @param name Name of the function in which this is called, used for error message.
  * @param pos the position of the argument.
+ * @outparam len the length of the returned str.
  * @return the nth position of the stack if it's a str, otherwise no return.
  */
 const char *YASLX_checknstr(struct YASL_State *S, const char *name, unsigned n, size_t *len);
@@ -178,7 +179,7 @@ yasl_int YASLX_checknoptint(struct YASL_State *S, const char *name, unsigned n, 
  * @param name Name of the function in which this is called, used for error message.
  * @param n the position of the argument.
  * @param default_val the value to return if the nth position of the stack is undef.
- * @return the nth position of the stack or a default value if it's an float or undef, otherwise no return.
+ * @return the nth position of the stack or a default value if it's a float or undef, otherwise no return.
  */
 yasl_float YASLX_checknoptfloat(struct YASL_State *S, const char *name, unsigned n, yasl_float default_val);
 
@@ -190,9 +191,22 @@ yasl_float YASLX_checknoptfloat(struct YASL_State *S, const char *name, unsigned
  * @param name Name of the function in which this is called, used for error message.
  * @param n the position of the argument.
  * @param default_val the value to return if the nth position of the stack is undef.
- * @return the nth position of the stack or a default value if it's an bool or undef, otherwise no return.
+ * @return the nth position of the stack or a default value if it's a bool or undef, otherwise no return.
  */
 bool YASLX_checknoptbool(struct YASL_State *S, const char *name, unsigned n, bool default_val);
+
+/**
+ * [-0, +0]
+ * Returns the nth position of the stack if it is a str, or default_val if the nth position is undef.
+ * Otherwise, causes a type errorm along with a printed error message.
+ * @param S The YASL_State
+ * @param name Name of the calling function, used for error message.
+ * @param n the position of the argument.
+ * @param len the length of the returned str.
+ * @param default_val the str to return in the case that the nth position of the stack is undef. NUL-terminated.
+ * @return the nth position of the stack or a default value if it's a str or undef, otherwise no return.
+ */
+const char *YASLX_checknoptstrz(struct YASL_State *S, const char *name, unsigned n, size_t *len, const char *default_val);
 
 struct YASLX_function {
 	const char *name;

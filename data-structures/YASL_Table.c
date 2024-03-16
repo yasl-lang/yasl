@@ -8,6 +8,7 @@
 #include "interpreter/refcount.h"
 #include "interpreter/YASL_Object.h"
 #include "interpreter/userdata.h"
+#include "interpreter/VM.h"
 #include "yasl_error.h"
 
 const char *const TABLE_NAME = "table";
@@ -45,18 +46,19 @@ void YASL_Table_del(struct YASL_Table *const table) {
 	free(table);
 }
 
-struct RC_UserData *rcht_new_sized(const size_t base_size) {
+struct RC_UserData *rcht_new_sized(struct VM *vm, const size_t base_size) {
         struct RC_UserData *ht = (struct RC_UserData *)malloc(sizeof(struct RC_UserData));
         ht->data = table_new_sized(base_size);
         ht->rc = NEW_RC();
         ht->tag = TABLE_NAME;
         ht->destructor = rcht_del_data;
         ht->mt = NULL;
+	ud_setmt(vm, ht, vm->builtins_htable[Y_TABLE]);
         return ht;
 }
 
-struct RC_UserData *rcht_new(void) {
-	return rcht_new_sized(TABLE_BASESIZE);
+struct RC_UserData *rcht_new(struct VM *vm) {
+	return rcht_new_sized(vm, TABLE_BASESIZE);
 }
 
 void rcht_del(struct RC_UserData *const hashtable) {
@@ -147,7 +149,7 @@ void YASL_Table_insert_zstring_int(struct YASL_Table *const table, const char *c
 
 void YASL_Table_insert_string_int(struct YASL_Table *const table, const char *const key, const size_t key_len,
 				  const int64_t val) {
-	struct YASL_String *string = YASL_String_new_sized_heap(key_len, copy_char_buffer(key_len, key));
+	struct YASL_String *string = YASL_String_new_sized(key_len, key);
 	struct YASL_Object ko = YASL_STR(string);
 	struct YASL_Object vo = YASL_INT(val);
 	YASL_Table_insert_fast(table, ko, vo);
@@ -183,7 +185,7 @@ struct YASL_Object YASL_Table_search_zstring_int(const struct YASL_Table *const 
 
 struct YASL_Object YASL_Table_search_string_int(const struct YASL_Table *const table, const char *const key,
 						const size_t key_len) {
-	struct YASL_String *string = YASL_String_new_sized_heap(key_len, copy_char_buffer(key_len, key));
+	struct YASL_String *string = YASL_String_new_sized(key_len, key);
 	struct YASL_Object object = YASL_STR(string);
 
 	struct YASL_Object result = YASL_Table_search(table, object);

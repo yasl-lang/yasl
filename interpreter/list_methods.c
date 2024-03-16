@@ -80,8 +80,7 @@ int list___iter(struct YASL_State *S) {
 
 int list_copy(struct YASL_State *S) {
 	struct YASL_List *ls = YASLX_checknlist(S, "list.copy", 0);
-	struct RC_UserData *new_ls = rcls_new_sized(ls->size);
-	ud_setmt(&S->vm, new_ls, S->vm.builtins_htable[Y_LIST]);
+	struct RC_UserData *new_ls = rcls_new_sized(&S->vm, ls->size);
 	struct YASL_List *new_list = (struct YASL_List *) new_ls->data;
 	FOR_LIST(i, elmt, ls) {
 		YASL_List_push(new_list, elmt);
@@ -121,8 +120,7 @@ int list_pushv(struct YASL_State *S) {
 
 static struct RC_UserData *list_concat(struct YASL_State *S, struct YASL_List *a, struct YASL_List *b) {
 	size_t size = a->count + b->count;
-	struct RC_UserData *ptr = rcls_new_sized(size);
-	ud_setmt(&S->vm, ptr, (&S->vm)->builtins_htable[Y_LIST]);
+	struct RC_UserData *ptr = rcls_new_sized(&S->vm, size);
 	for (size_t i = 0; i < a->count; i++) {
 		YASL_List_push((struct YASL_List *) ptr->data, (a)->items[i]);
 	}
@@ -269,7 +267,7 @@ void list_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer, struct YASL_Obj
 	bb.count -= 2;
 	YASL_ByteBuffer_add_byte(&bb, ']');
 
-	vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(bb.count, (char *) bb.items)));
+	vm_pushstr_bb((struct VM *)S, &bb);
 }
 
 int list_tostr(struct YASL_State *S) {
@@ -298,20 +296,9 @@ int list_clear(struct YASL_State *S) {
 }
 
 int list_join(struct YASL_State *S) {
-	if (YASL_isundef(S)) {
-		YASL_pop(S);
-		vm_pushstr((struct VM *)S, YASL_String_new_sized(0, ""));
-	}
-	if (!vm_isstr((struct VM *) S)) {
-		YASLX_print_and_throw_err_bad_arg_type_n(S, "list.join", 1, YASL_STR_NAME);
-	}
-	struct YASL_String *string = vm_peekstr((struct VM *) S, S->vm.sp);
-	S->vm.sp--;
-	if (!YASL_isnlist(S, 0)) {
-		YASLX_print_and_throw_err_bad_arg_type_n(S, "list.join", 0, YASL_LIST_NAME);
-	}
-	struct YASL_List *list = vm_peeklist((struct VM *) S, S->vm.sp);
-	S->vm.sp++;
+	size_t len;
+	const char *chars = YASLX_checknoptstrz(S, "list.join", 1, &len, "");
+	struct YASL_List *list = YASLX_checknlist(S, "list.join", 0);
 
 	if (list->count == 0) {
 		vm_pushstr((struct VM *) S, YASL_String_new_sized(0, ""));
@@ -327,7 +314,7 @@ int list_join(struct YASL_State *S) {
 	YASL_ByteBuffer_extend(&bb, (const byte *)YASL_String_chars(str), YASL_String_len(str));
 
 	for (size_t i = 1; i < list->count; i++) {
-		YASL_ByteBuffer_extend(&bb, (const byte *)YASL_String_chars(string), YASL_String_len(string));
+		YASL_ByteBuffer_extend(&bb, (const byte *)chars, len);
 
 		vm_push((struct VM *) S, list->items[i]);
 		vm_stringify_top((struct VM *)S);
@@ -336,7 +323,7 @@ int list_join(struct YASL_State *S) {
 		YASL_ByteBuffer_extend(&bb, (const byte *)YASL_String_chars(str), YASL_String_len(str));
 	}
 
-	vm_pushstr((struct VM *) S, YASL_String_new_sized_heap(bb.count, (char *)bb.items));
+	vm_pushstr_bb((struct VM *)S, &bb);
 	return 1;
 }
 

@@ -330,15 +330,13 @@ void YASL_pushcfunction(struct YASL_State *S, YASL_cfn value, int num_args) {
 }
 
 void YASL_pushtable(struct YASL_State *S) {
-	struct RC_UserData *table = rcht_new();
-	ud_setmt(&S->vm, table, S->vm.builtins_htable[Y_TABLE]);
+	struct RC_UserData *table = rcht_new(&S->vm);
 	vm_push(&S->vm, YASL_TABLE(table));
 }
 
 void YASL_pushlist(struct YASL_State *S) {
-	struct RC_UserData *list = rcls_new();
-	ud_setmt(&S->vm, list, S->vm.builtins_htable[Y_LIST]);
-	vm_push(&S->vm, YASL_LIST(list));
+	struct RC_UserData *list = rcls_new((struct VM *)S);
+	vm_pushlist(&S->vm, list);
 }
 
 yasl_int YASL_peekvargscount(struct YASL_State *S) {

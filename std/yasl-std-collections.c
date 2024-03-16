@@ -62,8 +62,7 @@ static int YASL_collections_set_new(struct YASL_State *S) {
 
 static int YASL_collections_list_new(struct YASL_State *S) {
 	yasl_int i = YASL_peekvargscount(S);
-	struct RC_UserData *list = rcls_new();
-	ud_setmt(&S->vm, list, S->vm.builtins_htable[Y_LIST]);
+	struct RC_UserData *list = rcls_new(&S->vm);
 	while (i-- > 0) {
 		YASL_List_push((struct YASL_List *) list->data, vm_pop((struct VM *) S));
 	}
@@ -79,7 +78,7 @@ static int YASL_collections_table_new(struct YASL_State *S) {
 		YASL_pop(S);
 		i--;
 	}
-	struct RC_UserData *table = rcht_new();
+	struct RC_UserData *table = rcht_new(&S->vm);
 	while (i > 0) {
 		struct YASL_Object value = vm_pop((struct VM *)S);
 		struct YASL_Object key = vm_pop((struct VM *)S);
@@ -91,7 +90,6 @@ static int YASL_collections_table_new(struct YASL_State *S) {
 		}
 		i -= 2;
 	}
-	ud_setmt(&S->vm, table, S->vm.builtins_htable[Y_TABLE]);
 	vm_pushtable((struct VM *)S, table);
 	return 1;
 }
@@ -119,14 +117,13 @@ static int YASL_collections_set_tostr(struct YASL_State *S) {
 
 	bb.count -= 2;
 	YASL_ByteBuffer_add_byte(&bb, ')');
-	vm_pushstr((struct VM *)S, YASL_String_new_sized_heap(bb.count, (char *)bb.items));
+	vm_pushstr_bb((struct VM *)S, &bb);
 	return 1;
 }
 
 static int YASL_collections_set_tolist(struct YASL_State *S) {
 	struct YASL_Set *set = YASLX_checknset(S, SET_PRE ".tolist", 0);
-	struct RC_UserData *list = rcls_new();
-	ud_setmt(&S->vm, list, S->vm.builtins_htable[Y_LIST]);
+	struct RC_UserData *list = rcls_new(&S->vm);
 	struct YASL_List *ls = (struct YASL_List *)list->data;
 	FOR_SET(i, item, set) {
 		YASL_List_push(ls, *item);

@@ -119,6 +119,15 @@ bool YASLX_checknoptbool(struct YASL_State *S, const char *fn_name, unsigned n, 
 	return YASLX_checknbool(S, fn_name, n);
 }
 
+const char *YASLX_checknoptstrz(struct YASL_State *S, const char *fn_name, unsigned n, size_t *len, const char *default_val) {
+	if (YASL_isnundef(S, n)) {
+		*len = strlen(default_val);
+		return default_val;
+	}
+
+	return YASLX_checknstr(S, fn_name, n, len);
+}
+
 static bool YASLX_functions_issentinal(struct YASLX_function functions) {
 	return functions.name == NULL && functions.fn == NULL && functions.args == 0;
 }
