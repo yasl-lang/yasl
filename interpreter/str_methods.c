@@ -26,23 +26,20 @@ static struct YASL_String *checkstr(struct YASL_State *S, const char *name, unsi
 int str___get(struct YASL_State *S) {
 	struct YASL_String *str = checkstr(S, "str.__get", 0);
 	yasl_int index = YASLX_checknint(S, "str.__get", 1);
+	size_t len = YASL_String_len(str);
 
-	if (index < -(yasl_int) YASL_String_len(str) ||
-		   index >= (yasl_int) YASL_String_len(
-			   str)) {
-		YASLX_print_and_throw_err_value(S, "unable to index str of length %" PRI_SIZET " with index %ld.", YASL_String_len(str), (long)index);
+	if (index < -(yasl_int) len || index >= (yasl_int) len) {
+		YASLX_print_and_throw_err_value(S, "unable to index str of length %" PRI_SIZET " with index %ld.", len, (long)index);
 	} else {
-		if (index >= 0)
-			vm_pushstr((struct VM *) S, (
-				YASL_String_new_substring(index,
-							  index + 1,
-							  str)));
-		else
+		if (index >= 0) {
 			vm_pushstr((struct VM *) S,
-				(YASL_String_new_substring(
-					index + YASL_String_len(str),
-					index + YASL_String_len(str) + 1,
-					str)));
+				YASL_String_new_substring(str, index, index + 1));
+		} else {
+			vm_pushstr((struct VM *) S,
+				   YASL_String_new_substring(str,
+							      index + len,
+							      index + len + 1));
+		}
 	}
 	return 1;
 }

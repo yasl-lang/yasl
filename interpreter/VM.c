@@ -764,7 +764,7 @@ static void vm_SLICE_str(struct VM *const vm){
 
 	struct YASL_String *str = vm_popstr(vm);
 
-	vm_pushstr(vm, YASL_String_new_substring((size_t)start, (size_t)end, str));
+	vm_pushstr(vm, YASL_String_new_substring(str, (size_t)start, (size_t)end));
 }
 
 static void vm_SLICE(struct VM *const vm) {

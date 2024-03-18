@@ -20,8 +20,8 @@ const char *YASL_String_chars(const struct YASL_String *const str);
 int64_t YASL_String_cmp(const struct YASL_String *const left, const struct YASL_String *const right);
 struct YASL_String *YASL_String_new_copy(const char *const ptr, const size_t size);
 #define YASL_String_new_copyz(ptr) YASL_String_new_copy((ptr), strlen(ptr))
-struct YASL_String *YASL_String_new_substring(const size_t start, const size_t end,
-					      const struct YASL_String *const string);
+struct YASL_String *YASL_String_new_substring(const struct YASL_String *const string,
+					      const size_t start, const size_t end);
 struct YASL_String* YASL_String_new_take(const char *const mem, const size_t size);
 #define YASL_String_new_takebb(bb) YASL_String_new_take((char *)(bb)->items, (bb)->count)
 void str_del_data(struct YASL_String *const str);
