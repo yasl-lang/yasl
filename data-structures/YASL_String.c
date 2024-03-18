@@ -33,12 +33,6 @@ int64_t YASL_String_cmp(const struct YASL_String *const left, const struct YASL_
 	}
 }
 
-char *copy_char_buffer(const size_t size, const char *const ptr) {
-	char *tmp = (char *) malloc(size);
-	memcpy(tmp, ptr, size);
-	return tmp;
-}
-
 struct YASL_String *YASL_String_new_substring(const size_t start, const size_t end,
 					      const struct YASL_String *const string) {
 	struct YASL_String *str = (struct YASL_String *) malloc(sizeof(struct YASL_String));
@@ -50,7 +44,7 @@ struct YASL_String *YASL_String_new_substring(const size_t start, const size_t e
 	return str;
 }
 
-struct YASL_String *YASL_String_new_copy(const size_t base_size, const char *const ptr) {
+struct YASL_String *YASL_String_new_copy(const char *const ptr, const size_t base_size) {
 	char *const mem = (char *)malloc(base_size + 1);
 	memcpy(mem, ptr, base_size);
 	mem[base_size] = '\0';

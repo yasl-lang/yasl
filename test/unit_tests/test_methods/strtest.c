@@ -4,11 +4,11 @@
 
 SETUP_YATS();
 
-#define str_new_cliteral(s) YASL_String_new_copy(strlen(s), s)
+#define str_new_cliteral(s) YASL_String_new_copyz(s)
 
-/// check that yasl_string_len returns correct length.
+/// check that YASL_String_len returns correct length.
 static void test_string_len(void) {
-	struct YASL_String *string = YASL_String_new_copy(strlen("hello"), "hello");
+	struct YASL_String *string = str_new_cliteral("hello");
 	ASSERT_EQ(YASL_String_len(string), strlen("hello"));
 	str_del(string);
 }

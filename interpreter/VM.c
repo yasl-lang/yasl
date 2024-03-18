@@ -65,7 +65,7 @@ void vm_init(struct VM *const vm,
 	vm->constants = NULL;
 	vm->stack = (struct YASL_Object *)calloc(sizeof(struct YASL_Object), STACK_SIZE);
 
-#define X(E, S, ...) vm->special_strings[E] = YASL_String_new_copy(strlen(S), S);
+#define X(E, S, ...) vm->special_strings[E] = YASL_String_new_copy(S, strlen(S));
 #include "specialstrings.x"
 #undef X
 
@@ -330,7 +330,7 @@ void vm_CALL(struct VM *const vm);
 void vm_CALL_now(struct VM *const vm);
 
 #define vm_lookup_method_throwing(vm, method_name, err_str, ...) do {\
-	struct YASL_Object index = YASL_STR(YASL_String_new_copy(strlen(method_name), method_name));\
+	struct YASL_Object index = YASL_STR(YASL_String_new_copy(method_name, strlen(method_name)));\
 	vm_get_metatable(vm);\
 	struct YASL_Table *mt = vm_istable(vm) ? vm_poptable(vm) : NULL;\
 	if (!mt) {\
@@ -353,7 +353,7 @@ void vm_CALL_now(struct VM *const vm);
 } while (0)
 
 #define vm_call_binop_method_now(vm, left, right, method_name, format, ...) do {\
-	struct YASL_Object index = YASL_STR(YASL_String_new_copy(strlen(method_name), method_name));\
+	struct YASL_Object index = YASL_STR(YASL_String_new_copy(method_name, strlen(method_name)));\
 	vm_push(vm, left);\
 	vm_get_metatable(vm);\
 	struct YASL_Table *mt = vm_istable(vm) ? vm_poptable(vm) : NULL;\

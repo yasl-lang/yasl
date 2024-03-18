@@ -301,7 +301,7 @@ int list_join(struct YASL_State *S) {
 	struct YASL_List *list = YASLX_checknlist(S, "list.join", 0);
 
 	if (list->count == 0) {
-		vm_pushstr((struct VM *) S, YASL_String_new_copy(0, ""));
+		vm_pushstr((struct VM *) S, YASL_String_new_copyz(""));
 		return 1;
 	}
 
