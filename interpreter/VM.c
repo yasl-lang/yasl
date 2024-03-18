@@ -65,7 +65,7 @@ void vm_init(struct VM *const vm,
 	vm->constants = NULL;
 	vm->stack = (struct YASL_Object *)calloc(sizeof(struct YASL_Object), STACK_SIZE);
 
-#define X(E, S, ...) vm->special_strings[E] = YASL_String_new_sized(strlen(S), S);
+#define X(E, S, ...) vm->special_strings[E] = YASL_String_new_copy(strlen(S), S);
 #include "specialstrings.x"
 #undef X
 
@@ -234,7 +234,7 @@ void vm_pushbool(struct VM *const vm, bool b) {
 }
 
 void vm_pushstr_bb(struct VM *const vm, YASL_ByteBuffer *bb) {
-	vm_pushstr(vm, YASL_String_new_sized_heap(bb->count, (char *)bb->items));
+	vm_pushstr(vm, YASL_String_new_take(bb->count, (char *) bb->items));
 }
 
 struct YASL_Object *vm_pop_p(struct VM *const vm) {
@@ -330,7 +330,7 @@ void vm_CALL(struct VM *const vm);
 void vm_CALL_now(struct VM *const vm);
 
 #define vm_lookup_method_throwing(vm, method_name, err_str, ...) do {\
-	struct YASL_Object index = YASL_STR(YASL_String_new_sized(strlen(method_name), method_name));\
+	struct YASL_Object index = YASL_STR(YASL_String_new_copy(strlen(method_name), method_name));\
 	vm_get_metatable(vm);\
 	struct YASL_Table *mt = vm_istable(vm) ? vm_poptable(vm) : NULL;\
 	if (!mt) {\
@@ -353,7 +353,7 @@ void vm_CALL_now(struct VM *const vm);
 } while (0)
 
 #define vm_call_binop_method_now(vm, left, right, method_name, format, ...) do {\
-	struct YASL_Object index = YASL_STR(YASL_String_new_sized(strlen(method_name), method_name));\
+	struct YASL_Object index = YASL_STR(YASL_String_new_copy(strlen(method_name), method_name));\
 	vm_push(vm, left);\
 	vm_get_metatable(vm);\
 	struct YASL_Table *mt = vm_istable(vm) ? vm_poptable(vm) : NULL;\
@@ -536,7 +536,7 @@ static void vm_CNCT(struct VM *const vm) {
 		char *ptr = (char *)malloc(size);
 		memcpy(ptr, YASL_String_chars(a), YASL_String_len(a));
 		memcpy(ptr + YASL_String_len(a), YASL_String_chars(b), YASL_String_len(b));
-		vm_pushstr(vm, YASL_String_new_sized_heap(size, ptr));
+		vm_pushstr(vm, YASL_String_new_take(size, ptr));
 		vm_dec_ref(vm, &top);
 }
 
@@ -577,12 +577,12 @@ void vm_stringify_top_format(struct VM *const vm, struct YASL_Object *format) {
 		size_t n = (size_t)snprintf(NULL, 0, "<fn: %p>", vm_peekuserptr(vm)) + 1;
 		char *buffer = (char *)malloc(n);
 		snprintf(buffer, n, "<fn: %d>", (int)vm_popint(vm));
-		vm_pushstr(vm, YASL_String_new_sized_heap(strlen(buffer), buffer));
+		vm_pushstr(vm, YASL_String_new_take(strlen(buffer), buffer));
 	} else if (vm_isuserptr(vm)) {
 		size_t n = (size_t)snprintf(NULL, 0, "<userptr: %p>", vm_peekuserptr(vm)) + 1;
 		char *buffer = (char *)malloc(n);
 		snprintf(buffer, n, "<userptr: %p>", (void *)vm_popint(vm));
-		vm_pushstr(vm, YASL_String_new_sized_heap(strlen(buffer), buffer));
+		vm_pushstr(vm, YASL_String_new_take(strlen(buffer), buffer));
 	} else {
 		vm_duptop(vm);
 		vm_lookup_method_throwing(vm, "tostr", "tostr not supported for operand of type %s.", vm_peektypename(vm));
@@ -1380,7 +1380,7 @@ void vm_setupconstants(struct VM *const vm) {
 			tmp += sizeof(int64_t);
 			char *str = (char *) malloc((size_t) len);
 			memcpy(str, tmp, (size_t) len);
-			vm->constants[i] = YASL_STR(YASL_String_new_sized_heap((size_t) len, str));
+			vm->constants[i] = YASL_STR(YASL_String_new_take((size_t) len, str));
 			inc_ref(vm->constants + i);
 			tmp += len;
 			break;

@@ -19,10 +19,10 @@ size_t YASL_String_len(const struct YASL_String *const str);
 const char *YASL_String_chars(const struct YASL_String *const str);
 int64_t YASL_String_cmp(const struct YASL_String *const left, const struct YASL_String *const right);
 char *copy_char_buffer(const size_t size, const char *const ptr);
-struct YASL_String* YASL_String_new_sized(const size_t base_size, const char *const ptr);
+struct YASL_String* YASL_String_new_copy(const size_t base_size, const char *const ptr);
 struct YASL_String *YASL_String_new_substring(const size_t start, const size_t end,
 					      const struct YASL_String *const string);
-struct YASL_String* YASL_String_new_sized_heap(const size_t base_size, const char *const mem);
+struct YASL_String* YASL_String_new_take(const size_t base_size, const char *const mem);
 void str_del_data(struct YASL_String *const str);
 void str_del_rc(struct YASL_String *const str);
 void str_del(struct YASL_String *const str);

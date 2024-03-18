@@ -50,14 +50,14 @@ struct YASL_String *YASL_String_new_substring(const size_t start, const size_t e
 	return str;
 }
 
-struct YASL_String *YASL_String_new_sized(const size_t base_size, const char *const ptr) {
+struct YASL_String *YASL_String_new_copy(const size_t base_size, const char *const ptr) {
 	char *const mem = (char *)malloc(base_size + 1);
 	memcpy(mem, ptr, base_size);
 	mem[base_size] = '\0';
-	return YASL_String_new_sized_heap(base_size, mem);
+	return YASL_String_new_take(base_size, mem);
 }
 
-struct YASL_String *YASL_String_new_sized_heap(const size_t base_size, const char *const mem) {
+struct YASL_String *YASL_String_new_take(const size_t base_size, const char *const mem) {
 	struct YASL_String *str = (struct YASL_String *) malloc(sizeof(struct YASL_String));
 	str->len = base_size;
 	str->str = (char *) mem;
@@ -266,7 +266,7 @@ yasl_int YASL_String_toint(struct YASL_String *str) {
 		ptr[i++] = fun(curr);\
 	}\
 \
-	return YASL_String_new_sized_heap(length, ptr);\
+	return YASL_String_new_take(length, ptr);\
 }
 
 DEFINE_STR_TO_X(upper, UPPER);
@@ -323,7 +323,7 @@ bool YASL_String_endswith(struct YASL_String *haystack, struct YASL_String *need
 	size_t count = buff->count;\
 	\
 	YASL_ByteBuffer_del(buff);\
-	return YASL_String_new_sized_heap(count, items);
+	return YASL_String_new_take(count, items);
 
 
 // Caller makes sure search_str is at least length 1.
@@ -548,6 +548,6 @@ struct YASL_String *YASL_String_rep_fast(struct YASL_String *string, yasl_int nu
 		memcpy(str + i, string->str, string_len);
 	}
 
-	return YASL_String_new_sized_heap(size, str);
+	return YASL_String_new_take(size, str);
 }
 
