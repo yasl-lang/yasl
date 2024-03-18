@@ -83,14 +83,16 @@ int str_tobool(struct YASL_State* S) {
 }
 
 int str_tofloat(struct YASL_State *S) {
-	struct YASL_String *str = checkstr(S, "str.tofloat", 0);
-	YASL_pushfloat(S, YASL_String_tofloat(str));
+	size_t len;
+	const char *str = YASLX_checknstr(S, "str.tofloat", 0, &len);
+	YASL_pushfloat(S, YASL_String_tofloat(str, len));
 	return 1;
 }
 
 int str_toint(struct YASL_State *S) {
-	struct YASL_String *str = checkstr(S, "str.toint", 0);
-	YASL_pushint(S, YASL_String_toint(str));
+	size_t len;
+	const char *str = YASLX_checknstr(S, "str.toint", 0, &len);
+	YASL_pushint(S, YASL_String_toint(str, len));
 	return 1;
 }
 

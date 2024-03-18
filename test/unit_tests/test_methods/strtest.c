@@ -14,21 +14,13 @@ static void test_string_len(void) {
 }
 
 static void test_string_tofloat(void) {
-	struct YASL_String *string = str_new_cliteral("1.234");
-	ASSERT_EQ(1.234, YASL_String_tofloat(string));
-	str_del(string);
+	ASSERT_EQ(1.234, YASL_String_tofloat("1.234", strlen("1.234")));
 }
 
 static void test_string_toint(void) {
-	struct YASL_String *string = str_new_cliteral("1234");
-	ASSERT_EQ(YASL_String_toint(string), 1234);
-	str_del(string);
-	string = str_new_cliteral("0xBABE");
-	ASSERT_EQ(YASL_String_toint(string), 0xBABE);
-	str_del(string);
-	string = str_new_cliteral("0b1001");
-	ASSERT_EQ(YASL_String_toint(string), 9);
-	str_del(string);
+	ASSERT_EQ(YASL_String_toint("1234", strlen("1234")), 1234);
+	ASSERT_EQ(YASL_String_toint("0xBABE", strlen("0xBABE")), 0xBABE);
+	ASSERT_EQ(YASL_String_toint("0b1001", strlen("0b1001")), 9);
 }
 
 TEST(strtest) {

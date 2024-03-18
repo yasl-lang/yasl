@@ -48,10 +48,10 @@ struct YASL_String *YASL_String_new_copy(const char *const ptr, const size_t bas
 	char *const mem = (char *)malloc(base_size + 1);
 	memcpy(mem, ptr, base_size);
 	mem[base_size] = '\0';
-	return YASL_String_new_take(base_size, mem);
+	return YASL_String_new_take(mem, base_size);
 }
 
-struct YASL_String *YASL_String_new_take(const size_t base_size, const char *const mem) {
+struct YASL_String *YASL_String_new_take(const char *const mem, const size_t base_size) {
 	struct YASL_String *str = (struct YASL_String *) malloc(sizeof(struct YASL_String));
 	str->len = base_size;
 	str->str = (char *) mem;
@@ -162,16 +162,14 @@ static yasl_int parseint64(const char *str, bool *ok) {
 	return str + len == end ? result : 0;
 }
 
-yasl_float YASL_String_tofloat(struct YASL_String *str) {
-	const size_t length = YASL_String_len(str);
-	const char *chars = YASL_String_chars(str);
-	char *buffer = (char *)malloc(length + 1);
+yasl_float YASL_String_tofloat(const char *chars, const size_t len) {
+	char *buffer = (char *)malloc(len + 1);
 	if (!isdigit((int)chars[0])) {
 		free(buffer);
 		return NAN;
 	}
 	size_t curr = 0;
-	for (size_t i = 0; i < length; ++i) {
+	for (size_t i = 0; i < len; ++i) {
 		if (chars[i] == '_' && chars[i-1] != '.') {
 			continue;
 		}
@@ -195,14 +193,12 @@ yasl_float YASL_String_tofloat(struct YASL_String *str) {
 	return NAN;
 }
 
-yasl_int YASL_String_toint(struct YASL_String *str) {
-	const size_t length = YASL_String_len(str);
-	const char *chars = YASL_String_chars(str);
-	char *buffer = (char *)malloc(length + 1);
+yasl_int YASL_String_toint(const char *chars, const size_t len) {
+	char *buffer = (char *)malloc(len + 1);
 
-	if (length <= 2) {
-		memcpy(buffer, chars, length);
-		buffer[length] = '\0';
+	if (len <= 2) {
+		memcpy(buffer, chars, len);
+		buffer[len] = '\0';
 		bool ok;
 		yasl_int tmp = parseint64(buffer, &ok);
 		YASL_ASSERT(ok, "parsing int from small buffer should never fail.");
@@ -214,7 +210,7 @@ yasl_int YASL_String_toint(struct YASL_String *str) {
 		size_t curr = 2;
 		buffer[0] = chars[0];
 		buffer[1] = chars[1];
-		for (size_t i = 2; i < length; ++i) {
+		for (size_t i = 2; i < len; ++i) {
 			if (chars[i] == '_') {
 				continue;
 			}
@@ -229,7 +225,7 @@ yasl_int YASL_String_toint(struct YASL_String *str) {
 	}
 
 	size_t curr = 0;
-	for (size_t i = 0; i < length; ++i) {
+	for (size_t i = 0; i < len; ++i) {
 		if (chars[i] == '_') {
 			continue;
 		}
@@ -260,7 +256,7 @@ yasl_int YASL_String_toint(struct YASL_String *str) {
 		ptr[i++] = fun(curr);\
 	}\
 \
-	return YASL_String_new_take(length, ptr);\
+	return YASL_String_new_take(ptr, length);\
 }
 
 DEFINE_STR_TO_X(upper, UPPER);
@@ -312,12 +308,7 @@ bool YASL_String_endswith(struct YASL_String *haystack, struct YASL_String *need
 	size_t i = 0;
 
 #define STR_REPLACE_END \
-	char *items = (char *)buff->items;\
-	buff->items = NULL;\
-	size_t count = buff->count;\
-	\
-	YASL_ByteBuffer_del(buff);\
-	return YASL_String_new_take(count, items);
+	return YASL_String_new_takebb(buff);
 
 
 // Caller makes sure search_str is at least length 1.
@@ -542,6 +533,6 @@ struct YASL_String *YASL_String_rep_fast(struct YASL_String *string, yasl_int nu
 		memcpy(str + i, string->str, string_len);
 	}
 
-	return YASL_String_new_take(size, str);
+	return YASL_String_new_take(str, size);
 }
 
