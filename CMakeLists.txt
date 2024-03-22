@@ -79,7 +79,9 @@ add_executable(yasl
         interpreter/YASL_Object.c
         interpreter/refcount.c
         interpreter/str_methods.c
+        data-structures/LString.c
         data-structures/YASL_String.c
+        data-structures/YASL_StringSet.c
         interpreter/userdata.c
         interpreter/undef_methods.c
         std/yasl-std-io.c
@@ -124,6 +126,8 @@ add_library(yaslapi
         util/yasl_float.c
         interpreter/int_methods.c
         data-structures/YASL_List.c
+        data-structures/LString.c
+        data-structures/YASL_StringSet.c
         interpreter/list_methods.c
         interpreter/table_methods.c
         interpreter/VM.c

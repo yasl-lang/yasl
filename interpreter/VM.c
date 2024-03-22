@@ -8,6 +8,7 @@
 #include "interpreter/builtins.h"
 #include "data-structures/YASL_String.h"
 #include "data-structures/YASL_Table.h"
+#include "data-structures/YASL_StringSet.h"
 #include "interpreter/refcount.h"
 
 #include "util/varint.h"
@@ -64,8 +65,9 @@ void vm_init(struct VM *const vm,
 	vm->num_constants = 0;
 	vm->constants = NULL;
 	vm->stack = (struct YASL_Object *)calloc(sizeof(struct YASL_Object), STACK_SIZE);
+	vm->interned_strings = YASL_StringSet_new();
 
-#define X(E, S, ...) vm->special_strings[E] = YASL_String_new_copy(S, strlen(S));
+#define X(E, S, ...) vm->special_strings[E] = YASL_String_new_copy(vm, S, strlen(S));
 #include "specialstrings.x"
 #undef X
 
@@ -101,7 +103,7 @@ void vm_cleanup(struct VM *const vm) {
 		free(vm->headers[i]);
 	}
 	free(vm->headers);
-
+	YASL_StringSet_del(vm->interned_strings);
 	YASL_Table_del(vm->globals);
 
 	YASL_Table_del(vm->metatables);
@@ -234,7 +236,7 @@ void vm_pushbool(struct VM *const vm, bool b) {
 }
 
 void vm_pushstr_bb(struct VM *const vm, YASL_ByteBuffer *bb) {
-	vm_pushstr(vm, YASL_String_new_takebb(bb));
+	vm_pushstr(vm, YASL_String_new_takebb(vm, bb));
 }
 
 struct YASL_Object *vm_pop_p(struct VM *const vm) {
@@ -330,14 +332,13 @@ void vm_CALL(struct VM *const vm);
 void vm_CALL_now(struct VM *const vm);
 
 #define vm_lookup_method_throwing(vm, method_name, err_str, ...) do {\
-	struct YASL_Object index = YASL_STR(YASL_String_new_copy(method_name, strlen(method_name)));\
+	struct YASL_Object index = YASL_STR(YASL_String_new_copy(vm, method_name, strlen(method_name)));\
 	vm_get_metatable(vm);\
 	struct YASL_Table *mt = vm_istable(vm) ? vm_poptable(vm) : NULL;\
 	if (!mt) {\
 		vm_pop(vm);\
 	}\
 	int result = vm_lookup_method_helper(vm, mt, index);\
-	str_del(obj_getstr(&index));\
 	if (result) {\
 		vm_print_err_type(vm, err_str, __VA_ARGS__);\
 		vm_throw_err(vm, YASL_TYPE_ERROR);\
@@ -353,7 +354,7 @@ void vm_CALL_now(struct VM *const vm);
 } while (0)
 
 #define vm_call_binop_method_now(vm, left, right, method_name, format, ...) do {\
-	struct YASL_Object index = YASL_STR(YASL_String_new_copy(method_name, strlen(method_name)));\
+	struct YASL_Object index = YASL_STR(YASL_String_new_copy(vm, method_name, strlen(method_name)));\
 	vm_push(vm, left);\
 	vm_get_metatable(vm);\
 	struct YASL_Table *mt = vm_istable(vm) ? vm_poptable(vm) : NULL;\
@@ -370,7 +371,6 @@ void vm_CALL_now(struct VM *const vm);
 		}\
 		result = vm_lookup_method_helper(vm, mt, index);\
 	}\
-	str_del(obj_getstr(&index));\
 	if (result) {\
 		vm_print_err_type(vm, format, __VA_ARGS__);\
 		vm_throw_err(vm, YASL_TYPE_ERROR);\
@@ -536,7 +536,7 @@ static void vm_CNCT(struct VM *const vm) {
 		char *ptr = (char *)malloc(size);
 		memcpy(ptr, YASL_String_chars(a), YASL_String_len(a));
 		memcpy(ptr + YASL_String_len(a), YASL_String_chars(b), YASL_String_len(b));
-		vm_pushstr(vm, YASL_String_new_take(ptr, size));
+		vm_pushstr(vm, YASL_String_new_take(vm, ptr, size));
 		vm_dec_ref(vm, &top);
 }
 
@@ -577,12 +577,12 @@ void vm_stringify_top_format(struct VM *const vm, struct YASL_Object *format) {
 		size_t n = (size_t)snprintf(NULL, 0, "<fn: %p>", vm_peekuserptr(vm)) + 1;
 		char *buffer = (char *)malloc(n);
 		snprintf(buffer, n, "<fn: %d>", (int)vm_popint(vm));
-		vm_pushstr(vm, YASL_String_new_take(buffer, strlen(buffer)));
+		vm_pushstr(vm, YASL_String_new_take(vm, buffer, strlen(buffer)));
 	} else if (vm_isuserptr(vm)) {
 		size_t n = (size_t)snprintf(NULL, 0, "<userptr: %p>", vm_peekuserptr(vm)) + 1;
 		char *buffer = (char *)malloc(n);
 		snprintf(buffer, n, "<userptr: %p>", (void *)vm_popint(vm));
-		vm_pushstr(vm, YASL_String_new_take(buffer, strlen(buffer)));
+		vm_pushstr(vm, YASL_String_new_take(vm, buffer, strlen(buffer)));
 	} else {
 		vm_duptop(vm);
 		vm_lookup_method_throwing(vm, "tostr", "tostr not supported for operand of type %s.", vm_peektypename(vm));
@@ -764,7 +764,7 @@ static void vm_SLICE_str(struct VM *const vm){
 
 	struct YASL_String *str = vm_popstr(vm);
 
-	vm_pushstr(vm, YASL_String_new_substring(str, (size_t)start, (size_t)end));
+	vm_pushstr(vm, YASL_String_new_substring(vm, str, (size_t)start, (size_t)end));
 }
 
 static void vm_SLICE(struct VM *const vm) {
@@ -1380,7 +1380,7 @@ void vm_setupconstants(struct VM *const vm) {
 			tmp += sizeof(int64_t);
 			char *str = (char *) malloc((size_t) len);
 			memcpy(str, tmp, (size_t) len);
-			vm->constants[i] = YASL_STR(YASL_String_new_take(str, (size_t) len));
+			vm->constants[i] = YASL_STR(YASL_String_new_take(vm, str, (size_t) len));
 			inc_ref(vm->constants + i);
 			tmp += len;
 			break;
@@ -1405,6 +1405,11 @@ void vm_setupconstants(struct VM *const vm) {
 			break;
 		}
 	}
+}
+
+struct YASL_String *vm_lookup_interned_str(struct VM *vm, const char *chars, const size_t size) {
+	struct YASL_String *string = YASL_StringSet_maybe_insert(vm->interned_strings, chars, size);
+	return string;
 }
 
 void vm_executenext(struct VM *const vm) {

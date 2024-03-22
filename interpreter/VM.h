@@ -100,6 +100,7 @@ struct VM {
 	struct YASL_Table *globals;   // global variables
 	struct YASL_Object *constants;
 	struct YASL_String *special_strings[NUM_SPECIAL_STRINGS];
+	struct YASL_StringSet *interned_strings;
 	struct YASL_Object *format_str;
 	int64_t num_constants;
 	struct YASL_Object *stack;    // stack

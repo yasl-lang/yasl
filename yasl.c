@@ -201,7 +201,7 @@ int YASL_setglobal(struct YASL_State *S, const char *name) {
 	int64_t index = scope_get(S->compiler.globals, name);
 	if (is_const(index)) return YASL_ERROR;
 
-	struct YASL_String *string = YASL_String_new_copyz(name);
+	struct YASL_String *string = YASL_String_new_copyz((struct VM *)S, name);
 	YASL_Table_insert_fast(S->vm.globals, YASL_STR(string), vm_peek((struct VM *) S));
 	YASL_pop(S);
 
@@ -209,7 +209,7 @@ int YASL_setglobal(struct YASL_State *S, const char *name) {
 }
 
 int YASL_loadglobal(struct YASL_State *S, const char *name) {
-	struct YASL_String *string = YASL_String_new_copyz(name);
+	struct YASL_String *string = YASL_String_new_copyz_unbound(name);
 	struct YASL_Object global = YASL_Table_search(S->vm.globals, YASL_STR(string));
 	str_del(string);
 	if (global.type == Y_END) {
@@ -220,7 +220,7 @@ int YASL_loadglobal(struct YASL_State *S, const char *name) {
 }
 
 int YASL_registermt(struct YASL_State *S, const char *name) {
-	struct YASL_String *string = YASL_String_new_copyz(name);
+	struct YASL_String *string = YASL_String_new_copyz((struct VM *)S, name);
 	YASL_Table_insert_fast(S->vm.metatables, YASL_STR(string), vm_peek((struct VM *) S));
 	YASL_pop(S);
 
@@ -228,7 +228,7 @@ int YASL_registermt(struct YASL_State *S, const char *name) {
 }
 
 int YASL_loadmt(struct YASL_State *S, const char *name) {
-	struct YASL_String *string = YASL_String_new_copyz(name);
+	struct YASL_String *string = YASL_String_new_copyz_unbound(name);
 	struct YASL_Object mt = YASL_Table_search(S->vm.metatables, YASL_STR(string));
 	str_del(string);
 	if (mt.type == Y_END) {
@@ -314,7 +314,7 @@ void YASL_pushuserptr(struct YASL_State *S, void *userpointer) {
 }
 
 void YASL_pushlit(struct YASL_State *S, const char *value) {
-	vm_pushstr((struct VM *) S, YASL_String_new_copyz(value));
+	vm_pushstr((struct VM *) S, YASL_String_new_copyz((struct VM *)S, value));
 }
 
 void YASL_pushzstr(struct YASL_State *S, const char *value) {
@@ -322,7 +322,7 @@ void YASL_pushzstr(struct YASL_State *S, const char *value) {
 }
 
 void YASL_pushlstr(struct YASL_State *S, const char *value, size_t len) {
-	vm_pushstr((struct VM *)S, YASL_String_new_copy(value, len));
+	vm_pushstr((struct VM *)S, YASL_String_new_copy((struct VM *)S, value, len));
 }
 
 void YASL_pushcfunction(struct YASL_State *S, YASL_cfn value, int num_args) {

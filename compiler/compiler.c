@@ -481,7 +481,7 @@ static int visit_MethodCall(struct Compiler *const compiler, const struct Node *
 
 	yasl_int index = compiler_intern_string(compiler, str, len);
 
-	compiler_add_code_BBW(compiler, O_INIT_MC, (unsigned char)node->value.sval.str_len, index);
+	compiler_add_code_BBW(compiler, O_INIT_MC, (unsigned char)node->value.sval.len, index);
 
 	visit_expr(compiler, MethodCall_get_params(node), stack_height + 2);  // +2 for function and object
 	compiler_add_byte(compiler, O_CALL);
