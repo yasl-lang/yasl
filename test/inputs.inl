@@ -70,7 +70,6 @@ static const char *inputs[] = {
   "test/inputs/builtin-types/list/__get.yasl",
   "test/inputs/builtin-types/list/__add.yasl",
   "test/inputs/builtin-types/list/tostr.yasl",
-  "test/inputs/builtin-types/list/shuffle.yasl",
   "test/inputs/builtin-types/list/push.yasl",
   "test/inputs/builtin-types/list/join.yasl",
   "test/inputs/builtin-types/list/__set.yasl",
