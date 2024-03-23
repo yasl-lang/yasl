@@ -1,0 +1,9 @@
+# Use a seed so that we can reliably test this. Without the seed, this should give a different result each time.
+math.seed(100)
+
+const ls = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 ]
+
+ls->shuffle()
+
+echo ls
+

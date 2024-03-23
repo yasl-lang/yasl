@@ -351,6 +351,24 @@ int list_count(struct YASL_State *S) {
 	return 1;
 }
 
+int list_shuffle(struct YASL_State *S) {
+	struct YASL_List *ls = YASLX_checknlist(S, "list.count", 0);
+	const size_t len = ls->count;
+
+	if (len <= 1) return 1;
+
+	// We use a Fisher-Yate shuffle here.
+	for (size_t i = len - 1; i >= 1; i--) {
+		size_t j = (size_t)rand();
+		j %= i + 1;
+		YASL_ASSERT(0 <= j && j <= i, "j should be in this range.");
+		struct YASL_Object tmp = ls->items[i];
+		ls->items[i] = ls->items[j];
+		ls->items[j] = tmp;
+	}
+	return 1;
+}
+
 enum SortType {
 	SORT_TYPE_STR = -1,
 	SORT_TYPE_EMPTY = 0,

@@ -66,11 +66,6 @@ void vm_init(struct VM *const vm,
 	vm->constants = NULL;
 	vm->stack = (struct YASL_Object *)calloc(sizeof(struct YASL_Object), STACK_SIZE);
 	vm->interned_strings = YASL_StringSet_new();
-
-#define X(E, S, ...) vm->special_strings[E] = YASL_String_new_copy(vm, S, strlen(S));
-#include "specialstrings.x"
-#undef X
-
 	vm->builtins_htable = builtins_htable_new(vm);
 	vm->pending = NULL;
 	vm->buf = NULL;
@@ -1410,6 +1405,10 @@ void vm_setupconstants(struct VM *const vm) {
 struct YASL_String *vm_lookup_interned_str(struct VM *vm, const char *chars, const size_t size) {
 	struct YASL_String *string = YASL_StringSet_maybe_insert(vm->interned_strings, chars, size);
 	return string;
+}
+
+struct YASL_String *vm_lookup_interned_zstr(struct VM *vm, const char *chars) {
+	return vm_lookup_interned_str(vm, chars, strlen(chars));
 }
 
 void vm_executenext(struct VM *const vm) {
