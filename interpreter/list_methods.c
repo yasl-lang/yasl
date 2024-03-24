@@ -214,6 +214,22 @@ int list_search(struct YASL_State *S) {
 	return 1;
 }
 
+int list_has(struct YASL_State *S) {
+	struct YASL_Object needle = vm_pop((struct VM *) S);
+	struct YASL_List *haystack = YASLX_checknlist(S, "list.has", 0);
+	bool has = false;
+
+	FOR_LIST(i, obj, haystack) {
+		if ((isequal(&obj, &needle))) {
+			has = true;
+			break;
+		}
+	}
+
+	YASL_pushbool(S, has);
+	return 1;
+}
+
 void table_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer, struct YASL_Object *format);
 bool buffer_contains(BUFFER(ptr) buffer, void *val);
 void rec_call(struct YASL_State *S, BUFFER(ptr) buffer, struct YASL_Object *format, void (*f)(struct YASL_State *, BUFFER(ptr), struct YASL_Object *));

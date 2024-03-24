@@ -284,6 +284,15 @@ int str_search(struct YASL_State *S) {
 	return 1;
 }
 
+int str_has(struct YASL_State *S) {
+	struct YASL_String *haystack = checkstr(S, "str.has", 0);
+	struct YASL_String *needle = checkstr(S, "str.has", 1);
+
+	int64_t index = str_find_index(haystack, needle);
+	YASL_pushbool(S, index != -1);
+	return 1;
+}
+
 int str_count(struct YASL_State *S) {
 	struct YASL_String *haystack = checkstr(S, "str.count", 0);
 	struct YASL_String *needle = checkstr(S, "str.count", 1);

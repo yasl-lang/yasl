@@ -323,6 +323,14 @@ static int YASL_collections_set___get(struct YASL_State *S) {
 	return 1;
 }
 
+static int YASL_collections_set_has(struct YASL_State *S) {
+	struct YASL_Object object = vm_pop(&S->vm);
+	struct YASL_Set *set = YASLX_checknset(S, SET_PRE ".has", 0);
+
+	YASL_pushbool(S, YASL_Set_search(set, object));
+	return 1;
+}
+
 int YASL_decllib_collections(struct YASL_State *S) {
 	YASL_pushtable(S);
 	YASL_registermt(S, SET_NAME);
@@ -344,6 +352,7 @@ int YASL_decllib_collections(struct YASL_State *S) {
 		{ "remove", &YASL_collections_set_remove, 2 },
 		{ "copy", &YASL_collections_set_copy, 1 },
 		{ "clear", &YASL_collections_set_clear, 1 },
+		{ "has", &YASL_collections_set_has, 2 },
 		{ "__iter", &YASL_collections_set___iter, 1 },
 		{ "__get", &YASL_collections_set___get, 2 },
 		{ NULL, NULL, 0 }

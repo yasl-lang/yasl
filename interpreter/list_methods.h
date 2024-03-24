@@ -43,4 +43,6 @@ int list_insert(struct YASL_State *S);
 
 int list_shuffle(struct YASL_State *S);
 
+int list_has(struct YASL_State *S);
+
 #endif

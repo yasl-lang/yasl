@@ -67,6 +67,9 @@ struct YASL_Table* bool_builtins(struct VM *vm) {
 struct YASL_Table* str_builtins(struct VM *vm) {
 	struct YASL_Table *table = YASL_Table_new();
 	table_insert_str_cfunction(vm, table, "__len", &str___len, 1);
+	table_insert_str_cfunction(vm, table, "tobool", &str_tobool, 1);
+	table_insert_str_cfunction(vm, table, "tostr", &str_tostr, 2);
+	table_insert_str_cfunction(vm, table, "tolist", &str_tolist, 2);
 	table_insert_str_cfunction(vm, table, "tofloat", &str_tofloat, 1);
 	table_insert_str_cfunction(vm, table, "toint", &str_toint, 1);
 	table_insert_str_cfunction(vm, table, "isalnum", &str_isalnum, 1);
@@ -76,9 +79,6 @@ struct YASL_Table* str_builtins(struct VM *vm) {
 	table_insert_str_cfunction(vm, table, "isprint", &str_isprint, 1);
 	table_insert_str_cfunction(vm, table, "islower", &str_islower, 1);
 	table_insert_str_cfunction(vm, table, "isupper", &str_isupper, 1);
-	table_insert_str_cfunction(vm, table, "tobool", &str_tobool, 1);
-	table_insert_str_cfunction(vm, table, "tostr", &str_tostr, 2);
-	table_insert_str_cfunction(vm, table, "tolist", &str_tolist, 2);
 	table_insert_str_cfunction(vm, table, "spread", &str_spread, 1);
 	table_insert_str_cfunction(vm, table, "toupper", &str_toupper, 1);
 	table_insert_str_cfunction(vm, table, "tolower", &str_tolower, 1);
@@ -92,8 +92,9 @@ struct YASL_Table* str_builtins(struct VM *vm) {
 	table_insert_str_cfunction(vm, table, "ltrim", &str_ltrim, 2);
 	table_insert_str_cfunction(vm, table, "rtrim", &str_rtrim, 2);
 	table_insert_str_cfunction(vm, table, "trim", &str_trim, 2);
-	table_insert_str_cfunction(vm, table, "__get", &str___get, 2);
 	table_insert_str_cfunction(vm, table, "rep", &str_repeat, 2);
+	table_insert_str_cfunction(vm, table, "has", &str_has, 2);
+	table_insert_str_cfunction(vm, table, "__get", &str___get, 2);
 	table_insert_str_cfunction(vm, table, "__iter", &str___iter, 1);
 	return table;
 }
@@ -120,6 +121,7 @@ struct YASL_Table* list_builtins(struct VM *vm) {
 	table_insert_str_cfunction(vm, table, "count", &list_count, 2);
 	table_insert_str_cfunction(vm, table, "insert", &list_insert, 3);
 	table_insert_str_cfunction(vm, table, "shuffle", &list_shuffle, 1);
+	table_insert_str_cfunction(vm, table, "has", &list_has, 2);
 	table_insert_str_cfunction(vm, table, "__iter", &list___iter, 1);
 	return table;
 }
