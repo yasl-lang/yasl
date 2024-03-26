@@ -1,0 +1,21 @@
+echo 'tobool:'
+echo 'false'->tobool()
+echo 'fassd'->tobool()
+echo ''->tobool()
+echo 'tobyte:'
+echo .A->tobyte()
+echo .a->tobyte()
+echo ' '->tobyte()
+echo '~'->tobyte()
+echo 'tolist:'
+echo 'abcdefg'->tolist()
+echo 'abcdefg'->tolist(2)
+echo ''->tolist()
+echo 'tolower:'
+echo 'YASL'->tolower()
+echo 'Yasl'->tolower()
+echo '!@#$'->tolower()
+echo 'toupper:'
+echo 'yasl'->toupper()
+echo 'Yasl'->toupper()
+echo '%^&*'->toupper()

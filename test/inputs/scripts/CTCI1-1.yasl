@@ -1,4 +1,3 @@
-##false\ntrue\n
 
 # CTCI 1.1
 fn unique(string) {

@@ -24,10 +24,13 @@ EOF
 [[ "$1" == "-m" ]];
 declare NO_MEM=$?;
 
+# Memory tests may take a long time to run, so we print out the files as we run the tests, to help us see hangs.
 run_mem_tests () {
     declare folder="$1";
     echo "Running memory tests in $folder...";
     for f in test/$folder/**/*.yasl; do
+        printf "\rRunning $f";
+        size=$((${#f} + 18));
         valgrind --error-exitcode=-1 --leak-check=full --exit-on-first-error=yes ./yasl $f > /dev/null 2>&1;
         declare exit_code=$?;
         if (( exit_code == 255 )); then
@@ -41,6 +44,8 @@ run_mem_tests () {
                 ;;
             esac;
         fi;
+        printf \\r
+        printf '%0.s ' $(seq 1 "$size");
     done;
 }
 
@@ -94,7 +99,7 @@ run_cli_test () {
 
 run_cli_tests () {
     echo "Running CLI tests...";
-    run_cli_test 'YASL v0.13.4' '-V';
+    run_cli_test 'YASL v0.13.5' '-V';
     run_cli_test '10' '-e' "let x=10; x;";
     run_cli_test '' '-E' 'let x = 10; x;';
     run_cli_test '10' '-E' 'let x = 10; echo x;';

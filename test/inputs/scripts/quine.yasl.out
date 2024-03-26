@@ -1,0 +1,1 @@
+let s = 'let s = #{}; echo (s->replace(`#{}`, s->tostr(`r`), 1))'; echo (s->replace(`#{}`, s->tostr(`r`), 1))

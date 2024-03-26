@@ -1,2 +1,0 @@
-echo true->tostr()
-echo false->tostr()

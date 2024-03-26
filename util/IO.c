@@ -4,20 +4,17 @@
 #include <string.h>
 #include <stdarg.h>
 
-void io_print_none(struct IO *const io, const char *const format, va_list args)
-{
+void io_print_none(struct IO *const io, const char *const format, va_list args) {
 	(void)io;
 	(void)format;
 	(void)args;
 }
 
-void io_print_file(struct IO *const io, const char *const format, va_list args)
-{
+void io_print_file(struct IO *const io, const char *const format, va_list args) {
 	vfprintf(io->file, format, args);
 }
 
-void io_print_string(struct IO *const io, const char *const format, va_list args)
-{
+void io_print_string(struct IO *const io, const char *const format, va_list args) {
 	va_list args_copy;
 	va_copy(args_copy, args);
 	size_t len = vsnprintf(NULL, 0, format, args_copy);
@@ -27,8 +24,7 @@ void io_print_string(struct IO *const io, const char *const format, va_list args
 	vsprintf(io->string + io->len - len, format, args);
 }
 
-size_t io_str_strip_char(char *dest, const char *src, size_t n, char rem)
-{
+size_t io_str_strip_char(char *dest, const char *src, size_t n, char rem) {
 	size_t ct = 0;
 	size_t src_caret = 0;
 	size_t dest_caret = 0;
@@ -61,4 +57,10 @@ void io_cleanup(struct IO *const io) {
 	free(io->string);
 	//fclose(io->file);
 
+}
+
+void io_reset(struct IO *io) {
+	free(io->string);
+	io->len = 0;
+	io->string = NULL;
 }

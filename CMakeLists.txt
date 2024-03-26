@@ -79,7 +79,9 @@ add_executable(yasl
         interpreter/YASL_Object.c
         interpreter/refcount.c
         interpreter/str_methods.c
+        data-structures/LString.c
         data-structures/YASL_String.c
+        data-structures/YASL_StringSet.c
         interpreter/userdata.c
         interpreter/undef_methods.c
         std/yasl-std-io.c
@@ -90,6 +92,7 @@ add_executable(yasl
         std/yasl-std-collections.c
         std/yasl-std-mt.c
         std/yasl-std-os.c
+        std/yasl-std-try.c
         util/hash_function.c
         util/IO.c
         util/prime.c
@@ -123,6 +126,8 @@ add_library(yaslapi
         util/yasl_float.c
         interpreter/int_methods.c
         data-structures/YASL_List.c
+        data-structures/LString.c
+        data-structures/YASL_StringSet.c
         interpreter/list_methods.c
         interpreter/table_methods.c
         interpreter/VM.c
@@ -142,7 +147,8 @@ add_library(yaslapi
         std/yasl-std-require.c
         data-structures/YASL_Set.c
         std/yasl-std-mt.c
-        std/yasl-std-os.c)
+        std/yasl-std-os.c
+        std/yasl-std-try.c)
 
 set_property(TARGET yaslapi PROPERTY POSITION_INDEPENDENT_CODE ON)
 

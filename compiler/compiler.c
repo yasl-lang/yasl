@@ -481,7 +481,7 @@ static int visit_MethodCall(struct Compiler *const compiler, const struct Node *
 
 	yasl_int index = compiler_intern_string(compiler, str, len);
 
-	compiler_add_code_BBW(compiler, O_INIT_MC, (unsigned char)node->value.sval.str_len, index);
+	compiler_add_code_BBW(compiler, O_INIT_MC, (unsigned char)node->value.sval.len, index);
 
 	visit_expr(compiler, MethodCall_get_params(node), stack_height + 2);  // +2 for function and object
 	compiler_add_byte(compiler, O_CALL);
@@ -1477,7 +1477,7 @@ static int visit_Table(struct Compiler *const compiler, const struct Node *const
 	compiler->line = line;\
 }
 
-DEF_VALIDATE(expr, compiler, node, -1)
+DEF_VALIDATE(expr, compiler, node, (int)get_stacksize(compiler))
 DEF_VALIDATE(stmt, compiler, node)
 
 static void visit_LetIter(struct Compiler *const compiler, const struct Node *const node) {
@@ -1580,11 +1580,14 @@ static int visit_expr(struct Compiler *const compiler, const struct Node *const 
 	YASL_ASSERT(is_expr(node), "Expected expression");
 	setline(compiler, node);
 
-#if 0 //YASL_DEBUG
+
+	YASL_ASSERT(stack_height >= 0, "expected non-negative stack height");
+/*
+#ifdef YASL_DEBUG
 	compiler_add_byte(compiler, O_ASSERT_STACK_HEIGHT);
 	compiler_add_byte(compiler, stack_height);
 #endif  // YASL_DEBUG
-
+*/
 	return expr_jmp_table[node->nodetype](compiler, node, stack_height);
 }
 

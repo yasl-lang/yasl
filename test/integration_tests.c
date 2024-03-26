@@ -32,6 +32,7 @@ for (size_t i = 0; i < sizeof(inputs) / sizeof(char *); i++) {\
 	S = YASL_newstate(inputs[i]);\
 	int status = YASLX_decllibs(S);\
 	YASL_setprintout_tostr(S);\
+	YASL_setprinterr_tostr(S);\
 	status |= YASL_execute(S);\
 	YASL_loadprintout(S);\
 	char *actual_output = YASL_peekcstr(S);\
@@ -62,6 +63,7 @@ for (size_t i = 0; i < sizeof(errors) / sizeof(char *); i++) {\
 	expected_output[read] = '\0';\
 	S = YASL_newstate(errors[i]);\
 	YASLX_decllibs(S);\
+	YASL_setprintout_tostr(S);\
 	YASL_setprinterr_tostr(S);\
 	int status = YASL_execute(S);\
 	YASL_loadprinterr(S);\

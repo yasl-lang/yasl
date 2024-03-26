@@ -36,7 +36,7 @@ int YASL_require(struct YASL_State *S) {
 		YASLX_print_and_throw_err_bad_arg_type_n(S, "require", 0, YASL_STR_NAME);
 	}
 
-	char *mode_str = YASL_popcstr(S);
+	char *mode_str = YASL_peekcstr(S);
 
 	struct YASL_State *Ss = open_on_path(YASL_DEFAULT_PATH, mode_str, YASL_PATH_MARK, YASL_PATH_SEP, S->vm.headers_size);
 
@@ -104,6 +104,14 @@ int YASL_require(struct YASL_State *S) {
 	return 1;
 }
 
+#if defined(YASL_USE_WIN)
+#define LOAD_LIB(buffer) LoadLibrary(TEXT(buffer))
+#elif defined(YASL_USE_UNIX) || defined(YASL_USE_APPLE)
+#define LOAD_LIB(buffer) dlopen(buffer, RTLD_NOW)
+#else
+#define LOAD_LIB(buffer) NULL
+#endif
+
 static void *search_on_path(const char *path, const char *name, const char sep, const char dirmark) {
 	const char *start = path;
 	const char *end = strchr(start, dirmark);
@@ -115,13 +123,8 @@ static void *search_on_path(const char *path, const char *name, const char sep, 
 		memcpy(buffer + (split - start) + strlen(name), split + 1, end - split - 1);
 		buffer[end - start + strlen(name) - 1] = '\0';
 
-#if defined(YASL_USE_WIN)
-		void *lib = LoadLibrary(TEXT(buffer));
-#elif defined(YASL_USE_UNIX) || defined(YASL_USE_APPLE)
-		void *lib = dlopen(buffer, RTLD_NOW);
-#else
-		void *lib = NULL;
-#endif
+		void *lib = LOAD_LIB(buffer);
+
 		free(buffer);
 		if (lib)
 			return lib;
@@ -129,13 +132,7 @@ static void *search_on_path(const char *path, const char *name, const char sep, 
 		start = end + 1;
 		end = strchr(start, dirmark);
 	}
-#if defined(YASL_USE_WIN)
-	return LoadLibrary(TEXT(path));
-#elif defined(YASL_USE_UNIX) || defined(YASL_USE_APPLE)
-	return dlopen(name, RTLD_NOW);
-#else
-	return NULL;
-#endif
+	return LOAD_LIB(name);
 }
 
 int YASL_require_c(struct YASL_State *S) {
@@ -144,7 +141,7 @@ int YASL_require_c(struct YASL_State *S) {
 		YASLX_print_and_throw_err_bad_arg_type_n(S, "__require_c__", 0, YASL_STR_NAME);
 	}
 
-	char *path = YASL_popcstr(S);
+	char *path = YASL_peekcstr(S);
 
 #if defined(YASL_USE_WIN)
 #ifndef _MSC_VER
@@ -183,18 +180,70 @@ int YASL_require_c(struct YASL_State *S) {
 	return 1;
 }
 
+int YASL_package_searchpath(struct YASL_State *S) {
+	if (YASL_isnundef(S, 0)) {
+		YASL_pushlit(S, YASL_DEFAULT_PATH);
+		return 1;
+	}
+
+	if (!YASL_isnstr(S, 0)) {
+		YASLX_print_and_throw_err_bad_arg_type_n(S, "searchpath", 0, YASL_STR_NAME);
+	}
+
+	char *name = YASL_peekcstr(S);
+
+	const char *path = YASL_DEFAULT_PATH;
+	const char sep = YASL_PATH_MARK;
+	const char dirmark = YASL_PATH_SEP;
+	const char *start = path;
+	const char *end = strchr(start, dirmark);
+
+	YASL_pushlist(S);
+	while (end != NULL) {
+		char *buffer = (char *) malloc(end - start + strlen(name) + 1);
+		const char *split = strchr(start, sep);
+		memcpy(buffer, start, split - start);
+		memcpy(buffer + (split - start), name, strlen(name));
+		memcpy(buffer + (split - start) + strlen(name), split + 1, end - split - 1);
+		buffer[end - start + strlen(name) - 1] = '\0';
+
+		YASL_pushzstr(S, buffer);
+		YASL_listpush(S);
+		free(buffer);
+
+		start = end + 1;
+		end = strchr(start, dirmark);
+	}
+
+	YASL_pushzstr(S, name);
+	YASL_listpush(S);
+
+	return 1;
+}
+
 int YASL_decllib_require(struct YASL_State *S) {
-	YASL_declglobal(S, "require");
 	YASL_pushcfunction(S, YASL_require, 1);
-	YASL_setglobal(S, "require");
+	YASLX_initglobal(S, "require");
 
 	return YASL_SUCCESS;
 }
 
 int YASL_decllib_require_c(struct YASL_State *S) {
-	YASL_declglobal(S, "__require_c__");
 	YASL_pushcfunction(S, YASL_require_c, 1);
-	YASL_setglobal(S, "__require_c__");
+	YASLX_initglobal(S, "__require_c__");
+
+	return YASL_SUCCESS;
+}
+
+int YASL_decllib_package(struct YASL_State *S) {
+	struct YASLX_function functions[] = {
+		{ "__require_c__", &YASL_require_c, 1},
+		{ "searchpath", &YASL_package_searchpath, 1 },
+		{ NULL, NULL, 0 }
+	};
+	YASL_pushtable(S);
+	YASLX_tablesetfunctions(S, functions);
+	YASLX_initglobal(S, "package");
 
 	return YASL_SUCCESS;
 }

@@ -5,11 +5,11 @@
 #include <time.h>
 
 static int YASL_os_getenv(struct YASL_State *S) {
-	if (!YASL_isstr(S)) {
+	if (!YASL_isnstr(S, 0)) {
 		YASLX_print_and_throw_err_bad_arg_type_n(S, "os.getenv", 0, YASL_STR_NAME);
 	}
 
-	char *name = YASL_popcstr(S);
+	char *name = YASL_peekcstr(S);
 	const char *value = getenv(name);
 	free(name);
 
@@ -45,7 +45,7 @@ static int YASL_os_command(struct YASL_State *S) {
 		return 1;
 	}
 
-	char *command = YASL_popcstr(S);
+	char *command = YASL_peekcstr(S);
 	int result = system(command);
 	free(command);
 

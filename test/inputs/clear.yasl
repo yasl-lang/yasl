@@ -1,4 +1,3 @@
-##{x: {...}, y: [[...], {...}]}\n[[...], {x: {...}, y: [...]}]\n
 # test that clearing a list or table removes cycles
 
 let y, let x = [], {}

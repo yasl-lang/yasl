@@ -1,4 +1,3 @@
-##13\n
 
 # test that ref counts are working properly
 fn f() {

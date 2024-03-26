@@ -22,7 +22,7 @@ void YASL_List_push(struct YASL_List *const ls, struct YASL_Object value);
 void YASL_List_insert(struct YASL_List *const ls, size_t index, struct YASL_Object value);
 void YASL_reverse(struct YASL_List *const ls);
 
-struct RC_UserData *rcls_new(void);
-struct RC_UserData* rcls_new_sized(const size_t base_size);
+struct RC_UserData *rcls_new(struct VM *vm);
+struct RC_UserData* rcls_new_sized(struct VM *vm, const size_t base_size);
 
 #endif

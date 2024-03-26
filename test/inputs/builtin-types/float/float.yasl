@@ -1,5 +1,3 @@
-##true\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\n
-
 echo 64.50 == 64.5
 echo 1_0___.5__ == 10.5
 echo 1____.6_7__8 == 1.678

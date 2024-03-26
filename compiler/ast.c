@@ -37,10 +37,10 @@ struct Node *node_clone(const struct Node *const node) {
 		clone->value.ival = node->value.ival;
 		break;
 	default:
-		clone->value.sval.str_len = node->value.sval.str_len;
-		clone->value.sval.str = (char *) malloc(node->value.sval.str_len + 1);
-		clone->value.sval.str[clone->value.sval.str_len] = '\0';
-		memcpy(clone->value.sval.str, node->value.sval.str, clone->value.sval.str_len);
+		clone->value.sval.len = node->value.sval.len;
+		clone->value.sval.str = (char *) malloc(node->value.sval.len + 1);
+		clone->value.sval.str[clone->value.sval.len] = '\0';
+		memcpy(clone->value.sval.str, node->value.sval.str, clone->value.sval.len);
 	}
 
 	clone->line = node->line;
@@ -54,7 +54,7 @@ static struct Node *new_Node(struct Parser *parser, const enum NodeType nodetype
 	node->nodetype = nodetype;
 	node->children_len = n;
 
-	node->value.sval.str_len = name_len;
+	node->value.sval.len = name_len;
 	node->value.sval.str = name;
 
 	node->line = line;
@@ -290,7 +290,7 @@ struct Node *new_VariadicContext(struct Node *const expr, const int expected) {
 		expr->value.ival = expected;
 		return expr;
 	} else if (expr->nodetype == N_MCALL) {
-		expr->value.sval.str_len = expected;
+		expr->value.sval.len = expected;
 		return expr;
 	} else {
 		return expr;
@@ -391,7 +391,7 @@ const char *String_get_str(const struct Node *const node) {
 }
 
 size_t String_get_len(const struct Node *const node) {
-	return node->value.sval.str_len;
+	return node->value.sval.len;
 }
 
 yasl_float Float_get_float(const struct Node *const node) {

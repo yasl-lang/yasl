@@ -61,4 +61,6 @@ int str_trim(struct YASL_State *S);
 
 int str_repeat(struct YASL_State *S);
 
+int str_has(struct YASL_State *S);
+
 #endif

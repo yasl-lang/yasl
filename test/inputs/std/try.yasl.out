@@ -1,0 +1,16 @@
+true, AbAbsa, 2
+true, 1, 2, 3
+true, 1, 2
+true, 1
+true, 19
+false, Error: 1
+false, Error: 2
+false, Error: 3
+false, TypeError: error expected arg in position 0 to be of type str, got arg of type int.
+true, 1, 2, 3
+false, Error: 4
+false, Error
+false, ValueError: slicing expected the end of the range to be greater than or equal to the start, got 2:0
+false, Error: sdasda
+true
+true, o:

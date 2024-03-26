@@ -1,2 +1,0 @@
-echo 'fassd'->tobool()
-echo ''->tobool()

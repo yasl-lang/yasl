@@ -2,6 +2,7 @@
 
 #include "interpreter/YASL_Object.h"
 #include "data-structures/YASL_Table.h"
+#include "interpreter/VM.h"
 
 #include <string.h>
 
@@ -15,7 +16,7 @@ struct YASL_List *YASL_List_new_sized(const size_t base_size) {
 	return list;
 }
 
-struct RC_UserData* rcls_new_sized(const size_t base_size) {
+struct RC_UserData* rcls_new_sized(struct VM *vm, const size_t base_size) {
 	struct RC_UserData *ls = (struct RC_UserData *)malloc(sizeof(struct RC_UserData));
 
 	ls->data = YASL_List_new_sized(base_size);
@@ -23,11 +24,12 @@ struct RC_UserData* rcls_new_sized(const size_t base_size) {
 	ls->mt = NULL;
 	ls->destructor = YASL_List_del_data;
 	ls->tag = LIST_NAME;
+	ud_setmt(vm, ls, vm->builtins_htable[Y_LIST]);
 	return ls;
 }
 
-struct RC_UserData* rcls_new(void) {
-	return rcls_new_sized(LIST_BASESIZE);
+struct RC_UserData* rcls_new(struct VM *vm) {
+	return rcls_new_sized(vm, LIST_BASESIZE);
 }
 
 void YASL_List_del_data(struct YASL_State *S, void *ls) {

@@ -1,3 +1,4 @@
+#include <interpreter/YASL_Object.h>
 #include "YASL_Set.h"
 
 #include "util/hash_function.h"
@@ -79,18 +80,23 @@ bool YASL_Set_insert(struct YASL_Set *const set, struct YASL_Object value) {
 	return true;
 }
 
-bool YASL_Set_search(const struct YASL_Set *const set, const struct YASL_Object key) {
+struct YASL_Object *YASL_Set_search_internal(const struct YASL_Set *const set, const struct YASL_Object key) {
 	size_t index = get_hash(key, set->size, 0);
-	struct YASL_Object item = set->items[index];
+	struct YASL_Object *item = &set->items[index];
 	size_t i = 1;
-	while (!obj_isundef(&item)) {
-		if ((isequal(&item, &key))) {
-			return true;
+	while (!obj_isundef(item)) {
+		if ((isequal(item, &key))) {
+			return item;
 		}
 		index = get_hash(key, set->size, i++);
-		item = set->items[index];
+		item = &set->items[index];
 	}
-	return false;
+	return NULL;
+}
+
+bool YASL_Set_search(const struct YASL_Set *const set, const struct YASL_Object key) {
+	const struct YASL_Object *found = YASL_Set_search_internal(set, key);
+	return found != NULL;
 }
 
 void YASL_Set_rm(struct YASL_Set *const set, struct YASL_Object key) {

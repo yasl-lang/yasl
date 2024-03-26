@@ -80,8 +80,7 @@ int list___iter(struct YASL_State *S) {
 
 int list_copy(struct YASL_State *S) {
 	struct YASL_List *ls = YASLX_checknlist(S, "list.copy", 0);
-	struct RC_UserData *new_ls = rcls_new_sized(ls->size);
-	ud_setmt(&S->vm, new_ls, S->vm.builtins_htable[Y_LIST]);
+	struct RC_UserData *new_ls = rcls_new_sized(&S->vm, ls->size);
 	struct YASL_List *new_list = (struct YASL_List *) new_ls->data;
 	FOR_LIST(i, elmt, ls) {
 		YASL_List_push(new_list, elmt);
@@ -121,8 +120,7 @@ int list_pushv(struct YASL_State *S) {
 
 static struct RC_UserData *list_concat(struct YASL_State *S, struct YASL_List *a, struct YASL_List *b) {
 	size_t size = a->count + b->count;
-	struct RC_UserData *ptr = rcls_new_sized(size);
-	ud_setmt(&S->vm, ptr, (&S->vm)->builtins_htable[Y_LIST]);
+	struct RC_UserData *ptr = rcls_new_sized(&S->vm, size);
 	for (size_t i = 0; i < a->count; i++) {
 		YASL_List_push((struct YASL_List *) ptr->data, (a)->items[i]);
 	}
@@ -216,24 +214,40 @@ int list_search(struct YASL_State *S) {
 	return 1;
 }
 
-int table_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer, struct YASL_Object *format);
+int list_has(struct YASL_State *S) {
+	struct YASL_Object needle = vm_pop((struct VM *) S);
+	struct YASL_List *haystack = YASLX_checknlist(S, "list.has", 0);
+	bool has = false;
+
+	FOR_LIST(i, obj, haystack) {
+		if ((isequal(&obj, &needle))) {
+			has = true;
+			break;
+		}
+	}
+
+	YASL_pushbool(S, has);
+	return 1;
+}
+
+void table_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer, struct YASL_Object *format);
 bool buffer_contains(BUFFER(ptr) buffer, void *val);
-void rec_call(struct YASL_State *S, BUFFER(ptr) buffer, struct YASL_Object *format, int (*f)(struct YASL_State *, BUFFER(ptr), struct YASL_Object *));
+void rec_call(struct YASL_State *S, BUFFER(ptr) buffer, struct YASL_Object *format, void (*f)(struct YASL_State *, BUFFER(ptr), struct YASL_Object *));
 
 #define FOUND_LIST "[...], "
 #define FOUND_TABLE "{...}, "
 
-int list_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer, struct YASL_Object *format) {
-	YASL_ByteBuffer bb = NEW_BB(8);
-
-	YASL_ByteBuffer_add_byte(&bb, '[');
+void list_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer, struct YASL_Object *format) {
 	struct YASL_List *list = vm_peeklist((struct VM *) S);
 	if (list->count == 0) {
 		YASL_pop(S);
-		YASL_ByteBuffer_add_byte(&bb, ']');
-		vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, bb.count, (char *)bb.items)));
-		return YASL_SUCCESS;
+		YASL_pushlit(S, "[]");
+		return;
 	}
+
+	YASL_ByteBuffer bb = NEW_BB(8);
+
+	YASL_ByteBuffer_add_byte(&bb, '[');
 
 	FOR_LIST(i, obj, list) {
 		vm_push((struct VM *) S, obj);
@@ -269,9 +283,7 @@ int list_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer, struct YASL_Obje
 	bb.count -= 2;
 	YASL_ByteBuffer_add_byte(&bb, ']');
 
-	vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, bb.count, (char *)bb.items)));
-
-	return YASL_SUCCESS;
+	vm_pushstr_bb((struct VM *)S, &bb);
 }
 
 int list_tostr(struct YASL_State *S) {
@@ -300,67 +312,34 @@ int list_clear(struct YASL_State *S) {
 }
 
 int list_join(struct YASL_State *S) {
-	if (YASL_isundef(S)) {
-		YASL_pop(S);
-		vm_pushstr((struct VM *)S, YASL_String_new_sized(0, ""));
-	}
-	if (!vm_isstr((struct VM *) S)) {
-		YASLX_print_and_throw_err_bad_arg_type_n(S, "list.join", 1, YASL_STR_NAME);
-	}
-	struct YASL_String *string = vm_peekstr((struct VM *) S, S->vm.sp);
-	S->vm.sp--;
-	if (!YASL_isnlist(S, 0)) {
-		YASLX_print_and_throw_err_bad_arg_type_n(S, "list.join", 0, YASL_LIST_NAME);
-	}
-	struct YASL_List *list = vm_peeklist((struct VM *) S, S->vm.sp);
-	S->vm.sp++;
+	size_t len;
+	const char *chars = YASLX_checknoptstrz(S, "list.join", 1, &len, "");
+	struct YASL_List *list = YASLX_checknlist(S, "list.join", 0);
 
 	if (list->count == 0) {
-		vm_pushstr((struct VM *) S, YASL_String_new_sized(0, ""));
+		vm_pushstr((struct VM *) S, YASL_String_new_copyz((struct VM *)S, ""));
 		return 1;
 	}
 
-	size_t buffer_count = 0;
-	size_t buffer_size = 8;
-	char *buffer = (char *) malloc(buffer_size);
+	YASL_ByteBuffer bb = NEW_BB(8);
 
 	vm_push((struct VM *)S, list->items[0]);
 	vm_stringify_top((struct VM *)S);
 	struct YASL_String *str = vm_popstr((struct VM *) S);
 
-	while (buffer_count + YASL_String_len(str) >= buffer_size) {
-		buffer_size *= 2;
-		buffer = (char *) realloc(buffer, buffer_size);
-	}
-
-	memcpy(buffer + buffer_count, YASL_String_chars(str), YASL_String_len(str));
-	buffer_count += YASL_String_len(str);
-
+	YASL_ByteBuffer_extend(&bb, (const byte *)YASL_String_chars(str), YASL_String_len(str));
 
 	for (size_t i = 1; i < list->count; i++) {
-		while (buffer_count + YASL_String_len(string) >= buffer_size) {
-			buffer_size *= 2;
-			buffer = (char *) realloc(buffer, buffer_size);
-		}
-
-		memcpy(buffer + buffer_count, YASL_String_chars(string), YASL_String_len(string));
-		buffer_count += YASL_String_len(string);
+		YASL_ByteBuffer_extend(&bb, (const byte *)chars, len);
 
 		vm_push((struct VM *) S, list->items[i]);
 		vm_stringify_top((struct VM *)S);
 		struct YASL_String *str = vm_popstr((struct VM *) S);
 
-		while (buffer_count + YASL_String_len(str) >= buffer_size) {
-			buffer_size *= 2;
-			buffer = (char *) realloc(buffer, buffer_size);
-		}
-
-		memcpy(buffer + buffer_count, YASL_String_chars(str), YASL_String_len(str));
-		buffer_count += YASL_String_len(str);
+		YASL_ByteBuffer_extend(&bb, (const byte *)YASL_String_chars(str), YASL_String_len(str));
 	}
-	YASL_pop(S);
-	YASL_pop(S);
-	vm_pushstr((struct VM *) S, YASL_String_new_sized_heap(0, buffer_count, buffer));
+
+	vm_pushstr_bb((struct VM *)S, &bb);
 	return 1;
 }
 
@@ -385,6 +364,24 @@ int list_count(struct YASL_State *S) {
 	}
 
 	YASL_pushint(S, count);
+	return 1;
+}
+
+int list_shuffle(struct YASL_State *S) {
+	struct YASL_List *ls = YASLX_checknlist(S, "list.count", 0);
+	const size_t len = ls->count;
+
+	if (len <= 1) return 1;
+
+	// We use a Fisher-Yate shuffle here.
+	for (size_t i = len - 1; i >= 1; i--) {
+		size_t j = (size_t)rand();
+		j %= i + 1;
+		YASL_ASSERT(0 <= j && j <= i, "j should be in this range.");
+		struct YASL_Object tmp = ls->items[i];
+		ls->items[i] = ls->items[j];
+		ls->items[j] = tmp;
+	}
 	return 1;
 }
 

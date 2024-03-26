@@ -1,4 +1,3 @@
-##720\n
 
 const fn fact(n) {
     let tmp = 1

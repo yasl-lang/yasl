@@ -94,14 +94,6 @@ enum Opcode {
 	O_ECHO = 0xFF  // print
 };
 
-enum SpecialStrings {
-#define X(E, S, ...) E,
-#include "specialstrings.x"
-#undef X
-
-	NUM_SPECIAL_STRINGS // don't treat this as a member
-};
-
 enum Constants {
 	C_FLOAT,
 	C_INT_1,

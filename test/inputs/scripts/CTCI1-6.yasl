@@ -1,4 +1,3 @@
-##a2b1c4a3\nabcde\n
 
 fn compress(s) {
     let new_s = ''

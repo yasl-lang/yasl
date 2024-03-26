@@ -7,6 +7,7 @@
 #include "lexer.h"
 #include "yapp.h"
 #include "yasl_conf.h"
+#include "data-structures/LString.h"
 
 #define X(name, E, ...) E,
 // NOTE: _MUST_ keep this up to date with the jumptable in compiler.c and the jumptable in middleend.c
@@ -54,10 +55,7 @@ struct Node {
 	struct Node *next;
 	enum NodeType nodetype;
 	union {
-		struct {
-			char *str;
-			size_t str_len;
-		} sval;
+		struct LString sval;
 		yasl_int ival;
 		yasl_float dval;
 		enum Token type;
