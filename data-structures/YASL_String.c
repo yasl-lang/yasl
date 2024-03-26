@@ -22,6 +22,7 @@ const char *YASL_String_chars(const struct YASL_String *const str) {
 }
 
 #define CHARS(s) YASL_String_chars(s)
+#define LEN(s) YASL_String_len(s)
 
 int64_t YASL_String_cmp(const struct YASL_String *const left, const struct YASL_String *const right) {
 	const size_t left_len = YASL_String_len(left);
@@ -41,18 +42,7 @@ int64_t YASL_String_cmp(const struct YASL_String *const left, const struct YASL_
 
 struct YASL_String *YASL_String_new_substring(struct VM *vm, const struct YASL_String *const string,
 					      const size_t start, const size_t end) {
-	struct YASL_String *s = vm_lookup_interned_str(vm, CHARS(string) + start, end - start);
-	if (s) {
-		return s;
-	}
-
-	struct YASL_String *str = (struct YASL_String *) malloc(sizeof(struct YASL_String));
-	char *tmp = (char *)malloc(end - start);
-	memcpy(tmp, CHARS(string) + start, end - start);
-	LString_init(&str->s, tmp, end - start);
-
-	str->rc = NEW_RC();
-	return str;
+	return YASL_String_new_copy(vm, CHARS(string) + start, end - start);
 }
 
 struct YASL_String *YASL_String_new_copy(struct VM *vm, const char *const ptr, const size_t base_size) {
@@ -97,6 +87,7 @@ void str_del_rc(struct YASL_String *const str) {
 }
 
 void str_del(struct YASL_String *const str) {
+	// YASL_ASSERT(CHARS(str)[LEN(str)] == '\0', "expected a nul-terminator");
 	str_del_data(str);
 	free(str);
 }

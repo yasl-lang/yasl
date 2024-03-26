@@ -106,7 +106,7 @@ struct YASL_Table* list_builtins(struct VM *vm) {
 	table_insert_str_cfunction(vm, table, "copy", &list_copy, 1);
 	table_insert_str_cfunction(vm, table, "__add", &list___add, 2);
 	table_insert_str_cfunction(vm, table, "__eq", &list___eq, 2);
-	// table_insert_str_cfunction(vm, table, S_EXTEND, &list_extend, 2);
+	// table_insert_str_cfunction(vm, table, "extend", &list_extend, 2);
 	table_insert_str_cfunction(vm, table, "pop", &list_pop, 1);
 	table_insert_str_cfunction(vm, table, "__get", &list___get, 2);
 	table_insert_str_cfunction(vm, table, "__set", &list___set, 3);
