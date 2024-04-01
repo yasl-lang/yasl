@@ -4,7 +4,7 @@
 #include "refcount.h"
 #include "yasl_conf.h"
 #include "yasl_include.h"
-#include "data-structures/LString.h"
+#include "LString.h"
 
 #define iswhitespace(c) ((c) == ' ' || (c) == '\t' || (c) == '\n' || (c) == '\v' || (c) == '\r')
 

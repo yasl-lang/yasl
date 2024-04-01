@@ -1,5 +1,5 @@
 #include <interpreter/YASL_Object.h>
-#include "data-structures/YASL_StringSet.h"
+#include "YASL_StringSet.h"
 
 struct YASL_StringSet *YASL_StringSet_new(void) {
 	return (struct YASL_StringSet *)YASL_Set_new();

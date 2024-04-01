@@ -1,5 +1,5 @@
-#include "data-structures/YASL_Set.h"
-#include "data-structures/YASL_String.h"
+#include "YASL_Set.h"
+#include "YASL_String.h"
 
 struct YASL_StringSet {
 	struct YASL_Set impl;

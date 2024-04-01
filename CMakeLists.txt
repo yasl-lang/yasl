@@ -43,113 +43,114 @@ endif()
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 include_directories(.)
-include_directories(common)
-include_directories(compiler)
-include_directories(data-structures)
-include_directories(interpreter)
-include_directories(util)
-include_directories(std)
+include_directories(src)
+include_directories(src/common)
+include_directories(src/compiler)
+include_directories(src/data-structures)
+include_directories(src/interpreter)
+include_directories(src/util)
+include_directories(src/std)
 include_directories(test)
 
 add_executable(yasl
-        common/opcode.h
-        yasl.c
-        yasl_aux.c
-        main.c
-        compiler/ast.c
-        data-structures/YASL_ByteBuffer.c
-        data-structures/YASL_Buffer.c
-        data-structures/YASL_Table.c
-        compiler/compiler.c
-        compiler/env.c
-        compiler/lexer.c
-        compiler/lexinput.c
-        compiler/middleend.c
-        compiler/parser.c
-        interpreter/upvalue.c
-        interpreter/closure.c
-        interpreter/bool_methods.c
-        interpreter/builtins.c
-        interpreter/float_methods.c
-        util/yasl_float.c
-        interpreter/int_methods.c
-        data-structures/YASL_List.c
-        interpreter/list_methods.c
-        interpreter/table_methods.c
-        interpreter/VM.c
-        interpreter/YASL_Object.c
-        interpreter/refcount.c
-        interpreter/str_methods.c
-        data-structures/LString.c
-        data-structures/YASL_String.c
-        data-structures/YASL_StringSet.c
-        interpreter/userdata.c
-        interpreter/undef_methods.c
-        std/yasl-std-io.c
-        std/yasl-std-math.c
-        std/yasl-std-require.c
-        std/yasl-std-error.c
-        data-structures/YASL_Set.c
-        std/yasl-std-collections.c
-        std/yasl-std-mt.c
-        std/yasl-std-os.c
-        std/yasl-std-try.c
-        util/hash_function.c
-        util/IO.c
-        util/prime.c
-        util/varint.c
-        yapp.h
-        yasl_conf.h
-        yasl_error.h
-        yasl_types.h
-        yasl_plat.h)
+        src/common/opcode.h
+        src/yasl.c
+        src/yasl_aux.c
+        src/main.c
+        src/compiler/ast.c
+        src/data-structures/YASL_ByteBuffer.c
+        src/data-structures/YASL_Buffer.c
+        src/data-structures/YASL_Table.c
+        src/compiler/compiler.c
+        src/compiler/env.c
+        src/compiler/lexer.c
+        src/compiler/lexinput.c
+        src/compiler/middleend.c
+        src/compiler/parser.c
+        src/interpreter/upvalue.c
+        src/interpreter/closure.c
+        src/interpreter/bool_methods.c
+        src/interpreter/builtins.c
+        src/interpreter/float_methods.c
+        src/util/yasl_float.c
+        src/interpreter/int_methods.c
+        src/data-structures/YASL_List.c
+        src/interpreter/list_methods.c
+        src/interpreter/table_methods.c
+        src/interpreter/VM.c
+        src/interpreter/YASL_Object.c
+        src/interpreter/refcount.c
+        src/interpreter/str_methods.c
+        src/data-structures/LString.c
+        src/data-structures/YASL_String.c
+        src/data-structures/YASL_StringSet.c
+        src/interpreter/userdata.c
+        src/interpreter/undef_methods.c
+        src/std/yasl-std-io.c
+        src/std/yasl-std-math.c
+        src/std/yasl-std-require.c
+        src/std/yasl-std-error.c
+        src/data-structures/YASL_Set.c
+        src/std/yasl-std-collections.c
+        src/std/yasl-std-mt.c
+        src/std/yasl-std-os.c
+        src/std/yasl-std-try.c
+        src/util/hash_function.c
+        src/util/IO.c
+        src/util/prime.c
+        src/util/varint.c
+        src/yapp.h
+        src/yasl_conf.h
+        src/yasl_error.h
+        src/yasl_types.h
+        src/yasl_plat.h)
 
 add_library(yaslapi
-        common/opcode.h
-        yasl.c
-        yasl_aux.c
-        compiler/ast.c
-        data-structures/YASL_ByteBuffer.c
-        data-structures/YASL_Buffer.c
-        compiler/compiler.c
-        compiler/env.c
-        compiler/lexer.c
-        compiler/lexinput.c
-        compiler/parser.c
-        compiler/middleend.c
-        util/hash_function.c
-        data-structures/YASL_Table.c
-        interpreter/bool_methods.c
-        interpreter/builtins.c
-        interpreter/float_methods.c
-        interpreter/upvalue.c
-        interpreter/closure.c
-        util/yasl_float.c
-        interpreter/int_methods.c
-        data-structures/YASL_List.c
-        data-structures/LString.c
-        data-structures/YASL_StringSet.c
-        interpreter/list_methods.c
-        interpreter/table_methods.c
-        interpreter/VM.c
-        interpreter/YASL_Object.c
-        interpreter/refcount.c
-        interpreter/str_methods.c
-        data-structures/YASL_String.c
-        interpreter/userdata.c
-        interpreter/undef_methods.c
-        util/prime.c
-        util/IO.c
-        util/varint.c
-        std/yasl-std-collections.c
-        std/yasl-std-error.c
-        std/yasl-std-io.c
-        std/yasl-std-math.c
-        std/yasl-std-require.c
-        data-structures/YASL_Set.c
-        std/yasl-std-mt.c
-        std/yasl-std-os.c
-        std/yasl-std-try.c)
+        src/common/opcode.h
+        src/yasl.c
+        src/yasl_aux.c
+        src/compiler/ast.c
+        src/data-structures/YASL_ByteBuffer.c
+        src/data-structures/YASL_Buffer.c
+        src/compiler/compiler.c
+        src/compiler/env.c
+        src/compiler/lexer.c
+        src/compiler/lexinput.c
+        src/compiler/parser.c
+        src/compiler/middleend.c
+        src/util/hash_function.c
+        src/data-structures/YASL_Table.c
+        src/interpreter/bool_methods.c
+        src/interpreter/builtins.c
+        src/interpreter/float_methods.c
+        src/interpreter/upvalue.c
+        src/interpreter/closure.c
+        src/util/yasl_float.c
+        src/interpreter/int_methods.c
+        src/data-structures/YASL_List.c
+        src/data-structures/LString.c
+        src/data-structures/YASL_StringSet.c
+        src/interpreter/list_methods.c
+        src/interpreter/table_methods.c
+        src/interpreter/VM.c
+        src/interpreter/YASL_Object.c
+        src/interpreter/refcount.c
+        src/interpreter/str_methods.c
+        src/data-structures/YASL_String.c
+        src/interpreter/userdata.c
+        src/interpreter/undef_methods.c
+        src/util/prime.c
+        src/util/IO.c
+        src/util/varint.c
+        src/std/yasl-std-collections.c
+        src/std/yasl-std-error.c
+        src/std/yasl-std-io.c
+        src/std/yasl-std-math.c
+        src/std/yasl-std-require.c
+        src/data-structures/YASL_Set.c
+        src/std/yasl-std-mt.c
+        src/std/yasl-std-os.c
+        src/std/yasl-std-try.c)
 
 set_property(TARGET yaslapi PROPERTY POSITION_INDEPENDENT_CODE ON)
 

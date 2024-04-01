@@ -9,7 +9,7 @@
 #include "common/debug.h"
 #include "YASL_List.h"
 #include "interpreter/YASL_Object.h"
-#include "data-structures/YASL_ByteBuffer.h"
+#include "YASL_ByteBuffer.h"
 
 struct YASL_String *vm_lookup_interned_str(struct VM *vm, const char *chars, const size_t size);
 
