@@ -6,7 +6,7 @@
 #include <ctype.h>
 #include <math.h>
 
-#include "debug.h"
+#include "common/debug.h"
 #include "YASL_List.h"
 #include "interpreter/YASL_Object.h"
 #include "data-structures/YASL_ByteBuffer.h"

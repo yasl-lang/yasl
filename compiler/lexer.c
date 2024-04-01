@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdarg.h>
 
-#include "debug.h"
+#include "common/debug.h"
 #include "yasl_error.h"
 #include "yasl_include.h"
 

@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include "util/varint.h"
-#include "debug.h"
+#include "common/debug.h"
 
 YASL_ByteBuffer *YASL_ByteBuffer_new(const size_t size) {
 	YASL_ByteBuffer *bb = (YASL_ByteBuffer *)malloc(sizeof(YASL_ByteBuffer));

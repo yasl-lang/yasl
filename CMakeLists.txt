@@ -43,6 +43,7 @@ endif()
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 include_directories(.)
+include_directories(common)
 include_directories(compiler)
 include_directories(data-structures)
 include_directories(interpreter)
@@ -51,7 +52,7 @@ include_directories(std)
 include_directories(test)
 
 add_executable(yasl
-        opcode.h
+        common/opcode.h
         yasl.c
         yasl_aux.c
         main.c
@@ -104,7 +105,7 @@ add_executable(yasl
         yasl_plat.h)
 
 add_library(yaslapi
-        opcode.h
+        common/opcode.h
         yasl.c
         yasl_aux.c
         compiler/ast.c

@@ -2,7 +2,7 @@
 
 #include <stdarg.h>
 
-#include "debug.h"
+#include "common/debug.h"
 #include "yasl_conf.h"
 
 void parser_register_node(struct Parser *parser, struct Node *node);

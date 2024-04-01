@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "debug.h"
+#include "common/debug.h"
 #include "data-structures/YASL_Table.h"
 #include "interpreter/userdata.h"
 #include "interpreter/refcount.h"

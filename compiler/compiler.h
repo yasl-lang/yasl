@@ -5,7 +5,7 @@
 
 #include "data-structures/YASL_Buffer.h"
 #include "data-structures/YASL_ByteBuffer.h"
-#include "debug.h"
+#include "common/debug.h"
 #include "env.h"
 #include "parser.h"
 

@@ -5,7 +5,7 @@
 #include <opcode.h>
 
 #include "ast.h"
-#include "debug.h"
+#include "common/debug.h"
 #include "middleend.h"
 #include "yasl_conf.h"
 #include "yasl_error.h"

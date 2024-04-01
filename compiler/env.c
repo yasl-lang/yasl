@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <interpreter/YASL_Object.h>
 
-#include "debug.h"
+#include "common/debug.h"
 #include "data-structures/YASL_String.h"
 
 struct Env *env_new(struct Env *const parent) {

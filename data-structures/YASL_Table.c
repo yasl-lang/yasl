@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "data-structures/YASL_String.h"
-#include "debug.h"
+#include "common/debug.h"
 #include "hash_function.h"
 #include "interpreter/refcount.h"
 #include "interpreter/YASL_Object.h"
