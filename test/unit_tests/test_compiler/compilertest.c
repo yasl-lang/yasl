@@ -1,4 +1,4 @@
-#include "opcode.h"
+#include "src/opcode.h"
 #include "yats.h"
 #include "compilertest.h"
 #include "binoptest.h"

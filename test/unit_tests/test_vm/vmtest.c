@@ -1,9 +1,9 @@
 #include <interpreter/upvalue.h>
 #include "test/yats.h"
-#include "yasl.h"
-#include "yasl_aux.h"
+#include "src/yasl.h"
+#include "src/yasl_aux.h"
 #include "IO.h"
-#include "yasl_state.h"
+#include "src/yasl_state.h"
 
 SETUP_YATS();
 

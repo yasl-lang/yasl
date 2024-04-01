@@ -51,9 +51,9 @@ include_directories(std)
 include_directories(test)
 
 add_executable(yasl
-        opcode.h
-        yasl.c
-        yasl_aux.c
+        src/opcode.h
+        src/yasl.c
+        src/yasl_aux.c
         main.c
         compiler/ast.c
         data-structures/YASL_ByteBuffer.c
@@ -97,16 +97,16 @@ add_executable(yasl
         util/IO.c
         util/prime.c
         util/varint.c
-        yapp.h
-        yasl_conf.h
-        yasl_error.h
-        yasl_types.h
-        yasl_plat.h)
+        src/yapp.h
+        src/yasl_conf.h
+        src/yasl_error.h
+        src/yasl_types.h
+        src/yasl_plat.h)
 
 add_library(yaslapi
-        opcode.h
-        yasl.c
-        yasl_aux.c
+        src/opcode.h
+        src/yasl.c
+        src/yasl_aux.c
         compiler/ast.c
         data-structures/YASL_ByteBuffer.c
         data-structures/YASL_Buffer.c

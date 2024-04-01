@@ -1,8 +1,8 @@
 #include "syntaxerrortest.h"
 
 #include "yats.h"
-#include "yasl_state.h"
-#include "yasl.h"
+#include "src/yasl_state.h"
+#include "src/yasl.h"
 
 SETUP_YATS();
 

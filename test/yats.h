@@ -5,8 +5,8 @@
 #include <string.h>
 
 #include "compiler/lexer.h"
-#include "opcode.h"
-#include "yasl_include.h"
+#include "src/opcode.h"
+#include "src/yasl_include.h"
 
 #define NUM_FAILED __YATS_TESTS_FAILED__
 

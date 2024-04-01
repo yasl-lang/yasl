@@ -4,7 +4,7 @@
 #include "compiler/compiler.h"
 #include "compiler/lexinput.h"
 #include "compiler/parser.h"
-#include "yasl.h"
+#include "src/yasl.h"
 
 struct Lexer setup_lexer(const char *file_contents) {
 	FILE *fptr = fopen("dump.ysl", "w");

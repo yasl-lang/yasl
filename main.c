@@ -3,10 +3,10 @@
 #include <string.h>
 #include <time.h>
 
-#include "yasl.h"
-#include "yasl_aux.h"
-#include "yasl_plat.h"
-#include "yasl_state.h"
+#include "src/yasl.h"
+#include "src/yasl_aux.h"
+#include "src/yasl_plat.h"
+#include "src/yasl_state.h"
 
 #define VERSION_PRINTOUT "YASL " YASL_VERSION
 

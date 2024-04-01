@@ -2,8 +2,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "yasl.h"
-#include "yasl_aux.h"
+#include "src/yasl.h"
+#include "src/yasl_aux.h"
 
 #include <yasl_test.h>
 
