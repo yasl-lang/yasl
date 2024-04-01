@@ -1,0 +1,21 @@
+tobool:
+true
+true
+false
+tobyte:
+65
+97
+32
+126
+tolist:
+[a, b, c, d, e, f, g]
+[ab, cd, ef, g]
+[]
+tolower:
+yasl
+yasl
+!@#$
+toupper:
+YASL
+YASL
+%^&*

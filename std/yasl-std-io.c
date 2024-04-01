@@ -48,7 +48,7 @@ static int YASL_io_open(struct YASL_State *S) {
 		YASLX_print_and_throw_err_bad_arg_type_n(S, "io.open", 0, YASL_STR_NAME);
 	}
 
-	char *filename_str = YASL_popcstr(S);
+	char *filename_str = YASL_peekcstr(S);
 
 	char mode_char = mode_str[0];
 
@@ -199,7 +199,7 @@ static int YASL_io_seek(struct YASL_State *S) {
 		whence = SEEK_SET;
 		YASL_pop(S);
 	} else if (YASL_isstr(S)) {
-		char *tmp = YASL_popcstr(S);
+		char *tmp = YASL_peekcstr(S);
 		if (!strcmp(tmp, "set")) whence = SEEK_SET;
 		else if (!strcmp(tmp, "cur")) whence = SEEK_CUR;
 		else if (!strcmp(tmp, "end")) whence = SEEK_END;

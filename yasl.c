@@ -121,6 +121,22 @@ void YASL_loadprinterr(struct YASL_State *S) {
 	}
 }
 
+void YASL_resetprintout(struct YASL_State *S) {
+	io_reset(&S->vm.out);
+}
+
+void YASL_resetprinterr(struct YASL_State *S) {
+	struct IO *compiler_err = &S->compiler.parser.lex.err;
+	struct IO *vm_err = &S->vm.err;
+
+	io_reset(compiler_err);
+	io_reset(vm_err);
+
+	S->vm.err.len = 0;
+	free(S->vm.err.string);
+	S->vm.err.string = NULL;
+}
+
 int YASL_execute_REPL(struct YASL_State *S) {
 	unsigned char *bc = compile_REPL(&S->compiler);
 	if (!bc) return S->compiler.status;
@@ -185,7 +201,7 @@ int YASL_setglobal(struct YASL_State *S, const char *name) {
 	int64_t index = scope_get(S->compiler.globals, name);
 	if (is_const(index)) return YASL_ERROR;
 
-	struct YASL_String *string = YASL_String_new_sized(strlen(name), name);
+	struct YASL_String *string = YASL_String_new_copyz((struct VM *)S, name);
 	YASL_Table_insert_fast(S->vm.globals, YASL_STR(string), vm_peek((struct VM *) S));
 	YASL_pop(S);
 
@@ -193,7 +209,7 @@ int YASL_setglobal(struct YASL_State *S, const char *name) {
 }
 
 int YASL_loadglobal(struct YASL_State *S, const char *name) {
-	struct YASL_String *string = YASL_String_new_sized(strlen(name), name);
+	struct YASL_String *string = YASL_String_new_copyz_unbound(name);
 	struct YASL_Object global = YASL_Table_search(S->vm.globals, YASL_STR(string));
 	str_del(string);
 	if (global.type == Y_END) {
@@ -204,7 +220,7 @@ int YASL_loadglobal(struct YASL_State *S, const char *name) {
 }
 
 int YASL_registermt(struct YASL_State *S, const char *name) {
-	struct YASL_String *string = YASL_String_new_sized(strlen(name), name);
+	struct YASL_String *string = YASL_String_new_copyz((struct VM *)S, name);
 	YASL_Table_insert_fast(S->vm.metatables, YASL_STR(string), vm_peek((struct VM *) S));
 	YASL_pop(S);
 
@@ -212,7 +228,7 @@ int YASL_registermt(struct YASL_State *S, const char *name) {
 }
 
 int YASL_loadmt(struct YASL_State *S, const char *name) {
-	struct YASL_String *string = YASL_String_new_sized(strlen(name), name);
+	struct YASL_String *string = YASL_String_new_copyz_unbound(name);
 	struct YASL_Object mt = YASL_Table_search(S->vm.metatables, YASL_STR(string));
 	str_del(string);
 	if (mt.type == Y_END) {
@@ -298,7 +314,7 @@ void YASL_pushuserptr(struct YASL_State *S, void *userpointer) {
 }
 
 void YASL_pushlit(struct YASL_State *S, const char *value) {
-	vm_pushstr((struct VM *) S, YASL_String_new_sized(strlen(value), value));
+	vm_pushstr((struct VM *) S, YASL_String_new_copyz((struct VM *)S, value));
 }
 
 void YASL_pushzstr(struct YASL_State *S, const char *value) {
@@ -306,9 +322,7 @@ void YASL_pushzstr(struct YASL_State *S, const char *value) {
 }
 
 void YASL_pushlstr(struct YASL_State *S, const char *value, size_t len) {
-	char *buffer = (char *)malloc(len);
-	memcpy(buffer, value, len);
-	vm_pushstr((struct VM *)S, YASL_String_new_sized_heap(0, len, buffer));
+	vm_pushstr((struct VM *)S, YASL_String_new_copy((struct VM *)S, value, len));
 }
 
 void YASL_pushcfunction(struct YASL_State *S, YASL_cfn value, int num_args) {
@@ -316,20 +330,21 @@ void YASL_pushcfunction(struct YASL_State *S, YASL_cfn value, int num_args) {
 }
 
 void YASL_pushtable(struct YASL_State *S) {
-	struct RC_UserData *table = rcht_new();
-	ud_setmt(&S->vm, table, S->vm.builtins_htable[Y_TABLE]);
+	struct RC_UserData *table = rcht_new(&S->vm);
 	vm_push(&S->vm, YASL_TABLE(table));
 }
 
 void YASL_pushlist(struct YASL_State *S) {
-	struct RC_UserData *list = rcls_new();
-	ud_setmt(&S->vm, list, S->vm.builtins_htable[Y_LIST]);
-	vm_push(&S->vm, YASL_LIST(list));
+	struct RC_UserData *list = rcls_new((struct VM *)S);
+	vm_pushlist(&S->vm, list);
 }
 
 yasl_int YASL_peekvargscount(struct YASL_State *S) {
 	struct VM *vm = (struct VM *)S;
 	yasl_int num_args = vm_peek(vm, vm->fp).value.cval->num_args;
+	if (num_args >= 0) {
+		return 0;
+	}
 
 	return vm_peekint(vm, vm->fp + 1 + ~num_args);
 }
@@ -589,7 +604,7 @@ char *YASL_popcstr(struct YASL_State *S) {
 }
 
 void *YASL_peeknuserdata(struct YASL_State *S, unsigned n) {
-	return YASL_GETUSERDATA(vm_peek(&S->vm, S->vm.fp + 1 + n))->data;
+	return YASL_GETUSERDATA(vm_peek_fp(&S->vm, n))->data;
 }
 
 void *YASL_popuserdata(struct YASL_State *S) {

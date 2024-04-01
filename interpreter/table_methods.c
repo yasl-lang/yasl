@@ -16,16 +16,15 @@ int table___bor(struct YASL_State *S) {
 	struct YASL_Table *left = YASLX_checkntable(S, "table.__bor", 0);
 	struct YASL_Table *right = YASLX_checkntable(S, "table.__bor", 1);
 
-	struct RC_UserData *new_ht = rcht_new_sized(left->base_size);
-	ud_setmt(&S->vm, new_ht, S->vm.builtins_htable[Y_TABLE]);
+	struct RC_UserData *new_ht = rcht_new_sized(&S->vm, left->base_size);
 
 	FOR_TABLE(i, litem, left) {
-			YASL_Table_insert_fast((struct YASL_Table *) new_ht->data, litem->key, litem->value);
-		}
+		YASL_Table_insert_fast((struct YASL_Table *) new_ht->data, litem->key, litem->value);
+	}
 
 	FOR_TABLE(i, ritem, right) {
-			YASL_Table_insert_fast((struct YASL_Table *) new_ht->data, ritem->key, ritem->value);
-		}
+		YASL_Table_insert_fast((struct YASL_Table *) new_ht->data, ritem->key, ritem->value);
+	}
 
 	vm_push((struct VM *) S, YASL_TABLE(new_ht));
 	return 1;
@@ -123,7 +122,7 @@ int table___set(struct YASL_State *S) {
 	return 1;
 }
 
-int list_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer, struct YASL_Object *format);
+void list_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer, struct YASL_Object *format);
 
 #define FOUND_LIST "[...], "
 #define FOUND_TABLE "{...}, "
@@ -137,7 +136,7 @@ bool buffer_contains(BUFFER(ptr) buffer, void *val) {
 	return false;
 }
 
-void rec_call(struct YASL_State *S, BUFFER(ptr) buffer, struct YASL_Object *format, int (*f)(struct YASL_State *, BUFFER(ptr), struct YASL_Object *)) {
+void rec_call(struct YASL_State *S, BUFFER(ptr) buffer, struct YASL_Object *format, void (*f)(struct YASL_State *, BUFFER(ptr), struct YASL_Object *)) {
 	BUFFER(ptr) tmp = BUFFER_COPY(ptr)(&buffer);
 	BUFFER_PUSH(ptr)(&tmp, vm_peeklist((struct VM *)S));
 
@@ -146,17 +145,17 @@ void rec_call(struct YASL_State *S, BUFFER(ptr) buffer, struct YASL_Object *form
 	BUFFER_CLEANUP(ptr)(&tmp);
 }
 
-int table_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer, struct YASL_Object *format) {
+void table_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer, struct YASL_Object *format) {
+	struct YASL_Table *table = vm_peektable((struct VM *) S);
+	if (table->count == 0) {
+		YASL_pop(S);
+		YASL_pushlit(S, "{}");
+		return;
+	}
+
 	YASL_ByteBuffer bb = NEW_BB(8);
 
 	YASL_ByteBuffer_add_byte(&bb, '{');
-	struct YASL_Table *table = vm_peektable((struct VM *) S);
-	if (table->count == 0) {
-		vm_pop((struct VM *) S);
-		YASL_ByteBuffer_add_byte(&bb, '}');
-		vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, bb.count, (char *)bb.items)));
-		return YASL_SUCCESS;
-	}
 
 	FOR_TABLE(i, item, table) {
 		vm_push((struct VM *) S, item->key);
@@ -201,9 +200,7 @@ int table_tostr_helper(struct YASL_State *S, BUFFER(ptr) buffer, struct YASL_Obj
 	bb.count -= 2;
 	YASL_ByteBuffer_add_byte(&bb, '}');
 
-	vm_push((struct VM *) S, YASL_STR(YASL_String_new_sized_heap(0, bb.count, (char *)bb.items)));
-
-	return YASL_SUCCESS;
+	vm_pushstr_bb((struct VM *) S, &bb);
 }
 
 int table_tostr(struct YASL_State *S) {
@@ -223,24 +220,22 @@ int table_tostr(struct YASL_State *S) {
 
 int table_keys(struct YASL_State *S) {
 	struct YASL_Table *ht = YASLX_checkntable(S, "table.keys", 0);
-	struct RC_UserData *ls = rcls_new();
-	ud_setmt(&S->vm, ls, S->vm.builtins_htable[Y_LIST]);
+	struct RC_UserData *ls = rcls_new(&S->vm);
 	FOR_TABLE(i, item, ht) {
-			YASL_List_push((struct YASL_List *) ls->data, (item->key));
+		YASL_List_push((struct YASL_List *) ls->data, (item->key));
 	}
 
-	vm_push((struct VM *) S, YASL_LIST(ls));
+	vm_pushlist((struct VM *)S, ls);
 	return 1;
 }
 
 int table_values(struct YASL_State *S) {
 	struct YASL_Table *ht = YASLX_checkntable(S, "table.values", 0);
-	struct RC_UserData *ls = rcls_new();
-	ud_setmt(&S->vm, ls, S->vm.builtins_htable[Y_LIST]);
+	struct RC_UserData *ls = rcls_new(&S->vm);
 	FOR_TABLE(i, item, ht) {
-			YASL_List_push((struct YASL_List *) ls->data, (item->value));
+		YASL_List_push((struct YASL_List *) ls->data, (item->value));
 	}
-	vm_push((struct VM *) S, YASL_LIST(ls));
+	vm_pushlist((struct VM *)S, ls);
 	return 1;
 }
 
@@ -257,12 +252,13 @@ int table_remove(struct YASL_State *S) {
 
 int table_copy(struct YASL_State *S) {
 	struct YASL_Table *ht = YASLX_checkntable(S, "table.copy", 0);
-	struct RC_UserData *new_ht = rcht_new_sized(ht->base_size);
+	struct RC_UserData *new_ht = rcht_new_sized(&S->vm, ht->base_size);
 
 	FOR_TABLE(i, item, ht) {
 		YASL_Table_insert_fast((struct YASL_Table *) new_ht->data, item->key, item->value);
 	}
 
+	ud_setmt(&S->vm, new_ht, obj_get_metatable(&S->vm, vm_peek(&S->vm)));
 	vm_push((struct VM *) S, YASL_TABLE(new_ht));
 	return 1;
 }

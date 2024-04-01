@@ -43,13 +43,6 @@ void cfn_del_rc(struct CFunction *cfn) {
 	free(cfn);
 }
 
-struct YASL_Object *YASL_Table(void) {
-	struct YASL_Object *table = (struct YASL_Object *) malloc(sizeof(struct YASL_Object));
-	table->type = Y_TABLE;
-	table->value.uval = rcht_new();
-	return table;
-}
-
 int yasl_object_cmp(struct YASL_Object a, struct YASL_Object b) {
 	YASL_ASSERT(obj_isstr(&a) && obj_isstr(&b) || obj_isnum(&a) && obj_isnum(&b), "Both must be either numeric or strings");
 	if (obj_isstr(&a) && obj_isstr(&b)) {

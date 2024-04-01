@@ -1,4 +1,3 @@
-##10 + 4 == 14\nnot found\n
 /* problem: given an unsorted list of unique integers `nums` and a target integer `target`,
  * write a function that returns the two numbers in `nums` that sum to target. There may be
  * multiple pairs that sum to `target`, in which case you may return any such pair.

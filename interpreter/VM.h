@@ -25,6 +25,7 @@
 #define vm_peek_default_p(vm) ((vm)->stack + (vm)->sp)
 #define vm_peek(...) YAPP_EXPAND(YAPP_CHOOSE2(__VA_ARGS__, vm_peek_offset, vm_peek_default,)(__VA_ARGS__))
 #define vm_peek_p(...) YAPP_EXPAND(YAPP_CHOOSE2(__VA_ARGS__, vm_peek_offset_p, vm_peek_default_p,)(__VA_ARGS__))
+#define vm_peek_fp(vm, offset) vm_peek((vm), (vm)->fp + 1 + (offset))
 
 #define vm_peektypename(...) obj_typename(vm_peek_p(__VA_ARGS__))
 
@@ -96,27 +97,27 @@ struct VM {
 	struct IO out;
 	struct IO err;
 	struct YASL_Table *metatables;
-	struct YASL_Table *globals;   // variables, see "constant.c" for details on YASL_Object.
-	struct YASL_Object *stack;     // stack
+	struct YASL_Table *globals;   // global variables
+	struct YASL_Object *constants;
+	struct YASL_StringSet *interned_strings;
+	struct YASL_Object *format_str;
+	int64_t num_constants;
+	struct YASL_Object *stack;    // stack
 	struct CallFrame frames[NUM_FRAMES];
 	int frame_num;
-	struct LoopFrame loopframes[16];
+	struct LoopFrame loopframes[16];  // We support 16 levels of nested loops.
 	int loopframe_num;
-	struct YASL_Object *constants;
-	int64_t num_constants;
-	unsigned char *code;           // bytecode
 	unsigned char **headers;
 	size_t headers_size;
-	unsigned char *pc;                     // program counter
-	int sp;                        // stack pointer
-	int fp;                        // frame pointer
+	unsigned char *code;          // bytecode
+	unsigned char *pc;            // program counter
+	int sp;                       // stack pointer
+	int fp;                       // frame pointer
 	int next_fp;
-	struct YASL_String *special_strings[NUM_SPECIAL_STRINGS];
 	struct RC_UserData **builtins_htable;   // htable of builtin methods
 	struct Upvalue *pending;  // upvals that still need to be closed. Should be in descending order.
-	jmp_buf buf;
+	jmp_buf *buf;
 	int status;
-	uint8_t scratch[SCRATCH_SIZE];
 };
 
 void vm_init(struct VM *const vm, unsigned char *const code, const size_t pc, const size_t datasize);
@@ -137,6 +138,7 @@ void vm_print_err(struct VM *vm, const char *const fmt, ...);
 
 YASL_NORETURN void vm_throw_err(struct VM *const vm, int error);
 
+struct RC_UserData *obj_get_metatable(const struct VM *const vm, struct YASL_Object v);
 void vm_get_metatable(struct VM *const vm);
 int vm_lookup_method_helper(struct VM *vm, struct YASL_Table *mt, struct YASL_Object index);
 void vm_stringify_top(struct VM *const vm);
@@ -165,6 +167,7 @@ void vm_pushundef(struct VM *const vm);
 void vm_pushfloat(struct VM *const vm, yasl_float f);
 void vm_pushint(struct VM *const vm, yasl_int i);
 void vm_pushbool(struct VM *const vm, bool b);
+void vm_pushstr_bb(struct VM *const vm, YASL_ByteBuffer *bb);
 #define vm_pushstr(vm, s) vm_push(vm, YASL_STR(s))
 #define vm_pushlist(vm, l) vm_push(vm, YASL_LIST(l))
 #define vm_pushtable(vm, l) vm_push(vm, YASL_TABLE(l))

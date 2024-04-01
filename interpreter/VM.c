@@ -8,6 +8,7 @@
 #include "interpreter/builtins.h"
 #include "data-structures/YASL_String.h"
 #include "data-structures/YASL_Table.h"
+#include "data-structures/YASL_StringSet.h"
 #include "interpreter/refcount.h"
 
 #include "util/varint.h"
@@ -64,13 +65,11 @@ void vm_init(struct VM *const vm,
 	vm->num_constants = 0;
 	vm->constants = NULL;
 	vm->stack = (struct YASL_Object *)calloc(sizeof(struct YASL_Object), STACK_SIZE);
-
-#define X(E, S, ...) vm->special_strings[E] = YASL_String_new_sized(strlen(S), S);
-#include "specialstrings.x"
-#undef X
-
+	vm->interned_strings = YASL_StringSet_new();
 	vm->builtins_htable = builtins_htable_new(vm);
 	vm->pending = NULL;
+	vm->buf = NULL;
+	vm->format_str = NULL;
 }
 
 void vm_close_all(struct VM *const vm);
@@ -99,7 +98,7 @@ void vm_cleanup(struct VM *const vm) {
 		free(vm->headers[i]);
 	}
 	free(vm->headers);
-
+	YASL_StringSet_del(vm->interned_strings);
 	YASL_Table_del(vm->globals);
 
 	YASL_Table_del(vm->metatables);
@@ -162,7 +161,7 @@ static void printline(struct VM *vm) {
 
 	vm_print_err_wrapper(vm, " (line %" PRI_SIZET ")\n", line);
 
-	if (vm->fp >= 0 && vm->stack[vm->fp].type == Y_CFN) vm_exitframe(vm);
+	if (vm->fp >= 0 && vm_peek(vm, vm->fp).type == Y_CFN) vm_exitframe(vm);
 
 	while (vm->fp >= 0) {
 		vm_exitframe(vm);
@@ -173,7 +172,6 @@ static void printline(struct VM *vm) {
 
 void vvm_print_err(struct VM *vm, const char *const fmt, va_list args) {
 	vm->err.print(&vm->err, fmt, args);
-	printline(vm);
 }
 
 YASL_FORMAT_CHECK void vm_print_err(struct VM *vm, const char *const fmt, ...) {
@@ -192,7 +190,7 @@ YASL_FORMAT_CHECK static void vm_print_out(struct VM *vm, const char *const fmt,
 
 void vm_throw_err(struct VM *const vm, int error) {
 	vm->status = error;
-	longjmp(vm->buf, 1);
+	longjmp(*vm->buf, 1);
 }
 
 void vm_dec_ref(struct VM *const vm, struct YASL_Object *val) {
@@ -230,6 +228,10 @@ void vm_pushint(struct VM *const vm, yasl_int i) {
 
 void vm_pushbool(struct VM *const vm, bool b) {
 	vm_push(vm, YASL_BOOL(b));
+}
+
+void vm_pushstr_bb(struct VM *const vm, YASL_ByteBuffer *bb) {
+	vm_pushstr(vm, YASL_String_new_takebb(vm, bb));
 }
 
 struct YASL_Object *vm_pop_p(struct VM *const vm) {
@@ -278,6 +280,14 @@ void vm_insert(struct VM *const vm, int index, struct YASL_Object val) {
 	vm->sp++;
 }
 
+void vm_insertbool(struct VM *const vm, int index, bool val) {
+	vm_insert(vm, index, YASL_BOOL(val));
+}
+
+void vm_insertint(struct VM *const vm, int index, yasl_int val) {
+	vm_insert(vm, index, YASL_INT(val));
+}
+
 void vm_rm(struct VM *const vm, int index) {
 	int after = vm->sp - index;
 	vm_dec_ref(vm, vm->stack + index);
@@ -317,14 +327,13 @@ void vm_CALL(struct VM *const vm);
 void vm_CALL_now(struct VM *const vm);
 
 #define vm_lookup_method_throwing(vm, method_name, err_str, ...) do {\
-	struct YASL_Object index = YASL_STR(YASL_String_new_sized(strlen(method_name), method_name));\
+	struct YASL_Object index = YASL_STR(YASL_String_new_copy(vm, method_name, strlen(method_name)));\
 	vm_get_metatable(vm);\
 	struct YASL_Table *mt = vm_istable(vm) ? vm_poptable(vm) : NULL;\
 	if (!mt) {\
 		vm_pop(vm);\
 	}\
 	int result = vm_lookup_method_helper(vm, mt, index);\
-	str_del(obj_getstr(&index));\
 	if (result) {\
 		vm_print_err_type(vm, err_str, __VA_ARGS__);\
 		vm_throw_err(vm, YASL_TYPE_ERROR);\
@@ -340,7 +349,7 @@ void vm_CALL_now(struct VM *const vm);
 } while (0)
 
 #define vm_call_binop_method_now(vm, left, right, method_name, format, ...) do {\
-	struct YASL_Object index = YASL_STR(YASL_String_new_sized(strlen(method_name), method_name));\
+	struct YASL_Object index = YASL_STR(YASL_String_new_copy(vm, method_name, strlen(method_name)));\
 	vm_push(vm, left);\
 	vm_get_metatable(vm);\
 	struct YASL_Table *mt = vm_istable(vm) ? vm_poptable(vm) : NULL;\
@@ -357,7 +366,6 @@ void vm_CALL_now(struct VM *const vm);
 		}\
 		result = vm_lookup_method_helper(vm, mt, index);\
 	}\
-	str_del(obj_getstr(&index));\
 	if (result) {\
 		vm_print_err_type(vm, format, __VA_ARGS__);\
 		vm_throw_err(vm, YASL_TYPE_ERROR);\
@@ -523,7 +531,7 @@ static void vm_CNCT(struct VM *const vm) {
 		char *ptr = (char *)malloc(size);
 		memcpy(ptr, YASL_String_chars(a), YASL_String_len(a));
 		memcpy(ptr + YASL_String_len(a), YASL_String_chars(b), YASL_String_len(b));
-		vm_pushstr(vm, YASL_String_new_sized_heap(0, size, ptr));
+		vm_pushstr(vm, YASL_String_new_take(vm, ptr, size));
 		vm_dec_ref(vm, &top);
 }
 
@@ -564,12 +572,12 @@ void vm_stringify_top_format(struct VM *const vm, struct YASL_Object *format) {
 		size_t n = (size_t)snprintf(NULL, 0, "<fn: %p>", vm_peekuserptr(vm)) + 1;
 		char *buffer = (char *)malloc(n);
 		snprintf(buffer, n, "<fn: %d>", (int)vm_popint(vm));
-		vm_pushstr(vm, YASL_String_new_sized_heap(0, strlen(buffer), buffer));
+		vm_pushstr(vm, YASL_String_new_take(vm, buffer, strlen(buffer)));
 	} else if (vm_isuserptr(vm)) {
 		size_t n = (size_t)snprintf(NULL, 0, "<userptr: %p>", vm_peekuserptr(vm)) + 1;
 		char *buffer = (char *)malloc(n);
 		snprintf(buffer, n, "<userptr: %p>", (void *)vm_popint(vm));
-		vm_pushstr(vm, YASL_String_new_sized_heap(0, strlen(buffer), buffer));
+		vm_pushstr(vm, YASL_String_new_take(vm, buffer, strlen(buffer)));
 	} else {
 		vm_duptop(vm);
 		vm_lookup_method_throwing(vm, "tostr", "tostr not supported for operand of type %s.", vm_peektypename(vm));
@@ -647,7 +655,7 @@ static void vm_CCONST(struct VM *const vm) {
 	for (size_t i = 0; i < num_upvalues; i++) {
 		unsigned char u = NCODE(vm);
 		if ((signed char)u >= 0) {
-			closure->upvalues[i] = add_upvalue(vm, &vm_peek(vm, vm->fp + 1 + u));
+			closure->upvalues[i] = add_upvalue(vm, &vm_peek_fp(vm, u));
 		} else {
 			closure->upvalues[i] = vm->stack[vm->fp].value.lval->upvalues[~(signed char)u];
 		}
@@ -694,18 +702,22 @@ static void vm_SLICE_list(struct VM *const vm) {
 	vm_pop(vm);
 	vm_pop(vm);
 
+	if (end < start) {
+		vm_print_err_value(vm, "slicing expected the end of the range to be greater than or equal to the start, got %d:%d", (int)start, (int)end);
+		vm_throw_err(vm, YASL_VALUE_ERROR);
+	}
+
 	struct YASL_List *list = vm_poplist(vm);
-	struct RC_UserData *new_ls = rcls_new();
-	ud_setmt(vm, new_ls, vm->builtins_htable[Y_LIST]);
+	struct RC_UserData *new_ls = rcls_new(vm);
 
 	for (yasl_int i = start; i <end; ++i) {
 		YASL_List_push((struct YASL_List *) new_ls->data, list->items[i]);
 	}
-	vm_push(vm, YASL_LIST(new_ls));
+	vm_pushlist(vm, new_ls);
 }
 
 static void vm_SLICE_str(struct VM *const vm){
-	yasl_int len = YASL_String_len(vm_peekstr(vm, vm->sp - 2));
+	const yasl_int len = YASL_String_len(vm_peekstr(vm, vm->sp - 2));
 	yasl_int end;
 	yasl_int start;
 
@@ -728,7 +740,6 @@ static void vm_SLICE_str(struct VM *const vm){
 	} else if (vm_isint(vm, vm->sp - 1)) {
 		start = vm_peekint(vm, vm->sp -1);
 		if (start < 0) start += len;
-
 		if (start < 0) start = 0;
 	} else {
 		vm_print_err_type(vm,  "slicing expected range of type int:int, got type %s:%s",
@@ -741,9 +752,14 @@ static void vm_SLICE_str(struct VM *const vm){
 	vm_pop(vm);
 	vm_pop(vm);
 
+	if (end < start) {
+		vm_print_err_value(vm, "slicing expected the end of the range to be greater than or equal to the start, got %d:%d", (int)start, (int)end);
+		vm_throw_err(vm, YASL_VALUE_ERROR);
+	}
+
 	struct YASL_String *str = vm_popstr(vm);
 
-	vm_push(vm, YASL_STR(YASL_String_new_substring((size_t)start, (size_t)end, str)));
+	vm_pushstr(vm, YASL_String_new_substring(vm, str, (size_t)start, (size_t)end));
 }
 
 static void vm_SLICE(struct VM *const vm) {
@@ -1044,13 +1060,13 @@ static bool vm_MATCH_subpattern(struct VM *const vm, struct YASL_Object *expr) {
 		return MATCH_list(vm, ls, len);
 	}
 	case P_BIND: {
-		/* We offset by +2 instead of +1 here to account for the fact that the expression we are matching on is
-		   still on top of the stack. This is taken care of _after_ a successful match by a O_DEL_FP instruction.
-		  */
-		unsigned char offset = NCODE(vm);
-		vm_dec_ref(vm, &vm_peek(vm, vm->fp + offset + 2));
-		vm_peek(vm, vm->fp + offset + 2) = *expr;
-		inc_ref(&vm_peek(vm, vm->fp + offset + 2));
+		/* We offset by +1 here to account for the fact that the expression we are matching on is still on top
+		 * of the stack. This is taken care of _after_ a successful match by a O_DEL_FP instruction.
+		 */
+		unsigned char offset = NCODE(vm) + 1;
+		vm_dec_ref(vm, &vm_peek_fp(vm, offset));
+		vm_peek_fp(vm, offset) = *expr;
+		inc_ref(&vm_peek_fp(vm, offset));
 		return true;
 	}
 	case P_ANY:
@@ -1099,9 +1115,8 @@ static void vm_GLOAD_8(struct VM *const vm) {
 static void vm_enterframe_offset(struct VM *const vm, int offset, int num_returns) {
 	if (++vm->frame_num >= NUM_FRAMES) {
 		vm->frame_num--;
-		vm->status = YASL_STACK_OVERFLOW_ERROR;
 		vm_print_err(vm, "StackOverflow.");
-		longjmp(vm->buf, 1);
+		vm_throw_err(vm, YASL_STACK_OVERFLOW_ERROR);
 	}
 
 	int next_fp = vm->next_fp;
@@ -1118,7 +1133,7 @@ static void vm_exitloopframe(struct VM *const vm) {
 	vm->loopframe_num--;
 }
 
-static void vm_exitframe_multi(struct VM *const vm, int len) {
+void vm_exitframe_multi(struct VM *const vm, int len) {
 	vm_rm_range(vm, vm->fp, vm->fp + len + 1);
 
 	struct CallFrame frame = vm->frames[vm->frame_num];
@@ -1260,15 +1275,14 @@ void vm_COLLECT_REST_PARAMS(struct VM *const vm) {
 		YASL_UNREACHED();
 	}
 
-	struct RC_UserData *ls = rcls_new();
-	ud_setmt(vm, ls, vm->builtins_htable[Y_LIST]);
+	struct RC_UserData *ls = rcls_new(vm);
 
 	for (int i = vm->fp + offset + 1; i <= vm->sp; i++) {
 		YASL_List_push((struct YASL_List *) ls->data, vm_peek(vm, i));
 	}
 
 	vm->sp = vm->fp + offset;
-	vm_push(vm, YASL_LIST(ls));
+	vm_pushlist(vm, ls);
 }
 
 void vm_SPREAD_VARGS(struct VM *const vm) {
@@ -1328,20 +1342,13 @@ static void vm_ECHO(struct VM *const vm) {
 	size_t tmp = 0;
 	for (int i = vm->fp + 1 + top; i <= vm->sp; i++) {
 		vm_push(vm, vm_peek(vm, i));
-		vm_stringify_top(vm);
+		vm_stringify_top_format(vm, vm->format_str);
 		tmp += YASL_String_len(vm_peekstr(vm)) + 2;
 		inc_ref(vm_peek_p(vm));
 		dec_ref(vm_peek_p(vm, i));
 		vm_peek(vm, i) = vm_pop(vm);
 	}
-	bool alloc = false;
-	char *dest;
-	if (tmp > SCRATCH_SIZE) {
-		dest = (char *) malloc(tmp);
-		alloc = true;
-	} else {
-		dest = (char *) &vm->scratch;
-	}
+	char *dest = (char *) malloc(tmp);
 	tmp = 0;
 	char *curr = dest;
 	for (int i = vm->fp + 1 + top; i <= vm->sp; i++) {
@@ -1353,9 +1360,7 @@ static void vm_ECHO(struct VM *const vm) {
 		tmp += copied + 2;
 	}
 	vm_print_out(vm, "%.*s\n", (int)tmp-2, dest);
-	if (alloc) {
-		free(dest);
-	}
+	free(dest);
 	vm->sp = vm->fp + top;
 }
 
@@ -1370,11 +1375,10 @@ void vm_setupconstants(struct VM *const vm) {
 			tmp += sizeof(int64_t);
 			char *str = (char *) malloc((size_t) len);
 			memcpy(str, tmp, (size_t) len);
-			vm->constants[i] = YASL_STR(YASL_String_new_sized_heap(0, (size_t) len, str));
+			vm->constants[i] = YASL_STR(YASL_String_new_take(vm, str, (size_t) len));
 			inc_ref(vm->constants + i);
 			tmp += len;
-			break
-			;
+			break;
 		}
 		case C_INT_1: {
 			vm->constants[i] = YASL_INT((signed char)*tmp++);
@@ -1396,6 +1400,15 @@ void vm_setupconstants(struct VM *const vm) {
 			break;
 		}
 	}
+}
+
+struct YASL_String *vm_lookup_interned_str(struct VM *vm, const char *chars, const size_t size) {
+	struct YASL_String *string = YASL_StringSet_maybe_insert(vm->interned_strings, chars, size);
+	return string;
+}
+
+struct YASL_String *vm_lookup_interned_zstr(struct VM *vm, const char *chars) {
+	return vm_lookup_interned_str(vm, chars, strlen(chars));
 }
 
 void vm_executenext(struct VM *const vm) {
@@ -1521,7 +1534,7 @@ void vm_executenext(struct VM *const vm) {
 		vm_LIT8(vm);
 		break;
 	case O_NEWTABLE: {
-		struct RC_UserData *table = rcht_new();
+		struct RC_UserData *table = rcht_new(vm);
 		struct YASL_Table *ht = (struct YASL_Table *)table->data;
 		while (vm_peek(vm).type != Y_END) {
 			struct YASL_Object val = vm_pop(vm);
@@ -1531,19 +1544,19 @@ void vm_executenext(struct VM *const vm) {
 			}
 			if (!YASL_Table_insert(ht, key, val)) {
 				rcht_del(table);
+				struct YASL_Object mt = YASL_TABLE(vm->builtins_htable[Y_TABLE]);
+				vm_dec_ref(vm, &mt);
 				vm_print_err_type(vm, "unable to use mutable object of type %s as key.", obj_typename(&key));
 				vm_throw_err(vm, YASL_TYPE_ERROR);
 			}
 		}
-		ud_setmt(vm, table, vm->builtins_htable[Y_TABLE]);
 
 		vm_pop(vm);
 		vm_push(vm, YASL_TABLE(table));
 		break;
 	}
 	case O_NEWLIST: {
-		struct RC_UserData *ls = rcls_new();
-		ud_setmt(vm, ls, vm->builtins_htable[Y_LIST]);
+		struct RC_UserData *ls = rcls_new(vm);
 		int len = 0;
 		while (vm_peek(vm, vm->sp - len).type != Y_END) {
 			len++;
@@ -1552,7 +1565,7 @@ void vm_executenext(struct VM *const vm) {
 			YASL_List_push((struct YASL_List *) ls->data, vm_peek(vm, vm->sp - len + i + 1));
 		}
 		vm->sp -= len + 1;
-		vm_push(vm, YASL_LIST(ls));
+		vm_pushlist(vm, ls);
 		break;
 	}
 	case O_LIST_PUSH:{
@@ -1612,7 +1625,7 @@ void vm_executenext(struct VM *const vm) {
 		break;
 	case O_MOVEUP_FP:
 		offset = NCODE(vm);
-		a = vm_peek(vm, vm->fp + offset + 1);
+		a = vm_peek_fp(vm, offset);
 		memmove(vm->stack + vm->fp + offset + 1, vm->stack + vm->fp + offset + 2, (vm->sp - (vm->fp + offset + 1)) * sizeof(struct YASL_Object));
 		vm->stack[vm->sp] = a;
 		break;
@@ -1648,13 +1661,13 @@ void vm_executenext(struct VM *const vm) {
 		break;
 	case O_LLOAD:
 		offset = NCODE(vm);
-		vm_push(vm, vm_peek(vm, vm->fp + offset + 1));
+		vm_push(vm, vm_peek_fp(vm, offset));
 		break;
 	case O_LSTORE:
 		offset = NCODE(vm);
-		vm_dec_ref(vm, &vm_peek(vm, vm->fp + offset + 1));
-		vm_peek(vm, vm->fp + offset + 1) = vm_pop(vm);
-		inc_ref(&vm_peek(vm, vm->fp + offset + 1));
+		vm_dec_ref(vm, &vm_peek_fp(vm, offset));
+		vm_peek_fp(vm, offset) = vm_pop(vm);
+		inc_ref(&vm_peek_fp(vm, offset));
 		break;
 	case O_ULOAD:
 		offset = NCODE(vm);
@@ -1722,7 +1735,7 @@ void vm_executenext(struct VM *const vm) {
 		}
 		vm_pop(vm);
 		break;
-	/*
+#ifdef YASL_DEBUG
 	case O_ASSERT_STACK_HEIGHT:
 		c = NCODE(vm);
 		if (c != vm->sp - vm->fp) {
@@ -1731,15 +1744,31 @@ void vm_executenext(struct VM *const vm) {
 			vm_throw_err(vm, YASL_ERROR);
 		}
 		break;
-	*/
+#endif  // YASL_DEBUG
 	default:
 		vm_print_err(vm, "Error: Unknown Opcode: %x\n", opcode);
 		vm_throw_err(vm, YASL_ERROR);
 	}
 }
 
+void vm_init_buf(struct VM *vm) {
+	YASL_ASSERT(vm->buf == NULL, "no longjmp buffer");
+	vm->buf = (jmp_buf*)malloc(sizeof(jmp_buf));
+}
+
+void vm_deinit_buf(struct VM *vm) {
+	free(vm->buf);
+	vm->buf = NULL;
+}
+
+#define VM_FAILED(vm) ((vm)->status != YASL_SUCCESS && (vm)->status != YASL_MODULE_SUCCESS)
+
 int vm_run(struct VM *const vm) {
-	if (setjmp(vm->buf)) {
+	vm_init_buf(vm);
+	if (setjmp(*vm->buf)) {
+		vm_deinit_buf(vm);
+		if (VM_FAILED(vm))
+			printline(vm);
 		return vm->status;
 	}
 

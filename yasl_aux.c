@@ -8,10 +8,12 @@ int YASLX_decllibs(struct YASL_State *S) {
 	YASL_decllib_error(S);
 	YASL_decllib_io(S);
 	YASL_decllib_math(S);
-	YASL_decllib_require(S);
-	YASL_decllib_require_c(S);
 	YASL_decllib_mt(S);
 	YASL_decllib_os(S);
+	YASL_decllib_require(S);
+	YASL_decllib_require_c(S);
+	YASL_decllib_try(S);
+	YASL_decllib_package(S);
 
 	return YASL_SUCCESS;
 }
@@ -115,6 +117,15 @@ bool YASLX_checknoptbool(struct YASL_State *S, const char *fn_name, unsigned n, 
 	}
 
 	return YASLX_checknbool(S, fn_name, n);
+}
+
+const char *YASLX_checknoptstrz(struct YASL_State *S, const char *fn_name, unsigned n, size_t *len, const char *default_val) {
+	if (YASL_isnundef(S, n)) {
+		*len = strlen(default_val);
+		return default_val;
+	}
+
+	return YASLX_checknstr(S, fn_name, n, len);
 }
 
 static bool YASLX_functions_issentinal(struct YASLX_function functions) {

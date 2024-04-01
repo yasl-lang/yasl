@@ -1,4 +1,3 @@
-##true\nfalse\n
 
 # CTCI 1.9
 fn isrotation(s1, s2) {

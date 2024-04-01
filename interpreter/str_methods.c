@@ -24,25 +24,19 @@ static struct YASL_String *checkstr(struct YASL_State *S, const char *name, unsi
 }
 
 int str___get(struct YASL_State *S) {
+	struct VM *vm = (struct VM *)S;
 	struct YASL_String *str = checkstr(S, "str.__get", 0);
 	yasl_int index = YASLX_checknint(S, "str.__get", 1);
+	size_t len = YASL_String_len(str);
 
-	if (index < -(yasl_int) YASL_String_len(str) ||
-		   index >= (yasl_int) YASL_String_len(
-			   str)) {
-		YASLX_print_and_throw_err_value(S, "unable to index str of length %" PRI_SIZET " with index %ld.", YASL_String_len(str), (long)index);
+	if (index < -(yasl_int) len || index >= (yasl_int) len) {
+		YASLX_print_and_throw_err_value(S, "unable to index str of length %" PRI_SIZET " with index %ld.", len, (long)index);
 	} else {
-		if (index >= 0)
-			vm_push((struct VM *) S, YASL_STR(
-				YASL_String_new_substring(str->start + index,
-							  str->start + index + 1,
-							  str)));
-		else
-			vm_push((struct VM *) S,
-				YASL_STR(YASL_String_new_substring(
-					str->start + index + YASL_String_len(str),
-					str->start + index + YASL_String_len(str) + 1,
-					str)));
+		if (index >= 0) {
+			vm_pushstr(vm, YASL_String_new_substring(vm, str, index, index + 1));
+		} else {
+			vm_pushstr(vm, YASL_String_new_substring(vm, str, index + len, index + len + 1));
+		}
 	}
 	return 1;
 }
@@ -83,14 +77,16 @@ int str_tobool(struct YASL_State* S) {
 }
 
 int str_tofloat(struct YASL_State *S) {
-	struct YASL_String *str = checkstr(S, "str.tofloat", 0);
-	YASL_pushfloat(S, YASL_String_tofloat(str));
+	size_t len;
+	const char *str = YASLX_checknstr(S, "str.tofloat", 0, &len);
+	YASL_pushfloat(S, YASL_String_tofloat(str, len));
 	return 1;
 }
 
 int str_toint(struct YASL_State *S) {
-	struct YASL_String *str = checkstr(S, "str.toint", 0);
-	YASL_pushint(S, YASL_String_toint(str));
+	size_t len;
+	const char *str = YASLX_checknstr(S, "str.toint", 0, &len);
+	YASL_pushint(S, YASL_String_toint(str, len));
 	return 1;
 }
 
@@ -178,13 +174,13 @@ int str_tostr(struct YASL_State *S) {
 
 int str_toupper(struct YASL_State *S) {
 	struct YASL_String *a = checkstr(S, "str.toupper", 0);
-	vm_push((struct VM *) S, YASL_STR(YASL_String_toupper(a)));
+	vm_pushstr((struct VM *) S, (YASL_String_toupper((struct VM *) S, a)));
 	return 1;
 }
 
 int str_tolower(struct YASL_State *S) {
 	struct YASL_String *a = checkstr(S, "str.tolower", 0);
-	vm_push((struct VM *) S, YASL_STR(YASL_String_tolower(a)));
+	vm_pushstr((struct VM *) S, (YASL_String_tolower((struct VM *) S, a)));
 	return 1;
 }
 
@@ -252,7 +248,7 @@ int str_endswith(struct YASL_State *S) {
 
 static int str_replace_default(struct YASL_State *S, struct YASL_String *str, struct YASL_String *search_str, struct YASL_String *replace_str) {
 	int replacements = 0;
-	vm_push((struct VM *) S, YASL_STR(YASL_String_replace_fast_default(str, search_str, replace_str, &replacements)));
+	vm_pushstr((struct VM *) S, YASL_String_replace_fast_default((struct VM *)S, str, search_str, replace_str, &replacements));
 	YASL_pushint(S, replacements);
 	return 2;
 }
@@ -272,7 +268,7 @@ int str_replace(struct YASL_State *S) {
 	yasl_int max = YASLX_checknint(S, "str.replace", 3);
 
 	int replacements = 0;
-	vm_push((struct VM *) S, YASL_STR(YASL_String_replace_fast(str, search_str, replace_str, &replacements, max)));
+	vm_pushstr((struct VM *) S, YASL_String_replace_fast((struct VM *)S, str, search_str, replace_str, &replacements, max));
 	YASL_pushint(S, replacements);
 	return 2;
 }
@@ -288,6 +284,15 @@ int str_search(struct YASL_State *S) {
 	return 1;
 }
 
+int str_has(struct YASL_State *S) {
+	struct YASL_String *haystack = checkstr(S, "str.has", 0);
+	struct YASL_String *needle = checkstr(S, "str.has", 1);
+
+	int64_t index = str_find_index(haystack, needle);
+	YASL_pushbool(S, index != -1);
+	return 1;
+}
+
 int str_count(struct YASL_State *S) {
 	struct YASL_String *haystack = checkstr(S, "str.count", 0);
 	struct YASL_String *needle = checkstr(S, "str.count", 1);
@@ -300,6 +305,7 @@ int str_count(struct YASL_State *S) {
 }
 
 static void str_split_max(struct YASL_State *S, struct YASL_String *haystack, yasl_int max_splits) {
+	struct VM *vm = (struct VM *)S;
 	struct YASL_String *needle = checkstr(S, "str.split", 1);
 
 	if (YASL_String_len(needle) == 0) {
@@ -310,35 +316,35 @@ static void str_split_max(struct YASL_State *S, struct YASL_String *haystack, ya
 		YASLX_print_and_throw_err_value(S, "str.split expected a non-negative int as arg 2.");
 	}
 
-	struct RC_UserData *result = rcls_new();
-	ud_setmt(&S->vm, result, (&S->vm)->builtins_htable[Y_LIST]);
-	YASL_String_split_max_fast((struct YASL_List *)result->data, haystack, needle, max_splits);
-	vm_push((struct VM *) S, YASL_LIST(result));
+	struct RC_UserData *result = rcls_new(vm);
+	YASL_String_split_max_fast(vm, (struct YASL_List *)result->data, haystack, needle, max_splits);
+	vm_pushlist(vm, result);
 }
 
 static void str_split_default(struct YASL_State *S, struct YASL_String *haystack) {
-	struct RC_UserData *result = rcls_new();
-	ud_setmt(&S->vm, result, (&S->vm)->builtins_htable[Y_LIST]);
+	struct VM *vm = (struct VM *)S;
+	struct RC_UserData *result = rcls_new(&S->vm);
 
-	YASL_String_split_default((struct YASL_List *)result->data, haystack);
-	vm_push((struct VM *) S, YASL_LIST(result));
+	YASL_String_split_default(vm, (struct YASL_List *)result->data, haystack);
+	vm_pushlist(vm, result);
 }
 
 static void str_split_default_max(struct YASL_State *S, struct YASL_String *haystack, yasl_int max_splits) {
-	struct RC_UserData *result = rcls_new();
-	ud_setmt(&S->vm, result, (&S->vm)->builtins_htable[Y_LIST]);
+	struct VM *vm = (struct VM *)S;
+	struct RC_UserData *result = rcls_new(vm);
 
 	if (max_splits == 0) {
-		vm_push((struct VM *) S, YASL_LIST(result));
-		vm_push((struct VM *)S, YASL_STR(haystack));
+		vm_pushlist((struct VM *) S, result);
+		vm_pushstr((struct VM *)S, haystack);
 		YASL_listpush(S);
 	} else {
-		YASL_String_split_default_max((struct YASL_List *)result->data, haystack, max_splits);
-		vm_push((struct VM *) S, YASL_LIST(result));
+		YASL_String_split_default_max(vm, (struct YASL_List *)result->data, haystack, max_splits);
+		vm_pushlist(vm, result);
 	}
 }
 
 int str_split(struct YASL_State *S) {
+	struct VM *vm = (struct VM  *)S;
 	struct YASL_String *haystack = checkstr(S, "str.split", 0);
 
 	// We check for 3 parameters first.
@@ -369,18 +375,17 @@ int str_split(struct YASL_State *S) {
 		YASLX_print_and_throw_err_value(S, "str.split expected a non-empty str as arg 1.");
 	}
 
-	struct RC_UserData *result = rcls_new();
-	ud_setmt(&S->vm, result, (&S->vm)->builtins_htable[Y_LIST]);
+	struct RC_UserData *result = rcls_new(&S->vm);
 
-	YASL_String_split_fast((struct YASL_List *)result->data, haystack, needle);
-	vm_push((struct VM *) S, YASL_LIST(result));
+	YASL_String_split_fast(vm, (struct YASL_List *)result->data, haystack, needle);
+	vm_pushlist(vm, result);
 	return 1;
 }
 
 #define DEFINE_TRIM_FN(name) \
 static void str_##name##_default(struct YASL_State *S) {\
 	struct YASL_String *haystack = checkstr(S, "str." #name, 0);\
-	vm_push((struct VM *)S, YASL_STR(YASL_String_##name##_default(haystack)));\
+	vm_pushstr((struct VM *)S, YASL_String_##name##_default((struct VM *)S, haystack));\
 }\
 \
 int str_##name(struct YASL_State *S) {\
@@ -392,7 +397,7 @@ int str_##name(struct YASL_State *S) {\
 	struct YASL_String *haystack = checkstr(S, "str." #name, 0);\
 	struct YASL_String *needle = checkstr(S, "str." #name, 1);\
 	\
-	vm_push((struct VM *) S, YASL_STR(YASL_String_##name(haystack, needle)));\
+	vm_pushstr((struct VM *) S, YASL_String_##name((struct VM *)S, haystack, needle));\
 	return 1;\
 }
 
@@ -412,6 +417,6 @@ int str_repeat(struct YASL_State *S) {
 		YASLX_print_and_throw_err_value(S, "str.rep expected non-negative int as arg 1.");
 	}
 
-	vm_push((struct VM *) S, YASL_STR(YASL_String_rep_fast(string, num)));
+	vm_pushstr((struct VM *) S, YASL_String_rep_fast((struct VM *)S, string, num));
 	return 1;
 }
