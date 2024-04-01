@@ -99,10 +99,10 @@ add_executable(yasl
         src/util/IO.c
         src/util/prime.c
         src/util/varint.c
-        src/yapp.h
+        src/util/yapp.h
         src/yasl_conf.h
         src/yasl_error.h
-        src/yasl_types.h
+        src/interpreter/yasl_types.h
         src/yasl_plat.h)
 
 add_library(yaslapi
