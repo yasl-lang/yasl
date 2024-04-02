@@ -40,6 +40,10 @@ struct YASL_State *YASL_newstate_num(const char *filename, size_t num) {
 	return YASL_newstate_helper(lexinput_new_file(fp), num);
 }
 
+struct YASL_State *YASL_newstate_bb_num(const char *buffer, size_t len, size_t num) {
+	return YASL_newstate_helper(lexinput_new_bb(buffer, len), num);
+}
+
 struct YASL_State *YASL_newstate(const char *filename) {
 	FILE *fp = fopen(filename, "rb");
 	if (!fp) {

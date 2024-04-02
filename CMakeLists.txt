@@ -189,6 +189,12 @@ add_executable(tests
         test/unit_tests/test_api/tablenexttest.c
         test/unit_tests/test_api/listitertest.c)
 
+add_library(test_module SHARED
+        test/test_module.c
+        )
+
+set_property(TARGET test_module PROPERTY POSITION_INDEPENDENT_CODE ON)
+
 if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
     target_link_libraries(yasl m)
     target_link_libraries(yaslapi m)
@@ -196,9 +202,11 @@ if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
 endif()
 
 target_link_libraries(tests yaslapi)
+target_link_libraries(test_module yaslapi)
 
 if (NOT WIN32)
     target_link_libraries(yasl dl)
     target_link_libraries(yaslapi dl)
     target_link_libraries(tests dl)
+    target_link_libraries(test_module dl)
 endif()

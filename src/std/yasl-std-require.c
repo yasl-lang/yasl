@@ -5,6 +5,7 @@
 #define LOAD_LIB_FUN_NAME "YASL_load_dyn_lib"
 
 struct YASL_State *YASL_newstate_num(const char *filename, size_t num);
+struct YASL_State *YASL_newstate_bb_num(const char *buffer, size_t num);
 
 // TODO: rewrite this whole fucking mess. I'm not even sure if it works properly honestly.
 
@@ -31,21 +32,7 @@ static struct YASL_State *open_on_path(const char *path, const char *name, const
 	return YASL_newstate_num(name, num);
 }
 
-int YASL_require(struct YASL_State *S) {
-	if (!YASL_isnstr(S, 0)) {
-		YASLX_print_and_throw_err_bad_arg_type_n(S, "require", 0, YASL_STR_NAME);
-	}
-
-	char *mode_str = YASL_peekcstr(S);
-
-	struct YASL_State *Ss = open_on_path(YASL_DEFAULT_PATH, mode_str, YASL_PATH_MARK, YASL_PATH_SEP, S->vm.headers_size);
-
-	if (!Ss) {
-		YASL_print_err(S, "could not open package %s.", mode_str);
-		free(mode_str);
-		YASL_throw_err(S, YASL_ERROR);
-	}
-
+static int YASL_require_helper(struct YASL_State *S, struct YASL_State *Ss) {
 	YASL_Table_del(Ss->compiler.strings);
 	Ss->compiler.strings = S->compiler.strings;
 	YASL_ByteBuffer_del(Ss->compiler.header);
@@ -100,8 +87,27 @@ int YASL_require(struct YASL_State *S) {
 	vm_push(&S->vm, exported);
 	vm_dec_ref(&S->vm, &vm_peek(&S->vm));
 
-	free(mode_str);
 	return 1;
+}
+
+int YASL_require(struct YASL_State *S) {
+	if (!YASL_isnstr(S, 0)) {
+		YASLX_print_and_throw_err_bad_arg_type_n(S, "require", 0, YASL_STR_NAME);
+	}
+
+	char *mode_str = YASL_peekcstr(S);
+
+	struct YASL_State *Ss = open_on_path(YASL_DEFAULT_PATH, mode_str, YASL_PATH_MARK, YASL_PATH_SEP, S->vm.headers_size);
+
+	if (!Ss) {
+		YASL_print_err(S, "could not open package %s.", mode_str);
+		free(mode_str);
+		YASL_throw_err(S, YASL_ERROR);
+	}
+
+	free(mode_str);
+
+	return YASL_require_helper(S, Ss);
 }
 
 #if defined(YASL_USE_WIN)
