@@ -276,19 +276,33 @@ int str_replace(struct YASL_State *S) {
 int str_search(struct YASL_State *S) {
 	struct YASL_String *haystack = checkstr(S, "str.search", 0);
 	struct YASL_String *needle = checkstr(S, "str.search", 1);
+	yasl_int start = YASLX_checknoptint(S, "str.search", 2, 0);
 
-	int64_t index = str_find_index(haystack, needle);
-	if (index != -1) YASL_pushint(S, index);
-	else YASL_pushundef(S);
+	if (start < 0 || start >= (yasl_int)YASL_String_len(haystack)) {
+		YASLX_print_and_throw_err_value(S, "str.search expected a starting index between 0 and %" PRI_SIZET ", got %ld", YASL_String_len(haystack), start);
+	}
 
+	int64_t index = str_find_index(haystack, needle, start);
+	if (index != -1) {
+		YASL_pushint(S, index);
+		YASL_pushint(S, index + YASL_String_len(needle));
+		return 2;
+	}
+
+	YASL_pushundef(S);
 	return 1;
 }
 
 int str_has(struct YASL_State *S) {
 	struct YASL_String *haystack = checkstr(S, "str.has", 0);
 	struct YASL_String *needle = checkstr(S, "str.has", 1);
+	yasl_int start = YASLX_checknoptint(S, "str.has", 2, 0);
 
-	int64_t index = str_find_index(haystack, needle);
+	if (start < 0 || start >= (yasl_int)YASL_String_len(haystack)) {
+		YASLX_print_and_throw_err_value(S, "str.has expected a starting index between 0 and %" PRI_SIZET ", got %ld", YASL_String_len(haystack), start);
+	}
+
+	int64_t index = str_find_index(haystack, needle, start);
 	YASL_pushbool(S, index != -1);
 	return 1;
 }

@@ -199,11 +199,17 @@ int list_remove(struct YASL_State *S) {
 }
 
 int list_search(struct YASL_State *S) {
+	yasl_int start = YASLX_checknoptint(S, "list.search", 2, 0);
+	YASL_pop(S);
 	struct YASL_Object needle = vm_pop((struct VM *) S);
 	struct YASL_List *haystack = YASLX_checknlist(S, "list.search", 0);
 	struct YASL_Object index = YASL_UNDEF();
 
-	FOR_LIST(i, obj, haystack) {
+	if (start < 0 || start >= (yasl_int)YASL_List_len(haystack)) {
+		YASLX_print_and_throw_err_value(S, "list.search expected a starting index between 0 and %" PRI_SIZET ", got %ld", YASL_List_len(haystack), start);
+	}
+
+	FOR_LIST_START(i, obj, haystack, start) {
 		if ((isequal(&obj, &needle))) {
 			index = YASL_INT((yasl_int) i);
 			break;
@@ -215,11 +221,17 @@ int list_search(struct YASL_State *S) {
 }
 
 int list_has(struct YASL_State *S) {
+	yasl_int start = YASLX_checknoptint(S, "list.has", 2, 0);
+	YASL_pop(S);
 	struct YASL_Object needle = vm_pop((struct VM *) S);
 	struct YASL_List *haystack = YASLX_checknlist(S, "list.has", 0);
 	bool has = false;
 
-	FOR_LIST(i, obj, haystack) {
+	if (start < 0 || start >= (yasl_int)YASL_List_len(haystack)) {
+		YASLX_print_and_throw_err_value(S, "list.has expected a starting index between 0 and %" PRI_SIZET ", got %ld", YASL_List_len(haystack), start);
+	}
+
+	FOR_LIST_START(i, obj, haystack, start) {
 		if ((isequal(&obj, &needle))) {
 			has = true;
 			break;

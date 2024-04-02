@@ -14,3 +14,7 @@ echo s[2]
 echo s.a
 echo s['a']
 echo s.abc
+
+echo s->has(1)
+echo s->has(2)
+echo s->has(.a)

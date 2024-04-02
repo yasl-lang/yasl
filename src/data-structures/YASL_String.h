@@ -37,7 +37,7 @@ void str_del_data(struct YASL_String *const str);
 void str_del_rc(struct YASL_String *const str);
 void str_del(struct YASL_String *const str);
 
-int64_t str_find_index(const struct YASL_String *const haystack, const struct YASL_String *const needle);
+int64_t str_find_index(const struct YASL_String *const haystack, const struct YASL_String *const needle, yasl_int start);
 int64_t YASL_String_cmp(const struct YASL_String *const left, const struct YASL_String *const right);
 yasl_float YASL_String_tofloat(const char *chars, const size_t len);
 yasl_int YASL_String_toint(const char *chars, const size_t len);

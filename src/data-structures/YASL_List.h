@@ -7,7 +7,8 @@
 
 #define LIST_BASESIZE 4
 
-#define FOR_LIST(i, name, list) struct YASL_Object name; for (size_t i = 0; i < (list)->count && (name = (list)->items[i], 1); i++)
+#define FOR_LIST_START(i, name, list, start) struct YASL_Object name; for (size_t i = start; i < (list)->count && (name = (list)->items[i], 1); i++)
+#define FOR_LIST(i, name, list) FOR_LIST_START(i, name, list, 0)
 
 struct YASL_List {
 	size_t size;

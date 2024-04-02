@@ -138,12 +138,12 @@ bool isvaliddouble(const char *str) {
 	return hasdot && isdigit((int)str[len-1]) && isdigit((int)str[0]);
 }
 
-int64_t str_find_index(const struct YASL_String *const haystack, const struct YASL_String *const needle) {
+int64_t str_find_index(const struct YASL_String *const haystack, const struct YASL_String *const needle, yasl_int start) {
 	// TODO: implement non-naive algorithm for string search.
 	const yasl_int haystack_len = YASL_String_len(haystack);
 	const yasl_int needle_len = YASL_String_len(needle);
 	if (haystack_len < needle_len) return -1;
-	yasl_int i = 0;
+	yasl_int i = start;
 	const char *hayStr = YASL_String_chars(haystack);
 	const char *needleStr = YASL_String_chars(needle);
 	while (i <= haystack_len - needle_len) {
