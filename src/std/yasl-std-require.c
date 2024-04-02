@@ -5,7 +5,7 @@
 #define LOAD_LIB_FUN_NAME "YASL_load_dyn_lib"
 
 struct YASL_State *YASL_newstate_num(const char *filename, size_t num);
-struct YASL_State *YASL_newstate_bb_num(const char *buffer, size_t num);
+struct YASL_State *YASL_newstate_bb_num(const char *buffer, size_t len, size_t num);
 
 // TODO: rewrite this whole fucking mess. I'm not even sure if it works properly honestly.
 
@@ -106,6 +106,14 @@ int YASL_require(struct YASL_State *S) {
 	}
 
 	free(mode_str);
+
+	return YASL_require_helper(S, Ss);
+}
+
+int YASL_eval(struct YASL_State *S) {
+	size_t len;
+	const char *buff = YASLX_checknstr(S, "eval", 0, &len);
+	struct YASL_State *Ss = YASL_newstate_bb_num(buff, len, S->vm.headers_size);
 
 	return YASL_require_helper(S, Ss);
 }
@@ -230,6 +238,13 @@ int YASL_package_searchpath(struct YASL_State *S) {
 int YASL_decllib_require(struct YASL_State *S) {
 	YASL_pushcfunction(S, YASL_require, 1);
 	YASLX_initglobal(S, "require");
+
+	return YASL_SUCCESS;
+}
+
+int YASL_decllib_eval(struct YASL_State *S) {
+	YASL_pushcfunction(S, &YASL_eval, 1);
+	YASLX_initglobal(S, "eval");
 
 	return YASL_SUCCESS;
 }

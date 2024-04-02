@@ -99,7 +99,6 @@ TEST(syntaxerrortest) {
 	ASSERT_SYNTAX_ERR("return 10, 11;", "`return` outside of function (line 1)");
 
 	ASSERT_SYNTAX_ERR("echo if;", "Expected expression, got `if` (line 1)");
-	ASSERT_SYNTAX_ERR("assert false", "Expected ;, got END OF FILE (line 1)");
 	ASSERT_SYNTAX_ERR("echo ''[];", "Invalid expression `]` (line 1)");
 
 	return NUM_FAILED;

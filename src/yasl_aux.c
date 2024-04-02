@@ -14,6 +14,7 @@ int YASLX_decllibs(struct YASL_State *S) {
 	YASL_decllib_require_c(S);
 	YASL_decllib_try(S);
 	YASL_decllib_package(S);
+	YASL_decllib_eval(S);
 
 	return YASL_SUCCESS;
 }

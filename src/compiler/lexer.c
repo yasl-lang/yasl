@@ -133,7 +133,7 @@ static bool lex_eatcommentsandwhitespace(struct Lexer * lex) {
 			} else {
 			    lxseek(lex->file, cur, SEEK_SET);
 			    lex->c = COMMENT_START;
-				break;
+			    break;
 			}
 		}
 	}
@@ -475,6 +475,10 @@ void gettok(struct Lexer *const lex) {
 
 	// EOF
 	if (lxeof(lex->file)) {
+		if (ispotentialend(lex)) {
+			lex->type = T_SEMI;
+			return;
+		}
 		lex->type = T_EOF;
 		lex_val_setnull(lex);
 		return;
