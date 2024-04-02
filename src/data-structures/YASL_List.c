@@ -39,8 +39,8 @@ void YASL_List_del_data(struct YASL_State *S, void *ls) {
 	free(ls);
 }
 
-yasl_int YASL_List_len(const struct YASL_List *const ls) {
-	return (yasl_int)ls->count;
+size_t YASL_List_len(const struct YASL_List *const ls) {
+	return ls->count;
 }
 
 static void ls_resize(struct YASL_List *const ls, const size_t base_size) {
