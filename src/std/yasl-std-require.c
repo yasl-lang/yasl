@@ -43,14 +43,20 @@ static int YASL_require_helper(struct YASL_State *S, struct YASL_State *Ss) {
 	// Load Standard Libraries
 	YASLX_decllibs(Ss);
 
+	YASL_setprinterr_tostr(Ss);
+	YASL_setprintout_tostr(Ss);
+
 	YASL_Table_del(Ss->vm.metatables);
 	Ss->vm.metatables = S->vm.metatables;
 
 	int status = YASL_execute(Ss);
 
+	if (status == YASL_SUCCESS) status = YASL_ERROR;
 	if (status != YASL_MODULE_SUCCESS) {
-		YASL_print_err(S, "Not a valid module");
-		YASL_throw_err(S, YASL_ERROR);
+		YASL_loadprinterr(Ss);
+		const char *e = YASL_peekcstr(Ss);
+		YASL_print_err(S, "Error while loading module: %s", e);
+		YASL_throw_err(S, status);
 	}
 
 	inc_ref(&vm_peek(&Ss->vm));
