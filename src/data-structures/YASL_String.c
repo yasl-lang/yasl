@@ -42,6 +42,7 @@ int64_t YASL_String_cmp(const struct YASL_String *const left, const struct YASL_
 
 struct YASL_String *YASL_String_new_substring(struct VM *vm, const struct YASL_String *const string,
 					      const size_t start, const size_t end) {
+	if (start >= end) return YASL_String_new_copyz(vm, "");
 	return YASL_String_new_copy(vm, CHARS(string) + start, end - start);
 }
 
