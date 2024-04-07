@@ -1,6 +1,7 @@
+const fn read_file(filename) -> [ line->trim() for line in io.open(filename)->read('a')->trim()->split('\n') ]
 
-const code = io.open(FILENAME)->read('a')->trim()->split('\n')
-const errors = io.open("#{FILENAME}.err")->read('a')->trim()->split('\n')
+const code = read_file(FILENAME)
+const errors = read_file("#{FILENAME}.err")
 
 assert len code == len errors
 
