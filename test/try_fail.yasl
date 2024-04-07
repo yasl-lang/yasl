@@ -1,0 +1,20 @@
+
+const code = io.open(FILENAME)->read('a')->trim()->split('\n')
+const errors = io.open("#{FILENAME}.err")->read('a')->trim()->split('\n')
+
+assert len code == len errors
+
+let num_failed = 0
+for let i = 0; i < len code; i += 1 {
+    const status, let err = try(eval, code[i])
+    assert status === false
+    err = err->ltrim('Error while loading module: ')->rtrim('\n')
+    if err != errors[i] {
+        echo "Expected #{err:r} to equal #{errors[i]:r}"
+        num_failed += 1
+    }
+}
+
+if (num_failed != 0) {
+    error("failed #{num_failed} test(s)")
+}

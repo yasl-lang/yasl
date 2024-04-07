@@ -78,6 +78,33 @@ for (size_t i = 0; i < sizeof(errors) / sizeof(char *); i++) {\
 	YASL_delstate(S);\
 }
 
+#define TRY_FAIL_TEST(errors) \
+for (size_t i = 0; i < sizeof(errors) / sizeof(char *); i++) {\
+	if (strlen(errors[i]) + 5 > MAX_FILE_NAME_LEN) {\
+		printf("file name too large: %s\n", errors[i]);\
+		exit(1);\
+	}\
+	strcpy(buffer, errors[i]);\
+	strcpy(buffer + strlen(errors[i]), ".err");\
+	S = YASL_newstate("test/try_fail.yasl");\
+	YASLX_decllibs(S);\
+	YASL_setprintout_tostr(S);\
+	YASL_setprinterr_tostr(S);\
+	YASL_declglobal(S, "FILENAME");\
+	YASL_pushlit(S, errors[i]);\
+	YASL_setglobal(S, "FILENAME");\
+	int status = YASL_execute(S);\
+	YASL_loadprintout(S);\
+	char *actual_output = YASL_peekcstr(S);\
+	if (status != YASL_SUCCESS) {\
+		fprintf(stderr, "test for %s failed (%s).\n", errors[i], actual_output);\
+		failed++;\
+	}\
+	ran++;\
+	free(actual_output);\
+	YASL_delstate(S);\
+}
+
 int main(void) {
 	int result = 0;
 	int failed = 0;
@@ -90,6 +117,7 @@ int main(void) {
 #include "divisionbyzero_errors.inl"
 #include "error_errors.inl"
 #include "syntax_errors.inl"
+#include "try_fail_errors.inl"
 
 	char buffer[MAX_FILE_NAME_LEN];
 	struct YASL_State *S;
@@ -102,6 +130,7 @@ int main(void) {
 	ERROR_TEST(value_errors, YASL_VALUE_ERROR);
 	ERROR_TEST(divisionbyzero_errors, YASL_DIVIDE_BY_ZERO_ERROR);
 	ERROR_TEST(syntax_errors, YASL_SYNTAX_ERROR);
+	TRY_FAIL_TEST(try_fail_errors);
 
 	result = result || failed;
 	printf("Failed %d (/%d) script tests.\n", failed, ran);

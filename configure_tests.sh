@@ -4,6 +4,13 @@ for f in $(find test/inputs -name '*.yasl'); do
 done;
 echo '};' >> test/inputs.inl
 
+echo 'static const char *try_fail_errors[] = {' > test/try_fail_errors.inl
+for f in $(find test/try_fail_errors -name '*.yasl'); do
+    echo "  \"$f\"," >> test/try_fail_errors.inl;
+done;
+echo '};' >> test/try_fail_errors.inl
+
+
 shopt -s globstar nullglob dotglob;
 
 make_array () {
