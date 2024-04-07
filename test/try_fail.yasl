@@ -1,4 +1,4 @@
-const fn read_file(filename) -> [ line->trim() for line in io.open(filename)->read('a')->trim()->split('\n') ]
+const fn read_file(filename) -> [ line->trim()->trim('\0') for line in io.open(filename)->read('a')->trim()->split('\n') ]
 
 const code = read_file(FILENAME)
 const errors = read_file("#{FILENAME}.err")
