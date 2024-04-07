@@ -502,7 +502,7 @@ void gettok(struct Lexer *const lex) {
 	// operators
 	if (lex_eatop(lex)) return;
 
-	lex_print_err_syntax(lex, "Unknown character in line %" PRI_SIZET ": `%c` (0x%x).\n", lex->line, lex->c, lex->c);
+	lex_print_err_syntax(lex, "Unknown character in line %" PRI_SIZET ": 0x%x (`%c`).\n", lex->line, lex->c, lex->c);
 	lex_error(lex);
 }
 
