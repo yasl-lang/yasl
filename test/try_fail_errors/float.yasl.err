@@ -1,0 +1,4 @@
+TypeError: float.tobool expected arg in position 0 to be of type float, got arg of type int. (line 1)
+TypeError: float.tofloat expected arg in position 0 to be of type float, got arg of type int. (line 1)
+TypeError: float.toint expected arg in position 0 to be of type float, got arg of type int. (line 1)
+TypeError: float.tostr expected arg in position 0 to be of type float, got arg of type int. (line 1)
