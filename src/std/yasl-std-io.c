@@ -136,12 +136,15 @@ static int YASL_io_read(struct YASL_State *S) {
 
 		char *string = (char *) malloc(fsize);
 		size_t result = fread(string, 1, fsize, f);
-		if (result != fsize) {
+		/*
+		 * if (result != fsize) {
 			YASL_print_err(S, "size didn't match: %" PRI_SIZET " != %" PRI_SIZET "\n", result, fsize);
 		}
 		(void) result;
+		 */
+		string = (char *)realloc(string, result + 1);
 		// TODO clean this up.
-		YASL_pushlstr(S, string, fsize);
+		YASL_pushlstr(S, string, result);
 		free(string);
 		return 1;
 	}
