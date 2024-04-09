@@ -135,7 +135,8 @@ static int YASL_io_read(struct YASL_State *S) {
 		fseek(f, 0, SEEK_SET);
 
 		char *string = (char *) malloc(fsize);
-		size_t result = fread(string, 1, fsize, f);
+		// Read one past the end, so hit feof (which we check below).
+		size_t result = fread(string, 1, fsize + 1, f);
 		string = (char *)realloc(string, result);
 		if (!feof(f)) {
 			YASLX_print_and_throw_err_value(S, "unable to read file");
