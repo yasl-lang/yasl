@@ -136,6 +136,9 @@ static int YASL_io_read(struct YASL_State *S) {
 
 		char *string = (char *) malloc(fsize);
 		size_t result = fread(string, fsize, 1, f);
+		if (result != fsize) {
+			YASLX_print_and_throw_err_value(S, "size didn't match: %zd != %zd\n", result, fsize);
+		}
 		(void) result;
 		// TODO clean this up.
 		YASL_pushlstr(S, string, fsize);
