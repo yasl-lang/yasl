@@ -135,7 +135,7 @@ static int YASL_io_read(struct YASL_State *S) {
 		fseek(f, 0, SEEK_SET);
 
 		char *string = (char *) malloc(fsize);
-		size_t result = fread(string, fsize, 1, f);
+		size_t result = fread(string, 1, fsize, f);
 		if (result != fsize) {
 			YASL_print_err(S, "size didn't match: %" PRI_SIZET " != %" PRI_SIZET "\n", result, fsize);
 		}
