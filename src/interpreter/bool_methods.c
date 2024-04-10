@@ -25,31 +25,31 @@ int bool___bor(struct YASL_State *S) {
 }
 
 int bool___band(struct YASL_State *S) {
-	bool left = YASLX_checknbool(S, "bool.__bor", 0);
-	bool right = YASLX_checknbool(S, "bool.__bor", 1);
+	bool left = YASLX_checknbool(S, "bool.__band", 0);
+	bool right = YASLX_checknbool(S, "bool.__band", 1);
 
 	YASL_pushbool(S, left && right);
 	return 1;
 }
 
 int bool___bandnot(struct YASL_State *S) {
-	bool left = YASLX_checknbool(S, "bool.__bor", 0);
-	bool right = YASLX_checknbool(S, "bool.__bor", 1);
+	bool left = YASLX_checknbool(S, "bool.__bandnot", 0);
+	bool right = YASLX_checknbool(S, "bool.__bandnot", 1);
 
 	YASL_pushbool(S, left && !right);
 	return 1;
 }
 
 int bool___bxor(struct YASL_State *S) {
-	bool left = YASLX_checknbool(S, "bool.__bor", 0);
-	bool right = YASLX_checknbool(S, "bool.__bor", 1);
+	bool left = YASLX_checknbool(S, "bool.__bxor", 0);
+	bool right = YASLX_checknbool(S, "bool.__bxor", 1);
 
 	YASL_pushbool(S, left ^ right);
 	return 1;
 }
 
 int bool___bnot(struct YASL_State *S) {
-	bool left = YASLX_checknbool(S, "bool.__bor", 0);
+	bool left = YASLX_checknbool(S, "bool.__bnot", 0);
 
 	YASL_pushbool(S, !left);
 	return 1;
