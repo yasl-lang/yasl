@@ -104,7 +104,7 @@ for (size_t i = 0; i < sizeof(errors) / sizeof(char *); i++) {\
 	YASL_loadprintout(S);\
 	char *actual_output = YASL_peekcstr(S);\
 	if (status != YASL_SUCCESS) {\
-		fprintf(stderr, "test for %s failed (%s).\n", errors[i], actual_output);\
+		fprintf(stderr, "test for %s failed:\n%s\n", errors[i], actual_output);\
 		failed++;\
 	}\
 	ran++;\

@@ -5,15 +5,17 @@ const errors = read_file("#{FILENAME}.err")
 
 assert len code == len errors
 
+let line = 1
 let num_failed = 0
 for let i = 0; i < len code; i += 1 {
     const status, let err = try(eval, code[i])
     assert status === false
     err = err->ltrim('Error while loading module: ')->rtrim('\n')
     if err != errors[i] {
-        echo "Expected #{err:r} to equal #{errors[i]:r}"
+        echo "Expected #{err:r} to equal #{errors[i]:r} (case \##{line})"
         num_failed += 1
     }
+    line += 1
 }
 
 if (num_failed != 0) {

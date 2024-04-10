@@ -1,0 +1,13 @@
+echo mt.lookup({}, .__len)(1)
+mt.lookup({}, .clear)(1)
+echo mt.lookup({}, .copy)(1)
+echo mt.lookup({}, .keys)(1)
+echo { []: .list }
+const x = {}; x[[]] = .list
+mt.lookup({}, .remove)(1, 2.0)
+echo mt.lookup({}, .tostr)(1, true)
+echo mt.lookup({}, .values)(1)
+echo mt.lookup({}, .__get)(1, true)
+echo mt.lookup({}, .__set)(1, true, [])
+echo mt.lookup({}, .__bor)(1, {})
+echo mt.lookup({}, .__bor)({}, 1)
