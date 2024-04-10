@@ -23,7 +23,6 @@ make_array () {
 }
 
 make_array divisionbyzero;
-make_array error;
 make_array assert;
 make_array value;
 make_array stackoverflow;
