@@ -35,7 +35,7 @@ int int_tostr(struct YASL_State *S) {
 		size_t len;
 		const char *str = YASLX_checknstr(S, "int.tostr", 1, &len);
 		if (len != 1) {
-			YASLX_print_and_throw_err_value(S, "Expected str of len 1, got str of len %" PRI_SIZET ".", len);
+			YASLX_print_and_throw_err_value(S, "int.tostr expected str arg of len 1 in position 1, got str of len %" PRI_SIZET " ('%s').", len, str);
 		}
 		format_char = *str;
 	}
@@ -63,7 +63,7 @@ int int_tostr(struct YASL_State *S) {
 		len += 2;
 		break;
 	default:
-		YASLX_print_and_throw_err_value(S, "Unexpected format str: '%c'.", format_char);
+		YASLX_print_and_throw_err_value(S, "Unexpected format str for int.tostr: '%c'.", format_char);
 	}
 
 	YASL_pushlstr(S, curr, len);

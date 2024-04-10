@@ -1,2 +1,0 @@
-
-echo mt.lookup(0, .tostr)(16, 1.0)
