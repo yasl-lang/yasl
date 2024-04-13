@@ -1,0 +1,21 @@
+mt.lookup([], .__add)(true, [])
+mt.lookup([], .__add)([], true)
+mt.lookup([], .__len)(0)
+mt.lookup([], .clear)(1)
+mt.lookup([], .copy)(true)
+mt.lookup([], .count)(true, 1)
+mt.lookup([], .insert)(undef, 1, true)
+[]->insert('b')
+mt.lookup([], .join)(1, .str)
+mt.lookup([], .join)(1, true)
+mt.lookup([], .push)(1, true)
+mt.lookup([], .remove)(1, true)
+mt.lookup([], .reverse)(1)
+mt.lookup([], .search)(1)
+mt.lookup([], .sort)(1)
+mt.lookup([], .spread)(1)
+mt.lookup([], .tostr)(1)
+echo [] < []
+echo [] <= []
+echo [] > []
+echo [] >= []

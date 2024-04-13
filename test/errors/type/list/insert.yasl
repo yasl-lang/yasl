@@ -1,1 +1,0 @@
-mt.lookup([], .insert)(undef, 1, true)

@@ -1,4 +1,4 @@
 TypeError: ^ not supported for operand of type str. (line 1)
-TypeError: len not supported for operand of type bool. (line 1)
-TypeError: - not supported for operand of type bool. (line 1)
-TypeError: + not supported for operand of type bool. (line 1)
+TypeError: len not supported for operand of type bool. (line 2)
+TypeError: - not supported for operand of type bool. (line 3)
+TypeError: + not supported for operand of type bool. (line 4)
