@@ -157,7 +157,7 @@ static size_t vm_getcurrline(struct VM *vm) {
 }
 
 static void printline(struct VM *vm) {
-	size_t line =  vm_getcurrline(vm);
+	size_t line = vm_getcurrline(vm);
 
 	vm_print_err_wrapper(vm, " (line %" PRI_SIZET ")\n", line);
 
@@ -242,6 +242,10 @@ struct YASL_Object *vm_pop_p(struct VM *const vm) {
 struct YASL_Object vm_pop(struct VM *const vm) {
 	YASL_ASSERT(vm->sp >= 0, "cannot pop from empty stack.");
 	return vm->stack[vm->sp--];
+}
+
+void vm_popn(struct VM *const vm, size_t n) {
+	vm->sp -= n;
 }
 
 bool vm_popbool(struct VM *const vm) {
@@ -401,12 +405,14 @@ static void vm_shifttopdown(struct VM *const vm, int depth) {
 static void vm_ECHO(struct VM *const vm);
 
 static void vm_int_binop(struct VM *const vm, int_binop op, const char *opstr, const char *overload_name) {
-	YASL_UNUSED(opstr);
-	struct YASL_Object right = vm_peek(vm);
-	struct YASL_Object left = vm_peek(vm, vm->sp - 1);
+	unsigned char dest = NCODE(vm);
+	unsigned char source_left = NCODE(vm);
+	unsigned char source_right = NCODE(vm);
+	YASL_UNUSED(dest);
+	struct YASL_Object left = vm_peek_fp(vm, source_left);
+	struct YASL_Object right = vm_peek_fp(vm, source_right);
 	if (obj_isint(&left) && obj_isint(&right)) {
-		vm_pop(vm);
-		vm_pop(vm);
+		vm_popn(vm, 2);
 		vm_pushint(vm, op(obj_getint(&left), obj_getint(&right)));
 	} else {
 		vm_call_binop_method_now(vm, left, right, overload_name, "%s not supported for operands of types %s and %s.", opstr,
@@ -426,17 +432,15 @@ static yasl_int int_pow(yasl_int left, yasl_int right) {
     return (yasl_int)pow((double)left, (double)right);
 }
 
-static void vm_num_binop(struct VM *const vm, int_binop int_op, float_binop float_op,
-			 const char *const opstr, const char *overload_name) {
-	struct YASL_Object right = vm_peek(vm);
-	struct YASL_Object left = vm_peek(vm, vm->sp - 1);
+static void vm_num_binop_register(struct VM *const vm, int_binop int_op, float_binop float_op, const char *opstr, const char *overload_name, unsigned char dest, unsigned char source_left, unsigned char source_right) {
+	YASL_UNUSED(dest);
+	struct YASL_Object left = vm_peek_fp(vm, source_left);
+	struct YASL_Object right = vm_peek_fp(vm, source_right);
 	if (obj_isint(&left) && obj_isint(&right)) {
-		vm_pop(vm);
-		vm_pop(vm);
+		vm_popn(vm, 2);
 		vm_pushint(vm, int_op(obj_getint(&left), obj_getint(&right)));
 	} else if (obj_isnum(&left) && obj_isnum(&right)) {
-		vm_pop(vm);
-		vm_pop(vm);
+		vm_popn(vm, 2);
 		vm_pushfloat(vm, float_op(obj_getnum(&left), obj_getnum(&right)));
 	} else {
 		vm_call_binop_method_now(vm, left, right, overload_name, "%s not supported for operands of types %s and %s.", opstr,
@@ -445,10 +449,22 @@ static void vm_num_binop(struct VM *const vm, int_binop int_op, float_binop floa
 	}
 }
 
+static void vm_num_binop(struct VM *const vm, int_binop int_op, float_binop float_op,
+			 const char *const opstr, const char *overload_name) {
+	unsigned char dest = NCODE(vm);
+	unsigned char source_left = NCODE(vm);
+	unsigned char source_right = NCODE(vm);
+	vm_num_binop_register(vm, int_op, float_op, opstr, overload_name, dest, source_left, source_right);
+}
+
 static void vm_fdiv(struct VM *const vm) {
+	unsigned char dest = NCODE(vm);
+	unsigned char source_left = NCODE(vm);
+	unsigned char source_right = NCODE(vm);
+	YASL_UNUSED(dest);
 	const char *overload_name = OP_BIN_FDIV;
-	struct YASL_Object right = vm_peek(vm);
-	struct YASL_Object left = vm_peek(vm, vm->sp - 1);
+	struct YASL_Object left = vm_peek_fp(vm, source_left);
+	struct YASL_Object right = vm_peek_fp(vm, source_right);
 	if (obj_isnum(&left) && obj_isnum(&right)) {
 		vm_pop(vm);
 		vm_pop(vm);
@@ -461,14 +477,16 @@ static void vm_fdiv(struct VM *const vm) {
 }
 
 static void vm_pow(struct VM *const vm) {
-	struct YASL_Object right = vm_pop(vm);
-	struct YASL_Object left = vm_peek(vm);
+	unsigned char dest = NCODE(vm);
+	unsigned char source_left = NCODE(vm);
+	unsigned char source_right = NCODE(vm);
+	struct YASL_Object right = vm_peek_fp(vm, source_right);
+	struct YASL_Object left = vm_peek_fp(vm, source_left);
 	if (obj_isint(&left) && obj_isint(&right) && obj_getint(&right) < 0) {
-		vm_pop(vm);
+		vm_popn(vm, 2);
 		vm_pushfloat(vm, pow((double)obj_getint(&left), (double)obj_getint(&right)));
 	} else {
-		vm->sp++;
-		vm_num_binop(vm, &int_pow, &pow, "**", OP_BIN_POWER);
+		vm_num_binop_register(vm, &int_pow, &pow, "**", OP_BIN_POWER, dest, source_left, source_right);
 	}
 }
 
@@ -481,6 +499,12 @@ NUM_UNOP(neg, -)
 NUM_UNOP(pos, +)
 
 static void vm_int_unop(struct VM *const vm, yasl_int (*op)(yasl_int), const char *opstr, const char *overload_name) {
+	unsigned char dest = NCODE(vm);
+	unsigned char source = NCODE(vm);
+	YASL_UNUSED(dest);
+	YASL_UNUSED(source);
+	YASL_ASSERT(dest == vm->fp + 1 + vm->sp, "dest is stack height");
+	YASL_ASSERT(source == vm->fp + 1 + vm->sp, "source is stack height");
 	if (vm_isint(vm)) {
 		vm_pushint(vm, op(vm_popint(vm)));
 		return;
@@ -490,6 +514,12 @@ static void vm_int_unop(struct VM *const vm, yasl_int (*op)(yasl_int), const cha
 }
 
 static void vm_num_unop(struct VM *const vm, yasl_int (*int_op)(yasl_int), yasl_float (*float_op)(yasl_float), const char *opstr, const char *overload_name) {
+	unsigned char dest = NCODE(vm);
+	unsigned char source = NCODE(vm);
+	YASL_UNUSED(dest);
+	YASL_UNUSED(source);
+	YASL_ASSERT(dest == vm->fp + 1 + vm->sp, "dest is stack height");
+	YASL_ASSERT(source == vm->fp + 1 + vm->sp, "source is stack height");
 	if (vm_isint(vm)) {
 		vm_pushint(vm, int_op(vm_popint(vm)));
 	} else if (vm_isfloat(vm)) {
@@ -500,6 +530,12 @@ static void vm_num_unop(struct VM *const vm, yasl_int (*int_op)(yasl_int), yasl_
 }
 
 void vm_len_unop(struct VM *const vm) {
+	unsigned char dest = NCODE(vm);
+	unsigned char source = NCODE(vm);
+	YASL_UNUSED(dest);
+	YASL_UNUSED(source);
+	YASL_ASSERT(dest == vm->fp + 1 + vm->sp, "dest is stack height");
+	YASL_ASSERT(source == vm->fp + 1 + vm->sp, "source is stack height");
 	vm_call_method_now_1_top(vm, "__len", "len not supported for operand of type %s.");
 }
 
@@ -518,37 +554,56 @@ void vm_EQ(struct VM *const vm) {
 		vm_pushbool(vm, isequal(&a, &b));
 	}
 }
+void vm_EQ_op(struct VM *const vm) {
+	unsigned char dest = NCODE(vm);
+	unsigned char source_left = NCODE(vm);
+	unsigned char source_right = NCODE(vm);
+	YASL_UNUSED(dest);
+	YASL_UNUSED(source_left);
+	YASL_UNUSED(source_right);
+	vm_EQ(vm);
+}
 
 static void vm_CNCT(struct VM *const vm) {
-		vm_stringify_top(vm);
-		struct YASL_Object top = vm_peek(vm);
-		inc_ref(&top);
-		struct YASL_String *b = vm_popstr(vm);
-		vm_stringify_top(vm);
-		struct YASL_String *a = vm_popstr(vm);
+	unsigned char dest = NCODE(vm);
+	unsigned char source_left = NCODE(vm);
+	unsigned char source_right = NCODE(vm);
+	YASL_UNUSED(dest);
+	YASL_UNUSED(source_left);
+	YASL_UNUSED(source_right);
+	vm_stringify_top(vm);
+	struct YASL_Object top = vm_peek(vm);
+	inc_ref(&top);
+	struct YASL_String *b = vm_popstr(vm);
+	vm_stringify_top(vm);
+	struct YASL_String *a = vm_popstr(vm);
 
-		size_t size = YASL_String_len(a) + YASL_String_len(b);
-		char *ptr = (char *)malloc(size);
-		memcpy(ptr, YASL_String_chars(a), YASL_String_len(a));
-		memcpy(ptr + YASL_String_len(a), YASL_String_chars(b), YASL_String_len(b));
-		vm_pushstr(vm, YASL_String_new_take(vm, ptr, size));
-		vm_dec_ref(vm, &top);
+	size_t size = YASL_String_len(a) + YASL_String_len(b);
+	char *ptr = (char *)malloc(size);
+	memcpy(ptr, YASL_String_chars(a), YASL_String_len(a));
+	memcpy(ptr + YASL_String_len(a), YASL_String_chars(b), YASL_String_len(b));
+	vm_pushstr(vm, YASL_String_new_take(vm, ptr, size));
+	vm_dec_ref(vm, &top);
 }
 
 #define DEFINE_COMP(name, opstr, overload_name) \
 static void vm_##name(struct VM *const vm) {\
-	struct YASL_Object right = vm_peek(vm);\
-	struct YASL_Object left = vm_peek(vm, vm->sp -1);\
+	unsigned char dest = NCODE(vm);\
+	unsigned char source_left = NCODE(vm);\
+	unsigned char source_right = NCODE(vm);\
+	YASL_UNUSED(dest);\
+	YASL_UNUSED(source_left);\
+	YASL_UNUSED(source_right);\
+	struct YASL_Object right = vm_peek_fp(vm, source_right);\
+	struct YASL_Object left = vm_peek_fp(vm, source_left);\
 	bool c;\
 	if (obj_isstr(&left) && obj_isstr(&right)) {\
-		vm_pop(vm);\
-		vm_pop(vm);\
+		vm_popn(vm, 2);\
 		vm_pushbool(vm, name(YASL_String_cmp(obj_getstr(&left), obj_getstr(&right)), 0));\
 		return;\
 	}\
 	if (obj_isnum(&left) && obj_isnum(&right)) {\
-		vm_pop(vm);\
-		vm_pop(vm);\
+		vm_popn(vm, 2);\
 		COMP(vm, left, right, name);\
 		return;\
 	}\
@@ -1498,9 +1553,16 @@ void vm_executenext(struct VM *const vm) {
 	case O_POS:
 		vm_num_unop(vm, &int_pos, &float_pos, "+", OP_UN_PLUS);
 		break;
-	case O_NOT:
+	case O_NOT: {
+		unsigned char dest = NCODE(vm);
+		unsigned char source = NCODE(vm);
+		YASL_UNUSED(dest);
+		YASL_UNUSED(source);
+		YASL_ASSERT(dest == vm->fp + 1 + vm->sp, "dest is stack height in !");
+		YASL_ASSERT(source == vm->fp + 1 + vm->sp, "source is stack height in !");
 		vm_pushbool(vm, isfalsey(vm_pop_p(vm)));
 		break;
+	}
 	case O_LEN:
 		vm_len_unop(vm);
 		break;
@@ -1520,13 +1582,20 @@ void vm_executenext(struct VM *const vm) {
 		vm_LE(vm);
 		break;
 	case O_EQ:
-		vm_EQ(vm);
+		vm_EQ_op(vm);
 		break;
-	case O_ID:     // TODO: clean-up
+	case O_ID: {     // TODO: clean-up
+		unsigned char dest = NCODE(vm);
+		unsigned char source_left = NCODE(vm);
+		unsigned char source_right = NCODE(vm);
+		YASL_UNUSED(dest);
+		YASL_UNUSED(source_left);
+		YASL_UNUSED(source_right);
 		b = vm_pop(vm);
 		a = vm_pop(vm);
 		vm_pushbool(vm, a.type == b.type && obj_getint(&a) == obj_getint(&b));
 		break;
+	}
 	case O_LIT:
 		vm_LIT(vm);
 		break;

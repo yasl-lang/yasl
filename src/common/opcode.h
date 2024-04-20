@@ -2,57 +2,57 @@
 #define YASL_OPCODE_H_
 
 enum Opcode {
-	O_NCONST = 0x01, // push literal undef onto stack
-	O_BCONST_F = 0x08, // push literal false onto stack
-	O_BCONST_T = 0x09, // push literal true onto stack
-	O_FCONST = 0x0A, // push function literal onto stack
-	O_CCONST = 0x0B, // push closure literal onto stack
+	O_NCONST = 0x01, // (byte target) set target to `undef`.
+	O_BCONST_F = 0x08, // (byte target) set target to `false`.
+	O_BCONST_T = 0x09, // (byte target) set target to `true`.
+	O_FCONST = 0x0A, // (byte target) set target to fn.
+	O_CCONST = 0x0B, // (byte target) set target to fn.
 
 	O_HALT = 0x0F, // halt
 
 	O_MATCH = 0x31, // pattern matching
 
-	O_BOR = 0x40, // bitwise or
-	O_BXOR = 0x41, // bitwise xor
-	O_BAND = 0x42, // bitwise and
-	O_BANDNOT = 0x43, // bitwise and, with bitwise not on right operand
-	O_BNOT = 0x44, // bit negation
-	O_BSL = 0x45, // bitwise left shift
-	O_BSR = 0x46, // bitwise right shift
+	O_BOR = 0x40, // (byte target, byte a, byte b) set target to `a | b`.
+	O_BXOR = 0x41, // (byte target, byte a, byte b) set target to `a ^ b`.
+	O_BAND = 0x42, // (byte target, byte a, byte b) set target to `a & b`.
+	O_BANDNOT = 0x43, // (byte target, byte a, byte b) set target to `a &^ b`.
+	O_BNOT = 0x44, // (byte target, byte source) set target to `^source`.
+	O_BSL = 0x45, // (byte target, byte a, byte b) set target to `a << b`.
+	O_BSR = 0x46, // (byte target, byte a, byte b) set target to `a >> b`.
 
 	O_ASS = 0x50, // assert
 	O_ASSERT_STACK_HEIGHT = 0x58,
 
-	O_ADD = 0x60, // add two numbers
-	O_SUB = 0x61, // subtract two numbers
-	O_MUL = 0x62, // multiply two integers
-	O_EXP = 0x63, // exponentiation
-	O_FDIV = 0x64, // divide two numbers (return float)
-	O_IDIV = 0x65, // divide two ints (return int)
-	O_MOD = 0x66, // modulo two integers
-	O_NEG = 0x67, // negate a number
-	O_POS = 0x68, // positive of a number
-	O_NOT = 0x69, // negate a boolean
-	O_LEN = 0x6A, // get length
-	O_CNCT = 0x6B, // concat two strings or lists
+	O_ADD = 0x60, // (byte target, byte a, byte b) set target to `a + b`.
+	O_SUB = 0x61, // (byte target, byte a, byte b) set target to `a - b`.
+	O_MUL = 0x62, // (byte target, byte a, byte b) set target to `a * b`.
+	O_EXP = 0x63, // (byte target, byte a, byte b) set target to `a ** b`.
+	O_FDIV = 0x64, // (byte target, byte a, byte b) set target to `a / b`. (return float)
+	O_IDIV = 0x65, // (byte target, byte a, byte b) set target to `a // b`. (return int)
+	O_MOD = 0x66, // (byte target, byte a, byte b) set target to `a % b`.
+	O_NEG = 0x67, // (byte target, byte source) set target to `-source`.
+	O_POS = 0x68, // (byte target, byte source) set target to `+source`.
+	O_NOT = 0x69, // (byte target, byte source) set target to `!source`.
+	O_LEN = 0x6A, // (byte target, byte source) set target to `len source`.
+	O_CNCT = 0x6B, // (byte target, byte a, byte b) set target to `a ~ b`.
 
-	O_LT = 0x70, // less than
-	O_LE = 0x71, // less than or equal
-	O_GT = 0x72, // greater than
-	O_GE = 0x73, // greater than or equal
-	O_EQ = 0x74, // equality
-	O_ID = 0x76, // identity
+	O_LT = 0x70, // (byte target, byte a, byte b) set target to `a < b`.
+	O_LE = 0x71, // (byte target, byte a, byte b) set target to `a <= b`.
+	O_GT = 0x72, // (byte target, byte a, byte b) set target to `a > b`.
+	O_GE = 0x73, // (byte target, byte a, byte b) set target to `a >= b`.
+	O_EQ = 0x74, // (byte target, byte a, byte b) set target to `a == b`.
+	O_ID = 0x76, // (byte target, byte a, byte b) set target to `a === b`.
 
-	O_SET = 0x80, // sets field.
-	O_GET = 0x88, // gets field.
-	O_SLICE = 0x8A, // slice of list or str
+	O_SET = 0x80, // (byte target, byte a, byte b, byte c) set target to `a[b] = c`.
+	O_GET = 0x88, // (byte target, byte a, byte b, byte c) set target to `a[b]`.
+	O_SLICE = 0x8A, // (byte target, byte a, byte b, byte c) set target to `a[b:c]`.
 
 	O_EXPORT = 0x90, // export
 
-	O_LIT = 0x9A,
-	O_LIT8 = 0x9B, // make new constant and push it onto stack (index into constant table: 8 bytes)
-	O_NEWTABLE = 0x9C, // make new table and push it onto stack
-	O_NEWLIST = 0x9D, // make new list and push it onto stack
+	O_LIT = 0x9A, // (byte target, byte index) sets target to the constant at index.
+	O_LIT8 = 0x9B, // (byte target, i64 index) sets target to the constant at index.
+	O_NEWTABLE = 0x9C, // (byte target) sets target to a new table.
+	O_NEWLIST = 0x9D, // (byte target) sets target to a new list.
 	O_LIST_PUSH = 0x9E,
 	O_TABLE_SET = 0x9F,
 

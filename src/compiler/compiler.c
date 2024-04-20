@@ -78,6 +78,19 @@ static inline void compiler_add_code_BB(struct Compiler *const compiler, unsigne
 	compiler_add_byte(compiler, b2);
 }
 
+static inline void compiler_add_code_BBB(struct Compiler *const compiler, unsigned char b1, unsigned char b2, unsigned char b3) {
+	compiler_add_byte(compiler, b1);
+	compiler_add_byte(compiler, b2);
+	compiler_add_byte(compiler, b3);
+}
+
+static inline void compiler_add_code_BBBB(struct Compiler *const compiler, unsigned char b1, unsigned char b2, unsigned char b3, unsigned char b4) {
+	compiler_add_byte(compiler, b1);
+	compiler_add_byte(compiler, b2);
+	compiler_add_byte(compiler, b3);
+	compiler_add_byte(compiler, b4);
+}
+
 static inline void compiler_add_code_BW(struct Compiler *const compiler, unsigned char b, yasl_int n) {
 	compiler_add_byte(compiler, b);
 	compiler_add_int(compiler, n);
@@ -1267,72 +1280,72 @@ static int visit_BinOp(struct Compiler *const compiler, const struct Node *const
 	visit_expr(compiler, BinOp_get_right(node), stack_height + 1);
 	switch (node->value.type) {
 	case T_BAR:
-		compiler_add_byte(compiler, O_BOR);
+		compiler_add_code_BBBB(compiler, O_BOR, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_CARET:
-		compiler_add_byte(compiler, O_BXOR);
+		compiler_add_code_BBBB(compiler, O_BXOR, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_AMP:
-		compiler_add_byte(compiler, O_BAND);
+		compiler_add_code_BBBB(compiler, O_BAND, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_AMPCARET:
-		compiler_add_byte(compiler, O_BANDNOT);
+		compiler_add_code_BBBB(compiler, O_BANDNOT, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_DEQ:
-		compiler_add_byte(compiler, O_EQ);
+		compiler_add_code_BBBB(compiler, O_EQ, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_TEQ:
-		compiler_add_byte(compiler, O_ID);
+		compiler_add_code_BBBB(compiler, O_ID, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_BANGEQ:
-		compiler_add_byte(compiler, O_EQ);
-		compiler_add_byte(compiler, O_NOT);
+		compiler_add_code_BBBB(compiler, O_EQ, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
+		compiler_add_code_BBB(compiler, O_NOT, (unsigned char) stack_height, (unsigned char)stack_height);
 		break;
 	case T_BANGDEQ:
-		compiler_add_byte(compiler, O_ID);
-		compiler_add_byte(compiler, O_NOT);
+		compiler_add_code_BBBB(compiler, O_ID, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
+		compiler_add_code_BBB(compiler, O_NOT, (unsigned char) stack_height, (unsigned char)stack_height);
 		break;
 	case T_GT:
-		compiler_add_byte(compiler, O_GT);
+		compiler_add_code_BBBB(compiler, O_GT, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_GTEQ:
-		compiler_add_byte(compiler, O_GE);
+		compiler_add_code_BBBB(compiler, O_GE, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_LT:
-		compiler_add_byte(compiler, O_LT);
+		compiler_add_code_BBBB(compiler, O_LT, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_LTEQ:
-		compiler_add_byte(compiler, O_LE);
+		compiler_add_code_BBBB(compiler, O_LE, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_TILDE:
-		compiler_add_byte(compiler, O_CNCT);
+		compiler_add_code_BBBB(compiler, O_CNCT, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_DGT:
-		compiler_add_byte(compiler, O_BSR);
+		compiler_add_code_BBBB(compiler, O_BSR, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_DLT:
-		compiler_add_byte(compiler, O_BSL);
+		compiler_add_code_BBBB(compiler, O_BSL, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_PLUS:
-		compiler_add_byte(compiler, O_ADD);
+		compiler_add_code_BBBB(compiler, O_ADD, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_MINUS:
-		compiler_add_byte(compiler, O_SUB);
+		compiler_add_code_BBBB(compiler, O_SUB, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_STAR:
-		compiler_add_byte(compiler, O_MUL);
+		compiler_add_code_BBBB(compiler, O_MUL, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_SLASH:
-		compiler_add_byte(compiler, O_FDIV);
+		compiler_add_code_BBBB(compiler, O_FDIV, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_DSLASH:
-		compiler_add_byte(compiler, O_IDIV);
+		compiler_add_code_BBBB(compiler, O_IDIV, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_MOD:
-		compiler_add_byte(compiler, O_MOD);
+		compiler_add_code_BBBB(compiler, O_MOD, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_DSTAR:
-		compiler_add_byte(compiler, O_EXP);
+		compiler_add_code_BBBB(compiler, O_EXP, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	default:
 		YASL_UNREACHED();
@@ -1346,19 +1359,19 @@ static int visit_UnOp(struct Compiler *const compiler, const struct Node *const 
 	visit_expr(compiler, UnOp_get_expr(node), stack_height);
 	switch (node->value.type) {
 	case T_PLUS:
-		compiler_add_byte(compiler, O_POS);
+		compiler_add_code_BBB(compiler, O_POS, (unsigned char)stack_height, (unsigned char)stack_height);
 		break;
 	case T_MINUS:
-		compiler_add_byte(compiler, O_NEG);
+		compiler_add_code_BBB(compiler, O_NEG, (unsigned char)stack_height, (unsigned char)stack_height);
 		break;
 	case T_BANG:
-		compiler_add_byte(compiler, O_NOT);
+		compiler_add_code_BBB(compiler, O_NOT, (unsigned char)stack_height, (unsigned char)stack_height);
 		break;
 	case T_CARET:
-		compiler_add_byte(compiler, O_BNOT);
+		compiler_add_code_BBB(compiler, O_BNOT, (unsigned char)stack_height, (unsigned char)stack_height);
 		break;
 	case T_LEN:
-		compiler_add_byte(compiler, O_LEN);
+		compiler_add_code_BBB(compiler, O_LEN, (unsigned char)stack_height, (unsigned char)stack_height);
 		break;
 	default:
 		YASL_UNREACHED();
@@ -1579,7 +1592,6 @@ static bool is_stmt(const struct Node *const node) {
 static int visit_expr(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	YASL_ASSERT(is_expr(node), "Expected expression");
 	setline(compiler, node);
-
 
 	YASL_ASSERT(stack_height >= 0, "expected non-negative stack height");
 /*
