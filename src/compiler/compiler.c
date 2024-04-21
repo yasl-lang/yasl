@@ -160,6 +160,22 @@ static struct Env *get_nearest(struct Env *env, const char *const name) {
 	return env;
 }
 
+static bool is_function_local_var(const struct Compiler *const compiler, const char *const name) {
+	return in_function(compiler) && env_contains_cur_only(compiler->params, name);
+}
+
+static bool is_file_local_var(const struct Compiler *const compiler, const char *const name) {
+	return !in_function(compiler) && scope_contains(compiler->stack, name);
+}
+
+static int64_t get_function_local_var_index(const struct Compiler *const compiler, const char *const name) {
+	return get_index(scope_get(compiler->params->scope, name));
+}
+
+static int64_t get_file_local_var_index(const struct Compiler *const compiler, const char *const name) {
+	return get_index(scope_get(compiler->stack, name));
+}
+
 static void load_var_local(struct Compiler *const compiler, const struct Scope *scope, const char *const name) {
 	int64_t index = get_index(scope_get(scope, name));
 	compiler_add_code_BB(compiler, O_LLOAD, (unsigned char) index);
@@ -178,7 +194,7 @@ static bool var_is_defined(struct Compiler *const compiler, const char *const na
 
 // NOTE: Keep this in sync with `var_is_defined`, and add tests for `ifdef` if you change this.
 static void load_var(struct Compiler *const compiler, const char *const name, const size_t line) {
-	if (in_function(compiler) && env_contains_cur_only(compiler->params, name)) {   // fn-local var
+	if (is_function_local_var(compiler, name)) {   // fn-local var
 		load_var_local(compiler, compiler->params->scope, name);
 	} else if (env_contains(compiler->params, name)) {                         // closure over fn-local variable
 		struct Env *curr = get_nearest(compiler->params, name);
@@ -186,7 +202,7 @@ static void load_var(struct Compiler *const compiler, const char *const name, co
 		load_var_from_upval(compiler, name);
 	} else if (in_function(compiler) && scope_contains(compiler->stack, name)) {    // closure over file-local var
 		load_var_from_upval(compiler, name);
-	} else if (scope_contains(compiler->stack, name)) {                        // file-local vars
+	} else if (is_file_local_var(compiler, name)) {                        // file-local vars
 		load_var_local(compiler, compiler->stack, name);
 	} else if (scope_contains(compiler->globals, name)) {                      // global vars
 		compiler_add_code_BW(compiler, O_GLOAD_8, YASL_Table_search_zstring_int(compiler->strings, name).value.ival);
@@ -213,7 +229,7 @@ static void store_var_in_upval(struct Compiler *const compiler, const char *cons
 }
 
 static void store_var(struct Compiler *const compiler, const char *const name, const size_t line) {
-	if (in_function(compiler) && env_contains_cur_only(compiler->params, name)) { // fn-local variable
+	if (is_function_local_var(compiler, name)) { // fn-local variable
 		store_var_cur_scope(compiler, compiler->params->scope, name, line);
 	} else if (env_contains(compiler->params, name)) {                            // closure over fn-local variable
 		struct Env *curr = get_nearest(compiler->params, name);
@@ -227,7 +243,7 @@ static void store_var(struct Compiler *const compiler, const char *const name, c
 		if (is_const(index))
 			goto handle_const_err;
 		store_var_in_upval(compiler, name);
-	} else if (scope_contains(compiler->stack, name)) {                           // file-local vars
+	} else if (is_file_local_var(compiler, name)) {                           // file-local vars
 		store_var_cur_scope(compiler, compiler->stack, name, line);
 	} else if (scope_contains(compiler->globals, name)) {                         // global vars
 		int64_t index = scope_get(compiler->globals, name);
@@ -326,7 +342,7 @@ static unsigned char *return_bytes(const struct Compiler *const compiler) {
 #include "exprnodetype.x"
 #undef X
 
-static int visit_expr(struct Compiler *const compiler, const struct Node *const node, int stack_height);
+static void visit_expr(struct Compiler *const compiler, const struct Node *const node, int stack_height);
 static void visit_patt(struct Compiler *const compiler, const struct Node *const node);
 static void visit_stmt(struct Compiler *const compiler, const struct Node *const node);
 
@@ -1394,6 +1410,12 @@ static void visit_Assign(struct Compiler *const compiler, const struct Node *con
 
 static int visit_Var(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	YASL_UNUSED(stack_height);
+	const char *name = Var_get_name(node);
+	if (is_function_local_var(compiler, name)) {
+		return get_function_local_var_index(compiler, name);
+	} else if (is_file_local_var(compiler, name)) {
+		return get_file_local_var_index(compiler, name);
+	}
 	load_var(compiler, Var_get_name(node), node->line);
 	return stack_height + 1;
 }
@@ -1589,7 +1611,7 @@ static bool is_stmt(const struct Node *const node) {
 }
 #endif
 
-static int visit_expr(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
+static int visit_expr_inner(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	YASL_ASSERT(is_expr(node), "Expected expression");
 	setline(compiler, node);
 
@@ -1601,6 +1623,13 @@ static int visit_expr(struct Compiler *const compiler, const struct Node *const 
 #endif  // YASL_DEBUG
 */
 	return expr_jmp_table[node->nodetype](compiler, node, stack_height);
+}
+
+static void visit_expr(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
+	const int spot = visit_expr_inner(compiler, node, stack_height);
+	if (spot < (int)get_stacksize(compiler)) {
+		compiler_add_code_BB(compiler, O_LLOAD, (unsigned char) spot);
+	}
 }
 
 static void visit_patt(struct Compiler *const compiler, const struct Node *const node) {
