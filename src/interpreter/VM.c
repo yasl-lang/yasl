@@ -244,7 +244,7 @@ struct YASL_Object vm_pop(struct VM *const vm) {
 	return vm->stack[vm->sp--];
 }
 
-void vm_popn(struct VM *const vm, size_t n) {
+void vm_popn(struct VM *const vm, int n) {
 	vm->sp -= n;
 }
 
