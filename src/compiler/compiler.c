@@ -342,6 +342,7 @@ static unsigned char *return_bytes(const struct Compiler *const compiler) {
 #include "exprnodetype.x"
 #undef X
 
+static int visit_expr_inner(struct Compiler *const compiler, const struct Node *const node, int stack_height);
 static void visit_expr(struct Compiler *const compiler, const struct Node *const node, int stack_height);
 static void visit_patt(struct Compiler *const compiler, const struct Node *const node);
 static void visit_stmt(struct Compiler *const compiler, const struct Node *const node);
