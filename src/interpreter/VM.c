@@ -503,8 +503,8 @@ static void vm_int_unop(struct VM *const vm, yasl_int (*op)(yasl_int), const cha
 	unsigned char source = NCODE(vm);
 	YASL_UNUSED(dest);
 	YASL_UNUSED(source);
-	YASL_ASSERT(dest == vm->fp + 1 + vm->sp, "dest is stack height");
-	YASL_ASSERT(source == vm->fp + 1 + vm->sp, "source is stack height");
+	YASL_ASSERT(dest == vm->sp - 1 - vm->fp, "dest is stack height");
+	YASL_ASSERT(source == vm->sp - 1 - vm->fp, "source is stack height");
 	if (vm_isint(vm)) {
 		vm_pushint(vm, op(vm_popint(vm)));
 		return;
@@ -518,8 +518,8 @@ static void vm_num_unop(struct VM *const vm, yasl_int (*int_op)(yasl_int), yasl_
 	unsigned char source = NCODE(vm);
 	YASL_UNUSED(dest);
 	YASL_UNUSED(source);
-	YASL_ASSERT(dest == vm->fp + 1 + vm->sp, "dest is stack height");
-	YASL_ASSERT(source == vm->fp + 1 + vm->sp, "source is stack height");
+	YASL_ASSERT(dest == vm->sp - 1 - vm->fp, "dest is stack height");
+	YASL_ASSERT(source == vm->sp - 1 - vm->fp, "source is stack height");
 	if (vm_isint(vm)) {
 		vm_pushint(vm, int_op(vm_popint(vm)));
 	} else if (vm_isfloat(vm)) {
@@ -530,13 +530,18 @@ static void vm_num_unop(struct VM *const vm, yasl_int (*int_op)(yasl_int), yasl_
 }
 
 void vm_len_unop(struct VM *const vm) {
+	vm_call_method_now_1_top(vm, "__len", "len not supported for operand of type %s.");
+}
+
+
+void vm_len_op(struct VM *const vm) {
 	unsigned char dest = NCODE(vm);
 	unsigned char source = NCODE(vm);
 	YASL_UNUSED(dest);
 	YASL_UNUSED(source);
-	YASL_ASSERT(dest == vm->fp + 1 + vm->sp, "dest is stack height");
-	YASL_ASSERT(source == vm->fp + 1 + vm->sp, "source is stack height");
-	vm_call_method_now_1_top(vm, "__len", "len not supported for operand of type %s.");
+	YASL_ASSERT(dest + 1 + vm->fp == vm->sp, "dest is stack height");
+	YASL_ASSERT(source == vm->sp - 1 - vm->fp, "source is stack height");
+	vm_len_unop(vm);
 }
 
 void vm_EQ(struct VM *const vm) {
@@ -1558,13 +1563,13 @@ void vm_executenext(struct VM *const vm) {
 		unsigned char source = NCODE(vm);
 		YASL_UNUSED(dest);
 		YASL_UNUSED(source);
-		YASL_ASSERT(dest == vm->fp + 1 + vm->sp, "dest is stack height in !");
-		YASL_ASSERT(source == vm->fp + 1 + vm->sp, "source is stack height in !");
+		YASL_ASSERT(dest == vm->sp - 1 - vm->fp, "dest is stack height in !");
+		YASL_ASSERT(source == vm->sp - 1 - vm->fp, "source is stack height in !");
 		vm_pushbool(vm, isfalsey(vm_pop_p(vm)));
 		break;
 	}
 	case O_LEN:
-		vm_len_unop(vm);
+		vm_len_op(vm);
 		break;
 	case O_CNCT:
 		vm_CNCT(vm);
