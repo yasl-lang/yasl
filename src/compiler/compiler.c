@@ -1316,11 +1316,11 @@ static int visit_BinOp(struct Compiler *const compiler, const struct Node *const
 		break;
 	case T_BANGEQ:
 		compiler_add_code_BBBB(compiler, O_EQ, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
-		compiler_add_code_BBB(compiler, O_NOT, (unsigned char) stack_height, (unsigned char)stack_height);
+		compiler_add_code_BBB(compiler, O_NOT, (unsigned char) stack_height + 1, (unsigned char)stack_height + 1);
 		break;
 	case T_BANGDEQ:
 		compiler_add_code_BBBB(compiler, O_ID, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
-		compiler_add_code_BBB(compiler, O_NOT, (unsigned char) stack_height, (unsigned char)stack_height);
+		compiler_add_code_BBB(compiler, O_NOT, (unsigned char) stack_height + 1, (unsigned char)stack_height + 1);
 		break;
 	case T_GT:
 		compiler_add_code_BBBB(compiler, O_GT, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
@@ -1373,22 +1373,27 @@ static int visit_BinOp(struct Compiler *const compiler, const struct Node *const
 }
 
 static int visit_UnOp(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
-	visit_expr(compiler, UnOp_get_expr(node), stack_height);
+	const int source = visit_expr_inner(compiler, UnOp_get_expr(node), stack_height);
+	/*
+	if ((node->value.type == T_BANG) && source < (int)get_stacksize(compiler)) {
+		compiler_add_code_BB(compiler, O_LLOAD, (unsigned char)source);
+	}
+	 */
 	switch (node->value.type) {
 	case T_PLUS:
-		compiler_add_code_BBB(compiler, O_POS, (unsigned char)stack_height, (unsigned char)stack_height);
+		compiler_add_code_BBB(compiler, O_POS, (unsigned char)stack_height, (unsigned char)source);
 		break;
 	case T_MINUS:
-		compiler_add_code_BBB(compiler, O_NEG, (unsigned char)stack_height, (unsigned char)stack_height);
+		compiler_add_code_BBB(compiler, O_NEG, (unsigned char)stack_height, (unsigned char)source);
 		break;
 	case T_BANG:
-		compiler_add_code_BBB(compiler, O_NOT, (unsigned char)stack_height, (unsigned char)stack_height);
+		compiler_add_code_BBB(compiler, O_NOT, (unsigned char)stack_height, (unsigned char)source);
 		break;
 	case T_CARET:
-		compiler_add_code_BBB(compiler, O_BNOT, (unsigned char)stack_height, (unsigned char)stack_height);
+		compiler_add_code_BBB(compiler, O_BNOT, (unsigned char)stack_height, (unsigned char)source);
 		break;
 	case T_LEN:
-		compiler_add_code_BBB(compiler, O_LEN, (unsigned char)stack_height, (unsigned char)stack_height);
+		compiler_add_code_BBB(compiler, O_LEN, (unsigned char)stack_height, (unsigned char)source);
 		break;
 	default:
 		YASL_UNREACHED();

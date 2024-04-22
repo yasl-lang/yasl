@@ -18,7 +18,7 @@
 #define SETUP_YATS() \
 	static int __YATS_TESTS_FAILED__ = 0
 
-#define TEST_FAILED() __YATS_TESTS_FAILED__ = 1
+#define TEST_FAILED() __YATS_TESTS_FAILED__++
 
 // change to true to print out all passing tests as well.
 #define SHOW_PASSING false

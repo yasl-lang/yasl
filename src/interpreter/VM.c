@@ -352,6 +352,14 @@ void vm_CALL_now(struct VM *const vm);
 	vm_CALL(vm);\
 } while (0)
 
+#define vm_call_method_now_1_index(vm, index, method_name, ...) do {\
+	vm_push(vm, vm_peek_fp(vm, index));\
+	vm_lookup_method_throwing(vm, method_name, __VA_ARGS__, vm_peektypename(vm));\
+	vm_push(vm, vm_peek_fp(vm, index));\
+	vm_INIT_CALL_offset(vm, vm->sp - 1, 1);\
+	vm_CALL(vm);\
+} while (0)
+
 #define vm_call_binop_method_now(vm, left, right, method_name, format, ...) do {\
 	struct YASL_Object index = YASL_STR(YASL_String_new_copy(vm, method_name, strlen(method_name)));\
 	vm_push(vm, left);\
@@ -505,6 +513,14 @@ static void vm_int_unop(struct VM *const vm, yasl_int (*op)(yasl_int), const cha
 	YASL_UNUSED(source);
 	YASL_ASSERT(dest == vm->sp - 1 - vm->fp, "dest is stack height");
 	YASL_ASSERT(source == vm->sp - 1 - vm->fp, "source is stack height");
+	if (source + 1 + vm->fp <= vm->sp) {
+		if (vm_isint(vm, vm->fp + 1 + source)) {
+			vm_pushint(vm, op(vm_peekint(vm, vm->fp + 1 + source)));
+		} else {
+			vm_call_method_now_1_index(vm, source, overload_name, "%s not supported for operand of type %s", opstr);
+		}
+		return;
+	}
 	if (vm_isint(vm)) {
 		vm_pushint(vm, op(vm_popint(vm)));
 		return;
@@ -517,9 +533,18 @@ static void vm_num_unop(struct VM *const vm, yasl_int (*int_op)(yasl_int), yasl_
 	unsigned char dest = NCODE(vm);
 	unsigned char source = NCODE(vm);
 	YASL_UNUSED(dest);
-	YASL_UNUSED(source);
 	YASL_ASSERT(dest == vm->sp - 1 - vm->fp, "dest is stack height");
 	YASL_ASSERT(source == vm->sp - 1 - vm->fp, "source is stack height");
+	if (source + 1 + vm->fp <= vm->sp) {
+		if (vm_isint(vm, vm->fp + 1 + source)) {
+			vm_pushint(vm, int_op(vm_peekint(vm, vm->fp + 1 + source)));
+		} else if (vm_isfloat(vm, vm->fp + 1 + source)) {
+			vm_pushfloat(vm, float_op(vm_peekfloat(vm, vm->fp + 1 + source)));
+		} else {
+			vm_call_method_now_1_index(vm, source, overload_name, "%s not supported for operand of type %s", opstr);
+		}
+		return;
+	}
 	if (vm_isint(vm)) {
 		vm_pushint(vm, int_op(vm_popint(vm)));
 	} else if (vm_isfloat(vm)) {
@@ -533,13 +558,19 @@ void vm_len_unop(struct VM *const vm) {
 	vm_call_method_now_1_top(vm, "__len", "len not supported for operand of type %s.");
 }
 
+static void vm_len_register(struct VM *const vm, unsigned char source) {
+	vm_call_method_now_1_index(vm, source, "__len", "len not supported for operand of type %s.");
+}
 
 void vm_len_op(struct VM *const vm) {
 	unsigned char dest = NCODE(vm);
 	unsigned char source = NCODE(vm);
 	YASL_UNUSED(dest);
-	YASL_UNUSED(source);
 	YASL_ASSERT(dest + 1 + vm->fp == vm->sp, "dest is stack height");
+	if (source + 1 + vm->fp <= vm->sp) {
+		vm_len_register(vm, source);
+		return;
+	}
 	YASL_ASSERT(source == vm->sp - 1 - vm->fp, "source is stack height");
 	vm_len_unop(vm);
 }
@@ -1562,10 +1593,13 @@ void vm_executenext(struct VM *const vm) {
 		unsigned char dest = NCODE(vm);
 		unsigned char source = NCODE(vm);
 		YASL_UNUSED(dest);
-		YASL_UNUSED(source);
 		YASL_ASSERT(dest == vm->sp - 1 - vm->fp, "dest is stack height in !");
 		YASL_ASSERT(source == vm->sp - 1 - vm->fp, "source is stack height in !");
-		vm_pushbool(vm, isfalsey(vm_pop_p(vm)));
+		if (source + 1 + vm->fp <= vm->sp) {
+			vm_pushbool(vm, isfalsey(&vm_peek_fp(vm, source)));
+		} else {
+			vm_pushbool(vm, isfalsey(vm_pop_p(vm)));
+		}
 		break;
 	}
 	case O_LEN:
