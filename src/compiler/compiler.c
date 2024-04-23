@@ -773,7 +773,7 @@ static void visit_Break(struct Compiler *const compiler, const struct Node *cons
 		handle_error(compiler);
 		return;
 	}
-	compiler_add_byte(compiler, O_BCONST_F);
+	compiler_add_code_BB(compiler, O_BCONST_F, (unsigned char)get_stacksize(compiler));
 	branch_back(compiler, break_checkpoint(compiler));
 }
 
@@ -1191,7 +1191,7 @@ static void declare_with_let_or_const(struct Compiler *const compiler, const str
 		visit_expr(compiler, expr, (int)get_stacksize(compiler) - 1);
 	} else {
 		if (expr) visit_expr(compiler, expr, (int)get_stacksize(compiler));
-		else compiler_add_byte(compiler, O_NCONST);
+		else compiler_add_code_BB(compiler, O_NCONST, (unsigned char)get_stacksize(compiler));
 
 		decl_var(compiler, name, node->line);
 	}
@@ -1429,7 +1429,7 @@ static int visit_Var(struct Compiler *const compiler, const struct Node *const n
 static int visit_Undef(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	YASL_UNUSED(node);
 	YASL_UNUSED(stack_height);
-	compiler_add_byte(compiler, O_NCONST);
+	compiler_add_code_BB(compiler, O_NCONST, (unsigned char)stack_height);
 	return stack_height + 1;
 }
 
@@ -1466,7 +1466,7 @@ static int visit_Integer(struct Compiler *const compiler, const struct Node *con
 
 static int visit_Boolean(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	YASL_UNUSED(stack_height);
-	compiler_add_byte(compiler, Boolean_get_bool(node) ? O_BCONST_T : O_BCONST_F);
+	compiler_add_code_BB(compiler, Boolean_get_bool(node) ? O_BCONST_T : O_BCONST_F, (unsigned char)stack_height);
 
 	return stack_height + 1;
 }

@@ -1519,9 +1519,11 @@ void vm_executenext(struct VM *const vm) {
 		vm_throw_err(vm, YASL_SUCCESS);
 	case O_BCONST_F:
 	case O_BCONST_T:
+		offset = NCODE(vm);
 		vm_pushbool(vm, (bool)(opcode & 0x01));
 		break;
 	case O_NCONST:
+		offset = NCODE(vm);
 		vm_pushundef(vm);
 		break;
 	case O_FCONST:
@@ -1593,13 +1595,7 @@ void vm_executenext(struct VM *const vm) {
 		unsigned char dest = NCODE(vm);
 		unsigned char source = NCODE(vm);
 		YASL_UNUSED(dest);
-		YASL_ASSERT(dest == vm->sp - 1 - vm->fp, "dest is stack height in !");
-		YASL_ASSERT(source == vm->sp - 1 - vm->fp, "source is stack height in !");
-		if (source + 1 + vm->fp <= vm->sp) {
-			vm_pushbool(vm, isfalsey(&vm_peek_fp(vm, source)));
-		} else {
-			vm_pushbool(vm, isfalsey(vm_pop_p(vm)));
-		}
+		vm_pushbool(vm, isfalsey(source + 1 + vm->fp <= vm->sp ? &vm_peek_fp(vm, source) : vm_pop_p(vm)));
 		break;
 	}
 	case O_LEN:

@@ -24,7 +24,7 @@ ASSERT_EQ(before + 1, after);\
 
 static TEST(testpushundef) {
 	unsigned char code[] = {
-		O_NCONST,
+		O_NCONST, 0x00,
 	};
 
 	struct VM vm;
@@ -39,8 +39,8 @@ static TEST(testpushundef) {
 
 static TEST(testpushbool) {
 	unsigned char code[] = {
-		O_BCONST_F,
-		O_BCONST_T
+		O_BCONST_F, 0x00,
+		O_BCONST_T, 0x00,
 	};
 
 	struct VM vm;
