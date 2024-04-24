@@ -246,6 +246,7 @@ struct YASL_Object vm_pop(struct VM *const vm) {
 
 void vm_popn(struct VM *const vm, int n) {
 	vm->sp -= n;
+	YASL_ASSERT(vm->sp >= -1, "cannot pop from empty stack.");
 }
 
 bool vm_popbool(struct VM *const vm) {
@@ -511,8 +512,6 @@ static void vm_int_unop(struct VM *const vm, yasl_int (*op)(yasl_int), const cha
 	unsigned char source = NCODE(vm);
 	YASL_UNUSED(dest);
 	YASL_UNUSED(source);
-	YASL_ASSERT(dest == vm->sp - 1 - vm->fp, "dest is stack height");
-	YASL_ASSERT(source == vm->sp - 1 - vm->fp, "source is stack height");
 	if (source + 1 + vm->fp <= vm->sp) {
 		if (vm_isint(vm, vm->fp + 1 + source)) {
 			vm_pushint(vm, op(vm_peekint(vm, vm->fp + 1 + source)));
@@ -533,8 +532,6 @@ static void vm_num_unop(struct VM *const vm, yasl_int (*int_op)(yasl_int), yasl_
 	unsigned char dest = NCODE(vm);
 	unsigned char source = NCODE(vm);
 	YASL_UNUSED(dest);
-	YASL_ASSERT(dest == vm->sp - 1 - vm->fp, "dest is stack height");
-	YASL_ASSERT(source == vm->sp - 1 - vm->fp, "source is stack height");
 	if (source + 1 + vm->fp <= vm->sp) {
 		if (vm_isint(vm, vm->fp + 1 + source)) {
 			vm_pushint(vm, int_op(vm_peekint(vm, vm->fp + 1 + source)));
@@ -566,12 +563,10 @@ void vm_len_op(struct VM *const vm) {
 	unsigned char dest = NCODE(vm);
 	unsigned char source = NCODE(vm);
 	YASL_UNUSED(dest);
-	YASL_ASSERT(dest + 1 + vm->fp == vm->sp, "dest is stack height");
 	if (source + 1 + vm->fp <= vm->sp) {
 		vm_len_register(vm, source);
 		return;
 	}
-	YASL_ASSERT(source == vm->sp - 1 - vm->fp, "source is stack height");
 	vm_len_unop(vm);
 }
 
