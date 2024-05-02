@@ -78,6 +78,19 @@ static inline void compiler_add_code_BB(struct Compiler *const compiler, unsigne
 	compiler_add_byte(compiler, b2);
 }
 
+static inline void compiler_add_code_BBB(struct Compiler *const compiler, unsigned char b1, unsigned char b2, unsigned char b3) {
+	compiler_add_byte(compiler, b1);
+	compiler_add_byte(compiler, b2);
+	compiler_add_byte(compiler, b3);
+}
+
+static inline void compiler_add_code_BBBB(struct Compiler *const compiler, unsigned char b1, unsigned char b2, unsigned char b3, unsigned char b4) {
+	compiler_add_byte(compiler, b1);
+	compiler_add_byte(compiler, b2);
+	compiler_add_byte(compiler, b3);
+	compiler_add_byte(compiler, b4);
+}
+
 static inline void compiler_add_code_BW(struct Compiler *const compiler, unsigned char b, yasl_int n) {
 	compiler_add_byte(compiler, b);
 	compiler_add_int(compiler, n);
@@ -147,6 +160,30 @@ static struct Env *get_nearest(struct Env *env, const char *const name) {
 	return env;
 }
 
+static bool is_function_local_var(const struct Compiler *const compiler, const char *const name) {
+	return in_function(compiler) && env_contains_cur_only(compiler->params, name);
+}
+
+static bool is_file_local_var(const struct Compiler *const compiler, const char *const name) {
+	return !in_function(compiler) && scope_contains(compiler->stack, name);
+}
+
+static int64_t get_function_local_var_index_raw(const struct Compiler *const compiler, const char *const name) {
+	return scope_get(compiler->params->scope, name);
+}
+
+static int64_t get_file_local_var_index_raw(const struct Compiler *const compiler, const char *const name) {
+	return scope_get(compiler->stack, name);
+}
+
+static int64_t get_function_local_var_index(const struct Compiler *const compiler, const char *const name) {
+	return get_index(get_function_local_var_index_raw(compiler, name));
+}
+
+static int64_t get_file_local_var_index(const struct Compiler *const compiler, const char *const name) {
+	return get_index(get_file_local_var_index_raw(compiler, name));
+}
+
 static void load_var_local(struct Compiler *const compiler, const struct Scope *scope, const char *const name) {
 	int64_t index = get_index(scope_get(scope, name));
 	compiler_add_code_BB(compiler, O_LLOAD, (unsigned char) index);
@@ -165,7 +202,7 @@ static bool var_is_defined(struct Compiler *const compiler, const char *const na
 
 // NOTE: Keep this in sync with `var_is_defined`, and add tests for `ifdef` if you change this.
 static void load_var(struct Compiler *const compiler, const char *const name, const size_t line) {
-	if (in_function(compiler) && env_contains_cur_only(compiler->params, name)) {   // fn-local var
+	if (is_function_local_var(compiler, name)) {   // fn-local var
 		load_var_local(compiler, compiler->params->scope, name);
 	} else if (env_contains(compiler->params, name)) {                         // closure over fn-local variable
 		struct Env *curr = get_nearest(compiler->params, name);
@@ -173,7 +210,7 @@ static void load_var(struct Compiler *const compiler, const char *const name, co
 		load_var_from_upval(compiler, name);
 	} else if (in_function(compiler) && scope_contains(compiler->stack, name)) {    // closure over file-local var
 		load_var_from_upval(compiler, name);
-	} else if (scope_contains(compiler->stack, name)) {                        // file-local vars
+	} else if (is_file_local_var(compiler, name)) {                        // file-local vars
 		load_var_local(compiler, compiler->stack, name);
 	} else if (scope_contains(compiler->globals, name)) {                      // global vars
 		compiler_add_code_BW(compiler, O_GLOAD_8, YASL_Table_search_zstring_int(compiler->strings, name).value.ival);
@@ -200,7 +237,7 @@ static void store_var_in_upval(struct Compiler *const compiler, const char *cons
 }
 
 static void store_var(struct Compiler *const compiler, const char *const name, const size_t line) {
-	if (in_function(compiler) && env_contains_cur_only(compiler->params, name)) { // fn-local variable
+	if (is_function_local_var(compiler, name)) { // fn-local variable
 		store_var_cur_scope(compiler, compiler->params->scope, name, line);
 	} else if (env_contains(compiler->params, name)) {                            // closure over fn-local variable
 		struct Env *curr = get_nearest(compiler->params, name);
@@ -214,7 +251,7 @@ static void store_var(struct Compiler *const compiler, const char *const name, c
 		if (is_const(index))
 			goto handle_const_err;
 		store_var_in_upval(compiler, name);
-	} else if (scope_contains(compiler->stack, name)) {                           // file-local vars
+	} else if (is_file_local_var(compiler, name)) {                           // file-local vars
 		store_var_cur_scope(compiler, compiler->stack, name, line);
 	} else if (scope_contains(compiler->globals, name)) {                         // global vars
 		int64_t index = scope_get(compiler->globals, name);
@@ -313,7 +350,8 @@ static unsigned char *return_bytes(const struct Compiler *const compiler) {
 #include "exprnodetype.x"
 #undef X
 
-static int visit_expr(struct Compiler *const compiler, const struct Node *const node, int stack_height);
+static int visit_expr_inner(struct Compiler *const compiler, const struct Node *const node, int stack_height);
+static void visit_expr(struct Compiler *const compiler, const struct Node *const node, int stack_height);
 static void visit_patt(struct Compiler *const compiler, const struct Node *const node);
 static void visit_stmt(struct Compiler *const compiler, const struct Node *const node);
 
@@ -743,7 +781,7 @@ static void visit_Break(struct Compiler *const compiler, const struct Node *cons
 		handle_error(compiler);
 		return;
 	}
-	compiler_add_byte(compiler, O_BCONST_F);
+	compiler_add_code_BB(compiler, O_BCONST_F, (unsigned char)get_stacksize(compiler));
 	branch_back(compiler, break_checkpoint(compiler));
 }
 
@@ -1161,7 +1199,7 @@ static void declare_with_let_or_const(struct Compiler *const compiler, const str
 		visit_expr(compiler, expr, (int)get_stacksize(compiler) - 1);
 	} else {
 		if (expr) visit_expr(compiler, expr, (int)get_stacksize(compiler));
-		else compiler_add_byte(compiler, O_NCONST);
+		else compiler_add_code_BB(compiler, O_NCONST, (unsigned char)get_stacksize(compiler));
 
 		decl_var(compiler, name, node->line);
 	}
@@ -1267,72 +1305,72 @@ static int visit_BinOp(struct Compiler *const compiler, const struct Node *const
 	visit_expr(compiler, BinOp_get_right(node), stack_height + 1);
 	switch (node->value.type) {
 	case T_BAR:
-		compiler_add_byte(compiler, O_BOR);
+		compiler_add_code_BBBB(compiler, O_BOR, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_CARET:
-		compiler_add_byte(compiler, O_BXOR);
+		compiler_add_code_BBBB(compiler, O_BXOR, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_AMP:
-		compiler_add_byte(compiler, O_BAND);
+		compiler_add_code_BBBB(compiler, O_BAND, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_AMPCARET:
-		compiler_add_byte(compiler, O_BANDNOT);
+		compiler_add_code_BBBB(compiler, O_BANDNOT, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_DEQ:
-		compiler_add_byte(compiler, O_EQ);
+		compiler_add_code_BBBB(compiler, O_EQ, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_TEQ:
-		compiler_add_byte(compiler, O_ID);
+		compiler_add_code_BBBB(compiler, O_ID, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_BANGEQ:
-		compiler_add_byte(compiler, O_EQ);
-		compiler_add_byte(compiler, O_NOT);
+		compiler_add_code_BBBB(compiler, O_EQ, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
+		compiler_add_code_BBB(compiler, O_NOT, (unsigned char) stack_height + 1, (unsigned char)stack_height + 1);
 		break;
 	case T_BANGDEQ:
-		compiler_add_byte(compiler, O_ID);
-		compiler_add_byte(compiler, O_NOT);
+		compiler_add_code_BBBB(compiler, O_ID, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
+		compiler_add_code_BBB(compiler, O_NOT, (unsigned char) stack_height + 1, (unsigned char)stack_height + 1);
 		break;
 	case T_GT:
-		compiler_add_byte(compiler, O_GT);
+		compiler_add_code_BBBB(compiler, O_GT, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_GTEQ:
-		compiler_add_byte(compiler, O_GE);
+		compiler_add_code_BBBB(compiler, O_GE, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_LT:
-		compiler_add_byte(compiler, O_LT);
+		compiler_add_code_BBBB(compiler, O_LT, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_LTEQ:
-		compiler_add_byte(compiler, O_LE);
+		compiler_add_code_BBBB(compiler, O_LE, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_TILDE:
-		compiler_add_byte(compiler, O_CNCT);
+		compiler_add_code_BBBB(compiler, O_CNCT, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_DGT:
-		compiler_add_byte(compiler, O_BSR);
+		compiler_add_code_BBBB(compiler, O_BSR, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_DLT:
-		compiler_add_byte(compiler, O_BSL);
+		compiler_add_code_BBBB(compiler, O_BSL, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_PLUS:
-		compiler_add_byte(compiler, O_ADD);
+		compiler_add_code_BBBB(compiler, O_ADD, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_MINUS:
-		compiler_add_byte(compiler, O_SUB);
+		compiler_add_code_BBBB(compiler, O_SUB, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_STAR:
-		compiler_add_byte(compiler, O_MUL);
+		compiler_add_code_BBBB(compiler, O_MUL, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_SLASH:
-		compiler_add_byte(compiler, O_FDIV);
+		compiler_add_code_BBBB(compiler, O_FDIV, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_DSLASH:
-		compiler_add_byte(compiler, O_IDIV);
+		compiler_add_code_BBBB(compiler, O_IDIV, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_MOD:
-		compiler_add_byte(compiler, O_MOD);
+		compiler_add_code_BBBB(compiler, O_MOD, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	case T_DSTAR:
-		compiler_add_byte(compiler, O_EXP);
+		compiler_add_code_BBBB(compiler, O_EXP, (unsigned char) stack_height, (unsigned char) stack_height, (unsigned char) stack_height + 1);
 		break;
 	default:
 		YASL_UNREACHED();
@@ -1343,22 +1381,27 @@ static int visit_BinOp(struct Compiler *const compiler, const struct Node *const
 }
 
 static int visit_UnOp(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
-	visit_expr(compiler, UnOp_get_expr(node), stack_height);
+	const int source = visit_expr_inner(compiler, UnOp_get_expr(node), stack_height);
+	/*
+	if ((node->value.type == T_BANG) && source < (int)get_stacksize(compiler)) {
+		compiler_add_code_BB(compiler, O_LLOAD, (unsigned char)source);
+	}
+	 */
 	switch (node->value.type) {
 	case T_PLUS:
-		compiler_add_byte(compiler, O_POS);
+		compiler_add_code_BBB(compiler, O_POS, (unsigned char)stack_height, (unsigned char)source);
 		break;
 	case T_MINUS:
-		compiler_add_byte(compiler, O_NEG);
+		compiler_add_code_BBB(compiler, O_NEG, (unsigned char)stack_height, (unsigned char)source);
 		break;
 	case T_BANG:
-		compiler_add_byte(compiler, O_NOT);
+		compiler_add_code_BBB(compiler, O_NOT, (unsigned char)stack_height, (unsigned char)source);
 		break;
 	case T_CARET:
-		compiler_add_byte(compiler, O_BNOT);
+		compiler_add_code_BBB(compiler, O_BNOT, (unsigned char)stack_height, (unsigned char)source);
 		break;
 	case T_LEN:
-		compiler_add_byte(compiler, O_LEN);
+		compiler_add_code_BBB(compiler, O_LEN, (unsigned char)stack_height, (unsigned char)source);
 		break;
 	default:
 		YASL_UNREACHED();
@@ -1381,6 +1424,12 @@ static void visit_Assign(struct Compiler *const compiler, const struct Node *con
 
 static int visit_Var(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	YASL_UNUSED(stack_height);
+	const char *name = Var_get_name(node);
+	if (is_function_local_var(compiler, name)) {
+		return get_function_local_var_index(compiler, name);
+	} else if (is_file_local_var(compiler, name)) {
+		return get_file_local_var_index(compiler, name);
+	}
 	load_var(compiler, Var_get_name(node), node->line);
 	return stack_height + 1;
 }
@@ -1388,7 +1437,7 @@ static int visit_Var(struct Compiler *const compiler, const struct Node *const n
 static int visit_Undef(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	YASL_UNUSED(node);
 	YASL_UNUSED(stack_height);
-	compiler_add_byte(compiler, O_NCONST);
+	compiler_add_code_BB(compiler, O_NCONST, (unsigned char)stack_height);
 	return stack_height + 1;
 }
 
@@ -1425,7 +1474,7 @@ static int visit_Integer(struct Compiler *const compiler, const struct Node *con
 
 static int visit_Boolean(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	YASL_UNUSED(stack_height);
-	compiler_add_byte(compiler, Boolean_get_bool(node) ? O_BCONST_T : O_BCONST_F);
+	compiler_add_code_BB(compiler, Boolean_get_bool(node) ? O_BCONST_T : O_BCONST_F, (unsigned char)stack_height);
 
 	return stack_height + 1;
 }
@@ -1576,10 +1625,9 @@ static bool is_stmt(const struct Node *const node) {
 }
 #endif
 
-static int visit_expr(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
+static int visit_expr_inner(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
 	YASL_ASSERT(is_expr(node), "Expected expression");
 	setline(compiler, node);
-
 
 	YASL_ASSERT(stack_height >= 0, "expected non-negative stack height");
 /*
@@ -1589,6 +1637,13 @@ static int visit_expr(struct Compiler *const compiler, const struct Node *const 
 #endif  // YASL_DEBUG
 */
 	return expr_jmp_table[node->nodetype](compiler, node, stack_height);
+}
+
+static void visit_expr(struct Compiler *const compiler, const struct Node *const node, int stack_height) {
+	const int spot = visit_expr_inner(compiler, node, stack_height);
+	if (spot < (int)get_stacksize(compiler)) {
+		compiler_add_code_BB(compiler, O_LLOAD, (unsigned char) spot);
+	}
 }
 
 static void visit_patt(struct Compiler *const compiler, const struct Node *const node) {
