@@ -168,12 +168,20 @@ static bool is_file_local_var(const struct Compiler *const compiler, const char 
 	return !in_function(compiler) && scope_contains(compiler->stack, name);
 }
 
+static int64_t get_function_local_var_index_raw(const struct Compiler *const compiler, const char *const name) {
+	return scope_get(compiler->params->scope, name);
+}
+
+static int64_t get_file_local_var_index_raw(const struct Compiler *const compiler, const char *const name) {
+	return scope_get(compiler->stack, name);
+}
+
 static int64_t get_function_local_var_index(const struct Compiler *const compiler, const char *const name) {
-	return get_index(scope_get(compiler->params->scope, name));
+	return get_index(get_function_local_var_index_raw(compiler, name));
 }
 
 static int64_t get_file_local_var_index(const struct Compiler *const compiler, const char *const name) {
-	return get_index(scope_get(compiler->stack, name));
+	return get_index(get_file_local_var_index_raw(compiler, name));
 }
 
 static void load_var_local(struct Compiler *const compiler, const struct Scope *scope, const char *const name) {

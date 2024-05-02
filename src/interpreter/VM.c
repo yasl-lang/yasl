@@ -1816,7 +1816,7 @@ void vm_executenext(struct VM *const vm) {
 		vm_rm(vm, vm->fp + 1 + c);
 		break;
 	case O_DECSP:
-		vm->sp -= NCODE(vm);
+		vm_popn(vm, NCODE(vm));
 		vm_close_all_helper(vm->stack + vm->sp, vm->pending);
 		break;
 	case O_INCSP:
