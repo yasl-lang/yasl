@@ -1587,7 +1587,6 @@ static int visit_expr(struct Compiler *const compiler, const struct Node *const 
 	YASL_ASSERT(is_expr(node), "Expected expression");
 	setline(compiler, node);
 
-
 	YASL_ASSERT(num_temps >= 0, "expected non-negative stack height");
 /*
 #ifdef YASL_DEBUG

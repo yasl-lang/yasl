@@ -39,6 +39,7 @@ DECL_BUFFER(size_t)
 })
 
 struct Compiler {
+	jmp_buf buf;
 	struct Parser parser;
 	struct Scope *globals;
 	struct Scope *stack;

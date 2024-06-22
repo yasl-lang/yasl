@@ -389,7 +389,7 @@ int list_shuffle(struct YASL_State *S) {
 	for (size_t i = len - 1; i >= 1; i--) {
 		size_t j = (size_t)rand();
 		j %= i + 1;
-		YASL_ASSERT(0 <= j && j <= i, "j should be in this range.");
+		YASL_ASSERT(j <= i, "j should be in this range.");
 		struct YASL_Object tmp = ls->items[i];
 		ls->items[i] = ls->items[j];
 		ls->items[j] = tmp;

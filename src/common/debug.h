@@ -29,9 +29,21 @@ enum LogLevel {
 
 // #define YASL_DEBUG
 #ifdef YASL_DEBUG
-#define YASL_ASSERT(expr, msg) do { if (!(expr)) { fprintf(stderr, msg " (" __FILE__ ":%d)", __LINE__ ); abort(); } } while(0)
+#define YASL_ASSERT(expr, msg) do {\
+	if (!(expr)) {\
+		fprintf(stderr, msg " (" __FILE__ ":%d)", __LINE__ );\
+		abort();\
+	}\
+} while(0)
+#define YASL_ASSERT_EQ(left, right) do {\
+	if ((left) != (right)) {\
+		fprintf(stderr, "expected %d == %d (" __FILE__ ":%d)", (int)left, (int)right, __LINE__ );\
+		abort();\
+	}\
+} while (0)
 #else
 #define YASL_ASSERT(expr, msg)
+#define YASL_ASSERT_EQ(left, right)
 #endif
 
 #endif
