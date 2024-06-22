@@ -1,0 +1,1 @@
+This directory includes all standard YASL libraries. This directory does NOT include implementations of built-in types, such as int or str; those are found in //interpreter.

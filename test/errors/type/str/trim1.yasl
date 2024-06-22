@@ -1,1 +1,0 @@
-mt.lookup('', .trim)('1', true)

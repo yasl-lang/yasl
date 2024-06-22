@@ -1,0 +1,2 @@
+mt.lookup(undef, .tobool)(1)
+mt.lookup(undef, .tostr)(1)

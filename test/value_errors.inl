@@ -1,8 +1,4 @@
 static const char *value_errors[] = {
-  "test/errors/value/int/tochar2.yasl",
-  "test/errors/value/int/tochar.yasl",
-  "test/errors/value/int/tostr-format2.yasl",
-  "test/errors/value/int/tostr-format.yasl",
   "test/errors/value/io/open1.yasl",
   "test/errors/value/io/open2.yasl",
   "test/errors/value/io/open3.yasl",

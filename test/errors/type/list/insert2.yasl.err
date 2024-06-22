@@ -1,1 +1,0 @@
-TypeError: list.insert expected arg in position 1 to be of type int, got arg of type str. (line 1)

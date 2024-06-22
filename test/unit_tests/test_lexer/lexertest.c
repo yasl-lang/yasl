@@ -41,6 +41,7 @@ static void test_assert(void) {
 static void test_undef(void) {
 	USING_LEX(lex, "undef",
 		ASSERT_EATTOK(T_UNDEF, lex);
+		ASSERT_EATTOK(T_SEMI, lex);
 		ASSERT_EATTOK(T_EOF, lex);
 	);
 }
@@ -48,6 +49,7 @@ static void test_undef(void) {
 static void test_valid_float(void) {
 	USING_LEX(lex, "6.4",
 		ASSERT_EATTOK(T_FLOAT, lex);
+		ASSERT_EATTOK(T_SEMI, lex);
 		ASSERT_EATTOK(T_EOF, lex);
 	);
 }
@@ -56,6 +58,7 @@ static void test_invalid_float_no_leading_digit(void) {
 	USING_LEX(lex, ".4",
 		ASSERT_EATTOK(T_DOT, lex);
 		ASSERT_EATTOK(T_INT, lex);
+		ASSERT_EATTOK(T_SEMI, lex);
 		ASSERT_EATTOK(T_EOF, lex);
 	);
 }
@@ -71,6 +74,7 @@ static void test_invalid_float_no_trailing_digit(void) {
 static void test_bool_false(void) {
 	USING_LEX(lex, "false",
 		ASSERT_EATTOK(T_BOOL, lex);
+		ASSERT_EATTOK(T_SEMI, lex);
 		ASSERT_EATTOK(T_EOF, lex);
 	);
 }
@@ -78,6 +82,7 @@ static void test_bool_false(void) {
 static void test_bool_true(void) {
 	USING_LEX(lex, "true",
 		ASSERT_EATTOK(T_BOOL, lex);
+		ASSERT_EATTOK(T_SEMI, lex);
 		ASSERT_EATTOK(T_EOF, lex);
 	);
 }
@@ -113,6 +118,7 @@ static void test_while(void) {
 static void test_break(void) {
 	USING_LEX(lex, "break",
 		ASSERT_EATTOK(T_BREAK, lex);
+		ASSERT_EATTOK(T_SEMI, lex);
 		ASSERT_EATTOK(T_EOF, lex);
 	);
 }
@@ -120,6 +126,7 @@ static void test_break(void) {
 static void test_continue(void) {
 	USING_LEX(lex, "continue",
 		ASSERT_EATTOK(T_CONT, lex);
+		ASSERT_EATTOK(T_SEMI, lex);
 		ASSERT_EATTOK(T_EOF, lex);
 	);
 }
@@ -176,6 +183,7 @@ static void test_lpar(void) {
 static void test_rpar(void) {
 	USING_LEX(lex, ")",
 	ASSERT_EATTOK(T_RPAR, lex);
+	ASSERT_EATTOK(T_SEMI, lex);
 	ASSERT_EATTOK(T_EOF, lex);
 	);
 }
@@ -190,6 +198,7 @@ static void test_lsqb(void) {
 static void test_rsqb(void) {
 	USING_LEX(lex, "]",
 	ASSERT_EATTOK(T_RSQB, lex);
+	ASSERT_EATTOK(T_SEMI, lex);
 	ASSERT_EATTOK(T_EOF, lex);
 	);
 }
@@ -204,6 +213,7 @@ static void test_lbrc(void) {
 static void test_rbrc(void) {
 	USING_LEX(lex, "}",
 	ASSERT_EATTOK(T_RBRC, lex);
+	ASSERT_EATTOK(T_SEMI, lex);
 	ASSERT_EATTOK(T_EOF, lex);
 	);
 }
@@ -651,6 +661,7 @@ static void test_division(void) {
 	ASSERT_EATTOK(T_INT, lex);
 	ASSERT_EATTOK(T_SLASH, lex);
 	ASSERT_EATTOK(T_FLOAT, lex);
+	ASSERT_EATTOK(T_SEMI, lex);
 	ASSERT_EATTOK(T_EOF, lex);
 	);
 }

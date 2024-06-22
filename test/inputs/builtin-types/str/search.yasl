@@ -1,2 +1,9 @@
 echo 'YASL'->search('A')
 echo 'YASL'->search('0')
+
+echo 'ABC ABC'->search('AB', 1)
+
+echo 'YASL'->has('A')
+echo 'YASL'->has('0')
+
+echo 'ABC ABC'->has('AB', 2)

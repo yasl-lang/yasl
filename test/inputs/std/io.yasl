@@ -14,3 +14,9 @@ f->seek()
 
 echo f->read('l')
 echo f->read('l')
+
+f->seek()
+
+const a = f->read('a')
+echo a
+echo len a

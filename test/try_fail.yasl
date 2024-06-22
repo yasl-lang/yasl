@@ -1,0 +1,23 @@
+const fn read_file(filename) -> [ line->trim()->trim('\0') for line in io.open(filename)->read('a')->trim()->split('\n') ]
+
+const code = read_file(FILENAME)
+const errors = read_file("#{FILENAME}.err")
+
+assert len code == len errors
+
+let line = 1
+let num_failed = 0
+for let i = 0; i < len code; i += 1 {
+    const status, let err = try(eval, '\n'->rep(i) ~ code[i])
+    assert status === false
+    err = err->ltrim('Error while loading module: ')->rtrim('\n')
+    if err != errors[i] {
+        echo "Expected #{err:r} to equal #{errors[i]:r}"
+        num_failed += 1
+    }
+    line += 1
+}
+
+if (num_failed != 0) {
+    error("failed #{num_failed} test(s)")
+}

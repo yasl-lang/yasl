@@ -1,1 +1,0 @@
-mt.lookup('', .startswith)(1, .true)

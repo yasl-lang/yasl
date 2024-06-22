@@ -1,1 +1,0 @@
-TypeError: str.tofloat expected arg in position 0 to be of type str, got arg of type int. (line 1)

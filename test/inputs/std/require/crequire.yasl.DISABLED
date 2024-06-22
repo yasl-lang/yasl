@@ -1,0 +1,2 @@
+echo __require_c__("./libtest_module.so")()
+
