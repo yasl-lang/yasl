@@ -7,7 +7,7 @@ SETUP_YATS();
 
 
 static TEST(simple_alloc) {
-	struct YASL_Object ptrs[10] = {};
+	struct YASL_Object ptrs[10] = { YASL_END() };
 	struct GC gc;
 	gc_init(&gc);
 
@@ -26,7 +26,7 @@ static TEST(simple_alloc) {
 }
 
 static TEST(multiple_allocs) {
-	struct YASL_Object ptrs[10] = {};
+	struct YASL_Object ptrs[10] = { YASL_END() };
 	struct GC gc;
 	gc_init(&gc);
 
@@ -58,7 +58,7 @@ static TEST(multiple_allocs) {
 }
 
 static TEST(simple_cycle) {
-	struct YASL_Object ptrs[10] = {};
+	struct YASL_Object ptrs[10] = { YASL_END() };
 	struct GC gc;
 	gc_init(&gc);
 
@@ -86,7 +86,7 @@ static TEST(simple_cycle) {
 }
 
 static TEST(simple_tree) {
-	struct YASL_Object ptrs[10] = {};
+	struct YASL_Object ptrs[10] = { YASL_END() };
 	struct GC gc;
 	gc_init(&gc);
 
