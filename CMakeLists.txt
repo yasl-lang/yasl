@@ -20,9 +20,11 @@ set(CMAKE_CXX_STANDARD 11)
 
 # 4244 is lossy coercions:
 # https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-levels-3-and-4-c4244
+# 4003 is empty macro parameters:
+# https://learn.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-1-c4003?view=msvc-170
 if(MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-    set(CMAKE_C_FLAGS "/WX /W3 /wd4244")
+    set(CMAKE_C_FLAGS "/WX /W3 /wd4244 /wd4003")
 endif()
 
 if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
