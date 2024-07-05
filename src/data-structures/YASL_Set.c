@@ -60,44 +60,54 @@ static void set_resize_down(struct YASL_Set *set) {
 	set_resize(set, new_size);
 }
 
-bool YASL_Set_insert(struct YASL_Set *const set, struct YASL_Object value) {
-	if (!ishashable(&value)) {
-		return false;
-	}
-
-	const size_t load = set->count * 100 / set->size;
-	if (load > 70) set_resize_up(set);
-	size_t index = YASL_Set_getindex(set, value);
-	struct YASL_Object curr_item = set->items[index];
-	if (isequal_typed(&curr_item, &value)) {
-		dec_ref(&curr_item);
-	} else {
-		set->count++;
-	}
-
-	inc_ref(&value);
-	set->items[index] = value;
-	return true;
+#define SET_INSERT(return_type, name_suffix, comp_function, prefix, suffix) \
+return_type YASL_Set_insert ## name_suffix(struct YASL_Set *const set, struct YASL_Object value) { \
+	prefix\
+\
+	const size_t load = set->count * 100 / set->size;\
+	if (load > 70) set_resize_up(set);\
+	size_t index = YASL_Set_getindex(set, value);\
+	struct YASL_Object curr_item = set->items[index];\
+	if (comp_function(&curr_item, &value)) {\
+		dec_ref(&curr_item);\
+	} else {\
+		set->count++;\
+	}\
+\
+	inc_ref(&value);\
+	set->items[index] = value;\
+	suffix\
 }
 
-struct YASL_Object *YASL_Set_search_internal(const struct YASL_Set *const set, const struct YASL_Object key) {
-	size_t index = get_hash(key, set->size, 0);
-	struct YASL_Object *item = &set->items[index];
-	size_t i = 1;
-	while (!obj_isundef(item)) {
-		if ((isequal(item, &key))) {
-			return item;
-		}
-		index = get_hash(key, set->size, i++);
-		item = &set->items[index];
-	}
-	return NULL;
+SET_INSERT(bool, , isequal_typed, if (!ishashable(&value)) { return false; }, return true;)
+SET_INSERT(void, _any, issame_typed, ,)
+
+#define SET_SEARCH_INTERNAL(suffix, comp) \
+struct YASL_Object *YASL_Set_search_internal ## suffix(const struct YASL_Set *const set, const struct YASL_Object key) {\
+	size_t index = get_hash(key, set->size, 0);\
+	struct YASL_Object *item = &set->items[index];\
+	size_t i = 1;\
+	while (!obj_isundef(item)) {\
+		if ((comp(item, &key))) {\
+			return item;\
+		}\
+		index = get_hash(key, set->size, i++);\
+		item = &set->items[index];\
+	}\
+	return NULL;\
 }
 
-bool YASL_Set_search(const struct YASL_Set *const set, const struct YASL_Object key) {
-	const struct YASL_Object *found = YASL_Set_search_internal(set, key);
-	return found != NULL;
+SET_SEARCH_INTERNAL(, isequal)
+SET_SEARCH_INTERNAL(_any, issame)
+
+#define SET_SEARCH(suffix) \
+bool YASL_Set_search ## suffix(const struct YASL_Set *const set, const struct YASL_Object key) {\
+	const struct YASL_Object *found = YASL_Set_search_internal ## suffix(set, key);\
+	return found != NULL;\
 }
+
+SET_SEARCH()
+SET_SEARCH(_any)
 
 void YASL_Set_rm(struct YASL_Set *const set, struct YASL_Object key) {
 	if (!ishashable(&key)) {
@@ -177,16 +187,20 @@ struct YASL_Set *YASL_Set_symmetric_difference(const struct YASL_Set *const left
 	return tmp;
 }
 
-struct YASL_Set *YASL_Set_difference(const struct YASL_Set *const left, const struct YASL_Set *const right) {
-	struct YASL_Set *tmp = YASL_Set_new();
-	FOR_SET(i, iteml, left) {
-		bool cond = YASL_Set_search(right, *iteml);
-		if (!cond) {
-			YASL_Set_insert(tmp, *iteml);
-		}
-	}
-	return tmp;
+#define SET_DIFF(suffix) \
+struct YASL_Set *YASL_Set_difference ## suffix(const struct YASL_Set *const left, const struct YASL_Set *const right) {\
+	struct YASL_Set *tmp = YASL_Set_new();\
+	FOR_SET(i, iteml, left) {\
+		bool cond = YASL_Set_search ## suffix(right, *iteml);\
+		if (!cond) {\
+			YASL_Set_insert ## suffix(tmp, *iteml);\
+		}\
+	}\
+	return tmp;\
 }
+
+SET_DIFF()
+SET_DIFF(_any)
 
 size_t YASL_Set_length(const struct YASL_Set *const set) {
 	return set->count;

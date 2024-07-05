@@ -78,6 +78,7 @@ add_executable(yasl
         src/interpreter/list_methods.c
         src/interpreter/table_methods.c
         src/interpreter/VM.c
+        src/interpreter/GC.c
         src/interpreter/YASL_Object.c
         src/interpreter/refcount.c
         src/interpreter/str_methods.c
@@ -133,6 +134,7 @@ add_library(yaslapi
         src/interpreter/list_methods.c
         src/interpreter/table_methods.c
         src/interpreter/VM.c
+        src/interpreter/GC.c
         src/interpreter/YASL_Object.c
         src/interpreter/refcount.c
         src/interpreter/str_methods.c
@@ -183,6 +185,7 @@ add_executable(tests
         test/unit_tests/test_methods/listtest.c
         test/unit_tests/test_methods/strtest.c
         test/unit_tests/test_vm/vmtest.c
+        test/unit_tests/test_gc/gctest.c
         test/unit_tests/test_util/utiltest.c
         test/unit_tests/test_api/fntest.c
         test/unit_tests/test_api/deltest.c
