@@ -11,6 +11,7 @@
 
 void gc_init(struct GC *gc) {
 	gc->allocs = YASL_Set_new();
+	gc->total_alloc_size = 0;
 }
 
 void gc_cleanup(struct GC *gc) {
@@ -22,10 +23,15 @@ size_t gc_total_alloc_count(struct GC *gc) {
 	return YASL_Set_length(gc->allocs);
 }
 
+size_t gc_total_alloc_size(struct GC *gc) {
+	return gc->total_alloc_size;
+}
+
 struct YASL_Object gc_alloc_list(struct GC *gc) {
 	struct YASL_Object obj = YASL_LIST(rcls_new(NULL));
 	YASL_Set_insert_any(gc->allocs, obj);
 
+	// gc->total_alloc_size += LIST_BASESIZE * sizeof(struct YASL_Object);
 	return obj;
 }
 

@@ -7,6 +7,7 @@
 
 struct GC {
 	struct YASL_Set *allocs;
+	size_t total_alloc_size;
 };
 
 void gc_init(struct GC *gc);
