@@ -16,7 +16,7 @@ void gc_init(struct GC *gc) {
 
 void gc_cleanup(struct GC *gc) {
 	YASL_UNUSED(gc);
-	YASL_ASSERT(gc_total_alloc_size(gc) == 0, "expected to have no memory allocated when we destroy GC.");
+	YASL_ASSERT(gc_total_alloc_count(gc) == 0, "expected to have no memory allocated when we destroy GC.");
 }
 
 size_t gc_total_alloc_count(struct GC *gc) {
