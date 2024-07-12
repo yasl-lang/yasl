@@ -20,9 +20,11 @@ set(CMAKE_CXX_STANDARD 11)
 
 # 4244 is lossy coercions:
 # https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-levels-3-and-4-c4244
+# 4003 is empty macro parameters:
+# https://learn.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-1-c4003?view=msvc-170
 if(MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-    set(CMAKE_C_FLAGS "/WX /W3 /wd4244")
+    set(CMAKE_C_FLAGS "/WX /W3 /wd4244 /wd4003")
 endif()
 
 if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
@@ -78,6 +80,7 @@ add_executable(yasl
         src/interpreter/list_methods.c
         src/interpreter/table_methods.c
         src/interpreter/VM.c
+        src/interpreter/GC.c
         src/interpreter/YASL_Object.c
         src/interpreter/refcount.c
         src/interpreter/str_methods.c
@@ -133,6 +136,7 @@ add_library(yaslapi
         src/interpreter/list_methods.c
         src/interpreter/table_methods.c
         src/interpreter/VM.c
+        src/interpreter/GC.c
         src/interpreter/YASL_Object.c
         src/interpreter/refcount.c
         src/interpreter/str_methods.c
@@ -183,6 +187,7 @@ add_executable(tests
         test/unit_tests/test_methods/listtest.c
         test/unit_tests/test_methods/strtest.c
         test/unit_tests/test_vm/vmtest.c
+        test/unit_tests/test_gc/gctest.c
         test/unit_tests/test_util/utiltest.c
         test/unit_tests/test_api/fntest.c
         test/unit_tests/test_api/deltest.c

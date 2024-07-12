@@ -62,6 +62,8 @@ bool ishashable(const struct YASL_Object *const v);
 bool isfalsey(const struct YASL_Object *const v);
 bool isequal(const struct YASL_Object *const a, const struct YASL_Object *const b);
 bool isequal_typed(const struct YASL_Object *const a, const struct YASL_Object *const b);
+bool issame(const struct YASL_Object *const a, const struct YASL_Object *const b);
+bool issame_typed(const struct YASL_Object *const a, const struct YASL_Object *const b);
 
 const char *obj_typename(const struct YASL_Object *const v);
 

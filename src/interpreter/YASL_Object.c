@@ -93,39 +93,52 @@ bool isfalsey(const struct YASL_Object *const v) {
 		(obj_isfloat(v) && obj_getfloat(v) != obj_getfloat(v))
 	);
 }
+#define ISEQUAL(a, b) \
+if (obj_isstr(a) && obj_isstr(b)) {\
+	struct YASL_String *left = obj_getstr(a);\
+	struct YASL_String *right = obj_getstr(b);\
+	return left == right || YASL_String_cmp(left, right) == 0;\
+	}\
+\
+if (obj_isundef(a) && obj_isundef(b)) {\
+	return true;\
+}\
+\
+if (obj_isbool(a) && obj_isbool(b)) {\
+	return obj_getbool(a) == obj_getbool(b);\
+}\
+\
+if (obj_isint(a) && obj_isint(b)) {\
+	return obj_getint(a) == obj_getint(b);\
+}\
+\
+if (obj_isnum(a) && obj_isnum(b)) {\
+	return obj_getnum(a) == obj_getnum(b);\
+}\
+\
+if (obj_isuserptr(a) && obj_isuserptr(b)) {\
+	return obj_getuserptr(a) == obj_getuserptr(b);\
+}
+
 
 bool isequal(const struct YASL_Object *const a, const struct YASL_Object *const b) {
-	if (obj_isstr(a) && obj_isstr(b)) {
-		struct YASL_String *left = obj_getstr(a);
-		struct YASL_String *right = obj_getstr(b);
-		return left == right || YASL_String_cmp(left, right) == 0;
-	}
-
-	if (obj_isundef(a) && obj_isundef(b)) {
-		return true;
-	}
-
-	if (obj_isbool(a) && obj_isbool(b)) {
-		return obj_getbool(a) == obj_getbool(b);
-	}
-
-	if (obj_isint(a) && obj_isint(b)) {
-		return obj_getint(a) == obj_getint(b);
-	}
-
-	if (obj_isnum(a) && obj_isnum(b)) {
-		return obj_getnum(a) == obj_getnum(b);
-	}
-
-	if (obj_isuserptr(a) && obj_isuserptr(b)) {
-		return obj_getuserptr(a) == obj_getuserptr(b);
-	}
+	ISEQUAL(a, b)
 
 	return false;
 }
 
+bool issame(const struct YASL_Object *const a, const struct YASL_Object *const b) {
+	ISEQUAL(a, b);
+
+	return a->value.pval == b->value.pval;
+}
+
 bool isequal_typed(const struct YASL_Object *const a, const struct YASL_Object *const b) {
 	return a->type == b->type && isequal(a, b);
+}
+
+bool issame_typed(const struct YASL_Object *const a, const struct YASL_Object *const b) {
+	return a->type == b->type && issame(a, b);
 }
 
 const char *obj_typename(const struct YASL_Object *const v) {

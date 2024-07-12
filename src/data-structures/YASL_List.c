@@ -24,7 +24,8 @@ struct RC_UserData* rcls_new_sized(struct VM *vm, const size_t base_size) {
 	ls->mt = NULL;
 	ls->destructor = YASL_List_del_data;
 	ls->tag = LIST_NAME;
-	ud_setmt(vm, ls, vm->builtins_htable[Y_LIST]);
+	if (vm)
+		ud_setmt(vm, ls, vm->builtins_htable[Y_LIST]);
 	return ls;
 }
 

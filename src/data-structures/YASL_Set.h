@@ -16,6 +16,8 @@ struct YASL_Set {
 struct YASL_Set *YASL_Set_new(void);
 void YASL_Set_del(struct YASL_State *S, void *set);
 bool YASL_Set_insert(struct YASL_Set *const set, struct YASL_Object value) /* YASL_WARN_UNUSED */;
+// Does not check that the value is immutable.
+void YASL_Set_insert_any(struct YASL_Set *const set, struct YASL_Object value);
 bool YASL_Set_search(const struct YASL_Set *const set, const struct YASL_Object key);
 void YASL_Set_rm(struct YASL_Set *const set, struct YASL_Object key);
 size_t YASL_Set_getindex(const struct YASL_Set *const set, const struct YASL_Object value);
@@ -24,6 +26,7 @@ struct YASL_Set *YASL_Set_union(const struct YASL_Set *const left, const struct 
 struct YASL_Set *YASL_Set_intersection(const struct YASL_Set *const left, const struct YASL_Set *const right);
 struct YASL_Set *YASL_Set_symmetric_difference(const struct YASL_Set *const left, const struct YASL_Set *const right);
 struct YASL_Set *YASL_Set_difference(const struct YASL_Set *const left, const struct YASL_Set *const right);
+struct YASL_Set *YASL_Set_difference_any(const struct YASL_Set *const left, const struct YASL_Set *const right);
 size_t YASL_Set_length(const struct YASL_Set *const set);
 
 #endif
