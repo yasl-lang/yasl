@@ -2,6 +2,7 @@
 #include "interpreter/GC.h"
 
 #include "data-structures/YASL_List.h"
+#include "data-structures/YASL_Table.h"
 
 SETUP_YATS();
 
@@ -13,13 +14,13 @@ static TEST(simple_alloc) {
 
 	ptrs[0] = gc_alloc_list(&gc);
 
-	ASSERT_EQ(gc_total_alloc_size(&gc), 1);
+	ASSERT_EQ(gc_total_alloc_count(&gc), 1);
 
 	ptrs[0] = YASL_END();
 
 	gc_collect(&gc, ptrs, 10);
 
-	ASSERT_EQ(gc_total_alloc_size(&gc), 0);
+	ASSERT_EQ(gc_total_alloc_count(&gc), 0);
 
 	gc_cleanup(&gc);
 	return NUM_FAILED;
@@ -32,26 +33,26 @@ static TEST(multiple_allocs) {
 
 	ptrs[0] = gc_alloc_list(&gc);
 
-	ASSERT_EQ(gc_total_alloc_size(&gc), 1);
+	ASSERT_EQ(gc_total_alloc_count(&gc), 1);
 
 	ptrs[0] = gc_alloc_list(&gc);
 
-	ASSERT_EQ(gc_total_alloc_size(&gc), 2);
+	ASSERT_EQ(gc_total_alloc_count(&gc), 2);
 
 	ptrs[1] = gc_alloc_list(&gc);
 
-	ASSERT_EQ(gc_total_alloc_size(&gc), 3);
+	ASSERT_EQ(gc_total_alloc_count(&gc), 3);
 
 	gc_collect(&gc, ptrs, 10);
 
-	ASSERT_EQ(gc_total_alloc_size(&gc), 2);
+	ASSERT_EQ(gc_total_alloc_count(&gc), 2);
 
 	ptrs[0] = YASL_END();
 	ptrs[1] = YASL_END();
 
 	gc_collect(&gc, ptrs, 10);
 
-	ASSERT_EQ(gc_total_alloc_size(&gc), 0);
+	ASSERT_EQ(gc_total_alloc_count(&gc), 0);
 
 	gc_cleanup(&gc);
 	return NUM_FAILED;
@@ -67,19 +68,19 @@ static TEST(simple_cycle) {
 
 	YASL_List_push(YASL_GETLIST(tmp), tmp);
 
-	ASSERT_EQ(gc_total_alloc_size(&gc), 1);
+	ASSERT_EQ(gc_total_alloc_count(&gc), 1);
 
 	gc_collect(&gc, ptrs, 10);
 
-	ASSERT_EQ(gc_total_alloc_size(&gc), 1);
+	ASSERT_EQ(gc_total_alloc_count(&gc), 1);
 
 	ptrs[0] = YASL_END();
 
-	ASSERT_EQ(gc_total_alloc_size(&gc), 1);
+	ASSERT_EQ(gc_total_alloc_count(&gc), 1);
 
 	gc_collect(&gc, ptrs, 10);
 
-	ASSERT_EQ(gc_total_alloc_size(&gc), 0);
+	ASSERT_EQ(gc_total_alloc_count(&gc), 0);
 
 	gc_cleanup(&gc);
 	return NUM_FAILED;
@@ -97,17 +98,17 @@ static TEST(simple_tree) {
 		YASL_List_push(YASL_GETLIST(ptrs[0]), tmp);
 	}
 
-	ASSERT_EQ(gc_total_alloc_size(&gc), 4);
+	ASSERT_EQ(gc_total_alloc_count(&gc), 4);
 
 	gc_collect(&gc, ptrs, 10);
 
-	ASSERT_EQ(gc_total_alloc_size(&gc), 4);
+	ASSERT_EQ(gc_total_alloc_count(&gc), 4);
 
 	ptrs[0] = YASL_END();
 
 	gc_collect(&gc, ptrs, 10);
 
-	ASSERT_EQ(gc_total_alloc_size(&gc), 0);
+	ASSERT_EQ(gc_total_alloc_count(&gc), 0);
 
 	gc_cleanup(&gc);
 	return NUM_FAILED;

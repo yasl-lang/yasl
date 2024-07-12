@@ -15,7 +15,7 @@ void gc_cleanup(struct GC *gc);
 struct YASL_Object gc_alloc_list(struct GC *gc);
 void gc_free(struct GC *gc, struct YASL_Object *obj);
 
-size_t gc_total_alloc_size(struct GC *gc);
+size_t gc_total_alloc_count(struct GC *gc);
 
 void gc_collect(struct GC *gc, struct YASL_Object *root, size_t root_size);
 
