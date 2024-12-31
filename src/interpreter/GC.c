@@ -9,6 +9,10 @@
 #include "closure.h"
 #include "upvalue.h"
 
+static size_t gc_list_size(struct YASL_List *ls) {
+	return sizeof(struct YASL_List) + ls->size * sizeof(struct YASL_Object);
+}
+
 void gc_init(struct GC *gc) {
 	gc->allocs = YASL_Set_new();
 	gc->total_alloc_size = 0;
@@ -31,14 +35,28 @@ struct YASL_Object gc_alloc_list(struct GC *gc) {
 	struct YASL_Object obj = YASL_LIST(rcls_new(NULL));
 	YASL_Set_insert_any(gc->allocs, obj);
 
-	// gc->total_alloc_size += LIST_BASESIZE * sizeof(struct YASL_Object);
+	gc->total_alloc_size += gc_list_size(YASL_GETLIST(obj));
 	return obj;
 }
 
 void gc_free(struct GC *gc, struct YASL_Object *obj) {
-	YASL_UNUSED(gc);
-	YASL_UNUSED(obj);
 	// free(obj->value.pval);
+	switch (obj->type) {
+	case Y_CLOSURE:
+		gc->total_alloc_size -= sizeof(struct Closure) + obj->value.lval->num_upvalues * sizeof(struct Upvalue);
+		break;
+	case Y_LIST:
+		gc->total_alloc_size -= gc_list_size(YASL_GETLIST(*obj));
+		break;
+	case Y_TABLE:
+		gc->total_alloc_size -= sizeof(struct YASL_Table) + YASL_GETTABLE(*obj)->size * 2 * sizeof(struct YASL_Object);
+		break;
+	case Y_STR:
+		gc->total_alloc_size -= sizeof(struct YASL_String) + obj->value.sval->s.len;
+		break;
+	default:
+		break;
+	}
 }
 
 /*

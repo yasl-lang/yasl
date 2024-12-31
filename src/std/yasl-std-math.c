@@ -68,6 +68,8 @@ static int YASL_math_abs(struct YASL_State *S) {
 
 DEFINE_MATH_UN_FLOAT_FUN(exp);
 DEFINE_MATH_UN_FLOAT_FUN(log);
+DEFINE_MATH_UN_FLOAT_FUN(log2);
+DEFINE_MATH_UN_FLOAT_FUN(log10);
 DEFINE_MATH_UN_FLOAT_FUN(sqrt);
 DEFINE_MATH_UN_FLOAT_FUN(sin);
 DEFINE_MATH_UN_FLOAT_FUN(cos);
@@ -346,6 +348,8 @@ int YASL_decllib_math(struct YASL_State *S) {
 		{"abs",     YASL_math_abs,     1},
 		{"exp",     YASL_math_exp,     1},
 		{"log",     YASL_math_log,     1},
+		{"log2",    YASL_math_log2,    1},
+		{"log10",   YASL_math_log10,   1},
 		{"sqrt",    YASL_math_sqrt,    1},
 		{"cos",     YASL_math_cos,     1},
 		{"sin",     YASL_math_sin,     1},
