@@ -63,7 +63,7 @@ const fn update_dir(c) {
 }
 
 let tmp = 0
-try(fn(input) {
+try(fn() {
     let i, let j = find(input)
     let char = input[i][j]
     let x, let y = get_dir(input[i][j])
@@ -78,7 +78,7 @@ try(fn(input) {
         }
         input[i][j] = update_dir(char)
     }
-}, input)
+})
 
 tmp = 0
 for line in input {
