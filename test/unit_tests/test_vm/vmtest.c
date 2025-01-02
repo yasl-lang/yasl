@@ -275,7 +275,7 @@ static TEST(testinsertbottom) {
 static TEST(testaddupvalue) {
 	struct VM vm;
 	vm_init(&vm, NULL, 0, 1);
-	struct YASL_Object arr[5] = {};
+	struct YASL_Object arr[5] = { YASL_UNDEF(), YASL_UNDEF(), YASL_UNDEF(), YASL_UNDEF(), YASL_UNDEF() };
 
 	// These will never be dereferenced in this test.
 	add_upvalue(&vm, &arr[0]);
