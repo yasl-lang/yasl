@@ -1675,7 +1675,6 @@ void vm_executenext(struct VM *const vm) {
 		break;
 	case O_USTORE:
 		offset = NCODE(vm);
-		inc_ref(&vm_peek(vm));
 		upval_set(vm, vm_peek(vm, vm->fp).value.lval->upvalues[offset], vm_pop(vm));
 		break;
 	case O_INIT_MC:
