@@ -18,6 +18,6 @@ if [[ ! -d /usr/local/include/yasl ]]; then
 fi
 
 # Copy the files to the appropriate locations
-cp yasl.h yasl_error.h yasl_aux.h yasl_conf.h /usr/local/include/yasl/
+cp src/yasl.h src/yasl_error.h src/yasl_aux.h src/yasl_conf.h /usr/local/include/yasl/
 cp libyaslapi.a /usr/local/lib/
 cp yasl /usr/local/bin/
