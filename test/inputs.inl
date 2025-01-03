@@ -229,6 +229,7 @@ static const char *inputs[] = {
   "test/inputs/closures/deep.yasl",
   "test/inputs/closures/deep_assign.yasl",
   "test/inputs/closures/simple.yasl",
+  "test/inputs/closures/location_open.yasl",
   "test/inputs/closures/deep_param.yasl",
   "test/inputs/closures/memoize.yasl",
   "test/inputs/closures/loop.yasl",
