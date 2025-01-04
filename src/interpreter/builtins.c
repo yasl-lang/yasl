@@ -1,13 +1,13 @@
 #include "builtins.h"
 
 #include "data-structures/YASL_String.h"
-#include "str_methods.h"
-#include "undef_methods.h"
-#include "float_methods.h"
-#include "int_methods.h"
-#include "bool_methods.h"
-#include "table_methods.h"
-#include "list_methods.h"
+#include "src/interpreter/methods/str_methods.h"
+#include "src/interpreter/methods/undef_methods.h"
+#include "src/interpreter/methods/float_methods.h"
+#include "src/interpreter/methods/int_methods.h"
+#include "src/interpreter/methods/bool_methods.h"
+#include "src/interpreter/methods/table_methods.h"
+#include "src/interpreter/methods/list_methods.h"
 #include "VM.h"
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define YASL_VERSION "v0.13.6"
+#define YASL_VERSION "v0.13.7"
 
 #define YASL_STR_NAME "str"
 #define YASL_FLOAT_NAME "float"
@@ -665,6 +665,13 @@ void YASL_setprinterr_tostr(struct YASL_State *S);
  * @param S the YASL_State
  */
 void YASL_stringifytop(struct YASL_State *S);
+
+/**
+ * [-0, +0]
+ * @param S the YASL_State
+ * @param format the new default format to use. Passing NULL will reset us to the default format.
+ */
+void YASL_setformat(struct YASL_State *S, const char *format);
 
 /**
  * [-1, +2]

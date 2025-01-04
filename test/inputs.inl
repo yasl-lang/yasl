@@ -227,6 +227,7 @@ static const char *inputs[] = {
   "test/inputs/closures/two.yasl",
   "test/inputs/closures/multi.yasl",
   "test/inputs/closures/deep.yasl",
+  "test/inputs/closures/location_closed.yasl",
   "test/inputs/closures/deep_assign.yasl",
   "test/inputs/closures/simple.yasl",
   "test/inputs/closures/location_open.yasl",
@@ -234,6 +235,5 @@ static const char *inputs[] = {
   "test/inputs/closures/memoize.yasl",
   "test/inputs/closures/loop.yasl",
   "test/inputs/closures/local.yasl",
-  "test/inputs/closures/location.yasl",
   "test/inputs/closures/assign.yasl",
 };

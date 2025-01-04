@@ -71,24 +71,24 @@ add_executable(yasl
         src/compiler/parser.c
         src/interpreter/upvalue.c
         src/interpreter/closure.c
-        src/interpreter/bool_methods.c
+        src/interpreter/methods/bool_methods.c
         src/interpreter/builtins.c
-        src/interpreter/float_methods.c
+        src/interpreter/methods/float_methods.c
         src/util/yasl_float.c
-        src/interpreter/int_methods.c
+        src/interpreter/methods/int_methods.c
         src/data-structures/YASL_List.c
-        src/interpreter/list_methods.c
-        src/interpreter/table_methods.c
+        src/interpreter/methods/list_methods.c
+        src/interpreter/methods/table_methods.c
         src/interpreter/VM.c
         src/interpreter/GC.c
         src/interpreter/YASL_Object.c
         src/interpreter/refcount.c
-        src/interpreter/str_methods.c
+        src/interpreter/methods/str_methods.c
         src/data-structures/LString.c
         src/data-structures/YASL_String.c
         src/data-structures/YASL_StringSet.c
         src/interpreter/userdata.c
-        src/interpreter/undef_methods.c
+        src/interpreter/methods/undef_methods.c
         src/std/yasl-std-io.c
         src/std/yasl-std-math.c
         src/std/yasl-std-require.c
@@ -123,26 +123,26 @@ add_library(yaslapi
         src/compiler/middleend.c
         src/util/hash_function.c
         src/data-structures/YASL_Table.c
-        src/interpreter/bool_methods.c
+        src/interpreter/methods/bool_methods.c
         src/interpreter/builtins.c
-        src/interpreter/float_methods.c
+        src/interpreter/methods/float_methods.c
         src/interpreter/upvalue.c
         src/interpreter/closure.c
         src/util/yasl_float.c
-        src/interpreter/int_methods.c
+        src/interpreter/methods/int_methods.c
         src/data-structures/YASL_List.c
         src/data-structures/LString.c
         src/data-structures/YASL_StringSet.c
-        src/interpreter/list_methods.c
-        src/interpreter/table_methods.c
+        src/interpreter/methods/list_methods.c
+        src/interpreter/methods/table_methods.c
         src/interpreter/VM.c
         src/interpreter/GC.c
         src/interpreter/YASL_Object.c
         src/interpreter/refcount.c
-        src/interpreter/str_methods.c
+        src/interpreter/methods/str_methods.c
         src/data-structures/YASL_String.c
         src/interpreter/userdata.c
-        src/interpreter/undef_methods.c
+        src/interpreter/methods/undef_methods.c
         src/util/prime.c
         src/util/IO.c
         src/util/varint.c

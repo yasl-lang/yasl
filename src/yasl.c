@@ -5,7 +5,7 @@
 
 #include "compiler/compiler.h"
 #include "compiler/lexinput.h"
-#include "interpreter/table_methods.h"
+#include "src/interpreter/methods/table_methods.h"
 #include "interpreter/userdata.h"
 #include "interpreter/VM.h"
 #include "interpreter/YASL_Object.h"
@@ -366,6 +366,10 @@ int YASL_duptop(struct YASL_State *S) {
 
 void YASL_stringifytop(struct YASL_State *S) {
 	vm_stringify_top(&S->vm);
+}
+
+void YASL_setformat(struct YASL_State *S, const char *format) {
+	vm_setformat(&S->vm, format);
 }
 
 bool YASL_tablenext(struct YASL_State *S) {

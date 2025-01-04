@@ -100,7 +100,7 @@ struct VM {
 	struct YASL_Table *globals;   // global variables
 	struct YASL_Object *constants;
 	struct YASL_StringSet *interned_strings;
-	struct YASL_Object *format_str;
+	struct YASL_String *format_str;
 	int64_t num_constants;
 	struct YASL_Object *stack;    // stack
 	struct CallFrame frames[NUM_FRAMES];
@@ -141,6 +141,7 @@ YASL_NORETURN void vm_throw_err(struct VM *const vm, int error);
 struct RC_UserData *obj_get_metatable(const struct VM *const vm, struct YASL_Object v);
 void vm_get_metatable(struct VM *const vm);
 int vm_lookup_method_helper(struct VM *vm, struct YASL_Table *mt, struct YASL_Object index);
+void vm_setformat(struct VM *const vm, const char *format);
 void vm_stringify_top(struct VM *const vm);
 void vm_stringify_top_format(struct VM *const vm, struct YASL_Object *format);
 void vm_EQ(struct VM *const vm);

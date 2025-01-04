@@ -6,7 +6,7 @@
 #include "yasl.h"
 #include "yasl_aux.h"
 #include "yasl_include.h"
-#include "yasl_types.h"
+#include "src/interpreter/yasl_types.h"
 #include "yasl_state.h"
 
 #undef min

@@ -106,6 +106,16 @@ static int YASL_io_tmpfile(struct YASL_State *S) {
 	return 1;
 }
 
+static int YASL_io_setformat(struct YASL_State *S) {
+	if (!YASL_isstr(S) && !YASL_isundef(S)) {
+		YASLX_throw_err_type(S);
+	}
+	char *tmp = YASL_peekcstr(S);
+	YASL_setformat(S, tmp);
+	free(tmp);
+	return 0;
+}
+
 static int YASL_io_read(struct YASL_State *S) {
 	char mode_str[2] = { '\0', '\0' };
 
@@ -258,6 +268,10 @@ int YASL_decllib_io(struct YASL_State *S) {
 
 	YASL_pushlit(S, "tmpfile");
 	YASL_pushcfunction(S, YASL_io_tmpfile, 0);
+	YASL_tableset(S);
+
+	YASL_pushlit(S, "setformat");
+	YASL_pushcfunction(S, YASL_io_setformat, 1);
 	YASL_tableset(S);
 
 	YASL_pushlit(S, "stdin");

@@ -12,9 +12,9 @@
 #include "interpreter/refcount.h"
 
 #include "util/varint.h"
-#include "interpreter/table_methods.h"
-#include "interpreter/list_methods.h"
-#include "interpreter/str_methods.h"
+#include "interpreter/methods/table_methods.h"
+#include "interpreter/methods/list_methods.h"
+#include "interpreter/methods/str_methods.h"
 #include "yasl_state.h"
 #include "yasl_error.h"
 #include "yasl_include.h"
@@ -77,6 +77,9 @@ void vm_close_all(struct VM *const vm);
 void vm_cleanup(struct VM *const vm) {
 	// If we've exited early somehow, without closing over some upvalues, we need to do that first.
 	vm_close_all(vm);
+
+	if (vm->format_str)
+		vm->format_str->rc.refs--;
 
 	// Exit out of all loops (in case we're exiting with an error).
 	while (vm->loopframe_num >= 0) {
@@ -562,6 +565,25 @@ DEFINE_COMP(GT, ">", "__gt")
 DEFINE_COMP(GE, ">=", "__ge")
 DEFINE_COMP(LT, "<", "__lt")
 DEFINE_COMP(LE, "<=", "__le")
+
+void vm_setformat(struct VM *const vm, const char *format) {
+	/* We manually increment and decrement the refs here so that if the format
+	 * str is the only remaining reference to that particular string, we do not
+	 * free it.
+	 */
+	if (vm->format_str)
+		vm->format_str->rc.refs--;
+	if (format != NULL) {
+		vm->format_str = YASL_String_new_copyz(vm, format);
+		vm->format_str->rc.refs++;
+	} else {
+		vm->format_str = NULL;
+	}
+}
+
+struct YASL_Object vm_getformat(struct VM *const vm) {
+	return vm->format_str ? YASL_STR(vm->format_str) : YASL_UNDEF();
+}
 
 void vm_stringify_top(struct VM *const vm) {
 	vm_stringify_top_format(vm, NULL);
@@ -1342,7 +1364,8 @@ static void vm_ECHO(struct VM *const vm) {
 	size_t tmp = 0;
 	for (int i = vm->fp + 1 + top; i <= vm->sp; i++) {
 		vm_push(vm, vm_peek(vm, i));
-		vm_stringify_top_format(vm, vm->format_str);
+		struct YASL_Object fmt = vm_getformat(vm);
+		vm_stringify_top_format(vm, fmt.type == Y_UNDEF ? NULL : &fmt);
 		tmp += YASL_String_len(vm_peekstr(vm)) + 2;
 		inc_ref(vm_peek_p(vm));
 		dec_ref(vm_peek_p(vm, i));
