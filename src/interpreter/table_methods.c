@@ -40,19 +40,19 @@ int table___eq(struct YASL_State *S) {
 	}
 
 	FOR_TABLE(i, item, left) {
-			struct YASL_Object search = YASL_Table_search(right, item->key);
-			if (search.type == Y_END) {
-				YASL_pushbool(S, false);
-				return 1;
-			}
-			vm_push((struct VM *) S, item->value);
-			vm_push((struct VM *) S, search);
-			vm_EQ((struct VM *) S);
-			if (!YASL_popbool(S)) {
-				YASL_pushbool(S, false);
-				return 1;
-			}
+		struct YASL_Object search = YASL_Table_search(right, item->key);
+		if (search.type == Y_END) {
+			YASL_pushbool(S, false);
+			return 1;
 		}
+		vm_push((struct VM *) S, item->value);
+		vm_push((struct VM *) S, search);
+		vm_EQ((struct VM *) S);
+		if (!YASL_popbool(S)) {
+			YASL_pushbool(S, false);
+			return 1;
+		}
+	}
 
 	YASL_pushbool(S, true);
 	return 1;
@@ -241,10 +241,7 @@ int table_values(struct YASL_State *S) {
 
 int table_remove(struct YASL_State *S) {
 	struct YASL_Object key = vm_pop((struct VM *) S);
-	if (!YASL_istable(S)) {
-		YASLX_print_and_throw_err_bad_arg_type_n(S, "table.remove", 0, YASL_TABLE_NAME);
-	}
-	struct YASL_Table *ht = YASL_GETTABLE(vm_peek((struct VM *) S));
+	struct YASL_Table *ht = YASLX_checkntable(S, "table.remove", 0);
 
 	YASL_Table_rm(ht, key);
 	return 1;
@@ -264,10 +261,8 @@ int table_copy(struct YASL_State *S) {
 }
 
 int table_clear(struct YASL_State *S) {
-	if (!YASL_istable(S)) {
-		YASLX_print_and_throw_err_bad_arg_type_n(S, "table.clear", 0, YASL_TABLE_NAME);
-	}
-	struct YASL_Table *ht = YASL_GETTABLE(vm_peek((struct VM *) S));
+	struct YASL_Table *ht = YASLX_checkntable(S, "table.clear", 0);
+
 	inc_ref(&vm_peek((struct VM *) S));
 	FOR_TABLE(i, item, ht) {
 		del_item(item);
@@ -278,7 +273,6 @@ int table_clear(struct YASL_State *S) {
 	free(ht->items);
 	ht->items = (struct YASL_Table_Item *) calloc((size_t) ht->size, sizeof(struct YASL_Table_Item));
 	vm_dec_ref(&S->vm, &vm_peek((struct VM *) S));
-	YASL_pop(S);
 
 	return 0;
 }
