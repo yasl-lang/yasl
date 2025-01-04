@@ -246,7 +246,7 @@ int YASL_decllib_io(struct YASL_State *S) {
 
 	YASL_loadmt(S, FILE_NAME);
 
-	struct YASLX_function functions[] = {
+	struct YASLX_function file_functions[] = {
 		{ "read", YASL_io_read, 2 },
 		{ "write", YASL_io_write, 2 },
 		{ "seek", YASL_io_seek, 3 },
@@ -255,7 +255,7 @@ int YASL_decllib_io(struct YASL_State *S) {
 		{ NULL, NULL, 0 }
 	};
 
-	YASLX_tablesetfunctions(S, functions);
+	YASLX_tablesetfunctions(S, file_functions);
 	YASL_pop(S);
 
 	YASL_pushtable(S);
