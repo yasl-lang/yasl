@@ -174,6 +174,7 @@ static const char *inputs[] = {
   "test/inputs/std/collections/table.yasl",
   "test/inputs/std/collections/set_comp.yasl",
   "test/inputs/std/collections/list.yasl",
+  "test/inputs/std/io_setformat.yasl",
   "test/inputs/std/io.yasl",
   "test/inputs/std/math/min-max.yasl",
   "test/inputs/std/math/math.yasl",
