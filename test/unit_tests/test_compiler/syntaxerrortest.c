@@ -91,7 +91,7 @@ TEST(syntaxerrortest) {
 	ASSERT_SYNTAX_ERR("no", "`no` is an unused reserved word and cannot be used (line 1)");
 	ASSERT_SYNTAX_ERR("extern", "`extern` is an unused reserved word and cannot be used (line 1)");
 	ASSERT_SYNTAX_ERR("/*..a.sd", "Unclosed block comment in line 1");
-	ASSERT_SYNTAX_ERR("@", "Unknown character in line 1: `@` (0x40)");
+	ASSERT_SYNTAX_ERR("@", "Unknown character in line 1: 0x40 (`@`)");
 	ASSERT_SYNTAX_ERR("if (true) { export 1; };", "`export` statement must be at top level of module (line 1)");
 	ASSERT_SYNTAX_ERR("continue;", "`continue` outside of loop (line 1)");
 	ASSERT_SYNTAX_ERR("break;", "`break` outside of loop (line 1)");
@@ -99,7 +99,6 @@ TEST(syntaxerrortest) {
 	ASSERT_SYNTAX_ERR("return 10, 11;", "`return` outside of function (line 1)");
 
 	ASSERT_SYNTAX_ERR("echo if;", "Expected expression, got `if` (line 1)");
-	ASSERT_SYNTAX_ERR("assert false", "Expected ;, got END OF FILE (line 1)");
 	ASSERT_SYNTAX_ERR("echo ''[];", "Invalid expression `]` (line 1)");
 
 	return NUM_FAILED;

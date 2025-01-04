@@ -1,1 +1,0 @@
-TypeError: bool.tostr expected arg in position 0 to be of type bool, got arg of type int. (line 2)

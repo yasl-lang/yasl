@@ -1,0 +1,14 @@
+let a = "initial";
+
+fn main() {
+    fn set() { a = "updated"; }
+    fn get() { echo a; }
+
+    return { .set: set, .get: get }
+}
+
+let tmp = main();
+tmp.get()
+tmp.set()
+tmp.get()
+

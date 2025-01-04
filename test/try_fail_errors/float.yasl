@@ -1,0 +1,4 @@
+echo mt.lookup(0.0, .tobool)(1)
+echo mt.lookup(0.0, .tofloat)(1)
+echo mt.lookup(0.0, .toint)(1)
+echo mt.lookup(0.0, .tostr)(1)

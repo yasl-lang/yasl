@@ -1,0 +1,1 @@
+This directory covers all YASL-specific code that is used in both //compiler and //interpreter.

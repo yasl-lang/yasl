@@ -1,1 +1,0 @@
-echo mt.lookup(0, .tofloat)(1.0)

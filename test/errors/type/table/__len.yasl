@@ -1,1 +1,0 @@
-echo mt.lookup({}, .__len)(1)

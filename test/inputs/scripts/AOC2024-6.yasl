@@ -1,0 +1,87 @@
+let input = `
+....#.....
+.........#
+..........
+..#.......
+.......#..
+..........
+.#..^.....
+........#.
+#.........
+......#...
+`->trim()
+
+input = input->split('\n')
+input = ['.'->rep(len input[0])] + input + ['.'->rep(len input[0])]
+input = [ ".#{line}."->tolist() for line in input ]
+# echo input
+
+const fn find(input) {
+    for let j = 1; j < len input - 1; j += 1 {
+        for let i = 1; i < len input[j] - 1; i += 1 {
+            match input[i][j] {
+            '^' | '>' | '<' | 'v' {
+                return i, j
+            }
+            }
+        }
+    }
+}
+
+const fn get_dir(c) {
+    match c {
+    '<' {
+        return 0, -1
+    }
+    '^' {
+        return -1, 0
+    }
+    'v' {
+        return 1, 0
+    }
+    '>' {
+        return 0, 1
+    }
+    }
+}
+
+const fn update_dir(c) {
+    match c {
+    '>' {
+        return 'v'
+    }
+    'v' {
+        return '<'
+    }
+    '<' {
+        return '^'
+    }
+    '^' {
+        return '>'
+    }
+    }
+}
+
+let tmp = 0
+try(fn() {
+    let i, let j = find(input)
+    let char = input[i][j]
+    let x, let y = get_dir(input[i][j])
+    while true {
+        const char = input[i][j]
+        input[i][j] = 'X'
+        x, y = get_dir((char))
+        while input[i+x][j+y] != '#' {
+            i += x
+            j += y
+            input[i][j] = 'X'
+        }
+        input[i][j] = update_dir(char)
+    }
+})
+
+tmp = 0
+for line in input {
+    tmp += line->join()->count('X')
+}
+echo tmp - 1

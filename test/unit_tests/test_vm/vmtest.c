@@ -275,13 +275,14 @@ static TEST(testinsertbottom) {
 static TEST(testaddupvalue) {
 	struct VM vm;
 	vm_init(&vm, NULL, 0, 1);
+	struct YASL_Object arr[5] = { YASL_UNDEF(), YASL_UNDEF(), YASL_UNDEF(), YASL_UNDEF(), YASL_UNDEF() };
 
 	// These will never be dereferenced in this test.
-	add_upvalue(&vm, (struct YASL_Object *)(0x100));
-	add_upvalue(&vm, (struct YASL_Object *)(0x300));
-	add_upvalue(&vm, (struct YASL_Object *)(0x400));
-	add_upvalue(&vm, (struct YASL_Object *)(0x200));
-	add_upvalue(&vm, (struct YASL_Object *)(0x500));
+	add_upvalue(&vm, &arr[0]);
+	add_upvalue(&vm, &arr[1]);
+	add_upvalue(&vm, &arr[2]);
+	add_upvalue(&vm, &arr[3]);
+	add_upvalue(&vm, &arr[4]);
 
 	for (struct Upvalue *curr = vm.pending; curr; curr = curr->next) {
 		ASSERT(!curr->next || curr->location > curr->next->location);

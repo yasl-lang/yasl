@@ -1,0 +1,4 @@
+echo ^'str'
+echo len true
+echo -true
+echo +true

@@ -4,6 +4,7 @@
 #include "test/unit_tests/test_methods/methodtest.h"
 #include "test/unit_tests/test_api/apitest.h"
 #include "test/unit_tests/test_vm/vmtest.h"
+#include "test/unit_tests/test_gc/gctest.h"
 #include "test/unit_tests/test_env/envtest.h"
 #include "test/unit_tests/test_util/utiltest.h"
 
@@ -15,6 +16,7 @@ int unit_tests(void) {
 	failed += collectiontest();
 	failed += methodtest();
 	failed += vmtest();
+	failed += gctest();
 	failed += envtest();
 	failed += utiltest();
 	return failed;
