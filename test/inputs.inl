@@ -50,6 +50,7 @@ static const char *inputs[] = {
   "test/inputs/builtin-types/str/__get.yasl",
   "test/inputs/builtin-types/str/tostr.yasl",
   "test/inputs/builtin-types/str/is.yasl",
+  "test/inputs/builtin-types/str/partition.yasl",
   "test/inputs/builtin-types/str/trim.yasl",
   "test/inputs/builtin-types/str/concat.yasl",
   "test/inputs/builtin-types/str/search.yasl",

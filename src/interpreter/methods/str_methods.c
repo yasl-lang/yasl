@@ -318,6 +318,29 @@ int str_count(struct YASL_State *S) {
 	return 1;
 }
 
+int str_partition(struct YASL_State *S) {
+	struct YASL_String *haystack = checkstr(S, "str.partition", 0);
+	struct YASL_String *needle = checkstr(S, "str.partition", 1);
+	if (YASL_String_len(needle) == 0) {
+		YASLX_print_and_throw_err_value(S, "str.split expected a non-empty str as arg 1.");
+	}
+
+	int64_t index = str_find_index(haystack, needle, 0);
+	if (index == -1) {
+		YASL_pushundef(S);
+		YASL_pushundef(S);
+		return 2;
+	}
+
+	struct YASL_Object before = YASL_STR(YASL_String_new_substring(&S->vm, haystack, 0, index));
+	struct YASL_Object after = YASL_STR(YASL_String_new_substring(&S->vm, haystack,
+								      index + YASL_String_len(needle),
+								      YASL_String_len(haystack)));
+	vm_push(&S->vm, before);
+	vm_push(&S->vm, after);
+	return 2;
+}
+
 static void str_split_max(struct YASL_State *S, struct YASL_String *haystack, yasl_int max_splits) {
 	struct VM *vm = (struct VM *)S;
 	struct YASL_String *needle = checkstr(S, "str.split", 1);

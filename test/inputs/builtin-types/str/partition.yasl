@@ -1,0 +1,10 @@
+
+
+io.setformat('r')
+
+echo 'abc::def'->partition('::')
+echo 'abc de'->partition(' ')
+echo ':abc:def'->partition(':')
+echo ':abc:def;'->partition(';')
+echo 'abc def'->partition('z')
+

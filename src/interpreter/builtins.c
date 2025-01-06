@@ -89,6 +89,7 @@ struct YASL_Table* str_builtins(struct VM *vm) {
 	table_insert_str_cfunction(vm, table, "search", &str_search, 3);
 	table_insert_str_cfunction(vm, table, "count", &str_count, 2);
 	table_insert_str_cfunction(vm, table, "split", &str_split, 3);
+	table_insert_str_cfunction(vm, table, "partition", &str_partition, 2);
 	table_insert_str_cfunction(vm, table, "ltrim", &str_ltrim, 2);
 	table_insert_str_cfunction(vm, table, "rtrim", &str_rtrim, 2);
 	table_insert_str_cfunction(vm, table, "trim", &str_trim, 2);

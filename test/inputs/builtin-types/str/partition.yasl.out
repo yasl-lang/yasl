@@ -1,0 +1,5 @@
+'abc', 'def'
+'abc', 'de'
+'', 'abc:def'
+':abc:def', ''
+undef, undef
