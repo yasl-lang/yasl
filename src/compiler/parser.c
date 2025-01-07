@@ -1278,6 +1278,8 @@ static struct Node *parse_string(struct Parser *const parser) {
 			expr = new_MethodCall(parser, block, expr, tostr, 1, line);
 		}
 
+		lex_eatwhitespace(&parser->lex);
+
 		cur_node = new_BinOp(parser, T_TILDE, cur_node, expr, line);
 
 		parser->lex.mode = L_INTERP;
