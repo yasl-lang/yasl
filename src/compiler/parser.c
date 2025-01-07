@@ -267,6 +267,12 @@ static struct Node *parse_program(struct Parser *const parser) {
 	size_t line = parserline(parser);
 	switch (curtok(parser)) {
 	case T_ECHO: {
+		if (!parser->allow_echo) {
+			parser_print_err_syntax(parser,
+						"`echo` is disabled (line %" PRI_SIZET ").\n",
+						line);
+			handle_error(parser);
+		}
 		eattok(parser, T_ECHO);
 		struct Node *body = new_Exprs(parser, parserline(parser));
 		parse_exprs_or_vargs(parser, &body);

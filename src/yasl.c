@@ -156,6 +156,10 @@ int YASL_execute_REPL(struct YASL_State *S) {
 	return vm_run((struct VM *)S);  // TODO: error handling for runtime errors.
 }
 
+void YASL_allowecho(struct YASL_State *S, bool allow_echo) {
+	S->compiler.parser.allow_echo = allow_echo;
+}
+
 int YASL_compile(struct YASL_State *S) {
 	compile(&S->compiler);
 	return S->compiler.status;

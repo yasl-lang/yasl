@@ -26,6 +26,14 @@ typedef int (*YASL_cfn)(struct YASL_State *);
 
 /**
  * [-0, +0]
+ * Toggles whether or not `echo` statements are allowed or not.
+ * @param S the YASL_State
+ * @param allow_echo true to enable `echo`, false to disable.
+ */
+void YASL_allowecho(struct YASL_State *S, bool allow_echo);
+
+/**
+ * [-0, +0]
  * compiles the source for the given YASL_State, but doesn't
  * run it.
  * @param S the YASL_State containing the YASL source code to be compiled.
