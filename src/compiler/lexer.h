@@ -17,6 +17,9 @@
         .file = (f),\
         .c = 0,\
         .type = T_UNKNOWN,\
+	.par_count = 0,\
+	.brc_count = 0,\
+	.sqb_count = 0,\
         .buffer = (YASL_ByteBuffer) {\
                 .size = 0,\
                 .count = 0,\
@@ -57,6 +60,7 @@ struct Lexer {
 	struct LEXINPUT *file;   // OWN
 	int c;                   // current character
 	enum Token type;         // type of current token
+	int par_count, brc_count, sqb_count;
 	YASL_ByteBuffer buffer;
 	size_t line;
 	int status;
