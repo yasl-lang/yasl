@@ -321,6 +321,7 @@ static yasl_int vm_read_int(struct VM *const vm) {
     return val;
 }
 
+// static void vm_dup(struct VM *const vm, int source);
 static void vm_duptop(struct VM *const vm);
 static void vm_swaptop(struct VM *const vm);
 int vm_lookup_method_helper(struct VM *vm, struct YASL_Table *mt, struct YASL_Object index);
@@ -344,7 +345,7 @@ void vm_CALL_now(struct VM *const vm);
 	}\
 } while (0)
 
-#define vm_call_method_now_1_top(vm, target, method_name, ...) do {\
+#define vm_call_method_now_1_top(vm, target, source, method_name, ...) do {\
 	vm_duptop(vm);\
 	vm_lookup_method_throwing(vm, method_name, __VA_ARGS__, vm_peektypename(vm));\
 	vm_swaptop(vm);\
@@ -484,33 +485,29 @@ INT_UNOP(bnot, ~)
 NUM_UNOP(neg, -)
 NUM_UNOP(pos, +)
 
-static void vm_int_unop(struct VM *const vm, int target, yasl_int (*op)(yasl_int), const char *opstr, const char *overload_name) {
-	YASL_UNUSED(target);
-	if (vm_isint(vm)) {
-		// vm->stack[target] = YASL_INT(op(vm_popint(vm)));
-		vm_pushint(vm, op(vm_popint(vm)));
+static void vm_int_unop(struct VM *const vm, int target, int source, yasl_int (*op)(yasl_int), const char *opstr, const char *overload_name) {
+	if (vm_isint(vm, source)) {
+		vm->stack[target] = YASL_INT(op(vm_peekint(vm, source)));
 		return;
 	} else {
-		vm_call_method_now_1_top(vm, target, overload_name, "%s not supported for operand of type %s.", opstr);
+		vm_call_method_now_1_top(vm, target, source, overload_name, "%s not supported for operand of type %s.", opstr);
 	}
 }
 
-static void vm_num_unop(struct VM *const vm, int target, yasl_int (*int_op)(yasl_int), yasl_float (*float_op)(yasl_float), const char *opstr, const char *overload_name) {
-	YASL_UNUSED(target);
-	if (vm_isint(vm)) {
-		// vm->stack[target] = YASL_INT(int_op(vm_popint(vm)));
-		vm_pushint(vm, int_op(vm_popint(vm)));
-	} else if (vm_isfloat(vm)) {
-		// vm->stack[target] = YASL_FLOAT(float_op(vm_popfloat(vm)));
-		vm_pushfloat(vm, float_op(vm_popfloat(vm)));
+static void vm_num_unop(struct VM *const vm, int target, int source, yasl_int (*int_op)(yasl_int), yasl_float (*float_op)(yasl_float), const char *opstr, const char *overload_name) {
+	if (vm_isint(vm, source)) {
+		vm->stack[target] = YASL_INT(int_op(vm_peekint(vm, source)));
+	} else if (vm_isfloat(vm, source)) {
+		vm->stack[target] = YASL_FLOAT(float_op(vm_peekfloat(vm, source)));
 	} else {
-		vm_call_method_now_1_top(vm, target, overload_name, "%s not supported for operand of type %s.", opstr);
+		vm_call_method_now_1_top(vm, target, source, overload_name, "%s not supported for operand of type %s.", opstr);
 	}
 }
 
-void vm_len_unop(struct VM *const vm, int target) {
+void vm_len_unop(struct VM *const vm, int target, int source) {
 	YASL_UNUSED(target);
-	vm_call_method_now_1_top(vm, target, "__len", "len not supported for operand of type %s.");
+	YASL_UNUSED(source);
+	vm_call_method_now_1_top(vm, target, source, "__len", "len not supported for operand of type %s.");
 }
 
 void vm_EQ(struct VM *const vm) {
@@ -1217,6 +1214,12 @@ static void vm_INIT_CALL(struct VM *const vm, int expected_returns) {
 	vm_INIT_CALL_offset(vm, vm->sp, expected_returns);
 }
 
+/*
+static void vm_dup(struct VM *const vm, int source) {
+	vm_push(vm, vm_peek(vm, source));
+}
+*/
+
 static void vm_duptop(struct VM *const vm) {
 	vm_push(vm, vm_peek(vm));
 }
@@ -1489,7 +1492,7 @@ void vm_executenext(struct VM *const vm) {
 #else
 		const int target = vm->sp;
 #endif
-		vm_int_unop(vm, target, &bnot, "^", OP_UN_CARET);
+		vm_int_unop(vm, target, target, &bnot, "^", OP_UN_CARET);
 		break;
 	}
 	case O_BSL:
@@ -1534,7 +1537,7 @@ void vm_executenext(struct VM *const vm) {
 #else
 		const int target = vm->sp;
 #endif
-		vm_num_unop(vm, target, &int_neg, &float_neg, "-", OP_UN_MINUS);
+		vm_num_unop(vm, target, target, &int_neg, &float_neg, "-", OP_UN_MINUS);
 		break;
 	}
 	case O_POS: {
@@ -1543,7 +1546,7 @@ void vm_executenext(struct VM *const vm) {
 #else
 		const int target = vm->sp;
 #endif
-		vm_num_unop(vm, target, &int_pos, &float_pos, "+", OP_UN_PLUS);
+		vm_num_unop(vm, target, target, &int_pos, &float_pos, "+", OP_UN_PLUS);
 		break;
 	}
 	case O_NOT:
@@ -1558,7 +1561,7 @@ void vm_executenext(struct VM *const vm) {
 #else
 		const int target = vm->sp;
 #endif
-		vm_len_unop(vm, target);
+		vm_len_unop(vm, target, target);
 		break;
 	}
 	case O_CNCT:
