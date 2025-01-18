@@ -12,6 +12,7 @@
 #include "interpreter/refcount.h"
 
 #include "util/varint.h"
+#include "common/migrations.h"
 #include "interpreter/methods/table_methods.h"
 #include "interpreter/methods/list_methods.h"
 #include "interpreter/methods/str_methods.h"
@@ -343,7 +344,7 @@ void vm_CALL_now(struct VM *const vm);
 	}\
 } while (0)
 
-#define vm_call_method_now_1_top(vm, method_name, ...) do {\
+#define vm_call_method_now_1_top(vm, target, method_name, ...) do {\
 	vm_duptop(vm);\
 	vm_lookup_method_throwing(vm, method_name, __VA_ARGS__, vm_peektypename(vm));\
 	vm_swaptop(vm);\
@@ -483,27 +484,33 @@ INT_UNOP(bnot, ~)
 NUM_UNOP(neg, -)
 NUM_UNOP(pos, +)
 
-static void vm_int_unop(struct VM *const vm, yasl_int (*op)(yasl_int), const char *opstr, const char *overload_name) {
+static void vm_int_unop(struct VM *const vm, int target, yasl_int (*op)(yasl_int), const char *opstr, const char *overload_name) {
+	YASL_UNUSED(target);
 	if (vm_isint(vm)) {
+		// vm->stack[target] = YASL_INT(op(vm_popint(vm)));
 		vm_pushint(vm, op(vm_popint(vm)));
 		return;
 	} else {
-		vm_call_method_now_1_top(vm, overload_name, "%s not supported for operand of type %s.", opstr);
+		vm_call_method_now_1_top(vm, target, overload_name, "%s not supported for operand of type %s.", opstr);
 	}
 }
 
-static void vm_num_unop(struct VM *const vm, yasl_int (*int_op)(yasl_int), yasl_float (*float_op)(yasl_float), const char *opstr, const char *overload_name) {
+static void vm_num_unop(struct VM *const vm, int target, yasl_int (*int_op)(yasl_int), yasl_float (*float_op)(yasl_float), const char *opstr, const char *overload_name) {
+	YASL_UNUSED(target);
 	if (vm_isint(vm)) {
+		// vm->stack[target] = YASL_INT(int_op(vm_popint(vm)));
 		vm_pushint(vm, int_op(vm_popint(vm)));
 	} else if (vm_isfloat(vm)) {
+		// vm->stack[target] = YASL_FLOAT(float_op(vm_popfloat(vm)));
 		vm_pushfloat(vm, float_op(vm_popfloat(vm)));
 	} else {
-		vm_call_method_now_1_top(vm, overload_name, "%s not supported for operand of type %s.", opstr);
+		vm_call_method_now_1_top(vm, target, overload_name, "%s not supported for operand of type %s.", opstr);
 	}
 }
 
-void vm_len_unop(struct VM *const vm) {
-	vm_call_method_now_1_top(vm, "__len", "len not supported for operand of type %s.");
+void vm_len_unop(struct VM *const vm, int target) {
+	YASL_UNUSED(target);
+	vm_call_method_now_1_top(vm, target, "__len", "len not supported for operand of type %s.");
 }
 
 void vm_EQ(struct VM *const vm) {
@@ -1476,9 +1483,15 @@ void vm_executenext(struct VM *const vm) {
 	case O_BANDNOT:
 		vm_int_binop(vm, &bandnot, "&^", OP_BIN_AMPCARET);
 		break;
-	case O_BNOT:
-		vm_int_unop(vm, &bnot, "^", OP_UN_CARET);
+	case O_BNOT: {
+#if YASL_REGISTER_MIGRATION == 1
+		const int target = NCODE(vm);
+#else
+		const int target = vm->sp;
+#endif
+		vm_int_unop(vm, target, &bnot, "^", OP_UN_CARET);
 		break;
+	}
 	case O_BSL:
 		vm_int_binop(vm, &shift_left, "<<", OP_BIN_SHL);
 		break;
@@ -1515,18 +1528,39 @@ void vm_executenext(struct VM *const vm) {
 	case O_EXP:
 		vm_pow(vm);
 		break;
-	case O_NEG:
-		vm_num_unop(vm, &int_neg, &float_neg, "-", OP_UN_MINUS);
+	case O_NEG: {
+#if YASL_REGISTER_MIGRATION == 1
+		const int target = NCODE(vm);
+#else
+		const int target = vm->sp;
+#endif
+		vm_num_unop(vm, target, &int_neg, &float_neg, "-", OP_UN_MINUS);
 		break;
-	case O_POS:
-		vm_num_unop(vm, &int_pos, &float_pos, "+", OP_UN_PLUS);
+	}
+	case O_POS: {
+#if YASL_REGISTER_MIGRATION == 1
+		const int target = NCODE(vm);
+#else
+		const int target = vm->sp;
+#endif
+		vm_num_unop(vm, target, &int_pos, &float_pos, "+", OP_UN_PLUS);
 		break;
+	}
 	case O_NOT:
+#if YASL_REGISTER_MIGRATION == 1
+		(void)NCODE(vm);
+#endif
 		vm_pushbool(vm, isfalsey(vm_pop_p(vm)));
 		break;
-	case O_LEN:
-		vm_len_unop(vm);
+	case O_LEN: {
+#if YASL_REGISTER_MIGRATION == 1
+		const int target = NCODE(vm);
+#else
+		const int target = vm->sp;
+#endif
+		vm_len_unop(vm, target);
 		break;
+	}
 	case O_CNCT:
 		vm_CNCT(vm);
 		break;

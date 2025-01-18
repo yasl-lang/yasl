@@ -7,6 +7,7 @@
 #include "YASL_Object.h"
 #include "ast.h"
 #include "data-structures/YASL_String.h"
+#include "common/migrations.h"
 #include "lexinput.h"
 #include "opcode.h"
 #include "yasl_error.h"
@@ -1293,10 +1294,18 @@ static int visit_BinOp(struct Compiler *const compiler, const struct Node *const
 	case T_BANGEQ:
 		compiler_add_byte(compiler, O_EQ);
 		compiler_add_byte(compiler, O_NOT);
+#if YASL_REGISTER_MIGRATION == 1
+		compiler_add_byte(compiler, (unsigned char)target);
+#endif
+
 		break;
 	case T_BANGDEQ:
 		compiler_add_byte(compiler, O_ID);
 		compiler_add_byte(compiler, O_NOT);
+#if YASL_REGISTER_MIGRATION == 1
+		compiler_add_byte(compiler, (unsigned char)target);
+#endif
+
 		break;
 	case T_GT:
 		compiler_add_byte(compiler, O_GT);
@@ -1371,6 +1380,9 @@ static int visit_UnOp(struct Compiler *const compiler, const struct Node *const 
 		YASL_UNREACHED();
 		break;
 	}
+#if YASL_REGISTER_MIGRATION == 1
+	compiler_add_byte(compiler, (unsigned char)target);
+#endif
 
 	return num_temps + 1;
 }
