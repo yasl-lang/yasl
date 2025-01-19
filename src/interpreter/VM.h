@@ -139,6 +139,7 @@ void vm_print_err(struct VM *vm, const char *const fmt, ...);
 YASL_NORETURN void vm_throw_err(struct VM *const vm, int error);
 
 struct RC_UserData *obj_get_metatable(const struct VM *const vm, struct YASL_Object v);
+struct YASL_Object vm_get_metatable_index(struct VM *const vm, int source);
 void vm_get_metatable(struct VM *const vm);
 int vm_lookup_method_helper(struct VM *vm, struct YASL_Table *mt, struct YASL_Object index);
 void vm_setformat(struct VM *const vm, const char *format);

@@ -331,6 +331,17 @@ void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns);
 void vm_CALL(struct VM *const vm);
 void vm_CALL_now(struct VM *const vm);
 
+#define vm_lookup_method_throwing_source(vm, source, method_name, err_str, ...) do {\
+	struct YASL_Object index = YASL_STR(YASL_String_new_copy(vm, method_name, strlen(method_name)));\
+	struct YASL_Object maybe_mt = vm_get_metatable_index(vm, source);\
+	struct YASL_Table *mt = obj_istable(&maybe_mt) ? YASL_GETTABLE(maybe_mt) : NULL;\
+	int result = vm_lookup_method_helper(vm, mt, index);\
+	if (result) {\
+		vm_print_err_type(vm, err_str, __VA_ARGS__);\
+		vm_throw_err(vm, YASL_TYPE_ERROR);\
+	}\
+} while (0)
+
 #define vm_lookup_method_throwing(vm, method_name, err_str, ...) do {\
 	struct YASL_Object index = YASL_STR(YASL_String_new_copy(vm, method_name, strlen(method_name)));\
 	vm_get_metatable(vm);\
@@ -346,8 +357,7 @@ void vm_CALL_now(struct VM *const vm);
 } while (0)
 
 #define vm_call_method_now_1_top(vm, target, source, method_name, ...) do {\
-	vm_duptop(vm);\
-	vm_lookup_method_throwing(vm, method_name, __VA_ARGS__, vm_peektypename(vm));\
+	vm_lookup_method_throwing_source(vm, source, method_name, __VA_ARGS__, vm_peektypename(vm, source));\
 	vm_swaptop(vm);\
 	vm_INIT_CALL_offset(vm, vm->sp - 1, 1);\
 	vm_CALL(vm);\
@@ -506,7 +516,6 @@ static void vm_num_unop(struct VM *const vm, int target, int source, yasl_int (*
 
 void vm_len_unop(struct VM *const vm, int target, int source) {
 	YASL_UNUSED(target);
-	YASL_UNUSED(source);
 	vm_call_method_now_1_top(vm, target, source, "__len", "len not supported for operand of type %s.");
 }
 
@@ -815,6 +824,12 @@ struct RC_UserData *obj_get_metatable(const struct VM *const vm, struct YASL_Obj
 struct YASL_Table *get_mt(const struct VM *const vm, struct YASL_Object v) {
 	struct RC_UserData *ud = obj_get_metatable(vm, v);
 	return ud ? (struct YASL_Table *)ud->data : NULL;
+}
+
+struct YASL_Object vm_get_metatable_index(struct VM *const vm, int source) {
+	struct YASL_Object *v = vm_peek_p(vm, source);
+	struct RC_UserData *mt = obj_get_metatable(vm, *v);
+	return mt ? YASL_TABLE(mt) : YASL_UNDEF();
 }
 
 void vm_get_metatable(struct VM *const vm) {
