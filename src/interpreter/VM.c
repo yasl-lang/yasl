@@ -1472,6 +1472,15 @@ struct YASL_String *vm_lookup_interned_zstr(struct VM *vm, const char *chars) {
 	return vm_lookup_interned_str(vm, chars, strlen(chars));
 }
 
+static int get_target(struct VM *const vm) {
+#if YASL_REGISTER_MIGRATION == 1
+	const int target = NCODE(vm);
+#else
+	const int target = vm->sp - vm->fp - 1;
+#endif
+	return target;
+}
+
 void vm_executenext(struct VM *const vm) {
 	unsigned char opcode = NCODE(vm);        // fetch
 	signed char offset;
@@ -1515,11 +1524,7 @@ void vm_executenext(struct VM *const vm) {
 		vm_int_binop(vm, &bandnot, "&^", OP_BIN_AMPCARET);
 		break;
 	case O_BNOT: {
-#if YASL_REGISTER_MIGRATION == 1
-		const int target = NCODE(vm);
-#else
-		const int target = vm->sp - vm->fp - 1;
-#endif
+	const int target = get_target(vm);
 		vm_int_unop(vm, target, target, &bnot, "^", OP_UN_CARET);
 		break;
 	}
@@ -1560,20 +1565,12 @@ void vm_executenext(struct VM *const vm) {
 		vm_pow(vm);
 		break;
 	case O_NEG: {
-#if YASL_REGISTER_MIGRATION == 1
-		const int target = NCODE(vm);
-#else
-		const int target = vm->sp - vm->fp - 1;
-#endif
+	const int target = get_target(vm);
 		vm_num_unop(vm, target, target, &int_neg, &float_neg, "-", OP_UN_MINUS);
 		break;
 	}
 	case O_POS: {
-#if YASL_REGISTER_MIGRATION == 1
-		const int target = NCODE(vm);
-#else
-		const int target = vm->sp - vm->fp - 1;
-#endif
+	const int target = get_target(vm);
 		vm_num_unop(vm, target, target, &int_pos, &float_pos, "+", OP_UN_PLUS);
 		break;
 	}
@@ -1584,11 +1581,7 @@ void vm_executenext(struct VM *const vm) {
 		vm_pushbool(vm, isfalsey(vm_pop_p(vm)));
 		break;
 	case O_LEN: {
-#if YASL_REGISTER_MIGRATION == 1
-		const int target = NCODE(vm);
-#else
-		const int target = vm->sp - vm->fp - 1;
-#endif
+	const int target = get_target(vm);
 		vm_len_unop(vm, target, target);
 		break;
 	}
