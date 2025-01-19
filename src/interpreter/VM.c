@@ -1518,7 +1518,7 @@ void vm_executenext(struct VM *const vm) {
 #if YASL_REGISTER_MIGRATION == 1
 		const int target = NCODE(vm);
 #else
-		const int target = vm->sp;
+		const int target = vm->sp - vm->fp - 1;
 #endif
 		vm_int_unop(vm, target, target, &bnot, "^", OP_UN_CARET);
 		break;
@@ -1563,7 +1563,7 @@ void vm_executenext(struct VM *const vm) {
 #if YASL_REGISTER_MIGRATION == 1
 		const int target = NCODE(vm);
 #else
-		const int target = vm->sp;
+		const int target = vm->sp - vm->fp - 1;
 #endif
 		vm_num_unop(vm, target, target, &int_neg, &float_neg, "-", OP_UN_MINUS);
 		break;
@@ -1572,7 +1572,7 @@ void vm_executenext(struct VM *const vm) {
 #if YASL_REGISTER_MIGRATION == 1
 		const int target = NCODE(vm);
 #else
-		const int target = vm->sp;
+		const int target = vm->sp - vm->fp - 1;
 #endif
 		vm_num_unop(vm, target, target, &int_pos, &float_pos, "+", OP_UN_PLUS);
 		break;
@@ -1587,7 +1587,7 @@ void vm_executenext(struct VM *const vm) {
 #if YASL_REGISTER_MIGRATION == 1
 		const int target = NCODE(vm);
 #else
-		const int target = vm->sp;
+		const int target = vm->sp - vm->fp - 1;
 #endif
 		vm_len_unop(vm, target, target);
 		break;
