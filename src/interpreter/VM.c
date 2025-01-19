@@ -356,6 +356,7 @@ void vm_CALL_now(struct VM *const vm);
 	}\
 } while (0)
 
+// TODO: make this not rely on "source" being the top of the stack.
 #define vm_call_method_now_1_top(vm, target, source, method_name, ...) do {\
 	vm_lookup_method_throwing_source(vm, source, method_name, __VA_ARGS__, vm_peektypename(vm, source));\
 	vm_swaptop(vm);\
@@ -416,7 +417,6 @@ static void vm_shifttopdown(struct VM *const vm, int depth) {
 static void vm_ECHO(struct VM *const vm);
 
 static void vm_int_binop(struct VM *const vm, int_binop op, const char *opstr, const char *overload_name) {
-	YASL_UNUSED(opstr);
 	struct YASL_Object right = vm_peek(vm);
 	struct YASL_Object left = vm_peek(vm, vm->sp - 1);
 	if (obj_isint(&left) && obj_isint(&right)) {
@@ -496,8 +496,8 @@ NUM_UNOP(neg, -)
 NUM_UNOP(pos, +)
 
 static void vm_int_unop(struct VM *const vm, int target, int source, yasl_int (*op)(yasl_int), const char *opstr, const char *overload_name) {
-	if (vm_isint(vm, source)) {
-		vm->stack[target] = YASL_INT(op(vm_peekint(vm, source)));
+	if (vm_isint(vm, vm->fp + 1 + source)) {
+		vm->stack[vm->fp + 1 + target] = YASL_INT(op(vm_peekint(vm, vm->fp + 1 + source)));
 		return;
 	} else {
 		vm_call_method_now_1_top(vm, target, source, overload_name, "%s not supported for operand of type %s.", opstr);
@@ -505,10 +505,10 @@ static void vm_int_unop(struct VM *const vm, int target, int source, yasl_int (*
 }
 
 static void vm_num_unop(struct VM *const vm, int target, int source, yasl_int (*int_op)(yasl_int), yasl_float (*float_op)(yasl_float), const char *opstr, const char *overload_name) {
-	if (vm_isint(vm, source)) {
-		vm->stack[target] = YASL_INT(int_op(vm_peekint(vm, source)));
-	} else if (vm_isfloat(vm, source)) {
-		vm->stack[target] = YASL_FLOAT(float_op(vm_peekfloat(vm, source)));
+	if (vm_isint(vm, vm->fp + 1 + source)) {
+		vm->stack[vm->fp + 1 + target] = YASL_INT(int_op(vm_peekint(vm, vm->fp + 1 + source)));
+	} else if (vm_isfloat(vm, vm->fp + 1 + source)) {
+		vm->stack[vm->fp + 1 + target] = YASL_FLOAT(float_op(vm_peekfloat(vm, vm->fp + 1 + source)));
 	} else {
 		vm_call_method_now_1_top(vm, target, source, overload_name, "%s not supported for operand of type %s.", opstr);
 	}
@@ -517,6 +517,19 @@ static void vm_num_unop(struct VM *const vm, int target, int source, yasl_int (*
 void vm_len_unop(struct VM *const vm, int target, int source) {
 	YASL_UNUSED(target);
 	vm_call_method_now_1_top(vm, target, source, "__len", "len not supported for operand of type %s.");
+	/*
+	struct YASL_Object index = YASL_STR(YASL_String_new_copy(vm, "__len", strlen("__len")));\
+	struct YASL_Object maybe_mt = vm_get_metatable_index(vm, source);\
+	struct YASL_Table *mt = obj_istable(&maybe_mt) ? YASL_GETTABLE(maybe_mt) : NULL;\
+	int result = vm_lookup_method_helper(vm, mt, index);\
+	if (result) {\
+		vm_print_err_type(vm, "%s", "");\
+		vm_throw_err(vm, YASL_TYPE_ERROR);\
+	}\
+	vm_swaptop(vm);
+	vm_INIT_CALL_offset(vm, vm->sp - 1, 1);
+	vm_CALL(vm);
+	 */
 }
 
 void vm_EQ(struct VM *const vm) {
@@ -827,8 +840,8 @@ struct YASL_Table *get_mt(const struct VM *const vm, struct YASL_Object v) {
 }
 
 struct YASL_Object vm_get_metatable_index(struct VM *const vm, int source) {
-	struct YASL_Object *v = vm_peek_p(vm, source);
-	struct RC_UserData *mt = obj_get_metatable(vm, *v);
+	struct YASL_Object v = vm_peek_fp(vm, source);
+	struct RC_UserData *mt = obj_get_metatable(vm, v);
 	return mt ? YASL_TABLE(mt) : YASL_UNDEF();
 }
 

@@ -1359,7 +1359,8 @@ static int visit_BinOp(struct Compiler *const compiler, const struct Node *const
 
 static int visit_UnOp(struct Compiler *const compiler, const struct Node *const node, int target, int num_temps) {
 	YASL_UNUSED(target);
-	visit_expr(compiler, UnOp_get_expr(node), num_temps, num_temps);
+	int source = visit_expr(compiler, UnOp_get_expr(node), num_temps, num_temps);
+	YASL_UNUSED(source);
 	switch (node->value.type) {
 	case T_PLUS:
 		compiler_add_byte(compiler, O_POS);
@@ -1381,7 +1382,7 @@ static int visit_UnOp(struct Compiler *const compiler, const struct Node *const 
 		break;
 	}
 #if YASL_REGISTER_MIGRATION == 1
-	compiler_add_byte(compiler, (unsigned char)target);
+	compiler_add_byte(compiler, (unsigned char)num_temps);
 #endif
 
 	return num_temps + 1;

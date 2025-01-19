@@ -418,7 +418,7 @@ void list___get_helper(struct YASL_State *S, struct YASL_List *ls, yasl_int inde
 void vm_len_unop(struct VM *const vm, int target, int source);
 
 void YASL_len(struct YASL_State *S) {
-	vm_len_unop(&S->vm, S->vm.sp, S->vm.sp);
+	vm_len_unop(&S->vm, S->vm.sp - S->vm.fp - 1, S->vm.sp - S->vm.fp - 1);
 }
 
 int YASL_listget(struct YASL_State *S, yasl_int n) {
