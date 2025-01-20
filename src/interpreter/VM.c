@@ -1231,7 +1231,7 @@ static void vm_exitframe(struct VM *const vm) {
 
 void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns) {
 	if (!vm_isfn(vm, offset) && !vm_iscfn(vm, offset) && !vm_isclosure(vm, offset)) {
-		const char *name = (vm_peektypename(vm, offset));
+		const char *name = vm_peektypename(vm, offset);
 		vm_lookup_method_throwing(vm, "__call", "%s is not callable.", name);
 	}
 
@@ -1393,6 +1393,25 @@ void vm_close_all(struct VM *const vm) {
 	vm->pending = vm_close_all_helper(vm->stack + vm->fp, vm->pending);
 }
 
+static void vm_STRINGIFY(struct VM *const vm) {
+	unsigned char bottom = NCODE(vm);
+	const char *start = (const char*)vm->pc;
+	while (*(vm->pc++)) ;
+	struct YASL_Object fmt = YASL_STR(YASL_String_new_copyz(vm, start));
+	int size = vm->sp - bottom + 1;
+	struct YASL_String **tmps = (struct YASL_String **)malloc(sizeof(struct YASL_String *) * size);
+	int i = 0;
+	while (vm->sp >= vm->fp + 1 + bottom) {
+		vm_stringify_top_format(vm, &fmt);
+		tmps[i++] = vm_popstr(vm);
+	}
+	for (int j = size - 1; j >= 0; j--) {
+		vm_pushstr(vm, tmps[j]);
+	}
+	free(tmps);
+
+}
+
 static void vm_ECHO(struct VM *const vm) {
 	unsigned char top = NCODE(vm);
 	if (vm->fp + top == vm->sp) {
@@ -1409,7 +1428,7 @@ static void vm_ECHO(struct VM *const vm) {
 		dec_ref(vm_peek_p(vm, i));
 		vm_peek(vm, i) = vm_pop(vm);
 	}
-	char *dest = (char *) malloc(tmp);
+	char *dest = (char *)malloc(tmp);
 	tmp = 0;
 	char *curr = dest;
 	for (int i = vm->fp + 1 + top; i <= vm->sp; i++) {
@@ -1715,6 +1734,9 @@ void vm_executenext(struct VM *const vm) {
 		a = vm_peek(vm);
 		memmove(vm->stack + vm->fp + offset + 2, vm->stack + vm->fp + offset + 1, (vm->sp - (vm->fp + offset + 1)) * sizeof(struct YASL_Object));\
 		vm->stack[vm->fp + offset + 1] = a;
+		break;
+	case O_STRINGIFY:
+		vm_STRINGIFY(vm);
 		break;
 	case O_MATCH:
 		vm_MATCH_IF(vm);

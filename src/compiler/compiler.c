@@ -1222,6 +1222,17 @@ static void visit_Decl(struct Compiler *const compiler, const struct Node *const
 	}
 }
 
+static int visit_Stringify(struct Compiler *const compiler, const struct Node *const node, int target, int num_temps) {
+	visit_expr(compiler, Stringify_get_expr(node), target, num_temps);
+	compiler_add_code_BB(compiler, O_STRINGIFY, num_temps);
+	const char *start = node->value.sval.str;
+	while (*start) {
+		compiler_add_byte(compiler, *(unsigned char*)(start++));
+	}
+	compiler_add_byte(compiler, '\0');
+	return num_temps;
+}
+
 static int visit_TriOp(struct Compiler *const compiler, const struct Node *const node, int target, int num_temps) {
 	YASL_UNUSED(target);
 	struct Node *left = TriOp_get_left(node);

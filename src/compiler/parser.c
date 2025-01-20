@@ -52,7 +52,7 @@ static struct Node *parse_table(struct Parser *const parser);
 static struct Node *parse_lambda(struct Parser *const parser);
 static struct Node *parse_list(struct Parser *const parser);
 static struct Node *parse_assert(struct Parser *const parser);
-static void parse_exprs_or_vargs(struct Parser *const parser, struct Node **body);
+static void parse_exprs_or_vargs(struct Parser *const parser, struct Node **body, bool parse_format);
 
 YASL_FORMAT_CHECK static void parser_print_err(struct Parser *parser, const char *const fmt, ...) {
 	va_list args;
@@ -275,7 +275,7 @@ static struct Node *parse_program(struct Parser *const parser) {
 		}
 		eattok(parser, T_ECHO);
 		struct Node *body = new_Exprs(parser, parserline(parser));
-		parse_exprs_or_vargs(parser, &body);
+		parse_exprs_or_vargs(parser, &body, true);
 		return new_Echo(parser, body, line);
 	}
 	case T_FN:
@@ -358,7 +358,7 @@ static struct Node *parse_expr_or_vargs(struct Parser *const parser) {
 }
 
 
-static void parse_exprs_or_vargs(struct Parser *const parser, struct Node **body) {
+static void parse_exprs_or_vargs(struct Parser *const parser, struct Node **body, bool allow_format) {
 	if (TOKEN_MATCHES(parser, T_LPAR) && isemptyvargs(parser)) {
 		eattok(parser, T_LPAR);
 		eattok(parser, T_RPAR);
@@ -368,6 +368,11 @@ static void parse_exprs_or_vargs(struct Parser *const parser, struct Node **body
 	struct Node *expr = NULL;
 	do {
 		expr = parse_expr_or_vargs(parser);
+		if (allow_format && matcheattok(parser, T_COLON)) {
+			struct Node *fmt = parse_id(parser);
+			fmt->nodetype = N_STR;
+			expr = new_Stringify(parser, expr, fmt->value.sval.str, parserline(parser));
+		}
 		body_append(parser, body, expr);
 	} while (expr->nodetype != N_VARGS && matcheattok(parser, T_COMMA));
 
@@ -379,7 +384,7 @@ static void parse_exprs_or_vargs(struct Parser *const parser, struct Node **body
 
 static struct Node *parse_return_vals(struct Parser *const parser) {
 	struct Node *body = new_Exprs(parser, parserline(parser));
-	parse_exprs_or_vargs(parser, &body);
+	parse_exprs_or_vargs(parser, &body, false);
 	return body;
 }
 
@@ -1070,7 +1075,7 @@ static struct Node *parse_power(struct Parser *const parser) {
 static void parse_args(struct Parser *const parser, struct Node **body) {
 	eattok(parser, T_LPAR);
 	if (!TOKEN_MATCHES(parser, T_RPAR, T_EOF)) {
-		parse_exprs_or_vargs(parser, body);
+		parse_exprs_or_vargs(parser, body, false);
 	}
 	eattok(parser, T_RPAR);
 
