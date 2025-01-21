@@ -375,7 +375,7 @@ static void parse_exprs_or_vargs(struct Parser *const parser, struct Node **body
 				fmt->nodetype = N_STR;
 				expr = new_Stringify(parser, expr, fmt->value.sval.str, line);
 			} else {
-				expr = new_Stringify(parser, expr, "", line);
+				expr = new_Stringify(parser, expr, (char *)"", line);
 			}
 		}
 		body_append(parser, body, expr);
