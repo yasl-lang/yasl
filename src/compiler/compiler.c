@@ -354,6 +354,7 @@ unsigned char *compile_REPL(struct Compiler *const compiler) {
 		if (!compiler->parser.status) {
 			if (peof(&compiler->parser) && node->nodetype == N_EXPRSTMT) {
 				node->nodetype = N_ECHO;
+				node->children[0] = new_Stringify(&compiler->parser, Echo_get_exprs(node), "", parserline(&compiler->parser));
 			}
 			visit_stmt(compiler, node);
 			YASL_ByteBuffer_extend(compiler->code, compiler->buffer->items, compiler->buffer->count);
