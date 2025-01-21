@@ -1397,19 +1397,20 @@ static void vm_STRINGIFY(struct VM *const vm) {
 	unsigned char bottom = NCODE(vm);
 	const char *start = (const char*)vm->pc;
 	while (*(vm->pc++)) ;
-	struct YASL_Object fmt = YASL_STR(YASL_String_new_copyz(vm, start));
-	int size = vm->sp - bottom + 1;
+	struct YASL_Object fmt = strlen(start) ? YASL_STR(YASL_String_new_copyz(vm, start)) : vm_getformat(vm);
+	int size = vm->sp - bottom - vm->fp;
 	struct YASL_String **tmps = (struct YASL_String **)malloc(sizeof(struct YASL_String *) * size);
 	int i = 0;
-	while (vm->sp >= vm->fp + 1 + bottom) {
-		vm_stringify_top_format(vm, &fmt);
+	while (vm->sp > vm->fp + bottom) {
+		vm_stringify_top_format(vm, fmt.type == Y_UNDEF ? NULL : &fmt);
+		vm_peekstr(vm)->rc.refs++;
 		tmps[i++] = vm_popstr(vm);
 	}
 	for (int j = size - 1; j >= 0; j--) {
 		vm_pushstr(vm, tmps[j]);
+		vm_peekstr(vm)->rc.refs--;
 	}
 	free(tmps);
-
 }
 
 static void vm_ECHO(struct VM *const vm) {
@@ -1420,13 +1421,7 @@ static void vm_ECHO(struct VM *const vm) {
 	}
 	size_t tmp = 0;
 	for (int i = vm->fp + 1 + top; i <= vm->sp; i++) {
-		vm_push(vm, vm_peek(vm, i));
-		struct YASL_Object fmt = vm_getformat(vm);
-		vm_stringify_top_format(vm, fmt.type == Y_UNDEF ? NULL : &fmt);
-		tmp += YASL_String_len(vm_peekstr(vm)) + 2;
-		inc_ref(vm_peek_p(vm));
-		dec_ref(vm_peek_p(vm, i));
-		vm_peek(vm, i) = vm_pop(vm);
+		tmp += YASL_String_len(vm_peekstr(vm, i)) + 2;
 	}
 	char *dest = (char *)malloc(tmp);
 	tmp = 0;

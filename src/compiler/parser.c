@@ -367,11 +367,16 @@ static void parse_exprs_or_vargs(struct Parser *const parser, struct Node **body
 
 	struct Node *expr = NULL;
 	do {
+		const size_t line = parserline(parser);
 		expr = parse_expr_or_vargs(parser);
-		if (allow_format && matcheattok(parser, T_COLON)) {
-			struct Node *fmt = parse_id(parser);
-			fmt->nodetype = N_STR;
-			expr = new_Stringify(parser, expr, fmt->value.sval.str, parserline(parser));
+		if (allow_format) {
+			if (matcheattok(parser, T_COLON)) {
+				struct Node *fmt = parse_id(parser);
+				fmt->nodetype = N_STR;
+				expr = new_Stringify(parser, expr, fmt->value.sval.str, line);
+			} else {
+				expr = new_Stringify(parser, expr, "", line);
+			}
 		}
 		body_append(parser, body, expr);
 	} while (expr->nodetype != N_VARGS && matcheattok(parser, T_COMMA));
