@@ -1486,13 +1486,13 @@ struct YASL_String *vm_lookup_interned_zstr(struct VM *vm, const char *chars) {
 	return vm_lookup_interned_str(vm, chars, strlen(chars));
 }
 
-static int get_target(struct VM *const vm) {
+static int get_source(struct VM *const vm) {
 #if YASL_REGISTER_MIGRATION == 1
-	const int target = NCODE(vm);
+	const int source = NCODE(vm);
 #else
-	const int target = vm->sp - vm->fp - 1;
+	const int source = vm->sp - vm->fp - 1;
 #endif
-	return target;
+	return source;
 }
 
 void vm_executenext(struct VM *const vm) {
@@ -1538,8 +1538,8 @@ void vm_executenext(struct VM *const vm) {
 		vm_int_binop(vm, &bandnot, "&^", OP_BIN_AMPCARET);
 		break;
 	case O_BNOT: {
-	const int target = get_target(vm);
-		vm_int_unop(vm, target, target, &bnot, "^", OP_UN_CARET);
+		const int source = get_source(vm);
+		vm_int_unop(vm, source, source, &bnot, "^", OP_UN_CARET);
 		break;
 	}
 	case O_BSL:
@@ -1579,13 +1579,13 @@ void vm_executenext(struct VM *const vm) {
 		vm_pow(vm);
 		break;
 	case O_NEG: {
-	const int target = get_target(vm);
-		vm_num_unop(vm, target, target, &int_neg, &float_neg, "-", OP_UN_MINUS);
+		const int source = get_source(vm);
+		vm_num_unop(vm, source, source, &int_neg, &float_neg, "-", OP_UN_MINUS);
 		break;
 	}
 	case O_POS: {
-	const int target = get_target(vm);
-		vm_num_unop(vm, target, target, &int_pos, &float_pos, "+", OP_UN_PLUS);
+		const int source = get_source(vm);
+		vm_num_unop(vm, source, source, &int_pos, &float_pos, "+", OP_UN_PLUS);
 		break;
 	}
 	case O_NOT:
@@ -1595,8 +1595,8 @@ void vm_executenext(struct VM *const vm) {
 		vm_pushbool(vm, isfalsey(vm_pop_p(vm)));
 		break;
 	case O_LEN: {
-	const int target = get_target(vm);
-		vm_len_unop(vm, target, target);
+		const int source = get_source(vm);
+		vm_len_unop(vm, source, source);
 		break;
 	}
 	case O_CNCT:
