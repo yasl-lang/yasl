@@ -471,9 +471,16 @@ static void visit_CollectRestParams(struct Compiler *const compiler, const struc
 static int visit_Call(struct Compiler *const compiler, const struct Node *const node, int target, int num_temps) {
 	YASL_UNUSED(target);
 	visit_expr(compiler, Call_get_object(node), num_temps, num_temps);
+#if YASL_REGISTER_MIGRATION == 1
+	visit_expr(compiler, Call_get_params(node), num_temps + 1, num_temps + 1);
+	compiler_add_byte(compiler, O_CALL);
+	compiler_add_byte(compiler, (unsigned char)num_temps);
+	compiler_add_byte(compiler, (unsigned char)node->value.ival);
+#else
 	compiler_add_code_BB(compiler, O_INIT_CALL, (unsigned char)node->value.ival);
 	visit_expr(compiler, Call_get_params(node), num_temps + 1, num_temps + 1);
 	compiler_add_byte(compiler, O_CALL);
+#endif
 
 	return num_temps + 1;
 }
@@ -485,11 +492,19 @@ static int visit_MethodCall(struct Compiler *const compiler, const struct Node *
 	visit_expr(compiler, MethodCall_get_object(node), num_temps, num_temps);
 
 	yasl_int index = compiler_intern_string(compiler, str, len);
+#if YASL_REGISTER_MIGRATION == 1
+	compiler_add_code_BBW(compiler, O_INIT_MC, (unsigned char)node->value.sval.len, index);
+	visit_expr(compiler, MethodCall_get_params(node), num_temps + 2, num_temps + 2);
+	compiler_add_byte(compiler, O_CALL);
+	compiler_add_byte(compiler, (unsigned char)num_temps);
+	compiler_add_byte(compiler, (unsigned char)node->value.sval.len);
 
+#else
 	compiler_add_code_BBW(compiler, O_INIT_MC, (unsigned char)node->value.sval.len, index);
 
 	visit_expr(compiler, MethodCall_get_params(node), num_temps + 2, num_temps + 2);  // +2 for function and object
 	compiler_add_byte(compiler, O_CALL);
+#endif
 
 	return num_temps + 1;
 }

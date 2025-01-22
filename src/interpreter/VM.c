@@ -1232,7 +1232,9 @@ static void vm_exitframe(struct VM *const vm) {
 void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns) {
 	if (!vm_isfn(vm, offset) && !vm_iscfn(vm, offset) && !vm_isclosure(vm, offset)) {
 		const char *name = vm_peektypename(vm, offset);
-		vm_lookup_method_throwing(vm, "__call", "%s is not callable.", name);
+		vm_lookup_method_throwing_source(vm, offset, "__call", "%s is not callable.", name);
+		vm_rm(vm, offset);
+		vm_shifttopdown(vm, vm->sp - offset);
 	}
 
 	vm_enterframe_offset(vm, offset, expected_returns);
@@ -1270,7 +1272,11 @@ static void vm_INIT_MC(struct VM *const vm) {
 		vm_throw_err(vm, YASL_VALUE_ERROR);
 	}
 	vm_swaptop(vm);
+#if YASL_REGISTER_MIGRATION == 1
+	YASL_UNUSED(expected_returns);
+#else
 	vm_INIT_CALL_offset(vm, vm->sp - 1, expected_returns);
+#endif
 }
 
 static void vm_fill_args(struct VM *const vm, const int num_args) {
@@ -1355,6 +1361,18 @@ void vm_SPREAD_VARGS(struct VM *const vm) {
 	}
 
 	vm_rm(vm, top);
+}
+
+void vm_CALL_offset(struct VM *const vm, int offset, int expected_returns) {
+	vm_INIT_CALL_offset(vm, vm->fp + offset + 1, expected_returns);
+	vm->fp = vm->next_fp;
+	if (vm_isfn(vm, vm->fp)) {
+		vm_CALL_fn(vm);
+	} else if (vm_iscfn(vm, vm->fp)) {
+		vm_CALL_cfn(vm);
+	} else if (vm_isclosure(vm, vm->fp)) {
+		vm_CALL_closure(vm);
+	}
 }
 
 void vm_CALL(struct VM *const vm) {
@@ -1782,7 +1800,16 @@ void vm_executenext(struct VM *const vm) {
 		vm_INIT_CALL(vm, (signed char)NCODE(vm));
 		break;
 	case O_CALL:
+#if YASL_REGISTER_MIGRATION == 1
+	{
+		char offset = NCODE(vm);
+		char expected_returns = NCODE(vm);
+		vm_INIT_CALL_offset(vm, vm->fp + offset + 1, expected_returns);
 		vm_CALL(vm);
+	}
+#else
+		vm_CALL(vm);
+#endif
 		break;
 	case O_COLLECT_REST_PARAMS:
 		vm_COLLECT_REST_PARAMS(vm);
