@@ -322,10 +322,10 @@ int str_partition(struct YASL_State *S) {
 	struct YASL_String *haystack = checkstr(S, "str.partition", 0);
 	yasl_int i = YASL_peekvargscount(S);
 	yasl_int start = YASL_getvargsstart(S);
-	for (int j = start; j < i + start; j++) {
+	for (unsigned j = (unsigned)start; j < i + start; j++) {
 		struct YASL_String *needle = checkstr(S, "str.partition", j);
 		if (YASL_String_len(needle) == 0) {
-			YASLX_print_and_throw_err_value(S, "str.split expected a non-empty str as arg %lld.", start);
+			YASLX_print_and_throw_err_value(S, "str.split expected a non-empty str as arg %ld.", (long)start);
 		}
 
 		int64_t index = str_find_index(haystack, needle, 0);
