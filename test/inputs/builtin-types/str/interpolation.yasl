@@ -2,6 +2,6 @@ let $x = 10
 let $y = 12
 echo "$x is #{$x}, #{$y}."
 echo "$x is #{$x        }, #{$y}"
-echo "$x$y is #{$x  }#{$y}  "->tostr('r')
+echo "$x$y is #{$x  }#{$y}  ":r
 
 echo "hex: #{$x:x}, dec: #{$x:d}, bin: #{$x:b}"

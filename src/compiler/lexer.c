@@ -176,6 +176,28 @@ static bool lex_eatop(struct Lexer *const lex) {
 
 	one:
 	last = YASLToken_OneChar(c1);
+	switch (last) {
+	case T_LPAR:
+		lex->par_count++;
+		break;
+	case T_RPAR:
+		lex->par_count--;
+		break;
+	case T_LSQB:
+		lex->sqb_count++;
+		break;
+	case T_RSQB:
+		lex->sqb_count--;
+		break;
+	case T_LBRC:
+		lex->brc_count++;
+		break;
+	case T_RBRC:
+		lex->brc_count--;
+		break;
+	default:
+		break;
+	}
 	if (last != T_UNKNOWN) {
 		lex->type = last;
 		lex_val_free(lex);

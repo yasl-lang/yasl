@@ -113,7 +113,8 @@ struct Node *name##_get_##d(const struct Node *const node);
 struct Node *new_##name(struct Parser *parser, char *str, const size_t line);
 
 #define DECL_ZSTR_NODE1(name, E, a) \
-struct Node *new_##name(struct Parser *parser, const struct Node *const a, char *str, const size_t line);
+struct Node *new_##name(struct Parser *parser, const struct Node *const a, char *str, const size_t line);\
+struct Node *name##_get_##a(const struct Node *const node);
 
 #define DECL_ZSTR_NODE2(name, E, a, b) \
 struct Node *new_##name(struct Parser *parser, const struct Node *const a, const struct Node *const b, char *str, const size_t line);\
@@ -145,7 +146,7 @@ DECL_NODE(Continue, N_CONT)
 DECL_NODE(Match, N_MATCH, cond, patterns, guards, bodies)
 DECL_NODE(If, N_IF, cond, then, el)
 DECL_NODE(IfDef, N_IFDEF, cond, then, el)
-
+DECL_ZSTR_NODE(Stringify, N_STRINGIFY, expr)
 DECL_NODE(Echo, N_ECHO, exprs)
 DECL_NODE(Decl, N_DECL, lvals, rvals)
 DECL_ZSTR_NODE(FnDecl, N_FNDECL, params, body)

@@ -53,6 +53,8 @@ int str_count(struct YASL_State *S);
 
 int str_split(struct YASL_State *S);
 
+int str_partition(struct YASL_State *S);
+
 int str_ltrim(struct YASL_State *S);
 
 int str_rtrim(struct YASL_State *S);

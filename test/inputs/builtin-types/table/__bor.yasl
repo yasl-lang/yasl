@@ -1,5 +1,5 @@
 
-let x = { .a: 10, .b: 11 }
-let y = { .b: 100, .c: 12}
+let x = { a = 10, b =11 }
+let y = { b = 100, c = 12}
 
 echo x | y

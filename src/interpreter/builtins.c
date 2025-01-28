@@ -1,13 +1,13 @@
 #include "builtins.h"
 
 #include "data-structures/YASL_String.h"
-#include "str_methods.h"
-#include "undef_methods.h"
-#include "float_methods.h"
-#include "int_methods.h"
-#include "bool_methods.h"
-#include "table_methods.h"
-#include "list_methods.h"
+#include "src/interpreter/methods/str_methods.h"
+#include "src/interpreter/methods/undef_methods.h"
+#include "src/interpreter/methods/float_methods.h"
+#include "src/interpreter/methods/int_methods.h"
+#include "src/interpreter/methods/bool_methods.h"
+#include "src/interpreter/methods/table_methods.h"
+#include "src/interpreter/methods/list_methods.h"
 #include "VM.h"
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -89,6 +89,7 @@ struct YASL_Table* str_builtins(struct VM *vm) {
 	table_insert_str_cfunction(vm, table, "search", &str_search, 3);
 	table_insert_str_cfunction(vm, table, "count", &str_count, 2);
 	table_insert_str_cfunction(vm, table, "split", &str_split, 3);
+	table_insert_str_cfunction(vm, table, "partition", &str_partition, -2);
 	table_insert_str_cfunction(vm, table, "ltrim", &str_ltrim, 2);
 	table_insert_str_cfunction(vm, table, "rtrim", &str_rtrim, 2);
 	table_insert_str_cfunction(vm, table, "trim", &str_trim, 2);

@@ -7,18 +7,25 @@
 #include "compiler/lexer.h"
 #include "opcode.h"
 #include "yasl_include.h"
+#include "common/migrations.h"
 
 #define NUM_FAILED __YATS_TESTS_FAILED__
 
 #define _YATS_MANGLE_NAME(name) _YATS__##name
 
 #define TEST(name) int _YATS_MANGLE_NAME(name)(void)
-#define RUN(name) __YATS_TESTS_FAILED__ |= _YATS_MANGLE_NAME(name)()
+#define RUN(name) __YATS_TESTS_FAILED__ += _YATS_MANGLE_NAME(name)()
 
 #define SETUP_YATS() \
 	static int __YATS_TESTS_FAILED__ = 0
 
-#define TEST_FAILED() __YATS_TESTS_FAILED__ = 1
+#define TEST_FAILED() __YATS_TESTS_FAILED__ += 1
+
+#if YASL_REGISTER_MIGRATION == 1
+#define REG_OPT(...) __VA_ARGS__
+#else
+#define REG_OPT(...)
+#endif
 
 // change to true to print out all passing tests as well.
 #define SHOW_PASSING false
