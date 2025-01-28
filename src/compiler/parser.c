@@ -1319,24 +1319,38 @@ static struct Node *parse_string(struct Parser *const parser) {
 	return cur_node;
 }
 
+static void parse_kv(struct Parser *const parser, struct Node **kv) {
+	struct Node *key = parse_expr(parser);
+	if (matcheattok(parser, T_COLON)) {
+		body_append(parser, kv, key);
+		body_append(parser, kv, parse_expr(parser));
+		return;
+	} else if (key->nodetype == N_VAR && matcheattok(parser, T_EQ)) {
+		key->nodetype = N_STR;
+		body_append(parser, kv, key);
+		body_append(parser, kv, parse_expr(parser));
+		return;
+	}
+
+	parser_print_err_syntax(parser, "Expected `:` or `=` in line %" PRI_SIZET ", got `%s`.\n", parserline(parser), YASL_TOKEN_NAMES[curtok(parser)]);
+	handle_error(parser);
+}
 
 static struct Node *parse_table(struct Parser *const parser) {
 	size_t line = parserline(parser);
 	eattok(parser, T_LBRC);
-	struct Node *keys = new_Exprs(parser, line);
+	struct Node *kv = new_Exprs(parser, line);
 
 	// empty table
 	if (matcheattok(parser, T_RBRC)) {
 		YASL_PARSE_DEBUG_LOG("%s\n", "Parsing table");
-		return new_Table(parser, keys, line);
+		return new_Table(parser, kv, line);
 	}
-
-	body_append(parser, &keys, parse_expr(parser));
 
 	// non-empty table
 	YASL_PARSE_DEBUG_LOG("%s\n", "Parsing table");
-	eattok(parser, T_COLON);
-	body_append(parser, &keys, parse_expr(parser));
+
+	parse_kv(parser, &kv);
 
 	while (matcheattok(parser, T_SEMI)) ;
 	if (matcheattok(parser, T_FOR)) {
@@ -1349,17 +1363,15 @@ static struct Node *parse_table(struct Parser *const parser) {
 
 		while (matcheattok(parser, T_SEMI)) ;
 		eattok(parser, T_RBRC);
-		struct Node *table_comp = new_TableComp(parser, keys, iter, cond, line);
+		struct Node *table_comp = new_TableComp(parser, kv, iter, cond, line);
 		return table_comp;
 	}
 	while (matcheattok(parser, T_COMMA)) {
-		body_append(parser, &keys, parse_expr(parser));
-		eattok(parser, T_COLON);
-		body_append(parser, &keys, parse_expr(parser));
+		parse_kv(parser, &kv);
 	}
 	while (matcheattok(parser, T_SEMI)) ;
 	eattok(parser, T_RBRC);
-	return new_Table(parser, keys, line);
+	return new_Table(parser, kv, line);
 }
 
 

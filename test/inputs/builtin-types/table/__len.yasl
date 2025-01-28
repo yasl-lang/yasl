@@ -1,4 +1,4 @@
 
 
 echo len {}
-echo len { .x: 0, .y: 10 }
+echo len { x = 0, y = 10 }
