@@ -8,3 +8,6 @@ echo ':abc:def'->partition(':')
 echo ':abc:def;'->partition(';')
 echo 'abc def'->partition('z')
 
+echo 'abc def g'->partition(' ', ' ')
+echo 'abc:def ghi'->partition(':', ' ')
+

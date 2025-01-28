@@ -2,4 +2,6 @@
 'abc', 'de'
 '', 'abc:def'
 ':abc:def', ''
-undef, undef
+undef
+'abc', 'def', 'g'
+'abc', 'def', 'ghi'

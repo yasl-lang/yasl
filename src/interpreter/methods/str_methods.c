@@ -320,25 +320,32 @@ int str_count(struct YASL_State *S) {
 
 int str_partition(struct YASL_State *S) {
 	struct YASL_String *haystack = checkstr(S, "str.partition", 0);
-	struct YASL_String *needle = checkstr(S, "str.partition", 1);
-	if (YASL_String_len(needle) == 0) {
-		YASLX_print_and_throw_err_value(S, "str.split expected a non-empty str as arg 1.");
+	yasl_int i = YASL_peekvargscount(S);
+	yasl_int start = YASL_getvargsstart(S);
+	for (int j = start; j < i + start; j++) {
+		struct YASL_String *needle = checkstr(S, "str.partition", j);
+		if (YASL_String_len(needle) == 0) {
+			YASLX_print_and_throw_err_value(S, "str.split expected a non-empty str as arg %ld.", start);
+		}
+
+		int64_t index = str_find_index(haystack, needle, 0);
+
+		if (index == -1) {
+			YASL_pushundef(S);
+			return 1;
+		}
+
+		struct YASL_String *before = (YASL_String_new_substring(&S->vm, haystack, 0, index));
+		haystack = (YASL_String_new_substring(&S->vm, haystack,
+								       index + YASL_String_len(needle),
+								       YASL_String_len(haystack)));
+
+		vm_pushstr(&S->vm, before);
 	}
 
-	int64_t index = str_find_index(haystack, needle, 0);
-	if (index == -1) {
-		YASL_pushundef(S);
-		YASL_pushundef(S);
-		return 2;
-	}
+	vm_pushstr(&S->vm, haystack);
 
-	struct YASL_Object before = YASL_STR(YASL_String_new_substring(&S->vm, haystack, 0, index));
-	struct YASL_Object after = YASL_STR(YASL_String_new_substring(&S->vm, haystack,
-								      index + YASL_String_len(needle),
-								      YASL_String_len(haystack)));
-	vm_push(&S->vm, before);
-	vm_push(&S->vm, after);
-	return 2;
+	return i + 1;
 }
 
 static void str_split_max(struct YASL_State *S, struct YASL_String *haystack, yasl_int max_splits) {

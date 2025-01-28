@@ -461,6 +461,14 @@ YASL_WARN_UNUSED void *YASL_peekuserptr(struct YASL_State *S);
 YASL_WARN_UNUSED yasl_int YASL_peekvargscount(struct YASL_State *S);
 
 /**
+ * [-0, +0]
+ * Returns the index of the first variadic argument of the calling function.
+ * @param S the YASL_State 
+ * @return the starting index of the first variadic argument, or 0 if we are not in a variadic function.
+ */
+YASL_WARN_UNUSED yasl_int YASL_getvargsstart(struct YASL_State *S);
+
+/**
  * [-1, +0]
  * Removes the top of the stack.
  * @param S the YASL_State the stack belongs to.
