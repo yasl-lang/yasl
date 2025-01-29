@@ -325,7 +325,7 @@ int str_partition(struct YASL_State *S) {
 	for (unsigned j = (unsigned)start; j < i + start; j++) {
 		struct YASL_String *needle = checkstr(S, "str.partition", j);
 		if (YASL_String_len(needle) == 0) {
-			YASLX_print_and_throw_err_value(S, "str.split expected a non-empty str as arg %ld.", (long)start);
+			YASLX_print_and_throw_err_value(S, "str.partition expected a non-empty str as arg %ld.", (long)j);
 		}
 
 		int64_t index = str_find_index(haystack, needle, 0);

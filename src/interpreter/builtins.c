@@ -54,7 +54,7 @@ struct YASL_Table* int_builtins(struct VM *vm) {
 
 struct YASL_Table* bool_builtins(struct VM *vm) {
 	struct YASL_Table *table = YASL_Table_new();
-	table_insert_str_cfunction(vm, table, "tostr", &bool_tostr, 1);
+	table_insert_str_cfunction(vm, table, "tostr", &bool_tostr, 2);
 	table_insert_str_cfunction(vm, table, "tobool", &bool_tobool, 1);
 	table_insert_str_cfunction(vm, table, "__bor", &bool___bor, 2);
 	table_insert_str_cfunction(vm, table, "__band", &bool___band, 2);
