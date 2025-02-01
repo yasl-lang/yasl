@@ -9,3 +9,7 @@ echo x:b
 echo x:r
 echo x
 
+io.setformat('r')
+
+echo true->tobyte()
+echo false->tobyte()

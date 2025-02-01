@@ -35,6 +35,12 @@ int bool_tostr(struct YASL_State *S) {
 	}
 }
 
+int bool_tobyte(struct YASL_State *S) {
+	bool result = YASLX_checknbool(S, "bool.tobyte", 0);
+	YASL_pushint(S, result);
+	return 1;
+}
+
 int bool___bor(struct YASL_State *S) {
 	bool left = YASLX_checknbool(S, "bool.__bor", 0);
 	bool right = YASLX_checknbool(S, "bool.__bor", 1);

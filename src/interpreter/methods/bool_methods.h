@@ -7,6 +7,8 @@ int bool_tostr(struct YASL_State *S);
 
 int bool_tobool(struct YASL_State *S);
 
+int bool_tobyte(struct YASL_State *S);
+
 int bool___bor(struct YASL_State *S);
 
 int bool___band(struct YASL_State *S);
