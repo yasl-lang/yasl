@@ -256,6 +256,8 @@ int table_copy(struct YASL_State *S) {
 	}
 
 	ud_setmt(&S->vm, new_ht, obj_get_metatable(&S->vm, vm_peek(&S->vm)));
+	((struct YASL_Table *)(new_ht->data))->default_val = ht->default_val;
+	inc_ref(&ht->default_val);
 	vm_push((struct VM *) S, YASL_TABLE(new_ht));
 	return 1;
 }
@@ -281,6 +283,6 @@ int table_setdefault(struct YASL_State *S) {
 	struct YASL_Table *ht = YASLX_checkntable(S, "table.setdefault", 0);
 	dec_ref(&ht->default_val);
 	inc_ref(vm_peek_p(&S->vm));
-	ht->default_val = vm_pop(&S->vm);
-	return 1;
+	ht->default_val = vm_peek(&S->vm);
+	return 2;
 }

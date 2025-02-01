@@ -17,5 +17,6 @@ echo t['key']
 
 echo t:r
 
+echo t->copy()['key']
 
 
