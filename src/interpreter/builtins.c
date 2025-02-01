@@ -131,16 +131,17 @@ struct YASL_Table* list_builtins(struct VM *vm) {
 struct YASL_Table* table_builtins(struct VM *vm) {
 	struct YASL_Table *table = YASL_Table_new();
 	table_insert_str_cfunction(vm, table, "__len", &table___len, 1);
+	table_insert_str_cfunction(vm, table, "__get", &table___get, 2);
+	table_insert_str_cfunction(vm, table, "__set", &table___set, 3);
+	table_insert_str_cfunction(vm, table, "__bor", &table___bor, 2);
+	table_insert_str_cfunction(vm, table, "__eq", &table___eq, 2);
+	table_insert_str_cfunction(vm, table, "__iter", &table___iter, 1);
 	table_insert_str_cfunction(vm, table, "remove", &table_remove, 2);
 	table_insert_str_cfunction(vm, table, "keys", &table_keys, 1);
 	table_insert_str_cfunction(vm, table, "values", &table_values, 1);
 	table_insert_str_cfunction(vm, table, "copy", &table_copy, 1);
 	table_insert_str_cfunction(vm, table, "tostr", &table_tostr, 2);
-	table_insert_str_cfunction(vm, table, "__get", &table___get, 2);
-	table_insert_str_cfunction(vm, table, "__set", &table___set, 3);
-	table_insert_str_cfunction(vm, table, "__bor", &table___bor, 2);
-	table_insert_str_cfunction(vm, table, "__eq", &table___eq, 2);
 	table_insert_str_cfunction(vm, table, "clear", &table_clear, 1);
-	table_insert_str_cfunction(vm, table, "__iter", &table___iter, 1);
+	table_insert_str_cfunction(vm, table, "setdefault", &table_setdefault, 2);
 	return table;
 }

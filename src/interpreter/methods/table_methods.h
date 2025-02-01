@@ -27,4 +27,6 @@ int table_copy(struct YASL_State *S);
 
 int table_clear(struct YASL_State *S);
 
+int table_setdefault(struct YASL_State *S);
+
 #endif

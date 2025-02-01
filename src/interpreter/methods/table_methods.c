@@ -63,7 +63,7 @@ int table___get(struct YASL_State *S) {
 	struct YASL_Table *ht = YASLX_checkntable(S, "table.__get", 0);
 	struct YASL_Object result = YASL_Table_search(ht, key);
 	if (result.type == Y_END) {
-		vm_pushundef(&S->vm);
+		vm_push(&S->vm, ht->default_val);
 	} else {
 		vm_push((struct VM *) S, result);
 	}
@@ -275,4 +275,12 @@ int table_clear(struct YASL_State *S) {
 	vm_dec_ref(&S->vm, &vm_peek((struct VM *) S));
 
 	return 0;
+}
+
+int table_setdefault(struct YASL_State *S) {
+	struct YASL_Table *ht = YASLX_checkntable(S, "table.setdefault", 0);
+	dec_ref(&ht->default_val);
+	inc_ref(vm_peek_p(&S->vm));
+	ht->default_val = vm_pop(&S->vm);
+	return 1;
 }

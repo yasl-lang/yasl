@@ -1,0 +1,21 @@
+
+
+let t = {}
+t->setdefault(0)
+
+echo t
+
+t['a'] += 10
+
+
+echo t
+
+t->clear()
+t->setdefault('not found')
+
+echo t['key']
+
+echo t:r
+
+
+

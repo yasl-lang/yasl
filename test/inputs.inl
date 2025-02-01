@@ -8,6 +8,7 @@ static const char *inputs[] = {
   "test/inputs/builtin-types/bool/tostr.yasl",
   "test/inputs/builtin-types/table/clear.yasl",
   "test/inputs/builtin-types/table/remove.yasl",
+  "test/inputs/builtin-types/table/setdefault.yasl",
   "test/inputs/builtin-types/table/__len.yasl",
   "test/inputs/builtin-types/table/__eq.yasl",
   "test/inputs/builtin-types/table/copy.yasl",
