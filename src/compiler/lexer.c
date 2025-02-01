@@ -640,26 +640,6 @@ static void set_keyword(struct Lexer *const lex, enum Token type) {
 }
 
 void YASLKeywords(struct Lexer *const lex) {
-	/* keywords:
-	 *  let
-	 *  print
-	 *  if
-	 *  in
-	 *  elseif
-	 *  else
-	 *  while
-	 *  for
-	 *  break
-	 *  continue
-	 *  true
-	 *  false
-	 *  or
-	 *  and
-	 *  undef
-	 *  fn
-	 *  return
-	 *  assert
-	 */
 
 #define X(word, ...) if (matches_keyword(lex, #word)) {\
 	lex_print_err_syntax(lex, "`" #word "` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);\
