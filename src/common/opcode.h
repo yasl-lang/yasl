@@ -78,8 +78,9 @@ enum Opcode {
 	O_ENDFOR = 0xD2, // end for-loop in VM
 	O_ITER_1 = 0xD3, // iterate to next, 1 var
 
-	O_COLLECT_REST_PARAMS = 0xE0,
-	O_SPREAD_VARGS = 0xE1,
+	O_COLLECT_REST = 0xE0,
+	O_COLLECT_REST_PARAMS = 0xE1,
+	O_SPREAD_VARGS = 0xE2,
 	O_INIT_MC = 0xE7,
 	O_INIT_CALL = 0xE8, // set up function call
 	O_CALL = 0xE9, // function call

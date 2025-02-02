@@ -1018,6 +1018,8 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 	size_t vars = get_stacksize(compiler);
 	enter_scope(compiler);
 	compiler->leftmost_pattern = true;
+
+	compiler_add_byte(compiler, 1);
 	visit_patt(compiler, patterns->children[curr]);
 
 	struct Node *guard = guards->children[curr];
@@ -1054,6 +1056,7 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 	if (guard) {
 		YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, start_guard, compiler->buffer->count - start_guard - 8);
 		if (bindings) {
+			compiler_add_code_BB(compiler, O_MOVEDOWN_FP, (unsigned char)vars);
 			for (unsigned char i = bindings; i > 0; i--)
 				compiler_add_byte(compiler, O_POP);
 		}
@@ -1072,6 +1075,7 @@ static void visit_Match(struct Compiler *const compiler, const struct Node *cons
 	struct Node *guards = Match_get_guards(node);
 	struct Node *bodies = Match_get_bodies(node);
 	visit_expr(compiler, expr, (int)get_stacksize(compiler), (int)get_stacksize(compiler));
+	compiler_add_code_BB(compiler, O_COLLECT_REST, (unsigned char)get_stacksize(compiler));
 	if (patterns->children_len == 0) {
 		compiler_add_byte(compiler, O_POP);
 		return;

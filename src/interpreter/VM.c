@@ -1140,11 +1140,13 @@ static bool vm_MATCH_subpattern(struct VM *const vm, struct YASL_Object *expr) {
 }
 
 static bool vm_MATCH_pattern(struct VM *const vm, struct YASL_Object *expr) {
+	unsigned char count = NCODE(vm);
+	YASL_UNUSED(count);
 	return vm_MATCH_subpattern(vm, expr);
 }
 
 static void vm_MATCH_IF(struct VM *const vm) {
-	struct YASL_Object *expr = vm_peek_p(vm);
+	struct YASL_Object *expr = vm_peeklist(vm)->items;
 	yasl_int addr = vm_read_int(vm);
 	unsigned char *start = vm->pc;
 	if (!vm_MATCH_pattern(vm, expr)) {
@@ -1331,6 +1333,17 @@ static void vm_CALL_cfn(struct VM *const vm) {
 	vm_exitframe_multi(vm, vm->sp - num_returns - vm->fp);
 }
 
+void vm_COLLECT_REST(struct VM *vm, unsigned offset) {
+	struct RC_UserData *ls = rcls_new(vm);
+
+	for (int i = vm->fp + offset + 1; i <= vm->sp; i++) {
+		YASL_List_push((struct YASL_List *) ls->data, vm_peek(vm, i));
+	}
+
+	vm->sp = vm->fp + offset;
+	vm_pushlist(vm, ls);
+}
+
 void vm_COLLECT_REST_PARAMS(struct VM *const vm) {
 	int offset = 0;
 	if (vm_isfn(vm, vm->fp)) {
@@ -1341,14 +1354,7 @@ void vm_COLLECT_REST_PARAMS(struct VM *const vm) {
 		YASL_UNREACHED();
 	}
 
-	struct RC_UserData *ls = rcls_new(vm);
-
-	for (int i = vm->fp + offset + 1; i <= vm->sp; i++) {
-		YASL_List_push((struct YASL_List *) ls->data, vm_peek(vm, i));
-	}
-
-	vm->sp = vm->fp + offset;
-	vm_pushlist(vm, ls);
+	vm_COLLECT_REST(vm, (unsigned)offset);
 }
 
 void vm_SPREAD_VARGS(struct VM *const vm) {
@@ -1810,6 +1816,10 @@ void vm_executenext(struct VM *const vm) {
 #else
 		vm_CALL(vm);
 #endif
+		break;
+	case O_COLLECT_REST:
+		offset = NCODE(vm);
+		vm_COLLECT_REST(vm, offset);
 		break;
 	case O_COLLECT_REST_PARAMS:
 		vm_COLLECT_REST_PARAMS(vm);
