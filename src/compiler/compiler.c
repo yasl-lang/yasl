@@ -1025,7 +1025,9 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 	compiler->leftmost_pattern = true;
 
 	compiler_add_byte(compiler, (unsigned char)patterns->children[curr]->children_len);
-	visit_patt(compiler, patterns->children[curr]);
+	FOR_CHILDREN(i, child, patterns->children[curr]) {
+		visit_patt(compiler, child);
+	}
 
 	struct Node *guard = guards->children[curr];
 	int64_t start_guard = 0;
