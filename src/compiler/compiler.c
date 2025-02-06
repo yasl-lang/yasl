@@ -934,6 +934,11 @@ static void visit_ConstPattern(struct Compiler *const compiler, const struct Nod
 	visit_DeclPattern(compiler, node, true);
 }
 
+static void visit_OnePattern(struct Compiler *const compiler, const struct Node *const node) {
+	YASL_UNUSED(node);
+	compiler_add_byte(compiler, P_ONE);
+}
+
 static void visit_AnyPattern(struct Compiler *const compiler, const struct Node *const node) {
 	YASL_UNUSED(node);
 	compiler_add_byte(compiler, P_ANY);
@@ -1019,7 +1024,7 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 	enter_scope(compiler);
 	compiler->leftmost_pattern = true;
 
-	compiler_add_byte(compiler, 1);
+	compiler_add_byte(compiler, (unsigned char)patterns->children[curr]->children_len);
 	visit_patt(compiler, patterns->children[curr]);
 
 	struct Node *guard = guards->children[curr];

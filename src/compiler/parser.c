@@ -752,7 +752,7 @@ static struct Node *parse_patternsingle(struct Parser *const parser) {
 	case T_STAR:
 		eattok(parser, T_STAR);
 		n = new_Undef(parser, line);
-		n->nodetype = N_PATANY;
+		n->nodetype = N_PATONE;
 		return n;
 	case T_UNDEF:
 		eattok(parser, T_UNDEF);
@@ -845,18 +845,38 @@ static struct Node *parse_pattern(struct Parser *const parser) {
 	return parse_alt(parser);
 }
 
+static struct Node *parse_patterns(struct Parser *const parser) {
+	struct Node *body = new_Body(parser, parserline(parser));
+	if (curtok(parser) == T_LPAR && isemptyvargs(parser)) {
+		eattok(parser, T_LPAR);
+		eattok(parser, T_RPAR);
+		return body;
+	}
+	do {
+		if (matcheattok(parser, T_TDOT)) {
+			struct Node *p = new_Vargs(parser, parserline(parser));
+			p->nodetype = N_PATANY;
+			body_append(parser, &body, p);
+			return body;
+		}
+		struct Node *p = parse_pattern(parser);
+		body_append(parser, &body, p);
+	} while (matcheattok(parser, T_COMMA));
+	return body;
+}
+
 static struct Node *parse_match(struct Parser *const parser) {
 	size_t line = parserline(parser);
 	YASL_PARSE_DEBUG_LOG("parsing match in line %" PRI_SIZET "\n", line);
 	eattok(parser, T_MATCH);
-	struct Node *expr = parse_expr(parser);
-	(void)expr;
+	struct Node *exprs = new_Exprs(parser, parserline(parser));
+	parse_exprs_or_vargs(parser, &exprs, false);
 	eattok(parser, T_LBRC);
 	struct Node *pats = new_Body(parser, line);
 	struct Node *guards = new_Exprs(parser, line);
 	struct Node *bodies = new_Body(parser, line);
 	while (curtok(parser) != T_RBRC && curtok(parser) != T_EOF) {
-		body_append(parser, &pats, parse_pattern(parser));
+		body_append(parser, &pats, parse_patterns(parser));
 		if (matcheattok(parser, T_IF)) {
 			body_append(parser, &guards, parse_expr(parser));
 		} else {
@@ -872,7 +892,7 @@ static struct Node *parse_match(struct Parser *const parser) {
 	body_append(parser, &pats, n);
 	body_append(parser, &guards, NULL);
 	body_append(parser, &bodies, new_Body(parser, line));
-	return new_Match(parser, expr, pats, guards, bodies, line);
+	return new_Match(parser, exprs, pats, guards, bodies, line);
 }
 
 static struct Node *parse_if(struct Parser *const parser) {

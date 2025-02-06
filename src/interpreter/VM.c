@@ -961,6 +961,7 @@ static void vm_ff_subpattern(struct VM *const vm) {
 	case P_TYPE_STR:
 	case P_TYPE_LS:
 	case P_TYPE_TABLE:
+	case P_ONE:
 	case P_ANY:
 	case P_NOT:
 		break;
@@ -1123,6 +1124,8 @@ static bool vm_MATCH_subpattern(struct VM *const vm, struct YASL_Object *expr) {
 		inc_ref(&vm_peek_fp(vm, offset));
 		return true;
 	}
+	case P_ONE:
+		return true;
 	case P_ANY:
 		return true;
 	case P_NOT:
@@ -1139,17 +1142,29 @@ static bool vm_MATCH_subpattern(struct VM *const vm, struct YASL_Object *expr) {
 	return false;
 }
 
-static bool vm_MATCH_pattern(struct VM *const vm, struct YASL_Object *expr) {
+static bool vm_MATCH_pattern(struct VM *const vm, struct YASL_List *exprs) {
 	unsigned char count = NCODE(vm);
-	YASL_UNUSED(count);
-	return vm_MATCH_subpattern(vm, expr);
+	bool tmp = true;
+	for (unsigned i = 0; i < exprs->count && i < count; i++) {
+		struct YASL_Object *expr = &exprs->items[i];
+		if (*vm->pc == P_ANY) {
+			YASL_UNUSED(NCODE(vm));
+			return tmp;
+		}
+		tmp = tmp && vm_MATCH_subpattern(vm, expr);
+	}
+	if (*vm->pc == P_ANY) {
+		YASL_UNUSED(NCODE(vm));
+		return tmp;
+	}
+	return tmp && exprs->count == count;
 }
 
 static void vm_MATCH_IF(struct VM *const vm) {
-	struct YASL_Object *expr = vm_peeklist(vm)->items;
+	struct YASL_List *exprs = vm_peeklist(vm);
 	yasl_int addr = vm_read_int(vm);
 	unsigned char *start = vm->pc;
-	if (!vm_MATCH_pattern(vm, expr)) {
+	if (!vm_MATCH_pattern(vm, exprs)) {
 		vm->pc = start + addr;
 	}
 }
