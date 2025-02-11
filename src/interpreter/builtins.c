@@ -1,13 +1,13 @@
 #include "builtins.h"
 
 #include "data-structures/YASL_String.h"
-#include "str_methods.h"
-#include "undef_methods.h"
-#include "float_methods.h"
-#include "int_methods.h"
-#include "bool_methods.h"
-#include "table_methods.h"
-#include "list_methods.h"
+#include "src/interpreter/methods/str_methods.h"
+#include "src/interpreter/methods/undef_methods.h"
+#include "src/interpreter/methods/float_methods.h"
+#include "src/interpreter/methods/int_methods.h"
+#include "src/interpreter/methods/bool_methods.h"
+#include "src/interpreter/methods/table_methods.h"
+#include "src/interpreter/methods/list_methods.h"
 #include "VM.h"
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -54,8 +54,9 @@ struct YASL_Table* int_builtins(struct VM *vm) {
 
 struct YASL_Table* bool_builtins(struct VM *vm) {
 	struct YASL_Table *table = YASL_Table_new();
-	table_insert_str_cfunction(vm, table, "tostr", &bool_tostr, 1);
+	table_insert_str_cfunction(vm, table, "tostr", &bool_tostr, 2);
 	table_insert_str_cfunction(vm, table, "tobool", &bool_tobool, 1);
+	table_insert_str_cfunction(vm, table, "tobyte", &bool_tobyte, 1);
 	table_insert_str_cfunction(vm, table, "__bor", &bool___bor, 2);
 	table_insert_str_cfunction(vm, table, "__band", &bool___band, 2);
 	table_insert_str_cfunction(vm, table, "__bandnot", &bool___bandnot, 2);
@@ -89,6 +90,7 @@ struct YASL_Table* str_builtins(struct VM *vm) {
 	table_insert_str_cfunction(vm, table, "search", &str_search, 3);
 	table_insert_str_cfunction(vm, table, "count", &str_count, 2);
 	table_insert_str_cfunction(vm, table, "split", &str_split, 3);
+	table_insert_str_cfunction(vm, table, "partition", &str_partition, -2);
 	table_insert_str_cfunction(vm, table, "ltrim", &str_ltrim, 2);
 	table_insert_str_cfunction(vm, table, "rtrim", &str_rtrim, 2);
 	table_insert_str_cfunction(vm, table, "trim", &str_trim, 2);
@@ -129,16 +131,17 @@ struct YASL_Table* list_builtins(struct VM *vm) {
 struct YASL_Table* table_builtins(struct VM *vm) {
 	struct YASL_Table *table = YASL_Table_new();
 	table_insert_str_cfunction(vm, table, "__len", &table___len, 1);
+	table_insert_str_cfunction(vm, table, "__get", &table___get, 2);
+	table_insert_str_cfunction(vm, table, "__set", &table___set, 3);
+	table_insert_str_cfunction(vm, table, "__bor", &table___bor, 2);
+	table_insert_str_cfunction(vm, table, "__eq", &table___eq, 2);
+	table_insert_str_cfunction(vm, table, "__iter", &table___iter, 1);
 	table_insert_str_cfunction(vm, table, "remove", &table_remove, 2);
 	table_insert_str_cfunction(vm, table, "keys", &table_keys, 1);
 	table_insert_str_cfunction(vm, table, "values", &table_values, 1);
 	table_insert_str_cfunction(vm, table, "copy", &table_copy, 1);
 	table_insert_str_cfunction(vm, table, "tostr", &table_tostr, 2);
-	table_insert_str_cfunction(vm, table, "__get", &table___get, 2);
-	table_insert_str_cfunction(vm, table, "__set", &table___set, 3);
-	table_insert_str_cfunction(vm, table, "__bor", &table___bor, 2);
-	table_insert_str_cfunction(vm, table, "__eq", &table___eq, 2);
 	table_insert_str_cfunction(vm, table, "clear", &table_clear, 1);
-	table_insert_str_cfunction(vm, table, "__iter", &table___iter, 1);
+	table_insert_str_cfunction(vm, table, "setdefault", &table_setdefault, 2);
 	return table;
 }

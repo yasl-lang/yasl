@@ -7,6 +7,7 @@
 #include "YASL_Object.h"
 #include "ast.h"
 #include "data-structures/YASL_String.h"
+#include "common/migrations.h"
 #include "lexinput.h"
 #include "opcode.h"
 #include "yasl_error.h"
@@ -353,6 +354,7 @@ unsigned char *compile_REPL(struct Compiler *const compiler) {
 		if (!compiler->parser.status) {
 			if (peof(&compiler->parser) && node->nodetype == N_EXPRSTMT) {
 				node->nodetype = N_ECHO;
+				node->children[0] = new_Stringify(&compiler->parser, Echo_get_exprs(node), (char *)"", parserline(&compiler->parser));
 			}
 			visit_stmt(compiler, node);
 			YASL_ByteBuffer_extend(compiler->code, compiler->buffer->items, compiler->buffer->count);
@@ -469,9 +471,16 @@ static void visit_CollectRestParams(struct Compiler *const compiler, const struc
 static int visit_Call(struct Compiler *const compiler, const struct Node *const node, int target, int num_temps) {
 	YASL_UNUSED(target);
 	visit_expr(compiler, Call_get_object(node), num_temps, num_temps);
+#if YASL_REGISTER_MIGRATION == 1
+	visit_expr(compiler, Call_get_params(node), num_temps + 1, num_temps + 1);
+	compiler_add_byte(compiler, O_CALL);
+	compiler_add_byte(compiler, (unsigned char)num_temps);
+	compiler_add_byte(compiler, (unsigned char)node->value.ival);
+#else
 	compiler_add_code_BB(compiler, O_INIT_CALL, (unsigned char)node->value.ival);
 	visit_expr(compiler, Call_get_params(node), num_temps + 1, num_temps + 1);
 	compiler_add_byte(compiler, O_CALL);
+#endif
 
 	return num_temps + 1;
 }
@@ -483,11 +492,19 @@ static int visit_MethodCall(struct Compiler *const compiler, const struct Node *
 	visit_expr(compiler, MethodCall_get_object(node), num_temps, num_temps);
 
 	yasl_int index = compiler_intern_string(compiler, str, len);
+#if YASL_REGISTER_MIGRATION == 1
+	compiler_add_code_BBW(compiler, O_INIT_MC, (unsigned char)node->value.sval.len, index);
+	visit_expr(compiler, MethodCall_get_params(node), num_temps + 2, num_temps + 2);
+	compiler_add_byte(compiler, O_CALL);
+	compiler_add_byte(compiler, (unsigned char)num_temps);
+	compiler_add_byte(compiler, (unsigned char)node->value.sval.len);
 
+#else
 	compiler_add_code_BBW(compiler, O_INIT_MC, (unsigned char)node->value.sval.len, index);
 
 	visit_expr(compiler, MethodCall_get_params(node), num_temps + 2, num_temps + 2);  // +2 for function and object
 	compiler_add_byte(compiler, O_CALL);
+#endif
 
 	return num_temps + 1;
 }
@@ -917,6 +934,11 @@ static void visit_ConstPattern(struct Compiler *const compiler, const struct Nod
 	visit_DeclPattern(compiler, node, true);
 }
 
+static void visit_OnePattern(struct Compiler *const compiler, const struct Node *const node) {
+	YASL_UNUSED(node);
+	compiler_add_byte(compiler, P_ONE);
+}
+
 static void visit_AnyPattern(struct Compiler *const compiler, const struct Node *const node) {
 	YASL_UNUSED(node);
 	compiler_add_byte(compiler, P_ANY);
@@ -1001,7 +1023,11 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 	size_t vars = get_stacksize(compiler);
 	enter_scope(compiler);
 	compiler->leftmost_pattern = true;
-	visit_patt(compiler, patterns->children[curr]);
+
+	compiler_add_byte(compiler, (unsigned char)patterns->children[curr]->children_len);
+	FOR_CHILDREN(i, child, patterns->children[curr]) {
+		visit_patt(compiler, child);
+	}
 
 	struct Node *guard = guards->children[curr];
 	int64_t start_guard = 0;
@@ -1037,6 +1063,7 @@ static void visit_Match_helper(struct Compiler *const compiler, const struct Nod
 	if (guard) {
 		YASL_ByteBuffer_rewrite_int_fast(compiler->buffer, start_guard, compiler->buffer->count - start_guard - 8);
 		if (bindings) {
+			compiler_add_code_BB(compiler, O_MOVEDOWN_FP, (unsigned char)vars);
 			for (unsigned char i = bindings; i > 0; i--)
 				compiler_add_byte(compiler, O_POP);
 		}
@@ -1055,6 +1082,7 @@ static void visit_Match(struct Compiler *const compiler, const struct Node *cons
 	struct Node *guards = Match_get_guards(node);
 	struct Node *bodies = Match_get_bodies(node);
 	visit_expr(compiler, expr, (int)get_stacksize(compiler), (int)get_stacksize(compiler));
+	compiler_add_code_BB(compiler, O_COLLECT_REST, (unsigned char)get_stacksize(compiler));
 	if (patterns->children_len == 0) {
 		compiler_add_byte(compiler, O_POP);
 		return;
@@ -1221,6 +1249,17 @@ static void visit_Decl(struct Compiler *const compiler, const struct Node *const
 	}
 }
 
+static int visit_Stringify(struct Compiler *const compiler, const struct Node *const node, int target, int num_temps) {
+	visit_expr(compiler, Stringify_get_expr(node), target, num_temps);
+	compiler_add_code_BB(compiler, O_STRINGIFY, num_temps);
+	const char *start = node->value.sval.str;
+	while (*start) {
+		compiler_add_byte(compiler, *(unsigned char*)(start++));
+	}
+	compiler_add_byte(compiler, '\0');
+	return num_temps;
+}
+
 static int visit_TriOp(struct Compiler *const compiler, const struct Node *const node, int target, int num_temps) {
 	YASL_UNUSED(target);
 	struct Node *left = TriOp_get_left(node);
@@ -1293,10 +1332,18 @@ static int visit_BinOp(struct Compiler *const compiler, const struct Node *const
 	case T_BANGEQ:
 		compiler_add_byte(compiler, O_EQ);
 		compiler_add_byte(compiler, O_NOT);
+#if YASL_REGISTER_MIGRATION == 1
+		compiler_add_byte(compiler, (unsigned char)target);
+#endif
+
 		break;
 	case T_BANGDEQ:
 		compiler_add_byte(compiler, O_ID);
 		compiler_add_byte(compiler, O_NOT);
+#if YASL_REGISTER_MIGRATION == 1
+		compiler_add_byte(compiler, (unsigned char)target);
+#endif
+
 		break;
 	case T_GT:
 		compiler_add_byte(compiler, O_GT);
@@ -1350,7 +1397,8 @@ static int visit_BinOp(struct Compiler *const compiler, const struct Node *const
 
 static int visit_UnOp(struct Compiler *const compiler, const struct Node *const node, int target, int num_temps) {
 	YASL_UNUSED(target);
-	visit_expr(compiler, UnOp_get_expr(node), num_temps, num_temps);
+	int source = visit_expr(compiler, UnOp_get_expr(node), num_temps, num_temps);
+	YASL_UNUSED(source);
 	switch (node->value.type) {
 	case T_PLUS:
 		compiler_add_byte(compiler, O_POS);
@@ -1371,6 +1419,9 @@ static int visit_UnOp(struct Compiler *const compiler, const struct Node *const 
 		YASL_UNREACHED();
 		break;
 	}
+#if YASL_REGISTER_MIGRATION == 1
+	compiler_add_byte(compiler, (unsigned char)num_temps);
+#endif
 
 	return num_temps + 1;
 }

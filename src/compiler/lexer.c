@@ -176,6 +176,28 @@ static bool lex_eatop(struct Lexer *const lex) {
 
 	one:
 	last = YASLToken_OneChar(c1);
+	switch (last) {
+	case T_LPAR:
+		lex->par_count++;
+		break;
+	case T_RPAR:
+		lex->par_count--;
+		break;
+	case T_LSQB:
+		lex->sqb_count++;
+		break;
+	case T_RSQB:
+		lex->sqb_count--;
+		break;
+	case T_LBRC:
+		lex->brc_count++;
+		break;
+	case T_RBRC:
+		lex->brc_count--;
+		break;
+	default:
+		break;
+	}
 	if (last != T_UNKNOWN) {
 		lex->type = last;
 		lex_val_free(lex);
@@ -618,26 +640,6 @@ static void set_keyword(struct Lexer *const lex, enum Token type) {
 }
 
 void YASLKeywords(struct Lexer *const lex) {
-	/* keywords:
-	 *  let
-	 *  print
-	 *  if
-	 *  in
-	 *  elseif
-	 *  else
-	 *  while
-	 *  for
-	 *  break
-	 *  continue
-	 *  true
-	 *  false
-	 *  or
-	 *  and
-	 *  undef
-	 *  fn
-	 *  return
-	 *  assert
-	 */
 
 #define X(word, ...) if (matches_keyword(lex, #word)) {\
 	lex_print_err_syntax(lex, "`" #word "` is an unused reserved word and cannot be used (line %" PRI_SIZET ").\n", lex->line);\

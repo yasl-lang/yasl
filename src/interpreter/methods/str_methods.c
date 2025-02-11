@@ -6,7 +6,7 @@
 #include "yasl.h"
 #include "yasl_aux.h"
 #include "yasl_include.h"
-#include "yasl_types.h"
+#include "src/interpreter/yasl_types.h"
 #include "yasl_state.h"
 
 #undef min
@@ -316,6 +316,36 @@ int str_count(struct YASL_State *S) {
 	}
 	YASL_pushint(S, YASL_String_count(haystack, needle));
 	return 1;
+}
+
+int str_partition(struct YASL_State *S) {
+	struct YASL_String *haystack = checkstr(S, "str.partition", 0);
+	yasl_int i = YASL_peekvargscount(S);
+	yasl_int start = YASL_getvargsstart(S);
+	for (unsigned j = (unsigned)start; j < i + start; j++) {
+		struct YASL_String *needle = checkstr(S, "str.partition", j);
+		if (YASL_String_len(needle) == 0) {
+			YASLX_print_and_throw_err_value(S, "str.partition expected a non-empty str as arg %ld.", (long)j);
+		}
+
+		int64_t index = str_find_index(haystack, needle, 0);
+
+		if (index == -1) {
+			YASL_pushundef(S);
+			return 1;
+		}
+
+		struct YASL_String *before = (YASL_String_new_substring(&S->vm, haystack, 0, index));
+		haystack = (YASL_String_new_substring(&S->vm, haystack,
+								       index + YASL_String_len(needle),
+								       YASL_String_len(haystack)));
+
+		vm_pushstr(&S->vm, before);
+	}
+
+	vm_pushstr(&S->vm, haystack);
+
+	return i + 1;
 }
 
 static void str_split_max(struct YASL_State *S, struct YASL_String *haystack, yasl_int max_splits) {

@@ -2,4 +2,11 @@ const fn empty() {
 
 }
 
-empty()
+echo empty()
+
+const fn empty2() {
+    return ()
+}
+
+echo empty2()
+

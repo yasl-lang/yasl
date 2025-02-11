@@ -1,3 +1,4 @@
+# This is currently disabled because the randomization gives a different order on different platforms.
 # Use a seed so that we can reliably test this. Without the seed, this should give a different result each time.
 math.seed(100)
 

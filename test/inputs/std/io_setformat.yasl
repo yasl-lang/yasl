@@ -1,0 +1,14 @@
+const setformat = io.setformat
+
+const l = [ 10, '20', 30, '40']
+
+echo l
+
+setformat('r')
+echo l
+
+setformat('x')
+echo [ 10, 20, 30 ]
+
+setformat()
+echo l
