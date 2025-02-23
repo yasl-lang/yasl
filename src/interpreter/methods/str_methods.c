@@ -453,7 +453,7 @@ DEFINE_TRIM_FN(ltrim)
 DEFINE_TRIM_FN(rtrim)
 DEFINE_TRIM_FN(trim)
 
-int str_repeat(struct YASL_State *S) {
+int str_rep(struct YASL_State *S) {
 	struct YASL_String *string = checkstr(S, "str.rep", 0);
 	yasl_int num = YASLX_checknint(S, "str.rep", 1);
 
