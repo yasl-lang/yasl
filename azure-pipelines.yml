@@ -216,6 +216,7 @@ jobs:
       make yaslapi
       make tests
       make test_module
+      ls
     displayName: "Compile"
   - script:
       ./tests
