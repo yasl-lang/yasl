@@ -29,10 +29,7 @@ void del_item(struct YASL_Table_Item *const item) {
 
 struct YASL_Table *table_new_sized(const size_t base_size) {
 	struct YASL_Table *table = (struct YASL_Table *)malloc(sizeof(struct YASL_Table));
-	table->base_size = base_size;
-	table->size = next_prime(table->base_size);
-	table->count = 0;
-	table->items = (struct YASL_Table_Item *)calloc((size_t) table->size, sizeof(struct YASL_Table_Item));
+	*table = NEW_TABLE_SIZED(base_size);
 	return table;
 }
 
@@ -77,7 +74,7 @@ static void table_resize(struct YASL_Table *const table, const size_t base_size)
 	if (base_size < TABLE_BASESIZE) return;
 	struct YASL_Table *new_table = table_new_sized(base_size);
 	FOR_TABLE(i, item, table) {
-			YASL_Table_insert_fast(new_table, item->key, item->value);
+		YASL_Table_insert_fast(new_table, item->key, item->value);
 	}
 	table->base_size = new_table->base_size;
 	table->count = new_table->count;

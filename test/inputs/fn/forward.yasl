@@ -4,7 +4,6 @@ fn f(a, b) {
 }
 
 fn g(a, b) {
-    # return f(-a, -b)
     const c = a - b
     if (a + b > 0) {
         const c = a + b

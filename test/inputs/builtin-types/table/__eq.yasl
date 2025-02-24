@@ -1,15 +1,15 @@
 
 const extend = mt.lookup({}, .__bor)
 
-let left = { .a: 10, .b: 12 }
+let left = { a = 10, b = 12 }
 let right = collections.table(.a, 10, .b, 12, .c, 7)
 
 
 echo left == right
 echo left != right
 echo left ==  collections.table(.a, 10, .b, 12)
-echo right == { .a: 10, .b: 12, .c: 7 }
-echo left != { .a: 10, .b: 11 }
+echo right == { a = 10, b = 12, c = 7 }
+echo left != { a = 10, b = 11 }
 
 mt.set(left, extend(mt.get(left), {
     .__eq: fn(a, b) {

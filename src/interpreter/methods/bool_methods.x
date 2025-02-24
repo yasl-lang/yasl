@@ -1,0 +1,8 @@
+X(tostr, 2)
+X(tobool, 1)
+X(tobyte, 1)
+X(__bor, 2)
+X(__band, 2)
+X(__bandnot, 2)
+X(__bxor, 2)
+X(__bnot, 1)

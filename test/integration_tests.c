@@ -37,8 +37,14 @@ for (size_t i = 0; i < sizeof(inputs) / sizeof(char *); i++) {\
 	status |= YASL_execute(S);\
 	YASL_loadprintout(S);\
 	char *actual_output = YASL_peekcstr(S);\
-	if (!!strcmp(expected_output, actual_output) || status != YASL_SUCCESS) {\
-		fprintf(stderr, "test for %s failed (expected:\n`%s`, got:\n`%s`).\n", inputs[i], expected_output, actual_output);\
+	YASL_pop(S);\
+	YASL_loadprinterr(S);\
+	char *actual_err = YASL_peekcstr(S);\
+	if (!!strcmp(expected_output, actual_output) || strlen(actual_err) || status != YASL_SUCCESS) {\
+		fprintf(stderr, "Test for %s failed.\nExpected output:\n`%s`, got:\n`%s`.\n", inputs[i], expected_output, actual_output);\
+		if (strlen(actual_err)) {\
+			fprintf(stderr, "Expected no error, got: `%s`.\n", actual_err);\
+		}\
 		failed++;\
 	}\
 	ran++;\

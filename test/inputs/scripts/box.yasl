@@ -2,7 +2,7 @@
 let box = undef
 
 const boxmt = {
-    .tostr: (fn(self) -> "box(#{self.contents->tostr()})"),
+    .tostr: (fn(self, format) -> "box(#{self.contents->tostr(format)})"),
     .__bnot: (fn(self) -> self.contents),
     .update: fn(self, val) {
         self.contents = val
@@ -25,6 +25,7 @@ echo ^x
 x->update("blah blah blah")
 
 echo x
+echo x:r
 echo ^x
 
 

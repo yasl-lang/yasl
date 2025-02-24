@@ -4,24 +4,35 @@ let x = {
     .b: 11
 }
 
-echo x
+echo "x is #{
+        x
+}"
+
 
 let xx = { k: x[k] + 1
             for k in x
          }
 
-echo xx
+echo "xx is #{
+        xx
+}"
+
 
 let y = [
     1,
     2
 ]
 
-echo y
+echo "y is #{
+        y
+}"
+
 
 let yy = [ v + 1
            for v in y
          ]
 
-echo yy
+echo "yy is #{
+        yy
+}"
 
