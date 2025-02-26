@@ -466,6 +466,11 @@ int YASL_functioncall(struct YASL_State *S, int n) {
 	return old_sp - vm->sp - 1;
 }
 
+const char *float64_to_str(const yasl_float d);
+const char *YASL_floattostr(yasl_float n) {
+	return float64_to_str(n);
+}
+
 bool YASL_isundef(struct YASL_State *S) {
 	return vm_isundef(&S->vm);
 }

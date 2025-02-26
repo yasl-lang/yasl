@@ -109,6 +109,14 @@ int YASL_functioncall(struct YASL_State *S, int n);
 
 /**
  * [-0, +0]
+ * Converts the n to a float, the same as `float->tostr` would.
+ * @param n the float to convert.
+ * @return n formatted as a string.
+ */
+const char *YASL_floattostr(yasl_float n);
+
+/**
+ * [-0, +0]
  * checks if the top of the stack is bool.
  * @param S the YASL_State.
  * @return true if the top of the stack is bool, else false.
