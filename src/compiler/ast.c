@@ -178,7 +178,7 @@ struct Node *body_last(struct Node *body) {
 }
 
 bool will_var_expand(struct Node *node) {
-	return node->nodetype == N_CALL || node->nodetype == N_MCALL;
+	return node->nodetype == N_CALL || node->nodetype == N_MCALL || node->nodetype == N_STRINGIFY;
 }
 
 DEF_NODE(ExprStmt, N_EXPRSTMT, expr)
@@ -211,7 +211,7 @@ DEF_NODE(Continue, N_CONT)
 DEF_NODE(Match, N_MATCH, cond, patterns, guards, bodies)
 DEF_NODE(If, N_IF, cond, then, el)
 DEF_NODE(IfDef, N_IFDEF, cond, then, el)
-
+DEF_NODE_ZSTR(Stringify, N_STRINGIFY, expr)
 DEF_NODE(Echo, N_ECHO, exprs)
 DEF_NODE(Assert, N_ASS, expr)
 DEF_NODE_ZSTR(Let, N_LET, expr)
@@ -291,6 +291,9 @@ struct Node *new_VariadicContext(struct Node *const expr, const int expected) {
 		return expr;
 	} else if (expr->nodetype == N_MCALL) {
 		expr->value.sval.len = expected;
+		return expr;
+	} else if (expr->nodetype == N_STRINGIFY) {
+		new_VariadicContext(Stringify_get_expr(expr), expected);
 		return expr;
 	} else {
 		return expr;

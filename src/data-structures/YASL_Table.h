@@ -10,18 +10,21 @@
 #define FOR_TABLE(i, item, table) struct YASL_Table_Item *item; for (size_t i = 0; i < (table)->size; i++) \
                                                   if (item = &(table)->items[i], item->key.type != Y_END && !obj_isundef(&item->value))
 
-
-#define NEW_TABLE() ((struct YASL_Table){\
-	.size = next_prime(TABLE_BASESIZE),\
-	.base_size = TABLE_BASESIZE,\
+#define NEW_TABLE() NEW_TABLE_SIZED(TABLE_BASESIZE)
+                                                  	
+#define NEW_TABLE_SIZED(basesize) ((struct YASL_Table){\
+	.size = next_prime(basesize),\
+	.base_size = (basesize),\
 	.count = 0,\
-	.items = (struct YASL_Table_Item *)calloc((size_t) next_prime(TABLE_BASESIZE), sizeof(struct YASL_Table_Item))\
+	.default_val = YASL_UNDEF(),\
+	.items = (struct YASL_Table_Item *)calloc((size_t) next_prime(basesize), sizeof(struct YASL_Table_Item))\
 })
 
 #define DEL_TABLE(table) do {\
         FOR_TABLE(i, item, table) {\
                 del_item(item);\
         }\
+	dec_ref(&(table)->default_val);\
         free((table)->items);\
 } while (0)
 
@@ -35,6 +38,7 @@ struct YASL_Table {
 	size_t size;
 	size_t base_size;
 	size_t count;
+	struct YASL_Object default_val;
 	struct YASL_Table_Item *items;
 };
 

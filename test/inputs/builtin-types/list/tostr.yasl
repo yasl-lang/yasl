@@ -12,3 +12,4 @@ echo [
 
 # check that we correctly forward the specifier to each element.
 echo [ 16, 32, 10, 45 ]->tostr('x')
+echo [ 32, 64, 128 ]:x

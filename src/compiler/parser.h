@@ -17,6 +17,7 @@
 ((struct Parser) {\
 	.lex = NEW_LEXER(fp),\
 	.status = YASL_SUCCESS,\
+	.allow_echo = true,\
 	.head = NULL,\
 	.tail = NULL,\
 })
@@ -24,6 +25,7 @@
 struct Parser {
 	struct Lexer lex; /* OWN */
 	int status;
+	bool allow_echo;
 	struct Node *head;
 	struct Node *tail;
 	jmp_buf env;

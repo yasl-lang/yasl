@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define YASL_VERSION "v0.13.6"
+#define YASL_VERSION "v0.13.7"
 
 #define YASL_STR_NAME "str"
 #define YASL_FLOAT_NAME "float"
@@ -23,6 +23,14 @@ struct YASL_State;
  * Typedef for YASL functions defined through the C API.
  */
 typedef int (*YASL_cfn)(struct YASL_State *);
+
+/**
+ * [-0, +0]
+ * Toggles whether or not `echo` statements are allowed or not.
+ * @param S the YASL_State
+ * @param allow_echo true to enable `echo`, false to disable.
+ */
+void YASL_allowecho(struct YASL_State *S, bool allow_echo);
 
 /**
  * [-0, +0]
@@ -98,6 +106,14 @@ int YASL_execute_REPL(struct YASL_State *S);
  * @return r, the number of return values of the called functions
  */
 int YASL_functioncall(struct YASL_State *S, int n);
+
+/**
+ * [-0, +0]
+ * Converts the n to a float, the same as `float->tostr` would.
+ * @param n the float to convert.
+ * @return n formatted as a string.
+ */
+const char *YASL_floattostr(yasl_float n);
 
 /**
  * [-0, +0]
@@ -453,6 +469,14 @@ YASL_WARN_UNUSED void *YASL_peekuserptr(struct YASL_State *S);
 YASL_WARN_UNUSED yasl_int YASL_peekvargscount(struct YASL_State *S);
 
 /**
+ * [-0, +0]
+ * Returns the index of the first variadic argument of the calling function.
+ * @param S the YASL_State 
+ * @return the starting index of the first variadic argument, or 0 if we are not in a variadic function.
+ */
+YASL_WARN_UNUSED yasl_int YASL_getvargsstart(struct YASL_State *S);
+
+/**
  * [-1, +0]
  * Removes the top of the stack.
  * @param S the YASL_State the stack belongs to.
@@ -665,6 +689,13 @@ void YASL_setprinterr_tostr(struct YASL_State *S);
  * @param S the YASL_State
  */
 void YASL_stringifytop(struct YASL_State *S);
+
+/**
+ * [-0, +0]
+ * @param S the YASL_State
+ * @param format the new default format to use. Passing NULL will reset us to the default format.
+ */
+void YASL_setformat(struct YASL_State *S, const char *format);
 
 /**
  * [-1, +2]

@@ -52,7 +52,7 @@ static struct Node *parse_table(struct Parser *const parser);
 static struct Node *parse_lambda(struct Parser *const parser);
 static struct Node *parse_list(struct Parser *const parser);
 static struct Node *parse_assert(struct Parser *const parser);
-static void parse_exprs_or_vargs(struct Parser *const parser, struct Node **body);
+static void parse_exprs_or_vargs(struct Parser *const parser, struct Node **body, bool parse_format);
 
 YASL_FORMAT_CHECK static void parser_print_err(struct Parser *parser, const char *const fmt, ...) {
 	va_list args;
@@ -267,9 +267,15 @@ static struct Node *parse_program(struct Parser *const parser) {
 	size_t line = parserline(parser);
 	switch (curtok(parser)) {
 	case T_ECHO: {
+		if (!parser->allow_echo) {
+			parser_print_err_syntax(parser,
+						"`echo` is disabled (line %" PRI_SIZET ").\n",
+						line);
+			handle_error(parser);
+		}
 		eattok(parser, T_ECHO);
 		struct Node *body = new_Exprs(parser, parserline(parser));
-		parse_exprs_or_vargs(parser, &body);
+		parse_exprs_or_vargs(parser, &body, true);
 		return new_Echo(parser, body, line);
 	}
 	case T_FN:
@@ -352,7 +358,7 @@ static struct Node *parse_expr_or_vargs(struct Parser *const parser) {
 }
 
 
-static void parse_exprs_or_vargs(struct Parser *const parser, struct Node **body) {
+static void parse_exprs_or_vargs(struct Parser *const parser, struct Node **body, bool allow_format) {
 	if (TOKEN_MATCHES(parser, T_LPAR) && isemptyvargs(parser)) {
 		eattok(parser, T_LPAR);
 		eattok(parser, T_RPAR);
@@ -361,7 +367,17 @@ static void parse_exprs_or_vargs(struct Parser *const parser, struct Node **body
 
 	struct Node *expr = NULL;
 	do {
+		const size_t line = parserline(parser);
 		expr = parse_expr_or_vargs(parser);
+		if (allow_format) {
+			if (matcheattok(parser, T_COLON)) {
+				struct Node *fmt = parse_id(parser);
+				fmt->nodetype = N_STR;
+				expr = new_Stringify(parser, expr, fmt->value.sval.str, line);
+			} else {
+				expr = new_Stringify(parser, expr, (char *)"", line);
+			}
+		}
 		body_append(parser, body, expr);
 	} while (expr->nodetype != N_VARGS && matcheattok(parser, T_COMMA));
 
@@ -373,7 +389,7 @@ static void parse_exprs_or_vargs(struct Parser *const parser, struct Node **body
 
 static struct Node *parse_return_vals(struct Parser *const parser) {
 	struct Node *body = new_Exprs(parser, parserline(parser));
-	parse_exprs_or_vargs(parser, &body);
+	parse_exprs_or_vargs(parser, &body, false);
 	return body;
 }
 
@@ -736,7 +752,7 @@ static struct Node *parse_patternsingle(struct Parser *const parser) {
 	case T_STAR:
 		eattok(parser, T_STAR);
 		n = new_Undef(parser, line);
-		n->nodetype = N_PATANY;
+		n->nodetype = N_PATONE;
 		return n;
 	case T_UNDEF:
 		eattok(parser, T_UNDEF);
@@ -829,18 +845,38 @@ static struct Node *parse_pattern(struct Parser *const parser) {
 	return parse_alt(parser);
 }
 
+static struct Node *parse_patterns(struct Parser *const parser) {
+	struct Node *body = new_Body(parser, parserline(parser));
+	if (curtok(parser) == T_LPAR && isemptyvargs(parser)) {
+		eattok(parser, T_LPAR);
+		eattok(parser, T_RPAR);
+		return body;
+	}
+	do {
+		if (matcheattok(parser, T_TDOT)) {
+			struct Node *p = new_Vargs(parser, parserline(parser));
+			p->nodetype = N_PATANY;
+			body_append(parser, &body, p);
+			return body;
+		}
+		struct Node *p = parse_pattern(parser);
+		body_append(parser, &body, p);
+	} while (matcheattok(parser, T_COMMA));
+	return body;
+}
+
 static struct Node *parse_match(struct Parser *const parser) {
 	size_t line = parserline(parser);
 	YASL_PARSE_DEBUG_LOG("parsing match in line %" PRI_SIZET "\n", line);
 	eattok(parser, T_MATCH);
-	struct Node *expr = parse_expr(parser);
-	(void)expr;
+	struct Node *exprs = new_Exprs(parser, parserline(parser));
+	parse_exprs_or_vargs(parser, &exprs, false);
 	eattok(parser, T_LBRC);
 	struct Node *pats = new_Body(parser, line);
 	struct Node *guards = new_Exprs(parser, line);
 	struct Node *bodies = new_Body(parser, line);
 	while (curtok(parser) != T_RBRC && curtok(parser) != T_EOF) {
-		body_append(parser, &pats, parse_pattern(parser));
+		body_append(parser, &pats, parse_patterns(parser));
 		if (matcheattok(parser, T_IF)) {
 			body_append(parser, &guards, parse_expr(parser));
 		} else {
@@ -851,12 +887,15 @@ static struct Node *parse_match(struct Parser *const parser) {
 	}
 	eattok(parser, T_RBRC);
 
-	struct Node *n = new_Undef(parser, line);
-	n->nodetype = N_PATANY;
-	body_append(parser, &pats, n);
+	struct Node *body = new_Body(parser, parserline(parser));
+	struct Node *p = new_Vargs(parser, parserline(parser));
+	p->nodetype = N_PATANY;
+	body_append(parser, &body, p);
+
+	body_append(parser, &pats, body);
 	body_append(parser, &guards, NULL);
 	body_append(parser, &bodies, new_Body(parser, line));
-	return new_Match(parser, expr, pats, guards, bodies, line);
+	return new_Match(parser, exprs, pats, guards, bodies, line);
 }
 
 static struct Node *parse_if(struct Parser *const parser) {
@@ -1064,7 +1103,7 @@ static struct Node *parse_power(struct Parser *const parser) {
 static void parse_args(struct Parser *const parser, struct Node **body) {
 	eattok(parser, T_LPAR);
 	if (!TOKEN_MATCHES(parser, T_RPAR, T_EOF)) {
-		parse_exprs_or_vargs(parser, body);
+		parse_exprs_or_vargs(parser, body, false);
 	}
 	eattok(parser, T_RPAR);
 
@@ -1278,6 +1317,8 @@ static struct Node *parse_string(struct Parser *const parser) {
 			expr = new_MethodCall(parser, block, expr, tostr, 1, line);
 		}
 
+		lex_eatwhitespace(&parser->lex);
+
 		cur_node = new_BinOp(parser, T_TILDE, cur_node, expr, line);
 
 		parser->lex.mode = L_INTERP;
@@ -1301,24 +1342,38 @@ static struct Node *parse_string(struct Parser *const parser) {
 	return cur_node;
 }
 
+static void parse_kv(struct Parser *const parser, struct Node **kv) {
+	struct Node *key = parse_expr(parser);
+	if (matcheattok(parser, T_COLON)) {
+		body_append(parser, kv, key);
+		body_append(parser, kv, parse_expr(parser));
+		return;
+	} else if (key->nodetype == N_VAR && matcheattok(parser, T_EQ)) {
+		key->nodetype = N_STR;
+		body_append(parser, kv, key);
+		body_append(parser, kv, parse_expr(parser));
+		return;
+	}
+
+	parser_print_err_syntax(parser, "Expected `:` or `=` in line %" PRI_SIZET ", got `%s`.\n", parserline(parser), YASL_TOKEN_NAMES[curtok(parser)]);
+	handle_error(parser);
+}
 
 static struct Node *parse_table(struct Parser *const parser) {
 	size_t line = parserline(parser);
 	eattok(parser, T_LBRC);
-	struct Node *keys = new_Exprs(parser, line);
+	struct Node *kv = new_Exprs(parser, line);
 
 	// empty table
 	if (matcheattok(parser, T_RBRC)) {
 		YASL_PARSE_DEBUG_LOG("%s\n", "Parsing table");
-		return new_Table(parser, keys, line);
+		return new_Table(parser, kv, line);
 	}
-
-	body_append(parser, &keys, parse_expr(parser));
 
 	// non-empty table
 	YASL_PARSE_DEBUG_LOG("%s\n", "Parsing table");
-	eattok(parser, T_COLON);
-	body_append(parser, &keys, parse_expr(parser));
+
+	parse_kv(parser, &kv);
 
 	while (matcheattok(parser, T_SEMI)) ;
 	if (matcheattok(parser, T_FOR)) {
@@ -1331,17 +1386,15 @@ static struct Node *parse_table(struct Parser *const parser) {
 
 		while (matcheattok(parser, T_SEMI)) ;
 		eattok(parser, T_RBRC);
-		struct Node *table_comp = new_TableComp(parser, keys, iter, cond, line);
+		struct Node *table_comp = new_TableComp(parser, kv, iter, cond, line);
 		return table_comp;
 	}
 	while (matcheattok(parser, T_COMMA)) {
-		body_append(parser, &keys, parse_expr(parser));
-		eattok(parser, T_COLON);
-		body_append(parser, &keys, parse_expr(parser));
+		parse_kv(parser, &kv);
 	}
 	while (matcheattok(parser, T_SEMI)) ;
 	eattok(parser, T_RBRC);
-	return new_Table(parser, keys, line);
+	return new_Table(parser, kv, line);
 }
 
 

@@ -1,0 +1,36 @@
+
+
+fn matcher(...) {
+   match ... {
+   () {
+       echo '()'
+   }
+   int {
+       echo 'int'
+   }
+   int, int {
+       echo 'int, int'
+   }
+   str, int {
+       echo 'str, int'
+   }
+   bool, ... {
+       echo 'bool, ...'
+   }
+   * {
+       echo 'one'
+   }
+   ... {
+       echo 'any'
+   }
+   }
+}
+
+matcher()
+matcher(true, 10, 9, 8)
+matcher(1)
+matcher(1, 2)
+matcher(1, 2, 3)
+matcher('one', 2)
+matcher('one')
+matcher(1, 2, 3, 4)

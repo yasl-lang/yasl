@@ -17,7 +17,6 @@
 
 #define NUM_FRAMES 1000
 #define NUM_TYPES 13                                    // number of builtin types, each needs a vtable
-#define SCRATCH_SIZE 1024				// scratchspace size (needs tuning)
 
 #define vm_peek_offset(vm, offset) ((vm)->stack[offset])
 #define vm_peek_offset_p(vm, offset) ((vm)->stack + (offset))
@@ -100,7 +99,7 @@ struct VM {
 	struct YASL_Table *globals;   // global variables
 	struct YASL_Object *constants;
 	struct YASL_StringSet *interned_strings;
-	struct YASL_Object *format_str;
+	struct YASL_String *format_str;
 	int64_t num_constants;
 	struct YASL_Object *stack;    // stack
 	struct CallFrame frames[NUM_FRAMES];
@@ -139,8 +138,10 @@ void vm_print_err(struct VM *vm, const char *const fmt, ...);
 YASL_NORETURN void vm_throw_err(struct VM *const vm, int error);
 
 struct RC_UserData *obj_get_metatable(const struct VM *const vm, struct YASL_Object v);
+struct YASL_Object vm_get_metatable_index(struct VM *const vm, int source);
 void vm_get_metatable(struct VM *const vm);
 int vm_lookup_method_helper(struct VM *vm, struct YASL_Table *mt, struct YASL_Object index);
+void vm_setformat(struct VM *const vm, const char *format);
 void vm_stringify_top(struct VM *const vm);
 void vm_stringify_top_format(struct VM *const vm, struct YASL_Object *format);
 void vm_EQ(struct VM *const vm);

@@ -1,4 +1,5 @@
 box(10)
 10
 box(blah blah blah)
+box('blah blah blah')
 blah blah blah

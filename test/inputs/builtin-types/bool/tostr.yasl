@@ -1,2 +1,15 @@
 echo true->tostr()
 echo false->tostr()
+
+
+
+let x = [ true, false, false, true, false, true, true, false ]
+
+echo x:b
+echo x:r
+echo x
+
+io.setformat('r')
+
+echo true->tobyte()
+echo false->tobyte()

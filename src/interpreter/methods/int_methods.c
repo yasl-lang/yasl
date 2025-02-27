@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-#include "VM.h"
+#include "src/interpreter/VM.h"
 #include "yasl.h"
 #include "yasl_aux.h"
 #include "yasl_include.h"

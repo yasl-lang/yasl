@@ -5,7 +5,7 @@
 
 #include "compiler/compiler.h"
 #include "compiler/lexinput.h"
-#include "interpreter/table_methods.h"
+#include "src/interpreter/methods/table_methods.h"
 #include "interpreter/userdata.h"
 #include "interpreter/VM.h"
 #include "interpreter/YASL_Object.h"
@@ -154,6 +154,10 @@ int YASL_execute_REPL(struct YASL_State *S) {
 	S->vm.headers[S->compiler.num] = bc;
 
 	return vm_run((struct VM *)S);  // TODO: error handling for runtime errors.
+}
+
+void YASL_allowecho(struct YASL_State *S, bool allow_echo) {
+	S->compiler.parser.allow_echo = allow_echo;
 }
 
 int YASL_compile(struct YASL_State *S) {
@@ -353,6 +357,16 @@ yasl_int YASL_peekvargscount(struct YASL_State *S) {
 	return vm_peekint(vm, vm->fp + 1 + ~num_args);
 }
 
+yasl_int YASL_getvargsstart(struct YASL_State *S) {
+	struct VM *vm = (struct VM *)S;
+	yasl_int num_args = vm_peek(vm, vm->fp).value.cval->num_args;
+	if (num_args >= 0) {
+		return 0;
+	}
+
+	return 1 + ~num_args;
+}
+
 void YASL_pop(struct YASL_State *S) {
 	YASL_ASSERT(S->vm.sp >= 0, "Cannot pop from empty stack.");
 	vm_pop(&S->vm);
@@ -366,6 +380,10 @@ int YASL_duptop(struct YASL_State *S) {
 
 void YASL_stringifytop(struct YASL_State *S) {
 	vm_stringify_top(&S->vm);
+}
+
+void YASL_setformat(struct YASL_State *S, const char *format) {
+	vm_setformat(&S->vm, format);
 }
 
 bool YASL_tablenext(struct YASL_State *S) {
@@ -407,10 +425,10 @@ int YASL_tableset(struct YASL_State *S) {
 
 void list___get_helper(struct YASL_State *S, struct YASL_List *ls, yasl_int index);
 
-void vm_len_unop(struct VM *const vm);
+void vm_len_unop(struct VM *const vm, int target, int source);
 
 void YASL_len(struct YASL_State *S) {
-	vm_len_unop(&S->vm);
+	vm_len_unop(&S->vm, S->vm.sp - S->vm.fp - 1, S->vm.sp - S->vm.fp - 1);
 }
 
 int YASL_listget(struct YASL_State *S, yasl_int n) {
@@ -446,6 +464,11 @@ int YASL_functioncall(struct YASL_State *S, int n) {
 	vm_CALL_now(vm);
 
 	return old_sp - vm->sp - 1;
+}
+
+const char *float64_to_str(const yasl_float d);
+const char *YASL_floattostr(yasl_float n) {
+	return float64_to_str(n);
 }
 
 bool YASL_isundef(struct YASL_State *S) {

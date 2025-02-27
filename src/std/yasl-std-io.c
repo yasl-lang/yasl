@@ -106,6 +106,16 @@ static int YASL_io_tmpfile(struct YASL_State *S) {
 	return 1;
 }
 
+static int YASL_io_setformat(struct YASL_State *S) {
+	if (!YASL_isstr(S) && !YASL_isundef(S)) {
+		YASLX_throw_err_type(S);
+	}
+	char *tmp = YASL_peekcstr(S);
+	YASL_setformat(S, tmp);
+	free(tmp);
+	return 0;
+}
+
 static int YASL_io_read(struct YASL_State *S) {
 	char mode_str[2] = { '\0', '\0' };
 
@@ -236,7 +246,7 @@ int YASL_decllib_io(struct YASL_State *S) {
 
 	YASL_loadmt(S, FILE_NAME);
 
-	struct YASLX_function functions[] = {
+	struct YASLX_function file_functions[] = {
 		{ "read", YASL_io_read, 2 },
 		{ "write", YASL_io_write, 2 },
 		{ "seek", YASL_io_seek, 3 },
@@ -245,7 +255,7 @@ int YASL_decllib_io(struct YASL_State *S) {
 		{ NULL, NULL, 0 }
 	};
 
-	YASLX_tablesetfunctions(S, functions);
+	YASLX_tablesetfunctions(S, file_functions);
 	YASL_pop(S);
 
 	YASL_pushtable(S);
@@ -258,6 +268,10 @@ int YASL_decllib_io(struct YASL_State *S) {
 
 	YASL_pushlit(S, "tmpfile");
 	YASL_pushcfunction(S, YASL_io_tmpfile, 0);
+	YASL_tableset(S);
+
+	YASL_pushlit(S, "setformat");
+	YASL_pushcfunction(S, YASL_io_setformat, 1);
 	YASL_tableset(S);
 
 	YASL_pushlit(S, "stdin");

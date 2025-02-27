@@ -58,6 +58,7 @@ enum Opcode {
 
 	O_MOVEUP_FP = 0xA0, // move an element from index whatever to top of stack, indexing from fp.
 	O_MOVEDOWN_FP = 0xA1,
+	O_STRINGIFY = 0xA2,
 
 	O_END = 0xB0, // indicate end of list or table on stack.
 	O_SWAP = 0xB7, // swap the top two elements of the stack.
@@ -77,8 +78,9 @@ enum Opcode {
 	O_ENDFOR = 0xD2, // end for-loop in VM
 	O_ITER_1 = 0xD3, // iterate to next, 1 var
 
-	O_COLLECT_REST_PARAMS = 0xE0,
-	O_SPREAD_VARGS = 0xE1,
+	O_COLLECT_REST = 0xE0,
+	O_COLLECT_REST_PARAMS = 0xE1,
+	O_SPREAD_VARGS = 0xE2,
 	O_INIT_MC = 0xE7,
 	O_INIT_CALL = 0xE8, // set up function call
 	O_CALL = 0xE9, // function call
@@ -110,7 +112,8 @@ enum Pattern {
 	P_TYPE_LS = 0x06,
 	P_TYPE_TABLE = 0x07,
 	P_BOOL = 0x08,
-	P_ANY = 0x0F,
+	P_ANY = 0x0E,
+	P_ONE = 0x0F,
 	P_NOT = 0x10,
 	P_LIT = 0x9A,
 	P_LIT8 = 0x9B,
