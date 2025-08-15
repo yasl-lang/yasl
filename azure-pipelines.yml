@@ -44,7 +44,7 @@ jobs:
 - job: 
   displayName: "C TCC Ubuntu"
   pool:
-    vmImage: 'ubuntu-20.04'
+    vmImage: 'ubuntu-24.04'
   steps:
   - script: |
       set -e
@@ -77,7 +77,7 @@ jobs:
 - job: 
   displayName: "C GCC Ubuntu"
   pool:
-    vmImage: 'ubuntu-20.04'
+    vmImage: 'ubuntu-24.04'
   steps:
   - script: |
       set -e
@@ -101,7 +101,7 @@ jobs:
 - job: 
   displayName: "C Clang Ubuntu"
   pool:
-    vmImage: 'ubuntu-20.04'
+    vmImage: 'ubuntu-24.04'
   steps:
   - script: |
       set -e
@@ -127,7 +127,7 @@ jobs:
 - job:
   displayName: "C Clang Ubuntu [Debug]"
   pool:
-    vmImage: 'ubuntu-20.04'
+    vmImage: 'ubuntu-24.04'
   steps:
   - script: |
       set -e
@@ -153,7 +153,7 @@ jobs:
 - job: 
   displayName: "C++ GCC Ubuntu"
   pool:
-    vmImage: 'ubuntu-20.04'
+    vmImage: 'ubuntu-24.04'
   steps:
   - script: |
       set -e
@@ -178,7 +178,7 @@ jobs:
 - job: 
   displayName: "C++ Clang Ubuntu"
   pool:
-    vmImage: 'ubuntu-20.04'
+    vmImage: 'ubuntu-24.04'
   steps:
   - script: |
       set -e
