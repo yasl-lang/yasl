@@ -23,6 +23,16 @@ static struct YASL_String *checkstr(struct YASL_State *S, const char *name, unsi
 	return vm_peekstr((struct VM *)S, ((struct VM *)S)->fp + 1 + pos);
 }
 
+static struct YASL_List *checkList(struct YASL_State *S, const char *name, unsigned pos) {
+	if (!YASL_isnlist(S, pos)) {
+		YASLX_print_and_throw_err_bad_arg_type_n(S, name, pos, YASL_LIST_NAME);
+	}
+
+    struct YASL_Object obj = vm_peek_fp(&S->vm, pos);
+    return YASL_GETLIST(obj);
+
+}
+
 int str___get(struct YASL_State *S) {
 	struct VM *vm = (struct VM *)S;
 	struct YASL_String *str = checkstr(S, "str.__get", 0);
@@ -252,6 +262,45 @@ static int str_replace_default(struct YASL_State *S, struct YASL_String *str, st
 	YASL_pushint(S, replacements);
 	return 2;
 }
+
+int str_replace_list(struct YASL_State *S) {
+    struct YASL_String *str = checkstr(S, "str.replace_list", 0);
+    struct YASL_String *result = str;
+    int total_replacements = 0;
+
+	struct YASL_List *search_list = checkList(S, "str.replace_list", 1);
+	struct YASL_List *replace_list = checkList(S, "str.replace_list", 2);
+
+    yasl_int search_len = YASL_List_len(search_list);
+    yasl_int replace_len = YASL_List_len(replace_list);
+
+    if (search_len != replace_len) {
+        YASLX_print_and_throw_err_value(S,
+            "str.replace_list expected search and replace lists of the same length.");
+    }
+
+    for (int i = 0; i < search_len; i++) {
+		struct YASL_Object s_elem = search_list->items[i];
+		struct YASL_Object r_elem = replace_list->items[i];
+
+        if (s_elem.type != Y_STR || r_elem.type != Y_STR) {
+            YASLX_print_and_throw_err_value(S,
+                "str.replace_list expected all elements of search/replace lists to be strings.");
+        }
+
+        struct YASL_String *search_str = obj_getstr(&s_elem);
+        struct YASL_String *replace_str = obj_getstr(&r_elem);
+
+        int replacements = 0;
+        result = YASL_String_replace_fast_default((struct VM *)S, result, search_str, replace_str, &replacements);
+        total_replacements += replacements;
+    }
+
+	vm_pushstr((struct VM *)S, result);
+	YASL_pushint(S, total_replacements);
+	return 2;
+}
+
 
 int str_replace(struct YASL_State *S) {
 	struct YASL_String *str = checkstr(S, "str.replace", 0);
