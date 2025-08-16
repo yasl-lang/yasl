@@ -198,6 +198,33 @@ int list_remove(struct YASL_State *S) {
 	return 1;
 }
 
+int list_remove_index(struct YASL_State *S) {
+    struct YASL_List *ls = YASLX_checknlist(S, "list.remove_index", 0);
+    yasl_int index = YASLX_checknint(S, "list.remove_index", 1);
+
+    if (index < 0 || index >= (yasl_int)ls->count) {
+        return YASL_TYPE_ERROR;
+    }
+
+    // decrement refcount for the removed element
+    vm_dec_ref(&S->vm, &ls->items[index]);
+
+    // shift elements left to fill the gap
+    size_t remaining = ls->count - index - 1;
+    if (remaining > 0) {
+        memmove(ls->items + index,
+                ls->items + index + 1,
+                remaining * sizeof(struct YASL_Object));
+    }
+
+    ls->count--;
+
+    // remove the index argument from the stack (keep the list there)
+    YASL_pop(S);
+
+    return 1;
+}
+
 int list_search(struct YASL_State *S) {
 	yasl_int start = YASLX_checknoptint(S, "list.search", 2, 0);
 	YASL_pop(S);
