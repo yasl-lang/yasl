@@ -342,6 +342,45 @@ int str_search(struct YASL_State *S) {
 	return 1;
 }
 
+int str_searchall(struct YASL_State *S) {
+    struct YASL_String *haystack = checkstr(S, "str.searchall", 0);
+    struct YASL_String *needle = checkstr(S, "str.searchall", 1);
+    yasl_int start = YASLX_checknoptint(S, "str.searchall", 2, 0);
+
+    if (start < 0 || start >= (yasl_int)YASL_String_len(haystack)) {
+        YASLX_print_and_throw_err_value(S,
+            "str.searchall expected a starting index between 0 and %" PRI_SIZET ", got %" PRId64,
+            YASL_String_len(haystack), start);
+    }
+
+    // allocate results list
+    struct YASL_List *results = YASL_List_new_sized(YASL_String_len(haystack));
+
+    // repeatedly search
+    int64_t index = start;
+    while (1) {
+        index = str_find_index(haystack, needle, index);
+        if (index == -1) break;
+
+        YASL_List_push(results, YASL_INT(index));
+
+        // move forward so we don’t find the same occurrence
+        index += YASL_String_len(needle);
+    }
+
+    if (YASL_List_len(results) == 0) {
+        YASL_pushundef(S);
+        return 1;
+    }
+
+    // wrap as list object & push
+    struct RC_UserData *list_ud = rcls_new((struct VM *)S);
+    memcpy(list_ud->data, results, sizeof(struct YASL_List));
+    vm_push((struct VM *) S, YASL_LIST(list_ud));
+
+    return 1;
+}
+
 int str_has(struct YASL_State *S) {
 	struct YASL_String *haystack = checkstr(S, "str.has", 0);
 	struct YASL_String *needle = checkstr(S, "str.has", 1);

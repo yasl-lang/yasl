@@ -247,6 +247,44 @@ int list_search(struct YASL_State *S) {
 	return 1;
 }
 
+int list_searchall(struct YASL_State *S) {
+    yasl_int start = YASLX_checknoptint(S, "list.searchall", 2, 0);
+    YASL_pop(S);   // pop start
+    struct YASL_Object needle = vm_pop((struct VM *) S);
+    struct YASL_List *haystack = YASLX_checknlist(S, "list.searchall", 0);
+
+    yasl_int list_len = YASL_List_len(haystack);
+    if (start < 0 || start >= list_len) {
+        YASLX_print_and_throw_err_value(S,
+            "list.searchall expected a starting index between 0 and %" PRI_SIZET ", got %" PRId64,
+            YASL_List_len(haystack), start);
+    }
+
+    // create result list
+    struct YASL_List *results = YASL_List_new_sized(list_len);
+
+    // scan through haystack from start
+    FOR_LIST_START(i, obj, haystack, start) {
+        if (isequal(&obj, &needle)) {
+            YASL_List_push(results, YASL_INT((yasl_int)i));
+        }
+    }
+
+    // if no matches, return undef
+    if (YASL_List_len(results) == 0) {
+        YASL_pushundef(S);
+        return 1;
+    }
+
+    // wrap results in RC_UserData
+    struct RC_UserData *list_ud = rcls_new((struct VM *)S);
+    memcpy(list_ud->data, results, sizeof(struct YASL_List));
+
+    vm_push((struct VM *) S, YASL_LIST(list_ud));
+
+    return 1;
+}
+
 int list_has(struct YASL_State *S) {
 	yasl_int start = YASLX_checknoptint(S, "list.has", 2, 0);
 	YASL_pop(S);
