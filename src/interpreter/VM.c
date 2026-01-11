@@ -48,7 +48,7 @@ void vm_init(struct VM *const vm,
              const size_t pc,              // address of instruction to be executed first (entrypoint)
              const size_t datasize) {      // total params size required to perform a program operations
 	vm->code = code;
-	vm->headers = (unsigned char **)calloc(sizeof(unsigned char *), datasize);
+	vm->headers = (unsigned char **)calloc(datasize, sizeof(unsigned char *));
 	vm->headers_size = datasize;
 	vm->frame_num = -1;
 	vm->loopframe_num = -1;
@@ -65,7 +65,7 @@ void vm_init(struct VM *const vm,
 	vm->sp = -1;
 	vm->num_constants = 0;
 	vm->constants = NULL;
-	vm->stack = (struct YASL_Object *)calloc(sizeof(struct YASL_Object), STACK_SIZE);
+	vm->stack = (struct YASL_Object *)calloc(STACK_SIZE, sizeof(struct YASL_Object));
 	vm->interned_strings = YASL_StringSet_new();
 	vm->builtins_htable = builtins_htable_new(vm);
 	vm->pending = NULL;
