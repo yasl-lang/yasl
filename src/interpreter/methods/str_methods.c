@@ -264,37 +264,36 @@ static int str_replace_default(struct YASL_State *S, struct YASL_String *str, st
 }
 
 int str_replace_list(struct YASL_State *S) {
-    struct YASL_String *str = checkstr(S, "str.replace_list", 0);
-    struct YASL_String *result = str;
-    int total_replacements = 0;
+	struct YASL_String *str = checkstr(S, "str.replace_list", 0);
+	struct YASL_String *result = str;
+	int total_replacements = 0;
 
 	struct YASL_List *search_list = checkList(S, "str.replace_list", 1);
 	struct YASL_List *replace_list = checkList(S, "str.replace_list", 2);
 
-    yasl_int search_len = YASL_List_len(search_list);
-    yasl_int replace_len = YASL_List_len(replace_list);
+	yasl_int search_len = YASL_List_len(search_list);
+	yasl_int replace_len = YASL_List_len(replace_list);
 
-    if (search_len != replace_len) {
-        YASLX_print_and_throw_err_value(S,
-            "str.replace_list expected search and replace lists of the same length.");
-    }
+	if (search_len != replace_len) {
+		YASLX_print_and_throw_err_value(S,
+						"str.replace_list expected search and replace lists of the same length.");
+	}
 
-    for (int i = 0; i < search_len; i++) {
+	for (int i = 0; i < search_len; i++) {
 		struct YASL_Object s_elem = search_list->items[i];
 		struct YASL_Object r_elem = replace_list->items[i];
 
-        if (s_elem.type != Y_STR || r_elem.type != Y_STR) {
-            YASLX_print_and_throw_err_value(S,
-                "str.replace_list expected all elements of search/replace lists to be strings.");
-        }
+		if (s_elem.type != Y_STR || r_elem.type != Y_STR) {
+			YASLX_print_and_throw_err_value(S,
+							"str.replace_list expected all elements of search/replace lists to be strings.");
+	   }
+		struct YASL_String *search_str = obj_getstr(&s_elem);
+		struct YASL_String *replace_str = obj_getstr(&r_elem);
 
-        struct YASL_String *search_str = obj_getstr(&s_elem);
-        struct YASL_String *replace_str = obj_getstr(&r_elem);
-
-        int replacements = 0;
-        result = YASL_String_replace_fast_default((struct VM *)S, result, search_str, replace_str, &replacements);
-        total_replacements += replacements;
-    }
+		int replacements = 0;
+		result = YASL_String_replace_fast_default((struct VM *)S, result, search_str, replace_str, &replacements);
+		total_replacements += replacements;
+	}
 
 	vm_pushstr((struct VM *)S, result);
 	YASL_pushint(S, total_replacements);
@@ -343,42 +342,40 @@ int str_search(struct YASL_State *S) {
 }
 
 int str_searchall(struct YASL_State *S) {
-    struct YASL_String *haystack = checkstr(S, "str.searchall", 0);
-    struct YASL_String *needle = checkstr(S, "str.searchall", 1);
-    yasl_int start = YASLX_checknoptint(S, "str.searchall", 2, 0);
+	struct YASL_String *haystack = checkstr(S, "str.searchall", 0);
+	struct YASL_String *needle = checkstr(S, "str.searchall", 1);
+	yasl_int start = YASLX_checknoptint(S, "str.searchall", 2, 0);
 
-    if (start < 0 || start >= (yasl_int)YASL_String_len(haystack)) {
-        YASLX_print_and_throw_err_value(S,
-            "str.searchall expected a starting index between 0 and %" PRI_SIZET ", got %" PRId64,
-            YASL_String_len(haystack), start);
-    }
+	if (start < 0 || start >= (yasl_int)YASL_String_len(haystack)) {
+	   YASLX_print_and_throw_err_value(S,
+		  "str.searchall expected a starting index between 0 and %" PRI_SIZET ", got %" PRId64,
+		  YASL_String_len(haystack), start);
+	}
 
-    // allocate results list
-    struct YASL_List *results = YASL_List_new_sized(YASL_String_len(haystack));
+	// allocate results list
+	struct RC_UserData *list_ud = rcls_new((struct VM *)S);
+	struct YASL_List *results = (struct YASL_List*)list_ud->data;
+	vm_pushlist((struct VM *) S, list_ud);
 
-    // repeatedly search
-    int64_t index = start;
-    while (1) {
-        index = str_find_index(haystack, needle, index);
-        if (index == -1) break;
+	// repeatedly search
+	int64_t index = start;
+	while (1) {
+		index = str_find_index(haystack, needle, index);
+		if (index == -1) break;
 
-        YASL_List_push(results, YASL_INT(index));
+		YASL_List_push(results, YASL_INT(index));
 
-        // move forward so we don’t find the same occurrence
-        index += YASL_String_len(needle);
-    }
+		// move forward so we don’t find the same occurrence
+		index += YASL_String_len(needle);
+	}
 
-    if (YASL_List_len(results) == 0) {
-        YASL_pushundef(S);
-        return 1;
-    }
+	if (YASL_List_len(results) == 0) {
+		YASL_pushundef(S);
+		return 1;
+	}
 
-    // wrap as list object & push
-    struct RC_UserData *list_ud = rcls_new((struct VM *)S);
-    memcpy(list_ud->data, results, sizeof(struct YASL_List));
-    vm_push((struct VM *) S, YASL_LIST(list_ud));
-
-    return 1;
+	vm_pushlist((struct VM *) S, list_ud);
+	return 1;
 }
 
 int str_has(struct YASL_State *S) {
