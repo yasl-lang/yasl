@@ -12,6 +12,7 @@ endif()
 
 if(DEBUG)
     ADD_DEFINITIONS(-DYASL_DEBUG)
+    set(CMAKE_C_FLAGS "-Werror)
 endif()
 
 set(CMAKE_BUILD_TYPE Debug)
@@ -28,10 +29,10 @@ if(MSVC)
 endif()
 
 if (NOT "${CMAKE_C_COMPILER_ID}" MATCHES ".*MSVC.*")
-    set(CMAKE_C_FLAGS "-Wall -Wextra -Werror=vla -Wno-logical-op-parentheses -Wno-parentheses -Werror")
+    set(CMAKE_C_FLAGS "-Wall -Wextra -Werror=vla -Wno-logical-op-parentheses -Wno-parentheses")
 endif()
 if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
-    set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-function -Wno-unused-variable -Wno-vla -Wno-deprecated -Wno-logical-op-parentheses -Wno-parentheses -Wno-missing-field-initializers -Werror")
+    set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-function -Wno-unused-variable -Wno-vla -Wno-deprecated -Wno-logical-op-parentheses -Wno-parentheses -Wno-missing-field-initializers")
 endif()
 
 if (CMAKE_COMPILER_IS_GNUCC)

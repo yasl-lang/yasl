@@ -744,6 +744,7 @@ static struct Node *parse_primitivepattern(struct Parser *const parser) {
 		parser_print_err_syntax(parser, "Invalid pattern starting in %s (line %" PRI_SIZET ").\n", YASL_TOKEN_NAMES[curtok(parser)], line);
 		handle_error(parser);
 	}
+	return NULL;
 }
 
 static struct Node *parse_patternsingle(struct Parser *const parser) {
