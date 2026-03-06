@@ -12,7 +12,7 @@ endif()
 
 if(DEBUG)
     ADD_DEFINITIONS(-DYASL_DEBUG)
-    set(CMAKE_C_FLAGS "-Werror)
+    set(CMAKE_C_FLAGS "-Werror")
 endif()
 
 set(CMAKE_BUILD_TYPE Debug)
