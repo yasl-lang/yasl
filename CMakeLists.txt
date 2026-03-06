@@ -42,7 +42,10 @@ if (CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-pedantic-ms-format")
 endif()
 
+message("${CMAKE_C_COMPILER_ID}")
+
 set(CMAKE_VERBOSE_MAKEFILE OFF)
+
 
 include_directories(.)
 include_directories(src)
