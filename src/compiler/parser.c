@@ -333,6 +333,7 @@ static struct Node *parse_program(struct Parser *const parser) {
 	default:
 		return parse_assign_or_exprstmt(parser);
 	}
+	return NULL;
 }
 
 static struct Node *parse_body(struct Parser *const parser) {
