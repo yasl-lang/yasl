@@ -53,9 +53,8 @@ jobs:
     displayName: "Install Valgrind"  
   - script: |
       set -e
-      curl -o tcc.tar.bz2 http://download-mirror.savannah.gnu.org/releases/tinycc/tcc-0.9.27.tar.bz2
-      tar xjf tcc.tar.bz2
-      cd tcc-0.9.27/
+      git clone https://github.com/Tiny-C-Compiler/tinycc-mirror-repository.git
+      cd tinycc-mirror-repository
       ./configure
       make
       sudo make install
