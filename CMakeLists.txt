@@ -43,7 +43,7 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 endif()
 
 if ("{CMAKE_C_COMPILER_ID}" MATCHES ".*TinyCC.*")
-    set(CMAKE_C_FLAGS "")
+    set(CMAKE_C_FLAGS "-w")
 endif()
 
 # message("${CMAKE_C_COMPILER_ID}")
