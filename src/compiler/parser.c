@@ -538,6 +538,7 @@ static struct Node *parse_let_const_or_var(struct Parser *const parser) {
 
 	parser_print_err_syntax(parser, "Expected `let`, `const`, or id, got %s", YASL_TOKEN_NAMES[curtok(parser)]);
 	handle_error(parser);
+	return NULL;
 }
 
 static struct Node *parse_var_pack(struct Parser *const parser, int expected) {

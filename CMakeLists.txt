@@ -48,6 +48,8 @@ endif()
 
 # message("${CMAKE_C_COMPILER_ID}")
 
+message("${CMAKE_C_FLAGS}")
+
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 
