@@ -12,7 +12,6 @@ endif()
 
 if(DEBUG)
     ADD_DEFINITIONS(-DYASL_DEBUG)
-    set(CMAKE_C_FLAGS "-Werror")
 endif()
 
 set(CMAKE_BUILD_TYPE Debug)
@@ -36,11 +35,11 @@ if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
 endif()
 
 if (CMAKE_COMPILER_IS_GNUCC)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-pedantic-ms-format")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-pedantic-ms-format -Werror")
 endif()
 
 if (CMAKE_COMPILER_IS_GNUCXX)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-pedantic-ms-format")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-pedantic-ms-format -Werror")
 endif()
 
 if ("{CMAKE_C_COMPILER_ID}" MATCHES ".*TinyCC.*")
