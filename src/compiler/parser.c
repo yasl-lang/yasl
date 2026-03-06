@@ -519,25 +519,25 @@ static struct Node *parse_const_fn(struct Parser *const parser) {
 
 static struct Node *parse_let_const_or_var(struct Parser *const parser) {
 	size_t line = parserline(parser);
-	if (matcheattok(parser, T_LET)) {
+	if (matcheattok(parser, T_LET)) {  // let <name> = ...
 		char *name = eatname(parser);
 		return new_Let(parser, NULL, name, line);
-	} else if (matcheattok(parser, T_CONST)) {
+	} else if (matcheattok(parser, T_CONST)) {  // const <name> = ...
 		char *name = eatname(parser);
 		return new_Const(parser, NULL, name, line);
-	} else {
-		struct Node *node = parse_call(parser);
-		if (node->nodetype == N_VAR) {
-			struct Node *assign = new_Assign(parser, NULL, node->value.sval.str, line);
-			return assign;
-		} else if (node->nodetype == N_GET) {
-			struct Node *set = new_Set(parser, Get_get_collection(node), Get_get_value(node), NULL, line);
-			return set;
-		} else {
-			parser_print_err_syntax(parser, "Expected `let`, `const`, or id, got %s", YASL_TOKEN_NAMES[curtok(parser)]);
-			handle_error(parser);
-		}
 	}
+
+	struct Node *node = parse_call(parser);
+	if (node->nodetype == N_VAR) {  // <name> = ...
+		struct Node *assign = new_Assign(parser, NULL, node->value.sval.str, line);
+		return assign;
+	} else if (node->nodetype == N_GET) {  // <name>[<index>] = ... OR <name>.<index> = ...
+		struct Node *set = new_Set(parser, Get_get_collection(node), Get_get_value(node), NULL, line);
+		return set;
+	}
+
+	parser_print_err_syntax(parser, "Expected `let`, `const`, or id, got %s", YASL_TOKEN_NAMES[curtok(parser)]);
+	handle_error(parser);
 }
 
 static struct Node *parse_var_pack(struct Parser *const parser, int expected) {
