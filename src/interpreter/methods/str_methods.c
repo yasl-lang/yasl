@@ -263,7 +263,7 @@ static int str_replace_default(struct YASL_State *S, struct YASL_String *str, st
 	return 2;
 }
 
-int str_replace_list(struct YASL_State *S) {
+int str_replacelist(struct YASL_State *S) {
 	struct YASL_String *str = checkstr(S, "str.replace_list", 0);
 	struct YASL_String *result = str;
 	int total_replacements = 0;

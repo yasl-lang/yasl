@@ -1,1 +1,1 @@
-echo "$a, $b"->replace_list(["$a", "$b"], ["1", "2"])
+echo "$a, $b"->replacelist(["$a", "$b"], ["1", "2"])
