@@ -199,8 +199,8 @@ int list_remove(struct YASL_State *S) {
 }
 
 int list_removeindex(struct YASL_State *S) {
-    struct YASL_List *ls = YASLX_checknlist(S, "list.remove_index", 0);
-    yasl_int index = YASLX_checknint(S, "list.remove_index", 1);
+    struct YASL_List *ls = YASLX_checknlist(S, "list.removeindex", 0);
+    yasl_int index = YASLX_checknint(S, "list.removeindex", 1);
 
     if (index < 0 || index >= (yasl_int)ls->count) {
         return YASL_TYPE_ERROR;
