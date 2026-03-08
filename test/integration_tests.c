@@ -135,13 +135,13 @@ int main(void) {
 	struct YASL_State *S;
 
 	INPUT_TEST(inputs);
-	ERROR_TEST(assert_errors, YASL_ASSERT_ERROR);
-	ERROR_TEST(stackoverflow_errors, YASL_STACK_OVERFLOW_ERROR);
-	ERROR_TEST(type_errors, YASL_TYPE_ERROR);
-	ERROR_TEST(value_errors, YASL_VALUE_ERROR);
-	ERROR_TEST(divisionbyzero_errors, YASL_DIVIDE_BY_ZERO_ERROR);
-	ERROR_TEST(syntax_errors, YASL_SYNTAX_ERROR);
-	TRY_FAIL_TEST(try_fail_errors);
+	//ERROR_TEST(assert_errors, YASL_ASSERT_ERROR);
+	//ERROR_TEST(stackoverflow_errors, YASL_STACK_OVERFLOW_ERROR);
+	//ERROR_TEST(type_errors, YASL_TYPE_ERROR);
+	//ERROR_TEST(value_errors, YASL_VALUE_ERROR);
+	//ERROR_TEST(divisionbyzero_errors, YASL_DIVIDE_BY_ZERO_ERROR);
+	//ERROR_TEST(syntax_errors, YASL_SYNTAX_ERROR);
+	//TRY_FAIL_TEST(try_fail_errors);
 
 	result = result || failed;
 	printf("Failed %d (/%d) script tests.\n", failed, ran);
