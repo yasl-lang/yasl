@@ -122,7 +122,6 @@ int main(void) {
 	int result = 0;
 	int failed = 0;
 	int ran = 0;
-	/*
 #include "inputs.inl"
 #include "assert_errors.inl"
 #include "stackoverflow_errors.inl"
@@ -143,7 +142,7 @@ int main(void) {
 	ERROR_TEST(divisionbyzero_errors, YASL_DIVIDE_BY_ZERO_ERROR);
 	ERROR_TEST(syntax_errors, YASL_SYNTAX_ERROR);
 	TRY_FAIL_TEST(try_fail_errors);
-	*/
+
 	result = result || failed;
 	printf("Failed %d (/%d) script tests.\n", failed, ran);
 
