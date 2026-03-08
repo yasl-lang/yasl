@@ -564,7 +564,7 @@ int natural_comp(struct YASL_State *S, struct YASL_Table *const vars, struct YAS
 		}
 	}
 
-	return (a2->count - b2->count);
+	return ((int)a2->count - (int)b2->count);
 }
 
 #define YASL_OBJ_COMP_REVERSE(a, b) (-yasl_object_cmp(a, b))
