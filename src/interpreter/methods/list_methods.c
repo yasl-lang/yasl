@@ -572,11 +572,10 @@ int natural_comp(struct YASL_State *S, struct YASL_Table *const vars, struct YAS
 #define CUSTOM_COMP_REVERSE(a, b) (-custom_comp(S, a, b))
 #define NATURAL_COMP(a, b) natural_comp(S, vars, a, b)
 
-#define DEF_SORT(name, COMP, PRE) \
-static void name##sort(struct YASL_State *S, struct YASL_Object *list, const size_t len) {\
+#define DEF_SORT(name, COMP) \
+static void name##sort(struct YASL_State *S, struct YASL_Object *list, const size_t len, struct YASL_Table *const vars) {\
 	/* Base cases*/ \
 	struct YASL_Object tmpObj;\
-	PRE;\
 	if (len < 2) return;\
 	if (len == 2) {\
 		if (COMP(list[0], list[1]) > 0) {\
@@ -628,15 +627,15 @@ static void name##sort(struct YASL_State *S, struct YASL_Object *list, const siz
 	}\
 \
 	/* Let sort() finish that for us...*/ \
-	name##sort(S, list, ltCount);\
-	name##sort(S, &list[ltCount], len - ltCount);\
+	name##sort(S, list, ltCount, vars);\
+	name##sort(S, &list[ltCount], len - ltCount, vars);\
 }
 
-DEF_SORT(default, yasl_object_cmp, {})
+DEF_SORT(default, yasl_object_cmp)
 // DEF_SORT(reverse, YASL_OBJ_COMP_REVERSE)
-DEF_SORT(fn, CUSTOM_COMP, {})
+DEF_SORT(fn, CUSTOM_COMP)
 // DEF_SORT(fn_reverse, CUSTOM_COMP_REVERSE)
-DEF_SORT(natural, NATURAL_COMP, struct YASL_Table *vars = YASL_Table_new())
+DEF_SORT(natural, NATURAL_COMP)
 
 // TODO: clean this up
 int list_sort(struct YASL_State *S) {
@@ -656,7 +655,9 @@ int list_sort(struct YASL_State *S) {
 								"list.sort");
 			}
 		}
-		naturalsort(S, list->items, list->count);
+		struct YASL_Table *vars = YASL_Table_new();
+		naturalsort(S, list->items, list->count, vars);
+		YASL_Table_del(vars);
 		return 0;
 	}
 
@@ -667,7 +668,7 @@ int list_sort(struct YASL_State *S) {
 		 */
 		const struct YASL_List tmp = *list;
 		*list = (struct YASL_List) { 0, 0, NULL };
-		fnsort(S, tmp.items, tmp.count);
+		fnsort(S, tmp.items, tmp.count, NULL);
 		if (list->items) YASL_List_del_data(S, list->items);
 		*list = tmp;
 		return 0;
@@ -706,7 +707,7 @@ int list_sort(struct YASL_State *S) {
 	}
 
 	if (type != SORT_TYPE_EMPTY) {
-		defaultsort(S, list->items, list->count);
+		defaultsort(S, list->items, list->count, NULL);
 	}
 
 	return 0;

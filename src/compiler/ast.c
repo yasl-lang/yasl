@@ -317,6 +317,7 @@ void node_del(struct Node *node) {
 	case N_PATFL:
 	case N_CALL:
 		break;
+	case N_PRAGMA:
 	case N_VAR:
 	case N_LET:
 	case N_STR:
