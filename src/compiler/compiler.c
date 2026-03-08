@@ -247,6 +247,11 @@ static int contains_var(const struct Compiler *const compiler, const char *const
 	return scope_contains_cur_only(compiler->globals, name);
 }
 
+static bool is_unstrict_mode(struct Scope *const scope) {
+	if (!scope) return false;
+	return scope->is_unstrict || is_unstrict_mode(scope->parent);
+}
+
 static void decl_var(struct Compiler *const compiler, const char *const name, const size_t line) {
 	const size_t name_len = strlen(name);
 	struct Scope *scope = get_scope_in_use(compiler);
@@ -1091,6 +1096,15 @@ static void visit_Match(struct Compiler *const compiler, const struct Node *cons
 	visit_Match_helper(compiler, patterns, guards, bodies, 0);
 }
 
+static void visit_Pragma(struct Compiler *const compiler, const struct Node *const node) {
+	const char *name = Pragma_get_name(node);
+	if (strcmp(name, "unstrict") != 0) {
+		compiler_print_err_syntax(compiler, "Unknown pragma: %s (line %" PRI_SIZET ").\n", name, node->line);
+		handle_error(compiler);
+	}
+	get_scope_in_use(compiler)->is_unstrict = true;
+}
+
 static void visit_If_true(struct Compiler *const compiler, const struct Node *const then_br, const struct Node *const else_br) {
 	visit_stmt(compiler, then_br);
 	if (else_br) validate_stmt(compiler, else_br);
@@ -1428,14 +1442,19 @@ static int visit_UnOp(struct Compiler *const compiler, const struct Node *const 
 
 static void visit_Assign(struct Compiler *const compiler, const struct Node *const node) {
 	char *name = node->value.sval.str;
+	const size_t line = node->line;
+	if (!contains_var(compiler, name) && is_unstrict_mode(get_scope_in_use(compiler))) {
+		declare_with_let_or_const(compiler, node);
+		return;
+	}
 	if (!contains_var(compiler, name)) {
-		compiler_print_err_undeclared_var(compiler, name, node->line);
+		compiler_print_err_undeclared_var(compiler, name, line);
 		handle_error(compiler);
 		return;
 	}
 	int target = (int)get_stacksize(compiler);
 	visit_expr(compiler, Assign_get_expr(node), target, (int)get_stacksize(compiler));
-	store_var(compiler, name, node->line);
+	store_var(compiler, name, line);
 }
 
 static int visit_Var(struct Compiler *const compiler, const struct Node *const node, int target, int num_temps) {

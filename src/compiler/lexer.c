@@ -670,6 +670,7 @@ void YASLKeywords(struct Lexer *const lex) {
 	else if (matches_keyword(lex, "len")) set_keyword(lex, T_LEN);
 	else if (matches_keyword(lex, "assert")) set_keyword(lex, T_ASS);
 	else if (matches_keyword(lex, "match")) set_keyword(lex, T_MATCH);
+	else if (matches_keyword(lex, "pragma")) set_keyword(lex, T_PRAGMA);
 	// NOTE: special case for bools
 	else if (matches_keyword(lex, "true") || matches_keyword(lex, "false")) lex->type = T_BOOL;
 }

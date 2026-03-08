@@ -144,6 +144,7 @@ DECL_NODE(While, N_WHILE, cond, body, post)
 DECL_NODE(Break, N_BREAK)
 DECL_NODE(Continue, N_CONT)
 DECL_NODE(Match, N_MATCH, cond, patterns, guards, bodies)
+DECL_ZSTR_NODE(Pragma, N_PRAGMA)
 DECL_NODE(If, N_IF, cond, then, el)
 DECL_NODE(IfDef, N_IFDEF, cond, then, el)
 DECL_ZSTR_NODE(Stringify, N_STRINGIFY, expr)
@@ -197,6 +198,7 @@ yasl_int Integer_get_int(const struct Node *const node);
 yasl_float Float_get_float(const struct Node *const node);
 bool Boolean_get_bool(const struct Node *const node);
 char *Var_get_name(const struct Node *const node);
+char *Pragma_get_name(const struct Node *const node);
 
 void node_del(struct Node *node);
 

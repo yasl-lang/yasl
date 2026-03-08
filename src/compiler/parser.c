@@ -21,6 +21,7 @@ static struct Node *parse_return(struct Parser *const parser);
 static struct Node *parse_for(struct Parser *const parser);
 static struct Node *parse_while(struct Parser *const parser);
 static struct Node *parse_match(struct Parser *const parser);
+static struct Node *parse_pragma(struct Parser *const parser);
 static struct Node *parse_if(struct Parser *const parser);
 static struct Node *parse_ifdef(struct Parser *const parser);
 static struct Node *parse_expr(struct Parser *const parser);
@@ -306,6 +307,8 @@ static struct Node *parse_program(struct Parser *const parser) {
 		return new_Continue(parser, line);
 	case T_MATCH:
 		return parse_match(parser);
+	case T_PRAGMA:
+		return parse_pragma(parser);
 	case T_IF:
 		return parse_if(parser);
 	case T_ELSEIF:
@@ -899,6 +902,14 @@ static struct Node *parse_match(struct Parser *const parser) {
 	body_append(parser, &guards, NULL);
 	body_append(parser, &bodies, new_Body(parser, line));
 	return new_Match(parser, exprs, pats, guards, bodies, line);
+}
+
+static struct Node *parse_pragma(struct Parser *const parser) {
+	size_t line = parserline(parser);
+	YASL_PARSE_DEBUG_LOG("parsing pragma in line %" PRI_SIZET "\n", line);
+	eattok(parser, T_PRAGMA);
+	char *name = eatname(parser);
+	return new_Pragma(parser, name, line);
 }
 
 static struct Node *parse_if(struct Parser *const parser) {
