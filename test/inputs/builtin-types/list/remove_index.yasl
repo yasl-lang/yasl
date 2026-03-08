@@ -1,5 +1,5 @@
 const ls = [ 'a', 'b', 'c', 'd' ]
-echo ls->remove_index(1)
+echo ls->removeindex(1)
 
 const list = [ 'lm', 'no', 'pq', 'rs' ]
-echo list->remove_index(3)
+echo list->removeindex(3)
