@@ -148,6 +148,16 @@ static struct Env *get_nearest(struct Env *env, const char *const name) {
 	return env;
 }
 
+static bool is_unstrict_mode_scope(const struct Scope *const scope) {
+	if (!scope) return false;
+	return scope->is_unstrict || is_unstrict_mode_scope(scope->parent);
+}
+
+static bool is_unstrict_mode(struct Compiler *const compiler) {
+	return is_unstrict_mode_scope(get_scope_in_use(compiler));
+}
+
+
 static void load_var_local(struct Compiler *const compiler, const struct Scope *scope, const char *const name) {
 	int64_t index = get_index(scope_get(scope, name));
 	compiler_add_code_BB(compiler, O_LLOAD, (unsigned char) index);
@@ -164,6 +174,8 @@ static bool var_is_defined(struct Compiler *const compiler, const char *const na
 	return env_contains(compiler->params, name) || scope_contains(compiler->stack, name) || scope_contains(compiler->globals, name);
 }
 
+static void compiler_add_literal(struct Compiler *const compiler, const yasl_int index);
+
 // NOTE: Keep this in sync with `var_is_defined`, and add tests for `ifdef` if you change this.
 static void load_var(struct Compiler *const compiler, const char *const name, const size_t line) {
 	if (in_function(compiler) && env_contains_cur_only(compiler->params, name)) {   // fn-local var
@@ -178,7 +190,10 @@ static void load_var(struct Compiler *const compiler, const char *const name, co
 		load_var_local(compiler, compiler->stack, name);
 	} else if (scope_contains(compiler->globals, name)) {                      // global vars
 		compiler_add_code_BW(compiler, O_GLOAD_8, YASL_Table_search_zstring_int(compiler->strings, name).value.ival);
-	} else {
+	} else if (is_unstrict_mode(compiler)) {
+		yasl_int index = compiler_intern_string(compiler, name, strlen(name));
+		compiler_add_literal(compiler, index);
+	}else {
 		compiler_print_err_undeclared_var(compiler, name, line);
 		handle_error(compiler);
 	}
@@ -245,11 +260,6 @@ static int contains_var(const struct Compiler *const compiler, const char *const
 	if (scope_contains(compiler->stack, name)) return true;
 	if (env_contains(compiler->params, name)) return true;
 	return scope_contains_cur_only(compiler->globals, name);
-}
-
-static bool is_unstrict_mode(struct Scope *const scope) {
-	if (!scope) return false;
-	return scope->is_unstrict || is_unstrict_mode(scope->parent);
 }
 
 static void decl_var(struct Compiler *const compiler, const char *const name, const size_t line) {
@@ -1443,7 +1453,7 @@ static int visit_UnOp(struct Compiler *const compiler, const struct Node *const 
 static void visit_Assign(struct Compiler *const compiler, const struct Node *const node) {
 	char *name = node->value.sval.str;
 	const size_t line = node->line;
-	if (!contains_var(compiler, name) && is_unstrict_mode(get_scope_in_use(compiler))) {
+	if (!contains_var(compiler, name) && is_unstrict_mode(compiler)) {
 		declare_with_let_or_const(compiler, node);
 		return;
 	}
