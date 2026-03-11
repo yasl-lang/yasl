@@ -263,20 +263,20 @@ static int str_replace_default(struct YASL_State *S, struct YASL_String *str, st
 	return 2;
 }
 
-int str_replacelist(struct YASL_State *S) {
-	struct YASL_String *str = checkstr(S, "str.replacelist", 0);
+int str_replaceall(struct YASL_State *S) {
+	struct YASL_String *str = checkstr(S, "str.replaceall", 0);
 	struct YASL_String *result = str;
 	int total_replacements = 0;
 
-	struct YASL_List *search_list = checkList(S, "str.replacelist", 1);
-	struct YASL_List *replace_list = checkList(S, "str.replacelist", 2);
+	struct YASL_List *search_list = checkList(S, "str.replaceall", 1);
+	struct YASL_List *replace_list = checkList(S, "str.replaceall", 2);
 
 	yasl_int search_len = YASL_List_len(search_list);
 	yasl_int replace_len = YASL_List_len(replace_list);
 
 	if (search_len != replace_len) {
 		YASLX_print_and_throw_err_value(S,
-						"str.replacelist expected search and replace lists to be the same length.");
+						"str.replaceall expected search and replace lists to be the same length.");
 	}
 
 	for (int i = 0; i < search_len; i++) {
@@ -285,7 +285,7 @@ int str_replacelist(struct YASL_State *S) {
 
 		if (s_elem.type != Y_STR || r_elem.type != Y_STR) {
 			YASLX_print_and_throw_err_value(S,
-							"str.replacelist expected all elements of search/replace lists to be strs.");
+							"str.replaceall expected all elements of search/replace lists to be strs.");
 	   }
 		struct YASL_String *search_str = obj_getstr(&s_elem);
 		struct YASL_String *replace_str = obj_getstr(&r_elem);
