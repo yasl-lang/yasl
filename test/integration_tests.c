@@ -56,6 +56,7 @@ for (size_t i = 0; i < sizeof(inputs) / sizeof(char *); i++) {\
 
 #define ERROR_TEST(errors, error_code) \
 for (size_t i = 0; i < sizeof(errors) / sizeof(char *); i++) {\
+	fprintf(stderr, "running file: %s\n", errors[i]);\
 	if (strlen(errors[i]) + 5 > MAX_FILE_NAME_LEN) {\
 		fprintf(stderr, "file name too large: %s\n", errors[i]);\
 		failed++;\
@@ -94,6 +95,7 @@ for (size_t i = 0; i < sizeof(errors) / sizeof(char *); i++) {\
 
 #define TRY_FAIL_TEST(errors) \
 for (size_t i = 0; i < sizeof(errors) / sizeof(char *); i++) {\
+	fprintf(stderr, "running file: %s\n", errors[i]);\
 	if (strlen(errors[i]) + 5 > MAX_FILE_NAME_LEN) {\
 		printf("file name too large: %s\n", errors[i]);\
 		exit(1);\
