@@ -100,6 +100,10 @@ static int YASL_io_open(struct YASL_State *S) {
 
 static int YASL_io_tmpfile(struct YASL_State *S) {
 	FILE *f = tmpfile();
+	if (!f) {
+		YASL_pushundef(S);
+		return 1;
+	}
 	YASL_pushuserdata(S, f, FILE_NAME, close_file);
 	YASL_loadmt(S, FILE_NAME);
 	YASL_setmt(S);
