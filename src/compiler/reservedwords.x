@@ -1,6 +1,7 @@
 X(header)
 X(global)
 X(struct)
+X(pragma)
 X(do)
 X(use)
 X(enum)
