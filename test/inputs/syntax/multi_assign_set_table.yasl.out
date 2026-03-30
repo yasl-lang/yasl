@@ -3,3 +3,4 @@ zzzz
 third
 second
 {a: first, b: yy, c: 3}
+{'b': '11'}, 10

@@ -11,3 +11,14 @@ x.a, const y, z = 'first', 'second', 'third'
 echo z
 echo y
 echo x
+
+
+const tmp = {}
+
+let a = 0
+
+# tmp.y, x = '11', '10'->toint()#, b ~ [100000]
+tmp.b, a = '11', '10'->toint()#, b ~ [100000]
+
+
+echo tmp:r, a:r

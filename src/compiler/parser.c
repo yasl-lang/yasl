@@ -198,7 +198,7 @@ struct Node *parse_assign_or_exprstmt(struct Parser *const parser) {
 		struct Node *set = new_Set(parser, Get_get_collection(expr), Get_get_value(expr), NULL, line);
 		body_append(parser, &buffer, set);
 
-		return parse_decl_helper(parser, buffer, 0);
+		return parse_decl_helper(parser, buffer, 1);
 
 	}
 

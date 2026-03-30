@@ -24,6 +24,50 @@
 #include "YASL_Object.h"
 #include "closure.h"
 
+/*
+static void pprint_obj(const struct YASL_Object *const obj) {
+	switch (obj->type) {
+	case Y_END:
+		printf("<END>");
+		break;
+	case Y_UNDEF:
+		printf("undef");
+		break;
+	case Y_FLOAT:
+		printf("%f", obj->value.dval);
+		break;
+	case Y_INT:
+		printf("%d", (int)obj->value.ival);
+		break;
+	case Y_STR:
+		printf("%s", obj->value.sval->s.str);
+		break;
+	case Y_LIST:
+		printf("list");
+		break;
+	case Y_TABLE:
+		printf("table");
+		break;
+	case Y_BOOL:
+		printf("bool: %d", (bool)obj->value.ival);
+		break;
+	default:
+		printf("other");
+		break;
+	}
+	printf("\n");
+}
+
+static void pprint_stack(const struct VM *const vm) {
+	printf("STACK[%d]: \n", vm->sp);
+	for (int i = 0; i <= vm->sp; i++) {
+		struct YASL_Object object = vm_peek(vm, i);
+		printf("\t[%d] %s ", i, obj_typename(&object));
+		pprint_obj(&object);
+	}
+}
+*/
+
 static struct RC_UserData **builtins_htable_new(struct VM *const vm) {
 	struct RC_UserData **ht = (struct RC_UserData **) malloc(sizeof(struct RC_UserData *) * NUM_TYPES);
 	ht[Y_UNDEF] = ud_new(undef_builtins(vm), TABLE_NAME, NULL, rcht_del_data);

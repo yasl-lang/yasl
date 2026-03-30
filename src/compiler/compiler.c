@@ -1678,7 +1678,6 @@ static int visit_expr(struct Compiler *const compiler, const struct Node *const 
 }
 
 static void visit_patt(struct Compiler *const compiler, const struct Node *const node) {
-	// printf("Node: %s\n", node_name(node));
 	YASL_ASSERT(is_patt(node), "Expected pattern");
 	visit(compiler, node);
 }
