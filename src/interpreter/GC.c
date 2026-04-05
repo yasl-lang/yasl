@@ -13,6 +13,10 @@ static size_t gc_list_size(struct YASL_List *ls) {
 	return sizeof(struct YASL_List) + ls->size * sizeof(struct YASL_Object);
 }
 
+static size_t gc_table_size(struct YASL_Table *ht) {
+	return sizeof(struct YASL_Table) + ht->size * sizeof(*ht->items);
+}
+
 void gc_init(struct GC *gc) {
 	gc->allocs = YASL_Set_new();
 	gc->total_alloc_size = 0;
@@ -39,6 +43,15 @@ struct YASL_Object gc_alloc_list(struct GC *gc) {
 	return obj;
 }
 
+struct YASL_Object gc_alloc_table(struct GC *gc) {
+	struct YASL_Object obj = YASL_TABLE(rcht_new(NULL));
+
+	YASL_Set_insert_any(gc->allocs, obj);
+
+	gc->total_alloc_size += gc_table_size(YASL_GETTABLE(obj));
+	return obj;
+}
+
 void gc_free(struct GC *gc, struct YASL_Object *obj) {
 	// free(obj->value.pval);
 	switch (obj->type) {
@@ -49,7 +62,7 @@ void gc_free(struct GC *gc, struct YASL_Object *obj) {
 		gc->total_alloc_size -= gc_list_size(YASL_GETLIST(*obj));
 		break;
 	case Y_TABLE:
-		gc->total_alloc_size -= sizeof(struct YASL_Table) + YASL_GETTABLE(*obj)->size * 2 * sizeof(struct YASL_Object);
+		gc->total_alloc_size -= gc_table_size(YASL_GETTABLE(*obj));
 		break;
 	case Y_STR:
 		gc->total_alloc_size -= sizeof(struct YASL_String) + obj->value.sval->s.len;
@@ -120,6 +133,8 @@ static bool is_condemned(struct YASL_Object *obj) {
 	switch (obj->type) {
 	case Y_LIST:
 		return obj->value.uval->rc.is_condemned;
+	case Y_STR:
+		return obj->value.sval->rc.is_condemned;
 	default:
 		return false;
 	}

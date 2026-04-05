@@ -209,6 +209,7 @@ DEF_NODE(While, N_WHILE, cond, body, post)
 DEF_NODE(Break, N_BREAK)
 DEF_NODE(Continue, N_CONT)
 DEF_NODE(Match, N_MATCH, cond, patterns, guards, bodies)
+DEF_NODE_ZSTR(Pragma, N_PRAGMA)
 DEF_NODE(If, N_IF, cond, then, el)
 DEF_NODE(IfDef, N_IFDEF, cond, then, el)
 DEF_NODE_ZSTR(Stringify, N_STRINGIFY, expr)
@@ -316,6 +317,7 @@ void node_del(struct Node *node) {
 	case N_PATFL:
 	case N_CALL:
 		break;
+	case N_PRAGMA:
 	case N_VAR:
 	case N_LET:
 	case N_STR:

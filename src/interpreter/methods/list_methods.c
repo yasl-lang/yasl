@@ -1,4 +1,7 @@
+#include <src/interpreter/YASL_Object.h>
 #include "list_methods.h"
+
+#include <ctype.h>
 
 #include "yasl.h"
 #include "yasl_aux.h"
@@ -198,6 +201,33 @@ int list_remove(struct YASL_State *S) {
 	return 1;
 }
 
+int list_removeindex(struct YASL_State *S) {
+    struct YASL_List *ls = YASLX_checknlist(S, "list.removeindex", 0);
+    yasl_int index = YASLX_checknint(S, "list.removeindex", 1);
+
+    if (index < 0 || index >= (yasl_int)ls->count) {
+        return YASL_TYPE_ERROR;
+    }
+
+    // decrement refcount for the removed element
+    vm_dec_ref(&S->vm, &ls->items[index]);
+
+    // shift elements left to fill the gap
+    size_t remaining = ls->count - index - 1;
+    if (remaining > 0) {
+        memmove(ls->items + index,
+                ls->items + index + 1,
+                remaining * sizeof(struct YASL_Object));
+    }
+
+    ls->count--;
+
+    // remove the index argument from the stack (keep the list there)
+    YASL_pop(S);
+
+    return 1;
+}
+
 int list_search(struct YASL_State *S) {
 	yasl_int start = YASLX_checknoptint(S, "list.search", 2, 0);
 	YASL_pop(S);
@@ -217,6 +247,41 @@ int list_search(struct YASL_State *S) {
 	}
 
 	vm_push((struct VM *) S, index);
+	return 1;
+}
+
+int list_searchall(struct YASL_State *S) {
+	yasl_int start = YASLX_checknoptint(S, "list.searchall", 2, 0);
+	YASL_pop(S);   // pop start
+	struct YASL_Object needle = vm_pop((struct VM *) S);
+	struct YASL_List *haystack = YASLX_checknlist(S, "list.searchall", 0);
+
+	yasl_int list_len = YASL_List_len(haystack);
+	if (start < 0 || start >= list_len) {
+		YASLX_print_and_throw_err_value(S,
+			"list.searchall expected a starting index between 0 and %" PRI_SIZET ", got %" PRId64,
+			YASL_List_len(haystack), start);
+	}
+
+	// create result list
+	struct RC_UserData *list_ud = rcls_new((struct VM *)S);
+	struct YASL_List *results = (struct YASL_List*)list_ud->data;
+	vm_pushlist((struct VM *) S, list_ud);
+
+	// scan through haystack from start
+	FOR_LIST_START(i, obj, haystack, start) {
+		if (isequal(&obj, &needle)) {
+			YASL_List_push(results, YASL_INT((yasl_int)i));
+		}
+	}
+
+	// if no matches, return undef
+	if (YASL_List_len(results) == 0) {
+		YASL_pushundef(S);
+		return 1;
+	}
+
+	vm_pushlist((struct VM *) S, list_ud);
 	return 1;
 }
 
@@ -431,13 +496,84 @@ int custom_comp(struct YASL_State *S, struct YASL_Object a, struct YASL_Object b
 	if (a_lt_b == a_gt_b) return 0;
 	return a_lt_b ? -1 : a_gt_b ? 1 : 0;
 }
+static struct YASL_Object transform(struct YASL_State *S, struct YASL_Object k) {
+	struct YASL_String *s = k.value.sval;
+	//s->s.str;
+	//s->s.len;
+	size_t curr = 0;
+	struct RC_UserData *result = rcls_new(&S->vm);
+	struct YASL_List *ls = (struct YASL_List *)result->data;
+	size_t i = 0;
+	for (; i < s->s.len; i++) {
+		if (isdigit(s->s.str[i])) {
+			if (curr != i) {
+				YASL_List_push(ls, YASL_STR(YASL_String_new_substring(&S->vm, s, curr, i)));
+				//printf("BA: `%*s`\n", (int)(i - curr), s->s.str + curr);
+				curr = i;
+			}
+
+			while (isdigit(s->s.str[i])) {
+				i++;
+			}
+			yasl_int n = YASL_String_toint(s->s.str + curr, i - curr);
+			//printf("AB: `%*s`\n", (int)(i - curr), s->s.str + curr);
+			YASL_List_push(ls, YASL_INT(n));
+			curr = i;
+		}
+	}
+
+	if (curr < s->s.len && curr < i) {
+		// printf("CC: `%*s` (%zd, %zd)\n", (int)(i - curr), s->s.str + curr, i, curr);
+		YASL_List_push(ls, YASL_STR(YASL_String_new_substring(&S->vm, s, curr, i)));
+	}
+
+	// printf("s: `%*s`, len: %d\n", (int)s->s.len, s->s.str, (int)ls->count);
+	return YASL_LIST(result);
+}
+
+static struct YASL_List *search_or_add(struct YASL_State *S, struct YASL_Table *const vars, struct YASL_Object key) {
+	struct YASL_Object val = YASL_Table_search(vars, key);
+	if (val.type == Y_END) {
+		val = transform(S, key);
+		YASL_Table_insert(vars, key, val);
+	}
+	return (struct YASL_List *)(val.value.uval->data);
+}
+
+int natural_comp(struct YASL_State *S, struct YASL_Table *const vars, struct YASL_Object a, struct YASL_Object b) {
+	YASL_UNUSED(S);
+	if (isequal(&a, &b)) {
+		return 0;
+	}
+
+	const struct YASL_List *a2 = search_or_add(S, vars, a);
+	const struct YASL_List *b2 = search_or_add(S, vars, b);
+
+	const size_t small = a2->count < b2->count ? a2->count : b2->count;
+	for (size_t i = 0; i < small; i++) {
+		struct YASL_Object a = a2->items[i];
+		struct YASL_Object b = b2->items[i];
+		if (a.type == Y_STR && b.type == Y_INT) {
+			return -1;
+		} else if (b.type == Y_STR && a.type == Y_INT) {
+			return 1;
+		}
+		int curr = yasl_object_cmp(a, b);
+		if (curr != 0) {
+			return curr;
+		}
+	}
+
+	return ((int)a2->count - (int)b2->count);
+}
 
 #define YASL_OBJ_COMP_REVERSE(a, b) (-yasl_object_cmp(a, b))
 #define CUSTOM_COMP(a, b) custom_comp(S, a, b)
 #define CUSTOM_COMP_REVERSE(a, b) (-custom_comp(S, a, b))
+#define NATURAL_COMP(a, b) natural_comp(S, vars, a, b)
 
 #define DEF_SORT(name, COMP) \
-static void name##sort(struct YASL_State *S, struct YASL_Object *list, const size_t len) {\
+static void name##sort(struct YASL_State *S, struct YASL_Object *list, const size_t len, struct YASL_Table *const vars) {\
 	/* Base cases*/ \
 	struct YASL_Object tmpObj;\
 	if (len < 2) return;\
@@ -491,18 +627,39 @@ static void name##sort(struct YASL_State *S, struct YASL_Object *list, const siz
 	}\
 \
 	/* Let sort() finish that for us...*/ \
-	name##sort(S, list, ltCount);\
-	name##sort(S, &list[ltCount], len - ltCount);\
+	name##sort(S, list, ltCount, vars);\
+	name##sort(S, &list[ltCount], len - ltCount, vars);\
 }
 
 DEF_SORT(default, yasl_object_cmp)
 // DEF_SORT(reverse, YASL_OBJ_COMP_REVERSE)
 DEF_SORT(fn, CUSTOM_COMP)
 // DEF_SORT(fn_reverse, CUSTOM_COMP_REVERSE)
+DEF_SORT(natural, NATURAL_COMP)
 
 // TODO: clean this up
 int list_sort(struct YASL_State *S) {
 	struct YASL_List *list = YASLX_checknlist(S, "list.sort", 0);
+
+	if (YASL_isstr(S)) {
+		char *tmp = YASL_peekcstr(S);
+		if (strcmp(tmp, "n") != 0) {
+			YASLX_print_err_value(S, "Unknown option: %*s", (int)strlen(tmp), tmp);
+			free(tmp);
+			YASLX_throw_err_value(S);
+		}
+		free(tmp);
+		for (size_t i = 0; i < list->count; i++) {
+			if (list->items[i].type != Y_STR) {
+				YASLX_print_and_throw_err_value(S, "%s expected a list of all numbers or all strings.",
+								"list.sort");
+			}
+		}
+		struct YASL_Table *vars = YASL_Table_new();
+		naturalsort(S, list->items, list->count, vars);
+		YASL_Table_del(vars);
+		return 0;
+	}
 
 	if (!YASL_isnundef(S, 1)) {
 		/*
@@ -511,7 +668,7 @@ int list_sort(struct YASL_State *S) {
 		 */
 		const struct YASL_List tmp = *list;
 		*list = (struct YASL_List) { 0, 0, NULL };
-		fnsort(S, tmp.items, tmp.count);
+		fnsort(S, tmp.items, tmp.count, NULL);
 		if (list->items) YASL_List_del_data(S, list->items);
 		*list = tmp;
 		return 0;
@@ -550,7 +707,7 @@ int list_sort(struct YASL_State *S) {
 	}
 
 	if (type != SORT_TYPE_EMPTY) {
-		defaultsort(S, list->items, list->count);
+		defaultsort(S, list->items, list->count, NULL);
 	}
 
 	return 0;

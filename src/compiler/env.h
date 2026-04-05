@@ -6,6 +6,7 @@
 struct Scope {
 	struct Scope *parent;
 	struct YASL_Table vars;
+	bool is_unstrict;
 };
 
 struct Env {

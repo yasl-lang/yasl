@@ -42,6 +42,7 @@ struct Scope *scope_new(struct Scope *const parent) {
 	struct Scope *scope = (struct Scope *)malloc(sizeof(struct Scope));
 	scope->parent = parent;
 	scope->vars = NEW_TABLE();
+	scope->is_unstrict = false;
 	return scope;
 }
 

@@ -178,6 +178,7 @@ static int main_command_REPL(int argc, char **argv) {
 static int YASL_quit(struct YASL_State *S) {
 	YASL_UNUSED(S);
 	exit(EXIT_SUCCESS);
+	return 0;
 }
 
 
@@ -210,7 +211,7 @@ static int main_REPL(int argc, char **argv) {
 	struct YASL_State *S = YASL_newstate_bb((const char *)buffer->items, 0);
 	YASLX_decllibs(S);
 	YASL_declglobal(S, "quit");
-	YASL_pushcfunction(S, YASL_quit, 0);
+	YASL_pushcfunction(S, &YASL_quit, 0);
 	YASL_setglobal(S, "quit");
 	puts(YASL_LOGO);
 	puts(VERSION_PRINTOUT);

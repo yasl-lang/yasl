@@ -54,8 +54,9 @@ static int YASL_require_helper(struct YASL_State *S, struct YASL_State *Ss) {
 	if (status == YASL_SUCCESS) status = YASL_ERROR;
 	if (status != YASL_MODULE_SUCCESS) {
 		YASL_loadprinterr(Ss);
-		const char *e = YASL_peekcstr(Ss);
+		char *e = YASL_peekcstr(Ss);
 		YASL_print_err(S, "Error while loading module: %s", e);
+		free(e);
 		YASL_throw_err(S, status);
 	}
 

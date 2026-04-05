@@ -21,6 +21,7 @@ static struct Node *parse_return(struct Parser *const parser);
 static struct Node *parse_for(struct Parser *const parser);
 static struct Node *parse_while(struct Parser *const parser);
 static struct Node *parse_match(struct Parser *const parser);
+static struct Node *parse_pragma(struct Parser *const parser);
 static struct Node *parse_if(struct Parser *const parser);
 static struct Node *parse_ifdef(struct Parser *const parser);
 static struct Node *parse_expr(struct Parser *const parser);
@@ -197,7 +198,7 @@ struct Node *parse_assign_or_exprstmt(struct Parser *const parser) {
 		struct Node *set = new_Set(parser, Get_get_collection(expr), Get_get_value(expr), NULL, line);
 		body_append(parser, &buffer, set);
 
-		return parse_decl_helper(parser, buffer, 0);
+		return parse_decl_helper(parser, buffer, 1);
 
 	}
 
@@ -306,6 +307,8 @@ static struct Node *parse_program(struct Parser *const parser) {
 		return new_Continue(parser, line);
 	case T_MATCH:
 		return parse_match(parser);
+	case T_PRAGMA:
+		return parse_pragma(parser);
 	case T_IF:
 		return parse_if(parser);
 	case T_ELSEIF:
@@ -333,6 +336,7 @@ static struct Node *parse_program(struct Parser *const parser) {
 	default:
 		return parse_assign_or_exprstmt(parser);
 	}
+	return NULL;
 }
 
 static struct Node *parse_body(struct Parser *const parser) {
@@ -518,25 +522,26 @@ static struct Node *parse_const_fn(struct Parser *const parser) {
 
 static struct Node *parse_let_const_or_var(struct Parser *const parser) {
 	size_t line = parserline(parser);
-	if (matcheattok(parser, T_LET)) {
+	if (matcheattok(parser, T_LET)) {  // let <name> = ...
 		char *name = eatname(parser);
 		return new_Let(parser, NULL, name, line);
-	} else if (matcheattok(parser, T_CONST)) {
+	} else if (matcheattok(parser, T_CONST)) {  // const <name> = ...
 		char *name = eatname(parser);
 		return new_Const(parser, NULL, name, line);
-	} else {
-		struct Node *node = parse_call(parser);
-		if (node->nodetype == N_VAR) {
-			struct Node *assign = new_Assign(parser, NULL, node->value.sval.str, line);
-			return assign;
-		} else if (node->nodetype == N_GET) {
-			struct Node *set = new_Set(parser, Get_get_collection(node), Get_get_value(node), NULL, line);
-			return set;
-		} else {
-			parser_print_err_syntax(parser, "Expected `let`, `const`, or id, got %s", YASL_TOKEN_NAMES[curtok(parser)]);
-			handle_error(parser);
-		}
 	}
+
+	struct Node *node = parse_call(parser);
+	if (node->nodetype == N_VAR) {  // <name> = ...
+		struct Node *assign = new_Assign(parser, NULL, node->value.sval.str, line);
+		return assign;
+	} else if (node->nodetype == N_GET) {  // <name>[<index>] = ... OR <name>.<index> = ...
+		struct Node *set = new_Set(parser, Get_get_collection(node), Get_get_value(node), NULL, line);
+		return set;
+	}
+
+	parser_print_err_syntax(parser, "Expected `let`, `const`, or id, got %s", YASL_TOKEN_NAMES[curtok(parser)]);
+	handle_error(parser);
+	return NULL;
 }
 
 static struct Node *parse_var_pack(struct Parser *const parser, int expected) {
@@ -742,6 +747,7 @@ static struct Node *parse_primitivepattern(struct Parser *const parser) {
 		parser_print_err_syntax(parser, "Invalid pattern starting in %s (line %" PRI_SIZET ").\n", YASL_TOKEN_NAMES[curtok(parser)], line);
 		handle_error(parser);
 	}
+	return NULL;
 }
 
 static struct Node *parse_patternsingle(struct Parser *const parser) {
@@ -896,6 +902,14 @@ static struct Node *parse_match(struct Parser *const parser) {
 	body_append(parser, &guards, NULL);
 	body_append(parser, &bodies, new_Body(parser, line));
 	return new_Match(parser, exprs, pats, guards, bodies, line);
+}
+
+static struct Node *parse_pragma(struct Parser *const parser) {
+	size_t line = parserline(parser);
+	YASL_PARSE_DEBUG_LOG("parsing pragma in line %" PRI_SIZET "\n", line);
+	eattok(parser, T_PRAGMA);
+	char *name = eatname(parser);
+	return new_Pragma(parser, name, line);
 }
 
 static struct Node *parse_if(struct Parser *const parser) {
