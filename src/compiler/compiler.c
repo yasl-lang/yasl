@@ -1264,11 +1264,18 @@ static void visit_Decl(struct Compiler *const compiler, const struct Node *const
 				return;
 			}
 			decl_var(compiler, name, child->line);
-			if (!in_function(compiler) && !compiler->stack) {
+			if (child->children[0] && child->children[0]->nodetype == N_COLLECTRESTPARAMS) {
+				const int offset = (int)(Decl_get_lvals(node)->children_len - i);
+				compiler_add_byte(compiler, O_COLLECT_REST);
+				compiler_add_byte(compiler, (unsigned char)(get_stacksize(compiler) - offset));
+				// We do not store here, because this will always be a declaration in the local scope,
+				// meaning that we can just leave it on the stack here.
+			} else if (!in_function(compiler) && !compiler->stack) {
 				compiler_add_code_BB(compiler, O_MOVEUP_FP, (unsigned char)0);
 				store_var(compiler, name, node->line);
 			}
 			if (child->nodetype == N_CONST) make_const(compiler, name);
+
 		}
 	}
 }

@@ -182,7 +182,7 @@ struct Node *parse(struct Parser *const parser) {
 	return parse_program(parser);
 }
 
-static struct Node *parse_decl_helper(struct Parser *const parser, struct Node *lvals, size_t i);
+static struct Node *parse_decl_helper(struct Parser *const parser, struct Node *lvals);
 
 struct Node *parse_assign_or_exprstmt(struct Parser *const parser) {
 	size_t line = parserline(parser);
@@ -198,7 +198,7 @@ struct Node *parse_assign_or_exprstmt(struct Parser *const parser) {
 		struct Node *set = new_Set(parser, Get_get_collection(expr), Get_get_value(expr), NULL, line);
 		body_append(parser, &buffer, set);
 
-		return parse_decl_helper(parser, buffer, 1);
+		return parse_decl_helper(parser, buffer);
 
 	}
 
@@ -544,13 +544,19 @@ static struct Node *parse_let_const_or_var(struct Parser *const parser) {
 	return NULL;
 }
 
-static struct Node *parse_var_pack(struct Parser *const parser, int expected) {
+static struct Node *parse_var_pack(struct Parser *const parser, int expected, bool variadic) {
 	struct Node *rvals = new_Exprs(parser, parserline(parser));
 
 	int i = 0;
 	do {
 		body_append(parser, &rvals, parse_expr(parser));
-	} while (i++ < expected && matcheattok(parser, T_COMMA));
+	} while ((i++ < expected) && matcheattok(parser, T_COMMA));
+
+	if (variadic) {
+		while (matcheattok(parser, T_COMMA)) {
+			body_append(parser, &rvals, parse_expr(parser));
+		}
+	}
 
 	struct Node *last = body_last(rvals);
 	if (last && !will_var_expand(last)) {
@@ -558,36 +564,64 @@ static struct Node *parse_var_pack(struct Parser *const parser, int expected) {
 			body_append(parser, &rvals, new_Undef(parser, parserline(parser)));
 		}
 	} else {
-		rvals->children[rvals->children_len - 1] = new_VariadicContext(last, expected - i + 1);
+		rvals->children[rvals->children_len - 1] = new_VariadicContext(last, variadic ? -1 : expected - i + 1);
 	}
 
 	return rvals;
 }
 
-static struct Node *parse_decl_helper(struct Parser *const parser, struct Node *lvals, size_t i) {
+bool is_let_or_const(const struct Node *const lval) {
+	return lval->nodetype == N_LET || lval->nodetype == N_CONST;
+}
+
+static struct Node *parse_decl_helper(struct Parser *const parser, struct Node *lvals) {
+	YASL_ASSERT(lvals->children_len == 1, "expected 1 child");
+	size_t i = 1;
+	bool variadic = false;
 	while (matcheattok(parser, T_COMMA)) {
 		struct Node *lval = parse_let_const_or_var(parser);
 		body_append(parser, &lvals, lval);
+		if (is_let_or_const(lval)) {
+			if (matcheattok(parser, T_LSQB)) {
+				eattok(parser, T_RSQB);
+				YASL_ASSERT(lval->children[0] == NULL, "expected NULL");
+				lval->children[0] = new_CollectRestParams(parser, lval->line);
+				variadic = true;
+				break;
+			}
+		}
 		i++;
 	}
 
 	eattok(parser, T_EQ);
 
-	struct Node *rvals = parse_var_pack(parser, (int)i);
+	struct Node *rvals = parse_var_pack(parser, (int)i, variadic);
 
 	return new_Decl(parser, lvals, rvals, lvals->line);
 }
 
 static struct Node *parse_decl(struct Parser *const parser) {
 	YASL_PARSE_DEBUG_LOG("parsing let in line %" PRI_SIZET "\n", parserline(parser));
-	size_t i = 0;
 
 	struct Node *lval = parse_let_const_or_var(parser);
 	struct Node *buffer = new_Body(parser, parserline(parser));
 	body_append(parser, &buffer, lval);
-	i++;
 
-	return parse_decl_helper(parser, buffer, i);
+	if (is_let_or_const(lval)) {
+		if (matcheattok(parser, T_LSQB)) {
+			eattok(parser, T_RSQB);
+			YASL_ASSERT(lval->children[0] == NULL, "expected NULL");
+			lval->children[0] = new_CollectRestParams(parser, lval->line);
+			bool variadic = true;
+			eattok(parser, T_EQ);
+
+			struct Node *rvals = parse_var_pack(parser, (int)1, variadic);
+
+			return new_Decl(parser, buffer, rvals, buffer->line);
+		}
+	}
+
+	return parse_decl_helper(parser, buffer);
 }
 
 static struct Node *parse_let(struct Parser *const parser) {

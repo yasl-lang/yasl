@@ -1,0 +1,26 @@
+
+# Simple list with `let`.
+let a[] = 1, 2, 3
+echo a
+
+# Simple list with `const`.
+const b[] = .a, .b, .c
+echo b
+
+# Empty with var as first.
+a, const c[] = 1
+echo c
+
+# Set vars in table as first.
+a = {}
+a.a, a.b, let d[] = .A, .B, 10
+echo a, d
+
+# Inside a function body.
+fn f() {
+    let x = undef
+    const y = {}
+    y.a, y.b, x, const z[] = 0, 1, 2, 3, 4, 5
+    return z
+}
+echo f()

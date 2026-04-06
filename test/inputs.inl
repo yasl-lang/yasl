@@ -98,6 +98,7 @@ static const char *inputs[] = {
   "test/inputs/fn/functional.yasl",
   "test/inputs/fn/add.yasl",
   "test/inputs/binops.yasl",
+  "test/inputs/syntax/multi_assign_list.yasl",
   "test/inputs/syntax/augmented_assign.yasl",
   "test/inputs/syntax/multi_assign.yasl",
   "test/inputs/syntax/foreach_str.yasl",
