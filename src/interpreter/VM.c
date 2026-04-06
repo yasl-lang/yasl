@@ -66,7 +66,7 @@ static void pprint_stack(const struct VM *const vm) {
 		pprint_obj(&object);
 	}
 }
-*/
+// */
 
 static struct RC_UserData **builtins_htable_new(struct VM *const vm) {
 	struct RC_UserData **ht = (struct RC_UserData **) malloc(sizeof(struct RC_UserData *) * NUM_TYPES);
@@ -400,6 +400,19 @@ void vm_CALL_now(struct VM *const vm);
 	}\
 } while (0)
 
+#define vm_lookup_method_nothrow(vm, method_name, err_handler, ...) do {\
+	struct YASL_Object index = YASL_STR(YASL_String_new_copy(vm, method_name, strlen(method_name)));\
+	vm_get_metatable(vm);\
+	struct YASL_Table *mt = vm_istable(vm) ? vm_poptable(vm) : NULL;\
+	if (!mt) {\
+		vm_pop(vm);\
+	}\
+	int result = vm_lookup_method_helper(vm, mt, index);\
+	if (result) {\
+		err_handler(__VA_ARGS__);\
+	}\
+} while (0)
+
 // TODO: make this not rely on "source" being the top of the stack.
 #define vm_call_method_now_1_top(vm, target, source, method_name, ...) do {\
 	vm_lookup_method_throwing_source(vm, source, method_name, __VA_ARGS__, vm_peektypename(vm, source));\
@@ -561,19 +574,6 @@ static void vm_num_unop(struct VM *const vm, int target, int source, yasl_int (*
 void vm_len_unop(struct VM *const vm, int target, int source) {
 	YASL_UNUSED(target);
 	vm_call_method_now_1_top(vm, target, source, "__len", "len not supported for operand of type %s.");
-	/*
-	struct YASL_Object index = YASL_STR(YASL_String_new_copy(vm, "__len", strlen("__len")));\
-	struct YASL_Object maybe_mt = vm_get_metatable_index(vm, source);\
-	struct YASL_Table *mt = obj_istable(&maybe_mt) ? YASL_GETTABLE(maybe_mt) : NULL;\
-	int result = vm_lookup_method_helper(vm, mt, index);\
-	if (result) {\
-		vm_print_err_type(vm, "%s", "");\
-		vm_throw_err(vm, YASL_TYPE_ERROR);\
-	}\
-	vm_swaptop(vm);
-	vm_INIT_CALL_offset(vm, vm->sp - 1, 1);
-	vm_CALL(vm);
-	 */
 }
 
 void vm_EQ(struct VM *const vm) {
@@ -663,7 +663,7 @@ void vm_stringify_top_format(struct VM *const vm, struct YASL_Object *format) {
 	if (vm_isfn(vm) || vm_iscfn(vm) || vm_isclosure(vm)) {
 		size_t n = (size_t)snprintf(NULL, 0, "<fn: %p>", vm_peekuserptr(vm)) + 1;
 		char *buffer = (char *)malloc(n);
-		snprintf(buffer, n, "<fn: %d>", (int)vm_popint(vm));
+		snprintf(buffer, n, "<fn: %p>", (void *)vm_popint(vm));
 		vm_pushstr(vm, YASL_String_new_take(vm, buffer, strlen(buffer)));
 	} else if (vm_isuserptr(vm)) {
 		size_t n = (size_t)snprintf(NULL, 0, "<userptr: %p>", vm_peekuserptr(vm)) + 1;
@@ -671,8 +671,23 @@ void vm_stringify_top_format(struct VM *const vm, struct YASL_Object *format) {
 		snprintf(buffer, n, "<userptr: %p>", (void *)vm_popint(vm));
 		vm_pushstr(vm, YASL_String_new_take(vm, buffer, strlen(buffer)));
 	} else {
+		struct YASL_Object index = YASL_STR(YASL_String_new_copy(vm, "tostr", strlen("tostr")));
+
 		vm_duptop(vm);
-		vm_lookup_method_throwing(vm, "tostr", "tostr not supported for operand of type %s.", vm_peektypename(vm));
+		vm_get_metatable(vm);
+		struct YASL_Table *mt = vm_istable(vm) ? vm_poptable(vm) : NULL;
+		if (!mt) {
+			vm_pop(vm);
+		}
+
+		int result = vm_lookup_method_helper(vm, mt, index);
+		if (result) {
+			size_t n = (size_t)snprintf(NULL, 0, "<obj: %p>", vm_peekuserptr(vm)) + 1;
+			char *buffer = (char *)malloc(n);
+			snprintf(buffer, n, "<obj: %p>", (void *)vm_popint(vm));
+			vm_pushstr(vm, YASL_String_new_take(vm, buffer, strlen(buffer)));
+			return;
+		}
 		vm_swaptop(vm);
 		int offset = 1;
 		if (format) {
