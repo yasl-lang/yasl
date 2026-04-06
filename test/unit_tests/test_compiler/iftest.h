@@ -1,4 +1,8 @@
-#pragma once
+#ifndef TEST_UNITTESTS_TESTCOMPILER_IFTEST_H_
+#define TEST_UNITTESTS_TESTCOMPILER_IFTEST_H_
+
 #include "yats.h"
 
 TEST(iftest);
+
+#endif  // TEST_UNITTESTS_TESTCOMPILER_IFTEST_H_

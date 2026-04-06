@@ -1,4 +1,8 @@
-#pragma once
+#ifndef TEST_UNITTESTS_TESTCOMPILER_BINOP_H_
+#define TEST_UNITTESTS_TESTCOMPILER_BINOP_H_
+
 #include "yats.h"
 
 TEST(binoptest);
+
+#endif  // TEST_UNITTESTS_TESTCOMPILER_BINOP_H_

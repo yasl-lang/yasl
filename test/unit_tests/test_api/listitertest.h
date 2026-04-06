@@ -1,4 +1,8 @@
-#pragma once
+#ifndef TEST_UNITTESTS_LISTITERTEST_H_
+#define TEST_UNITTESTS_LISTITERTEST_H_
+
 #include "yats.h"
 
 TEST(listitertest);
+
+#endif  // TEST_UNITTESTS_LISTITERTEST_H_
