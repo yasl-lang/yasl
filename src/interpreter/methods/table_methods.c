@@ -116,8 +116,7 @@ int table___set(struct YASL_State *S) {
 	}
 
 	if (!YASL_Table_insert(ht, key, val)) {
-		vm_print_err_type(&S->vm, "unable to use mutable object of type %s as key.", obj_typename(&key));
-		YASLX_throw_err_type(S);
+		vm_throw_err_type(&S->vm, "unable to use mutable object of type %s as key.", obj_typename(&key));
 	}
 	return 1;
 }

@@ -5,8 +5,7 @@
 
 int YASL_mt_get(struct YASL_State *S) {
 	if (!YASL_isntable(S, 0) && !YASL_isnlist(S, 0) && !vm_isuserdata(&S->vm)) {
-		vm_print_err_type((struct VM *)S, "cannot get metatable for value of type %s.", YASL_peektypename(S));
-		YASLX_throw_err_type(S);
+		vm_throw_err_type((struct VM *)S, "cannot get metatable for value of type %s.", YASL_peektypename(S));
 	}
 
 	vm_get_metatable((struct VM *)S);
@@ -26,8 +25,7 @@ int YASL_mt_set(struct YASL_State *S) {
 		ud_setmt(&S->vm, YASL_GETUSERDATA(vm_peek((struct VM *)S)), YASL_GETUSERDATA(mt));
 		break;
 	default:
-		vm_print_err_type((struct VM *)S, "cannot set metatable for value of type %s.", YASL_peektypename(S));
-		YASLX_throw_err_type(S);
+		vm_throw_err_type((struct VM *)S, "cannot set metatable for value of type %s.", YASL_peektypename(S));
 	}
 	return 1;
 }

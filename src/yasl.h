@@ -536,7 +536,7 @@ yasl_int YASL_popint(struct YASL_State *S);
 
 YASL_DEPRECATE void *YASL_popuserdata(struct YASL_State *S);
 
-YASL_DEPRECATE void *YASL_popuserptr(struct YASL_State *S);
+void *YASL_popuserptr(struct YASL_State *S);
 
 /**
  * [-0, +0]

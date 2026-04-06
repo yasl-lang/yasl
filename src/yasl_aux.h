@@ -91,7 +91,6 @@ YASL_NORETURN void YASLX_throw_err_type(struct YASL_State *S);
  */
 YASL_NORETURN void YASLX_print_and_throw_err_bad_arg_type_n(struct YASL_State *S, const char *fn, unsigned n, const char *exp);
 
-
 /**
  * [-0, +0]
  * Returns the nth position of the stack if it is an int. Otherwise, causes a type error,
@@ -215,6 +214,7 @@ struct YASLX_function {
 };
 
 /**
+ * [-0, +0]
  * Inserts all functions in the array into a table on top of the stack.
  * @param S The YASL_State
  * @param functions array of function names, function pointers, and number of args.

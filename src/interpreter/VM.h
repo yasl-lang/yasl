@@ -77,6 +77,14 @@ vm_print_err_type((vm),\
  position,\
  expected,\
  actual)
+#define vm_throw_err_type(vm, format, ...) do {\
+	vm_print_err_type(vm, format, __VA_ARGS__);\
+	vm_throw_err(vm, YASL_TYPE_ERROR);\
+} while (0)
+#define vm_throw_err_value(vm, format, ...) do {\
+	vm_print_err_value(vm, format, __VA_ARGS__);\
+	vm_throw_err(vm, YASL_VALUE_ERROR);\
+} while (0)
 
 struct CallFrame {
 	unsigned char *pc;          // Where to reset the pc to after returning
