@@ -10,7 +10,7 @@
 #define LBRACKET '['
 #define RBRACKET ']'
 #define RANGE '-'
-#define NEGATE '^'
+#define NEGATE '!'
 #define ONECHAR '?'
 #define MANYCHAR '*'
 #define NUM '#'
@@ -26,28 +26,24 @@ enum {
 #define next(s) LString_next(&s)
 #define has_chars(s) (LString_len(s) > 0)
 
+void glob_close_bracket(struct LString *p) {
+	do {
+		next(*p);
+	} while (has_chars(*p) && first(*p) != RBRACKET);
+}
+
 bool glob_bracket(struct LString *pattern_ptr, struct LString *str_ptr, int *status) {
 	bool b = false;
-	struct LString p = {
-		pattern_ptr->str, pattern_ptr->len
-	};
-	struct LString s = {
-		str_ptr->str, str_ptr->len
-	};
+	struct LString p = *pattern_ptr;
+	struct LString s = *str_ptr;
 
 	if (!has_chars(p) || !has_chars(s)) goto end;
 
-	// Match
-	if (first(p) == first(s)) {
-		do {
-			next(p);
-		} while (has_chars(p) && first(p) != RBRACKET);
-		b = true;
-		goto end;
-	}
 	do {
 		if (first(p) == first(s)) {
+			glob_close_bracket(&p);
 			b = true;
+			break;
 		}
 		if (index(p, 1) == RANGE && index(p, 2) != RBRACKET)  {
 			const char start = index(p, 0);
@@ -55,11 +51,14 @@ bool glob_bracket(struct LString *pattern_ptr, struct LString *str_ptr, int *sta
 			next(p);
 			next(p);
 			if (start <= first(s) && first(s) <= end) {
+				glob_close_bracket(&p);
 				b = true;
+				break;
 			}
 		}
 		next(p);
 	} while (has_chars(p) && first(p) != RBRACKET);
+
 end:
 	if (!has_chars(p)) {
 		*status = ERR_SYNTAX;
@@ -87,28 +86,21 @@ bool glob_internal(struct LString p, struct LString s, int *status) {
 			break;
 		case LBRACKET:
 			next(p);
-			switch (first(p)) {
-			case NEGATE: {
-				next(p);
-				bool result = (!glob_bracket(&p, &s, status));
-				if (result) {
-					break;
-				}
-				return false;
-			}
-			case '\0':
+			if (!has_chars(p)) {
 				*status = ERR_SYNTAX;
 				return false;
-			default: {
-				bool result = (glob_bracket(&p, &s, status));
-				if (result) {
-					break;
-				}
+			}
+			switch (first(p)) {
+			case NEGATE:
+				next(p);
+				if (!glob_bracket(&p, &s, status)) break;
+				return false;
+			default:
+				if (glob_bracket(&p, &s, status)) break;
 				return false;
 			}
-			}
 			break;
-	case MANYCHAR: {
+		case MANYCHAR:
 			next(p);
 			while (has_chars(s)) {
 				if (glob_internal(p, s, status)) {
@@ -117,7 +109,6 @@ bool glob_internal(struct LString p, struct LString s, int *status) {
 				next(s);
 			}
 			break;
-		}
 		case ESCAPE:
 			next(p);
 			/* fallthrough */

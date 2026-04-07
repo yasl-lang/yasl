@@ -56,6 +56,15 @@ int globtest(void) {
 	check_failed("[", "[");
 	check_failed("[!", "!");
 	check_failed("[^", "^");
+	check_failed("[A-", "A");
+	check_failed("[-", "-");
+
+	// Confusing but valid brackets
+	check_match("[A-]", "A");
+	check_match("[A-]", "-");
+	check_match("[-A]", "A");
+	check_match("[-A]", "-");
+	check_no_match("[A-]", "B");
 
 	check_match("a[]]c", "a]c");
 	check_match("a]c", "a]c");
@@ -71,9 +80,10 @@ int globtest(void) {
 	check_match("[A-Z]at", "Cat");
 	check_match("[-Z]at", "-at");
 
-	check_no_match("a[^]]c", "a]c");
-	check_no_match("a[^abc]c", "abc");
-	check_match("a[^adc]c", "abc");
+	check_no_match("a[@]]c", "a]c");
+	check_no_match("a[!]]c", "a]c");
+	check_no_match("a[!abc]c", "abc");
+	check_match("a[!adc]c", "abc");
 
 	check_match("*", "abc");
 	check_match("*d", "abcd");
