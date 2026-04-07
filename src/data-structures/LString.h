@@ -13,4 +13,9 @@ struct LString {
 size_t LString_len(const struct LString str);
 const char *LString_chars(const struct LString str);
 void LString_init(struct LString *str, char *chars, const size_t len);
+
+// Advance to the next character.
+void LString_next(struct LString *str);
+char LString_first(const struct LString str);
+
 #endif

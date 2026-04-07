@@ -8,6 +8,7 @@
 #include "yasl_include.h"
 #include "src/interpreter/yasl_types.h"
 #include "yasl_state.h"
+#include "util/glob.h"
 
 #undef min
 
@@ -547,5 +548,20 @@ int str_rep(struct YASL_State *S) {
 	}
 
 	vm_pushstr((struct VM *) S, YASL_String_rep_fast((struct VM *)S, string, num));
+	return 1;
+}
+
+int str_like(struct YASL_State *S) {
+	struct YASL_String *string = checkstr(S, "str.like", 0);
+	struct YASL_String *pattern = checkstr(S, "str.like", 1);
+
+	bool no_error = true;
+	bool result = globL(pattern->s, string->s, &no_error);
+
+	if (!no_error) {
+		YASLX_print_and_throw_err_value(S, "str.like received an invalid pattern: %*s", (int)pattern->s.len, pattern->s.str);
+	}
+
+	YASL_pushbool(S, result);
 	return 1;
 }

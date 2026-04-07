@@ -109,6 +109,7 @@ add_executable(yasl
         src/std/yasl-std-try.c
         src/util/hash_function.c
         src/util/IO.c
+        src/util/glob.c
         src/util/prime.c
         src/util/varint.c
         src/util/yapp.h
@@ -154,6 +155,7 @@ add_library(yaslapi
         src/interpreter/methods/undef_methods.c
         src/util/prime.c
         src/util/IO.c
+        src/util/glob.c
         src/util/varint.c
         src/std/yasl-std-collections.c
         src/std/yasl-std-error.c
@@ -197,6 +199,7 @@ add_executable(tests
         test/unit_tests/test_methods/strtest.c
         test/unit_tests/test_vm/vmtest.c
         test/unit_tests/test_gc/gctest.c
+        test/unit_tests/test_glob/globtest.c
         test/unit_tests/test_util/utiltest.c
         test/unit_tests/test_api/fntest.c
         test/unit_tests/test_api/deltest.c

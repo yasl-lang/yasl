@@ -7,6 +7,7 @@
 #include "test/unit_tests/test_gc/gctest.h"
 #include "test/unit_tests/test_env/envtest.h"
 #include "test/unit_tests/test_util/utiltest.h"
+#include "test/unit_tests/test_glob/globtest.h"
 
 int unit_tests(void) {
 	int failed = 0;
@@ -19,5 +20,6 @@ int unit_tests(void) {
 	failed += gctest();
 	failed += envtest();
 	failed += utiltest();
+	failed += globtest();
 	return failed;
 }
