@@ -56,6 +56,7 @@ static const char *inputs[] = {
   "test/inputs/builtin-types/str/trim.yasl",
   "test/inputs/builtin-types/str/concat.yasl",
   "test/inputs/builtin-types/str/search.yasl",
+  "test/inputs/builtin-types/str/like.yasl",
   "test/inputs/builtin-types/str/strings.yasl",
   "test/inputs/builtin-types/str/replace_multi.yasl",
   "test/inputs/builtin-types/str/endswith.yasl",

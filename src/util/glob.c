@@ -40,11 +40,14 @@ bool glob_bracket(struct LString *pattern_ptr, struct LString *str_ptr, int *sta
 	if (!has_chars(p) || !has_chars(s)) goto end;
 
 	do {
+		// Single character
 		if (first(p) == first(s)) {
 			glob_close_bracket(&p);
 			b = true;
 			break;
 		}
+
+		// Range
 		if (index(p, 1) == RANGE && index(p, 2) != RBRACKET)  {
 			const char start = index(p, 0);
 			const char end = index(p, 2);
