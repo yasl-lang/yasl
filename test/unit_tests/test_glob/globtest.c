@@ -8,7 +8,8 @@ static int num_ran = 0;
 
 void check_match_internal(const char *pattern, const char *str, int line) {
 	num_ran++;
-	if (!glob(pattern, str)) {
+	bool no_error = true;
+	if (!glob(pattern, str, &no_error)) {
 		fprintf(stderr, "expected %s to match %s (line %d)\n", pattern, str, line);
 		num_failed++;
 	}
@@ -16,7 +17,8 @@ void check_match_internal(const char *pattern, const char *str, int line) {
 
 void check_no_match_internal(const char *pattern, const char *str, int line) {
 	num_ran++;
-	if (glob(pattern, str)) {
+	bool no_error = true;
+	if (glob(pattern, str, &no_error)) {
 		fprintf(stderr, "expected %s not to match %s (line %d)\n", pattern, str, line);
 		num_failed++;
 	}
@@ -24,9 +26,10 @@ void check_no_match_internal(const char *pattern, const char *str, int line) {
 
 void check_failed_internal(const char *pattern, const char *str, int line) {
 	num_ran++;
-	bool success = glob(pattern, str);
-	if (success) {
-		fprintf(stderr, "expected %s not to match %s (line %d)\n", pattern, str, line);
+	bool no_error = true;
+	bool success = glob(pattern, str, &no_error);
+	if (success || no_error) {
+		fprintf(stderr, "expected %s to fail trying to match %s (line %d)\n", pattern, str, line);
 		num_failed++;
 	}
 }
@@ -51,6 +54,8 @@ int globtest(void) {
 	// Invalid brackets
 	check_failed("[ssadsad", "s");
 	check_failed("[", "[");
+	check_failed("[!", "!");
+	check_failed("[^", "^");
 
 	check_match("a[]]c", "a]c");
 	check_match("a]c", "a]c");

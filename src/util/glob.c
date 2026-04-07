@@ -34,6 +34,10 @@ bool glob_bracket(struct LString *pattern_ptr, struct LString *str_ptr, int *sta
 	struct LString s = {
 		str_ptr->str, str_ptr->len
 	};
+
+	if (!has_chars(p) || !has_chars(s)) goto end;
+
+	// Match
 	if (first(p) == first(s)) {
 		do {
 			next(p);
@@ -139,7 +143,7 @@ bool glob_internal(struct LString p, struct LString s, int *status) {
 }
 
 
-bool globL(struct LString pattern, struct LString str, bool* no_error) {
+bool globL(struct LString pattern, struct LString str, bool *no_error) {
 	int status = OK;
 	bool ret = glob_internal(pattern, str, &status);
 	*no_error = status == OK;
@@ -147,9 +151,7 @@ bool globL(struct LString pattern, struct LString str, bool* no_error) {
 }
 
 
-bool glob(const char *pattern, const char *str) {
-	int status = OK;
-
+bool glob(const char *pattern, const char *str, bool *no_error) {
 	struct LString p = {
 		(char*)pattern, strlen(pattern)
 	};
@@ -157,7 +159,6 @@ bool glob(const char *pattern, const char *str) {
 		(char*)str, strlen(str)
 	};
 
-	bool ret = glob_internal(p, s, &status);
-	return ret && status == OK;
+	return globL(p, s, no_error);
 }
 
