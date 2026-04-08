@@ -1,6 +1,8 @@
 #ifndef YASL_OPCODE_H_
 #define YASL_OPCODE_H_
 
+#include "migrations.h"
+
 enum Opcode {
 	O_NCONST = 0x01, // push literal undef onto stack
 	O_BCONST_F = 0x08, // push literal false onto stack
@@ -82,7 +84,9 @@ enum Opcode {
 	O_COLLECT_REST_PARAMS = 0xE1,
 	O_SPREAD_VARGS = 0xE2,
 	O_INIT_MC = 0xE7,
+#if YASL_REGISTER_MIGRATION != 1
 	O_INIT_CALL = 0xE8, // set up function call
+#endif
 	O_CALL = 0xE9, // function call
 	O_RET = 0xEC,  // return from function
 	O_CRET = 0xED, // return from closure.

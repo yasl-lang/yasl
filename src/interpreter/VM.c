@@ -370,7 +370,9 @@ static void vm_duptop(struct VM *const vm);
 static void vm_swaptop(struct VM *const vm);
 int vm_lookup_method_helper(struct VM *vm, struct YASL_Table *mt, struct YASL_Object index);
 static void vm_GET(struct VM *const vm);
+#if YASL_REGISTER_MIGRATION != 1
 static void vm_INIT_CALL(struct VM *const vm, int expected_returns);
+#endif
 void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns);
 void vm_CALL(struct VM *const vm);
 void vm_CALL_now(struct VM *const vm);
@@ -1300,9 +1302,11 @@ void vm_INIT_CALL_offset(struct VM *const vm, int offset, int expected_returns) 
 	vm_enterframe_offset(vm, offset, expected_returns);
 }
 
+#if YASL_REGISTER_MIGRATION != 1
 static void vm_INIT_CALL(struct VM *const vm, int expected_returns) {
 	vm_INIT_CALL_offset(vm, vm->sp, expected_returns);
 }
+#endif
 
 /*
 static void vm_dup(struct VM *const vm, int source) {
@@ -1424,18 +1428,6 @@ void vm_SPREAD_VARGS(struct VM *const vm) {
 	}
 
 	vm_rm(vm, top);
-}
-
-void vm_CALL_offset(struct VM *const vm, int offset, int expected_returns) {
-	vm_INIT_CALL_offset(vm, vm->fp + offset + 1, expected_returns);
-	vm->fp = vm->next_fp;
-	if (vm_isfn(vm, vm->fp)) {
-		vm_CALL_fn(vm);
-	} else if (vm_iscfn(vm, vm->fp)) {
-		vm_CALL_cfn(vm);
-	} else if (vm_isclosure(vm, vm->fp)) {
-		vm_CALL_closure(vm);
-	}
 }
 
 void vm_CALL(struct VM *const vm) {
@@ -1619,8 +1611,9 @@ void vm_executenext(struct VM *const vm) {
 		vm_int_binop(vm, &bandnot, "&^", OP_BIN_AMPCARET);
 		break;
 	case O_BNOT: {
+		const int target = get_source(vm);
 		const int source = get_source(vm);
-		vm_int_unop(vm, source, source, &bnot, "^", OP_UN_CARET);
+		vm_int_unop(vm, target, source, &bnot, "^", OP_UN_CARET);
 		break;
 	}
 	case O_BSL:
@@ -1660,13 +1653,15 @@ void vm_executenext(struct VM *const vm) {
 		vm_pow(vm);
 		break;
 	case O_NEG: {
+		const int target = get_source(vm);
 		const int source = get_source(vm);
-		vm_num_unop(vm, source, source, &int_neg, &float_neg, "-", OP_UN_MINUS);
+		vm_num_unop(vm, target, source, &int_neg, &float_neg, "-", OP_UN_MINUS);
 		break;
 	}
 	case O_POS: {
+		const int target = get_source(vm);
 		const int source = get_source(vm);
-		vm_num_unop(vm, source, source, &int_pos, &float_pos, "+", OP_UN_PLUS);
+		vm_num_unop(vm, target, source, &int_pos, &float_pos, "+", OP_UN_PLUS);
 		break;
 	}
 	case O_NOT:
@@ -1676,8 +1671,9 @@ void vm_executenext(struct VM *const vm) {
 		vm_pushbool(vm, isfalsey(vm_pop_p(vm)));
 		break;
 	case O_LEN: {
+		const int target = get_source(vm);
 		const int source = get_source(vm);
-		vm_len_unop(vm, source, source);
+		vm_len_unop(vm, target, source);
 		break;
 	}
 	case O_CNCT:
@@ -1858,9 +1854,11 @@ void vm_executenext(struct VM *const vm) {
 	case O_INIT_MC:
 		vm_INIT_MC(vm);
 		break;
+#if YASL_REGISTER_MIGRATION != 1
 	case O_INIT_CALL:
 		vm_INIT_CALL(vm, (signed char)NCODE(vm));
 		break;
+#endif
 	case O_CALL:
 #if YASL_REGISTER_MIGRATION == 1
 	{

@@ -1439,7 +1439,12 @@ static int visit_UnOp(struct Compiler *const compiler, const struct Node *const 
 		break;
 	case T_BANG:
 		compiler_add_byte(compiler, O_NOT);
+#if YASL_REGISTER_MIGRATION == 1
+		compiler_add_byte(compiler, (unsigned char)num_temps);
+		return num_temps +1;
+#else
 		break;
+#endif
 	case T_CARET:
 		compiler_add_byte(compiler, O_BNOT);
 		break;
@@ -1451,6 +1456,7 @@ static int visit_UnOp(struct Compiler *const compiler, const struct Node *const 
 		break;
 	}
 #if YASL_REGISTER_MIGRATION == 1
+	compiler_add_byte(compiler, (unsigned char)num_temps);
 	compiler_add_byte(compiler, (unsigned char)num_temps);
 #endif
 
