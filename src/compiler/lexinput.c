@@ -12,7 +12,7 @@ struct LEXINPUT {
   size_t pos;
   bool iseof;
   int (*getc)(struct LEXINPUT *const lp);
-  int (*tell)(struct LEXINPUT *const lp);
+  long (*tell)(struct LEXINPUT *const lp);
   int (*seek)(struct LEXINPUT *const lp, int w, int cmd);
   int (*close)(struct LEXINPUT *const lp);
   int (*eof)(struct LEXINPUT *const lp);
@@ -24,8 +24,8 @@ int lxgetc(struct LEXINPUT *const lp) {
 	return ch;
 }
 
-int lxtell(struct LEXINPUT *const lp) {
-	int d = lp->tell(lp);
+long lxtell(struct LEXINPUT *const lp) {
+	long d = lp->tell(lp);
 	return d;
 }
 
@@ -46,7 +46,7 @@ static int lexinput_file_getc(struct LEXINPUT *const lp) {
 	return fgetc(lp->fp);
 }
 
-static int lexinput_file_tell(struct LEXINPUT *const lp) {
+static long lexinput_file_tell(struct LEXINPUT *const lp) {
 	return ftell(lp->fp);
 }
 
@@ -87,8 +87,8 @@ static int lexinput_bb_getc(struct LEXINPUT *const lp) {
 	return lp->bb->items[lp->pos++];
 }
 
-static int lexinput_bb_tell(struct LEXINPUT *const lp) {
-	return (int)lp->pos;
+static long lexinput_bb_tell(struct LEXINPUT *const lp) {
+	return (long)lp->pos;
 }
 
 static int lexinput_bb_seek(struct LEXINPUT *const lp, int w, int cmd) {
