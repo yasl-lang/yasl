@@ -202,30 +202,30 @@ int list_remove(struct YASL_State *S) {
 }
 
 int list_removeindex(struct YASL_State *S) {
-    struct YASL_List *ls = YASLX_checknlist(S, "list.removeindex", 0);
-    yasl_int index = YASLX_checknint(S, "list.removeindex", 1);
+	struct YASL_List *ls = YASLX_checknlist(S, "list.removeindex", 0);
+	yasl_int index = YASLX_checknint(S, "list.removeindex", 1);
 
-    if (index < 0 || index >= (yasl_int)ls->count) {
-        return YASL_TYPE_ERROR;
-    }
+	if (index < 0 || index >= (yasl_int)ls->count) {
+		YASLX_print_and_throw_err_value(S, "list.removeindex expected a value between 0 and %" PRI_SIZET ", got %" PRId64, YASL_List_len(ls), index);
+	}
 
-    // decrement refcount for the removed element
-    vm_dec_ref(&S->vm, &ls->items[index]);
+	// decrement refcount for the removed element
+	vm_dec_ref(&S->vm, &ls->items[index]);
 
-    // shift elements left to fill the gap
-    size_t remaining = ls->count - index - 1;
-    if (remaining > 0) {
-        memmove(ls->items + index,
-                ls->items + index + 1,
-                remaining * sizeof(struct YASL_Object));
-    }
+	// shift elements left to fill the gap
+	size_t remaining = ls->count - index - 1;
+	if (remaining > 0) {
+		memmove(ls->items + index,
+			ls->items + index + 1,
+			remaining * sizeof(struct YASL_Object));
+	}
 
-    ls->count--;
+	ls->count--;
 
-    // remove the index argument from the stack (keep the list there)
-    YASL_pop(S);
+	// remove the index argument from the stack (keep the list there)
+	YASL_pop(S);
 
-    return 1;
+	return 1;
 }
 
 int list_search(struct YASL_State *S) {

@@ -449,6 +449,7 @@ void vm_CALL_now(struct VM *const vm);
 
 #define INT_BINOP(name, op) yasl_int name(yasl_int left, yasl_int right) { return left op right; }
 
+// TODO: check the results of the bitshift operators, to ensure we don't shift too much.
 INT_BINOP(bor, |)
 INT_BINOP(bxor, ^)
 INT_BINOP(band, &)
