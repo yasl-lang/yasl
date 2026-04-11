@@ -204,10 +204,11 @@ void YASL_Table_rm(struct YASL_Table *const table, const struct YASL_Object key)
 			if ((isequal_typed(&item.key, &key))) {
 				del_item(&item);
 				table->items[index] = TOMBSTONE;
+				table->count--;
+				return;
 			}
 		}
 		index = get_hash(key, table->size, i++);
 		item = table->items[index];
 	}
-	table->count--;
 }

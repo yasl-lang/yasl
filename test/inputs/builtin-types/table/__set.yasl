@@ -1,3 +1,15 @@
 let x = { 3:'three', 1:'one', 2:'two'}
 x[1] = 'un'
 echo x
+
+const table = { .a: "A" }
+echo table
+echo len table
+
+table.a = undef
+echo table
+echo len table
+
+table.b = undef
+echo table
+echo len table

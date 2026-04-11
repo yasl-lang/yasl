@@ -1456,7 +1456,7 @@ static int visit_UnOp(struct Compiler *const compiler, const struct Node *const 
 		break;
 	}
 #if YASL_REGISTER_MIGRATION == 1
-	compiler_add_byte(compiler, (unsigned char)num_temps);
+	compiler_add_byte(compiler, (unsigned char)target);
 	compiler_add_byte(compiler, (unsigned char)num_temps);
 #endif
 
