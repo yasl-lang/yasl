@@ -20,3 +20,6 @@ echo t:r
 echo t->copy()['key']
 
 echo t->setdefault()
+
+t->setdefault([])
+

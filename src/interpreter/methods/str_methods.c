@@ -237,7 +237,7 @@ int str_tobyte(struct YASL_State *S) {
 	if (len != 1) {
 		YASLX_print_and_throw_err_value(S, "str.tobyte expected a str of len 1.");
 	}
-	YASL_pushint(S, *s);
+	YASL_pushint(S, (unsigned char)*s);
 	return 1;
 }
 
