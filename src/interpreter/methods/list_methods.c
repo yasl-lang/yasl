@@ -444,7 +444,7 @@ int list_count(struct YASL_State *S) {
 }
 
 int list_shuffle(struct YASL_State *S) {
-	struct YASL_List *ls = YASLX_checknlist(S, "list.count", 0);
+	struct YASL_List *ls = YASLX_checknlist(S, "list.shuffle", 0);
 	const size_t len = ls->count;
 
 	if (len <= 1) return 1;
