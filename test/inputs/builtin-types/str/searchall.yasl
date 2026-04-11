@@ -5,3 +5,7 @@ echo 'ABC ABC'->searchall('AB')
 echo 'ABCABCABC'->searchall('ABC')
 
 echo 'HELLOHELLO'->searchall('LO')
+
+echo ''->search('')
+echo ''->search('A')
+echo 'A'->search('')

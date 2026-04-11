@@ -7,3 +7,12 @@ echo 'YASL'->has('A')
 echo 'YASL'->has('0')
 
 echo 'ABC ABC'->has('AB', 2)
+
+echo ''->search('')
+echo ''->search('A')
+echo 'A'->search('')
+
+echo ''->has('')
+echo ''->has('A')
+echo 'A'->has('')
+

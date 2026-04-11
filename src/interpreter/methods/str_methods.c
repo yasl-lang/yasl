@@ -29,8 +29,8 @@ static struct YASL_List *checkList(struct YASL_State *S, const char *name, unsig
 		YASLX_print_and_throw_err_bad_arg_type_n(S, name, pos, YASL_LIST_NAME);
 	}
 
-    struct YASL_Object obj = vm_peek_fp(&S->vm, pos);
-    return YASL_GETLIST(obj);
+	struct YASL_Object obj = vm_peek_fp(&S->vm, pos);
+	 return YASL_GETLIST(obj);
 
 }
 
@@ -287,7 +287,7 @@ int str_replaceall(struct YASL_State *S) {
 		if (s_elem.type != Y_STR || r_elem.type != Y_STR) {
 			YASLX_print_and_throw_err_value(S,
 							"str.replaceall expected all elements of search/replace lists to be strs.");
-	   }
+		}
 		struct YASL_String *search_str = obj_getstr(&s_elem);
 		struct YASL_String *replace_str = obj_getstr(&r_elem);
 
@@ -327,8 +327,11 @@ int str_search(struct YASL_State *S) {
 	struct YASL_String *needle = checkstr(S, "str.search", 1);
 	yasl_int start = YASLX_checknoptint(S, "str.search", 2, 0);
 
-	if (start < 0 || start >= (yasl_int)YASL_String_len(haystack)) {
-		YASLX_print_and_throw_err_value(S, "str.search expected a starting index between 0 and %" PRI_SIZET ", got %" PRId64, YASL_String_len(haystack), start);
+	const yasl_int length = (yasl_int)YASL_String_len(haystack);
+
+	if (start < 0 || start > length) {
+		YASLX_print_and_throw_err_value(S,
+		  "str.search expected a starting index between 0 and %" PRI_SIZET ", got %" PRId64, length, start);
 	}
 
 	int64_t index = str_find_index(haystack, needle, start);
@@ -347,10 +350,11 @@ int str_searchall(struct YASL_State *S) {
 	struct YASL_String *needle = checkstr(S, "str.searchall", 1);
 	yasl_int start = YASLX_checknoptint(S, "str.searchall", 2, 0);
 
-	if (start < 0 || start >= (yasl_int)YASL_String_len(haystack)) {
-	   YASLX_print_and_throw_err_value(S,
-		  "str.searchall expected a starting index between 0 and %" PRI_SIZET ", got %" PRId64,
-		  YASL_String_len(haystack), start);
+	const yasl_int length = (yasl_int)YASL_String_len(haystack);
+
+	if (start < 0 || start > length) {
+		YASLX_print_and_throw_err_value(S,
+		  "str.searchall expected a starting index between 0 and %" PRI_SIZET ", got %" PRId64, length, start);
 	}
 
 	// allocate results list
@@ -384,8 +388,11 @@ int str_has(struct YASL_State *S) {
 	struct YASL_String *needle = checkstr(S, "str.has", 1);
 	yasl_int start = YASLX_checknoptint(S, "str.has", 2, 0);
 
-	if (start < 0 || start >= (yasl_int)YASL_String_len(haystack)) {
-		YASLX_print_and_throw_err_value(S, "str.has expected a starting index between 0 and %" PRI_SIZET ", got %" PRId64, YASL_String_len(haystack), start);
+	const yasl_int length = (yasl_int)YASL_String_len(haystack);
+
+	if (start < 0 || start > length) {
+		YASLX_print_and_throw_err_value(S,
+		  "str.has expected a starting index between 0 and %" PRI_SIZET ", got %" PRId64, length, start);
 	}
 
 	int64_t index = str_find_index(haystack, needle, start);
