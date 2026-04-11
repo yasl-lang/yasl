@@ -61,7 +61,8 @@ struct RC_UserData *rcht_new(struct VM *vm) {
 void rcht_del(struct VM *const vm, struct RC_UserData *const hashtable) {
 	YASL_Table_del((struct YASL_Table *) hashtable->data);
 	if (hashtable->mt) {
-		vm_dec_ref(vm, &YASL_TABLE(hashtable->mt));
+		struct YASL_Object metabletable = YASL_TABLE(hashtable->mt);
+		vm_dec_ref(vm, &metabletable);
 	}
 
 	free(hashtable);
