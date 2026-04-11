@@ -12,3 +12,9 @@ echo ls
 ls->remove(.a)
 
 echo ls
+
+const ls2 = [ 1, 2, 3, 4 ]
+
+ls2->remove(4)
+
+echo ls2

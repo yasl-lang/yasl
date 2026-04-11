@@ -262,7 +262,7 @@ yasl_int YASL_String_toint(const char *chars, const size_t len) {
 }
 
 #define UPPER(c) (0x61 <= (c) && (c) < 0x7B ? (c) & ~0x20 : (c))
-#define LOWER(c) (0x41 <= curr && curr < 0x5B ? (c) | 0x20 : (c))
+#define LOWER(c) (0x41 <= (c) && (c) < 0x5B ? (c) | 0x20 : (c))
 
 // TODO: this is very ASCII reliant. Clean these up.
 #define DEFINE_STR_TO_X(name, fun) struct YASL_String *YASL_String_to##name(struct VM *vm, struct YASL_String *a) {\

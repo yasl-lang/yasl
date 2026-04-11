@@ -183,14 +183,13 @@ int list_reverse(struct YASL_State *S) {
 
 int list_remove(struct YASL_State *S) {
 	struct YASL_List *ls = YASLX_checknlist(S, "list.remove", 0);
-
 	FOR_LIST(i, name, ls) {
 		YASL_duptop(S);
 		vm_push(&S->vm, name);
 		vm_EQ(&S->vm);
 		if (YASL_popbool(S)) {
 			vm_dec_ref(&S->vm, &name);
-			size_t remaining = ls->count - i;
+			size_t remaining = ls->count - i - 1;
 			memmove(ls->items + i, ls->items + i + 1, remaining * sizeof(struct YASL_Object));
 			ls->count--;
 			break;
