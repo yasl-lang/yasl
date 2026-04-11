@@ -123,12 +123,13 @@ void YASL_Set_rm(struct YASL_Set *const set, struct YASL_Object key) {
 			if ((isequal(&item, &key))) {
 				dec_ref(&item);
 				set->items[index] = YASL_END();
+				set->count--;
+				return;
 			}
 		}
 		index = get_hash(key, set->size, i++);
 		item = set->items[index];
 	}
-	set->count--;
 }
 
 size_t YASL_Set_getindex(const struct YASL_Set *const set, const struct YASL_Object value) {

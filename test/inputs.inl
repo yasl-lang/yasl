@@ -177,6 +177,7 @@ static const char *inputs[] = {
   "test/inputs/varpack/function_call.yasl",
   "test/inputs/std/collections/set.yasl",
   "test/inputs/std/collections/contains.yasl",
+  "test/inputs/std/collections/remove.yasl",
   "test/inputs/std/collections/set_fromlist.yasl",
   "test/inputs/std/collections/set_cartesian.yasl",
   "test/inputs/std/collections/set_iter.yasl",
