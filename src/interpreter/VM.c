@@ -1715,9 +1715,9 @@ void vm_executenext(struct VM *const vm) {
 				continue;
 			}
 			if (!YASL_Table_insert(ht, key, val)) {
-				rcht_del(table);
-				struct YASL_Object mt = YASL_TABLE(vm->builtins_htable[Y_TABLE]);
-				vm_dec_ref(vm, &mt);
+				rcht_del(vm, table);
+				// struct YASL_Object mt = YASL_TABLE(vm->builtins_htable[Y_TABLE]);
+				// vm_dec_ref(vm, &mt);
 				vm_throw_err_type(vm, "unable to use mutable object of type %s as key.", obj_typename(&key));
 			}
 		}

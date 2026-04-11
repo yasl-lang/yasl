@@ -82,9 +82,9 @@ static int YASL_collections_table_new(struct YASL_State *S) {
 		struct YASL_Object value = vm_pop((struct VM *)S);
 		struct YASL_Object key = vm_pop((struct VM *)S);
 		if (!YASL_Table_insert((struct YASL_Table *) table->data, key, value)) {
-			rcht_del(table);
-			struct YASL_Object mt = YASL_TABLE(S->vm.builtins_htable[Y_TABLE]);
-			vm_dec_ref((struct VM *)S, &mt);
+			rcht_del((struct VM *)S, table);
+			// struct YASL_Object mt = YASL_TABLE(S->vm.builtins_htable[Y_TABLE]);
+			// vm_dec_ref((struct VM *)S, &mt);
 			vm_throw_err_type(&S->vm, "unable to use mutable object of type %s as key.",
 					  obj_typename(&key));
 		}

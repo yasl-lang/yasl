@@ -67,7 +67,7 @@ void YASL_Table_rm(struct YASL_Table *const table, const struct YASL_Object key)
 
 struct RC_UserData* rcht_new(struct VM *vm);
 struct RC_UserData* rcht_new_sized(struct VM *vm, const size_t base_size);
-void rcht_del(struct RC_UserData *const hashtable);
+void rcht_del(struct VM *const vm, struct RC_UserData *const hashtable);
 void rcht_del_data(struct YASL_State *S, void *const hashtable);
 void rcht_del_cstring_cfn(struct RC_UserData *const hashtable);
 
