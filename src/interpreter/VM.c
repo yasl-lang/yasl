@@ -1502,9 +1502,9 @@ static void vm_ECHO(struct VM *const vm) {
 	char *curr = dest;
 	for (int i = vm->fp + 1 + top; i <= vm->sp; i++) {
 		size_t strlen = YASL_String_len(vm_peekstr(vm, i));
-		size_t copied = io_str_strip_char(curr, YASL_String_chars(vm_peekstr(vm, i)), strlen, 0);
-		curr[strlen] = ',';
-		curr[strlen+1] = ' ';
+		size_t copied = io_str_strip_char(curr, YASL_String_chars(vm_peekstr(vm, i)), strlen, '\0');
+		curr[copied] = ',';
+		curr[copied+1] = ' ';
 		curr += copied + 2;
 		tmp += copied + 2;
 	}
