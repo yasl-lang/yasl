@@ -2,19 +2,20 @@
 #define YASL_IO_H_
 
 #include <stdio.h>
+#include <src/data-structures/LString.h>
 
 #define NEW_IO(f) ((struct IO) {\
 	.print = io_print_file,\
 	.file = (f),\
-	.string = NULL,\
-	.len = 0\
+	.str = { NULL, 0 }\
 })
 
 struct IO {
 	void (*print)(struct IO *const, const char *const, va_list);
 	FILE *file;
-	char *string;
-	size_t len;
+	struct LString str;
+	// char *string;
+	// size_t len;
 };
 
 void io_cleanup(struct IO *const io);

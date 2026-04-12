@@ -114,14 +114,14 @@ void YASL_setprinterr_tostr(struct YASL_State *S) {
 }
 
 void YASL_loadprintout(struct YASL_State *S) {
-	YASL_pushlstr(S, S->vm.out.string, S->vm.out.len);
+	YASL_pushlstr(S, S->vm.out.str.str, S->vm.out.str.len);
 }
 
 void YASL_loadprinterr(struct YASL_State *S) {
 	if (S->compiler.status != YASL_SUCCESS) {
-		YASL_pushlstr(S, S->compiler.parser.lex.err.string, S->compiler.parser.lex.err.len);
+		YASL_pushlstr(S, S->compiler.parser.lex.err.str.str, S->compiler.parser.lex.err.str. len);
 	} else {
-		YASL_pushlstr(S, S->vm.err.string, S->vm.err.len);
+		YASL_pushlstr(S, S->vm.err.str.str, S->vm.err.str.len);
 	}
 }
 
@@ -136,9 +136,8 @@ void YASL_resetprinterr(struct YASL_State *S) {
 	io_reset(compiler_err);
 	io_reset(vm_err);
 
-	S->vm.err.len = 0;
-	free(S->vm.err.string);
-	S->vm.err.string = NULL;
+	free(S->vm.err.str.str);
+	S->vm.err.str = (struct LString){ NULL, 0 };
 }
 
 int YASL_execute_REPL(struct YASL_State *S) {
