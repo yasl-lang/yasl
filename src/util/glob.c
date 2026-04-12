@@ -137,15 +137,15 @@ bool glob_internal(struct LString p, struct LString s, int *status) {
 }
 
 
-bool globL(struct LString pattern, struct LString str, bool *no_error) {
+bool globL(struct LString pattern, struct LString str, bool *error) {
 	int status = OK;
 	bool ret = glob_internal(pattern, str, &status);
-	*no_error = status == OK;
-	return ret && *no_error;
+	*error = status != OK;
+	return ret && !*error;
 }
 
 
-bool glob(const char *pattern, const char *str, bool *no_error) {
+bool glob(const char *pattern, const char *str, bool *error) {
 	struct LString p = {
 		(char*)pattern, strlen(pattern)
 	};
@@ -153,6 +153,6 @@ bool glob(const char *pattern, const char *str, bool *no_error) {
 		(char*)str, strlen(str)
 	};
 
-	return globL(p, s, no_error);
+	return globL(p, s, error);
 }
 

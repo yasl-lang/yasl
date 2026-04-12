@@ -523,8 +523,7 @@ struct YASL_String *YASL_String_trim(struct VM *vm, struct YASL_String *haystack
 }
 
 // Caller ensures num is greater than or equal to zero
-struct YASL_String *YASL_String_rep_fast(struct VM *vm, struct YASL_String *string, yasl_int num) {
-	YASL_ASSERT(num >= 0, "num must be non-negative");
+struct YASL_String *YASL_String_rep_fast(struct VM *vm, struct YASL_String *string, size_t num) {
 	const size_t string_len = YASL_String_len(string);
 	size_t size = num * string_len;
 	char *str = (char *)malloc(size);
@@ -534,4 +533,3 @@ struct YASL_String *YASL_String_rep_fast(struct VM *vm, struct YASL_String *stri
 
 	return YASL_String_new_take(vm, str, size);
 }
-

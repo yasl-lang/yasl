@@ -8,8 +8,8 @@ static int num_ran = 0;
 
 void check_match_internal(const char *pattern, const char *str, int line) {
 	num_ran++;
-	bool no_error = true;
-	if (!glob(pattern, str, &no_error)) {
+	bool error = false;
+	if (!glob(pattern, str, &error)) {
 		fprintf(stderr, "expected %s to match %s (line %d)\n", pattern, str, line);
 		num_failed++;
 	}
@@ -17,8 +17,8 @@ void check_match_internal(const char *pattern, const char *str, int line) {
 
 void check_no_match_internal(const char *pattern, const char *str, int line) {
 	num_ran++;
-	bool no_error = true;
-	if (glob(pattern, str, &no_error)) {
+	bool error = false;
+	if (glob(pattern, str, &error)) {
 		fprintf(stderr, "expected %s not to match %s (line %d)\n", pattern, str, line);
 		num_failed++;
 	}
@@ -26,9 +26,9 @@ void check_no_match_internal(const char *pattern, const char *str, int line) {
 
 void check_failed_internal(const char *pattern, const char *str, int line) {
 	num_ran++;
-	bool no_error = true;
-	bool success = glob(pattern, str, &no_error);
-	if (success || no_error) {
+	bool error = false;
+	bool success = glob(pattern, str, &error);
+	if (success || !error) {
 		fprintf(stderr, "expected %s to fail trying to match %s (line %d)\n", pattern, str, line);
 		num_failed++;
 	}
