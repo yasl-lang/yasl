@@ -63,7 +63,7 @@ static int str___next(struct YASL_State *S) {
 	const char *str = YASLX_checknstr(S, "str.__next", 0, &len);
 	yasl_int curr = YASLX_checknint(S, "str.__next", 1);
 
-	if (curr < -(yasl_int)len || curr >= (yasl_int)len) {
+	if (curr < 0 || curr >= (yasl_int)len) {
 		YASL_pushbool(S, false);
 		return 1;
 	}

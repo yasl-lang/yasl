@@ -184,11 +184,10 @@ static yasl_int parseint64(const char *str, bool *ok) {
 }
 
 yasl_float YASL_String_tofloat(const char *chars, const size_t len) {
-	char *buffer = (char *)malloc(len + 1);
 	if (!isdigit((int)chars[0])) {
-		free(buffer);
 		return NAN;
 	}
+	char *buffer = (char *)malloc(len + 1);
 	size_t curr = 0;
 	for (size_t i = 0; i < len; ++i) {
 		if (chars[i] == '_' && chars[i-1] != '.') {

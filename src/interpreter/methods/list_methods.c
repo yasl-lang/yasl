@@ -63,7 +63,7 @@ static int list___next(struct YASL_State *S) {
 	struct YASL_List *ls = YASLX_checknlist(S, "list.__next", 0);
 	yasl_int curr = YASLX_checknint(S, "list.__next", 1);
 
-	if (curr < -(yasl_int) ls->count || curr >= (yasl_int)ls->count) {
+	if (curr < 0 || curr >= (yasl_int)ls->count) {
 		YASL_pushbool(S, false);
 		return 1;
 	}
