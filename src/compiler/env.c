@@ -49,7 +49,6 @@ struct Scope *scope_new(struct Scope *const parent) {
 void scope_del(struct Scope *const scope) {
 	if (scope == NULL) return;
 	scope_del(scope->parent);
-	free(scope->parent);
 	scope_del_cur_only(scope);
 }
 

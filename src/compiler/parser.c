@@ -209,7 +209,7 @@ struct Node *parse_assign_or_exprstmt(struct Parser *const parser) {
  * Checks for function statement `fn <id> ...` vs function expr `fn ( ...`.
  */
 static bool isfndecl(struct Parser *const parser) {
-	int curr = lxtell(parser->lex.file);
+	long curr = lxtell(parser->lex.file);
 	eattok(parser, T_FN);
 	lex_val_free(&parser->lex);
 	lex_val_setnull(&parser->lex);
@@ -223,7 +223,7 @@ static bool isfndecl(struct Parser *const parser) {
  * Checks whether vargs is empty
  */
 static bool isemptyvargs(struct Parser *const parser) {
-	int curr = lxtell(parser->lex.file);
+	long curr = lxtell(parser->lex.file);
 	eattok(parser, T_LPAR);
 	lex_val_free(&parser->lex);
 	lex_val_setnull(&parser->lex);

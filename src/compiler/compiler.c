@@ -31,8 +31,8 @@ YASL_FORMAT_CHECK static void compiler_print_err(struct Compiler *compiler, cons
 #define compiler_print_err_const(compiler, name, line) \
 	compiler_print_err_syntax((compiler), "Cannot assign to constant %s (line %" PRI_SIZET ").\n", name, line)
 
-#define break_checkpoint(compiler)    ((compiler)->checkpoints.items[(compiler)->checkpoints.count-1])
-#define continue_checkpoint(compiler) ((compiler)->checkpoints.items[(compiler)->checkpoints.count-2])
+#define break_checkpoint(compiler)     ((compiler)->checkpoints.items[(compiler)->checkpoints.count-1])
+#define continue_checkpoint(compiler)  ((compiler)->checkpoints.items[(compiler)->checkpoints.count-2])
 #define stacksize_checkpoint(compiler) ((compiler)->checkpoints.items[(compiler)->checkpoints.count-3])
 
 
@@ -230,9 +230,9 @@ static void store_var(struct Compiler *const compiler, const char *const name, c
 		if (is_const(index))
 			goto handle_const_err;
 		store_var_in_upval(compiler, name);
-	} else if (scope_contains(compiler->stack, name)) {                           // file-local vars
+	} else if (scope_contains(compiler->stack, name)) {					   // file-local vars
 		store_var_cur_scope(compiler, compiler->stack, name, line);
-	} else if (scope_contains(compiler->globals, name)) {                         // global vars
+	} else if (scope_contains(compiler->globals, name)) {				 // global vars
 		int64_t index = scope_get(compiler->globals, name);
 		if (is_const(index))
 			goto handle_const_err;
@@ -250,10 +250,10 @@ static void store_var(struct Compiler *const compiler, const char *const name, c
 
 static int contains_var_in_current_scope(const struct Compiler *const compiler, const char *const name) {
 	return in_function(compiler) ?
-	       scope_contains_cur_only(compiler->params->scope, name) :
-	       compiler->stack ?
-	       scope_contains_cur_only(compiler->stack, name) :
-	       scope_contains_cur_only(compiler->globals, name);
+		   scope_contains_cur_only(compiler->params->scope, name) :
+		   compiler->stack ?
+		   scope_contains_cur_only(compiler->stack, name) :
+		   scope_contains_cur_only(compiler->globals, name);
 }
 
 static int contains_var(const struct Compiler *const compiler, const char *const name) {
@@ -317,7 +317,7 @@ static unsigned char *return_bytes(const struct Compiler *const compiler) {
 
 	fflush(stdout);
 	unsigned char *bytecode = (unsigned char *) malloc(
-		compiler->code->count + compiler->header->count + 1 + compiler->lines->count);    // NOT OWN
+		compiler->code->count + compiler->header->count + 1 + compiler->lines->count);	// NOT OWN
 	memcpy(bytecode, compiler->header->items, compiler->header->count);
 	memcpy(bytecode + compiler->header->count, compiler->code->items, compiler->code->count);
 	bytecode[compiler->code->count + compiler->header->count] = O_HALT;

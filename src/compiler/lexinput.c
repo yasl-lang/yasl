@@ -1,5 +1,6 @@
 #include "lexinput.h"
 
+#include "common/debug.h"
 #include "data-structures/YASL_ByteBuffer.h"
 
 #include <stdbool.h>
@@ -13,9 +14,9 @@ struct LEXINPUT {
   bool iseof;
   int (*getc)(struct LEXINPUT *const lp);
   long (*tell)(struct LEXINPUT *const lp);
-  int (*seek)(struct LEXINPUT *const lp, int w, int cmd);
+  int (*seek)(struct LEXINPUT *const lp, long w, int cmd);
   int (*close)(struct LEXINPUT *const lp);
-  int (*eof)(struct LEXINPUT *const lp);
+  bool (*eof)(struct LEXINPUT *const lp);
 };
 
 
@@ -29,7 +30,7 @@ long lxtell(struct LEXINPUT *const lp) {
 	return d;
 }
 
-int lxseek(struct LEXINPUT *const lp, const int w, const int cmd) {
+int lxseek(struct LEXINPUT *const lp, const long w, const int cmd) {
 	int r = lp->seek(lp, w, cmd);
 	return r;
 }
@@ -50,12 +51,12 @@ static long lexinput_file_tell(struct LEXINPUT *const lp) {
 	return ftell(lp->fp);
 }
 
-static int lexinput_file_seek(struct LEXINPUT *const lp, int w, int cmd) {
+static int lexinput_file_seek(struct LEXINPUT *const lp, long w, int cmd) {
 	return fseek(lp->fp, w, cmd);
 }
 
-static int lexinput_file_eof(struct LEXINPUT *const lp) {
-	return feof(lp->fp);
+static bool lexinput_file_eof(struct LEXINPUT *const lp) {
+	return (bool)feof(lp->fp);
 }
 
 static int lexinput_file_close(struct LEXINPUT *const lp) {
@@ -76,9 +77,7 @@ struct LEXINPUT *lexinput_new_file(FILE *const fp) {
 	return lp;
 }
 
-#include "data-structures/YASL_ByteBuffer.h"
-
-static int lexinput_bb_eof(struct LEXINPUT *const lp);
+static bool lexinput_bb_eof(struct LEXINPUT *const lp);
 static int lexinput_bb_getc(struct LEXINPUT *const lp) {
 	if (lp->pos >= lp->bb->count) {
 		lp->iseof = true;
@@ -91,19 +90,20 @@ static long lexinput_bb_tell(struct LEXINPUT *const lp) {
 	return (long)lp->pos;
 }
 
-static int lexinput_bb_seek(struct LEXINPUT *const lp, int w, int cmd) {
-	if (cmd == 0) {
-		lp->pos = w;
-	} else if (cmd == 1) {
+static int lexinput_bb_seek(struct LEXINPUT *const lp, long w, int cmd) {
+	if (cmd == SEEK_SET) {
+		YASL_ASSERT(w >= 0, "expected a non-negative offset");
+		lp->pos = (size_t)w;
+	} else if (cmd == SEEK_CUR) {
 		lp->pos += w;
-	} else if (cmd == 2) {
-		lp->pos = lp->bb->count = w;
+	} else if (cmd == SEEK_END) {
+		lp->pos = lp->bb->count + w;
 	}
 	if (lp->pos < lp->bb->count) lp->iseof = false;
 	return 0;
 }
 
-static int lexinput_bb_eof(struct LEXINPUT *const lp) {
+static bool lexinput_bb_eof(struct LEXINPUT *const lp) {
 	if (lp->pos >= lp->bb->count) {
 		return (int)lp->iseof;
 	}
