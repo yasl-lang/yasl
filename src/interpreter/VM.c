@@ -1056,6 +1056,7 @@ static bool vm_MATCH_table_elements(struct VM *const vm, size_t len, struct YASL
 			val = YASL_Table_search(table, vm->constants[vm_read_int(vm)]);
 			break;
 		default:
+			YASL_UNREACHED();
 			break;
 		}
 		if (val.type == Y_END || !(vm_MATCH_subpattern(vm, &val))) {
