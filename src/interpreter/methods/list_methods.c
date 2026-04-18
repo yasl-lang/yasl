@@ -235,7 +235,7 @@ int list_search(struct YASL_State *S) {
 	struct YASL_Object index = YASL_UNDEF();
 
 	const yasl_int len = (yasl_int)YASL_List_len(haystack);
-	if (start < 0 || start >= len) {
+	if (start < 0 || start > len) {
 		YASLX_print_and_throw_err_value(S, "list.search expected a starting index between 0 and %" PRI_SIZET ", got %" PRId64, (size_t)len, start);
 	}
 
@@ -257,7 +257,7 @@ int list_searchall(struct YASL_State *S) {
 	struct YASL_List *haystack = YASLX_checknlist(S, "list.searchall", 0);
 
 	yasl_int list_len = YASL_List_len(haystack);
-	if (start < 0 || start >= list_len) {
+	if (start < 0 || start > list_len) {
 		YASLX_print_and_throw_err_value(S,
 			"list.searchall expected a starting index between 0 and %" PRI_SIZET ", got %" PRId64,
 			(size_t)list_len, start);
@@ -292,7 +292,7 @@ int list_has(struct YASL_State *S) {
 	struct YASL_List *haystack = YASLX_checknlist(S, "list.has", 0);
 	bool has = false;
 
-	if (start < 0 || start >= (yasl_int)YASL_List_len(haystack)) {
+	if (start < 0 || start > (yasl_int)YASL_List_len(haystack)) {
 		YASLX_print_and_throw_err_value(S, "list.has expected a starting index between 0 and %" PRI_SIZET ", got %" PRId64, YASL_List_len(haystack), start);
 	}
 
