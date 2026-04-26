@@ -67,7 +67,7 @@ static void pprint_obj(struct VM *const vm, const struct YASL_Object *const obj)
 
 static void pprint_stack(struct VM *const vm, unsigned char *pc, int start, int end) {
 	size_t currline = vm_getcurrline_pc(vm->code, pc);
-	PPRINT_OUT_FMT("frame (line %zd):\n", currline);
+	PPRINT_OUT_FMT("frame (line %" PRI_SIZET "):\n", currline);
 	for (int i = start; i <= end; i++) {
 		struct YASL_Object object = vm_peek(vm, i);
 		PPRINT_OUT_FMT("\t[%d] %s ", i - start, obj_typename(&object));
