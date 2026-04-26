@@ -186,6 +186,8 @@ int vm_run(struct VM *const vm);
 
 void vm_debug_echobacktrace(struct VM *const vm);
 int vm_debug_getglobal(struct VM* const vm);
-int vm_debug_setglobal(struct VM* const vm);
+void vm_debug_setglobal(struct VM* const vm);
+int vm_debug_getlocal(struct VM *const vm, yasl_int frame, yasl_int offset);
+int vm_debug_setlocal(struct VM *const vm, yasl_int frame, yasl_int offset);
 
 #endif
