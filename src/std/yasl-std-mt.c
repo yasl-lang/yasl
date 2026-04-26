@@ -59,17 +59,16 @@ int YASL_mt_lookup(struct YASL_State *S) {
 }
 
 int YASL_decllib_mt(struct YASL_State *S) {
-	YASL_declglobal(S, "mt");
 	YASL_pushtable(S);
-	YASL_setglobal(S, "mt");
+	YASLX_initglobal(S, "mt");
 
 	YASL_loadglobal(S, "mt");
 
 	struct YASLX_function functions[] = {
-		{"get",     YASL_mt_get,     1},
-		{"set",     YASL_mt_set,     2},
-		{"setself", YASL_mt_setself, 1},
-		{"lookup",  YASL_mt_lookup,  2},
+		{"get",     &YASL_mt_get,     1},
+		{"set",     &YASL_mt_set,     2},
+		{"setself", &YASL_mt_setself, 1},
+		{"lookup",  &YASL_mt_lookup,  2},
 		{NULL, 	    NULL,            0}
 	};
 

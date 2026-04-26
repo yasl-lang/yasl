@@ -24,49 +24,98 @@
 #include "YASL_Object.h"
 #include "closure.h"
 
-/*
-static void pprint_obj(const struct YASL_Object *const obj) {
+YASL_FORMAT_CHECK static void vm_print_out(struct VM *const vm, const char *const fmt, ...);
+static size_t vm_getcurrline_pc(const unsigned char *const code, const unsigned char *const pc);
+
+#define PPRINT_OUT_FMT(...) vm_print_out(vm,  __VA_ARGS__)
+
+static void pprint_obj(struct VM *const vm, const struct YASL_Object *const obj) {
 	switch (obj->type) {
 	case Y_END:
-		printf("<END>");
+		PPRINT_OUT_FMT("<\?\?\?>");
 		break;
 	case Y_UNDEF:
-		printf("undef");
 		break;
 	case Y_FLOAT:
-		printf("%f", obj->value.dval);
+		PPRINT_OUT_FMT("%f", obj->value.dval);
 		break;
 	case Y_INT:
-		printf("%d", (int)obj->value.ival);
+		PPRINT_OUT_FMT("%d", (int)obj->value.ival);
 		break;
 	case Y_STR:
-		printf("%s", obj->value.sval->s.str);
+		PPRINT_OUT_FMT("%s", obj->value.sval->s.str);
 		break;
 	case Y_LIST:
-		printf("list");
+		PPRINT_OUT_FMT("list");
 		break;
 	case Y_TABLE:
-		printf("table");
+		PPRINT_OUT_FMT("table");
 		break;
 	case Y_BOOL:
-		printf("bool: %d", (bool)obj->value.ival);
+		PPRINT_OUT_FMT("%s", obj->value.ival ? "true" : "false");
+		break;
+	case Y_FN:
+	case Y_CFN:
+	case Y_CLOSURE:
+		PPRINT_OUT_FMT("<%p>", (void *)obj->value.ival);
 		break;
 	default:
-		printf("other");
 		break;
 	}
-	printf("\n");
+	PPRINT_OUT_FMT("\n");
 }
 
-static void pprint_stack(const struct VM *const vm) {
-	printf("STACK[%d]: \n", vm->sp);
-	for (int i = 0; i <= vm->sp; i++) {
+static void pprint_stack(struct VM *const vm, unsigned char *pc, int start, int end) {
+	size_t currline = vm_getcurrline_pc(vm->code, pc);
+	PPRINT_OUT_FMT("frame (line %zd):\n", currline);
+	for (int i = start; i <= end; i++) {
 		struct YASL_Object object = vm_peek(vm, i);
-		printf("\t[%d] %s ", i, obj_typename(&object));
-		pprint_obj(&object);
+		PPRINT_OUT_FMT("\t[%d] %s ", i - start, obj_typename(&object));
+		pprint_obj(vm, &object);
 	}
 }
-// */
+
+void vm_debug_echobacktrace(struct VM *const vm) {
+	int start = 0;
+	int end = 0;
+	unsigned char *pc = /*vm->frames[0].pc;*/ vm->code + (*(int64_t *)vm->code);
+	for (int i = 1; i <= vm->frame_num; i++) {
+		// printf("LINE: %zd\n", vm_getcurrline_pc(vm->code, pc));
+		struct CallFrame frame = vm->frames[i];
+		start = end;
+		end = frame.curr_fp;
+		pprint_stack(vm, pc, start, end - 1);
+		pc = vm->frames[i - 1].pc;
+	}
+	start = end;
+	end = vm->sp;
+
+	pprint_stack(vm, pc, start, end - 1);
+}
+
+int vm_debug_getglobal(struct VM *const vm) {
+	if (!vm_isstr(vm)) {
+		vm_print_err_bad_arg_type_name(vm, "debug.getglobal", 0, "str", vm_peektypename(vm));
+		vm_throw_err(vm, YASL_TYPE_ERROR);
+	}
+	struct YASL_Object value = YASL_Table_search(vm->globals, vm_peek(vm));
+	bool found = value.type != Y_END;
+	vm_push(vm, found ? value : YASL_UNDEF());
+	vm_pushbool(vm, found);
+	return 2;
+}
+
+int vm_debug_setglobal(struct VM *const vm) {
+	struct YASL_Object value = vm_pop(vm);
+	if (!vm_isstr(vm)) {
+		vm_print_err_bad_arg_type_name(vm, "debug.setglobal", 0, "str", vm_peektypename(vm));
+		vm_throw_err(vm, YASL_TYPE_ERROR);
+	}
+
+	YASL_Table_insert(vm->globals, vm_peek(vm), value);
+	return 0;
+
+}
 
 static struct RC_UserData **builtins_htable_new(struct VM *const vm) {
 	struct RC_UserData **ht = (struct RC_UserData **) malloc(sizeof(struct RC_UserData *) * NUM_TYPES);
@@ -172,17 +221,17 @@ void vm_cleanup(struct VM *const vm) {
 	io_cleanup(&vm->err);
 }
 
-void *vm_alloc_cyclic(struct VM *vm, size_t size) {
+void *vm_alloc_cyclic(struct VM *const vm, size_t size) {
 	YASL_UNUSED(vm);
 	return malloc(size);
 }
 
-void vm_free_cyclic(struct VM *vm, void *ptr) {
+void vm_free_cyclic(struct VM *const vm, void *ptr) {
 	YASL_UNUSED(vm);
 	free(ptr);
 }
 
-YASL_FORMAT_CHECK static void vm_print_err_wrapper(struct VM *vm, const char *const fmt, ...) {
+YASL_FORMAT_CHECK static void vm_print_err_wrapper(struct VM *const vm, const char *const fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
 	vm->err.print(&vm->err, fmt, args);
@@ -192,16 +241,20 @@ YASL_FORMAT_CHECK static void vm_print_err_wrapper(struct VM *vm, const char *co
 static void vm_exitframe(struct VM *const vm);
 void vm_executenext(struct VM *const vm);
 
-static size_t vm_getcurrline(struct VM *vm) {
-	size_t start = ((int64_t *)vm->code)[0];
-	size_t line_start = ((int64_t *)vm->code)[1];
-	const unsigned char *tmp = vm->code + line_start;
+static size_t vm_getcurrline_pc(const unsigned char *const code, const unsigned char *const pc) {
+	size_t start = ((int64_t *)code)[0];
+	size_t line_start = ((int64_t *)code)[1];
+	const unsigned char *tmp = code + line_start;
 	long unsigned i = 0;
-	while (vint_decode(tmp) < vm->pc - vm->code - start) {
+	while (vint_decode(tmp) < pc - code - start) {
 		tmp = vint_next(tmp);
 		i++;
 	}
 	return i;
+}
+
+static size_t vm_getcurrline(const struct VM *const vm) {
+	return vm_getcurrline_pc(vm->code, vm->pc);
 }
 
 static void printline(struct VM *vm) {
@@ -222,14 +275,14 @@ void vvm_print_err(struct VM *vm, const char *const fmt, va_list args) {
 	vm->err.print(&vm->err, fmt, args);
 }
 
-YASL_FORMAT_CHECK void vm_print_err(struct VM *vm, const char *const fmt, ...) {
+YASL_FORMAT_CHECK void vm_print_err(struct VM *const vm, const char *const fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
 	vvm_print_err(vm, fmt, args);
 	va_end(args);
 }
 
-YASL_FORMAT_CHECK static void vm_print_out(struct VM *vm, const char *const fmt, ...) {
+YASL_FORMAT_CHECK static void vm_print_out(struct VM *const vm, const char *const fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
 	vm->out.print(&vm->out, fmt, args);
@@ -365,7 +418,6 @@ static yasl_int vm_read_int(struct VM *const vm) {
     return val;
 }
 
-// static void vm_dup(struct VM *const vm, int source);
 static void vm_duptop(struct VM *const vm);
 static void vm_swaptop(struct VM *const vm);
 int vm_lookup_method_helper(struct VM *vm, struct YASL_Table *mt, struct YASL_Object index);
@@ -1309,12 +1361,6 @@ static void vm_INIT_CALL(struct VM *const vm, int expected_returns) {
 	vm_INIT_CALL_offset(vm, vm->sp, expected_returns);
 }
 #endif
-
-/*
-static void vm_dup(struct VM *const vm, int source) {
-	vm_push(vm, vm_peek(vm, source));
-}
-*/
 
 static void vm_duptop(struct VM *const vm) {
 	vm_push(vm, vm_peek(vm));

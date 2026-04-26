@@ -101,6 +101,7 @@ add_executable(yasl
         src/std/yasl-std-io.c
         src/std/yasl-std-math.c
         src/std/yasl-std-require.c
+        src/std/yasl-std-debug.c
         src/std/yasl-std-error.c
         src/data-structures/YASL_Set.c
         src/std/yasl-std-collections.c
@@ -158,6 +159,7 @@ add_library(yaslapi
         src/util/glob.c
         src/util/varint.c
         src/std/yasl-std-collections.c
+        src/std/yasl-std-debug.c
         src/std/yasl-std-error.c
         src/std/yasl-std-io.c
         src/std/yasl-std-math.c

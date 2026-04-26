@@ -184,4 +184,8 @@ void vm_pushstr_bb(struct VM *const vm, YASL_ByteBuffer *bb);
 
 int vm_run(struct VM *const vm);
 
+void vm_debug_echobacktrace(struct VM *const vm);
+int vm_debug_getglobal(struct VM* const vm);
+int vm_debug_setglobal(struct VM* const vm);
+
 #endif
