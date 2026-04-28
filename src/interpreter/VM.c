@@ -1511,7 +1511,7 @@ static void pprint_obj(struct VM *const vm, const struct YASL_Object *const obj)
 static void pprint_stack(struct VM *const vm, unsigned char *pc, int start, int end) {
 	size_t currline = vm_getcurrline_pc(vm->code, pc);
 	PPRINT_OUT_FMT("frame (line %" PRI_SIZET "):\n", currline);
-	for (int i = start; i <= end; i++) {
+	for (int i = end; i >= start; i--) {
 		struct YASL_Object object = vm_peek(vm, i);
 		PPRINT_OUT_FMT("\t[%d] %s ", i - start, obj_typename(&object));
 		pprint_obj(vm, &object);
@@ -1519,9 +1519,28 @@ static void pprint_stack(struct VM *const vm, unsigned char *pc, int start, int 
 }
 
 void vm_debug_echobacktrace(struct VM *const vm) {
+	int start = vm->fp;
+	int end = vm->sp;
+	unsigned char *pc = vm->pc; //vm->code + (*(int64_t *)vm->code);
+	for (int i = vm->frame_num; i >= 1; i--) {
+		struct CallFrame frame = vm->frames[i];
+		end = start;
+		start = frame.prev_fp;
+		pc = vm->frames[i - 1].pc;
+		pprint_stack(vm, pc, start, end - 1);
+	}
+	end = start;
+	start = 0;
+	//end = vm->sp;
+	pc = vm->code + (*(int64_t *)vm->code);
+
+	pprint_stack(vm, pc, start, end - 1);
+}
+
+void vm_debug_echobacktrace_reverse(struct VM *const vm) {
 	int start = 0;
 	int end = 0;
-	unsigned char *pc = /*vm->frames[0].pc;*/ vm->code + (*(int64_t *)vm->code);
+	unsigned char *pc = vm->code + (*(int64_t *)vm->code);
 	for (int i = 1; i <= vm->frame_num; i++) {
 		struct CallFrame frame = vm->frames[i];
 		start = end;
