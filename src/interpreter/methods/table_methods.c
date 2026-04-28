@@ -72,7 +72,7 @@ int table___get(struct YASL_State *S) {
 
 int table___len(struct YASL_State *S) {
 	struct YASL_Table *ht = YASLX_checkntable(S, "table.__len", 0);
-	YASL_pushint(S, YASL_Table_length(ht));
+	YASL_pushint(S, YASL_Table_len(ht));
 	return 1;
 }
 

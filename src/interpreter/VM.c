@@ -1472,12 +1472,13 @@ static size_t vm_getcurrline_pc(const unsigned char *const code, const unsigned 
 
 #define PPRINT_OUT_FMT(...) vm_print_out(vm,  __VA_ARGS__)
 
-static void pprint_obj(struct VM *const vm, const struct YASL_Object *const obj) {
+static void pprint_obj(struct VM *const vm, const struct YASL_Object *const obj, const bool expand) {
 	switch (obj->type) {
 	case Y_END:
 		PPRINT_OUT_FMT("<\?\?\?>");
 		break;
 	case Y_UNDEF:
+		if (!expand) PPRINT_OUT_FMT("undef");
 		break;
 	case Y_FLOAT:
 		PPRINT_OUT_FMT("%f", obj->value.dval);
@@ -1489,10 +1490,44 @@ static void pprint_obj(struct VM *const vm, const struct YASL_Object *const obj)
 		PPRINT_OUT_FMT("%s", obj->value.sval->s.str);
 		break;
 	case Y_LIST:
-		PPRINT_OUT_FMT("list");
+		if (YASL_List_len(YASL_GETLIST(*obj)) == 0) {
+			PPRINT_OUT_FMT("[]");
+		} else if (expand) {
+			struct YASL_List *ls = YASL_GETLIST(*obj);
+			PPRINT_OUT_FMT("[");
+			pprint_obj(vm, &ls->items[0], false);
+			for (size_t i = 1; i < YASL_List_len(ls); i++ ) {
+				PPRINT_OUT_FMT(", ");
+				pprint_obj(vm, &ls->items[i], false);
+			}
+			PPRINT_OUT_FMT("]");
+		} else {
+			PPRINT_OUT_FMT("[...]");
+		}
 		break;
 	case Y_TABLE:
-		PPRINT_OUT_FMT("table");
+		if (YASL_Table_len(YASL_GETTABLE(*obj)) == 0) {
+			PPRINT_OUT_FMT("{}");
+		} else if (expand) {
+			struct YASL_Table *ht = YASL_GETTABLE(*obj);
+			PPRINT_OUT_FMT("{");
+			size_t i = 0;
+			for (struct YASL_Table_Item *item; i < (ht)->size; i++) if (item = &(ht)->items[i], item->key.type != Y_END && !obj_isundef(&item->value)) {
+				pprint_obj(vm, &ht->items[i].key, false);
+				PPRINT_OUT_FMT(": ");
+				pprint_obj(vm, &ht->items[i].value, false);
+				break;
+			}
+			for (struct YASL_Table_Item *item; i < (ht)->size; i++) if (item = &(ht)->items[i], item->key.type != Y_END && !obj_isundef(&item->value)) {
+				PPRINT_OUT_FMT(", ");
+				pprint_obj(vm, &ht->items[i].key, false);
+				PPRINT_OUT_FMT(": ");
+				pprint_obj(vm, &ht->items[i].value, false);
+			}
+			PPRINT_OUT_FMT("}");
+		} else {
+			PPRINT_OUT_FMT("{...}");
+		}
 		break;
 	case Y_BOOL:
 		PPRINT_OUT_FMT("%s", obj->value.ival ? "true" : "false");
@@ -1505,7 +1540,6 @@ static void pprint_obj(struct VM *const vm, const struct YASL_Object *const obj)
 	default:
 		break;
 	}
-	PPRINT_OUT_FMT("\n");
 }
 
 static void pprint_stack(struct VM *const vm, unsigned char *pc, int start, int end) {
@@ -1514,14 +1548,15 @@ static void pprint_stack(struct VM *const vm, unsigned char *pc, int start, int 
 	for (int i = end; i >= start; i--) {
 		struct YASL_Object object = vm_peek(vm, i);
 		PPRINT_OUT_FMT("\t[%d] %s ", i - start, obj_typename(&object));
-		pprint_obj(vm, &object);
+		pprint_obj(vm, &object, true);
+		PPRINT_OUT_FMT("\n");
 	}
 }
 
 void vm_debug_echobacktrace(struct VM *const vm) {
 	int start = vm->fp;
 	int end = vm->sp;
-	unsigned char *pc = vm->pc; //vm->code + (*(int64_t *)vm->code);
+	unsigned char *pc = vm->pc;
 	for (int i = vm->frame_num; i >= 1; i--) {
 		struct CallFrame frame = vm->frames[i];
 		end = start;
@@ -1531,12 +1566,12 @@ void vm_debug_echobacktrace(struct VM *const vm) {
 	}
 	end = start;
 	start = 0;
-	//end = vm->sp;
 	pc = vm->code + (*(int64_t *)vm->code);
 
 	pprint_stack(vm, pc, start, end - 1);
 }
 
+/*
 void vm_debug_echobacktrace_reverse(struct VM *const vm) {
 	int start = 0;
 	int end = 0;
@@ -1553,6 +1588,7 @@ void vm_debug_echobacktrace_reverse(struct VM *const vm) {
 
 	pprint_stack(vm, pc, start, end - 1);
 }
+*/
 
 int vm_debug_getglobal(struct VM *const vm) {
 	if (!vm_isstr(vm)) {

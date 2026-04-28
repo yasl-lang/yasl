@@ -57,7 +57,7 @@ void YASL_Table_insert_string_int(struct YASL_Table *const table, const char *co
 bool YASL_Table_contains_zstring_int(const struct YASL_Table *const table, const char *const key);
 void YASL_Table_insert_zstring_int(struct YASL_Table *const table, const char *const key, const int64_t val);
 
-yasl_int YASL_Table_length(const struct YASL_Table *const ht);
+yasl_int YASL_Table_len(const struct YASL_Table *const ht);
 YASL_WARN_UNUSED struct YASL_Object YASL_Table_search(const struct YASL_Table *const table, const struct YASL_Object key);
 struct YASL_Object YASL_Table_search_string_int(const struct YASL_Table *const table, const char *const key,
 						const size_t key_len);
