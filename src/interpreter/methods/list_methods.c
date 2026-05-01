@@ -6,6 +6,7 @@
 #include "yasl.h"
 #include "yasl_aux.h"
 #include "data-structures/YASL_List.h"
+#include "util/hash_function.h"
 #include "yasl_error.h"
 #include "yasl_state.h"
 
@@ -452,7 +453,7 @@ int list_shuffle(struct YASL_State *S) {
 
 	// We use a Fisher-Yate shuffle here.
 	for (size_t i = len - 1; i >= 1; i--) {
-		size_t j = (size_t)rand();
+		size_t j = (size_t)ya_rand();
 		j %= i + 1;
 		YASL_ASSERT(j <= i, "j should be in this range.");
 		struct YASL_Object tmp = ls->items[i];
@@ -591,7 +592,7 @@ static void name##sort(struct YASL_State *S, struct YASL_Object *list, const siz
 	size_t right = len - 1;\
 \
 	/* Determine random midpoint to use (good average case) */\
-	const size_t randIndex = rand() % len;\
+	const size_t randIndex = ya_rand() % len;\
 	const struct YASL_Object mid = list[randIndex];\
 \
 	/* Determine exact number of items less than mid (mid's index)\

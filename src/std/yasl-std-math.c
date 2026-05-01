@@ -6,6 +6,7 @@
 #include <data-structures/YASL_Set.h>
 #include <interpreter/VM.h>
 
+#include "util/hash_function.h"
 #include "util/prime.h"
 #include "interpreter/YASL_Object.h"
 #include "yasl_conf.h"
@@ -314,14 +315,14 @@ static int YASL_math_clamp(struct YASL_State *S) {
 
 static int YASL_math_rand(struct YASL_State *S) {
 	// rand() is only guarenteed to return a maximum of ~32000. Ensure all 64 bits are used
-	yasl_int r = (yasl_int) rand() ^((yasl_int) rand() << 16) ^((yasl_int) rand() << 32) ^((yasl_int) rand() << 48);
+	yasl_int r = (yasl_int) ya_rand() ^((yasl_int) ya_rand() << 16) ^((yasl_int) ya_rand() << 32) ^((yasl_int) ya_rand() << 48);
 	YASL_pushint(S, r);
 	return 1;
 }
 
 static int YASL_math_seed(struct YASL_State *S) {
 	yasl_int n = YASLX_checknint(S, "math.seed", 0);
-	srand(n);
+	ya_srand(n);
 	return 0;
 }
 
