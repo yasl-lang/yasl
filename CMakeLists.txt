@@ -112,6 +112,7 @@ add_executable(yasl
         src/util/IO.c
         src/util/glob.c
         src/util/prime.c
+        src/util/prng.c
         src/util/varint.c
         src/util/yapp.h
         src/yasl_conf.h
@@ -155,6 +156,7 @@ add_library(yaslapi
         src/interpreter/userdata.c
         src/interpreter/methods/undef_methods.c
         src/util/prime.c
+        src/util/prng.c
         src/util/IO.c
         src/util/glob.c
         src/util/varint.c

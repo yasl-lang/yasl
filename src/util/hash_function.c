@@ -32,11 +32,3 @@ size_t get_hash(const struct YASL_Object s, const size_t num_buckets, const size
 	const size_t hash_b = hash_function(s, PRIME_B, num_buckets);
 	return ((size_t) (hash_a + (attempt * (hash_b + (hash_b == 0))))) % num_buckets;
 }
-
-int ya_rand() {
-	return rand();
-}
-
-void ya_srand(unsigned s) {
-	srand(s);
-}

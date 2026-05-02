@@ -3,7 +3,7 @@
 #include <string.h>
 #include <time.h>
 
-#include "util/hash_function.h"
+#include "util/prng.h"
 #include "yasl.h"
 #include "yasl_aux.h"
 #include "yasl_plat.h"

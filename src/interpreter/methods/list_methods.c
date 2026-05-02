@@ -6,7 +6,7 @@
 #include "yasl.h"
 #include "yasl_aux.h"
 #include "data-structures/YASL_List.h"
-#include "util/hash_function.h"
+#include "util/prng.h"
 #include "yasl_error.h"
 #include "yasl_state.h"
 
