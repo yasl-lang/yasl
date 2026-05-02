@@ -1,4 +1,4 @@
-#include <stdlib.h>
+#include <stdint.h>
 
 #define STATE_SIZE 624
 #define CONST_F 1812433253
