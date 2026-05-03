@@ -10,8 +10,7 @@ size_t hash_function(const struct YASL_Object s, const size_t a, const size_t m)
 		const int64_t len_s = YASL_String_len(s.value.sval);
 		const char *str = YASL_String_chars(s.value.sval);
 		for (int64_t i = 0; i < len_s; i++) {
-			hash = (hash * a) ^ str[i];
-			hash %= m;
+			hash = a * str[i] + (hash << 6) + (hash << 16) - hash;
 		}
 		return (random_offset ^ hash) % m;
 	} else {
