@@ -15,12 +15,13 @@ void mtwist_init(unsigned seed) {
 	for (int i = 1; i < STATE_SIZE; i++) {
 		state[i] = BITMASK(CONST_F * (state[i-1] ^ ((state[i-1]) >> 30)) + i);
 	}
+	index = 0;
 }
 
 
 static void mtwist_twist(void) {
 	for (int i = 0; i < STATE_SIZE; i++) {
-		int y = (state[i] & 0x80000000) + (state[(i + 1) % STATE_SIZE]) & 0x7fffffff;
+		int32_t y = (state[i] & 0x80000000) + (state[(i + 1) % STATE_SIZE]) & 0x7fffffff;
 		state[i] = state[(i+397) % STATE_SIZE] ^ (y >> 1);
 		if (y % 2) {
 			state[i] ^= 0x9908b0df;
