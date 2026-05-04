@@ -21,8 +21,9 @@ size_t hash_function(const struct YASL_Object s, const size_t a, const size_t m)
 		int64_t ul = (s.value.ival & 0xFFFF00000000) >> 32;
 		int64_t uu = (s.value.ival & 0xFFFF000000000000) >> 48;
 		size_t hash = (a * ll * ll * ll * ll ^ a * a * lu * lu * lu ^ a * a * a * ul * ul ^
-			      a * a * a * a * uu) % m;
+			       a * a * a * a * uu) % m;
 		return (random_offset ^ hash) % m;
+	}
 	}
 }
 
