@@ -3,12 +3,14 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <data-structures/YASL_Set.h>
-#include <interpreter/VM.h>
+#include <time.h>
 
+#include "data-structures/YASL_Set.h"
+#include "interpreter/YASL_Object.h"
+#include "interpreter/VM.h"
 #include "util/prng.h"
 #include "util/prime.h"
-#include "interpreter/YASL_Object.h"
+
 #include "yasl_conf.h"
 #include "yasl.h"
 #include "yasl_aux.h"
@@ -320,7 +322,8 @@ static int YASL_math_rand(struct YASL_State *S) {
 }
 
 static int YASL_math_seed(struct YASL_State *S) {
-	yasl_int n = YASLX_checknint(S, "math.seed", 0);
+	int seed = (int)time(NULL);
+	unsigned n = (unsigned)YASLX_checknoptint(S, "math.seed", 0, seed);
 	ya_srand(n);
 	return 0;
 }
