@@ -53,7 +53,6 @@ static int yasl_try(struct YASL_State *S) {
 }
 
 int YASL_decllib_try(struct YASL_State *S) {
-
 	YASL_pushcfunction(S, &yasl_try, -2);
 	YASLX_initglobal(S, "try");
 	return YASL_SUCCESS;

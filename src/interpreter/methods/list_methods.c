@@ -6,6 +6,7 @@
 #include "yasl.h"
 #include "yasl_aux.h"
 #include "data-structures/YASL_List.h"
+#include "util/prng.h"
 #include "yasl_error.h"
 #include "yasl_state.h"
 
@@ -63,7 +64,7 @@ static int list___next(struct YASL_State *S) {
 	struct YASL_List *ls = YASLX_checknlist(S, "list.__next", 0);
 	yasl_int curr = YASLX_checknint(S, "list.__next", 1);
 
-	if (curr < -(yasl_int) ls->count || curr >= (yasl_int)ls->count) {
+	if (curr < 0 || curr >= (yasl_int)ls->count) {
 		YASL_pushbool(S, false);
 		return 1;
 	}
@@ -183,14 +184,13 @@ int list_reverse(struct YASL_State *S) {
 
 int list_remove(struct YASL_State *S) {
 	struct YASL_List *ls = YASLX_checknlist(S, "list.remove", 0);
-
 	FOR_LIST(i, name, ls) {
 		YASL_duptop(S);
 		vm_push(&S->vm, name);
 		vm_EQ(&S->vm);
 		if (YASL_popbool(S)) {
 			vm_dec_ref(&S->vm, &name);
-			size_t remaining = ls->count - i;
+			size_t remaining = ls->count - i - 1;
 			memmove(ls->items + i, ls->items + i + 1, remaining * sizeof(struct YASL_Object));
 			ls->count--;
 			break;
@@ -202,30 +202,30 @@ int list_remove(struct YASL_State *S) {
 }
 
 int list_removeindex(struct YASL_State *S) {
-    struct YASL_List *ls = YASLX_checknlist(S, "list.removeindex", 0);
-    yasl_int index = YASLX_checknint(S, "list.removeindex", 1);
+	struct YASL_List *ls = YASLX_checknlist(S, "list.removeindex", 0);
+	yasl_int index = YASLX_checknint(S, "list.removeindex", 1);
 
-    if (index < 0 || index >= (yasl_int)ls->count) {
-        return YASL_TYPE_ERROR;
-    }
+	if (index < 0 || index >= (yasl_int)ls->count) {
+		YASLX_print_and_throw_err_value(S, "list.removeindex expected a value between 0 and %" PRI_SIZET ", got %" PRId64, YASL_List_len(ls), index);
+	}
 
-    // decrement refcount for the removed element
-    vm_dec_ref(&S->vm, &ls->items[index]);
+	// decrement refcount for the removed element
+	vm_dec_ref(&S->vm, &ls->items[index]);
 
-    // shift elements left to fill the gap
-    size_t remaining = ls->count - index - 1;
-    if (remaining > 0) {
-        memmove(ls->items + index,
-                ls->items + index + 1,
-                remaining * sizeof(struct YASL_Object));
-    }
+	// shift elements left to fill the gap
+	size_t remaining = ls->count - index - 1;
+	if (remaining > 0) {
+		memmove(ls->items + index,
+			ls->items + index + 1,
+			remaining * sizeof(struct YASL_Object));
+	}
 
-    ls->count--;
+	ls->count--;
 
-    // remove the index argument from the stack (keep the list there)
-    YASL_pop(S);
+	// remove the index argument from the stack (keep the list there)
+	YASL_pop(S);
 
-    return 1;
+	return 1;
 }
 
 int list_search(struct YASL_State *S) {
@@ -235,8 +235,9 @@ int list_search(struct YASL_State *S) {
 	struct YASL_List *haystack = YASLX_checknlist(S, "list.search", 0);
 	struct YASL_Object index = YASL_UNDEF();
 
-	if (start < 0 || start >= (yasl_int)YASL_List_len(haystack)) {
-		YASLX_print_and_throw_err_value(S, "list.search expected a starting index between 0 and %" PRI_SIZET ", got %" PRId64, YASL_List_len(haystack), start);
+	const yasl_int len = (yasl_int)YASL_List_len(haystack);
+	if (start < 0 || start > len) {
+		YASLX_print_and_throw_err_value(S, "list.search expected a starting index between 0 and %" PRI_SIZET ", got %" PRId64, (size_t)len, start);
 	}
 
 	FOR_LIST_START(i, obj, haystack, start) {
@@ -257,10 +258,10 @@ int list_searchall(struct YASL_State *S) {
 	struct YASL_List *haystack = YASLX_checknlist(S, "list.searchall", 0);
 
 	yasl_int list_len = YASL_List_len(haystack);
-	if (start < 0 || start >= list_len) {
+	if (start < 0 || start > list_len) {
 		YASLX_print_and_throw_err_value(S,
 			"list.searchall expected a starting index between 0 and %" PRI_SIZET ", got %" PRId64,
-			YASL_List_len(haystack), start);
+			(size_t)list_len, start);
 	}
 
 	// create result list
@@ -292,7 +293,7 @@ int list_has(struct YASL_State *S) {
 	struct YASL_List *haystack = YASLX_checknlist(S, "list.has", 0);
 	bool has = false;
 
-	if (start < 0 || start >= (yasl_int)YASL_List_len(haystack)) {
+	if (start < 0 || start > (yasl_int)YASL_List_len(haystack)) {
 		YASLX_print_and_throw_err_value(S, "list.has expected a starting index between 0 and %" PRI_SIZET ", got %" PRId64, YASL_List_len(haystack), start);
 	}
 
@@ -445,14 +446,14 @@ int list_count(struct YASL_State *S) {
 }
 
 int list_shuffle(struct YASL_State *S) {
-	struct YASL_List *ls = YASLX_checknlist(S, "list.count", 0);
+	struct YASL_List *ls = YASLX_checknlist(S, "list.shuffle", 0);
 	const size_t len = ls->count;
 
 	if (len <= 1) return 1;
 
 	// We use a Fisher-Yate shuffle here.
 	for (size_t i = len - 1; i >= 1; i--) {
-		size_t j = (size_t)rand();
+		size_t j = (size_t)ya_rand();
 		j %= i + 1;
 		YASL_ASSERT(j <= i, "j should be in this range.");
 		struct YASL_Object tmp = ls->items[i];
@@ -591,7 +592,7 @@ static void name##sort(struct YASL_State *S, struct YASL_Object *list, const siz
 	size_t right = len - 1;\
 \
 	/* Determine random midpoint to use (good average case) */\
-	const size_t randIndex = rand() % len;\
+	const size_t randIndex = ya_rand() % len;\
 	const struct YASL_Object mid = list[randIndex];\
 \
 	/* Determine exact number of items less than mid (mid's index)\

@@ -1,6 +1,6 @@
 zzzz
-{a: xxx, b: yy, c: 3}
+{c: 3, a: xxx, b: yy}
 third
 second
-{a: first, b: yy, c: 3}
+{c: 3, a: first, b: yy}
 {'b': '11'}, 10

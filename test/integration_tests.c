@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "util/prng.h"
 #include "yasl.h"
 #include "yasl_aux.h"
 
@@ -136,6 +137,7 @@ int main(void) {
 
 	char buffer[MAX_FILE_NAME_LEN];
 	struct YASL_State *S;
+	ya_srand(0);
 
 	INPUT_TEST(inputs);
 	ERROR_TEST(assert_errors, YASL_ASSERT_ERROR);

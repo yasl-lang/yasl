@@ -3,6 +3,7 @@
 #include <string.h>
 #include <time.h>
 
+#include "util/prng.h"
 #include "yasl.h"
 #include "yasl_aux.h"
 #include "yasl_plat.h"
@@ -45,8 +46,8 @@ static int main_version(int argc, char **argv) {
 
 static inline void main_init_platform(void) {
 	// Initialize prng seed
-	srand(time(NULL));
-	// random_offset = (size_t)rand();
+	ya_srand(time(NULL));
+	// random_offset = (size_t)ya_rand();
 
 	#ifdef YASL_USE_WIN
 		SetConsoleOutputCP(CP_UTF8);

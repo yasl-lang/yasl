@@ -58,9 +58,12 @@ struct RC_UserData *rcht_new(struct VM *vm) {
 	return rcht_new_sized(vm, TABLE_BASESIZE);
 }
 
-void rcht_del(struct RC_UserData *const hashtable) {
+void rcht_del(struct VM *const vm, struct RC_UserData *const hashtable) {
 	YASL_Table_del((struct YASL_Table *) hashtable->data);
-	if (hashtable->mt)
+	if (hashtable->mt) {
+		struct YASL_Object metabletable = YASL_TABLE(hashtable->mt);
+		vm_dec_ref(vm, &metabletable);
+	}
 
 	free(hashtable);
 }
@@ -154,7 +157,7 @@ void YASL_Table_insert_string_int(struct YASL_Table *const table, const char *co
 	YASL_Table_insert_fast(table, ko, vo);
 }
 
-yasl_int YASL_Table_length(const struct YASL_Table *const ht) {
+yasl_int YASL_Table_len(const struct YASL_Table *const ht) {
 	return (yasl_int)ht->count;
 }
 
@@ -204,10 +207,11 @@ void YASL_Table_rm(struct YASL_Table *const table, const struct YASL_Object key)
 			if ((isequal_typed(&item.key, &key))) {
 				del_item(&item);
 				table->items[index] = TOMBSTONE;
+				table->count--;
+				return;
 			}
 		}
 		index = get_hash(key, table->size, i++);
 		item = table->items[index];
 	}
-	table->count--;
 }

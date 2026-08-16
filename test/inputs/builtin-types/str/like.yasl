@@ -1,0 +1,9 @@
+# Most of this functionality is tested directly. We test only a couple things here, mainly involving embedded NUL
+# characters.
+
+echo '\0\0\0'->like('???')
+echo '\0\0\0'->like('*')
+echo '\0\0\0'->like('???')
+echo '\0\0\0'->like('*\0*')
+
+

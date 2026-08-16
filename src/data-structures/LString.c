@@ -12,3 +12,12 @@ void LString_init(struct LString *str, char *chars, const size_t len) {
 	str->str = chars;
 	str->len = len;
 }
+
+void LString_next(struct LString *str) {
+	str->str++;
+	str->len--;
+}
+
+char LString_first(const struct LString str) {
+	return str.str[0];
+}

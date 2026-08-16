@@ -26,7 +26,6 @@ void table_insert_str_cfunction(struct VM *vm, struct YASL_Table *ht, const char
 	YASL_Table_insert_fast(ht, ko, vo);
 }
 
-// \ttable_insert_str_cfunction\(vm, table, "[^"]*", &table_
 struct YASL_Table *undef_builtins(struct VM *vm) {
 	struct YASL_Table* table = YASL_Table_new();
 	table_insert_str_cfunction(vm, table, "tostr", &undef_tostr, 1);

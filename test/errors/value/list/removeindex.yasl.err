@@ -1,0 +1,1 @@
+ValueError: list.removeindex expected a value between 0 and 4, got 10 (line 2)

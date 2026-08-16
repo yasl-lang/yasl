@@ -77,6 +77,14 @@ vm_print_err_type((vm),\
  position,\
  expected,\
  actual)
+#define vm_throw_err_type(vm, format, ...) do {\
+	vm_print_err_type(vm, format, __VA_ARGS__);\
+	vm_throw_err(vm, YASL_TYPE_ERROR);\
+} while (0)
+#define vm_throw_err_value(vm, format, ...) do {\
+	vm_print_err_value(vm, format, __VA_ARGS__);\
+	vm_throw_err(vm, YASL_VALUE_ERROR);\
+} while (0)
 
 struct CallFrame {
 	unsigned char *pc;          // Where to reset the pc to after returning
@@ -175,5 +183,11 @@ void vm_pushstr_bb(struct VM *const vm, YASL_ByteBuffer *bb);
 #define vm_pushfn(vm, f) vm_push(vm, YASL_FN(f))
 
 int vm_run(struct VM *const vm);
+
+void vm_debug_echobacktrace(struct VM *const vm);
+int vm_debug_getglobal(struct VM* const vm);
+void vm_debug_setglobal(struct VM* const vm);
+int vm_debug_getlocal(struct VM *const vm, yasl_int frame, yasl_int offset);
+int vm_debug_setlocal(struct VM *const vm, yasl_int frame, yasl_int offset);
 
 #endif

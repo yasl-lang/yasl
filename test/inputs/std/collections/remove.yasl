@@ -1,0 +1,14 @@
+const table = collections.set()
+
+echo table
+echo len table
+
+
+table->remove(10)
+table->remove(11)
+table->remove(12)
+
+
+
+echo table
+echo len table

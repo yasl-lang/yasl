@@ -5,8 +5,7 @@
 
 int YASL_mt_get(struct YASL_State *S) {
 	if (!YASL_isntable(S, 0) && !YASL_isnlist(S, 0) && !vm_isuserdata(&S->vm)) {
-		vm_print_err_type((struct VM *)S, "cannot get metatable for value of type %s.", YASL_peektypename(S));
-		YASLX_throw_err_type(S);
+		vm_throw_err_type((struct VM *)S, "cannot get metatable for value of type %s.", YASL_peektypename(S));
 	}
 
 	vm_get_metatable((struct VM *)S);
@@ -26,8 +25,7 @@ int YASL_mt_set(struct YASL_State *S) {
 		ud_setmt(&S->vm, YASL_GETUSERDATA(vm_peek((struct VM *)S)), YASL_GETUSERDATA(mt));
 		break;
 	default:
-		vm_print_err_type((struct VM *)S, "cannot set metatable for value of type %s.", YASL_peektypename(S));
-		YASLX_throw_err_type(S);
+		vm_throw_err_type((struct VM *)S, "cannot set metatable for value of type %s.", YASL_peektypename(S));
 	}
 	return 1;
 }
@@ -61,17 +59,16 @@ int YASL_mt_lookup(struct YASL_State *S) {
 }
 
 int YASL_decllib_mt(struct YASL_State *S) {
-	YASL_declglobal(S, "mt");
 	YASL_pushtable(S);
-	YASL_setglobal(S, "mt");
+	YASLX_initglobal(S, "mt");
 
 	YASL_loadglobal(S, "mt");
 
 	struct YASLX_function functions[] = {
-		{"get",     YASL_mt_get,     1},
-		{"set",     YASL_mt_set,     2},
-		{"setself", YASL_mt_setself, 1},
-		{"lookup",  YASL_mt_lookup,  2},
+		{"get",     &YASL_mt_get,     1},
+		{"set",     &YASL_mt_set,     2},
+		{"setself", &YASL_mt_setself, 1},
+		{"lookup",  &YASL_mt_lookup,  2},
 		{NULL, 	    NULL,            0}
 	};
 

@@ -12,8 +12,8 @@ SETUP_YATS();
 	int result = YASL_compile(S);\
 	ASSERT_EQ(result, 4);\
 	const char *exp_err = "SyntaxError: " expected ".\n";\
-	ASSERT_EQ(strlen(exp_err), S->compiler.parser.lex.err.len);\
-	ASSERT_STR_EQ(exp_err, S->compiler.parser.lex.err.string, S->compiler.parser.lex.err.len);\
+	ASSERT_EQ(strlen(exp_err), S->compiler.parser.lex.err.str.len);\
+	ASSERT_STR_EQ(exp_err, S->compiler.parser.lex.err.str.str, S->compiler.parser.lex.err.str.len);\
 	YASL_delstate(S);\
 }
 

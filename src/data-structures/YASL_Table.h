@@ -57,8 +57,8 @@ void YASL_Table_insert_string_int(struct YASL_Table *const table, const char *co
 bool YASL_Table_contains_zstring_int(const struct YASL_Table *const table, const char *const key);
 void YASL_Table_insert_zstring_int(struct YASL_Table *const table, const char *const key, const int64_t val);
 
-yasl_int YASL_Table_length(const struct YASL_Table *const ht);
-struct YASL_Object YASL_Table_search(const struct YASL_Table *const table, const struct YASL_Object key);
+yasl_int YASL_Table_len(const struct YASL_Table *const ht);
+YASL_WARN_UNUSED struct YASL_Object YASL_Table_search(const struct YASL_Table *const table, const struct YASL_Object key);
 struct YASL_Object YASL_Table_search_string_int(const struct YASL_Table *const table, const char *const key,
 						const size_t key_len);
 struct YASL_Object YASL_Table_search_zstring_int(const struct YASL_Table *const table, const char *const key);
@@ -67,7 +67,7 @@ void YASL_Table_rm(struct YASL_Table *const table, const struct YASL_Object key)
 
 struct RC_UserData* rcht_new(struct VM *vm);
 struct RC_UserData* rcht_new_sized(struct VM *vm, const size_t base_size);
-void rcht_del(struct RC_UserData *const hashtable);
+void rcht_del(struct VM *const vm, struct RC_UserData *const hashtable);
 void rcht_del_data(struct YASL_State *S, void *const hashtable);
 void rcht_del_cstring_cfn(struct RC_UserData *const hashtable);
 

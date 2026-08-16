@@ -1,4 +1,8 @@
-#pragma once
+#ifndef TEST_UNITTESTS_TABLENEXTTEST_H_
+#define TEST_UNITTESTS_TABLENEXTTEST_H_
+
 #include "yats.h"
 
 TEST(tablenexttest);
+
+#endif  // TEST_UNITTESTS_TABLENEXTTEST_H_

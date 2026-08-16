@@ -221,7 +221,7 @@ static long lex_eatnumber_fill(struct Lexer *const lex, int (*isvaliddigit)(int)
 }
 
 static bool lex_eatint(struct Lexer *const lex, char separator, int (*isvaliddigit)(int)) {
-	int curr_pos = lxtell(lex->file);
+	long curr_pos = lxtell(lex->file);
 	int curr_char = lex->c;
 	if (lex->c == '0') {
 		lex_getchar(lex);

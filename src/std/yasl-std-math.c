@@ -3,11 +3,14 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <data-structures/YASL_Set.h>
-#include <interpreter/VM.h>
+#include <time.h>
 
-#include "util/prime.h"
+#include "data-structures/YASL_Set.h"
 #include "interpreter/YASL_Object.h"
+#include "interpreter/VM.h"
+#include "util/prng.h"
+#include "util/prime.h"
+
 #include "yasl_conf.h"
 #include "yasl.h"
 #include "yasl_aux.h"
@@ -313,22 +316,21 @@ static int YASL_math_clamp(struct YASL_State *S) {
 }
 
 static int YASL_math_rand(struct YASL_State *S) {
-	// rand() is only guarenteed to return a maximum of ~32000. Ensure all 64 bits are used
-	yasl_int r = (yasl_int) rand() ^((yasl_int) rand() << 16) ^((yasl_int) rand() << 32) ^((yasl_int) rand() << 48);
+	yasl_int r = (yasl_int)(ya_rand());
 	YASL_pushint(S, r);
 	return 1;
 }
 
 static int YASL_math_seed(struct YASL_State *S) {
-	yasl_int n = YASLX_checknint(S, "math.seed", 0);
-	srand(n);
+	int seed = (int)time(NULL);
+	unsigned n = (unsigned)YASLX_checknoptint(S, "math.seed", 0, seed);
+	ya_srand(n);
 	return 0;
 }
 
 int YASL_decllib_math(struct YASL_State *S) {
-	YASL_declglobal(S, "math");
 	YASL_pushtable(S);
-	YASL_setglobal(S, "math");
+	YASLX_initglobal(S, "math");
 
 	YASL_loadglobal(S, "math");
 
@@ -345,30 +347,30 @@ int YASL_decllib_math(struct YASL_State *S) {
 	YASL_tableset(S);
 
 	struct YASLX_function functions[] = {
-		{"abs",     YASL_math_abs,     1},
-		{"exp",     YASL_math_exp,     1},
-		{"log",     YASL_math_log,     1},
-		{"log2",    YASL_math_log2,    1},
-		{"log10",   YASL_math_log10,   1},
-		{"sqrt",    YASL_math_sqrt,    1},
-		{"cos",     YASL_math_cos,     1},
-		{"sin",     YASL_math_sin,     1},
-		{"tan",     YASL_math_tan,     1},
-		{"acos",    YASL_math_acos,    1},
-		{"asin",    YASL_math_asin,    1},
-		{"atan",    YASL_math_atan,    1},
-		{"ceil",    YASL_math_ceil,    1},
-		{"floor",   YASL_math_floor,   1},
-		{"max",     YASL_math_max,     -1},
-		{"min",     YASL_math_min,     -1},
-		{"deg",     YASL_math_deg,     1},
-		{"rad",     YASL_math_rad,     1},
-		{"isprime", YASL_math_isprime, 1},
-		{"gcd",     YASL_math_gcd,     2},
-		{"lcm",     YASL_math_lcm,     2},
-		{"clamp",   YASL_math_clamp,   3},
-		{"rand",    YASL_math_rand,    0},
-		{"seed",    YASL_math_seed,    1},
+		{"abs",     &YASL_math_abs,     1},
+		{"exp",     &YASL_math_exp,     1},
+		{"log",     &YASL_math_log,     1},
+		{"log2",    &YASL_math_log2,    1},
+		{"log10",   &YASL_math_log10,   1},
+		{"sqrt",    &YASL_math_sqrt,    1},
+		{"cos",     &YASL_math_cos,     1},
+		{"sin",     &YASL_math_sin,     1},
+		{"tan",     &YASL_math_tan,     1},
+		{"acos",    &YASL_math_acos,    1},
+		{"asin",    &YASL_math_asin,    1},
+		{"atan",    &YASL_math_atan,    1},
+		{"ceil",    &YASL_math_ceil,    1},
+		{"floor",   &YASL_math_floor,   1},
+		{"max",     &YASL_math_max,     -1},
+		{"min",     &YASL_math_min,     -1},
+		{"deg",     &YASL_math_deg,     1},
+		{"rad",     &YASL_math_rad,     1},
+		{"isprime", &YASL_math_isprime, 1},
+		{"gcd",     &YASL_math_gcd,     2},
+		{"lcm",     &YASL_math_lcm,     2},
+		{"clamp",   &YASL_math_clamp,   3},
+		{"rand",    &YASL_math_rand,    0},
+		{"seed",    &YASL_math_seed,    1},
 		{NULL, 	    NULL,              0}
 	};
 

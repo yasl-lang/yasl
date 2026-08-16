@@ -8,6 +8,7 @@
 #include "yasl_include.h"
 #include "src/interpreter/yasl_types.h"
 #include "yasl_state.h"
+#include "util/glob.h"
 
 #undef min
 
@@ -28,8 +29,8 @@ static struct YASL_List *checkList(struct YASL_State *S, const char *name, unsig
 		YASLX_print_and_throw_err_bad_arg_type_n(S, name, pos, YASL_LIST_NAME);
 	}
 
-    struct YASL_Object obj = vm_peek_fp(&S->vm, pos);
-    return YASL_GETLIST(obj);
+	struct YASL_Object obj = vm_peek_fp(&S->vm, pos);
+	 return YASL_GETLIST(obj);
 
 }
 
@@ -62,7 +63,7 @@ static int str___next(struct YASL_State *S) {
 	const char *str = YASLX_checknstr(S, "str.__next", 0, &len);
 	yasl_int curr = YASLX_checknint(S, "str.__next", 1);
 
-	if (curr < -(yasl_int)len || curr >= (yasl_int)len) {
+	if (curr < 0 || curr >= (yasl_int)len) {
 		YASL_pushbool(S, false);
 		return 1;
 	}
@@ -236,7 +237,7 @@ int str_tobyte(struct YASL_State *S) {
 	if (len != 1) {
 		YASLX_print_and_throw_err_value(S, "str.tobyte expected a str of len 1.");
 	}
-	YASL_pushint(S, *s);
+	YASL_pushint(S, (unsigned char)*s);
 	return 1;
 }
 
@@ -286,7 +287,7 @@ int str_replaceall(struct YASL_State *S) {
 		if (s_elem.type != Y_STR || r_elem.type != Y_STR) {
 			YASLX_print_and_throw_err_value(S,
 							"str.replaceall expected all elements of search/replace lists to be strs.");
-	   }
+		}
 		struct YASL_String *search_str = obj_getstr(&s_elem);
 		struct YASL_String *replace_str = obj_getstr(&r_elem);
 
@@ -326,8 +327,11 @@ int str_search(struct YASL_State *S) {
 	struct YASL_String *needle = checkstr(S, "str.search", 1);
 	yasl_int start = YASLX_checknoptint(S, "str.search", 2, 0);
 
-	if (start < 0 || start >= (yasl_int)YASL_String_len(haystack)) {
-		YASLX_print_and_throw_err_value(S, "str.search expected a starting index between 0 and %" PRI_SIZET ", got %" PRId64, YASL_String_len(haystack), start);
+	const yasl_int length = (yasl_int)YASL_String_len(haystack);
+
+	if (start < 0 || start > length) {
+		YASLX_print_and_throw_err_value(S,
+		  "str.search expected a starting index between 0 and %" PRI_SIZET ", got %" PRId64, length, start);
 	}
 
 	int64_t index = str_find_index(haystack, needle, start);
@@ -346,10 +350,11 @@ int str_searchall(struct YASL_State *S) {
 	struct YASL_String *needle = checkstr(S, "str.searchall", 1);
 	yasl_int start = YASLX_checknoptint(S, "str.searchall", 2, 0);
 
-	if (start < 0 || start >= (yasl_int)YASL_String_len(haystack)) {
-	   YASLX_print_and_throw_err_value(S,
-		  "str.searchall expected a starting index between 0 and %" PRI_SIZET ", got %" PRId64,
-		  YASL_String_len(haystack), start);
+	const yasl_int length = (yasl_int)YASL_String_len(haystack);
+
+	if (start < 0 || start > length) {
+		YASLX_print_and_throw_err_value(S,
+		  "str.searchall expected a starting index between 0 and %" PRI_SIZET ", got %" PRId64, length, start);
 	}
 
 	// allocate results list
@@ -383,8 +388,11 @@ int str_has(struct YASL_State *S) {
 	struct YASL_String *needle = checkstr(S, "str.has", 1);
 	yasl_int start = YASLX_checknoptint(S, "str.has", 2, 0);
 
-	if (start < 0 || start >= (yasl_int)YASL_String_len(haystack)) {
-		YASLX_print_and_throw_err_value(S, "str.has expected a starting index between 0 and %" PRI_SIZET ", got %" PRId64, YASL_String_len(haystack), start);
+	const yasl_int length = (yasl_int)YASL_String_len(haystack);
+
+	if (start < 0 || start > length) {
+		YASLX_print_and_throw_err_value(S,
+		  "str.has expected a starting index between 0 and %" PRI_SIZET ", got %" PRId64, length, start);
 	}
 
 	int64_t index = str_find_index(haystack, needle, start);
@@ -546,6 +554,21 @@ int str_rep(struct YASL_State *S) {
 		YASLX_print_and_throw_err_value(S, "str.rep expected non-negative int as arg 1.");
 	}
 
-	vm_pushstr((struct VM *) S, YASL_String_rep_fast((struct VM *)S, string, num));
+	vm_pushstr((struct VM *) S, YASL_String_rep_fast((struct VM *)S, string, (size_t)num));
+	return 1;
+}
+
+int str_like(struct YASL_State *S) {
+	struct YASL_String *string = checkstr(S, "str.like", 0);
+	struct YASL_String *pattern = checkstr(S, "str.like", 1);
+
+	bool error = false;
+	bool result = globL(pattern->s, string->s, &error);
+
+	if (error) {
+		YASLX_print_and_throw_err_value(S, "str.like received an invalid pattern: %*s", (int)pattern->s.len, pattern->s.str);
+	}
+
+	YASL_pushbool(S, result);
 	return 1;
 }

@@ -65,6 +65,6 @@ struct YASL_String *YASL_String_rtrim(struct VM *vm, struct YASL_String *haystac
 struct YASL_String *YASL_String_trim_default(struct VM *vm, struct YASL_String *haystack);
 struct YASL_String *YASL_String_trim(struct VM *vm, struct YASL_String *haystack, struct YASL_String *needle);
 // Caller ensures num is greater than or equal to zero
-struct YASL_String *YASL_String_rep_fast(struct VM *vm, struct YASL_String *string, yasl_int num);
+struct YASL_String *YASL_String_rep_fast(struct VM *vm, struct YASL_String *string, size_t num);
 
 #endif

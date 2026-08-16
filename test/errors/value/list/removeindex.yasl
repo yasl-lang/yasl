@@ -1,0 +1,5 @@
+const ls = [ 'a', 'b', 'c', 'd' ]
+echo ls->removeindex(10)
+
+const list = [ 'lm', 'no', 'pq', 'rs' ]
+echo list->removeindex(3)

@@ -1,4 +1,8 @@
-#pragma once
+#ifndef TEST_UNITTESTS_TESTCOMPILER_WHILETEST_H_
+#define TEST_UNITTESTS_TESTCOMPILER_WHILETEST_H_
+
 #include "yats.h"
 
 TEST(whiletest);
+
+#endif  // TEST_UNITTESTS_TESTCOMPILER_WHILETEST_H_

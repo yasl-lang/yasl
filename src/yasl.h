@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define YASL_VERSION "v0.13.8"
+#define YASL_VERSION "v0.13.9"
 
 #define YASL_STR_NAME "str"
 #define YASL_FLOAT_NAME "float"
@@ -51,8 +51,15 @@ int YASL_compile(struct YASL_State *S);
  */
 int YASL_declglobal(struct YASL_State *S, const char *name);
 
+/**
+ * Declarations of standard library.
+ * @param S the YASL_State
+ * @return YASL_SUCCESS
+ */
 int YASL_decllib_collections(struct YASL_State *S);
+int YASL_decllib_debug(struct YASL_State *S);
 int YASL_decllib_error(struct YASL_State *S);
+int YASL_decllib_eval(struct YASL_State *S);
 int YASL_decllib_io(struct YASL_State *S);
 int YASL_decllib_math(struct YASL_State *S);
 int YASL_decllib_mt(struct YASL_State *S);
@@ -61,7 +68,6 @@ int YASL_decllib_require(struct YASL_State *S);
 int YASL_decllib_require_c(struct YASL_State *S);
 int YASL_decllib_try(struct YASL_State *S);
 int YASL_decllib_package(struct YASL_State *S);
-int YASL_decllib_eval(struct YASL_State *S);
 
 /**
  * deletes the given YASL_State.
@@ -263,7 +269,7 @@ bool YASL_isuserptr(struct YASL_State *S);
 
 /**
  * [+1, -1]
- * Pops the top of the stack, the evalutes `len x`, where `x` is the popped value. The result is pushed on top
+ * Pops the top of the stack, then evaluates `len x`, where `x` is the popped value. The result is pushed on top
  * of the stack.
  * @param S the YASL_State.
  */
@@ -304,10 +310,34 @@ int YASL_loadglobal(struct YASL_State *S, const char *name);
  */
 int YASL_loadmt(struct YASL_State *S, const char *name);
 
+/**
+ * [-0, +1]
+ * Loads everything sent to stdout as a str and pushes it on top of the stack. Pushes an empty str if printout was not
+ * previously set via `YASL_setprintout_tostr`.
+ * @param S the YASL_State
+ */
 void YASL_loadprintout(struct YASL_State *S);
+
+/**
+ * [-0, +1]
+ * Loads everything sent to stdout as a str and pushes it on top of the stack. Pushes an empty str if printerr was not
+ * previously set via `YASL_setprinterr_tostr`.
+ * @param S the YASL_State
+ */
 void YASL_loadprinterr(struct YASL_State *S);
 
+/**
+ * [-0, +0]
+ * Resets printout to stdout. See also: `YASL_setprintout_tostr`.
+ * @param S the YASL_State
+ */
 void YASL_resetprintout(struct YASL_State *S);
+
+/**
+ * [-0, +0]
+ * Resets printerr to stderr. See also: `YASL_setprinterr_tostr`.
+ * @param S the YASL_State
+ */
 void YASL_resetprinterr(struct YASL_State *S);
 
 /**
@@ -331,69 +361,60 @@ YASL_WARN_UNUSED struct YASL_State *YASL_newstate_bb(const char *buf, size_t len
  * Returns the bool value of the top of the stack, if it is a boolean.
  * Otherwise returns false. Does not modify the stack.
  * @param S the YASL_State.
- * @return
  */
 YASL_WARN_UNUSED bool YASL_peekbool(struct YASL_State *S);
 
 /**
  * [-0, +0]
  * Returns a copy of the str value of the top of the stack, if the top of the stack is a str.
- * Otherwise returns 0. Does not modify the stack.
+ * Otherwise returns NULL.
  * @param S the YASL_State.
- * @return the value of the str on top of the stack, or NULL if it's not a str.
  */
 YASL_WARN_UNUSED char *YASL_peekcstr(struct YASL_State *S);
 
 /**
  * [-0, +0]
  * Returns the float value of the top of the stack, if the top of the stack is a float.
- * Otherwise returns 0.0. Does not modify the stack.
+ * Otherwise returns 0.0.
  * @param S the YASL_State.
- * @return
  */
 YASL_WARN_UNUSED yasl_float YASL_peekfloat(struct YASL_State *S);
 
 /**
  * [-0, +0]
  * Returns the int value of the top of the stack, if the top of the stack is an int.
- * Otherwise returns 0. Does not modify the stack.
+ * Otherwise returns 0.
  * @param S the YASL_State.
- * @return the value of the int on top of the stack, or 0 if it's not an int.
  */
 YASL_WARN_UNUSED yasl_int YASL_peekint(struct YASL_State *S);
 
 /**
  * [-0, +0]
  * Returns the bool value at index n, if it is a boolean.
- * Otherwise returns false. Does not modify the stack.
- * @param S
- * @return
+ * Otherwise returns false.
+ * @param S the YASL_State
  */
 YASL_WARN_UNUSED bool YASL_peeknbool(struct YASL_State *S, unsigned n);
 
 /**
  * [-0, +0]
  * Returns the float value at index n, if it is a float.
- * Otherwise returns 0.0. Does not modify the stack.
- * @param S
- * @return
+ * Otherwise returns 0.0.
+ * @param S the YASL_State
  */
 YASL_WARN_UNUSED yasl_float YASL_peeknfloat(struct YASL_State *S, unsigned n);
 
 /**
  * [-0, +0]
- * Returns the int value at index n, if it is an int.
- * Otherwise returns 0. Does not modify the stack.
- * The return value is owned by S, and modifying the stack may invalid the returned pointer.
+ * Returns the int value at index n, if it is an int. Otherwise returns 0.
  * @param S the YASL_State.
- * @return the value of the int at index n, or 0 if it's not an int.
  */
 YASL_WARN_UNUSED yasl_int YASL_peeknint(struct YASL_State *S, unsigned n);
 
 /**
  * [-0, +0]
  * Returns the str value at index n, if it is a str.
- * Otherwise returns NULL. Does not modify the stack.
+ * Otherwise returns NULL.
  * @param S the YASL_State.
  * @param n the index of the stack to check.
  * @outparam len the length of the string, filled only if the return value is non-NULL.
@@ -404,7 +425,7 @@ const char *YASL_peeknstr(struct YASL_State *S, unsigned n, size_t *len);
 /**
  * [-0, +0]
  * Returns the userdata value at index n, if it is a userdata.
- * Otherwise returns NULL. Does not modify the stack.
+ * Otherwise returns NULL.
  * @param S the YASL_State.
  * @return the userdata value at index n, or NULL if it's not a userdata.
  */
@@ -445,7 +466,7 @@ YASL_WARN_UNUSED const char *YASL_peekntypename(struct YASL_State *S, unsigned n
 /**
  * [-0, +0]
  * Returns the userdata value of the top of the stack, if the top of the stack is a userdata.
- * Otherwise returns NULL. Does not modify the stack.
+ * Otherwise returns NULL.
  * @param S the YASL_State.
  * @return the userdata value on top of the stack, or NULL if it's not a userdata.
  */
@@ -454,7 +475,7 @@ YASL_DEPRECATE YASL_WARN_UNUSED void *YASL_peekuserdata(struct YASL_State *S);
 /**
  * [-0, +0]
  * Returns the userptr value of the top of the stack, if the top of the stack is a userptr.
- * Otherwise returns NULL. Does not modify the stack.
+ * Otherwise returns NULL.
  * @param S the YASL_State.
  * @return the value of the userptr on top of the stack, or NULL if it's not a userptr.
  */
@@ -494,7 +515,7 @@ bool YASL_popbool(struct YASL_State *S);
 
 /**
  * [-1, +0]
- * Returns the str value (nul-terminated) of the top of the stack, if the top of the stack is a str.
+ * Returns a copy of the str value (nul-terminated) of the top of the stack, if the top of the stack is a str.
  * Otherwise returns NULL.
  * @param S the YASL_State.
  * @return the value of the str on top of the stack, or NULL if it's not a str.
@@ -679,8 +700,18 @@ int YASL_setglobal(struct YASL_State *S, const char *name);
  */
 int YASL_setmt(struct YASL_State *S);
 
+/**
+ * [-0, +0]
+ * Redirects printout to a str instead of to stdout.
+ * @param S the YASL_State
+ */
 void YASL_setprintout_tostr(struct YASL_State *S);
 
+/**
+ * [-0, +0]
+ * Redirects printerr to a str instead of to stdout.
+ * @param S the YASL_State
+ */
 void YASL_setprinterr_tostr(struct YASL_State *S);
 
 /**
@@ -720,7 +751,7 @@ int YASL_tableset(struct YASL_State *S);
 /**
  * [-0, +0]
  * Causes a fatal error.
- * @param S the YASL_State in which the error occured.
+ * @param S the YASL_State in which the error occurred.
  * @param error the error code.
  */
 YASL_NORETURN void YASL_throw_err(struct YASL_State *S, int error);

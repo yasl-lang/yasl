@@ -184,11 +184,10 @@ static yasl_int parseint64(const char *str, bool *ok) {
 }
 
 yasl_float YASL_String_tofloat(const char *chars, const size_t len) {
-	char *buffer = (char *)malloc(len + 1);
 	if (!isdigit((int)chars[0])) {
-		free(buffer);
 		return NAN;
 	}
+	char *buffer = (char *)malloc(len + 1);
 	size_t curr = 0;
 	for (size_t i = 0; i < len; ++i) {
 		if (chars[i] == '_' && chars[i-1] != '.') {
@@ -262,7 +261,7 @@ yasl_int YASL_String_toint(const char *chars, const size_t len) {
 }
 
 #define UPPER(c) (0x61 <= (c) && (c) < 0x7B ? (c) & ~0x20 : (c))
-#define LOWER(c) (0x41 <= curr && curr < 0x5B ? (c) | 0x20 : (c))
+#define LOWER(c) (0x41 <= (c) && (c) < 0x5B ? (c) | 0x20 : (c))
 
 // TODO: this is very ASCII reliant. Clean these up.
 #define DEFINE_STR_TO_X(name, fun) struct YASL_String *YASL_String_to##name(struct VM *vm, struct YASL_String *a) {\
@@ -524,8 +523,7 @@ struct YASL_String *YASL_String_trim(struct VM *vm, struct YASL_String *haystack
 }
 
 // Caller ensures num is greater than or equal to zero
-struct YASL_String *YASL_String_rep_fast(struct VM *vm, struct YASL_String *string, yasl_int num) {
-	YASL_ASSERT(num >= 0, "num must be non-negative");
+struct YASL_String *YASL_String_rep_fast(struct VM *vm, struct YASL_String *string, size_t num) {
 	const size_t string_len = YASL_String_len(string);
 	size_t size = num * string_len;
 	char *str = (char *)malloc(size);
@@ -535,4 +533,3 @@ struct YASL_String *YASL_String_rep_fast(struct VM *vm, struct YASL_String *stri
 
 	return YASL_String_new_take(vm, str, size);
 }
-

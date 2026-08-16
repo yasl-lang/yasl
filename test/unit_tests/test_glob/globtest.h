@@ -1,0 +1,6 @@
+#ifndef TEST_UNITTESTS_TESTGLOB_H_
+#define TEST_UNITTESTS_TESTGLOB_H_
+
+int globtest(void);
+
+#endif  // TEST_UNITTESTS_TESTGLOB_H_

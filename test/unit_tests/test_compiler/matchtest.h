@@ -1,4 +1,8 @@
-#pragma once
+#ifndef TEST_UNITTESTS_TESTCOMPILER_MATCHTEST_H_
+#define TEST_UNITTESTS_TESTCOMPILER_MATCHTEST_H_
+
 #include "yats.h"
 
 TEST(matchtest);
+
+#endif  // TEST_UNITTESTS_TESTCOMPILER_MATCHTEST_H_

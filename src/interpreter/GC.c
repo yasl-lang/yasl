@@ -135,6 +135,8 @@ static bool is_condemned(struct YASL_Object *obj) {
 		return obj->value.uval->rc.is_condemned;
 	case Y_STR:
 		return obj->value.sval->rc.is_condemned;
+	case Y_TABLE:
+		return obj->value.uval->rc.is_condemned;
 	default:
 		return false;
 	}

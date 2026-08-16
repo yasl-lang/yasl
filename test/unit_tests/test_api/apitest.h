@@ -1,3 +1,6 @@
-#pragma once
+#ifndef TEST_UNITTESTS_TESTAPI_H_
+#define TEST_UNITTESTS_TESTAPI_H_
 
 int apitest(void);
+
+#endif  // TEST_UNITTESTS_TESTAPI_H_

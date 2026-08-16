@@ -1,4 +1,8 @@
-#pragma once
+#ifndef TEST_UNITTESTS_TESTCOmPILER_UNOPTEST_H_
+#define TEST_UNITTESTS_TESTCOmPILER_UNOPTEST_H_
+
 #include "yats.h"
 
 TEST(unoptest);
+
+#endif  // TEST_UNITTESTS_TESTCOmPILER_UNOPTEST_H_
