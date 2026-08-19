@@ -190,6 +190,7 @@ static const char *inputs[] = {
   "test/inputs/std/math/math.yasl",
   "test/inputs/std/require/ifdef.yasl",
   "test/inputs/std/require/require.yasl",
+  "test/inputs/std/require/test.yasl",
   "test/inputs/std/mt/setmt.yasl",
   "test/inputs/std/mt/mt.yasl",
   "test/inputs/std/try.yasl",

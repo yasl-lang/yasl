@@ -43,6 +43,9 @@ static int YASL_require_helper(struct YASL_State *S, struct YASL_State *Ss) {
 	// Load Standard Libraries
 	YASLX_decllibs(Ss);
 
+	YASL_pushbool(Ss, true);
+	YASLX_initglobal(Ss, "__is_submodule__");
+
 	YASL_setprinterr_tostr(Ss);
 	YASL_setprintout_tostr(Ss);
 
