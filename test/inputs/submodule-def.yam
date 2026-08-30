@@ -1,0 +1,9 @@
+let tmp = undef
+
+ifdef __is_submodule__ {
+  tmp = 'submodule: submodule'
+} else {
+  tmp = 'submodule: not submodule'
+}
+
+export tmp

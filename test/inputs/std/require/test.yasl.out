@@ -1,0 +1,2 @@
+script: not submodule
+submodule: submodule
