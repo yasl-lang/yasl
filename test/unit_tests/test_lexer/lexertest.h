@@ -1,3 +1,6 @@
-#pragma once
+#ifndef TEST_UNITTESTS_TESTLEXER_LEXERTEST_H_
+#define TEST_UNITTESTS_TESTLEXER_LEXERTEST_H_
 
 int lexertest(void);
+
+#endif  // TEST_UNITTESTS_TESTLEXER_LEXERTEST_H_
