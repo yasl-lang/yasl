@@ -1,3 +1,6 @@
-#pragma once
+#ifndef TEST_UNITTESTS_TESTENV_ENVTEST_H_
+#define TEST_UNITTESTS_TESTENV_ENVTEST_H_
 
 int envtest(void);
+
+#endif  // TEST_UNITTESTS_TESTENV_ENVTEST_H_
