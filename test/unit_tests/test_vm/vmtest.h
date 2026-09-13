@@ -1,3 +1,6 @@
-#pragma once
+#ifndef TEST_UNITTESTS_TESTVM_VMTEST_H_
+#define TEST_UNITTESTS_TESTVM_VMTEST_H_
 
 int vmtest(void);
+
+#endif  // TEST_UNITTESTS_TESTVM_VMTEST_H_

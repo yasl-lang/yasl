@@ -1,3 +1,6 @@
-#pragma once
+#ifndef TEST_UNITTESTS_TESTUTIL_UTILTEST_H_
+#define TEST_UNITTESTS_TESTUTIL_UTILTEST_H_
 
 int utiltest(void);
+
+#endif  // TEST_UNITTESTS_TESTUTIL_UTILTEST_H_
