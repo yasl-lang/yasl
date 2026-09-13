@@ -1,6 +1,3 @@
-#ifndef TEST_UNITTESTS_TESTGC_GCTEST_H_
-#define TEST_UNITTESTS_TESTGC_GCTEST_H_
+#pragma once
 
 int gctest(void);
-
-#endif  // TEST_UNITTESTS_TESTGC_GCTEST_H_

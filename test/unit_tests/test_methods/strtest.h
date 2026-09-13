@@ -1,7 +1,4 @@
-#ifndef TEST_UNITTESTS_TESTMETHODS_STRTEST_H_
-#define TEST_UNITTESTS_TESTMETHODS_STRTEST_H_
+#pragma once
 #include "yats.h"
 
 TEST(strtest);
-
-#endif  // TEST_UNITTESTS_TESTMETHODS_STRTEST_H_

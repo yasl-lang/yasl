@@ -1,5 +1,4 @@
-#ifndef TEST_YATS_H_
-#define TEST_YATS_H_
+#pragma once
 
 #include <inttypes.h>
 #include <stdlib.h>
@@ -83,5 +82,3 @@
 struct Lexer setup_lexer(const char *file_contents);
 void setup_compiler(const char *file_contents);
 int64_t getsize(FILE *file);
-
-#endif  // TEST_YATS_H_
