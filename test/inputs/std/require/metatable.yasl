@@ -1,0 +1,3 @@
+const mod = require('test/inputs/require_metatable.yam')
+echo mod->value()
+echo mod->add(5)

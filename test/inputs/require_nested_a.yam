@@ -1,0 +1,2 @@
+let value = 10
+export { .value: value }
