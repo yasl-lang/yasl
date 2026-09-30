@@ -67,6 +67,9 @@
 #if defined(YASL_USE_UNIX) || defined(YASL_USE_APPLE)
 #define YASL_DEFAULT_CPATH "/usr/local/lib/yasl/lib?.so;" "/usr/local/lib/yasl/?.so;" "./lib?.so;" "./?.so;"
 #define YASL_DEFAULT_PATH "/usr/local/lib/yasl/?.yasl;" "./?.yasl;"
+#elif defined(YASL_USE_WIN)
+#define YASL_DEFAULT_CPATH "C:\\Program Files\\YASL\\lib?.dll;" "C:\\Program Files\\YASL\\?.dll;" ".\\lib?.dll;" ".\\?.dll;"
+#define YASL_DEFAULT_PATH "C:\\Program Files\\YASL\\?.yasl;" ".\\?.yasl;"
 #endif
 
 #ifndef YASL_DEFAULT_CPATH

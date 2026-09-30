@@ -1,0 +1,10 @@
+let obj = { .value: 7 }
+let ops = {}
+ops.value = fn(self) {
+    return self.value
+}
+ops.add = fn(self, x) {
+    return self.value + x
+}
+mt.set(obj, ops)
+export obj

@@ -215,6 +215,9 @@ add_library(test_module SHARED
         )
 
 set_property(TARGET test_module PROPERTY POSITION_INDEPENDENT_CODE ON)
+if(APPLE)
+    set_target_properties(test_module PROPERTIES SUFFIX ".so")
+endif()
 
 if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*MSVC.*")
     target_link_libraries(yasl m)

@@ -1,0 +1,5 @@
+const a = require('test/inputs/require_nested_a.yam')
+const b = require('test/inputs/require_nested_b.yam')
+echo a.value
+echo b.value
+echo b.inner.value
