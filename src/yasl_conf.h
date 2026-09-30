@@ -33,6 +33,12 @@
 #define YASL_WARN_UNUSED
 #endif  // defined __GNUC__ || defined __clang__
 
+#if defined(_MSC_VER)
+#define YASL_MODULE_EXPORT __declspec(dllexport)
+#else
+#define YASL_MODULE_EXPORT
+#endif
+
 #if defined(WIN32) || defined(_WIN32)
 #define YASL_USE_WIN
 #elif defined(__unix__)

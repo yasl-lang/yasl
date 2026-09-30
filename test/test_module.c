@@ -9,7 +9,7 @@ static int hello_world(struct YASL_State *S) {
 extern "C" {
 #endif
 
-int YASL_load_dyn_lib(struct YASL_State *S) {
+int YASL_MODULE_EXPORT YASL_load_dyn_lib(struct YASL_State *S) {
 	YASL_pushcfunction(S, &hello_world, 0);
 	return 1;
 }
