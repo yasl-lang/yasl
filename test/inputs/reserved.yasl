@@ -1,0 +1,16 @@
+const check = fn(label, code) {
+    echo label
+    const s, let e = try(eval, code)
+    echo e->ltrim('Error while loading module: ')->rtrim('\n')
+}
+
+check('reserved_do', 'do')
+check('reserved_enum', 'enum')
+check('reserved_extern', 'extern')
+check('reserved_global', 'global')
+check('reserved_header', 'header')
+check('reserved_no', 'no')
+check('reserved_pragma', 'pragma')
+check('reserved_struct', 'struct')
+check('reserved_typename', 'typename')
+check('reserved_use', 'use')

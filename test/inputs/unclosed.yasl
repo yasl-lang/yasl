@@ -1,0 +1,14 @@
+const check = fn(label, code) {
+    echo label
+    const s, let e = try(eval, code)
+    echo e->ltrim('Error while loading module: ')->rtrim('\n')
+}
+
+check('unclosed_block_comment', '/*unclosed block comment')
+check('unclosed_str_double_eof', '"unclosed string')
+check('unclosed_str_double_newline', '"unclosed string\n')
+check('unclosed_str_interp_body_eof', '"hello #{1}world')
+check('unclosed_str_interp_body_newline', '"hello #{1}world\n')
+check('unclosed_str_raw_eof', '\x60unclosed string')
+check('unclosed_str_single_eof', '\'unclosed string')
+check('unclosed_str_single_newline', '\'unclosed string\n')

@@ -1,0 +1,8 @@
+invalid_hex_string_escape
+SyntaxError: Invalid hex string escape in line 1.
+invalid_int_literal
+SyntaxError: Invalid int literal in line 1.
+invalid_string_escape
+SyntaxError: Invalid string escape sequence in line 1.
+unknown_character
+SyntaxError: Unknown character in line 1: 0x40 (`@`).
