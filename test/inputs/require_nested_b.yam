@@ -1,0 +1,3 @@
+const inner = require('test/inputs/require_nested_a.yam')
+let value = 20
+export { .value: value, .inner: inner }

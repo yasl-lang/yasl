@@ -1,0 +1,1 @@
+echo __require_c__("test_module")()

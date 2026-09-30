@@ -1,0 +1,9 @@
+
+
+ifdef __is_submodule__ {
+  echo 'script: submodule'
+} else {
+  echo 'script: not submodule'
+}
+
+echo require('test/inputs/submodule-def.yam')

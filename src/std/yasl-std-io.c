@@ -8,6 +8,8 @@
 #include "VM.h"
 #include "yasl_aux.h"
 
+#include "interpreter/VM.h"
+
 // what to prepend to method names in messages to user
 #define FILE_PRE "io.file"
 
@@ -244,6 +246,32 @@ static int YASL_io_close(struct YASL_State *S) {
 	return 1;
 }
 
+void vm_CALL_now(struct VM *const vm);
+void vm_rm(struct VM *const vm, int index);
+
+static int YASL_io_capture(struct YASL_State *S) {
+	struct VM *vm = (struct VM *)S;
+	void (*old_print_err)(struct IO *const, const char *const, va_list) = vm->err.print;
+	void (*old_print_out)(struct IO *const, const char *const, va_list) = vm->out.print;
+
+	vm->err.print = &io_print_string;
+	vm->out.print = &io_print_string;
+	/* YASL inserts an extra argument here, to count the number of variadic arguments. We remove it here since it
+	 * interferes with us calling the next function.
+	 */
+	vm_rm(vm, vm->fp + 2);
+	vm_INIT_CALL_offset(vm, vm->fp + 1, -1);
+	vm_CALL_now(vm);
+
+	YASL_pushlstr(S, vm->out.str.str, vm->out.str.len);
+	YASL_pushlstr(S, vm->err.str.str, vm->err.str.len);
+
+	vm->err.print = old_print_err;
+	vm->out.print = old_print_out;
+
+	return 2;
+}
+
 int YASL_decllib_io(struct YASL_State *S) {
 	YASL_pushtable(S);
 	YASL_registermt(S, FILE_NAME);
@@ -276,6 +304,10 @@ int YASL_decllib_io(struct YASL_State *S) {
 
 	YASL_pushlit(S, "setformat");
 	YASL_pushcfunction(S, YASL_io_setformat, 1);
+	YASL_tableset(S);
+
+	YASL_pushlit(S, "capture");
+	YASL_pushcfunction(S, YASL_io_capture, -2);
 	YASL_tableset(S);
 
 	YASL_pushlit(S, "stdin");
