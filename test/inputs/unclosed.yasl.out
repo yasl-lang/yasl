@@ -1,0 +1,16 @@
+unclosed_block_comment
+SyntaxError: Unclosed block comment in line 1.
+unclosed_str_double_eof
+SyntaxError: Unclosed string literal in line 1.
+unclosed_str_double_newline
+SyntaxError: Unclosed string literal in line 1.
+unclosed_str_interp_body_eof
+SyntaxError: Unclosed string literal in line 1.
+unclosed_str_interp_body_newline
+SyntaxError: Unclosed string literal in line 1.
+unclosed_str_raw_eof
+SyntaxError: Unclosed string literal in line 1.
+unclosed_str_single_eof
+SyntaxError: Unclosed string literal in line 1.
+unclosed_str_single_newline
+SyntaxError: Unclosed string literal in line 1.

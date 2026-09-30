@@ -1,0 +1,10 @@
+const check = fn(label, code) {
+    echo label
+    const s, let e = try(eval, code)
+    echo e->ltrim('Error while loading module: ')->rtrim('\n')
+}
+
+check('invalid_hex_string_escape', "echo 'hello \\xworld'")
+check('invalid_int_literal', '0b2')
+check('invalid_string_escape', "echo 'hello \\o world'")
+check('unknown_character', '@')

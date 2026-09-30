@@ -1,0 +1,20 @@
+reserved_do
+SyntaxError: `do` is an unused reserved word and cannot be used (line 1).
+reserved_enum
+SyntaxError: `enum` is an unused reserved word and cannot be used (line 1).
+reserved_extern
+SyntaxError: `extern` is an unused reserved word and cannot be used (line 1).
+reserved_global
+SyntaxError: `global` is an unused reserved word and cannot be used (line 1).
+reserved_header
+SyntaxError: `header` is an unused reserved word and cannot be used (line 1).
+reserved_no
+SyntaxError: `no` is an unused reserved word and cannot be used (line 1).
+reserved_pragma
+SyntaxError: `pragma` is an unused reserved word and cannot be used (line 1).
+reserved_struct
+SyntaxError: `struct` is an unused reserved word and cannot be used (line 1).
+reserved_typename
+SyntaxError: `typename` is an unused reserved word and cannot be used (line 1).
+reserved_use
+SyntaxError: `use` is an unused reserved word and cannot be used (line 1).
